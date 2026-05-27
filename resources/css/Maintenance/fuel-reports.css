@@ -1,0 +1,191 @@
+/* FUEL REPORTS PAGE ONLY */
+
+.table-card,
+.fuel-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* CARD HEADER */
+.section-header {
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.section-header p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* TOOLBAR SAME STYLE AS JOB ORDER */
+.fuel-toolbar {
+  width: 100%;
+  padding: 12px 16px;
+  gap: 12px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.fuel-toolbar .search-box {
+  flex: 1;
+}
+
+.fuel-toolbar .search-box input {
+  height: 38px;
+  font-size: 13px;
+  border-radius: 9px;
+  padding-left: 40px;
+}
+
+.fuel-toolbar .search-box i {
+  font-size: 13px;
+  left: 14px;
+}
+
+.fuel-toolbar .filter-group {
+  gap: 8px;
+}
+
+.fuel-toolbar .filter-group label {
+  font-size: 12px;
+}
+
+.fuel-toolbar .filter-group select {
+  height: 38px;
+  min-width: 120px;
+  font-size: 13px;
+  border-radius: 9px;
+  padding: 0 10px;
+}
+
+.fuel-toolbar .primary-btn {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: 9px;
+  gap: 7px;
+}
+
+.fuel-toolbar .primary-btn i {
+  font-size: 13px;
+}
+
+/* TABLE */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.fuel-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.fuel-table thead {
+  background: #f0f5fc;
+}
+
+.fuel-table th {
+  padding: 14px 13px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.fuel-table td {
+  padding: 14px 13px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.fuel-table tbody tr:hover {
+  background: #f7faff;
+}
+
+.fuel-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.danger-row {
+  background: #fff1f1;
+}
+
+.danger-row:hover {
+  background: #ffe8e8 !important;
+}
+
+/* BADGES */
+.badge {
+  min-width: 96px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.badge.efficient {
+  background: #ddf8e7;
+  color: #16a34a;
+}
+
+.badge.normal {
+  background: #e7f0ff;
+  color: #0057f8;
+}
+
+.badge.inefficient {
+  background: #ffe2e2;
+  color: #dc2626;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .fuel-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
