@@ -37,7 +37,7 @@
       </div>
 
       <nav class="menu">
-        <a href="{{ route('dashboard') }}" class="menu-item">
+        <a href="{{ route('dashboard-maintenance') }}" class="menu-item">
           <i class="fa-solid fa-table-cells-large"></i>
           <span>Dashboard</span>
         </a>

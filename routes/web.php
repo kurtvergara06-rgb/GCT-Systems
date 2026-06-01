@@ -2,53 +2,28 @@
 
 use Illuminate\Support\Facades\Route;
 
-// ROUTE FOR LOGIN //
-Route::get('/', function () {
-    return view('Login_Register.login');
-})->name('login');
+// Login //
+Route::view('/', 'Login_Register.login')->name('login');
+Route::view('/register', 'Login_Register.register')->name('register');
 
-Route::get('/register', function () {
-    return view('Login_Register.register');
-})->name('register');
+// Maintenance //
+Route::view('/dashboard', 'Maintenance.dashboard-maintenance')->name('dashboard-maintenance');
+Route::view('/job-orders', 'Maintenance.job-order')->name('job-orders');
+Route::view('/mechanic-list', 'Maintenance.mechanic-list')->name('mechanic-list');
+Route::view('/PMS-Scheduling', 'Maintenance.PMS-Scheduling')->name('PMS-Scheduling');
+Route::view('/purchase-requests', 'Maintenance.purchase-request')->name('purchase-requests');
+Route::view('/fuel-reports', 'Maintenance.fuel-reports')->name('fuel-reports');
+Route::view('/settings', 'Maintenance.settings')->name('settings');
 
-       //  Maintenance routes //
+// Warehouse //
+Route::view('/Inventory', 'Warehouse.Inventory')->name('Inventory');
+Route::view('/part-requests', 'Warehouse.Part-Requests')->name('part-requests');
 
-Route::get('/dashboard', function () {
-    return view('Maintenance.dashboard');
-})->name('dashboard');
+// Purchase //
+Route::view('/purchase-orders', 'Purchase.purchase-orders')->name('purchase-orders');
+Route::view('/requested-purchase', 'Purchase.requested-purchase')->name('requested-purchase');
+Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')->name('scheduled-purchase');
 
-Route::get('/job-orders', function () {
-    return view('Maintenance.job-order');
-})->name('job-orders');
-
-Route::get('/mechanic-list', function () {
-    return view('Maintenance.mechanic-list');
-})->name('mechanic-list');
-
-Route::get('/PMS-Scheduling', function () {
-    return view('Maintenance.PMS-Scheduling');
-})->name('PMS-Scheduling');
-
-Route::get('/purchase-requests', function () {
-    return view('Maintenance.purchase-request');
-})->name('purchase-requests');
-
-Route::get('/fuel-reports', function () {
-    return view('Maintenance.fuel-reports');
-})->name('fuel-reports');
-
-Route::get('/settings', function () {
-    return view('Maintenance.settings');
-})->name('settings');
-
-
-// Warehouse Routes //
-
-Route::get('/Inventory', function () {
-    return view('Warehouse.Inventory');
-})->name('Inventory');
-
-Route::get('/part-requests', function () {
-    return view('Warehouse.Part-Requests');
-})->name('part-requests');
-
+// Operations //
+Route::view('/dashboard-operation', 'Operation.dashboard-operation')->name('dashboard-operation');
+Route::view('/available-mechanics', 'Operation.available-mechanics')->name('available-mechanics');
