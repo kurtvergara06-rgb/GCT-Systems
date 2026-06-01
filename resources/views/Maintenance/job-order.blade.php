@@ -11,11 +11,29 @@
   @vite([
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Maintenance/job-order.css'
+    'resources/css/Maintenance/job-order.css',
+    'resources/js/Maintenance/job-order.js'
   ])
 </head>
 
 <body>
+
+  @if(session('success'))
+    <div id="successModal" class="success-modal-overlay show">
+      <div class="success-modal-box">
+        <div class="success-icon">
+          <i class="fa-solid fa-check"></i>
+        </div>
+
+        <h2>Success</h2>
+        <p>{{ session('success') }}</p>
+
+        <button type="button" id="closeSuccessModal" class="save-btn">
+          Okay
+        </button>
+      </div>
+    </div>
+  @endif
 
   <div class="app">
 
@@ -111,6 +129,16 @@
         </div>
       </header>
 
+      @if($errors->any())
+        <div class="alert-error">
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
       <!-- SUMMARY CARDS -->
       <section class="stats-grid">
 
@@ -121,7 +149,7 @@
 
           <div>
             <p>On Hold</p>
-            <h2>3</h2>
+            <h2>{{ $onHold }}</h2>
             <small>Job Orders</small>
           </div>
 
@@ -135,7 +163,7 @@
 
           <div>
             <p>On Going</p>
-            <h2>1</h2>
+            <h2>{{ $onGoing }}</h2>
             <small>Job Order</small>
           </div>
 
@@ -149,7 +177,7 @@
 
           <div>
             <p>Completed</p>
-            <h2>5</h2>
+            <h2>{{ $completed }}</h2>
             <small>Job Orders</small>
           </div>
 
@@ -163,7 +191,7 @@
 
           <div>
             <p>Urgent Repair</p>
-            <h2>2</h2>
+            <h2>{{ $urgentRepair }}</h2>
             <small>Needs attention</small>
           </div>
 
@@ -182,179 +210,189 @@
           </div>
         </div>
 
-        <div class="toolbar job-toolbar">
+        <form method="GET" action="{{ route('job-orders') }}" class="toolbar job-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search service, JO no., bus, or mechanic...">
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search service, JO no., bus, or mechanic..."
+            >
           </div>
 
           <div class="filter-group">
             <label>Status</label>
-            <select>
-              <option>All Statuses</option>
-              <option>On Hold</option>
-              <option>On Going</option>
-              <option>Completed</option>
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+                All Statuses
+              </option>
+              <option value="On Hold" {{ request('status') == 'On Hold' ? 'selected' : '' }}>
+                On Hold
+              </option>
+              <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>
+                On Going
+              </option>
+              <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>
+                Completed
+              </option>
+              <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>
+                Urgent Repair
+              </option>
             </select>
           </div>
 
           <div class="filter-group">
             <label>Type</label>
-            <select>
-              <option>All Types</option>
-              <option>PMS</option>
-              <option>Repair</option>
+            <select name="type" onchange="this.form.submit()">
+              <option value="All Types" {{ request('type') == 'All Types' ? 'selected' : '' }}>
+                All Types
+              </option>
+              <option value="PMS" {{ request('type') == 'PMS' ? 'selected' : '' }}>
+                PMS
+              </option>
+              <option value="Repair" {{ request('type') == 'Repair' ? 'selected' : '' }}>
+                Repair
+              </option>
             </select>
           </div>
 
-          <button class="primary-btn">
+          <button type="button" class="primary-btn" id="openJobModal">
             <i class="fa-solid fa-plus"></i>
             New JO
           </button>
-        </div>
+        </form>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>
-                  <input type="checkbox">
-                </th>
+                <th><input type="checkbox"></th>
                 <th>JO No.</th>
                 <th>Bus #</th>
                 <th>Service</th>
                 <th>Type</th>
                 <th>Assigned Mechanic</th>
                 <th>Status</th>
-                <th>Duration</th>
+                <th>Start Time</th>
+                <th>End Time</th>
                 <th>Date Reported</th>
                 <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0001</td>
-                <td>BUS-001</td>
-                <td>Engine Oil Filter</td>
-                <td>PMS</td>
-                <td class="empty">—</td>
-                <td><span class="badge hold">On Hold</span></td>
-                <td class="empty">—</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+              @forelse($jobOrders as $jobOrder)
+                <tr>
+                  <td>
+                    <input type="checkbox">
+                  </td>
 
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0011</td>
-                <td>BUS-003</td>
-                <td>Transmission</td>
-                <td>Repair</td>
-                <td>Leo Fernandez</td>
-                <td><span class="badge ongoing">On Going</span></td>
-                <td>9:00 AM | --:--</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $jobOrder->job_order_no }}</td>
 
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0012</td>
-                <td>BUS-004</td>
-                <td>Brake</td>
-                <td>Repair</td>
-                <td>Ronald Mendoza</td>
-                <td><span class="badge completed">Completed</span></td>
-                <td>9:00 AM | 3:00 PM</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $jobOrder->bus_no }}</td>
 
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0031</td>
-                <td>BUS-006</td>
-                <td>
-                  Engine Oil Filter
-                  <span class="sub-text">Transmission</span>
-                </td>
-                <td>PMS</td>
-                <td>Roy Muntalban</td>
-                <td><span class="badge completed">Completed</span></td>
-                <td>9:00 AM | 3:00 PM</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $jobOrder->service }}</td>
 
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0032</td>
-                <td>BUS-010</td>
-                <td>Engine Oil Filter</td>
-                <td>Repair</td>
-                <td>Rowell Aspanao</td>
-                <td><span class="badge completed">Completed</span></td>
-                <td>9:00 AM | 3:00 PM</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $jobOrder->type }}</td>
 
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>JO-26-0032</td>
-                <td>BUS-010</td>
-                <td>Engine Oil Filter</td>
-                <td>PMS</td>
-                <td class="empty">—</td>
-                <td><span class="badge hold">On Hold</span></td>
-                <td class="empty">—</td>
-                <td>Apr 5, 2026 09:30 AM</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td class="{{ $jobOrder->assigned_mechanic ? '' : 'empty' }}">
+                    {{ $jobOrder->assigned_mechanic ?? '—' }}
+                  </td>
+
+                  <td>
+                    @php
+                      $badgeClass = match($jobOrder->status) {
+                        'On Hold' => 'hold',
+                        'On Going' => 'ongoing',
+                        'Completed' => 'completed',
+                        'Urgent Repair' => 'urgent',
+                        default => 'hold'
+                      };
+                    @endphp
+
+                    <span class="badge {{ $badgeClass }}">
+                      {{ $jobOrder->status }}
+                    </span>
+                  </td>
+
+                  <td class="{{ $jobOrder->start_time ? '' : 'empty' }}">
+                    @if($jobOrder->start_time)
+                      {{ date('g:i A', strtotime($jobOrder->start_time)) }}
+                    @else
+                      —
+                    @endif
+                  </td>
+
+                  <td class="{{ $jobOrder->end_time ? '' : 'empty' }}">
+                    @if($jobOrder->end_time)
+                      {{ date('g:i A', strtotime($jobOrder->end_time)) }}
+                    @else
+                      —
+                    @endif
+                  </td>
+
+                  <td>
+                    {{ date('M d, Y h:i A', strtotime($jobOrder->date_reported)) }}
+                  </td>
+
+                  <td>
+                    <div class="actions">
+                      <button
+                        type="button"
+                        class="edit open-edit-modal"
+                        data-id="{{ $jobOrder->id }}"
+                        data-job-order-no="{{ $jobOrder->job_order_no }}"
+                        data-bus-no="{{ $jobOrder->bus_no }}"
+                        data-service="{{ $jobOrder->service }}"
+                        data-type="{{ $jobOrder->type }}"
+                        data-assigned-mechanic="{{ $jobOrder->assigned_mechanic }}"
+                        data-status="{{ $jobOrder->status }}"
+                        data-start-time="{{ $jobOrder->start_time }}"
+                        data-end-time="{{ $jobOrder->end_time }}"
+                        data-date-reported="{{ date('Y-m-d\TH:i', strtotime($jobOrder->date_reported)) }}"
+                      >
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+
+                      <form
+                        id="deleteForm-{{ $jobOrder->id }}"
+                        action="{{ route('job-orders.destroy', $jobOrder->id) }}"
+                        method="POST"
+                      >
+                        @csrf
+                        @method('DELETE')
+
+                        <button
+                          type="button"
+                          class="delete open-delete-modal"
+                          data-id="{{ $jobOrder->id }}"
+                          data-jo-no="{{ $jobOrder->job_order_no }}"
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="11" style="text-align:center; padding: 30px;">
+                    No job orders found.
+                  </td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
 
         <div class="table-footer">
-          <p>Showing 1 to 6 of 9 entries</p>
+          <p>
+            Showing {{ $jobOrders->firstItem() ?? 0 }} to {{ $jobOrders->lastItem() ?? 0 }} of {{ $jobOrders->total() }} entries
+          </p>
 
           <div class="pagination">
-            <button><i class="fa-solid fa-chevron-left"></i></button>
-            <button class="active-page">1</button>
-            <button>2</button>
-            <button><i class="fa-solid fa-chevron-right"></i></button>
+            {{ $jobOrders->links() }}
           </div>
         </div>
 
@@ -362,6 +400,211 @@
 
     </main>
 
+  </div>
+
+  <!-- NEW JOB ORDER MODAL -->
+  <div id="jobModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+      <div class="modal-header">
+        <h2>New Job Order</h2>
+        <button type="button" id="closeJobModal" class="close-btn">&times;</button>
+      </div>
+
+      <form action="{{ route('job-orders.store') }}" method="POST" class="job-form wide-form">
+        @csrf
+
+        <div class="form-section-title full-width">
+          <h3>Job Order Details</h3>
+          <p>Enter the basic information of the service request.</p>
+        </div>
+
+        <div class="form-group">
+          <label>JO No.</label>
+          <input type="text" name="job_order_no" placeholder="Example: JO-26-0001" required>
+        </div>
+
+        <div class="form-group">
+          <label>Bus #</label>
+          <input type="text" name="bus_no" placeholder="Example: BUS-001" required>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Service</label>
+          <input type="text" name="service" placeholder="Example: Engine Oil Filter" required>
+        </div>
+
+        <div class="form-group">
+          <label>Type</label>
+          <select name="type" required>
+            <option value="">Select Type</option>
+            <option value="PMS">PMS</option>
+            <option value="Repair">Repair</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="On Hold">On Hold</option>
+            <option value="On Going">On Going</option>
+            <option value="Completed">Completed</option>
+            <option value="Urgent Repair">Urgent Repair</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Assigned Mechanic</label>
+          <input type="text" name="assigned_mechanic" placeholder="Optional">
+        </div>
+
+        <div class="form-section-divider full-width">
+          <span>Work Time Details</span>
+        </div>
+
+        <div class="form-row time-section full-width">
+          <div class="form-group">
+            <label>Start Time</label>
+            <input type="time" name="start_time">
+          </div>
+
+          <div class="form-group">
+            <label>End Time</label>
+            <input type="time" name="end_time">
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Date Reported</label>
+          <input type="datetime-local" name="date_reported" required>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelJobModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Save Job Order
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT / DETAILS JOB ORDER MODAL -->
+  <div id="editJobModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+      <div class="modal-header">
+        <h2>Job Order Details</h2>
+        <button type="button" id="closeEditJobModal" class="close-btn">&times;</button>
+      </div>
+
+      <form id="editJobForm" method="POST" class="job-form wide-form">
+        @csrf
+        @method('PUT')
+
+        <div class="form-section-title full-width">
+          <h3>Editable JO Information</h3>
+          <p>Review and update the selected job order.</p>
+        </div>
+
+        <div class="form-group">
+          <label>JO No.</label>
+          <input type="text" name="job_order_no" id="edit_job_order_no" required>
+        </div>
+
+        <div class="form-group">
+          <label>Bus #</label>
+          <input type="text" name="bus_no" id="edit_bus_no" required>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Service</label>
+          <input type="text" name="service" id="edit_service" required>
+        </div>
+
+        <div class="form-group">
+          <label>Type</label>
+          <select name="type" id="edit_type" required>
+            <option value="PMS">PMS</option>
+            <option value="Repair">Repair</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" id="edit_status" required>
+            <option value="On Hold">On Hold</option>
+            <option value="On Going">On Going</option>
+            <option value="Completed">Completed</option>
+            <option value="Urgent Repair">Urgent Repair</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Assigned Mechanic</label>
+          <input type="text" name="assigned_mechanic" id="edit_assigned_mechanic">
+        </div>
+
+        <div class="form-section-divider full-width">
+          <span>Work Time Details</span>
+        </div>
+
+        <div class="form-row time-section full-width">
+          <div class="form-group">
+            <label>Start Time</label>
+            <input type="time" name="start_time" id="edit_start_time">
+          </div>
+
+          <div class="form-group">
+            <label>End Time</label>
+            <input type="time" name="end_time" id="edit_end_time">
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Date Reported</label>
+          <input type="datetime-local" name="date_reported" id="edit_date_reported" required>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelEditJobModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Update Job Order
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div id="deleteJobModal" class="delete-modal-overlay">
+    <div class="delete-modal-box">
+      <div class="delete-icon">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <h2>Delete Job Order?</h2>
+
+      <p>
+        Are you sure you want to delete
+        <strong id="deleteJoNo">this job order</strong>?
+        This action can’t be undone.
+      </p>
+
+      <div class="delete-modal-actions">
+        <button type="button" id="cancelDeleteJob" class="cancel-btn">
+          Cancel
+        </button>
+
+        <button type="button" id="confirmDeleteJob" class="danger-btn">
+          Yes, Delete
+        </button>
+      </div>
+    </div>
   </div>
 
 </body>
