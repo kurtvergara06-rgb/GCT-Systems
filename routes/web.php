@@ -33,13 +33,13 @@ Route::view('/fuel-reports', 'Maintenance.fuel-reports')->name('fuel-reports');
 Route::view('/settings', 'Maintenance.settings')->name('settings');
 
 
-// Warehouse //
+// Warehouse
 
-// Inventory //
-Route::view('/Inventory', 'Warehouse.Inventory')->name('Inventory');
-// Part Requests //
-Route::view('/part-requests', 'Warehouse.Part-Requests')->name('part-requests');
+// Inventory
+Route::view('/inventory', 'Warehouse.Inventory')->name('inventory');
 
+// Part Requests
+Route::view('/part-requests', 'Warehouse.part-requests')->name('part-requests');
 // Purchase //
 
 // Purchase Orders //
@@ -53,5 +53,7 @@ Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')->name('schedul
 
 // Dashboard //
 Route::view('/dashboard-operation', 'Operation.dashboard-operation')->name('dashboard-operation');
+// Attendance //
+Route::view('/attendance', 'Operation.attendance')->name('attendance');
 // Available Mechanics //
 Route::view('/available-mechanics', 'Operation.available-mechanics')->name('available-mechanics');

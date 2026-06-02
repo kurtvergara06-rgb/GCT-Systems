@@ -1,68 +1,25 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<x-layout.app
+  title="FROMS - Requested Purchase"
+  :assets="[
+    'resources/css/Purchase/purchase-orders.css'
+  ]"
+>
 
-  <title>FROMS - Purchase</title>
+  <div class="app">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <x-layout.sidebar
+      department="Purchase"
+      subtitle="Department Module"
+      icon="fa-truck"
+      user-name="R. Lim"
+      user-role="Purchase Admin"
+      :items="[
+        ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
+        ['label' => 'Requested Purchase', 'route' => 'requested-purchase', 'icon' => 'fa-clipboard-list'],
+        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
+      ]"
+    />
 
-  @vite([
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/requested-purchase.css'
-  ])
-</head>
-
-<body>
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-
-    <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-truck"></i>
-      </div>
-
-      <div>
-        <h2>Purchase</h2>
-        <p>Department Module</p>
-      </div>
-    </div>
-
-    <nav class="menu">
-      <a href="{{ route('purchase-orders') }}" class="menu-item">
-        <i class="fa-solid fa-table-cells-large"></i>
-        <span>Purchase Orders</span>
-      </a>
-
-      <a href="{{ route('requested-purchase') }}" class="menu-item active">
-        <i class="fa-solid fa-clipboard-list"></i>
-        <span>Requested Purchases</span>
-      </a>
-
-      <a href="{{ route('scheduled-purchase') }}" class="menu-item">
-        <i class="fa-solid fa-bus"></i>
-        <span>Scheduled Purchases</span>
-      </a>
-    </nav>
-
-    <div class="user-box">
-      <div class="avatar">
-        <i class="fa-solid fa-user"></i>
-      </div>
-
-      <div>
-        <h4>R. Lim</h4>
-        <p>Maintenance Admin</p>
-      </div>
-
-      <i class="fa-solid fa-chevron-down"></i>
-    </div>
-
-  </aside>
 
   < <!-- MAIN -->
     <main class="main">
@@ -298,3 +255,5 @@
 
 </body>
 </html>
+
+</x-layout.app>
