@@ -7,7 +7,7 @@
 
   <div class="app">
 
-    <x-layout.maintensidebar
+    <x-layout.sidebar
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"

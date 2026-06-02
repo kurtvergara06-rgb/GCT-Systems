@@ -144,6 +144,15 @@ a {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
 }
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.stat-card-link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
 
 .stat-icon {
   width: 58px;

@@ -1,69 +1,25 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>FROMS - Fuel Reports</title>
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-  />
-
-  @vite([
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
-    "resources/css/Warehouse/inventory.css"
-  ])
-</head>
-
-<body>
+<x-layout.app
+  title="FROMS - Warehouse Inventory"
+  :assets="[
+    'resources/css/Warehouse/inventory.css'
+  ]"
+>
 
   <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <x-layout.sidebar
+      department="Warehouse"
+      subtitle="Department Module"
+      icon="fa-warehouse"
+      user-name="W. Admin"
+      user-role="Warehouse Admin"
+      :items="[
+        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
+        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
+      ]"
+    />
 
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-truck"></i>
-        </div>
-
-        <div>
-          <h2>Warehouse</h2>
-          <p>Department Module</p>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <a href="{{ route('Inventory') }}" class="menu-item active">
-          <i class="fa-solid fa-table-cells-large"></i>
-          <span>Inventory</span>
-        </a>
-
-          <a href="{{ route('part-requests') }}" class="menu-item">
-          <i class="fa-solid fa-table-cells-large"></i>
-          <span>Part Requests</span>
-        </a>
-      </nav>
-
-      <div class="user-box">
-        <div class="avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div>
-          <h4>R. Lim</h4>
-          <p>Maintenance Admin</p>
-        </div>
-
-        <i class="fa-solid fa-chevron-down"></i>
-      </div>
-
-    </aside>
-
- <!-- MAIN -->
+    <!-- MAIN -->
     <main class="main">
 
       <!-- TOP BAR -->
@@ -461,5 +417,4 @@
 
   </div>
 
-</body>
-</html>
+</x-layout.app>
