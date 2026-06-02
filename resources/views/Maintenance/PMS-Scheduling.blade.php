@@ -1,94 +1,29 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>FROMS - PMS Scheduling</title>
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-  />
-
-  @vite([
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
+<x-layout.app
+  title="FROMS - PMS Scheduling"
+  :assets="[
     'resources/css/Maintenance/pms-scheduling.css'
-  ])
-</head>
-
-<body>
+  ]"
+>
 
   <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <x-layout.sidebar
+      department="Maintenance"
+      subtitle="Department Module"
+      icon="fa-truck"
+      user-name="R. Lim"
+      user-role="Maintenance Admin"
+      :items="[
+        ['label' => 'Dashboard', 'route' => 'dashboard-maintenance', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
+        ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
+        ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
+        ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
+        ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
+        ['label' => 'Settings', 'route' => 'settings', 'icon' => 'fa-gear'],
+      ]"
+    />
 
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-truck"></i>
-        </div>
-
-        <div>
-          <h2>Maintenance</h2>
-          <p>Department Module</p>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <a href="{{ route('dashboard-maintenance') }}" class="menu-item">
-          <i class="fa-solid fa-table-cells-large"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a href="{{ route('job-orders') }}" class="menu-item">
-          <i class="fa-solid fa-clipboard-list"></i>
-          <span>Job Orders</span>
-        </a>
-
-        <a href="{{ route('mechanic-list') }}" class="menu-item">
-          <i class="fa-solid fa-bus"></i>
-          <span>Mechanic List</span>
-        </a>
-
-        <a href="{{ route('PMS-Scheduling') }}" class="menu-item active">
-          <i class="fa-solid fa-calendar-check"></i>
-          <span>PMS Scheduling</span>
-        </a>
-
-        <a href="{{ route('purchase-requests') }}" class="menu-item">
-          <i class="fa-solid fa-file-invoice"></i>
-          <span>Purchase Requests</span>
-        </a>
-
-        <a href="{{ route('fuel-reports') }}" class="menu-item">
-          <i class="fa-solid fa-gas-pump"></i>
-          <span>Fuel Reports</span>
-        </a>
-
-        <a href="{{ route('settings') }}" class="menu-item">
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </a>
-      </nav>
-
-      <div class="user-box">
-        <div class="avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div>
-          <h4>R. Lim</h4>
-          <p>Maintenance Admin</p>
-        </div>
-
-        <i class="fa-solid fa-chevron-down"></i>
-      </div>
-
-    </aside>
-
-    <!-- MAIN -->
     <main class="main">
 
       <!-- TOP BAR -->
@@ -175,155 +110,154 @@
 
       </section>
 
-    <!-- PMS RECORD TABLE -->
-<section class="table-card pms-card">
+      <!-- PMS RECORD TABLE -->
+      <section class="table-card pms-card">
 
-  <div class="section-header pms-header">
-    <div>
-      <h2>Automated PMS Record</h2>
-      <p>The system uses GPS mileage data to compare the vehicle’s current KM against the next PMS interval</p>
-    </div>
-  </div>
+        <div class="section-header pms-header">
+          <div>
+            <h2>Automated PMS Record</h2>
+            <p>The system uses GPS mileage data to compare the vehicle’s current KM against the next PMS interval</p>
+          </div>
+        </div>
 
-  <div class="toolbar pms-toolbar">
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search vehicle or status...">
-    </div>
+        <div class="toolbar pms-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search vehicle or status...">
+          </div>
 
-    <div class="filter-group">
-      <label>Status</label>
-      <select>
-        <option>All Status</option>
-        <option>Upcoming</option>
-        <option>Due Soon</option>
-        <option>Overdue</option>
-      </select>
-    </div>
-  </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select>
+              <option>All Status</option>
+              <option>Upcoming</option>
+              <option>Due Soon</option>
+              <option>Overdue</option>
+            </select>
+          </div>
+        </div>
 
-  <div class="status-legend">
-    <div><span class="dot green"></span>Upcoming</div>
-    <div><span class="dot yellow"></span>Due Soon</div>
-    <div><span class="dot red"></span>Overdue</div>
-  </div>
+        <div class="status-legend">
+          <div><span class="dot green"></span>Upcoming</div>
+          <div><span class="dot yellow"></span>Due Soon</div>
+          <div><span class="dot red"></span>Overdue</div>
+        </div>
 
-  <div class="table-wrap">
-    <table class="pms-table">
-      <thead>
-        <tr>
-          <th>Vehicle ID</th>
-          <th>GPS Report Date</th>
-          <th>Current KM</th>
-          <th>KM Traveled</th>
-          <th>Last PMS KM</th>
-          <th>Next PMS KM</th>
-          <th>Maintenance Type</th>
-          <th>Recommended Date</th>
-          <th class="status-col">Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+        <div class="table-wrap">
+          <table class="pms-table">
+            <thead>
+              <tr>
+                <th>Vehicle ID</th>
+                <th>GPS Report Date</th>
+                <th>Current KM</th>
+                <th>KM Traveled</th>
+                <th>Last PMS KM</th>
+                <th>Next PMS KM</th>
+                <th>Maintenance Type</th>
+                <th>Recommended Date</th>
+                <th class="status-col">Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-      <tbody>
-        <tr>
-          <td>BUS 0001</td>
-          <td>Apr 22, 2026</td>
-          <td>9,800 km</td>
-          <td>180 km</td>
-          <td>5,000 km</td>
-          <td>10,000 km</td>
-          <td>Preventive Maintenance</td>
-          <td>Apr 30, 2026</td>
-          <td class="status-col"><span class="badge due-soon">Due Soon</span></td>
-          <td>
-            <div class="actions">
-              <button class="edit"><i class="fa-solid fa-pen"></i></button>
-              <button class="delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
+            <tbody>
+              <tr>
+                <td>BUS 0001</td>
+                <td>Apr 22, 2026</td>
+                <td>9,800 km</td>
+                <td>180 km</td>
+                <td>5,000 km</td>
+                <td>10,000 km</td>
+                <td>Preventive Maintenance</td>
+                <td>Apr 30, 2026</td>
+                <td class="status-col"><span class="badge due-soon">Due Soon</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-        <tr>
-          <td>BUS 0002</td>
-          <td>Apr 22, 2026</td>
-          <td>10,250 km</td>
-          <td>220 km</td>
-          <td>5,000 km</td>
-          <td>10,000 km</td>
-          <td>Oil Change</td>
-          <td>Immediate</td>
-          <td class="status-col"><span class="badge overdue">Overdue</span></td>
-          <td>
-            <div class="actions">
-              <button class="edit"><i class="fa-solid fa-pen"></i></button>
-              <button class="delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
+              <tr>
+                <td>BUS 0002</td>
+                <td>Apr 22, 2026</td>
+                <td>10,250 km</td>
+                <td>220 km</td>
+                <td>5,000 km</td>
+                <td>10,000 km</td>
+                <td>Oil Change</td>
+                <td>Immediate</td>
+                <td class="status-col"><span class="badge overdue">Overdue</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-        <tr>
-          <td>BUS 0003</td>
-          <td>Apr 22, 2026</td>
-          <td>7,300 km</td>
-          <td>150 km</td>
-          <td>5,000 km</td>
-          <td>10,000 km</td>
-          <td>Regular Check-up</td>
-          <td>May 15, 2026</td>
-          <td class="status-col"><span class="badge upcoming">Upcoming</span></td>
-          <td>
-            <div class="actions">
-              <button class="edit"><i class="fa-solid fa-pen"></i></button>
-              <button class="delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
+              <tr>
+                <td>BUS 0003</td>
+                <td>Apr 22, 2026</td>
+                <td>7,300 km</td>
+                <td>150 km</td>
+                <td>5,000 km</td>
+                <td>10,000 km</td>
+                <td>Regular Check-up</td>
+                <td>May 15, 2026</td>
+                <td class="status-col"><span class="badge upcoming">Upcoming</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-        <tr>
-          <td>BUS 0004</td>
-          <td>Apr 22, 2026</td>
-          <td>12,800 km</td>
-          <td>190 km</td>
-          <td>10,000 km</td>
-          <td>15,000 km</td>
-          <td>Brake Inspection</td>
-          <td>May 20, 2026</td>
-          <td class="status-col"><span class="badge upcoming">Upcoming</span></td>
-          <td>
-            <div class="actions">
-              <button class="edit"><i class="fa-solid fa-pen"></i></button>
-              <button class="delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
+              <tr>
+                <td>BUS 0004</td>
+                <td>Apr 22, 2026</td>
+                <td>12,800 km</td>
+                <td>190 km</td>
+                <td>10,000 km</td>
+                <td>15,000 km</td>
+                <td>Brake Inspection</td>
+                <td>May 20, 2026</td>
+                <td class="status-col"><span class="badge upcoming">Upcoming</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-        <tr>
-          <td>BUS 0005</td>
-          <td>Apr 22, 2026</td>
-          <td>14,750 km</td>
-          <td>210 km</td>
-          <td>10,000 km</td>
-          <td>15,000 km</td>
-          <td>Preventive Maintenance</td>
-          <td>Apr 28, 2026</td>
-          <td class="status-col"><span class="badge due-soon">Due Soon</span></td>
-          <td>
-            <div class="actions">
-              <button class="edit"><i class="fa-solid fa-pen"></i></button>
-              <button class="delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+              <tr>
+                <td>BUS 0005</td>
+                <td>Apr 22, 2026</td>
+                <td>14,750 km</td>
+                <td>210 km</td>
+                <td>10,000 km</td>
+                <td>15,000 km</td>
+                <td>Preventive Maintenance</td>
+                <td>Apr 28, 2026</td>
+                <td class="status-col"><span class="badge due-soon">Due Soon</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-</section>
+      </section>
 
     </main>
 
   </div>
 
-</body>
-</html>
+</x-layout.app>
