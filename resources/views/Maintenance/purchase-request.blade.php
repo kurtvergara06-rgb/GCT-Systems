@@ -2,6 +2,7 @@
   title="FROMS - Purchase Requests"
   :assets="[
     'resources/css/Maintenance/purchase-request.css',
+    'resources/css/Main-style/main.css',
     'resources/js/Maintenance/purchase-request.js'
   ]"
 >
