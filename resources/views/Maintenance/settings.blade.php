@@ -14,7 +14,7 @@
       user-name="R. Lim"
       user-role="Maintenance Admin"
       :items="[
-        ['label' => 'Dashboard', 'route' => 'dashboard-maintenance', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
         ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
         ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],

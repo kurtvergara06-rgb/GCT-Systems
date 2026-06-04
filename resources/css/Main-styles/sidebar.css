@@ -1,4 +1,6 @@
-/* SHARED SIDEBAR CSS */
+/* =========================================================
+   SHARED SIDEBAR CSS
+========================================================= */
 
 .sidebar {
   width: 290px;
@@ -8,11 +10,15 @@
   top: 0;
   bottom: 0;
   background: linear-gradient(180deg, #073763, #041f3d);
-  color: white;
+  color: #ffffff;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
 }
+
+/* =========================================================
+   BRAND
+========================================================= */
 
 .brand {
   display: flex;
@@ -26,8 +32,8 @@
   width: 54px;
   height: 54px;
   flex: 0 0 54px;
-  background: #ffc107;
-  color: #062b4f;
+  background: var(--yellow);
+  color: var(--navy);
   display: grid;
   place-items: center;
   border-radius: 16px;
@@ -39,7 +45,7 @@
   font-size: 19px;
   line-height: 1.1;
   font-weight: 800;
-  color: white;
+  color: #ffffff;
 }
 
 .brand p {
@@ -48,7 +54,10 @@
   margin-top: 4px;
 }
 
-/* MENU */
+/* =========================================================
+   MENU
+========================================================= */
+
 .menu {
   margin-top: 22px;
   display: flex;
@@ -69,6 +78,12 @@
   font-size: 15px;
   font-weight: 500;
   transition: 0.25s ease;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
 
 .menu-item i {
@@ -80,17 +95,15 @@
 
 .menu-item span {
   line-height: 1;
-  text-decoration: none;
 }
 
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.09);
   transform: translateX(3px);
-  text-decoration: none;
 }
 
 .menu-item.active {
-  background: linear-gradient(135deg, #ffc107, #ffb300);
+  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
   color: #061f3b;
   font-weight: 700;
   box-shadow: 0 8px 18px rgba(255, 193, 7, 0.25);
@@ -101,7 +114,7 @@
   color: #061f3b;
 }
 
-/* REMOVE UNDERLINE */
+/* remove underline */
 .menu a,
 .menu a:hover,
 .menu a:visited,
@@ -114,7 +127,91 @@
   text-decoration: none;
 }
 
-/* USER BOX */
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+
+.menu-dropdown {
+  width: 100%;
+}
+
+.dropdown-toggle {
+  position: relative;
+}
+
+.dropdown-arrow {
+  margin-left: auto;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.menu-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown parent active */
+.menu-dropdown .dropdown-toggle.active {
+  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
+  color: #061f3b;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(255, 193, 7, 0.25);
+}
+
+.menu-dropdown .dropdown-toggle.active i,
+.menu-dropdown .dropdown-toggle.active span {
+  color: #061f3b;
+}
+
+/* Submenu */
+.submenu {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 8px 32px;
+}
+
+.menu-dropdown.open .submenu {
+  display: flex;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #dbeafe;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.submenu-item i {
+  width: 16px;
+  min-width: 16px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submenu-item.active {
+  background: rgba(255, 196, 0, 0.18);
+  color: var(--yellow);
+}
+
+.submenu-item.active i,
+.submenu-item.active span {
+  color: var(--yellow);
+}
+
+/* =========================================================
+   USER BOX
+========================================================= */
+
 .user-box {
   margin-top: auto;
   padding: 18px 8px 4px;
@@ -137,7 +234,7 @@
 
 .user-box h4 {
   font-size: 14px;
-  color: white;
+  color: #ffffff;
 }
 
 .user-box p {
@@ -150,8 +247,28 @@
   font-size: 12px;
 }
 
-/* MAIN OFFSET */
+/* =========================================================
+   MAIN OFFSET
+========================================================= */
+
 .main {
   margin-left: 290px;
   width: calc(100% - 290px);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    min-height: auto;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
 }

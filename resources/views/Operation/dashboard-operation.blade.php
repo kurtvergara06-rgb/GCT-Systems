@@ -1,7 +1,7 @@
 <x-layout.app
-  title="FROMS - Attendance"
+  title="FROMS - Dashboard"
   :assets="[
-    'resources/css/Operation/attendance.css'
+    'resources/css/Operation/dashboard.css'
   ]"
 >
 
@@ -15,14 +15,23 @@
       user-role="Operation Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Attendance', 'route' => 'attendance', 'icon' => 'fa-calendar-check'],
+
+        [
+          'label' => 'Attendance',
+          'icon' => 'fa-calendar-check',
+          'children' => [
+            ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-id-card'],
+            ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-users-gear'],
+          ]
+        ],
+
         ['label' => 'Available Mechanics', 'route' => 'available-mechanics', 'icon' => 'fa-users-gear'],
       ]"
     />
 
     <main class="main">
 
-      <!-- your attendance page content here -->
+      <!-- your dashboard page content here -->
 
     </main>
 

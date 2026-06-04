@@ -639,7 +639,50 @@ tbody tr:last-child td {
   .danger-btn {
     width: 100%;
   }
+
+  .approve-btn,
+.reject-btn,
+.view-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 6px;
 }
+
+.approve-btn {
+  background: #ddf8e7;
+  color: #16a34a;
+}
+
+.reject-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.view-btn {
+  background: #edf3fb;
+  color: #082445;
+}
+
+.problem-cell {
+  max-width: 260px;
+  width: 260px;
+}
+
+.problem-cell span {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+}
+
+
 
 @media (max-width: 700px) {
   .form-row {

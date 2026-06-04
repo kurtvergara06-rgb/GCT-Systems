@@ -10,15 +10,22 @@ return new class extends Migration
     {
         Schema::create('job_orders', function (Blueprint $table) {
             $table->id();
+
             $table->string('job_order_no')->unique();
             $table->string('bus_no');
-            $table->string('service');
-            $table->enum('type', ['PMS', 'Repair']);
+            $table->text('problem_issue');
+            $table->string('maintenance_type');
             $table->string('assigned_mechanic')->nullable();
-            $table->enum('status', ['On Hold', 'On Going', 'Completed', 'Urgent Repair'])->default('On Hold');
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
-            $table->dateTime('date_reported');
+            $table->date('start_date')->nullable();
+            $table->date('completion_date')->nullable();
+
+            $table->enum('status', [
+                'On Hold',
+                'On Going',
+                'Completed',
+                'Urgent Repair'
+            ])->default('On Hold');
+
             $table->timestamps();
         });
     }

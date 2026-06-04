@@ -46,64 +46,40 @@
         </div>
       </header>
 
-      <!-- SUMMARY CARDS -->
-      <section class="stats-grid">
+              <!-- SUMMARY CARDS -->
+          <section class="stats-grid">
 
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-calendar-days"></i>
-          </div>
+            <x-ui.summary-card
+              label="Total Schedules"
+              value="6"
+              small="Recurring schedules"
+              icon="fa-calendar-days"
+              color="green"
+            />
 
-          <div>
-            <p>Total Schedules</p>
-            <h2>6</h2>
-            <small>Recurring schedules</small>
-          </div>
+            <x-ui.summary-card
+              label="Active"
+              value="5"
+              small="Running schedules"
+              icon="fa-play"
+              color="yellow"
+            />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+            <x-ui.summary-card
+              label="Paused"
+              value="1"
+              small="Temporarily stopped"
+              icon="fa-pause"
+              color="blue"
+            />
 
-        <div class="stat-card">
-          <div class="stat-icon yellow">
-            <i class="fa-solid fa-play"></i>
-          </div>
-
-          <div>
-            <p>Active</p>
-            <h2>5</h2>
-            <small>Running schedules</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-pause"></i>
-          </div>
-
-          <div>
-            <p>Paused</p>
-            <h2>1</h2>
-            <small>Temporarily stopped</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <i class="fa-solid fa-clock"></i>
-          </div>
-
-          <div>
-            <p>Due This Month</p>
-            <h2>2</h2>
-            <small>Upcoming purchases</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+            <x-ui.summary-card
+              label="Due This Month"
+              value="2"
+              small="Upcoming purchases"
+              icon="fa-clock"
+              color="red"
+            />
 
       </section>
 
