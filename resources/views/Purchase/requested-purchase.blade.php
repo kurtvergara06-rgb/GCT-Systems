@@ -20,8 +20,7 @@
       ]"
     />
 
-
-  < <!-- MAIN -->
+    <!-- MAIN -->
     <main class="main">
 
       <!-- TOP BAR -->
@@ -50,61 +49,37 @@
       <!-- SUMMARY CARDS -->
       <section class="stats-grid">
 
-        <div class="stat-card">
-          <div class="stat-icon gray">
-            <i class="fa-solid fa-file"></i>
-          </div>
+        <x-ui.summary-card
+          label="Total Requests"
+          value="1"
+          small="Purchase Request"
+          icon="fa-file"
+          color="gray"
+        />
 
-          <div>
-            <p>Total Requests</p>
-            <h2>1</h2>
-            <small>Purchase Request</small>
-          </div>
+        <x-ui.summary-card
+          label="Pending Approval"
+          value="4"
+          small="Purchase Requests"
+          icon="fa-paper-plane"
+          color="yellow"
+        />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Approved"
+          value="4"
+          small="Purchase Requests"
+          icon="fa-check"
+          color="green"
+        />
 
-        <div class="stat-card">
-          <div class="stat-icon yellow">
-            <i class="fa-solid fa-paper-plane"></i>
-          </div>
-
-          <div>
-            <p>Pending Approval</p>
-            <h2>4</h2>
-            <small>Purchase Requests</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-check"></i>
-          </div>
-
-          <div>
-            <p>Approved</p>
-            <h2>4</h2>
-            <small>Purchase Requests</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-boxes-stacked"></i>
-          </div>
-
-          <div>
-            <p>Convert to Purchase Order</p>
-            <h2>9</h2>
-            <small>All records</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Convert to Purchase Order"
+          value="9"
+          small="All records"
+          icon="fa-boxes-stacked"
+          color="blue"
+        />
 
       </section>
 
@@ -252,8 +227,5 @@
     </main>
 
   </div>
-
-</body>
-</html>
 
 </x-layout.app>

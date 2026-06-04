@@ -16,6 +16,7 @@
   @vite(array_merge([
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/js/Main-js/sidebar.js',
   ], $assets))
 </head>
 

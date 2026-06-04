@@ -17,7 +17,8 @@ class JobOrderController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('job_order_no', 'like', "%{$search}%")
                     ->orWhere('bus_no', 'like', "%{$search}%")
-                    ->orWhere('service', 'like', "%{$search}%")
+                    ->orWhere('problem_issue', 'like', "%{$search}%")
+                    ->orWhere('maintenance_type', 'like', "%{$search}%")
                     ->orWhere('assigned_mechanic', 'like', "%{$search}%");
             });
         }
@@ -26,11 +27,11 @@ class JobOrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('type') && $request->type !== 'All Types') {
-            $query->where('type', $request->type);
+        if ($request->filled('maintenance_type') && $request->maintenance_type !== 'All Types') {
+            $query->where('maintenance_type', $request->maintenance_type);
         }
 
-        $jobOrders = $query->latest()->paginate(6);
+        $jobOrders = $query->latest()->paginate(6)->withQueryString();
 
         $onHold = JobOrder::where('status', 'On Hold')->count();
         $onGoing = JobOrder::where('status', 'On Going')->count();
@@ -48,46 +49,50 @@ class JobOrderController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'job_order_no' => 'required|unique:job_orders,job_order_no',
-            'bus_no' => 'required',
-            'service' => 'required',
-            'type' => 'required|in:PMS,Repair',
-            'assigned_mechanic' => 'nullable',
-            'status' => 'required|in:On Hold,On Going,Completed,Urgent Repair',
-            'start_time' => 'nullable',
-            'end_time' => 'nullable',
-            'date_reported' => 'required|date',
+        $validated = $request->validate([
+            'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no',
+            'bus_no' => 'required|string|max:255',
+            'problem_issue' => 'required|string',
+            'maintenance_type' => 'required|string|in:PMS,Repair,Urgent Repair',
+            'assigned_mechanic' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
+            'completion_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|string|in:On Hold,On Going,Completed,Urgent Repair',
         ]);
 
-        JobOrder::create($request->all());
+        JobOrder::create($validated);
 
-        return redirect()->route('job-orders')->with('success', 'Job order created successfully.');
+        return redirect()
+            ->route('job-orders')
+            ->with('success', 'Job order created successfully.');
+    }
+
+    public function update(Request $request, JobOrder $jobOrder)
+    {
+        $validated = $request->validate([
+            'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
+            'bus_no' => 'required|string|max:255',
+            'problem_issue' => 'required|string',
+            'maintenance_type' => 'required|string|in:PMS,Repair,Urgent Repair',
+            'assigned_mechanic' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
+            'completion_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|string|in:On Hold,On Going,Completed,Urgent Repair',
+        ]);
+
+        $jobOrder->update($validated);
+
+        return redirect()
+            ->route('job-orders')
+            ->with('success', 'Job order updated successfully.');
     }
 
     public function destroy(JobOrder $jobOrder)
     {
         $jobOrder->delete();
 
-        return redirect()->route('job-orders')->with('success', 'Job order deleted successfully.');
+        return redirect()
+            ->route('job-orders')
+            ->with('success', 'Job order deleted successfully.');
     }
-
-    public function update(Request $request, JobOrder $jobOrder)
-{
-    $request->validate([
-        'job_order_no' => 'required|unique:job_orders,job_order_no,' . $jobOrder->id,
-        'bus_no' => 'required',
-        'service' => 'required',
-        'type' => 'required|in:PMS,Repair',
-        'assigned_mechanic' => 'nullable',
-        'status' => 'required|in:On Hold,On Going,Completed,Urgent Repair',
-        'start_time' => 'nullable',
-        'end_time' => 'nullable',
-        'date_reported' => 'required|date',
-    ]);
-
-    $jobOrder->update($request->all());
-
-    return redirect()->route('job-orders')->with('success', 'Job order updated successfully.');
-}
 }

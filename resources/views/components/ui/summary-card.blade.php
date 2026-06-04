@@ -26,7 +26,6 @@
       @endif
     </div>
 
-    <i class="fa-solid fa-chevron-right arrow"></i>
 
 @if($href)
   </a>

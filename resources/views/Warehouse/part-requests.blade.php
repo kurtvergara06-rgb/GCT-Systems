@@ -1,7 +1,8 @@
 <x-layout.app
-  title="FROMS - Warehouse Inventory"
+  title="FROMS - Warehouse Part Requests"
   :assets="[
-    'resources/css/Warehouse/inventory.css'
+    'resources/css/Warehouse/part-requests.css',
+    'resources/js/Warehouse/part-requests.js'
   ]"
 >
 
@@ -19,14 +20,13 @@
       ]"
     />
 
- <!-- MAIN -->
     <main class="main">
 
-      <!-- TOP BAR -->
+      {{-- TOP BAR --}}
       <header class="topbar">
         <div>
-          <h1>Requested Purchase</h1>
-          <p>Manage procurement records for vehicle parts, equipment, and operational materials</p>
+          <h1>Part Requests</h1>
+          <p>Approved purchase requests from Maintenance for warehouse processing</p>
         </div>
 
         <div class="top-actions">
@@ -45,218 +45,288 @@
         </div>
       </header>
 
-      <!-- SUMMARY CARDS -->
-      <section class="stats-grid">
+      {{-- SUMMARY CARDS --}}
+      <section class="stats-grid inventory-stats">
 
-        <div class="stat-card">
-          <div class="stat-icon yellow">
-            <i class="fa-solid fa-clock"></i>
-          </div>
+        <x-ui.summary-card
+          label="Approved"
+          value="{{ $approved }}"
+          small="Ready to process"
+          icon="fa-check"
+          color="green"
+        />
 
-          <div>
-            <p>Pending Requests</p>
-            <h2>4</h2>
-            <small>Waiting for approval</small>
-          </div>
+        <x-ui.summary-card
+          label="For Purchase"
+          value="{{ $forPurchase }}"
+          small="Parts unavailable"
+          icon="fa-cart-shopping"
+          color="blue"
+        />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Delivered"
+          value="{{ $delivered }}"
+          small="Supplier delivered"
+          icon="fa-box"
+          color="yellow"
+        />
 
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-check"></i>
-          </div>
-
-          <div>
-            <p>Approved Requests</p>
-            <h2>3</h2>
-            <small>Ready for purchase</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <i class="fa-solid fa-xmark"></i>
-          </div>
-
-          <div>
-            <p>Rejected Requests</p>
-            <h2>3</h2>
-            <small>Not approved</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-file-invoice"></i>
-          </div>
-
-          <div>
-            <p>Total Requests</p>
-            <h2>10</h2>
-            <small>Procurement records</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Issued"
+          value="{{ $issued }}"
+          small="Released parts"
+          icon="fa-box-open"
+          color="gray"
+        />
 
       </section>
 
-  <!-- REQUESTED PURCHASE TABLE -->
-<section class="table-card purchase-card">
+      {{-- PART REQUEST TABLE --}}
+      <section class="table-card inventory-card">
 
-  <div class="section-header">
-    <div>
-      <h2>Requested Purchase Records</h2>
-      <p>Track requested items, urgency level, approval status, and related job orders</p>
-    </div>
-  </div>
+        <div class="section-header">
+          <div>
+            <h2>Warehouse Part Request Records</h2>
+            <p>Track approved PRs, unavailable parts, delivered items, and issued parts</p>
+          </div>
+        </div>
 
-  <div class="toolbar request-toolbar">
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search by item, order number, or supplier...">
-    </div>
+        <form method="GET" action="{{ route('part-requests') }}" class="toolbar inventory-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search PR no., JO no., bus, or item..."
+            >
+          </div>
 
-    <div class="filter-group">
-      <label>Category</label>
-      <select>
-        <option>All Categories</option>
-        <option>Engine Parts</option>
-        <option>Brake System</option>
-        <option>Cooling System</option>
-        <option>Operational Materials</option>
-      </select>
-    </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+                All Statuses
+              </option>
 
-    <div class="filter-group">
-      <label>Status</label>
-      <select>
-        <option>All States</option>
-        <option>Pending</option>
-        <option>Approved</option>
-        <option>Rejected</option>
-      </select>
-    </div>
-  </div>
+              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
+                Approved
+              </option>
 
-  <div class="table-wrap">
-    <table class="request-table">
-      <thead>
-        <tr>
-          <th>Request No.</th>
-          <th>JO Reference</th>
-          <th>Requested By</th>
-          <th>Urgency</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Items</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
+                For Purchase
+              </option>
 
-      <tbody>
-        <tr>
-          <td><strong>PR-001</strong></td>
-          <td><strong>JO-2026-001</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge high">High</span></td>
-          <td><span class="badge pending">Pending</span></td>
-          <td>2026-05-10</td>
-          <td>Brake Pads (2), Oil Filter (1)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
+                Pending Purchase
+              </option>
 
-        <tr>
-          <td><strong>PR-002</strong></td>
-          <td><strong>JO-2026-002</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge low">Low</span></td>
-          <td><span class="badge approved">Approved</span></td>
-          <td>2026-05-10</td>
-          <td>Air Filter (1), Coolant (2)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
+                Delivering
+              </option>
 
-        <tr>
-          <td><strong>PR-003</strong></td>
-          <td><strong>JO-2026-003</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge high">High</span></td>
-          <td><span class="badge rejected">Rejected</span></td>
-          <td>2026-05-10</td>
-          <td>Brake Pads (2), Oil Filter (1)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
+                Delivered
+              </option>
 
-        <tr>
-          <td><strong>PR-004</strong></td>
-          <td><strong>JO-2026-004</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge low">Low</span></td>
-          <td><span class="badge pending">Pending</span></td>
-          <td>2026-05-10</td>
-          <td>Fuel Filter (1)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
+                Issued
+              </option>
+            </select>
+          </div>
+        </form>
 
-        <tr>
-          <td><strong>PR-005</strong></td>
-          <td><strong>JO-2026-005</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge high">High</span></td>
-          <td><span class="badge approved">Approved</span></td>
-          <td>2026-05-10</td>
-          <td>Engine Oil (4), Oil Filter (1)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+        <div class="table-wrap">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>PR #</th>
+                <th>JO No.</th>
+                <th>Bus #</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-        <tr>
-          <td><strong>PR-006</strong></td>
-          <td><strong>JO-2026-006</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge low">Low</span></td>
-          <td><span class="badge rejected">Rejected</span></td>
-          <td>2026-05-10</td>
-          <td>Tire Valve (4)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+            <tbody>
+              @forelse($partRequests as $request)
+                <tr>
+                  <td><strong>{{ $request->pr_no }}</strong></td>
+                  <td><strong>{{ $request->job_order_no }}</strong></td>
+                  <td>{{ $request->bus_no }}</td>
+                  <td>{{ $request->item }}</td>
+                  <td>{{ $request->quantity }}</td>
 
-        <tr>
-          <td><strong>PR-007</strong></td>
-          <td><strong>JO-2026-007</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge high">High</span></td>
-          <td><span class="badge pending">Pending</span></td>
-          <td>2026-05-10</td>
-          <td>Brake Pads (2), Oil Filter (1)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
+                  <td>
+                    @php
+                      $badgeClass = match($request->status) {
+                        'Approved' => 'approved',
+                        'For Purchase' => 'for-purchase',
+                        'Pending Purchase' => 'pending',
+                        'Delivering' => 'monitor',
+                        'Delivered' => 'low',
+                        'Issued' => 'in-stock',
+                        default => 'pending'
+                      };
+                    @endphp
 
-        <tr>
-          <td><strong>PR-008</strong></td>
-          <td><strong>JO-2026-008</strong></td>
-          <td><strong>Maria Santos</strong></td>
-          <td><span class="badge low">Low</span></td>
-          <td><span class="badge approved">Approved</span></td>
-          <td>2026-05-10</td>
-          <td>Coolant Antifreeze 4L (2)</td>
-          <td><a href="#" class="view-link">View →</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+                    <span class="badge {{ $badgeClass }}">
+                      {{ $request->status }}
+                    </span>
+                  </td>
 
-</section>
+                  <td>{{ $request->created_at->format('M d, Y') }}</td>
+
+                  <td>
+                    <div class="actions">
+
+                      {{-- VIEW DETAILS BUTTON --}}
+                      <button
+                        type="button"
+                        class="view-btn open-view-pr-modal"
+                        title="View Details"
+                        data-pr-no="{{ $request->pr_no }}"
+                        data-job-order-no="{{ $request->job_order_no }}"
+                        data-bus-no="{{ $request->bus_no }}"
+                        data-item="{{ $request->item }}"
+                        data-quantity="{{ $request->quantity }}"
+                        data-status="{{ $request->status }}"
+                        data-remarks="{{ $request->remarks ?? 'No remarks' }}"
+                        data-created="{{ $request->created_at->format('M d, Y') }}"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+
+                      @if($request->status === 'Approved')
+                        <form action="{{ route('purchase-requests.issue', $request->id) }}" method="POST">
+                          @csrf
+
+                          <button type="submit" class="edit" title="Issue Parts">
+                            <i class="fa-solid fa-box-open"></i>
+                          </button>
+                        </form>
+
+                        <form action="{{ route('purchase-requests.for-purchase', $request->id) }}" method="POST">
+                          @csrf
+
+                          <button type="submit" class="delete" title="For Purchase">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                          </button>
+                        </form>
+                      @endif
+
+                      @if($request->status === 'Delivered')
+                        <form action="{{ route('purchase-requests.issue', $request->id) }}" method="POST">
+                          @csrf
+
+                          <button type="submit" class="edit" title="Issue Parts">
+                            <i class="fa-solid fa-box-open"></i>
+                          </button>
+                        </form>
+                      @endif
+
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="8" style="text-align:center; padding: 30px;">
+                    No approved part requests found.
+                  </td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <p>
+            Showing {{ $partRequests->firstItem() ?? 0 }} to {{ $partRequests->lastItem() ?? 0 }} of {{ $partRequests->total() }} entries
+          </p>
+
+          <div class="pagination">
+            {{ $partRequests->links() }}
+          </div>
+        </div>
+
+      </section>
 
     </main>
 
   </div>
 
-</body>
-</html>
+  {{-- VIEW PR DETAILS MODAL --}}
+  <div id="viewPrModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Purchase Request Details</h2>
+
+        <button type="button" id="closeViewPrModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <div class="form-section-title full-width">
+        <h3>PR Information</h3>
+        <p>This is a read-only view of the selected purchase request.</p>
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+          <span>PR No.</span>
+          <strong id="view_pr_no">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>JO No.</span>
+          <strong id="view_job_order_no">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Bus #</span>
+          <strong id="view_bus_no">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Status</span>
+          <strong id="view_status">—</strong>
+        </div>
+
+        <div class="detail-item full-width">
+          <span>Requested Item / Part</span>
+          <strong id="view_item">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Quantity</span>
+          <strong id="view_quantity">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Created</span>
+          <strong id="view_created">—</strong>
+        </div>
+
+        <div class="detail-item full-width">
+          <span>Remarks</span>
+          <strong id="view_remarks">—</strong>
+        </div>
+
+      </div>
+
+      <div class="modal-actions full-width">
+        <button type="button" id="closeViewPrModalBottom" class="cancel-btn">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </x-layout.app>
