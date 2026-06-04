@@ -1,7 +1,9 @@
 <x-layout.app
   title="FROMS - Warehouse Inventory"
   :assets="[
-    'resources/css/Warehouse/inventory.css'
+    'resources/css/Warehouse/inventory.css',
+    'resources/css/Main-style/main.css',
+    'resources/js/Warehouse/inventory.js'
   ]"
 >
 
@@ -19,10 +21,9 @@
       ]"
     />
 
-    <!-- MAIN -->
     <main class="main">
 
-      <!-- TOP BAR -->
+      {{-- TOP BAR --}}
       <header class="topbar">
         <div>
           <h1>Warehouse Inventory</h1>
@@ -45,68 +46,57 @@
         </div>
       </header>
 
-      <!-- SUMMARY CARDS -->
-      <section class="stats-grid inventory-stats">
-
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-boxes-stacked"></i>
-          </div>
-
-          <div>
-            <p>Total Items in Stock</p>
-            <h2>3,414</h2>
-            <small>Across all categories</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
+      {{-- ALERTS --}}
+      @if(session('success'))
+        <div class="alert success-alert">
+          {{ session('success') }}
         </div>
+      @endif
 
-        <div class="stat-card">
-          <div class="stat-icon yellow">
-            <i class="fa-solid fa-bell"></i>
-          </div>
-
-          <div>
-            <p>Low Stock Alerts</p>
-            <h2>4</h2>
-            <small>Below threshold</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
+      @if($errors->any())
+        <div class="alert error-alert">
+          {{ $errors->first() }}
         </div>
+      @endif
 
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-          </div>
+          {{-- SUMMARY CARDS --}}
+          <section class="stats-grid inventory-stats">
 
-          <div>
-            <p>Critical Items</p>
-            <h2>2</h2>
-            <small>Need immediate restock</small>
-          </div>
+            <x-ui.summary-card
+              label="Total Items in Stock"
+              value="{{ number_format($totalItemsInStock) }}"
+              small="Across all categories"
+              icon="fa-boxes-stacked"
+              color="green"
+            />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+            <x-ui.summary-card
+              label="Low Stock Alerts"
+              value="{{ $lowStockAlerts }}"
+              small="Below reorder level"
+              icon="fa-bell"
+              color="yellow"
+            />
 
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-chart-line"></i>
-          </div>
+            <x-ui.summary-card
+              label="Critical Items"
+              value="{{ $criticalItems }}"
+              small="Need immediate restock"
+              icon="fa-triangle-exclamation"
+              color="red"
+            />
 
-          <div>
-            <p>Forecasted Stockouts</p>
-            <h2>6</h2>
-            <small>Within 30 to 40 days</small>
-          </div>
+            <x-ui.summary-card
+              label="Forecasted Stockouts"
+              value="{{ $forecastedStockouts }}"
+              small="Items at risk"
+              icon="fa-chart-line"
+              color="blue"
+            />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+          </section>
 
-      </section>
-
-      <!-- INVENTORY TABLE -->
+      {{-- INVENTORY TABLE --}}
       <section class="table-card inventory-card">
 
         <div class="section-header">
@@ -114,58 +104,57 @@
             <h2>Inventory Stock Records</h2>
             <p>Track warehouse stock levels, item thresholds, and item availability</p>
           </div>
-
-          <div class="inventory-summary">
-            <span>15 items shown</span>
-            <span class="critical-text">2 critical</span>
-            <span class="low-text">2 low</span>
-            <span class="stock-text">11 in stock</span>
-          </div>
         </div>
 
-        <div class="toolbar inventory-toolbar">
+        <form method="GET" action="{{ route('inventory') }}" class="toolbar inventory-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search by item, order number, or supplier...">
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search by item, item code, supplier, or location..."
+            >
           </div>
 
           <div class="filter-group">
             <label>Category</label>
-            <select>
-              <option>All Categories</option>
-              <option>Engine Parts</option>
-              <option>Cooling System</option>
-              <option>Brake System</option>
-              <option>Fuel System</option>
+            <select name="category" onchange="this.form.submit()">
+              <option value="All Categories" {{ request('category') == 'All Categories' ? 'selected' : '' }}>
+                All Categories
+              </option>
+
+              @foreach($categories as $category)
+                <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>
+                  {{ $category }}
+                </option>
+              @endforeach
             </select>
           </div>
 
-          <div class="filter-group">
-            <label>Status</label>
-            <select>
-              <option>All States</option>
-              <option>In Stock</option>
-              <option>Low Stock</option>
-              <option>Critical</option>
-            </select>
-          </div>
+          <button type="button" class="secondary-btn" id="openImportModal">
+            <i class="fa-solid fa-file-import"></i>
+            Import Inventory Data
+          </button>
 
-          <button class="primary-btn">
+          <button type="button" class="primary-btn" id="openAddModal">
             <i class="fa-solid fa-plus"></i>
             Add Item
           </button>
-        </div>
+        </form>
 
         <div class="table-wrap">
           <table class="inventory-table">
             <thead>
               <tr>
-                <th>Item ID</th>
+                <th>Item Code</th>
                 <th>Parts Name</th>
                 <th>Category</th>
                 <th>On Hand</th>
-                <th>Min. Threshold</th>
+                <th>Unit</th>
+                <th>Reorder Level</th>
                 <th>Status</th>
+                <th>Supplier</th>
                 <th>Location</th>
                 <th>Last Updated</th>
                 <th>Actions</th>
@@ -173,248 +162,350 @@
             </thead>
 
             <tbody>
-              <tr>
-                <td>PART-007</td>
-                <td>Air Filter</td>
-                <td>Engine Parts</td>
-                <td><strong>18</strong></td>
-                <td><strong>10</strong></td>
-                <td><span class="badge in-stock">In Stock</span></td>
-                <td>C-02</td>
-                <td>Apr 1, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+              @forelse($inventoryItems as $item)
+                @php
+                  $status = $item->stock_status;
 
-              <tr class="warning-row">
-                <td>PART-008</td>
-                <td>Coolant Antifreeze 4L</td>
-                <td>Cooling System</td>
-                <td><strong>13</strong></td>
-                <td><strong>15</strong></td>
-                <td><span class="badge low-stock">Low Stock</span></td>
-                <td>A-02</td>
-                <td>Jan 1, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  $rowClass = match($status) {
+                    'Critical' => 'danger-row',
+                    'Low Stock' => 'warning-row',
+                    default => ''
+                  };
 
-              <tr>
-                <td>PART-009</td>
-                <td>Brake Pads</td>
-                <td>Brake System</td>
-                <td><strong>20</strong></td>
-                <td><strong>8</strong></td>
-                <td><span class="badge in-stock">In Stock</span></td>
-                <td>B-01</td>
-                <td>Apr 2, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  $badgeClass = match($status) {
+                    'Critical' => 'critical',
+                    'Low Stock' => 'low-stock',
+                    default => 'in-stock'
+                  };
+                @endphp
 
-              <tr class="danger-row">
-                <td>PART-010</td>
-                <td>Engine Oil</td>
-                <td>Engine Parts</td>
-                <td><strong>4</strong></td>
-                <td><strong>10</strong></td>
-                <td><span class="badge critical">Critical</span></td>
-                <td>D-03</td>
-                <td>Apr 3, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                <tr class="{{ $rowClass }}">
+                  <td>{{ $item->item_code }}</td>
+                  <td>{{ $item->item_name }}</td>
+                  <td>{{ $item->category }}</td>
+                  <td><strong>{{ $item->quantity_available }}</strong></td>
+                  <td>{{ $item->unit_of_measurement }}</td>
+                  <td><strong>{{ $item->reorder_level }}</strong></td>
+                  <td>
+                    <span class="badge {{ $badgeClass }}">
+                      {{ $status }}
+                    </span>
+                  </td>
+                  <td>{{ $item->supplier ?? '—' }}</td>
+                  <td>{{ $item->storage_location ?? '—' }}</td>
+                  <td>{{ $item->updated_at->format('M d, Y') }}</td>
 
-              <tr>
-                <td>PART-011</td>
-                <td>Fuel Filter</td>
-                <td>Fuel System</td>
-                <td><strong>16</strong></td>
-                <td><strong>10</strong></td>
-                <td><span class="badge in-stock">In Stock</span></td>
-                <td>C-04</td>
-                <td>Apr 4, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <div class="actions">
 
-              <tr class="warning-row">
-                <td>PART-012</td>
-                <td>Tire Valve</td>
-                <td>Tire Parts</td>
-                <td><strong>7</strong></td>
-                <td><strong>10</strong></td>
-                <td><span class="badge low-stock">Low Stock</span></td>
-                <td>A-04</td>
-                <td>Apr 4, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                      <button
+                        type="button"
+                        class="edit openEditModal"
+                        title="Edit Item"
+                        data-action="{{ route('inventory.update', $item->id) }}"
+                        data-code="{{ $item->item_code }}"
+                        data-name="{{ $item->item_name }}"
+                        data-category="{{ $item->category }}"
+                        data-quantity="{{ $item->quantity_available }}"
+                        data-unit="{{ $item->unit_of_measurement }}"
+                        data-reorder="{{ $item->reorder_level }}"
+                        data-supplier="{{ $item->supplier }}"
+                        data-location="{{ $item->storage_location }}"
+                      >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
 
-              <tr>
-                <td>PART-013</td>
-                <td>Suspension Bushing</td>
-                <td>Suspension</td>
-                <td><strong>22</strong></td>
-                <td><strong>12</strong></td>
-                <td><span class="badge in-stock">In Stock</span></td>
-                <td>E-01</td>
-                <td>Apr 5, 2026</td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                      <form action="{{ route('inventory.destroy', $item->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+
+                        <button
+                          type="submit"
+                          class="delete"
+                          title="Delete Item"
+                          onclick="return confirm('Delete this inventory item?')"
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </form>
+
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="11" style="text-align:center; padding: 30px;">
+                    No inventory items found.
+                  </td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
 
-      </section>
+        {{-- CUSTOM PAGINATION --}}
+        <div class="table-footer">
+          <p>
+            Showing {{ $inventoryItems->firstItem() ?? 0 }} to {{ $inventoryItems->lastItem() ?? 0 }} of {{ $inventoryItems->total() }} entries
+          </p>
 
-      <!-- FORECAST TABLE -->
-      <section class="table-card inventory-card">
+          <div class="custom-pagination">
+            @if ($inventoryItems->onFirstPage())
+              <span class="page-btn disabled">Previous</span>
+            @else
+              <a href="{{ $inventoryItems->previousPageUrl() }}" class="page-btn">Previous</a>
+            @endif
 
-        <div class="section-header">
-          <div>
-            <h2>Inventory Forecast and Restocking Recommendation</h2>
-            <p>Predicted demand against current stock for at-risk items</p>
+            <span class="page-number">
+              Page {{ $inventoryItems->currentPage() }} of {{ $inventoryItems->lastPage() }}
+            </span>
+
+            @if ($inventoryItems->hasMorePages())
+              <a href="{{ $inventoryItems->nextPageUrl() }}" class="page-btn">Next</a>
+            @else
+              <span class="page-btn disabled">Next</span>
+            @endif
           </div>
-        </div>
-
-        <div class="toolbar inventory-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search forecasted item...">
-          </div>
-
-          <div class="filter-group">
-            <label>Category</label>
-            <select>
-              <option>All Categories</option>
-              <option>Engine Parts</option>
-              <option>Brake System</option>
-              <option>Cooling System</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Status</label>
-            <select>
-              <option>All States</option>
-              <option>Restock Soon</option>
-              <option>Monitor Stock</option>
-              <option>Enough Stock</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="inventory-table">
-            <thead>
-              <tr>
-                <th>Part</th>
-                <th>Current Stock</th>
-                <th>Monthly Usage</th>
-                <th>Forecast Demand</th>
-                <th>Days Until Stockout</th>
-                <th>Recommended Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td>
-                  <strong>Air Filter</strong>
-                  <span class="sub-text">Filters</span>
-                </td>
-                <td>18 Pieces</td>
-                <td>6/mo</td>
-                <td>7 Pieces</td>
-                <td>40 days</td>
-                <td><span class="badge enough">Enough Stock</span></td>
-              </tr>
-
-              <tr>
-                <td>
-                  <strong>Brake Pads</strong>
-                  <span class="sub-text">Brake</span>
-                </td>
-                <td>8 Pieces</td>
-                <td>6/mo</td>
-                <td>9 Pieces</td>
-                <td>40 days</td>
-                <td><span class="badge monitor">Monitor Stock</span></td>
-              </tr>
-
-              <tr>
-                <td>
-                  <strong>Suspension Bushing</strong>
-                  <span class="sub-text">Suspension</span>
-                </td>
-                <td>8 Pieces</td>
-                <td>6/mo</td>
-                <td>18 Pieces</td>
-                <td>40 days</td>
-                <td><span class="badge restock">Restock Soon</span></td>
-              </tr>
-
-              <tr>
-                <td>
-                  <strong>Tire Valve</strong>
-                  <span class="sub-text">Tires</span>
-                </td>
-                <td>7 Pieces</td>
-                <td>6/mo</td>
-                <td>22 Pieces</td>
-                <td>40 days</td>
-                <td><span class="badge restock">Restock Soon</span></td>
-              </tr>
-
-              <tr>
-                <td>
-                  <strong>Engine Oil</strong>
-                  <span class="sub-text">Engine Parts</span>
-                </td>
-                <td>4 Pieces</td>
-                <td>6/mo</td>
-                <td>15 Pieces</td>
-                <td>30 days</td>
-                <td><span class="badge restock">Restock Soon</span></td>
-              </tr>
-            </tbody>
-          </table>
         </div>
 
       </section>
 
     </main>
 
+  </div>
+
+  {{-- ADD MODAL --}}
+  <div class="modal-overlay" id="addModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Add Inventory Item</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form action="{{ route('inventory.store') }}" method="POST">
+        @csrf
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Item Code</label>
+            <input type="text" name="item_code" required placeholder="Example: PART-001">
+          </div>
+
+          <div class="form-group">
+            <label>Parts Name</label>
+            <input type="text" name="item_name" required placeholder="Example: Air Filter">
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" name="category" required placeholder="Example: Engine Parts">
+          </div>
+
+          <div class="form-group">
+            <label>Quantity Available</label>
+            <input type="number" name="quantity_available" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label>Unit of Measurement</label>
+            <input type="text" name="unit_of_measurement" required placeholder="Example: pcs, liter, box">
+          </div>
+
+          <div class="form-group">
+            <label>Reorder Level</label>
+            <input type="number" name="reorder_level" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label>Supplier</label>
+            <input type="text" name="supplier" placeholder="Supplier name">
+          </div>
+
+          <div class="form-group">
+            <label>Storage Location</label>
+            <input type="text" name="storage_location" placeholder="Example: A-02">
+          </div>
+
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Save Item</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  {{-- EDIT MODAL --}}
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Edit Inventory Item</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form id="editForm" method="POST">
+        @csrf
+        @method('PUT')
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Item Code</label>
+            <input type="text" name="item_code" id="edit_item_code" required>
+          </div>
+
+          <div class="form-group">
+            <label>Parts Name</label>
+            <input type="text" name="item_name" id="edit_item_name" required>
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" name="category" id="edit_category" required>
+          </div>
+
+          <div class="form-group">
+            <label>Quantity Available</label>
+            <input type="number" name="quantity_available" id="edit_quantity" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label>Unit of Measurement</label>
+            <input type="text" name="unit_of_measurement" id="edit_unit" required>
+          </div>
+
+          <div class="form-group">
+            <label>Reorder Level</label>
+            <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label>Supplier</label>
+            <input type="text" name="supplier" id="edit_supplier">
+          </div>
+
+          <div class="form-group">
+            <label>Storage Location</label>
+            <input type="text" name="storage_location" id="edit_location">
+          </div>
+
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Update Item</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  {{-- VIEW MODAL --}}
+  <div class="modal-overlay" id="viewModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Inventory Item Details</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+          <span>Item Code</span>
+          <strong id="view_code">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Parts Name</span>
+          <strong id="view_name">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Category</span>
+          <strong id="view_category">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Quantity Available</span>
+          <strong id="view_quantity">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Unit</span>
+          <strong id="view_unit">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Reorder Level</span>
+          <strong id="view_reorder">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Status</span>
+          <strong id="view_status">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Supplier</span>
+          <strong id="view_supplier">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Storage Location</span>
+          <strong id="view_location">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Last Updated</span>
+          <strong id="view_updated">—</strong>
+        </div>
+
+      </div>
+
+      <div class="modal-actions full-width">
+        <button type="button" class="cancel-btn closeModal">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+  {{-- IMPORT MODAL --}}
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-box">
+
+      <div class="modal-header">
+        <h2>Import Inventory Data</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form action="{{ route('inventory.import') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+
+        <div class="form-group full-width">
+          <label>Upload CSV File</label>
+          <input type="file" name="import_file" accept=".csv,.txt" required>
+
+          <small>
+            CSV format: item_code, item_name, category, quantity_available, unit, reorder_level, supplier, storage_location
+          </small>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Import Data</button>
+        </div>
+
+      </form>
+
+    </div>
   </div>
 
 </x-layout.app>

@@ -2,12 +2,6 @@
 
 /* CARD */
 .purchase-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: var(--shadow);
-  margin-bottom: 20px;
   overflow: hidden;
 }
 
@@ -28,13 +22,17 @@
   margin-top: 3px;
 }
 
-/* PURCHASE TOOLBAR */
+/* TOOLBAR */
 .purchase-toolbar {
   width: 100%;
   padding: 12px 16px;
   gap: 12px;
   border-radius: 14px;
   margin-bottom: 18px;
+}
+
+.purchase-toolbar .search-box {
+  flex: 1;
 }
 
 .purchase-toolbar .search-box input {
@@ -51,18 +49,20 @@
 
 .purchase-toolbar .filter-group {
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .purchase-toolbar .filter-group label {
   font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .purchase-toolbar .filter-group select {
   height: 38px;
-  min-width: 130px;
+  min-width: 150px;
   font-size: 13px;
   border-radius: 9px;
-  padding: 0 10px;
 }
 
 .purchase-toolbar .primary-btn {
@@ -71,23 +71,44 @@
   font-size: 13px;
   border-radius: 9px;
   gap: 7px;
-}
-
-.purchase-toolbar .primary-btn i {
-  font-size: 13px;
+  flex-shrink: 0;
 }
 
 /* TABLE */
 .purchase-card table {
-  min-width: 950px;
+  min-width: 1050px;
 }
 
 .purchase-card th,
 .purchase-card td {
   padding: 14px 13px;
+  vertical-align: middle;
 }
 
-/* ACTION BUTTON COLORS */
+/* CENTER QUANTITY, STATUS, CREATED, ACTIONS */
+.purchase-card th:nth-child(5),
+.purchase-card td:nth-child(5),
+.purchase-card th:nth-child(6),
+.purchase-card td:nth-child(6),
+.purchase-card th:nth-child(7),
+.purchase-card td:nth-child(7),
+.purchase-card th:nth-child(8),
+.purchase-card td:nth-child(8) {
+  text-align: center;
+}
+
+/* ACTION BUTTONS */
+.purchase-card .actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.purchase-card .actions form {
+  display: inline-flex;
+}
+
 .purchase-card .approve-btn {
   background: #ddf8e7;
   color: var(--green);
@@ -106,6 +127,26 @@
 }
 
 /* STATUS BADGES */
+.badge.draft {
+  background: #eef1f6;
+  color: #64748b;
+}
+
+.badge.submitted {
+  background: #fff3cd;
+  color: #b77900;
+}
+
+.badge.approved {
+  background: #ddf8e7;
+  color: #16a34a;
+}
+
+.badge.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .badge.for-purchase {
   background: #e7f0ff;
   color: #0057f8;
@@ -131,26 +172,6 @@
   color: #0057f8;
 }
 
-.badge.approved {
-  background: #ddf8e7;
-  color: #16a34a;
-}
-
-.badge.rejected {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.badge.submitted {
-  background: #fff3cd;
-  color: #b77900;
-}
-
-.badge.draft {
-  background: #eef1f6;
-  color: #64748b;
-}
-
 /* ALERT ERROR */
 .alert-error {
   background: #fee2e2;
@@ -166,11 +187,14 @@
   margin-left: 18px;
 }
 
-/* READONLY INPUTS */
+/* READONLY / DISABLED INPUTS */
 #busNoInput[readonly],
 #edit_bus_no[readonly],
-#edit_status_display[readonly] {
+#edit_status_display[readonly],
+#editPrModal input:disabled,
+#editPrModal select:disabled {
   background: #f8fafc;
+  color: #64748b;
   cursor: not-allowed;
 }
 
@@ -263,6 +287,16 @@
   transform: translateY(-1px);
 }
 
+/* PAGINATION SVG FIX */
+.pagination svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.pagination p {
+  display: none;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
   .purchase-toolbar {
@@ -287,6 +321,7 @@
 
   .purchase-toolbar .filter-group select {
     flex: 1;
+    max-width: none;
   }
 
   .purchase-toolbar .primary-btn {
@@ -319,10 +354,4 @@
     width: 100%;
     justify-content: center;
   }
-  #editPrModal input:disabled,
-#editPrModal select:disabled {
-  background: #f8fafc;
-  color: #64748b;
-  cursor: not-allowed;
-}
 }
