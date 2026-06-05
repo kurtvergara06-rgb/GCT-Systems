@@ -12,6 +12,7 @@ class JobOrder extends Model
         'problem_issue',
         'maintenance_type',
         'assigned_mechanic',
+        'part_needed',
         'start_date',
         'completion_date',
         'status',

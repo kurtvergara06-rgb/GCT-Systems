@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('job_orders');
+
         Schema::create('job_orders', function (Blueprint $table) {
             $table->id();
 
@@ -15,16 +17,18 @@ return new class extends Migration
             $table->string('bus_no');
             $table->text('problem_issue');
             $table->string('maintenance_type');
-            $table->string('assigned_mechanic')->nullable();
-            $table->date('start_date')->nullable();
-            $table->date('completion_date')->nullable();
+            $table->string('assigned_mechanic');
+            $table->string('part_needed')->nullable();
+
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('completion_date')->nullable();
 
             $table->enum('status', [
                 'On Hold',
                 'On Going',
                 'Completed',
-                'Urgent Repair'
-            ])->default('On Hold');
+                'Urgent Repair',
+            ])->default('On Going');
 
             $table->timestamps();
         });
