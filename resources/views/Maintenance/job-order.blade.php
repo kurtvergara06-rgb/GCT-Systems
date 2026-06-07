@@ -126,14 +126,6 @@
               <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>
                 On Going
               </option>
-
-              <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>
-                Completed
-              </option>
-
-              <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>
-                Urgent Repair
-              </option>
             </select>
           </div>
 
@@ -166,7 +158,8 @@
                 <th>Quantity</th>
                 <th>Start Date & Time</th>
                 <th>Completion Date & Time</th>
-                <th>Status</th>
+                <th class="status-col">JO Status</th>
+                <th class="status-col">Part Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -176,6 +169,14 @@
                 @php
                   $firstPartName = '—';
                   $firstPartQuantity = '—';
+                  $isCompleted = $jobOrder->status === 'Completed';
+
+                  $joStatus = $jobOrder->status ?: 'On Going';
+                  $partStatus = $jobOrder->part_status;
+
+                  if (!$partStatus || $partStatus === 'Unknown') {
+                    $partStatus = 'Not Requested';
+                  }
 
                   if ($jobOrder->part_needed) {
                     $parts = explode(',', $jobOrder->part_needed);
@@ -227,17 +228,21 @@
                     @endif
                   </td>
 
-                  <td>
-                    <x-ui.status-badge :status="$jobOrder->status" />
+                  <td class="status-col">
+                    <x-ui.status-badge :status="$joStatus" />
+                  </td>
+
+                  <td class="status-col">
+                    <x-ui.status-badge :status="$partStatus" />
                   </td>
 
                   <td>
                     <div class="actions">
 
                       <x-ui.action-buttom-modal
-                        class="edit open-edit-modal"
-                        title="View / Edit"
-                        icon="fa-pen-to-square"
+                        class="{{ $isCompleted ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
+                        title="{{ $isCompleted ? 'View' : 'View / Edit' }}"
+                        icon="{{ $isCompleted ? 'fa-eye' : 'fa-pen-to-square' }}"
                         data-id="{{ $jobOrder->id }}"
                         data-job-order-no="{{ $jobOrder->job_order_no }}"
                         data-bus-no="{{ $jobOrder->bus_no }}"
@@ -270,7 +275,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="9"
+                  colspan="10"
                   message="No job orders found."
                 />
               @endforelse
@@ -311,7 +316,7 @@
       <input
         type="text"
         name="bus_no"
-        placeholder="Example: BUS-001"
+        placeholder="Example: BUS-2026-0001"
         required
       >
     </div>
@@ -336,12 +341,15 @@
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
-      <input
-        type="text"
-        name="assigned_mechanic"
-        placeholder="Enter mechanic name"
-        required
-      >
+      <select name="assigned_mechanic" required>
+        <option value="">Select Available Mechanic</option>
+
+        @foreach($availableMechanics as $mechanic)
+          <option value="{{ $mechanic->mechanic_name }}">
+            {{ $mechanic->mechanic_name }} - {{ $mechanic->mechanic_id }}
+          </option>
+        @endforeach
+      </select>
     </div>
 
     <div class="form-group full-width">
@@ -375,7 +383,7 @@
     </div>
   </x-ui.form-modal>
 
-  {{-- EDIT JO MODAL --}}
+  {{-- EDIT / VIEW JO MODAL --}}
   <x-ui.form-modal
     id="editJobModal"
     title="Job Order Details"
@@ -454,6 +462,22 @@
       <button type="button" id="editAddPartBtn" class="add-part-btn">
         <i class="fa-solid fa-plus"></i>
         Add Other Part
+      </button>
+    </div>
+
+    <div class="modal-actions full-width" id="editJobMainActions">
+      <button type="button" id="cancelEditJobModal" class="cancel-btn">
+        Cancel
+      </button>
+
+      <button type="submit" class="save-btn">
+        Update Job Order
+      </button>
+    </div>
+
+    <div class="modal-actions full-width" id="viewOnlyJobActions" style="display: none;">
+      <button type="button" id="closeViewOnlyJob" class="cancel-btn">
+        Close
       </button>
     </div>
   </x-ui.form-modal>

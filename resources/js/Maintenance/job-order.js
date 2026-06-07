@@ -27,10 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /*
   |--------------------------------------------------------------------------
-  | Parts Helper
-  |--------------------------------------------------------------------------
-  | Saved format example:
-  | Air Filter - Qty: 2, Brake Pads - Qty: 4
+  | Parts Helpers
   |--------------------------------------------------------------------------
   */
   function parsePartsNeeded(partNeeded) {
@@ -57,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  function createPartRow(index, name = '', quantity = '', canRemove = true) {
+  function createPartRow(index, name = '', quantity = '', canRemove = true, disabled = false) {
     const row = document.createElement('div');
     row.className = 'part-needed-row';
 
@@ -67,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         name="parts[${index}][name]"
         value="${escapeHtml(name)}"
         placeholder="Part name"
+        ${disabled ? 'disabled' : ''}
       >
 
       <input
@@ -75,9 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
         value="${escapeHtml(quantity)}"
         min="1"
         placeholder="Quantity"
+        ${disabled ? 'disabled' : ''}
       >
 
-      <button type="button" class="remove-part-btn" style="${canRemove ? '' : 'display: none;'}">
+      <button
+        type="button"
+        class="remove-part-btn"
+        style="${canRemove && !disabled ? '' : 'display: none;'}"
+      >
         <i class="fa-solid fa-xmark"></i>
       </button>
     `;
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addButton.addEventListener('click', () => {
       const index = wrapper.querySelectorAll('.part-needed-row').length;
 
-      wrapper.appendChild(createPartRow(index, '', '', true));
+      wrapper.appendChild(createPartRow(index, '', '', true, false));
       refreshPartRowNames(wrapper);
       updateRemoveButtons(wrapper);
     });
@@ -147,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRemoveButtons(wrapper);
   }
 
-  function loadEditParts(partNeeded) {
+  function loadEditParts(partNeeded, isViewOnly = false) {
     const wrapper = document.getElementById('editPartsNeededWrapper');
 
     if (!wrapper) return;
@@ -157,19 +160,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = parsePartsNeeded(partNeeded);
 
     if (parts.length === 0) {
-      wrapper.appendChild(createPartRow(0, '', '', false));
-      updateRemoveButtons(wrapper);
+      wrapper.appendChild(createPartRow(0, '', '', false, isViewOnly));
       return;
     }
 
     parts.forEach((part, index) => {
       wrapper.appendChild(
-        createPartRow(index, part.name, part.quantity, parts.length > 1)
+        createPartRow(index, part.name, part.quantity, parts.length > 1, isViewOnly)
       );
     });
 
     refreshPartRowNames(wrapper);
-    updateRemoveButtons(wrapper);
+
+    if (!isViewOnly) {
+      updateRemoveButtons(wrapper);
+    }
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Completed JO View Only Mode
+  |--------------------------------------------------------------------------
+  */
+  function setJobReadonlyMode(isViewOnly) {
+    const editableFields = [
+      'edit_bus_no',
+      'edit_problem_issue',
+      'edit_maintenance_type',
+      'edit_status',
+      'edit_assigned_mechanic',
+    ];
+
+    editableFields.forEach((id) => {
+      const field = document.getElementById(id);
+
+      if (field) {
+        field.disabled = isViewOnly;
+        field.readOnly = isViewOnly;
+      }
+    });
+
+    const editAddPartBtn = document.getElementById('editAddPartBtn');
+    const editJobMainActions = document.getElementById('editJobMainActions');
+    const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
+
+    if (editAddPartBtn) {
+      editAddPartBtn.style.display = isViewOnly ? 'none' : 'inline-flex';
+    }
+
+    if (editJobMainActions) {
+      editJobMainActions.style.display = isViewOnly ? 'none' : 'flex';
+    }
+
+    if (viewOnlyJobActions) {
+      viewOnlyJobActions.style.display = isViewOnly ? 'flex' : 'none';
+    }
   }
 
   /*
@@ -180,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.close-feedback-modal').forEach((button) => {
     button.addEventListener('click', () => {
       const modal = button.closest('.success-modal-overlay');
-
       closeModal(modal);
     });
   });
@@ -215,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /*
   |--------------------------------------------------------------------------
-  | Edit JO Modal
+  | Edit / View JO Modal
   |--------------------------------------------------------------------------
   */
   const editJobModal = document.getElementById('editJobModal');
@@ -223,6 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeEditJobModal = document.getElementById('closeEditJobModal');
   const cancelEditJobModal = document.getElementById('cancelEditJobModal');
+  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
 
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
@@ -234,36 +279,22 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.id;
+      const status = button.dataset.status || '';
+      const isViewOnly = status === 'Completed';
 
       if (editJobForm) {
         editJobForm.action = `/job-orders/${id}`;
       }
 
-      if (editJobOrderNo) {
-        editJobOrderNo.value = button.dataset.jobOrderNo || '';
-      }
+      if (editJobOrderNo) editJobOrderNo.value = button.dataset.jobOrderNo || '';
+      if (editBusNo) editBusNo.value = button.dataset.busNo || '';
+      if (editProblemIssue) editProblemIssue.value = button.dataset.problemIssue || '';
+      if (editMaintenanceType) editMaintenanceType.value = button.dataset.maintenanceType || '';
+      if (editStatus) editStatus.value = status || 'On Going';
+      if (editAssignedMechanic) editAssignedMechanic.value = button.dataset.assignedMechanic || '';
 
-      if (editBusNo) {
-        editBusNo.value = button.dataset.busNo || '';
-      }
-
-      if (editProblemIssue) {
-        editProblemIssue.value = button.dataset.problemIssue || '';
-      }
-
-      if (editMaintenanceType) {
-        editMaintenanceType.value = button.dataset.maintenanceType || '';
-      }
-
-      if (editStatus) {
-        editStatus.value = button.dataset.status || 'On Going';
-      }
-
-      if (editAssignedMechanic) {
-        editAssignedMechanic.value = button.dataset.assignedMechanic || '';
-      }
-
-      loadEditParts(button.dataset.partNeeded || '');
+      loadEditParts(button.dataset.partNeeded || '', isViewOnly);
+      setJobReadonlyMode(isViewOnly);
 
       openModal(editJobModal);
     });
@@ -277,6 +308,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (cancelEditJobModal) {
     cancelEditJobModal.addEventListener('click', () => {
+      closeModal(editJobModal);
+    });
+  }
+
+  if (closeViewOnlyJob) {
+    closeViewOnlyJob.addEventListener('click', () => {
       closeModal(editJobModal);
     });
   }

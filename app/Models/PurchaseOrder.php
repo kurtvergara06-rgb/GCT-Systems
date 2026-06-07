@@ -18,4 +18,9 @@ class JobOrder extends Model
         'status',
         'part_status',
     ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'completion_date' => 'datetime',
+    ];
 }

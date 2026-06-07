@@ -53,4 +53,50 @@ class WarehousePartRequestController extends Controller
             'issued'
         ));
     }
+
+    public function issueItem(PurchaseRequest $purchaseRequest)
+    {
+        if (!in_array($purchaseRequest->status, ['Approved', 'Delivered'])) {
+            return redirect()
+                ->route('warehouse-part-requests')
+                ->with('error', 'Only approved or delivered purchase requests can be issued.');
+        }
+
+        $purchaseRequest->update([
+            'status' => 'Issued',
+        ]);
+
+        // Update related job order part_status when item is issued
+        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
+        if ($jobOrder) {
+            $jobOrder->update(['part_status' => 'Issued']);
+        }
+
+        return redirect()
+            ->route('warehouse-part-requests')
+            ->with('success', 'Part issued successfully.');
+    }
+
+    public function sendToPurchase(PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->status !== 'Approved') {
+            return redirect()
+                ->route('warehouse-part-requests')
+                ->with('error', 'Only approved purchase requests can be sent to purchase.');
+        }
+
+        $purchaseRequest->update([
+            'status' => 'For Purchase',
+        ]);
+
+        // Update related job order part_status when sent to purchase (item not available)
+        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
+        if ($jobOrder) {
+            $jobOrder->update(['part_status' => 'For Purchase']);
+        }
+
+        return redirect()
+            ->route('warehouse-part-requests')
+            ->with('success', 'Purchase request sent to Purchase Department.');
+    }
 }

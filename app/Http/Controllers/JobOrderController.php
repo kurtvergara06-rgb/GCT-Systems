@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobOrder;
+use App\Models\MechanicAttendance;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
@@ -44,13 +45,30 @@ class JobOrderController extends Controller
 
         $nextJobOrderNo = $this->generateJobOrderNo();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Available Mechanics Dropdown
+        |--------------------------------------------------------------------------
+        | Show only available mechanics from mechanic_attendances table.
+        |--------------------------------------------------------------------------
+        */
+        $availableMechanics = MechanicAttendance::whereIn('status', ['Present', 'Late'])
+            ->where(function ($query) {
+                $query->whereNull('assigned_job')
+                    ->orWhere('assigned_job', '')
+                    ->orWhere('assigned_job', 'Available');
+            })
+            ->orderBy('mechanic_name')
+            ->get();
+
         return view('Maintenance.job-order', compact(
             'jobOrders',
             'onHold',
             'onGoing',
             'completed',
             'urgentRepair',
-            'nextJobOrderNo'
+            'nextJobOrderNo',
+            'availableMechanics'
         ));
     }
 
@@ -70,6 +88,7 @@ class JobOrderController extends Controller
         $validated['start_date'] = now();
         $validated['completion_date'] = null;
         $validated['status'] = 'On Going';
+        $validated['part_status'] = 'Not Requested';
         $validated['part_needed'] = $this->formatPartsNeeded($request->parts);
 
         unset($validated['parts']);
@@ -83,13 +102,19 @@ class JobOrderController extends Controller
 
     public function update(Request $request, JobOrder $jobOrder)
     {
+        if ($jobOrder->status === 'Completed') {
+            return redirect()
+                ->route('job-orders')
+                ->with('error', 'Completed job orders can only be viewed.');
+        }
+
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
             'bus_no' => 'required|string|max:255',
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'required|string|max:255',
-            'status' => 'required|string|max:255',
+            'status' => 'required|string|in:On Hold,On Going',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
@@ -108,6 +133,12 @@ class JobOrderController extends Controller
 
     public function finish(JobOrder $jobOrder)
     {
+        if ($jobOrder->status === 'Completed') {
+            return redirect()
+                ->route('job-orders')
+                ->with('error', 'This job order is already completed.');
+        }
+
         $jobOrder->update([
             'completion_date' => now(),
             'status' => 'Completed',
@@ -129,22 +160,26 @@ class JobOrderController extends Controller
 
     private function generateJobOrderNo(): string
     {
-        $lastJobOrder = JobOrder::orderByDesc('id')->first();
+        $year = now()->format('Y');
+
+        $lastJobOrder = JobOrder::where('job_order_no', 'like', "JO-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
 
         if (! $lastJobOrder) {
-            return 'JO-000001';
+            return "JO-{$year}-0001";
         }
 
-        preg_match('/JO-(\d+)/', $lastJobOrder->job_order_no, $matches);
+        preg_match('/JO-' . $year . '-(\d+)/', $lastJobOrder->job_order_no, $matches);
 
         $lastNumber = isset($matches[1]) ? (int) $matches[1] : 0;
         $nextNumber = $lastNumber + 1;
 
-        $newJobOrderNo = 'JO-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $newJobOrderNo = 'JO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         while (JobOrder::where('job_order_no', $newJobOrderNo)->exists()) {
             $nextNumber++;
-            $newJobOrderNo = 'JO-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+            $newJobOrderNo = 'JO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
 
         return $newJobOrderNo;

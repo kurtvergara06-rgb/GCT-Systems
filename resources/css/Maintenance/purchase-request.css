@@ -297,6 +297,30 @@
   display: none;
 }
 
+#editPrMainActions,
+#viewOnlyActions {
+  justify-content: flex-end;
+}
+
+#viewOnlyActions .cancel-btn {
+  min-width: 110px;
+}
+
+#edit_job_order_no:disabled,
+#edit_bus_no:disabled,
+#edit_item:disabled,
+#edit_quantity:disabled,
+#edit_remarks:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.actions .view {
+  background: #edf3fb;
+  color: #082445;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
   .purchase-toolbar {

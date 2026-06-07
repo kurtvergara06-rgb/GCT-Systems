@@ -8,10 +8,6 @@
   ]"
 >
 
-  @php
-    $role = 'sub_admin';
-  @endphp
-
   {{-- FEEDBACK MODALS --}}
   <x-ui.action-buttom-modal
     mode="feedback"
@@ -46,7 +42,7 @@
 
     <main class="main">
 
-      {{-- TOP BAR COMPONENT --}}
+      {{-- TOP BAR --}}
       <x-layout.topbar
         title="Purchase Requests"
         subtitle="Manage requested parts and maintenance purchasing records"
@@ -111,7 +107,7 @@
           </div>
         </div>
 
-        {{-- TOOLBAR COMPONENT --}}
+        {{-- TOOLBAR --}}
         <x-ui.table-toolbar
           :action="route('purchase-requests')"
           class="toolbar purchase-toolbar"
@@ -121,6 +117,7 @@
         >
           <div class="filter-group">
             <label>Status</label>
+
             <select name="status" onchange="this.form.submit()">
               <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
@@ -182,6 +179,20 @@
 
             <tbody>
               @forelse($purchaseRequests as $pr)
+                @php
+                  $viewOnlyStatuses = [
+                    'Approved',
+                    'Rejected',
+                    'For Purchase',
+                    'Pending Purchase',
+                    'Delivering',
+                    'Delivered',
+                    'Issued',
+                  ];
+
+                  $isViewOnly = in_array($pr->status, $viewOnlyStatuses);
+                @endphp
+
                 <tr>
                   <td>{{ $pr->pr_no }}</td>
                   <td>{{ $pr->job_order_no }}</td>
@@ -193,15 +204,17 @@
                     <x-ui.status-badge :status="$pr->status" />
                   </td>
 
-                  <td>{{ $pr->created_at->format('M d, Y') }}</td>
+                  <td>
+                    {{ $pr->created_at ? $pr->created_at->format('m/d/y | h:i A') : '—' }}
+                  </td>
 
                   <td>
                     <div class="actions">
 
                       <x-ui.action-buttom-modal
-                        class="edit open-edit-pr-modal"
-                        title="View / Edit"
-                        icon="fa-pen-to-square"
+                        class="{{ $isViewOnly ? 'view open-edit-pr-modal' : 'edit open-edit-pr-modal' }}"
+                        title="{{ $isViewOnly ? 'View' : 'View / Edit' }}"
+                        icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                         data-id="{{ $pr->id }}"
                         data-pr-no="{{ $pr->pr_no }}"
                         data-job-order-no="{{ $pr->job_order_no }}"
@@ -274,12 +287,17 @@
 
         <div class="form-section-title full-width">
           <h3>Purchase Request Details</h3>
-          <p>Enter the requested parts information for a job order.</p>
+          <p>Select a job order. The bus number, part, and quantity will be filled automatically.</p>
         </div>
 
         <div class="form-group">
           <label>PR No.</label>
-          <input type="text" name="pr_no" placeholder="Example: PR-2026-0001" required>
+          <input
+            type="text"
+            name="pr_no_display"
+            value="{{ $nextPrNo }}"
+            readonly
+          >
         </div>
 
         <div class="form-group">
@@ -288,7 +306,11 @@
             <option value="">Select Job Order</option>
 
             @foreach($jobOrders as $jobOrder)
-              <option value="{{ $jobOrder->job_order_no }}" data-bus="{{ $jobOrder->bus_no }}">
+              <option
+                value="{{ $jobOrder->job_order_no }}"
+                data-bus="{{ $jobOrder->bus_no }}"
+                data-parts="{{ $jobOrder->part_needed }}"
+              >
                 {{ $jobOrder->job_order_no }}
               </option>
             @endforeach
@@ -309,28 +331,45 @@
 
         <div class="form-group">
           <label>Status</label>
-          <input type="text" value="Automatic: Draft or Submitted" readonly>
+          <input
+            type="text"
+            value="Automatic: Draft or Submitted"
+            readonly
+          >
         </div>
 
         <div class="form-group full-width">
           <label>Requested Item / Part</label>
-          <input type="text" name="item" placeholder="Example: Engine Oil Filter" required>
+          <input
+            type="text"
+            name="item"
+            id="partInput"
+            placeholder="Auto-filled from selected Job Order"
+            readonly
+            required
+          >
         </div>
 
-        <div class="form-section-divider full-width">
-          <span>Request Details</span>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input
+            type="number"
+            name="quantity"
+            id="quantityInput"
+            min="1"
+            placeholder="Auto-filled"
+            readonly
+            required
+          >
         </div>
 
-        <div class="form-row time-section full-width">
-          <div class="form-group">
-            <label>Quantity</label>
-            <input type="number" name="quantity" min="1" placeholder="Example: 2" required>
-          </div>
-
-          <div class="form-group">
-            <label>Remarks</label>
-            <input type="text" name="remarks" placeholder="Optional remarks...">
-          </div>
+        <div class="form-group">
+          <label>Remarks</label>
+          <input
+            type="text"
+            name="remarks"
+            placeholder="Optional remarks..."
+          >
         </div>
 
         <div class="modal-actions full-width">
@@ -343,7 +382,7 @@
           </button>
 
           <button type="submit" name="submit_action" value="submit" class="save-btn">
-            Submit PR
+            Create PR
           </button>
         </div>
       </form>
@@ -351,7 +390,7 @@
     </div>
   </div>
 
-  {{-- EDIT PR MODAL --}}
+  {{-- EDIT / VIEW PR MODAL --}}
   <div id="editPrModal" class="modal-overlay">
     <div class="modal-box wide-modal">
 
@@ -369,12 +408,18 @@
 
         <div class="form-section-title full-width">
           <h3>Editable PR Information</h3>
-          <p>Review and update the selected purchase request.</p>
+          <p id="editPrDescription">Review and update the selected purchase request.</p>
         </div>
 
         <div class="form-group">
           <label>PR No.</label>
-          <input type="text" name="pr_no" id="edit_pr_no" required>
+          <input
+            type="text"
+            name="pr_no"
+            id="edit_pr_no"
+            readonly
+            required
+          >
         </div>
 
         <div class="form-group">
@@ -383,8 +428,23 @@
             <option value="">Select Job Order</option>
 
             @foreach($jobOrders as $jobOrder)
-              <option value="{{ $jobOrder->job_order_no }}" data-bus="{{ $jobOrder->bus_no }}">
+              <option
+                value="{{ $jobOrder->job_order_no }}"
+                data-bus="{{ $jobOrder->bus_no }}"
+                data-parts="{{ $jobOrder->part_needed }}"
+              >
                 {{ $jobOrder->job_order_no }}
+              </option>
+            @endforeach
+
+            @foreach($purchaseRequests as $prOption)
+              <option
+                value="{{ $prOption->job_order_no }}"
+                data-bus="{{ $prOption->bus_no }}"
+                data-parts="{{ $prOption->item }} - Qty: {{ $prOption->quantity }}"
+                class="existing-pr-option"
+              >
+                {{ $prOption->job_order_no }}
               </option>
             @endforeach
           </select>
@@ -396,7 +456,6 @@
             type="text"
             name="bus_no"
             id="edit_bus_no"
-            placeholder="Auto-filled from Job Order"
             readonly
             required
           >
@@ -404,31 +463,46 @@
 
         <div class="form-group">
           <label>Status</label>
-          <input type="text" id="edit_status_display" readonly>
+          <input
+            type="text"
+            id="edit_status_display"
+            readonly
+          >
         </div>
 
         <div class="form-group full-width">
           <label>Requested Item / Part</label>
-          <input type="text" name="item" id="edit_item" required>
+          <input
+            type="text"
+            name="item"
+            id="edit_item"
+            readonly
+            required
+          >
         </div>
 
-        <div class="form-section-divider full-width">
-          <span>Request Details</span>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input
+            type="number"
+            name="quantity"
+            id="edit_quantity"
+            min="1"
+            readonly
+            required
+          >
         </div>
 
-        <div class="form-row time-section full-width">
-          <div class="form-group">
-            <label>Quantity</label>
-            <input type="number" name="quantity" id="edit_quantity" min="1" required>
-          </div>
-
-          <div class="form-group">
-            <label>Remarks</label>
-            <input type="text" name="remarks" id="edit_remarks">
-          </div>
+        <div class="form-group">
+          <label>Remarks</label>
+          <input
+            type="text"
+            name="remarks"
+            id="edit_remarks"
+          >
         </div>
 
-        <div class="modal-actions full-width">
+        <div class="modal-actions full-width" id="editPrMainActions">
           <button type="button" id="cancelEditPrModal" class="cancel-btn">
             Cancel
           </button>
@@ -438,14 +512,22 @@
           </button>
 
           <button type="submit" name="submit_action" value="submit" class="save-btn" id="submitEditBtn">
-            Submit PR
+            Create PR
+          </button>
+        </div>
+
+        <div class="modal-actions full-width" id="viewOnlyActions" style="display: none;">
+          <button type="button" id="closeViewOnlyPr" class="cancel-btn">
+            Close
           </button>
         </div>
       </form>
 
+      {{-- SUB ADMIN APPROVAL ACTIONS --}}
       <div class="modal-actions full-width pr-approval-actions" id="prApprovalActions" style="display: none;">
         <form id="approvePrForm" method="POST">
           @csrf
+
           <button type="submit" class="approve-action-btn">
             <i class="fa-solid fa-check"></i>
             Approve
@@ -454,7 +536,9 @@
 
         <form id="rejectPrForm" method="POST">
           @csrf
+
           <input type="hidden" name="remarks" value="Rejected by sub admin">
+
           <button type="submit" class="reject-action-btn">
             <i class="fa-solid fa-xmark"></i>
             Reject
@@ -462,9 +546,11 @@
         </form>
       </div>
 
+      {{-- HIDDEN WORKFLOW ACTIONS --}}
       <div class="modal-actions full-width warehouse-actions" id="warehouseActions" style="display: none;">
         <form id="issuePrForm" method="POST">
           @csrf
+
           <button type="submit" class="approve-action-btn">
             <i class="fa-solid fa-box-open"></i>
             Issue Parts
@@ -473,6 +559,7 @@
 
         <form id="forPurchasePrForm" method="POST">
           @csrf
+
           <button type="submit" class="purchase-action-btn">
             <i class="fa-solid fa-cart-shopping"></i>
             For Purchase
@@ -483,6 +570,7 @@
       <div class="modal-actions full-width purchase-actions" id="purchaseActions" style="display: none;">
         <form id="pendingPurchasePrForm" method="POST">
           @csrf
+
           <button type="submit" class="purchase-action-btn">
             <i class="fa-solid fa-clock"></i>
             Pending Purchase
@@ -491,6 +579,7 @@
 
         <form id="deliveringPrForm" method="POST">
           @csrf
+
           <button type="submit" class="purchase-action-btn">
             <i class="fa-solid fa-truck-fast"></i>
             Delivering
@@ -499,6 +588,7 @@
 
         <form id="deliveredPrForm" method="POST">
           @csrf
+
           <button type="submit" class="approve-action-btn">
             <i class="fa-solid fa-box"></i>
             Delivered

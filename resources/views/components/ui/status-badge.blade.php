@@ -21,6 +21,9 @@
     'Delivered' => 'delivered',
     'Issued' => 'issued',
 
+    // Part Statuses (for Job Orders)
+    'Not Requested' => 'not-requested',
+
     // Inventory Statuses
     'In Stock' => 'in-stock',
     'Low Stock' => 'low-stock',

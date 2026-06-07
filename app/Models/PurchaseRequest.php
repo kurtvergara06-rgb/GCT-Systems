@@ -13,9 +13,6 @@ class PurchaseRequest extends Model
         'item',
         'quantity',
         'status',
-        'approved_at',
-        'rejected_at',
-        'issued_at',
         'remarks',
     ];
 }

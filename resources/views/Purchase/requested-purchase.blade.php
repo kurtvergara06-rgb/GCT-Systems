@@ -1,6 +1,8 @@
 <x-layout.app
   title="FROMS - Requested Purchase"
   :assets="[
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
     'resources/css/Purchase/purchase-orders.css'
   ]"
 >
@@ -10,8 +12,8 @@
     <x-layout.sidebar
       department="Purchase"
       subtitle="Department Module"
-      icon="fa-truck"
-      user-name="R. Lim"
+      icon="fa-cart-shopping"
+      user-name="P. Admin"
       user-role="Purchase Admin"
       :items="[
         ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
@@ -20,100 +22,108 @@
       ]"
     />
 
-    <!-- MAIN -->
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Purchase Requests</h1>
-          <p>Manage requested parts and maintenance purchasing records</p>
-        </div>
+      {{-- TOP BAR --}}
+      <x-layout.topbar
+        title="Requested Purchases"
+        subtitle="View approved maintenance purchase requests for purchasing process"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- SUMMARY CARDS -->
+      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <x-ui.summary-card
           label="Total Requests"
-          value="1"
-          small="Purchase Request"
+          value="{{ $totalRequests }}"
+          small="Purchase requests"
           icon="fa-file"
           color="gray"
         />
 
         <x-ui.summary-card
-          label="Pending Approval"
-          value="4"
-          small="Purchase Requests"
-          icon="fa-paper-plane"
-          color="yellow"
-        />
-
-        <x-ui.summary-card
           label="Approved"
-          value="4"
-          small="Purchase Requests"
+          value="{{ $approved }}"
+          small="Ready for purchase"
           icon="fa-check"
           color="green"
         />
 
         <x-ui.summary-card
-          label="Convert to Purchase Order"
-          value="9"
-          small="All records"
-          icon="fa-boxes-stacked"
+          label="For Purchase"
+          value="{{ $forPurchase }}"
+          small="Parts unavailable"
+          icon="fa-cart-shopping"
           color="blue"
+        />
+
+        <x-ui.summary-card
+          label="Delivered"
+          value="{{ $delivered }}"
+          small="Supplier delivered"
+          icon="fa-box"
+          color="yellow"
         />
 
       </section>
 
-      <!-- PURCHASE REQUEST TABLE -->
+      {{-- PURCHASE REQUEST TABLE --}}
       <section class="table-card purchase-card">
 
         <div class="section-header">
           <div>
-            <h2>Purchase Request Records</h2>
-            <p>Track requested parts, approval status, and related job orders</p>
+            <h2>Requested Purchase Records</h2>
+            <p>Track approved purchase requests from Maintenance for purchasing process</p>
           </div>
         </div>
 
-        <div class="toolbar purchase-toolbar">
+        <form action="{{ route('requested-purchase') }}" method="GET" class="toolbar purchase-toolbar">
+
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search PR no., JO no., bus, or item...">
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search PR no., JO no., bus, or item..."
+            >
           </div>
 
           <div class="filter-group">
             <label>Status</label>
-            <select>
-              <option>All Statuses</option>
-              <option>Draft</option>
-              <option>Submitted</option>
-              <option>Approved</option>
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+                All Statuses
+              </option>
+
+              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
+                Approved
+              </option>
+
+              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
+                For Purchase
+              </option>
+
+              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
+                Pending Purchase
+              </option>
+
+              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
+                Delivering
+              </option>
+
+              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
+                Delivered
+              </option>
+
+              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
+                Issued
+              </option>
             </select>
           </div>
 
-          <button class="primary-btn">
-            <i class="fa-solid fa-plus"></i>
-            New PR
-          </button>
-        </div>
+        </form>
 
         <div class="table-wrap">
           <table>
@@ -131,96 +141,57 @@
             </thead>
 
             <tbody>
-              <tr>
-                <td>PR-2026-0002</td>
-                <td>JO-26-0011</td>
-                <td>BUS-001</td>
-                <td>Engine Oil Filter</td>
-                <td>6</td>
-                <td><span class="badge draft">Draft</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+              @forelse($purchaseRequests as $pr)
+                <tr>
+                  <td>{{ $pr->pr_no }}</td>
+                  <td>{{ $pr->job_order_no }}</td>
+                  <td>{{ $pr->bus_no }}</td>
+                  <td>{{ $pr->item }}</td>
+                  <td>{{ $pr->quantity }}</td>
 
-              <tr>
-                <td>PR-2026-0008</td>
-                <td>JO-26-0013</td>
-                <td>BUS-013</td>
-                <td>Brake Pads</td>
-                <td>1</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                  <td>
+                    <x-ui.status-badge :status="$pr->status" />
+                  </td>
 
-              <tr>
-                <td>PR-2026-0007</td>
-                <td>JO-26-0002</td>
-                <td>BUS-008</td>
-                <td>Air Filter</td>
-                <td>4</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                  <td>
+                    {{ $pr->created_at ? $pr->created_at->format('m/d/y | h:i A') : '—' }}
+                  </td>
 
-              <tr>
-                <td>PR-2026-0006</td>
-                <td>JO-26-0016</td>
-                <td>BUS-005</td>
-                <td>Engine Oil</td>
-                <td>6</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                  <td>
+                    <div class="actions">
 
-              <tr>
-                <td>PR-2026-0005</td>
-                <td>JO-26-0014</td>
-                <td>BUS-011</td>
-                <td>Fuel Filter</td>
-                <td>3</td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                      <button type="button" class="view" title="View">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
 
-              <tr>
-                <td>PR-2026-0004</td>
-                <td>JO-26-0021</td>
-                <td>BUS-003</td>
-                <td>AC Belt</td>
-                <td>1</td>
-                <td><span class="badge submitted">Submitted</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                      @if($pr->status === 'Approved')
+                        <form action="{{ route('purchase-requests.for-purchase', $pr->id) }}" method="POST">
+                          @csrf
 
-              <tr>
-                <td>PR-2026-0003</td>
-                <td>JO-26-0019</td>
-                <td>BUS-014</td>
-                <td>Tire Valve</td>
-                <td>1</td>
-                <td><span class="badge submitted">Submitted</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                          <button type="submit" class="edit" title="Mark as For Purchase">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                          </button>
+                        </form>
+                      @else
+                        <button type="button" class="edit" title="No Action" disabled>
+                          <i class="fa-solid fa-lock"></i>
+                        </button>
+                      @endif
 
-              <tr>
-                <td>PR-2026-0001</td>
-                <td>JO-26-0002</td>
-                <td>BUS-019</td>
-                <td>Coolant</td>
-                <td>1</td>
-                <td><span class="badge submitted">Submitted</span></td>
-                <td>Apr 29, 2026</td>
-                <td>No Action</td>
-              </tr>
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <x-ui.empty-row
+                  colspan="8"
+                  message="No requested purchase records found."
+                />
+              @endforelse
             </tbody>
           </table>
         </div>
+
+        <x-ui.table-footer :items="$purchaseRequests" />
 
       </section>
 
