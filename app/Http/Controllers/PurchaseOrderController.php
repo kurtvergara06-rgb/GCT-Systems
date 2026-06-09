@@ -54,7 +54,6 @@ class PurchaseOrderController extends Controller
 
         $availablePurchaseRequests = PurchaseRequest::query()
             ->whereIn('status', [
-                'Approved',
                 'For Purchase',
                 'Pending Purchase',
                 'Delivering',
@@ -132,6 +131,10 @@ class PurchaseOrderController extends Controller
             'net_amount' => $totals['net_amount'],
             'status' => $validated['status'],
         ]);
+
+        if ($validated['status'] === 'Delivered') {
+            $this->markRelatedJobOrdersAsDelivered($items);
+        }
 
         return redirect()
             ->route('purchase-orders')

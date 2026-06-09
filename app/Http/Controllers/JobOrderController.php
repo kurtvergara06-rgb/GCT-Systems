@@ -21,7 +21,9 @@ class JobOrderController extends Controller
                     ->orWhere('problem_issue', 'like', "%{$search}%")
                     ->orWhere('maintenance_type', 'like', "%{$search}%")
                     ->orWhere('assigned_mechanic', 'like', "%{$search}%")
-                    ->orWhere('part_needed', 'like', "%{$search}%");
+                    ->orWhere('part_needed', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('part_status', 'like', "%{$search}%");
             });
         }
 
@@ -45,19 +47,8 @@ class JobOrderController extends Controller
 
         $nextJobOrderNo = $this->generateJobOrderNo();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Available Mechanics Dropdown
-        |--------------------------------------------------------------------------
-        | Show only available mechanics from mechanic_attendances table.
-        |--------------------------------------------------------------------------
-        */
-        $availableMechanics = MechanicAttendance::whereIn('status', ['Present', 'Late'])
-            ->where(function ($query) {
-                $query->whereNull('assigned_job')
-                    ->orWhere('assigned_job', '')
-                    ->orWhere('assigned_job', 'Available');
-            })
+        $availableMechanics = MechanicAttendance::query()
+            ->whereIn('status', ['Present', 'On Duty'])
             ->orderBy('mechanic_name')
             ->get();
 
@@ -88,8 +79,8 @@ class JobOrderController extends Controller
         $validated['start_date'] = now();
         $validated['completion_date'] = null;
         $validated['status'] = 'On Going';
-        $validated['part_status'] = 'Not Requested';
         $validated['part_needed'] = $this->formatPartsNeeded($request->parts);
+        $validated['part_status'] = $validated['part_needed'] ? 'Not Requested' : null;
 
         unset($validated['parts']);
 
@@ -122,6 +113,12 @@ class JobOrderController extends Controller
 
         $validated['part_needed'] = $this->formatPartsNeeded($request->parts);
 
+        if (! $validated['part_needed']) {
+            $validated['part_status'] = null;
+        } elseif (! $jobOrder->part_status || $jobOrder->part_status === 'Unknown') {
+            $validated['part_status'] = 'Not Requested';
+        }
+
         unset($validated['parts']);
 
         $jobOrder->update($validated);
@@ -136,7 +133,13 @@ class JobOrderController extends Controller
         if ($jobOrder->status === 'Completed') {
             return redirect()
                 ->route('job-orders')
-                ->with('error', 'This job order is already completed.');
+                ->with('error', 'Job order is already completed.');
+        }
+
+        if (! empty($jobOrder->part_needed) && $jobOrder->part_status !== 'Issued') {
+            return redirect()
+                ->route('job-orders')
+                ->with('error', 'This job order cannot be finished yet. The requested part must be issued first.');
         }
 
         $jobOrder->update([

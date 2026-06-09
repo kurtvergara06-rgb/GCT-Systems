@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Models\JobOrder;
 use Illuminate\Http\Request;
 
 class RequestedPurchaseController extends Controller
@@ -97,11 +98,7 @@ class RequestedPurchaseController extends Controller
             'status' => 'For Purchase',
         ]);
 
-        // Update related job order part_status when marked for purchase (item not available)
-        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
-        if ($jobOrder) {
-            $jobOrder->update(['part_status' => 'For Purchase']);
-        }
+        $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
         return redirect()
             ->route('requested-purchase')
@@ -154,8 +151,31 @@ class RequestedPurchaseController extends Controller
             'status' => 'Delivered',
         ]);
 
+        $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Delivered');
+
         return redirect()
             ->route('requested-purchase')
             ->with('success', 'Purchase request marked as delivered.');
+    }
+
+    private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
+    {
+        $jobOrderNo = $purchaseRequest->job_order_no
+            ?? $purchaseRequest->jo_no
+            ?? null;
+
+        if (! $jobOrderNo) {
+            return;
+        }
+
+        $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
+
+        if (! $jobOrder) {
+            return;
+        }
+
+        $jobOrder->update([
+            'part_status' => $partStatus,
+        ]);
     }
 }

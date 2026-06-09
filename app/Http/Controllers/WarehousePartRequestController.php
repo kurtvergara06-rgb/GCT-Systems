@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Models\JobOrder;
 use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
@@ -13,8 +14,6 @@ class WarehousePartRequestController extends Controller
             ->whereIn('status', [
                 'Approved',
                 'For Purchase',
-                'Pending Purchase',
-                'Delivering',
                 'Delivered',
                 'Issued',
             ]);
@@ -26,7 +25,9 @@ class WarehousePartRequestController extends Controller
                 $q->where('pr_no', 'like', "%{$search}%")
                     ->orWhere('job_order_no', 'like', "%{$search}%")
                     ->orWhere('bus_no', 'like', "%{$search}%")
-                    ->orWhere('item', 'like', "%{$search}%");
+                    ->orWhere('item', 'like', "%{$search}%")
+                    ->orWhere('quantity', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
@@ -34,12 +35,13 @@ class WarehousePartRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        $partRequests = $query->latest()->paginate(8)->withQueryString();
+        $partRequests = $query
+            ->latest()
+            ->paginate(8)
+            ->withQueryString();
 
         $approved = PurchaseRequest::where('status', 'Approved')->count();
         $forPurchase = PurchaseRequest::where('status', 'For Purchase')->count();
-        $pendingPurchase = PurchaseRequest::where('status', 'Pending Purchase')->count();
-        $delivering = PurchaseRequest::where('status', 'Delivering')->count();
         $delivered = PurchaseRequest::where('status', 'Delivered')->count();
         $issued = PurchaseRequest::where('status', 'Issued')->count();
 
@@ -47,56 +49,67 @@ class WarehousePartRequestController extends Controller
             'partRequests',
             'approved',
             'forPurchase',
-            'pendingPurchase',
-            'delivering',
             'delivered',
             'issued'
         ));
     }
 
-    public function issueItem(PurchaseRequest $purchaseRequest)
+    public function issue(PurchaseRequest $purchaseRequest)
     {
-        if (!in_array($purchaseRequest->status, ['Approved', 'Delivered'])) {
+        if (! in_array($purchaseRequest->status, ['Approved', 'Delivered'])) {
             return redirect()
-                ->route('warehouse-part-requests')
-                ->with('error', 'Only approved or delivered purchase requests can be issued.');
+                ->route('part-requests')
+                ->with('error', 'Only approved or delivered part requests can be issued.');
         }
 
         $purchaseRequest->update([
             'status' => 'Issued',
         ]);
 
-        // Update related job order part_status when item is issued
-        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
-        if ($jobOrder) {
-            $jobOrder->update(['part_status' => 'Issued']);
-        }
+        $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
 
         return redirect()
-            ->route('warehouse-part-requests')
-            ->with('success', 'Part issued successfully.');
+            ->route('part-requests')
+            ->with('success', 'Part request issued successfully.');
     }
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
-                ->route('warehouse-part-requests')
-                ->with('error', 'Only approved purchase requests can be sent to purchase.');
+                ->route('part-requests')
+                ->with('error', 'Only approved part requests can be sent to purchase.');
         }
 
         $purchaseRequest->update([
             'status' => 'For Purchase',
         ]);
 
-        // Update related job order part_status when sent to purchase (item not available)
-        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
-        if ($jobOrder) {
-            $jobOrder->update(['part_status' => 'For Purchase']);
-        }
+        $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
         return redirect()
-            ->route('warehouse-part-requests')
-            ->with('success', 'Purchase request sent to Purchase Department.');
+            ->route('part-requests')
+            ->with('success', 'Part request sent to purchase department.');
+    }
+
+    private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
+    {
+        $jobOrderNo = $purchaseRequest->job_order_no
+            ?? $purchaseRequest->jo_no
+            ?? null;
+
+        if (! $jobOrderNo) {
+            return;
+        }
+
+        $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
+
+        if (! $jobOrder) {
+            return;
+        }
+
+        $jobOrder->update([
+            'part_status' => $partStatus,
+        ]);
     }
 }

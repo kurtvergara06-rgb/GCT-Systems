@@ -94,8 +94,14 @@ Route::controller(InventoryController::class)
         Route::post('/import', 'import')->name('.import');
     });
 
-Route::get('/part-requests', [WarehousePartRequestController::class, 'index'])
-    ->name('part-requests');
+Route::controller(WarehousePartRequestController::class)
+    ->prefix('part-requests')
+    ->name('part-requests')
+    ->group(function () {
+        Route::get('/', 'index');
+        Route::post('/{purchaseRequest}/issue', 'issue')->name('.issue');
+        Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')->name('.send-to-purchase');
+    });
 
 
 /*
@@ -154,6 +160,7 @@ Route::controller(MechanicAttendanceController::class)
         Route::delete('/{mechanicAttendance}', 'destroy')->name('.destroy');
         Route::post('/import', 'import')->name('.import');
     });
+
 
 /*
 |--------------------------------------------------------------------------

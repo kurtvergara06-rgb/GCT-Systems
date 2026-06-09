@@ -4,23 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class JobOrder extends Model
+class PurchaseOrder extends Model
 {
     protected $fillable = [
-        'job_order_no',
-        'bus_no',
-        'problem_issue',
-        'maintenance_type',
-        'assigned_mechanic',
-        'part_needed',
-        'start_date',
-        'completion_date',
+        'po_no',
+        'po_date',
+        'supplier_name',
+        'supplier_address_tel',
+        'terms',
+        'terms_of_payment',
+        'purpose',
+        'items',
+        'gross_amount',
+        'delivery_fee',
+        'discount',
+        'vat',
+        'net_amount',
         'status',
-        'part_status',
     ];
 
     protected $casts = [
-        'start_date' => 'datetime',
-        'completion_date' => 'datetime',
+        'po_date' => 'date',
+        'items' => 'array',
+        'gross_amount' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'vat' => 'decimal:2',
+        'net_amount' => 'decimal:2',
     ];
 }

@@ -7,6 +7,18 @@
   ]"
 >
 
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="success"
+    :message="session('success')"
+  />
+
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="error"
+    :message="session('error')"
+  />
+
   <div class="app">
 
     <x-layout.sidebar
@@ -24,12 +36,21 @@
 
     <main class="main">
 
-      {{-- TOP BAR --}}
       <x-layout.topbar
         title="Requested Purchases"
         subtitle="View approved maintenance purchase requests for purchasing process"
         notification-count="6"
       />
+
+      @if($errors->any())
+        <div class="alert-error">
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
 
       {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
@@ -68,7 +89,7 @@
 
       </section>
 
-      {{-- PURCHASE REQUEST TABLE --}}
+      {{-- TABLE --}}
       <section class="table-card purchase-card">
 
         <div class="section-header">
@@ -141,41 +162,97 @@
             </thead>
 
             <tbody>
-              @forelse($purchaseRequests as $pr)
+              @forelse($purchaseRequests as $purchaseRequest)
+                @php
+                  $statusClass = strtolower(str_replace(' ', '-', $purchaseRequest->status));
+                @endphp
+
                 <tr>
-                  <td>{{ $pr->pr_no }}</td>
-                  <td>{{ $pr->job_order_no }}</td>
-                  <td>{{ $pr->bus_no }}</td>
-                  <td>{{ $pr->item }}</td>
-                  <td>{{ $pr->quantity }}</td>
+                  <td>{{ $purchaseRequest->pr_no }}</td>
+                  <td>{{ $purchaseRequest->job_order_no }}</td>
+                  <td>{{ $purchaseRequest->bus_no }}</td>
+                  <td>{{ $purchaseRequest->item }}</td>
+                  <td>{{ $purchaseRequest->quantity }}</td>
 
                   <td>
-                    <x-ui.status-badge :status="$pr->status" />
+                    <span class="badge {{ $statusClass }}">
+                      {{ $purchaseRequest->status }}
+                    </span>
                   </td>
 
                   <td>
-                    {{ $pr->created_at ? $pr->created_at->format('m/d/y | h:i A') : '—' }}
+                    {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
                   </td>
 
                   <td>
                     <div class="actions">
 
-                      <button type="button" class="view" title="View">
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
-
-                      @if($pr->status === 'Approved')
-                        <form action="{{ route('purchase-requests.for-purchase', $pr->id) }}" method="POST">
+                      @if($purchaseRequest->status === 'Approved')
+                        <form
+                          action="{{ route('requested-purchase.for-purchase', $purchaseRequest->id) }}"
+                          method="POST"
+                        >
                           @csrf
 
-                          <button type="submit" class="edit" title="Mark as For Purchase">
+                          <button
+                            type="submit"
+                            class="edit"
+                            title="Mark as For Purchase"
+                          >
                             <i class="fa-solid fa-cart-shopping"></i>
                           </button>
                         </form>
+
+                      @elseif($purchaseRequest->status === 'For Purchase')
+                        <form
+                          action="{{ route('requested-purchase.pending-purchase', $purchaseRequest->id) }}"
+                          method="POST"
+                        >
+                          @csrf
+
+                          <button
+                            type="submit"
+                            class="edit"
+                            title="Mark as Pending Purchase"
+                          >
+                            <i class="fa-solid fa-clock"></i>
+                          </button>
+                        </form>
+
+                      @elseif($purchaseRequest->status === 'Pending Purchase')
+                        <form
+                          action="{{ route('requested-purchase.delivering', $purchaseRequest->id) }}"
+                          method="POST"
+                        >
+                          @csrf
+
+                          <button
+                            type="submit"
+                            class="edit"
+                            title="Mark as Delivering"
+                          >
+                            <i class="fa-solid fa-truck-fast"></i>
+                          </button>
+                        </form>
+
+                      @elseif($purchaseRequest->status === 'Delivering')
+                        <form
+                          action="{{ route('requested-purchase.delivered', $purchaseRequest->id) }}"
+                          method="POST"
+                        >
+                          @csrf
+
+                          <button
+                            type="submit"
+                            class="edit"
+                            title="Mark as Delivered"
+                          >
+                            <i class="fa-solid fa-box"></i>
+                          </button>
+                        </form>
+
                       @else
-                        <button type="button" class="edit" title="No Action" disabled>
-                          <i class="fa-solid fa-lock"></i>
-                        </button>
+                        <span class="no-action">No Action</span>
                       @endif
 
                     </div>
@@ -184,7 +261,7 @@
               @empty
                 <x-ui.empty-row
                   colspan="8"
-                  message="No requested purchase records found."
+                  message="No requested purchases found."
                 />
               @endforelse
             </tbody>

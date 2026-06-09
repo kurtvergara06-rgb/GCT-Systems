@@ -174,9 +174,14 @@
                   $joStatus = $jobOrder->status ?: 'On Going';
                   $partStatus = $jobOrder->part_status;
 
-                  if (!$partStatus || $partStatus === 'Unknown') {
+                  if (!$jobOrder->part_needed) {
+                    $partStatus = '----';
+                  } elseif (!$partStatus || $partStatus === 'Unknown') {
                     $partStatus = 'Not Requested';
                   }
+
+                  $hasNeededParts = !empty($jobOrder->part_needed);
+                  $canFinish = !$hasNeededParts || $jobOrder->part_status === 'Issued';
 
                   if ($jobOrder->part_needed) {
                     $parts = explode(',', $jobOrder->part_needed);
@@ -217,14 +222,37 @@
                     @if($jobOrder->completion_date)
                       {{ date('m/d/y | h:i A', strtotime($jobOrder->completion_date)) }}
                     @else
-                      <form action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST">
-                        @csrf
 
-                        <button type="submit" class="finish-btn">
-                          <i class="fa-solid fa-check"></i>
-                          Finish
+                      @if($canFinish)
+                        <form
+                          id="finishForm-{{ $jobOrder->id }}"
+                          action="{{ route('job-orders.finish', $jobOrder->id) }}"
+                          method="POST"
+                        >
+                          @csrf
+
+                          <button
+                            type="button"
+                            class="finish-btn open-finish-modal"
+                            data-id="{{ $jobOrder->id }}"
+                            data-jo-no="{{ $jobOrder->job_order_no }}"
+                          >
+                            <i class="fa-solid fa-check"></i>
+                            Finish
+                          </button>
+                        </form>
+                      @else
+                        <button
+                          type="button"
+                          class="finish-btn locked-finish-btn"
+                          title="Cannot finish yet. The requested part must be issued first."
+                          disabled
+                        >
+                          <i class="fa-solid fa-lock"></i>
+                          Locked
                         </button>
-                      </form>
+                      @endif
+
                     @endif
                   </td>
 
@@ -233,7 +261,11 @@
                   </td>
 
                   <td class="status-col">
-                    <x-ui.status-badge :status="$partStatus" />
+                    @if($partStatus === '----')
+                      <span class="empty">----</span>
+                    @else
+                      <x-ui.status-badge :status="$partStatus" />
+                    @endif
                   </td>
 
                   <td>
@@ -481,6 +513,35 @@
       </button>
     </div>
   </x-ui.form-modal>
+
+  {{-- FINISH MODAL --}}
+  <div id="finishJobModal" class="delete-modal-overlay">
+    <div class="delete-modal-box">
+
+      <div class="delete-icon finish-icon">
+        <i class="fa-solid fa-check"></i>
+      </div>
+
+      <h2>Finish Job Order?</h2>
+
+      <p>
+        Are you sure you want to finish
+        <strong id="finishJoNo">this job order</strong>?
+        This record will be marked as completed.
+      </p>
+
+      <div class="delete-modal-actions">
+        <button type="button" id="cancelFinishJob" class="cancel-delete-btn">
+          Cancel
+        </button>
+
+        <button type="button" id="confirmFinishJob" class="confirm-finish-btn">
+          Yes, Finish
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   {{-- DELETE MODAL --}}
   <x-ui.action-buttom-modal
