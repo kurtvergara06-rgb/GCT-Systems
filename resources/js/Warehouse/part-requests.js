@@ -141,3 +141,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
   
 });
+
+/* ========================================
+   WAREHOUSE STATUS FILTER COLOR
+======================================== */
+document.addEventListener('DOMContentLoaded', function () {
+  const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
+
+  function slugStatus(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, '-');
+  }
+
+  function updateWarehouseStatusFilterColor() {
+    if (!warehouseStatusFilter) {
+      return;
+    }
+
+    warehouseStatusFilter.classList.remove(
+      'submitted',
+      'approved',
+      'rejected',
+      'for-purchase',
+      'ordered',
+      'for-pick-up',
+      'for-delivery',
+      'delivered',
+      'picked-up',
+      'issued'
+    );
+
+    if (warehouseStatusFilter.value && warehouseStatusFilter.value !== 'All Statuses') {
+      warehouseStatusFilter.classList.add(slugStatus(warehouseStatusFilter.value));
+    }
+  }
+
+  updateWarehouseStatusFilterColor();
+
+  if (warehouseStatusFilter) {
+    warehouseStatusFilter.addEventListener('change', updateWarehouseStatusFilterColor);
+  }
+});

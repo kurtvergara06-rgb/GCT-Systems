@@ -113,9 +113,15 @@
           button-label="New JO"
         >
           <div class="filter-group">
-            <label>Part Status</label>
-            <select name="part_status" onchange="this.form.submit()">
-              <option value="All Part Statuses" {{ request('part_status') == 'All Part Statuses' ? 'selected' : '' }}>
+            <label for="partStatusFilter">Part Status</label>
+
+            <select
+              name="part_status"
+              id="partStatusFilter"
+              class="part-status-select"
+              onchange="this.form.submit()"
+            >
+              <option value="All Part Statuses" {{ request('part_status', 'All Part Statuses') == 'All Part Statuses' ? 'selected' : '' }}>
                 All Part Statuses
               </option>
 
@@ -126,7 +132,6 @@
               <option value="Approved" {{ request('part_status') == 'Approved' ? 'selected' : '' }}>
                 Approved
               </option>
-<<<<<<< HEAD
 
               <option value="Rejected" {{ request('part_status') == 'Rejected' ? 'selected' : '' }}>
                 Rejected
@@ -159,8 +164,6 @@
               <option value="Issued" {{ request('part_status') == 'Issued' ? 'selected' : '' }}>
                 Issued
               </option>
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             </select>
           </div>
 
@@ -204,19 +207,6 @@
                 @php
                   $firstPartName = '—';
                   $firstPartQuantity = '—';
-                  $isCompleted = $jobOrder->status === 'Completed';
-
-                  $joStatus = $jobOrder->status ?: 'On Going';
-                  $partStatus = $jobOrder->part_status;
-
-                  if (!$jobOrder->part_needed) {
-                    $partStatus = '----';
-                  } elseif (!$partStatus || $partStatus === 'Unknown') {
-                    $partStatus = 'Not Requested';
-                  }
-
-                  $hasNeededParts = !empty($jobOrder->part_needed);
-                  $canFinish = !$hasNeededParts || $jobOrder->part_status === 'Issued';
 
                   $isCompleted = $jobOrder->status === 'Completed';
                   $isOnHold = $jobOrder->status === 'On Hold';
@@ -231,6 +221,7 @@
                   }
 
                   $hasNeededParts = !empty($jobOrder->part_needed);
+
                   $canFinish = !$isOnHold && (
                     !$hasNeededParts || in_array($jobOrder->part_status, ['Issued', 'Rejected'], true)
                   );
@@ -249,6 +240,8 @@
                       $firstPartQuantity = '—';
                     }
                   }
+
+                  $partStatusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $partStatus));
                 @endphp
 
                 <tr>
@@ -274,7 +267,6 @@
                     @if($jobOrder->completion_date)
                       {{ date('m/d/y | h:i A', strtotime($jobOrder->completion_date)) }}
                     @else
-<<<<<<< HEAD
                       @if($canFinish)
                         <form
                           id="finishForm-{{ $jobOrder->id }}"
@@ -283,17 +275,6 @@
                         >
                           @csrf
 
-=======
-
-                      @if($canFinish)
-                        <form
-                          id="finishForm-{{ $jobOrder->id }}"
-                          action="{{ route('job-orders.finish', $jobOrder->id) }}"
-                          method="POST"
-                        >
-                          @csrf
-
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           <button
                             type="button"
                             class="finish-btn open-finish-modal"
@@ -308,21 +289,13 @@
                         <button
                           type="button"
                           class="finish-btn locked-finish-btn"
-<<<<<<< HEAD
                           title="{{ $isOnHold ? 'Cannot finish yet. This job order is on hold.' : 'Cannot finish yet. The part status must be Issued or Rejected first.' }}"
-=======
-                          title="Cannot finish yet. The requested part must be issued first."
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           disabled
                         >
                           <i class="fa-solid fa-lock"></i>
                           Locked
                         </button>
                       @endif
-<<<<<<< HEAD
-=======
-
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                     @endif
                   </td>
 
@@ -330,15 +303,13 @@
                     <x-ui.status-badge :status="$joStatus" />
                   </td>
 
-                  <td class="status-col">
-<<<<<<< HEAD
+                  <td class="status-col part-status-cell">
                     @if(!$jobOrder->part_needed || $partStatus === '----')
-=======
-                    @if($partStatus === '----')
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                       <span class="empty">----</span>
                     @else
-                      <x-ui.status-badge :status="$partStatus" />
+                      <span class="part-status-badge {{ $partStatusClass }}">
+                        {{ $partStatus }}
+                      </span>
                     @endif
                   </td>
 
@@ -452,11 +423,7 @@
 
         @foreach($availableMechanics as $mechanic)
           <option value="{{ $mechanic->mechanic_name }}">
-<<<<<<< HEAD
             {{ $mechanic->mechanic_name }}
-=======
-            {{ $mechanic->mechanic_name }} - {{ $mechanic->mechanic_id }}
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
           </option>
         @endforeach
       </select>

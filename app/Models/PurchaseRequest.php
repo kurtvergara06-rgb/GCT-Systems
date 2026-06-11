@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PurchaseRequest extends Model
 {
@@ -14,5 +15,19 @@ class PurchaseRequest extends Model
         'quantity',
         'status',
         'remarks',
+        'approved_at',
+        'rejected_at',
+        'issued_at',
     ];
+
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'issued_at' => 'datetime',
+    ];
+
+    public function purchaseOrder(): HasOne
+    {
+        return $this->hasOne(PurchaseOrder::class);
+    }
 }

@@ -11,14 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-<<<<<<< HEAD
-=======
-  /*
-  |--------------------------------------------------------------------------
-  | Feedback Modal
-  |--------------------------------------------------------------------------
-  */
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   document.querySelectorAll('.close-feedback-modal, .feedback-ok-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const modal = button.closest('.success-modal-overlay, .delete-modal-overlay, .modal-overlay');
@@ -51,10 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeEditJobModal = document.getElementById('closeEditJobModal');
   const cancelEditJobModal = document.getElementById('cancelEditJobModal');
-  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
-
-  const editJobMainActions = document.getElementById('editJobMainActions');
-  const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
 
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
@@ -91,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editAddPartBtn) {
       editAddPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
     }
-<<<<<<< HEAD
   }
 
   function escapeInputValue(value) {
@@ -100,16 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replaceAll('"', '&quot;')
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;');
-=======
-
-    if (editJobMainActions) {
-      editJobMainActions.style.display = isReadonly ? 'none' : 'flex';
-    }
-
-    if (viewOnlyJobActions) {
-      viewOnlyJobActions.style.display = isReadonly ? 'flex' : 'none';
-    }
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   }
 
   function parseParts(partNeeded) {
@@ -152,11 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
           type="text"
           name="parts[${index}][name]"
           placeholder="Part name"
-<<<<<<< HEAD
           value="${escapeInputValue(part.name)}"
-=======
-          value="${part.name || ''}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         >
 
         <input
@@ -164,11 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
           name="parts[${index}][quantity]"
           min="1"
           placeholder="Quantity"
-<<<<<<< HEAD
           value="${escapeInputValue(part.quantity)}"
-=======
-          value="${part.quantity || ''}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         >
 
         <button type="button" class="remove-part-btn">
@@ -199,11 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.id;
-<<<<<<< HEAD
       const status = button.dataset.status || 'On Going';
-=======
-      const status = button.dataset.status || '';
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
       const isCompleted = status === 'Completed';
 
       if (editJobForm) {
@@ -232,18 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelEditJobModal.addEventListener('click', () => closeModal(editJobModal));
   }
 
-<<<<<<< HEAD
-=======
-  if (closeViewOnlyJob) {
-    closeViewOnlyJob.addEventListener('click', () => closeModal(editJobModal));
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Delete JO Modal
-  |--------------------------------------------------------------------------
-  */
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   const deleteJobModal = document.getElementById('deleteJobModal');
   const deleteJoNo = document.getElementById('deleteJoNo');
   const cancelDeleteJob = document.getElementById('cancelDeleteJob');
@@ -281,14 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-<<<<<<< HEAD
-=======
-  /*
-  |--------------------------------------------------------------------------
-  | Finish JO Modal
-  |--------------------------------------------------------------------------
-  */
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   const finishJobModal = document.getElementById('finishJobModal');
   const finishJoNo = document.getElementById('finishJoNo');
   const cancelFinishJob = document.getElementById('cancelFinishJob');
@@ -308,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       openModal(finishJobModal);
-<<<<<<< HEAD
     });
   });
 
@@ -381,101 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapper.appendChild(row);
       partIndex++;
       updateRemoveButtons();
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-    });
-  });
-
-  if (cancelFinishJob) {
-    cancelFinishJob.addEventListener('click', () => {
-      selectedFinishForm = null;
-      closeModal(finishJobModal);
-    });
-  }
-
-  if (confirmFinishJob) {
-    confirmFinishJob.addEventListener('click', () => {
-      if (selectedFinishForm) {
-        selectedFinishForm.submit();
-      }
-    });
-  }
-
-<<<<<<< HEAD
-    wrapper.addEventListener('click', (event) => {
-      const removeButton = event.target.closest('.remove-part-btn');
-
-=======
-  /*
-  |--------------------------------------------------------------------------
-  | Close Modal When Clicking Outside
-  |--------------------------------------------------------------------------
-  */
-  document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((modal) => {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        modal.classList.remove('show');
-      }
-    });
-  });
-
-  /*
-  |--------------------------------------------------------------------------
-  | Multiple Parts Needed
-  |--------------------------------------------------------------------------
-  */
-  function setupPartsRepeater(wrapperId, addButtonId) {
-    const wrapper = document.getElementById(wrapperId);
-    const addButton = document.getElementById(addButtonId);
-
-    if (!wrapper || !addButton) return;
-
-    let partIndex = wrapper.querySelectorAll('.part-needed-row').length;
-
-    function updateRemoveButtons() {
-      const rows = wrapper.querySelectorAll('.part-needed-row');
-
-      rows.forEach((row) => {
-        const removeButton = row.querySelector('.remove-part-btn');
-
-        if (removeButton) {
-          removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
-        }
-      });
-    }
-
-    addButton.addEventListener('click', () => {
-      const row = document.createElement('div');
-      row.className = 'part-needed-row';
-
-      row.innerHTML = `
-        <input
-          type="text"
-          name="parts[${partIndex}][name]"
-          placeholder="Part name"
-        >
-
-        <input
-          type="number"
-          name="parts[${partIndex}][quantity]"
-          min="1"
-          placeholder="Quantity"
-        >
-
-        <button type="button" class="remove-part-btn">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      `;
-
-      wrapper.appendChild(row);
-      partIndex++;
-      updateRemoveButtons();
     });
 
     wrapper.addEventListener('click', (event) => {
       const removeButton = event.target.closest('.remove-part-btn');
 
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
       if (removeButton) {
         removeButton.closest('.part-needed-row').remove();
         updateRemoveButtons();
@@ -487,4 +341,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
   setupPartsRepeater('editPartsNeededWrapper', 'editAddPartBtn');
+}); 
+
+/* ========================================
+   PART STATUS FILTER COLOR
+======================================== */
+document.addEventListener('DOMContentLoaded', function () {
+    const partStatusFilter = document.getElementById('partStatusFilter');
+
+    function slugStatus(value) {
+        return String(value || '')
+            .toLowerCase()
+            .replace(/\//g, '-')
+            .replace(/\s+/g, '-');
+    }
+
+    function updatePartStatusFilterColor() {
+        if (!partStatusFilter) return;
+
+        partStatusFilter.classList.remove(
+            'submitted',
+            'approved',
+            'rejected',
+            'for-purchase',
+            'ordered',
+            'for-pick-up',
+            'for-delivery',
+            'delivered',
+            'picked-up',
+            'issued'
+        );
+
+        const value = partStatusFilter.value;
+
+        if (!value) return;
+
+        partStatusFilter.classList.add(slugStatus(value));
+    }
+
+    if (partStatusFilter) {
+        updatePartStatusFilterColor();
+
+        partStatusFilter.addEventListener('change', function () {
+            updatePartStatusFilterColor();
+        });
+    }
 });

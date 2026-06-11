@@ -2,28 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseRequest;
 use App\Models\JobOrder;
+use App\Models\PurchaseRequest;
 use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
 {
     public function index(Request $request)
     {
+        $warehouseStatuses = [
+            'Approved',
+            'For Purchase',
+            'Ordered',
+            'For Pick-up',
+            'For Delivery',
+            'Delivered',
+            'Picked Up',
+            'Issued',
+        ];
+
         $query = PurchaseRequest::query()
-            ->whereIn('status', [
-                'Approved',
-                'For Purchase',
-<<<<<<< HEAD
-                'Ordered',
-                'For Pick-up',
-                'For Delivery',
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                'Delivered',
-                'Picked Up',
-                'Issued',
-            ]);
+            ->whereIn('status', $warehouseStatuses);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -65,31 +64,21 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
-<<<<<<< HEAD
-        if (! in_array($purchaseRequest->status, ['Approved', 'Delivered', 'Picked Up'])) {
+        if (! in_array($purchaseRequest->status, ['Delivered', 'Picked Up'], true)) {
             return redirect()
                 ->back()
-                ->with('error', 'Only approved, delivered, or picked-up part requests can be issued.');
-=======
-        if (! in_array($purchaseRequest->status, ['Approved', 'Delivered'])) {
-            return redirect()
-                ->route('part-requests')
-                ->with('error', 'Only approved or delivered part requests can be issued.');
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+                ->with('error', 'Only Delivered or Picked Up part requests can be issued.');
         }
 
         $purchaseRequest->update([
             'status' => 'Issued',
+            'issued_at' => now(),
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
 
         return redirect()
-<<<<<<< HEAD
             ->back()
-=======
-            ->route('part-requests')
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             ->with('success', 'Part request issued successfully.');
     }
 
@@ -97,11 +86,7 @@ class WarehousePartRequestController extends Controller
     {
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
-<<<<<<< HEAD
                 ->back()
-=======
-                ->route('part-requests')
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                 ->with('error', 'Only approved part requests can be sent to purchase.');
         }
 
@@ -112,27 +97,15 @@ class WarehousePartRequestController extends Controller
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
         return redirect()
-<<<<<<< HEAD
             ->back()
-=======
-            ->route('part-requests')
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             ->with('success', 'Part request sent to purchase department.');
     }
 
     private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
     {
-        $jobOrderNo = $purchaseRequest->job_order_no
-            ?? $purchaseRequest->jo_no
-            ?? null;
+        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
 
-        if (! $jobOrderNo) {
-            return;
-        }
-
-        $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
-
-        if (! $jobOrder) {
+        if (! $jobOrder || empty($jobOrder->part_needed)) {
             return;
         }
 
@@ -140,8 +113,5 @@ class WarehousePartRequestController extends Controller
             'part_status' => $partStatus,
         ]);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+
