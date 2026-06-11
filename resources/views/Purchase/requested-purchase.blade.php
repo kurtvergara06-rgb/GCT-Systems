@@ -3,11 +3,7 @@
   :assets="[
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
-<<<<<<< HEAD
     'resources/css/Purchase/requested-purchase.css',
-=======
-    'resources/css/Purchase/purchase-orders.css'
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   ]"
 >
 
@@ -42,16 +38,11 @@
 
       <x-layout.topbar
         title="Requested Purchases"
-<<<<<<< HEAD
-        subtitle="View maintenance purchase requests sent for purchasing process"
-=======
-        subtitle="View approved maintenance purchase requests for purchasing process"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+        subtitle="Purchase Department request inbox from Warehouse"
         notification-count="6"
       />
 
       @if($errors->any())
-<<<<<<< HEAD
         <div id="validationErrorModal" class="delete-modal-overlay show">
           <div class="delete-modal-box">
 
@@ -76,107 +67,55 @@
             </div>
 
           </div>
-=======
-        <div class="alert-error">
-          <ul>
-            @foreach($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         </div>
       @endif
 
-      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <x-ui.summary-card
           label="Total Requests"
-<<<<<<< HEAD
           value="{{ $totalRequests ?? 0 }}"
-=======
-          value="{{ $totalRequests }}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-          small="Purchase requests"
+          small="Purchase inbox"
           icon="fa-file"
           color="gray"
         />
 
         <x-ui.summary-card
-<<<<<<< HEAD
           label="For Purchase"
           value="{{ $forPurchase ?? 0 }}"
-          small="Parts unavailable"
+          small="Ready to create PO"
           icon="fa-cart-shopping"
           color="blue"
         />
 
         <x-ui.summary-card
-          label="For Delivery"
-          value="{{ $forDelivery ?? 0 }}"
-          small="Waiting delivery"
-          icon="fa-truck-fast"
+          label="Ordered"
+          value="{{ $ordered ?? 0 }}"
+          small="PO already created"
+          icon="fa-file-invoice"
           color="yellow"
         />
 
         <x-ui.summary-card
-          label="Delivered"
-          value="{{ $delivered ?? 0 }}"
-          small="Supplier delivered"
+          label="Delivered / Picked Up"
+          value="{{ ($delivered ?? 0) + ($pickedUp ?? 0) }}"
+          small="Ready for warehouse issue"
           icon="fa-box"
           color="green"
         />
 
       </section>
 
-      {{-- TABLE --}}
       <section class="table-card purchase-card requested-purchase-card">
-=======
-          label="Approved"
-          value="{{ $approved }}"
-          small="Ready for purchase"
-          icon="fa-check"
-          color="green"
-        />
-
-        <x-ui.summary-card
-          label="For Purchase"
-          value="{{ $forPurchase }}"
-          small="Parts unavailable"
-          icon="fa-cart-shopping"
-          color="blue"
-        />
-
-        <x-ui.summary-card
-          label="Delivered"
-          value="{{ $delivered }}"
-          small="Supplier delivered"
-          icon="fa-box"
-          color="yellow"
-        />
-
-      </section>
-
-      {{-- TABLE --}}
-      <section class="table-card purchase-card">
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 
         <div class="section-header">
           <div>
             <h2>Requested Purchase Records</h2>
-<<<<<<< HEAD
-            <p>Track purchase requests from Warehouse to Purchase Department</p>
+            <p>Only purchase-process PRs are shown here. Issued requests are hidden.</p>
           </div>
         </div>
 
         <form action="{{ route('requested-purchase') }}" method="GET" class="toolbar purchase-toolbar requested-purchase-toolbar">
-=======
-            <p>Track approved purchase requests from Maintenance for purchasing process</p>
-          </div>
-        </div>
-
-        <form action="{{ route('requested-purchase') }}" method="GET" class="toolbar purchase-toolbar">
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -184,65 +123,23 @@
               type="text"
               name="search"
               value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, or item..."
+              placeholder="Search PR no., JO no., bus, item, or status..."
             >
           </div>
 
           <div class="filter-group status-filter">
             <label>Status</label>
-<<<<<<< HEAD
 
             <select name="status" onchange="this.form.submit()" class="status-select">
               <option value="All States" {{ request('status', 'All States') == 'All States' ? 'selected' : '' }}>
                 All States
-=======
-            <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
-                All Statuses
               </option>
 
-              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
-                Approved
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-              </option>
-
-              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
-                For Purchase
-              </option>
-
-<<<<<<< HEAD
-              <option value="Ordered" {{ request('status') == 'Ordered' ? 'selected' : '' }}>
-                Ordered
-              </option>
-
-              <option value="For Pick-up" {{ request('status') == 'For Pick-up' ? 'selected' : '' }}>
-                For Pick-up
-              </option>
-
-              <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>
-                For Delivery
-=======
-              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
-                Pending Purchase
-              </option>
-
-              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
-                Delivering
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-              </option>
-
-              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
-                Delivered
-              </option>
-
-<<<<<<< HEAD
-              <option value="Picked Up" {{ request('status') == 'Picked Up' ? 'selected' : '' }}>
-                Picked Up
-=======
-              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
-                Issued
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-              </option>
+              @foreach($statuses as $status)
+                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+                  {{ $status }}
+                </option>
+              @endforeach
             </select>
           </div>
 
@@ -289,139 +186,10 @@
                   <td>
                     <div class="actions">
 
-<<<<<<< HEAD
                       @if($purchaseRequest->status === 'For Purchase')
                         <form
-                          id="orderedForm-{{ $purchaseRequest->id }}"
-                          action="{{ route('requested-purchase.ordered', $purchaseRequest->id) }}"
-=======
-                      @if($purchaseRequest->status === 'Approved')
-                        <form
-                          action="{{ route('requested-purchase.for-purchase', $purchaseRequest->id) }}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                          method="POST"
-                        >
-                          @csrf
-
-                          <button
-<<<<<<< HEAD
-                            type="button"
-                            class="edit open-status-confirm"
-                            title="Mark as Ordered"
-                            data-title="Mark as Ordered?"
-                            data-message="This will mark {{ $purchaseRequest->pr_no }} as Ordered."
-                            data-confirm-text="Yes, Mark Ordered"
-                            data-form-id="orderedForm-{{ $purchaseRequest->id }}"
-                          >
-                            <i class="fa-solid fa-clock"></i>
-                          </button>
-                        </form>
-
-                      @elseif($purchaseRequest->status === 'Ordered')
-                        <form
-                          id="forPickupForm-{{ $purchaseRequest->id }}"
-                          action="{{ route('requested-purchase.for-pickup', $purchaseRequest->id) }}"
-=======
-                            type="submit"
-                            class="edit"
-                            title="Mark as For Purchase"
-                          >
-                            <i class="fa-solid fa-cart-shopping"></i>
-                          </button>
-                        </form>
-
-                      @elseif($purchaseRequest->status === 'For Purchase')
-                        <form
-                          action="{{ route('requested-purchase.pending-purchase', $purchaseRequest->id) }}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                          method="POST"
-                        >
-                          @csrf
-
-                          <button
-<<<<<<< HEAD
-                            type="button"
-                            class="edit open-status-confirm"
-                            title="Mark as For Pick-up"
-                            data-title="Mark as For Pick-up?"
-                            data-message="This will mark {{ $purchaseRequest->pr_no }} as For Pick-up."
-                            data-confirm-text="Yes, Continue"
-                            data-form-id="forPickupForm-{{ $purchaseRequest->id }}"
-                          >
-                            <i class="fa-solid fa-box"></i>
-                          </button>
-                        </form>
-
-                        <form
-                          id="forDeliveryForm-{{ $purchaseRequest->id }}"
-                          action="{{ route('requested-purchase.for-delivery', $purchaseRequest->id) }}"
-=======
-                            type="submit"
-                            class="edit"
-                            title="Mark as Pending Purchase"
-                          >
-                            <i class="fa-solid fa-clock"></i>
-                          </button>
-                        </form>
-
-                      @elseif($purchaseRequest->status === 'Pending Purchase')
-                        <form
-                          action="{{ route('requested-purchase.delivering', $purchaseRequest->id) }}"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                          method="POST"
-                        >
-                          @csrf
-
-                          <button
-<<<<<<< HEAD
-                            type="button"
-                            class="edit open-status-confirm"
-                            title="Mark as For Delivery"
-                            data-title="Mark as For Delivery?"
-                            data-message="This will mark {{ $purchaseRequest->pr_no }} as For Delivery."
-                            data-confirm-text="Yes, Continue"
-                            data-form-id="forDeliveryForm-{{ $purchaseRequest->id }}"
-=======
-                            type="submit"
-                            class="edit"
-                            title="Mark as Delivering"
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                          >
-                            <i class="fa-solid fa-truck-fast"></i>
-                          </button>
-                        </form>
-
-<<<<<<< HEAD
-                      @elseif($purchaseRequest->status === 'For Delivery')
-                        <form
-                          id="deliveredForm-{{ $purchaseRequest->id }}"
-=======
-                      @elseif($purchaseRequest->status === 'Delivering')
-                        <form
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-                          action="{{ route('requested-purchase.delivered', $purchaseRequest->id) }}"
-                          method="POST"
-                        >
-                          @csrf
-
-                          <button
-<<<<<<< HEAD
-                            type="button"
-                            class="edit open-status-confirm"
-                            title="Mark as Delivered"
-                            data-title="Mark as Delivered?"
-                            data-message="This will mark {{ $purchaseRequest->pr_no }} as Delivered."
-                            data-confirm-text="Yes, Delivered"
-                            data-form-id="deliveredForm-{{ $purchaseRequest->id }}"
-                          >
-                            <i class="fa-solid fa-box-open"></i>
-                          </button>
-                        </form>
-
-                      @elseif($purchaseRequest->status === 'For Pick-up')
-                        <form
-                          id="pickedUpForm-{{ $purchaseRequest->id }}"
-                          action="{{ route('requested-purchase.picked-up', $purchaseRequest->id) }}"
+                          id="createPoForm-{{ $purchaseRequest->id }}"
+                          action="{{ route('requested-purchase.create-po', $purchaseRequest->id) }}"
                           method="POST"
                         >
                           @csrf
@@ -429,25 +197,17 @@
                           <button
                             type="button"
                             class="edit open-status-confirm"
-                            title="Mark as Picked Up"
-                            data-title="Mark as Picked Up?"
-                            data-message="This will mark {{ $purchaseRequest->pr_no }} as Picked Up."
-                            data-confirm-text="Yes, Picked Up"
-                            data-form-id="pickedUpForm-{{ $purchaseRequest->id }}"
+                            title="Create PO"
+                            data-title="Create Purchase Order?"
+                            data-message="This will open the PO form for {{ $purchaseRequest->pr_no }}. You can fill up the supplier and cost details before saving."
+                            data-confirm-text="Continue"
+                            data-form-id="createPoForm-{{ $purchaseRequest->id }}"
                           >
-                            <i class="fa-solid fa-boxes-packing"></i>
-=======
-                            type="submit"
-                            class="edit"
-                            title="Mark as Delivered"
-                          >
-                            <i class="fa-solid fa-box"></i>
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+                            <i class="fa-solid fa-file-circle-plus"></i>
                           </button>
                         </form>
-
                       @else
-                        <span class="no-action">No Action</span>
+                        <span class="no-action">Manage in PO</span>
                       @endif
 
                     </div>
@@ -471,7 +231,6 @@
 
   </div>
 
-  {{-- STATUS CONFIRMATION MODAL --}}
   <div id="statusConfirmModal" class="delete-modal-overlay">
     <div class="delete-modal-box">
 
@@ -500,19 +259,63 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      function closeModal(modal) {
+        if (!modal) return;
+
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
+
+      function openModal(modal) {
+        if (!modal) return;
+
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+      }
+
+      function closeFeedbackModal(button) {
+        const modal =
+          button.closest('.success-modal-overlay') ||
+          button.closest('.delete-modal-overlay') ||
+          button.closest('.modal-overlay') ||
+          button.closest('[class*="modal-overlay"]');
+
+        closeModal(modal);
+      }
+
+      document
+        .querySelectorAll(
+          '.close-feedback-modal, .success-ok-btn, .btn-ok, [data-close-feedback], .success-modal-overlay button'
+        )
+        .forEach(function (button) {
+          button.addEventListener('click', function () {
+            closeFeedbackModal(button);
+          });
+        });
+
+      document
+        .querySelectorAll('.success-modal-overlay, .modal-overlay')
+        .forEach(function (modal) {
+          modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+              closeModal(modal);
+            }
+          });
+        });
+
       const validationErrorModal = document.getElementById('validationErrorModal');
       const closeValidationErrorModal = document.getElementById('closeValidationErrorModal');
 
-      if (closeValidationErrorModal) {
-        closeValidationErrorModal.addEventListener('click', () => {
-          validationErrorModal.classList.remove('show');
+      if (closeValidationErrorModal && validationErrorModal) {
+        closeValidationErrorModal.addEventListener('click', function () {
+          closeModal(validationErrorModal);
         });
       }
 
       if (validationErrorModal) {
-        validationErrorModal.addEventListener('click', (event) => {
+        validationErrorModal.addEventListener('click', function (event) {
           if (event.target === validationErrorModal) {
-            validationErrorModal.classList.remove('show');
+            closeModal(validationErrorModal);
           }
         });
       }
@@ -525,8 +328,8 @@
 
       let selectedForm = null;
 
-      document.querySelectorAll('.open-status-confirm').forEach((btn) => {
-        btn.addEventListener('click', () => {
+      document.querySelectorAll('.open-status-confirm').forEach(function (btn) {
+        btn.addEventListener('click', function () {
           const title = btn.dataset.title || 'Confirm Action';
           const message = btn.dataset.message || 'Are you sure you want to continue?';
           const confirmText = btn.dataset.confirmText || 'Yes, Continue';
@@ -534,37 +337,57 @@
 
           selectedForm = formId ? document.getElementById(formId) : null;
 
-          if (statusTitle) statusTitle.textContent = title;
-          if (statusMessage) statusMessage.textContent = message;
-          if (statusConfirm) statusConfirm.textContent = confirmText;
+          if (statusTitle) {
+            statusTitle.textContent = title;
+          }
 
-          if (statusModal) statusModal.classList.add('show');
+          if (statusMessage) {
+            statusMessage.textContent = message;
+          }
+
+          if (statusConfirm) {
+            statusConfirm.textContent = confirmText;
+          }
+
+          openModal(statusModal);
         });
       });
 
       if (statusCancel) {
-        statusCancel.addEventListener('click', () => {
+        statusCancel.addEventListener('click', function () {
           selectedForm = null;
-          if (statusModal) statusModal.classList.remove('show');
+          closeModal(statusModal);
         });
       }
 
       if (statusConfirm) {
-        statusConfirm.addEventListener('click', () => {
+        statusConfirm.addEventListener('click', function () {
           if (selectedForm) {
             selectedForm.submit();
           }
 
-          if (statusModal) statusModal.classList.remove('show');
+          closeModal(statusModal);
         });
       }
 
-      document.querySelectorAll('.delete-modal-overlay').forEach((modal) => {
-        modal.addEventListener('click', (event) => {
+      document.querySelectorAll('.delete-modal-overlay').forEach(function (modal) {
+        modal.addEventListener('click', function (event) {
           if (event.target === modal) {
-            modal.classList.remove('show');
+            closeModal(modal);
           }
         });
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') {
+          return;
+        }
+
+        document
+          .querySelectorAll('.success-modal-overlay, .delete-modal-overlay, .modal-overlay')
+          .forEach(function (modal) {
+            closeModal(modal);
+          });
       });
     });
   </script>

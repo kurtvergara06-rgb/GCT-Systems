@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   /*
   |--------------------------------------------------------------------------
   | Helpers
@@ -16,96 +16,89 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function parsePartsNeeded(partNeeded) {
-    if (!partNeeded) return [];
-
-    return partNeeded
-      .split(',')
-      .map((part) => part.trim())
-      .filter((part) => part !== '')
-      .map((part) => {
-        if (part.includes(' - Qty:')) {
-          const [name, quantity] = part.split(' - Qty:');
-
-          return {
-            name: name ? name.trim() : '',
-            quantity: quantity ? quantity.trim() : '',
-          };
-        }
-
-        return {
-          name: part,
-          quantity: '',
-        };
-      });
-  }
-
-  function getFirstPart(partNeeded) {
-    const parts = parsePartsNeeded(partNeeded);
-
-    if (parts.length === 0) {
+  function parsePartNeeded(partNeeded) {
+    if (!partNeeded) {
       return {
-        name: '',
+        item: '',
         quantity: '',
       };
     }
 
+    const firstPart = partNeeded.split(',')[0].trim();
+
+    if (firstPart.includes(' - Qty:')) {
+      const pieces = firstPart.split(' - Qty:');
+
+      return {
+        item: pieces[0] ? pieces[0].trim() : '',
+        quantity: pieces[1] ? pieces[1].trim() : 1,
+      };
+    }
+
     return {
-      name: parts[0].name || '',
-      quantity: parts[0].quantity || '',
+      item: firstPart,
+      quantity: 1,
     };
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | View Only Mode
-  |--------------------------------------------------------------------------
-  | Draft / Submitted = editable
-  | Approved / Rejected / For Purchase / Pending Purchase / Delivering /
-  | Delivered / Issued = view only
-  |--------------------------------------------------------------------------
-  */
-  function setReadonlyMode(isReadonly) {
-    const editableFields = [
-      'edit_job_order_no',
-      'edit_bus_no',
-      'edit_item',
-      'edit_quantity',
-      'edit_remarks',
-    ];
-
-    editableFields.forEach((id) => {
-      const field = document.getElementById(id);
-
-      if (field) {
-        field.disabled = isReadonly;
-        field.readOnly = isReadonly;
-      }
-    });
-
-    const editPrMainActions = document.getElementById('editPrMainActions');
-    const viewOnlyActions = document.getElementById('viewOnlyActions');
-
-    if (editPrMainActions) {
-      editPrMainActions.style.display = isReadonly ? 'none' : 'flex';
-    }
-
-    if (viewOnlyActions) {
-      viewOnlyActions.style.display = isReadonly ? 'flex' : 'none';
-    }
+  function slugStatus(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, '-');
   }
 
   /*
   |--------------------------------------------------------------------------
-  | Feedback Modal
+  | PR Status Filter Color
   |--------------------------------------------------------------------------
   */
-  document.querySelectorAll('.close-feedback-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay');
-      closeModal(modal);
+  function updatePrStatusFilterColor() {
+    const prStatusFilter = document.getElementById('prStatusFilter');
+
+    if (!prStatusFilter) {
+      return;
+    }
+
+    prStatusFilter.classList.remove(
+      'submitted',
+      'approved',
+      'rejected',
+      'for-purchase',
+      'ordered',
+      'for-pick-up',
+      'for-delivery',
+      'delivered',
+      'picked-up',
+      'issued'
+    );
+
+    if (prStatusFilter.value && prStatusFilter.value !== 'All Statuses') {
+      prStatusFilter.classList.add(slugStatus(prStatusFilter.value));
+    }
+  }
+
+  updatePrStatusFilterColor();
+
+  const prStatusFilter = document.getElementById('prStatusFilter');
+
+  if (prStatusFilter) {
+    prStatusFilter.addEventListener('change', updatePrStatusFilterColor);
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Validation Error Modal
+  |--------------------------------------------------------------------------
+  */
+  const validationErrorModal = document.getElementById('validationErrorModal');
+  const closeValidationErrorModal = document.getElementById('closeValidationErrorModal');
+
+  if (closeValidationErrorModal && validationErrorModal) {
+    closeValidationErrorModal.addEventListener('click', () => {
+      closeModal(validationErrorModal);
     });
-  });
+  }
 
   /*
   |--------------------------------------------------------------------------
@@ -116,11 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const openPrModal = document.getElementById('openPrModal');
   const closePrModal = document.getElementById('closePrModal');
   const cancelPrModal = document.getElementById('cancelPrModal');
-
-  const jobOrderSelect = document.getElementById('jobOrderSelect');
-  const busNoInput = document.getElementById('busNoInput');
-  const partInput = document.getElementById('partInput');
-  const quantityInput = document.getElementById('quantityInput');
 
   if (openPrModal) {
     openPrModal.addEventListener('click', () => {
@@ -140,24 +128,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (jobOrderSelect) {
-    jobOrderSelect.addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
+  /*
+  |--------------------------------------------------------------------------
+  | Auto Fill New PR From Job Order
+  |--------------------------------------------------------------------------
+  */
+  const jobOrderSelect = document.getElementById('jobOrderSelect');
+  const busNoInput = document.getElementById('busNoInput');
+  const partInput = document.getElementById('partInput');
+  const quantityInput = document.getElementById('quantityInput');
 
-      const busNo = selectedOption.dataset.bus || '';
-      const partNeeded = selectedOption.dataset.parts || '';
-      const firstPart = getFirstPart(partNeeded);
+  if (jobOrderSelect) {
+    jobOrderSelect.addEventListener('change', () => {
+      const selected = jobOrderSelect.options[jobOrderSelect.selectedIndex];
+      const busNo = selected.dataset.bus || '';
+      const parts = selected.dataset.parts || '';
+      const parsed = parsePartNeeded(parts);
 
       if (busNoInput) {
         busNoInput.value = busNo;
       }
 
       if (partInput) {
-        partInput.value = firstPart.name;
+        partInput.value = parsed.item;
       }
 
       if (quantityInput) {
-        quantityInput.value = firstPart.quantity;
+        quantityInput.value = parsed.quantity || 1;
       }
     });
   }
@@ -168,12 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
   |--------------------------------------------------------------------------
   */
   const editPrModal = document.getElementById('editPrModal');
-  const editPrForm = document.getElementById('editPrForm');
-
   const closeEditPrModal = document.getElementById('closeEditPrModal');
   const cancelEditPrModal = document.getElementById('cancelEditPrModal');
   const closeViewOnlyPr = document.getElementById('closeViewOnlyPr');
 
+  const editPrForm = document.getElementById('editPrForm');
   const editPrNo = document.getElementById('edit_pr_no');
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
@@ -182,50 +178,42 @@ document.addEventListener('DOMContentLoaded', function () {
   const editQuantity = document.getElementById('edit_quantity');
   const editRemarks = document.getElementById('edit_remarks');
 
+  const editPrMainActions = document.getElementById('editPrMainActions');
+  const viewOnlyActions = document.getElementById('viewOnlyActions');
+  const prApprovalActions = document.getElementById('prApprovalActions');
+  const warehouseActions = document.getElementById('warehouseActions');
+
   const approvePrForm = document.getElementById('approvePrForm');
   const rejectPrForm = document.getElementById('rejectPrForm');
   const issuePrForm = document.getElementById('issuePrForm');
   const forPurchasePrForm = document.getElementById('forPurchasePrForm');
-  const pendingPurchasePrForm = document.getElementById('pendingPurchasePrForm');
-  const deliveringPrForm = document.getElementById('deliveringPrForm');
-  const deliveredPrForm = document.getElementById('deliveredPrForm');
-
-<<<<<<< HEAD
-  const forPurchaseModal = document.getElementById('forPurchaseModal');
-  const openForPurchaseModal = document.getElementById('openForPurchaseModal');
-  const forPurchasePrNo = document.getElementById('forPurchasePrNo');
-  const cancelForPurchase = document.getElementById('cancelForPurchase');
-  const confirmForPurchase = document.getElementById('confirmForPurchase');
-
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-  const prApprovalActions = document.getElementById('prApprovalActions');
-  const warehouseActions = document.getElementById('warehouseActions');
-  const purchaseActions = document.getElementById('purchaseActions');
 
   document.querySelectorAll('.open-edit-pr-modal').forEach((button) => {
     button.addEventListener('click', () => {
       const status = button.dataset.status || '';
 
-      const isViewOnly =
-        status === 'Approved' ||
-        status === 'Rejected' ||
-        status === 'For Purchase' ||
-        status === 'Pending Purchase' ||
-        status === 'Delivering' ||
-        status === 'Delivered' ||
-        status === 'Issued';
-
       if (editPrForm) {
         editPrForm.action = button.dataset.updateUrl || '#';
       }
 
-      if (editPrNo) {
-        editPrNo.value = button.dataset.prNo || '';
+      if (approvePrForm) {
+        approvePrForm.action = button.dataset.approveUrl || '#';
       }
 
-      if (editJobOrderNo) {
-        editJobOrderNo.value = button.dataset.jobOrderNo || '';
+      if (rejectPrForm) {
+        rejectPrForm.action = button.dataset.rejectUrl || '#';
+      }
+
+      if (issuePrForm) {
+        issuePrForm.action = button.dataset.issueUrl || '#';
+      }
+
+      if (forPurchasePrForm) {
+        forPurchasePrForm.action = button.dataset.forPurchaseUrl || '#';
+      }
+
+      if (editPrNo) {
+        editPrNo.value = button.dataset.prNo || '';
       }
 
       if (editBusNo) {
@@ -248,88 +236,58 @@ document.addEventListener('DOMContentLoaded', function () {
         editRemarks.value = button.dataset.remarks || '';
       }
 
-      if (approvePrForm) {
-        approvePrForm.action = button.dataset.approveUrl || '#';
+      if (editJobOrderNo) {
+        let optionExists = false;
+
+        Array.from(editJobOrderNo.options).forEach((option) => {
+          if (option.value === button.dataset.jobOrderNo) {
+            optionExists = true;
+          }
+        });
+
+        if (!optionExists && button.dataset.jobOrderNo) {
+          const option = document.createElement('option');
+          option.value = button.dataset.jobOrderNo;
+          option.textContent = button.dataset.jobOrderNo;
+          option.dataset.bus = button.dataset.busNo || '';
+          option.dataset.parts = `${button.dataset.item || ''} - Qty: ${button.dataset.quantity || 1}`;
+          editJobOrderNo.appendChild(option);
+        }
+
+        editJobOrderNo.value = button.dataset.jobOrderNo || '';
       }
 
-      if (rejectPrForm) {
-        rejectPrForm.action = button.dataset.rejectUrl || '#';
+      const canEdit = status === 'Submitted';
+      const canApproveReject = status === 'Submitted';
+      const canWarehouseAct = status === 'Approved';
+
+      if (editPrMainActions) {
+        editPrMainActions.style.display = canEdit ? 'flex' : 'none';
       }
 
-      if (issuePrForm) {
-        issuePrForm.action = button.dataset.issueUrl || '#';
+      if (viewOnlyActions) {
+        viewOnlyActions.style.display = canEdit ? 'none' : 'flex';
       }
 
-      if (forPurchasePrForm) {
-        forPurchasePrForm.action = button.dataset.forPurchaseUrl || '#';
-      }
-
-      if (pendingPurchasePrForm) {
-        pendingPurchasePrForm.action = button.dataset.pendingPurchaseUrl || '#';
-      }
-
-      if (deliveringPrForm) {
-        deliveringPrForm.action = button.dataset.deliveringUrl || '#';
-      }
-
-      if (deliveredPrForm) {
-        deliveredPrForm.action = button.dataset.deliveredUrl || '#';
-      }
-
-      /*
-      |--------------------------------------------------------------------------
-      | Hide edit buttons if approved/processed
-      |--------------------------------------------------------------------------
-      */
-      setReadonlyMode(isViewOnly);
-
-      /*
-      |--------------------------------------------------------------------------
-      | Approval buttons only show when PR is Submitted
-      |--------------------------------------------------------------------------
-      */
       if (prApprovalActions) {
-        prApprovalActions.style.display = status === 'Submitted' ? 'flex' : 'none';
+        prApprovalActions.style.display = canApproveReject ? 'flex' : 'none';
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | Hide warehouse/purchase action buttons on Maintenance PR page
-      |--------------------------------------------------------------------------
-      */
       if (warehouseActions) {
-        warehouseActions.style.display = 'none';
+        warehouseActions.style.display = canWarehouseAct ? 'flex' : 'none';
       }
 
-      if (purchaseActions) {
-        purchaseActions.style.display = 'none';
+      if (editRemarks) {
+        editRemarks.readOnly = !canEdit;
+      }
+
+      if (editJobOrderNo) {
+        editJobOrderNo.disabled = !canEdit;
       }
 
       openModal(editPrModal);
     });
   });
-
-  if (editJobOrderNo) {
-    editJobOrderNo.addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
-
-      const busNo = selectedOption.dataset.bus || '';
-      const partNeeded = selectedOption.dataset.parts || '';
-      const firstPart = getFirstPart(partNeeded);
-
-      if (editBusNo) {
-        editBusNo.value = busNo;
-      }
-
-      if (editItem) {
-        editItem.value = firstPart.name;
-      }
-
-      if (editQuantity) {
-        editQuantity.value = firstPart.quantity;
-      }
-    });
-  }
 
   if (closeEditPrModal) {
     closeEditPrModal.addEventListener('click', () => {
@@ -346,35 +304,32 @@ document.addEventListener('DOMContentLoaded', function () {
   if (closeViewOnlyPr) {
     closeViewOnlyPr.addEventListener('click', () => {
       closeModal(editPrModal);
-<<<<<<< HEAD
     });
   }
 
-  if (openForPurchaseModal) {
-    openForPurchaseModal.addEventListener('click', () => {
-      if (forPurchasePrNo) {
-        forPurchasePrNo.textContent = editPrNo && editPrNo.value
-          ? editPrNo.value
-          : 'this purchase request';
+  /*
+  |--------------------------------------------------------------------------
+  | Auto Fill Edit PR From Job Order
+  |--------------------------------------------------------------------------
+  */
+  if (editJobOrderNo) {
+    editJobOrderNo.addEventListener('change', () => {
+      const selected = editJobOrderNo.options[editJobOrderNo.selectedIndex];
+      const busNo = selected.dataset.bus || '';
+      const parts = selected.dataset.parts || '';
+      const parsed = parsePartNeeded(parts);
+
+      if (editBusNo) {
+        editBusNo.value = busNo;
       }
 
-      openModal(forPurchaseModal);
-    });
-  }
-
-  if (cancelForPurchase) {
-    cancelForPurchase.addEventListener('click', () => {
-      closeModal(forPurchaseModal);
-    });
-  }
-
-  if (confirmForPurchase) {
-    confirmForPurchase.addEventListener('click', () => {
-      if (forPurchasePrForm) {
-        forPurchasePrForm.submit();
+      if (editItem) {
+        editItem.value = parsed.item;
       }
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+
+      if (editQuantity) {
+        editQuantity.value = parsed.quantity || 1;
+      }
     });
   }
 
@@ -388,14 +343,17 @@ document.addEventListener('DOMContentLoaded', function () {
   const cancelDeletePr = document.getElementById('cancelDeletePr');
   const confirmDeletePr = document.getElementById('confirmDeletePr');
 
-  let selectedDeleteForm = null;
+  let selectedDeletePrForm = null;
 
   document.querySelectorAll('.open-delete-pr-modal').forEach((button) => {
     button.addEventListener('click', () => {
-      selectedDeleteForm = document.getElementById(`deletePrForm-${button.dataset.id}`);
+      const id = button.dataset.id;
+      const prNo = button.dataset.prNo;
+
+      selectedDeletePrForm = document.getElementById(`deletePrForm-${id}`);
 
       if (deletePrNo) {
-        deletePrNo.textContent = button.dataset.prNo || 'this purchase request';
+        deletePrNo.textContent = prNo || 'this purchase request';
       }
 
       openModal(deletePrModal);
@@ -404,33 +362,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (cancelDeletePr) {
     cancelDeletePr.addEventListener('click', () => {
-      selectedDeleteForm = null;
+      selectedDeletePrForm = null;
       closeModal(deletePrModal);
     });
   }
 
   if (confirmDeletePr) {
     confirmDeletePr.addEventListener('click', () => {
-      if (selectedDeleteForm) {
-        selectedDeleteForm.submit();
+      if (selectedDeletePrForm) {
+        selectedDeletePrForm.submit();
       }
     });
   }
 
   /*
   |--------------------------------------------------------------------------
-  | Close When Clicking Outside
+  | Close Modal By Clicking Outside
   |--------------------------------------------------------------------------
   */
-  document
-    .querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay')
-    .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
-        }
-      });
+  document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((overlay) => {
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        overlay.classList.remove('show');
+      }
     });
+  });
 
   /*
   |--------------------------------------------------------------------------
@@ -438,17 +394,12 @@ document.addEventListener('DOMContentLoaded', function () {
   |--------------------------------------------------------------------------
   */
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      closeModal(prModal);
-      closeModal(editPrModal);
-      closeModal(deletePrModal);
-<<<<<<< HEAD
-      closeModal(forPurchaseModal);
+    if (event.key !== 'Escape') {
+      return;
     }
+
+    document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((overlay) => {
+      overlay.classList.remove('show');
+    });
   });
 });
-=======
-    }
-  });
-});
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb

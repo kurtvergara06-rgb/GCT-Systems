@@ -24,14 +24,12 @@
 
     <main class="main">
 
-      {{-- TOP BAR --}}
       <x-layout.topbar
         title="Part Requests"
         subtitle="Approved purchase requests from Maintenance for warehouse processing"
         notification-count="6"
       />
 
-      {{-- SUMMARY CARDS --}}
       <section class="stats-grid inventory-stats">
 
         <x-ui.summary-card
@@ -68,7 +66,6 @@
 
       </section>
 
-      {{-- PART REQUEST TABLE --}}
       <section class="table-card inventory-card">
 
         <div class="section-header">
@@ -78,7 +75,6 @@
           </div>
         </div>
 
-        {{-- TOOLBAR --}}
         <x-ui.table-toolbar
           :action="route('part-requests')"
           class="toolbar inventory-toolbar"
@@ -86,30 +82,52 @@
           :show-button="false"
         >
           <div class="filter-group">
-            <label>Status</label>
-            <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+            <label for="warehouseStatusFilter">Status</label>
+
+            <select
+              name="status"
+              id="warehouseStatusFilter"
+              class="warehouse-status-select"
+              onchange="this.form.submit()"
+            >
+              <option value="All Statuses" {{ request('status', 'All Statuses') == 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
               </option>
 
+              <option value="Submitted" {{ request('status') == 'Submitted' ? 'selected' : '' }}>
+                Submitted
+              </option>
+
               <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
-                Under Review
+                Approved
+              </option>
+
+              <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>
+                Rejected
               </option>
 
               <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
                 For Purchase
               </option>
 
-              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
-                Pending Purchase
+              <option value="Ordered" {{ request('status') == 'Ordered' ? 'selected' : '' }}>
+                Ordered
               </option>
 
-              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
-                Delivering
+              <option value="For Pick-up" {{ request('status') == 'For Pick-up' ? 'selected' : '' }}>
+                For Pick-up
+              </option>
+
+              <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>
+                For Delivery
               </option>
 
               <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
                 Delivered
+              </option>
+
+              <option value="Picked Up" {{ request('status') == 'Picked Up' ? 'selected' : '' }}>
+                Picked Up
               </option>
 
               <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
@@ -128,7 +146,7 @@
                 <th>Bus #</th>
                 <th>Item</th>
                 <th>Quantity</th>
-                <th>Status</th>
+                <th class="status-col">Status</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -136,6 +154,10 @@
 
             <tbody>
               @forelse($partRequests as $partRequest)
+                @php
+                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $partRequest->status));
+                @endphp
+
                 <tr>
                   <td>
                     <strong>{{ $partRequest->pr_no }}</strong>
@@ -149,14 +171,10 @@
                   <td>{{ $partRequest->item }}</td>
                   <td>{{ $partRequest->quantity }}</td>
 
-                  <td>
-                    @php
-                      $statusLabel = $partRequest->status === 'Approved'
-                        ? 'Under Review'
-                        : $partRequest->status;
-                    @endphp
-
-                    <x-ui.status-badge :status="$statusLabel" />
+                  <td class="status-col">
+                    <span class="warehouse-status-badge {{ $statusClass }}">
+                      {{ $partRequest->status }}
+                    </span>
                   </td>
 
                   <td>{{ $partRequest->created_at->format('M d, Y') }}</td>
@@ -164,7 +182,6 @@
                   <td>
                     <div class="actions">
 
-                      {{-- VIEW DETAILS BUTTON --}}
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
@@ -174,7 +191,7 @@
                         data-bus-no="{{ $partRequest->bus_no }}"
                         data-item="{{ $partRequest->item }}"
                         data-quantity="{{ $partRequest->quantity }}"
-                        data-status="{{ $statusLabel }}"
+                        data-status="{{ $partRequest->status }}"
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
                         data-created="{{ $partRequest->created_at->format('M d, Y') }}"
                       >
@@ -182,15 +199,7 @@
                       </button>
 
                       @if($partRequest->status === 'Approved')
-                        <form action="{{ route('purchase-requests.issue', $partRequest->id) }}" method="POST">
-                          @csrf
-
-                          <button type="submit" class="edit" title="Issue Parts">
-                            <i class="fa-solid fa-box-open"></i>
-                          </button>
-                        </form>
-
-                        <form action="{{ route('purchase-requests.for-purchase', $partRequest->id) }}" method="POST">
+                        <form action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}" method="POST">
                           @csrf
 
                           <button type="submit" class="delete" title="For Purchase">
@@ -199,8 +208,8 @@
                         </form>
                       @endif
 
-                      @if($partRequest->status === 'Delivered')
-                        <form action="{{ route('purchase-requests.issue', $partRequest->id) }}" method="POST">
+                      @if(in_array($partRequest->status, ['Delivered', 'Picked Up'], true))
+                        <form action="{{ route('part-requests.issue', $partRequest->id) }}" method="POST">
                           @csrf
 
                           <button type="submit" class="edit" title="Issue Parts">

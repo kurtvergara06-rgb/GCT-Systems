@@ -238,6 +238,145 @@
   display: none;
 }
 
+/* ========================================
+   WAREHOUSE PART REQUEST STATUS COLORS
+======================================== */
+
+.status-col {
+  text-align: center;
+}
+
+.warehouse-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.warehouse-status-badge.submitted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.warehouse-status-badge.approved {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.warehouse-status-badge.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-status-badge.for-purchase {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.warehouse-status-badge.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.warehouse-status-badge.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.warehouse-status-badge.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.warehouse-status-badge.delivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.warehouse-status-badge.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.warehouse-status-badge.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* Status filter selected color */
+.warehouse-status-select {
+  min-width: 145px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.warehouse-status-select:focus {
+  border-color: var(--yellow);
+}
+
+.warehouse-status-select.submitted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.warehouse-status-select.approved {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.warehouse-status-select.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-status-select.for-purchase {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.warehouse-status-select.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.warehouse-status-select.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.warehouse-status-select.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.warehouse-status-select.delivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.warehouse-status-select.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.warehouse-status-select.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
   .inventory-stats {
