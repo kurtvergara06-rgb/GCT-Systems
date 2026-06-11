@@ -25,7 +25,6 @@
           ]
         ],
 
-        ['label' => 'Available Mechanics', 'route' => 'available-mechanics', 'icon' => 'fa-users-gear'],
       ]"
     />
 
@@ -75,10 +74,10 @@
       />
 
       <x-ui.summary-card
-        label="On Leave"
+        label="Late"
         value="1"
-        small="Approved leave"
-        icon="fa-calendar-minus"
+        small="Mechanics who were late"
+        icon="fa-clock"
         color="yellow"
       />
 

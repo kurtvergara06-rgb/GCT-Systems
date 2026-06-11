@@ -25,7 +25,6 @@
           ]
         ],
 
-        ['label' => 'Available Mechanics', 'route' => 'available-mechanics', 'icon' => 'fa-users-gear'],
       ]"
     />
 

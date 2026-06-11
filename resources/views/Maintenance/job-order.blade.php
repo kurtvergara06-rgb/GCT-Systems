@@ -113,26 +113,50 @@
           button-label="New JO"
         >
           <div class="filter-group">
-            <label>Status</label>
-            <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
-                All Statuses
+            <label>Part Status</label>
+            <select name="part_status" onchange="this.form.submit()">
+              <option value="All Part Statuses" {{ request('part_status') == 'All Part Statuses' ? 'selected' : '' }}>
+                All Part Statuses
               </option>
 
-              <option value="On Hold" {{ request('status') == 'On Hold' ? 'selected' : '' }}>
-                On Hold
+              <option value="Submitted" {{ request('part_status') == 'Submitted' ? 'selected' : '' }}>
+                Submitted
               </option>
 
-              <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>
-                On Going
+              <option value="Approved" {{ request('part_status') == 'Approved' ? 'selected' : '' }}>
+                Approved
               </option>
 
-              <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>
-                Completed
+              <option value="Rejected" {{ request('part_status') == 'Rejected' ? 'selected' : '' }}>
+                Rejected
               </option>
 
-              <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>
-                Urgent Repair
+              <option value="For Purchase" {{ request('part_status') == 'For Purchase' ? 'selected' : '' }}>
+                For Purchase
+              </option>
+
+              <option value="Ordered" {{ request('part_status') == 'Ordered' ? 'selected' : '' }}>
+                Ordered
+              </option>
+
+              <option value="For Pick-up" {{ request('part_status') == 'For Pick-up' ? 'selected' : '' }}>
+                For Pick-up
+              </option>
+
+              <option value="For Delivery" {{ request('part_status') == 'For Delivery' ? 'selected' : '' }}>
+                For Delivery
+              </option>
+
+              <option value="Delivered" {{ request('part_status') == 'Delivered' ? 'selected' : '' }}>
+                Delivered
+              </option>
+
+              <option value="Picked Up" {{ request('part_status') == 'Picked Up' ? 'selected' : '' }}>
+                Picked Up
+              </option>
+
+              <option value="Issued" {{ request('part_status') == 'Issued' ? 'selected' : '' }}>
+                Issued
               </option>
             </select>
           </div>
@@ -166,7 +190,8 @@
                 <th>Quantity</th>
                 <th>Start Date & Time</th>
                 <th>Completion Date & Time</th>
-                <th>Status</th>
+                <th class="status-col">JO Status</th>
+                <th class="status-col">Part Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -176,6 +201,23 @@
                 @php
                   $firstPartName = '—';
                   $firstPartQuantity = '—';
+
+                  $isCompleted = $jobOrder->status === 'Completed';
+                  $isOnHold = $jobOrder->status === 'On Hold';
+
+                  $joStatus = $jobOrder->status ?: 'On Going';
+                  $partStatus = $jobOrder->part_status;
+
+                  if (!$jobOrder->part_needed) {
+                    $partStatus = '----';
+                  } elseif (!$partStatus || $partStatus === 'Unknown' || $partStatus === 'No Parts Needed') {
+                    $partStatus = 'Not Requested';
+                  }
+
+                  $hasNeededParts = !empty($jobOrder->part_needed);
+                  $canFinish = !$isOnHold && (
+                    !$hasNeededParts || in_array($jobOrder->part_status, ['Issued', 'Rejected'], true)
+                  );
 
                   if ($jobOrder->part_needed) {
                     $parts = explode(',', $jobOrder->part_needed);
@@ -216,28 +258,57 @@
                     @if($jobOrder->completion_date)
                       {{ date('m/d/y | h:i A', strtotime($jobOrder->completion_date)) }}
                     @else
-                      <form action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST">
-                        @csrf
+                      @if($canFinish)
+                        <form
+                          id="finishForm-{{ $jobOrder->id }}"
+                          action="{{ route('job-orders.finish', $jobOrder->id) }}"
+                          method="POST"
+                        >
+                          @csrf
 
-                        <button type="submit" class="finish-btn">
-                          <i class="fa-solid fa-check"></i>
-                          Finish
+                          <button
+                            type="button"
+                            class="finish-btn open-finish-modal"
+                            data-id="{{ $jobOrder->id }}"
+                            data-jo-no="{{ $jobOrder->job_order_no }}"
+                          >
+                            <i class="fa-solid fa-check"></i>
+                            Finish
+                          </button>
+                        </form>
+                      @else
+                        <button
+                          type="button"
+                          class="finish-btn locked-finish-btn"
+                          title="{{ $isOnHold ? 'Cannot finish yet. This job order is on hold.' : 'Cannot finish yet. The part status must be Issued or Rejected first.' }}"
+                          disabled
+                        >
+                          <i class="fa-solid fa-lock"></i>
+                          Locked
                         </button>
-                      </form>
+                      @endif
                     @endif
                   </td>
 
-                  <td>
-                    <x-ui.status-badge :status="$jobOrder->status" />
+                  <td class="status-col">
+                    <x-ui.status-badge :status="$joStatus" />
+                  </td>
+
+                  <td class="status-col">
+                    @if(!$jobOrder->part_needed || $partStatus === '----')
+                      <span class="empty">----</span>
+                    @else
+                      <x-ui.status-badge :status="$partStatus" />
+                    @endif
                   </td>
 
                   <td>
                     <div class="actions">
 
                       <x-ui.action-buttom-modal
-                        class="edit open-edit-modal"
-                        title="View / Edit"
-                        icon="fa-pen-to-square"
+                        class="{{ $isCompleted ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
+                        title="{{ $isCompleted ? 'View' : 'View / Edit' }}"
+                        icon="{{ $isCompleted ? 'fa-eye' : 'fa-pen-to-square' }}"
                         data-id="{{ $jobOrder->id }}"
                         data-job-order-no="{{ $jobOrder->job_order_no }}"
                         data-bus-no="{{ $jobOrder->bus_no }}"
@@ -270,7 +341,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="9"
+                  colspan="10"
                   message="No job orders found."
                 />
               @endforelse
@@ -311,7 +382,7 @@
       <input
         type="text"
         name="bus_no"
-        placeholder="Example: BUS-001"
+        placeholder="Example: BUS-2026-0001"
         required
       >
     </div>
@@ -336,12 +407,15 @@
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
-      <input
-        type="text"
-        name="assigned_mechanic"
-        placeholder="Enter mechanic name"
-        required
-      >
+      <select name="assigned_mechanic" required>
+        <option value="">Select Available Mechanic</option>
+
+        @foreach($availableMechanics as $mechanic)
+          <option value="{{ $mechanic->mechanic_name }}">
+            {{ $mechanic->mechanic_name }}
+          </option>
+        @endforeach
+      </select>
     </div>
 
     <div class="form-group full-width">
@@ -375,7 +449,7 @@
     </div>
   </x-ui.form-modal>
 
-  {{-- EDIT JO MODAL --}}
+  {{-- EDIT / VIEW JO MODAL --}}
   <x-ui.form-modal
     id="editJobModal"
     title="Job Order Details"
@@ -436,19 +510,22 @@
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
-      <input
-        type="text"
-        name="assigned_mechanic"
-        id="edit_assigned_mechanic"
-        required
-      >
+      <select name="assigned_mechanic" id="edit_assigned_mechanic" required>
+        <option value="">Select Mechanic</option>
+
+        @foreach($allMechanics as $mechanic)
+          <option value="{{ $mechanic->mechanic_name }}">
+            {{ $mechanic->mechanic_name }}
+          </option>
+        @endforeach
+      </select>
     </div>
 
     <div class="form-group full-width">
       <label>Parts Needed</label>
 
       <div id="editPartsNeededWrapper" class="parts-needed-wrapper">
-        {{-- JS will insert existing parts here when editing --}}
+        {{-- JS will insert existing parts here --}}
       </div>
 
       <button type="button" id="editAddPartBtn" class="add-part-btn">
@@ -457,6 +534,35 @@
       </button>
     </div>
   </x-ui.form-modal>
+
+  {{-- FINISH MODAL --}}
+  <div id="finishJobModal" class="delete-modal-overlay">
+    <div class="delete-modal-box">
+
+      <div class="delete-icon finish-icon">
+        <i class="fa-solid fa-check"></i>
+      </div>
+
+      <h2>Finish Job Order?</h2>
+
+      <p>
+        Are you sure you want to finish
+        <strong id="finishJoNo">this job order</strong>?
+        This record will be marked as completed.
+      </p>
+
+      <div class="delete-modal-actions">
+        <button type="button" id="cancelFinishJob" class="cancel-delete-btn">
+          Cancel
+        </button>
+
+        <button type="button" id="confirmFinishJob" class="confirm-finish-btn">
+          Yes, Finish
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   {{-- DELETE MODAL --}}
   <x-ui.action-buttom-modal

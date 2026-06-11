@@ -1,9 +1,25 @@
 <x-layout.app
   title="FROMS - Mechanic Attendance"
   :assets="[
-    'resources/css/Operation/attendance.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Operation/attendance.css',
+    'resources/js/Operation/mechanic-attendance.js'
   ]"
 >
+
+  {{-- FEEDBACK MODALS --}}
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="success"
+    :message="session('success')"
+  />
+
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="error"
+    :message="session('error')"
+  />
 
   <div class="app">
 
@@ -25,73 +41,67 @@
           ]
         ],
 
-        ['label' => 'Available Mechanics', 'route' => 'available-mechanics', 'icon' => 'fa-users-gear'],
       ]"
     />
 
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Mechanic Attendance</h1>
-          <p>Manage and track mechanic attendance and availability</p>
+      {{-- TOP BAR --}}
+      <x-layout.topbar
+        title="Mechanic Attendance"
+        subtitle="Manage and track mechanic attendance and availability"
+        notification-count="6"
+      />
+
+      {{-- ERROR ALERT --}}
+      @if($errors->any())
+        <div class="alert-error">
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
         </div>
+      @endif
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
+    {{-- SUMMARY CARDS --}}
+      <section class="stats-grid">
 
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
+        <x-ui.summary-card
+          label="Present"
+          value="{{ $present }}"
+          small="Mechanics today"
+          icon="fa-user-check"
+          color="green"
+        />
 
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
+        <x-ui.summary-card
+          label="Absent"
+          value="{{ $absent }}"
+          small="Mechanics absent"
+          icon="fa-user-xmark"
+          color="red"
+        />
 
-<!-- SUMMARY CARDS -->
-<section class="stats-grid">
+        <x-ui.summary-card
+          label="Late"
+          value="{{ $late }}"
+          small="Mechanics who were late"
+          icon="fa-clock"
+          color="yellow"
+        />
 
-  <x-ui.summary-card
-    label="Present"
-    value="6"
-    small="Mechanics today"
-    icon="fa-user-check"
-    color="green"
-  />
+        <x-ui.summary-card
+          label="On Duty"
+          value="{{ $onDuty }}"
+          small="Assigned mechanics"
+          icon="fa-screwdriver-wrench"
+          color="blue"
+        />
 
-  <x-ui.summary-card
-    label="Absent"
-    value="2"
-    small="Mechanics absent"
-    icon="fa-user-xmark"
-    color="red"
-  />
+      </section>
 
-  <x-ui.summary-card
-    label="On Leave"
-    value="1"
-    small="Approved leave"
-    icon="fa-calendar-minus"
-    color="yellow"
-  />
-
-  <x-ui.summary-card
-    label="On Duty"
-    value="5"
-    small="Assigned mechanics"
-    icon="fa-screwdriver-wrench"
-    color="blue"
-  />
-
-</section>
-
-      <!-- MECHANIC ATTENDANCE TABLE -->
+      {{-- MECHANIC ATTENDANCE TABLE --}}
       <section class="table-card attendance-card">
 
         <div class="section-header">
@@ -101,28 +111,58 @@
           </div>
         </div>
 
-        <div class="toolbar attendance-toolbar">
+        <form action="{{ route('mechanic-attendance') }}" method="GET" class="toolbar attendance-toolbar">
+
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search mechanic name, ID, or assigned job...">
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search mechanic name, ID, or assigned job..."
+            >
           </div>
 
           <div class="filter-group">
             <label>Status</label>
-            <select>
-              <option>All Status</option>
-              <option>Present</option>
-              <option>On Duty</option>
-              <option>Absent</option>
-              <option>On Leave</option>
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>
+                All Status
+              </option>
+
+              <option value="Present" {{ request('status') == 'Present' ? 'selected' : '' }}>
+                Present
+              </option>
+
+              <option value="Late" {{ request('status') == 'Late' ? 'selected' : '' }}>
+                Late
+              </option>
+
+              <option value="On Duty" {{ request('status') == 'On Duty' ? 'selected' : '' }}>
+                On Duty
+              </option>
+
+              <option value="Absent" {{ request('status') == 'Absent' ? 'selected' : '' }}>
+                Absent
+              </option>
+
+              <option value="On Leave" {{ request('status') == 'On Leave' ? 'selected' : '' }}>
+                On Leave
+              </option>
             </select>
           </div>
 
-          <button class="primary-btn">
-            <i class="fa-solid fa-plus"></i>
-            New Record
+          <button type="button" id="openImportAttendanceModal" class="secondary-btn import-btn">
+            <i class="fa-solid fa-file-import"></i>
+            Import Data
           </button>
-        </div>
+
+          <button type="button" id="openMechanicAttendanceModal" class="primary-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add New Mechanic
+          </button>
+
+        </form>
 
         <div class="table-wrap">
           <table class="attendance-table">
@@ -132,6 +172,7 @@
                 <th>Mechanic</th>
                 <th>Shift</th>
                 <th>Assigned Job</th>
+                <th>Date</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
                 <th>Status</th>
@@ -140,141 +181,385 @@
             </thead>
 
             <tbody>
-              <tr>
-                <td>M-001</td>
-                <td>Leo Fernandez</td>
-                <td>Morning</td>
-                <td>Engine Oil Filter</td>
-                <td>07:00 AM</td>
-                <td>--:--</td>
-                <td><span class="badge present">Present</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+              @forelse($mechanicAttendances as $attendance)
+                @php
+                  $statusClass = match($attendance->status) {
+                    'Present' => 'present',
+                    'Late' => 'late',
+                    'Absent' => 'absent',
+                    'On Leave' => 'leave',
+                    'On Duty' => 'duty',
+                    default => 'present',
+                  };
+                @endphp
 
-              <tr>
-                <td>M-002</td>
-                <td>Ronald Mendoza</td>
-                <td>Morning</td>
-                <td>Brake Repair</td>
-                <td>07:15 AM</td>
-                <td>--:--</td>
-                <td><span class="badge late">Late</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                <tr>
+                  <td>{{ $attendance->mechanic_id }}</td>
+                  <td>{{ $attendance->mechanic_name }}</td>
+                  <td>{{ $attendance->shift }}</td>
+                  <td>{{ $attendance->assigned_job ?? 'Available' }}</td>
 
-              <tr>
-                <td>M-003</td>
-                <td>Roy Montalban</td>
-                <td>Morning</td>
-                <td>Transmission</td>
-                <td>--:--</td>
-                <td>--:--</td>
-                <td><span class="badge absent">Absent</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    {{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}
+                  </td>
 
-              <tr>
-                <td>M-004</td>
-                <td>Rowell Aspanua</td>
-                <td>Morning</td>
-                <td>PMS</td>
-                <td>07:00 AM</td>
-                <td>--:--</td>
-                <td><span class="badge present">Present</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    {{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}
+                  </td>
 
-              <tr>
-                <td>M-005</td>
-                <td>Priya Nair</td>
-                <td>Morning</td>
-                <td>Suspension Repair</td>
-                <td>07:05 AM</td>
-                <td>--:--</td>
-                <td><span class="badge present">Present</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    {{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}
+                  </td>
 
-              <tr>
-                <td>M-006</td>
-                <td>Joshua Garcia</td>
-                <td>Morning</td>
-                <td>Flat Tire Repair</td>
-                <td>07:20 AM</td>
-                <td>--:--</td>
-                <td><span class="badge late">Late</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <span class="badge {{ $statusClass }}">
+                      {{ $attendance->status }}
+                    </span>
+                  </td>
 
-              <tr>
-                <td>M-007</td>
-                <td>Biboy Enriquez</td>
-                <td>Morning</td>
-                <td>Available</td>
-                <td>07:00 AM</td>
-                <td>--:--</td>
-                <td><span class="badge present">Present</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <div class="actions">
 
-              <tr>
-                <td>M-008</td>
-                <td>Jose Dimaano</td>
-                <td>Morning</td>
-                <td>Available</td>
-                <td>07:00 AM</td>
-                <td>--:--</td>
-                <td><span class="badge present">Present</span></td>
-                <td>
-                  <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
+                      <x-ui.action-buttom-modal
+                        class="edit open-edit-attendance-modal"
+                        title="Edit"
+                        icon="fa-pen"
+                        data-id="{{ $attendance->id }}"
+                        data-mechanic-id="{{ $attendance->mechanic_id }}"
+                        data-mechanic-name="{{ $attendance->mechanic_name }}"
+                        data-shift="{{ $attendance->shift }}"
+                        data-assigned-job="{{ $attendance->assigned_job }}"
+                        data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('Y-m-d') : '' }}"
+                        data-time-in="{{ $attendance->time_in }}"
+                        data-time-out="{{ $attendance->time_out }}"
+                        data-status="{{ $attendance->status }}"
+                        data-update-url="{{ route('mechanic-attendance.update', $attendance->id) }}"
+                      />
+
+                      <form
+                        id="deleteAttendanceForm-{{ $attendance->id }}"
+                        action="{{ route('mechanic-attendance.destroy', $attendance->id) }}"
+                        method="POST"
+                      >
+                        @csrf
+                        @method('DELETE')
+
+                        <x-ui.action-buttom-modal
+                          class="delete open-delete-attendance-modal"
+                          title="Delete"
+                          icon="fa-trash"
+                          data-id="{{ $attendance->id }}"
+                          data-mechanic-id="{{ $attendance->mechanic_id }}"
+                        />
+                      </form>
+
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <x-ui.empty-row
+                  colspan="9"
+                  message="No mechanic attendance records found."
+                />
+              @endforelse
             </tbody>
           </table>
         </div>
+
+        <x-ui.table-footer :items="$mechanicAttendances" />
 
       </section>
 
     </main>
 
   </div>
+
+    {{-- IMPORT ATTENDANCE MODAL --}}
+    <div id="importAttendanceModal" class="modal-overlay">
+      <div class="modal-box">
+
+        <div class="modal-header">
+          <h2>Import Mechanic Attendance Data</h2>
+
+          <button type="button" id="closeImportAttendanceModal" class="close-btn">
+            &times;
+          </button>
+        </div>
+
+        <form
+          id="importAttendanceForm"
+          action="{{ route('mechanic-attendance.import') }}"
+          method="POST"
+          enctype="multipart/form-data"
+          class="job-form"
+        >
+          @csrf
+          <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+          <div class="form-section-title full-width">
+            <h3>Upload CSV File</h3>
+            <p>Upload mechanic attendance records using a CSV file.</p>
+          </div>
+
+          <div class="form-group full-width">
+            <label>CSV File</label>
+            <input
+              type="file"
+              name="import_file"
+              accept=".csv,.txt"
+              required
+            >
+          </div>
+
+          <div class="form-group full-width">
+            <small>
+              Required columns:
+              mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status
+            </small>
+          </div>
+
+          <div class="modal-actions full-width">
+            <button type="button" id="cancelImportAttendanceModal" class="cancel-btn">
+              Cancel
+            </button>
+
+            <button type="submit" class="save-btn">
+              Import Data
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  {{-- NEW MECHANIC ATTENDANCE MODAL --}}
+  <div id="mechanicAttendanceModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Add New Mechanic Attendance</h2>
+
+        <button type="button" id="closeMechanicAttendanceModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <form action="{{ route('mechanic-attendance.store') }}" method="POST" class="job-form wide-form">
+        @csrf
+
+        <div class="form-section-title full-width">
+          <h3>Attendance Details</h3>
+          <p>Enter mechanic attendance information.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Mechanic ID</label>
+          <input
+            type="text"
+            value="{{ $nextMechanicId }}"
+            readonly
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Mechanic Name</label>
+          <input
+            type="text"
+            name="mechanic_name"
+            placeholder="Example: Leo Fernandez"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Shift</label>
+          <select name="shift" required>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Night">Night</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Assigned Job</label>
+          <input
+            type="text"
+            name="assigned_job"
+            placeholder="Example: Engine Oil Filter"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input
+            type="date"
+            name="attendance_date"
+            value="{{ now()->format('Y-m-d') }}"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Time-in</label>
+          <input
+            type="time"
+            name="time_in"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Time-out</label>
+          <input
+            type="time"
+            name="time_out"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Absent">Absent</option>
+            <option value="On Leave">On Leave</option>
+            <option value="On Duty">On Duty</option>
+          </select>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelMechanicAttendanceModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Save Record
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  {{-- EDIT MECHANIC ATTENDANCE MODAL --}}
+  <div id="editMechanicAttendanceModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Edit Mechanic Attendance</h2>
+
+        <button type="button" id="closeEditMechanicAttendanceModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <form id="editMechanicAttendanceForm" method="POST" class="job-form wide-form">
+        @csrf
+        @method('PUT')
+
+        <div class="form-section-title full-width">
+          <h3>Attendance Details</h3>
+          <p>Update mechanic attendance information.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Mechanic ID</label>
+          <input
+            type="text"
+            id="edit_mechanic_id"
+            readonly
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Mechanic Name</label>
+          <input
+            type="text"
+            name="mechanic_name"
+            id="edit_mechanic_name"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Shift</label>
+          <select name="shift" id="edit_shift" required>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Night">Night</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Assigned Job</label>
+          <input
+            type="text"
+            name="assigned_job"
+            id="edit_assigned_job"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input
+            type="date"
+            name="attendance_date"
+            id="edit_attendance_date"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Time-in</label>
+          <input
+            type="time"
+            name="time_in"
+            id="edit_time_in"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Time-out</label>
+          <input
+            type="time"
+            name="time_out"
+            id="edit_time_out"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" id="edit_status" required>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Absent">Absent</option>
+            <option value="On Leave">On Leave</option>
+            <option value="On Duty">On Duty</option>
+          </select>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelEditMechanicAttendanceModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Update Record
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  {{-- DELETE MODAL --}}
+  <x-ui.action-buttom-modal
+    mode="delete"
+    id="deleteAttendanceModal"
+    delete-title="Delete Attendance Record?"
+    delete-message="Are you sure you want to delete"
+    name-id="deleteAttendanceName"
+    cancel-id="cancelDeleteAttendance"
+    confirm-id="confirmDeleteAttendance"
+  />
 
 </x-layout.app>
