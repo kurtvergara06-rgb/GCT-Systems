@@ -126,6 +126,7 @@
               <option value="Approved" {{ request('part_status') == 'Approved' ? 'selected' : '' }}>
                 Approved
               </option>
+<<<<<<< HEAD
 
               <option value="Rejected" {{ request('part_status') == 'Rejected' ? 'selected' : '' }}>
                 Rejected
@@ -158,6 +159,8 @@
               <option value="Issued" {{ request('part_status') == 'Issued' ? 'selected' : '' }}>
                 Issued
               </option>
+=======
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             </select>
           </div>
 
@@ -201,6 +204,19 @@
                 @php
                   $firstPartName = '—';
                   $firstPartQuantity = '—';
+                  $isCompleted = $jobOrder->status === 'Completed';
+
+                  $joStatus = $jobOrder->status ?: 'On Going';
+                  $partStatus = $jobOrder->part_status;
+
+                  if (!$jobOrder->part_needed) {
+                    $partStatus = '----';
+                  } elseif (!$partStatus || $partStatus === 'Unknown') {
+                    $partStatus = 'Not Requested';
+                  }
+
+                  $hasNeededParts = !empty($jobOrder->part_needed);
+                  $canFinish = !$hasNeededParts || $jobOrder->part_status === 'Issued';
 
                   $isCompleted = $jobOrder->status === 'Completed';
                   $isOnHold = $jobOrder->status === 'On Hold';
@@ -258,6 +274,7 @@
                     @if($jobOrder->completion_date)
                       {{ date('m/d/y | h:i A', strtotime($jobOrder->completion_date)) }}
                     @else
+<<<<<<< HEAD
                       @if($canFinish)
                         <form
                           id="finishForm-{{ $jobOrder->id }}"
@@ -266,6 +283,17 @@
                         >
                           @csrf
 
+=======
+
+                      @if($canFinish)
+                        <form
+                          id="finishForm-{{ $jobOrder->id }}"
+                          action="{{ route('job-orders.finish', $jobOrder->id) }}"
+                          method="POST"
+                        >
+                          @csrf
+
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           <button
                             type="button"
                             class="finish-btn open-finish-modal"
@@ -280,13 +308,21 @@
                         <button
                           type="button"
                           class="finish-btn locked-finish-btn"
+<<<<<<< HEAD
                           title="{{ $isOnHold ? 'Cannot finish yet. This job order is on hold.' : 'Cannot finish yet. The part status must be Issued or Rejected first.' }}"
+=======
+                          title="Cannot finish yet. The requested part must be issued first."
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           disabled
                         >
                           <i class="fa-solid fa-lock"></i>
                           Locked
                         </button>
                       @endif
+<<<<<<< HEAD
+=======
+
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                     @endif
                   </td>
 
@@ -295,7 +331,11 @@
                   </td>
 
                   <td class="status-col">
+<<<<<<< HEAD
                     @if(!$jobOrder->part_needed || $partStatus === '----')
+=======
+                    @if($partStatus === '----')
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                       <span class="empty">----</span>
                     @else
                       <x-ui.status-badge :status="$partStatus" />
@@ -412,7 +452,11 @@
 
         @foreach($availableMechanics as $mechanic)
           <option value="{{ $mechanic->mechanic_name }}">
+<<<<<<< HEAD
             {{ $mechanic->mechanic_name }}
+=======
+            {{ $mechanic->mechanic_name }} - {{ $mechanic->mechanic_id }}
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
           </option>
         @endforeach
       </select>
@@ -531,6 +575,22 @@
       <button type="button" id="editAddPartBtn" class="add-part-btn">
         <i class="fa-solid fa-plus"></i>
         Add Other Part
+      </button>
+    </div>
+
+    <div class="modal-actions full-width" id="editJobMainActions">
+      <button type="button" id="cancelEditJobModal" class="cancel-btn">
+        Cancel
+      </button>
+
+      <button type="submit" class="save-btn">
+        Update Job Order
+      </button>
+    </div>
+
+    <div class="modal-actions full-width" id="viewOnlyJobActions" style="display: none;">
+      <button type="button" id="closeViewOnlyJob" class="cancel-btn">
+        Close
       </button>
     </div>
   </x-ui.form-modal>

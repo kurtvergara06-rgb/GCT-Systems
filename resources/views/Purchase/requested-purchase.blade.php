@@ -3,7 +3,11 @@
   :assets="[
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
+<<<<<<< HEAD
     'resources/css/Purchase/requested-purchase.css',
+=======
+    'resources/css/Purchase/purchase-orders.css'
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   ]"
 >
 
@@ -38,11 +42,16 @@
 
       <x-layout.topbar
         title="Requested Purchases"
+<<<<<<< HEAD
         subtitle="View maintenance purchase requests sent for purchasing process"
+=======
+        subtitle="View approved maintenance purchase requests for purchasing process"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         notification-count="6"
       />
 
       @if($errors->any())
+<<<<<<< HEAD
         <div id="validationErrorModal" class="delete-modal-overlay show">
           <div class="delete-modal-box">
 
@@ -67,6 +76,14 @@
             </div>
 
           </div>
+=======
+        <div class="alert-error">
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         </div>
       @endif
 
@@ -75,13 +92,18 @@
 
         <x-ui.summary-card
           label="Total Requests"
+<<<<<<< HEAD
           value="{{ $totalRequests ?? 0 }}"
+=======
+          value="{{ $totalRequests }}"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
           small="Purchase requests"
           icon="fa-file"
           color="gray"
         />
 
         <x-ui.summary-card
+<<<<<<< HEAD
           label="For Purchase"
           value="{{ $forPurchase ?? 0 }}"
           small="Parts unavailable"
@@ -109,15 +131,52 @@
 
       {{-- TABLE --}}
       <section class="table-card purchase-card requested-purchase-card">
+=======
+          label="Approved"
+          value="{{ $approved }}"
+          small="Ready for purchase"
+          icon="fa-check"
+          color="green"
+        />
+
+        <x-ui.summary-card
+          label="For Purchase"
+          value="{{ $forPurchase }}"
+          small="Parts unavailable"
+          icon="fa-cart-shopping"
+          color="blue"
+        />
+
+        <x-ui.summary-card
+          label="Delivered"
+          value="{{ $delivered }}"
+          small="Supplier delivered"
+          icon="fa-box"
+          color="yellow"
+        />
+
+      </section>
+
+      {{-- TABLE --}}
+      <section class="table-card purchase-card">
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 
         <div class="section-header">
           <div>
             <h2>Requested Purchase Records</h2>
+<<<<<<< HEAD
             <p>Track purchase requests from Warehouse to Purchase Department</p>
           </div>
         </div>
 
         <form action="{{ route('requested-purchase') }}" method="GET" class="toolbar purchase-toolbar requested-purchase-toolbar">
+=======
+            <p>Track approved purchase requests from Maintenance for purchasing process</p>
+          </div>
+        </div>
+
+        <form action="{{ route('requested-purchase') }}" method="GET" class="toolbar purchase-toolbar">
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -131,16 +190,27 @@
 
           <div class="filter-group status-filter">
             <label>Status</label>
+<<<<<<< HEAD
 
             <select name="status" onchange="this.form.submit()" class="status-select">
               <option value="All States" {{ request('status', 'All States') == 'All States' ? 'selected' : '' }}>
                 All States
+=======
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+                All Statuses
+              </option>
+
+              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
+                Approved
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
               </option>
 
               <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
                 For Purchase
               </option>
 
+<<<<<<< HEAD
               <option value="Ordered" {{ request('status') == 'Ordered' ? 'selected' : '' }}>
                 Ordered
               </option>
@@ -151,14 +221,27 @@
 
               <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>
                 For Delivery
+=======
+              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
+                Pending Purchase
+              </option>
+
+              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
+                Delivering
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
               </option>
 
               <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
                 Delivered
               </option>
 
+<<<<<<< HEAD
               <option value="Picked Up" {{ request('status') == 'Picked Up' ? 'selected' : '' }}>
                 Picked Up
+=======
+              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
+                Issued
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
               </option>
             </select>
           </div>
@@ -206,15 +289,22 @@
                   <td>
                     <div class="actions">
 
+<<<<<<< HEAD
                       @if($purchaseRequest->status === 'For Purchase')
                         <form
                           id="orderedForm-{{ $purchaseRequest->id }}"
                           action="{{ route('requested-purchase.ordered', $purchaseRequest->id) }}"
+=======
+                      @if($purchaseRequest->status === 'Approved')
+                        <form
+                          action="{{ route('requested-purchase.for-purchase', $purchaseRequest->id) }}"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           method="POST"
                         >
                           @csrf
 
                           <button
+<<<<<<< HEAD
                             type="button"
                             class="edit open-status-confirm"
                             title="Mark as Ordered"
@@ -231,11 +321,25 @@
                         <form
                           id="forPickupForm-{{ $purchaseRequest->id }}"
                           action="{{ route('requested-purchase.for-pickup', $purchaseRequest->id) }}"
+=======
+                            type="submit"
+                            class="edit"
+                            title="Mark as For Purchase"
+                          >
+                            <i class="fa-solid fa-cart-shopping"></i>
+                          </button>
+                        </form>
+
+                      @elseif($purchaseRequest->status === 'For Purchase')
+                        <form
+                          action="{{ route('requested-purchase.pending-purchase', $purchaseRequest->id) }}"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           method="POST"
                         >
                           @csrf
 
                           <button
+<<<<<<< HEAD
                             type="button"
                             class="edit open-status-confirm"
                             title="Mark as For Pick-up"
@@ -251,11 +355,25 @@
                         <form
                           id="forDeliveryForm-{{ $purchaseRequest->id }}"
                           action="{{ route('requested-purchase.for-delivery', $purchaseRequest->id) }}"
+=======
+                            type="submit"
+                            class="edit"
+                            title="Mark as Pending Purchase"
+                          >
+                            <i class="fa-solid fa-clock"></i>
+                          </button>
+                        </form>
+
+                      @elseif($purchaseRequest->status === 'Pending Purchase')
+                        <form
+                          action="{{ route('requested-purchase.delivering', $purchaseRequest->id) }}"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           method="POST"
                         >
                           @csrf
 
                           <button
+<<<<<<< HEAD
                             type="button"
                             class="edit open-status-confirm"
                             title="Mark as For Delivery"
@@ -263,20 +381,31 @@
                             data-message="This will mark {{ $purchaseRequest->pr_no }} as For Delivery."
                             data-confirm-text="Yes, Continue"
                             data-form-id="forDeliveryForm-{{ $purchaseRequest->id }}"
+=======
+                            type="submit"
+                            class="edit"
+                            title="Mark as Delivering"
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           >
                             <i class="fa-solid fa-truck-fast"></i>
                           </button>
                         </form>
 
+<<<<<<< HEAD
                       @elseif($purchaseRequest->status === 'For Delivery')
                         <form
                           id="deliveredForm-{{ $purchaseRequest->id }}"
+=======
+                      @elseif($purchaseRequest->status === 'Delivering')
+                        <form
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           action="{{ route('requested-purchase.delivered', $purchaseRequest->id) }}"
                           method="POST"
                         >
                           @csrf
 
                           <button
+<<<<<<< HEAD
                             type="button"
                             class="edit open-status-confirm"
                             title="Mark as Delivered"
@@ -307,6 +436,13 @@
                             data-form-id="pickedUpForm-{{ $purchaseRequest->id }}"
                           >
                             <i class="fa-solid fa-boxes-packing"></i>
+=======
+                            type="submit"
+                            class="edit"
+                            title="Mark as Delivered"
+                          >
+                            <i class="fa-solid fa-box"></i>
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                           </button>
                         </form>
 
