@@ -1,9 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | Helpers
-  |--------------------------------------------------------------------------
-  */
   function openModal(modal) {
     if (modal) {
       modal.classList.add('show');
@@ -16,208 +11,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Parts Helper
-  |--------------------------------------------------------------------------
-  | Saved format example:
-  | Air Filter - Qty: 2, Brake Pads - Qty: 4
-  |--------------------------------------------------------------------------
-  */
-  function parsePartsNeeded(partNeeded) {
-    if (!partNeeded) return [];
-
-    return partNeeded
-      .split(',')
-      .map((part) => part.trim())
-      .filter((part) => part !== '')
-      .map((part) => {
-        if (part.includes(' - Qty:')) {
-          const [name, quantity] = part.split(' - Qty:');
-
-          return {
-            name: name ? name.trim() : '',
-            quantity: quantity ? quantity.trim() : '',
-          };
-        }
-
-        return {
-          name: part,
-          quantity: '',
-        };
-      });
-  }
-
-  function createPartRow(index, name = '', quantity = '', canRemove = true) {
-    const row = document.createElement('div');
-    row.className = 'part-needed-row';
-
-    row.innerHTML = `
-      <input
-        type="text"
-        name="parts[${index}][name]"
-        value="${escapeHtml(name)}"
-        placeholder="Part name"
-      >
-
-      <input
-        type="number"
-        name="parts[${index}][quantity]"
-        value="${escapeHtml(quantity)}"
-        min="1"
-        placeholder="Quantity"
-      >
-
-      <button type="button" class="remove-part-btn" style="${canRemove ? '' : 'display: none;'}">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    `;
-
-    return row;
-  }
-
-  function refreshPartRowNames(wrapper) {
-    const rows = wrapper.querySelectorAll('.part-needed-row');
-
-    rows.forEach((row, index) => {
-      const nameInput = row.querySelector('input[type="text"]');
-      const quantityInput = row.querySelector('input[type="number"]');
-
-      if (nameInput) {
-        nameInput.name = `parts[${index}][name]`;
-      }
-
-      if (quantityInput) {
-        quantityInput.name = `parts[${index}][quantity]`;
-      }
-    });
-  }
-
-  function updateRemoveButtons(wrapper) {
-    const rows = wrapper.querySelectorAll('.part-needed-row');
-
-    rows.forEach((row) => {
-      const removeButton = row.querySelector('.remove-part-btn');
-
-      if (removeButton) {
-        removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
-      }
-    });
-  }
-
-  function setupPartsRepeater(wrapperId, addButtonId) {
-    const wrapper = document.getElementById(wrapperId);
-    const addButton = document.getElementById(addButtonId);
-
-    if (!wrapper || !addButton) return;
-
-    addButton.addEventListener('click', () => {
-      const index = wrapper.querySelectorAll('.part-needed-row').length;
-
-      wrapper.appendChild(createPartRow(index, '', '', true));
-      refreshPartRowNames(wrapper);
-      updateRemoveButtons(wrapper);
-    });
-
-    wrapper.addEventListener('click', (event) => {
-      const removeButton = event.target.closest('.remove-part-btn');
-
-      if (!removeButton) return;
-
-      const row = removeButton.closest('.part-needed-row');
-
-      if (row) {
-        row.remove();
-      }
-
-      refreshPartRowNames(wrapper);
-      updateRemoveButtons(wrapper);
-    });
-
-    refreshPartRowNames(wrapper);
-    updateRemoveButtons(wrapper);
-  }
-
-  function loadEditParts(partNeeded) {
-    const wrapper = document.getElementById('editPartsNeededWrapper');
-
-    if (!wrapper) return;
-
-    wrapper.innerHTML = '';
-
-    const parts = parsePartsNeeded(partNeeded);
-
-    if (parts.length === 0) {
-      wrapper.appendChild(createPartRow(0, '', '', false));
-      updateRemoveButtons(wrapper);
-      return;
-    }
-
-    parts.forEach((part, index) => {
-      wrapper.appendChild(
-        createPartRow(index, part.name, part.quantity, parts.length > 1)
-      );
-    });
-
-    refreshPartRowNames(wrapper);
-    updateRemoveButtons(wrapper);
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Feedback Modal
-  |--------------------------------------------------------------------------
-  */
-  document.querySelectorAll('.close-feedback-modal').forEach((button) => {
+  document.querySelectorAll('.close-feedback-modal, .feedback-ok-btn').forEach((button) => {
     button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay');
+      const modal = button.closest('.success-modal-overlay, .delete-modal-overlay, .modal-overlay');
 
-      closeModal(modal);
+      if (modal) {
+        modal.classList.remove('show');
+      }
     });
   });
 
-  /*
-  |--------------------------------------------------------------------------
-  | New JO Modal
-  |--------------------------------------------------------------------------
-  */
   const jobModal = document.getElementById('jobModal');
   const openJobModal = document.getElementById('openJobModal');
   const closeJobModal = document.getElementById('closeJobModal');
   const cancelJobModal = document.getElementById('cancelJobModal');
 
   if (openJobModal) {
-    openJobModal.addEventListener('click', () => {
-      openModal(jobModal);
-    });
+    openJobModal.addEventListener('click', () => openModal(jobModal));
   }
 
   if (closeJobModal) {
-    closeJobModal.addEventListener('click', () => {
-      closeModal(jobModal);
-    });
+    closeJobModal.addEventListener('click', () => closeModal(jobModal));
   }
 
   if (cancelJobModal) {
-    cancelJobModal.addEventListener('click', () => {
-      closeModal(jobModal);
-    });
+    cancelJobModal.addEventListener('click', () => closeModal(jobModal));
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Edit JO Modal
-  |--------------------------------------------------------------------------
-  */
   const editJobModal = document.getElementById('editJobModal');
   const editJobForm = document.getElementById('editJobForm');
 
@@ -231,69 +51,152 @@ document.addEventListener('DOMContentLoaded', () => {
   const editStatus = document.getElementById('edit_status');
   const editAssignedMechanic = document.getElementById('edit_assigned_mechanic');
 
+  const editPartsNeededWrapper = document.getElementById('editPartsNeededWrapper');
+
+  function setEditModalReadonly(isReadonly) {
+    const fields = [
+      editBusNo,
+      editProblemIssue,
+      editMaintenanceType,
+      editStatus,
+      editAssignedMechanic,
+    ];
+
+    fields.forEach((field) => {
+      if (field) {
+        field.disabled = isReadonly;
+      }
+    });
+
+    if (editPartsNeededWrapper) {
+      editPartsNeededWrapper.querySelectorAll('input, button').forEach((element) => {
+        element.disabled = isReadonly;
+      });
+    }
+
+    const editAddPartBtn = document.getElementById('editAddPartBtn');
+
+    if (editAddPartBtn) {
+      editAddPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
+    }
+  }
+
+  function escapeInputValue(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
+  function parseParts(partNeeded) {
+    if (!partNeeded) return [];
+
+    return partNeeded.split(',').map((part) => {
+      const cleanPart = part.trim();
+
+      if (cleanPart.includes(' - Qty:')) {
+        const pieces = cleanPart.split(' - Qty:');
+
+        return {
+          name: pieces[0] ? pieces[0].trim() : '',
+          quantity: pieces[1] ? pieces[1].trim() : '',
+        };
+      }
+
+      return {
+        name: cleanPart,
+        quantity: '',
+      };
+    });
+  }
+
+  function renderEditParts(partNeeded) {
+    if (!editPartsNeededWrapper) return;
+
+    const parts = parseParts(partNeeded);
+
+    editPartsNeededWrapper.innerHTML = '';
+
+    const rows = parts.length > 0 ? parts : [{ name: '', quantity: '' }];
+
+    rows.forEach((part, index) => {
+      const row = document.createElement('div');
+      row.className = 'part-needed-row';
+
+      row.innerHTML = `
+        <input
+          type="text"
+          name="parts[${index}][name]"
+          placeholder="Part name"
+          value="${escapeInputValue(part.name)}"
+        >
+
+        <input
+          type="number"
+          name="parts[${index}][quantity]"
+          min="1"
+          placeholder="Quantity"
+          value="${escapeInputValue(part.quantity)}"
+        >
+
+        <button type="button" class="remove-part-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      editPartsNeededWrapper.appendChild(row);
+    });
+
+    updateEditRemoveButtons();
+  }
+
+  function updateEditRemoveButtons() {
+    if (!editPartsNeededWrapper) return;
+
+    const rows = editPartsNeededWrapper.querySelectorAll('.part-needed-row');
+
+    rows.forEach((row) => {
+      const removeButton = row.querySelector('.remove-part-btn');
+
+      if (removeButton) {
+        removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
+      }
+    });
+  }
+
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.id;
+      const status = button.dataset.status || 'On Going';
+      const isCompleted = status === 'Completed';
 
       if (editJobForm) {
         editJobForm.action = `/job-orders/${id}`;
       }
 
-      if (editJobOrderNo) {
-        editJobOrderNo.value = button.dataset.jobOrderNo || '';
-      }
+      if (editJobOrderNo) editJobOrderNo.value = button.dataset.jobOrderNo || '';
+      if (editBusNo) editBusNo.value = button.dataset.busNo || '';
+      if (editProblemIssue) editProblemIssue.value = button.dataset.problemIssue || '';
+      if (editMaintenanceType) editMaintenanceType.value = button.dataset.maintenanceType || '';
+      if (editStatus) editStatus.value = status;
+      if (editAssignedMechanic) editAssignedMechanic.value = button.dataset.assignedMechanic || '';
 
-      if (editBusNo) {
-        editBusNo.value = button.dataset.busNo || '';
-      }
-
-      if (editProblemIssue) {
-        editProblemIssue.value = button.dataset.problemIssue || '';
-      }
-
-      if (editMaintenanceType) {
-        editMaintenanceType.value = button.dataset.maintenanceType || '';
-      }
-
-      if (editStatus) {
-        editStatus.value = button.dataset.status || 'On Going';
-      }
-
-      if (editAssignedMechanic) {
-        editAssignedMechanic.value = button.dataset.assignedMechanic || '';
-      }
-
-      loadEditParts(button.dataset.partNeeded || '');
+      renderEditParts(button.dataset.partNeeded || '');
+      setEditModalReadonly(isCompleted);
 
       openModal(editJobModal);
     });
   });
 
   if (closeEditJobModal) {
-    closeEditJobModal.addEventListener('click', () => {
-      closeModal(editJobModal);
-    });
+    closeEditJobModal.addEventListener('click', () => closeModal(editJobModal));
   }
 
   if (cancelEditJobModal) {
-    cancelEditJobModal.addEventListener('click', () => {
-      closeModal(editJobModal);
-    });
+    cancelEditJobModal.addEventListener('click', () => closeModal(editJobModal));
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Multiple Parts Needed
-  |--------------------------------------------------------------------------
-  */
-  setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
-  setupPartsRepeater('editPartsNeededWrapper', 'editAddPartBtn');
-
-  /*
-  |--------------------------------------------------------------------------
-  | Delete JO Modal
-  |--------------------------------------------------------------------------
-  */
   const deleteJobModal = document.getElementById('deleteJobModal');
   const deleteJoNo = document.getElementById('deleteJoNo');
   const cancelDeleteJob = document.getElementById('cancelDeleteJob');
@@ -331,35 +234,111 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Close Modal When Clicking Outside
-  |--------------------------------------------------------------------------
-  */
-  document
-    .querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay')
-    .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
+  const finishJobModal = document.getElementById('finishJobModal');
+  const finishJoNo = document.getElementById('finishJoNo');
+  const cancelFinishJob = document.getElementById('cancelFinishJob');
+  const confirmFinishJob = document.getElementById('confirmFinishJob');
+
+  let selectedFinishForm = null;
+
+  document.querySelectorAll('.open-finish-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+      const joNo = button.dataset.joNo;
+
+      selectedFinishForm = document.getElementById(`finishForm-${id}`);
+
+      if (finishJoNo) {
+        finishJoNo.textContent = joNo || 'this job order';
+      }
+
+      openModal(finishJobModal);
+    });
+  });
+
+  if (cancelFinishJob) {
+    cancelFinishJob.addEventListener('click', () => {
+      selectedFinishForm = null;
+      closeModal(finishJobModal);
+    });
+  }
+
+  if (confirmFinishJob) {
+    confirmFinishJob.addEventListener('click', () => {
+      if (selectedFinishForm) {
+        selectedFinishForm.submit();
+      }
+    });
+  }
+
+  document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((modal) => {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.classList.remove('show');
+      }
+    });
+  });
+
+  function setupPartsRepeater(wrapperId, addButtonId) {
+    const wrapper = document.getElementById(wrapperId);
+    const addButton = document.getElementById(addButtonId);
+
+    if (!wrapper || !addButton) return;
+
+    let partIndex = wrapper.querySelectorAll('.part-needed-row').length;
+
+    function updateRemoveButtons() {
+      const rows = wrapper.querySelectorAll('.part-needed-row');
+
+      rows.forEach((row) => {
+        const removeButton = row.querySelector('.remove-part-btn');
+
+        if (removeButton) {
+          removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
         }
       });
+    }
+
+    addButton.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'part-needed-row';
+
+      row.innerHTML = `
+        <input
+          type="text"
+          name="parts[${partIndex}][name]"
+          placeholder="Part name"
+        >
+
+        <input
+          type="number"
+          name="parts[${partIndex}][quantity]"
+          min="1"
+          placeholder="Quantity"
+        >
+
+        <button type="button" class="remove-part-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      wrapper.appendChild(row);
+      partIndex++;
+      updateRemoveButtons();
     });
 
-  /*
-  |--------------------------------------------------------------------------
-  | Close Modal With Escape Key
-  |--------------------------------------------------------------------------
-  */
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      closeModal(jobModal);
-      closeModal(editJobModal);
-      closeModal(deleteJobModal);
+    wrapper.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.remove-part-btn');
 
-      document.querySelectorAll('.success-modal-overlay.show').forEach((modal) => {
-        closeModal(modal);
-      });
-    }
-  });
+      if (removeButton) {
+        removeButton.closest('.part-needed-row').remove();
+        updateRemoveButtons();
+      }
+    });
+
+    updateRemoveButtons();
+  }
+
+  setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
+  setupPartsRepeater('editPartsNeededWrapper', 'editAddPartBtn');
 });

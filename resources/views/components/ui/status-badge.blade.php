@@ -11,15 +11,19 @@
     'Urgent Repair' => 'urgent',
 
     // Purchase Request Statuses
-    'Draft' => 'draft',
     'Submitted' => 'submitted',
     'Approved' => 'approved',
     'Rejected' => 'rejected',
     'For Purchase' => 'for-purchase',
-    'Pending Purchase' => 'pending-purchase',
-    'Delivering' => 'delivering',
+    'Ordered' => 'ordered',
+    'For Pick-up' => 'for-pick-up',
+    'For Delivery' => 'for-delivery',
     'Delivered' => 'delivered',
+    'Picked Up' => 'picked-up',
     'Issued' => 'issued',
+
+    // Part Statuses (for Job Orders)
+    'Not Requested' => 'not-requested',
 
     // Inventory Statuses
     'In Stock' => 'in-stock',

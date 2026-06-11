@@ -2,7 +2,9 @@
    JOB ORDER PAGE ONLY
 ========================================================= */
 
-/* SECTION HEADER */
+/* =========================================================
+   SECTION HEADER
+========================================================= */
 .section-header {
   margin-bottom: 12px;
 }
@@ -19,12 +21,49 @@
   margin-top: 3px;
 }
 
-/* TABLE CARD */
+/* =========================================================
+   TABLE CARD / WRAPPER
+========================================================= */
 .table-card {
   overflow-x: auto;
 }
 
-/* TOOLBAR */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  min-width: 1250px;
+}
+
+td {
+  vertical-align: middle;
+}
+
+/* CENTER SELECTED COLUMNS */
+th:nth-child(1),
+td:nth-child(1),
+th:nth-child(7),
+td:nth-child(7),
+th:nth-child(8),
+td:nth-child(8),
+th:nth-child(9),
+td:nth-child(9),
+th:nth-child(10),
+td:nth-child(10) {
+  text-align: center;
+}
+
+/* EMPTY TEXT */
+.empty {
+  font-weight: 800;
+  color: #17233f;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
 .job-toolbar {
   padding: 12px 16px;
   gap: 12px;
@@ -75,37 +114,9 @@
   flex-shrink: 0;
 }
 
-/* TABLE */
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  min-width: 1250px;
-}
-
-td {
-  vertical-align: middle;
-}
-
-/* CENTER SELECTED COLUMNS */
-th:nth-child(1),
-td:nth-child(1),
-th:nth-child(7),
-td:nth-child(7),
-th:nth-child(8),
-td:nth-child(8),
-th:nth-child(9),
-td:nth-child(9),
-th:nth-child(10),
-td:nth-child(10),
-th:nth-child(11),
-td:nth-child(11) {
-  text-align: center;
-}
-
-/* PROBLEM CELL */
+/* =========================================================
+   PROBLEM CELL
+========================================================= */
 .problem-cell {
   max-width: 260px;
   width: 260px;
@@ -120,18 +131,17 @@ td:nth-child(11) {
   vertical-align: middle;
 }
 
-.empty {
-  font-weight: 800;
-  color: #17233f;
-}
-
-/* BADGES */
-.badge.hold {
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+.badge.hold,
+.badge.on-hold {
   background: #fff3cd;
   color: #b77900;
 }
 
-.badge.ongoing {
+.badge.ongoing,
+.badge.on-going {
   background: #e7f0ff;
   color: #0057f8;
 }
@@ -141,12 +151,46 @@ td:nth-child(11) {
   color: #16a34a;
 }
 
-.badge.urgent {
+.badge.urgent,
+.badge.urgent-repair {
   background: #fee2e2;
   color: #dc2626;
 }
 
-/* ACTION BUTTONS */
+/* PART STATUS BADGES */
+.badge.not-requested {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.badge.submitted {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.badge.approved {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge.for-purchase {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badge.delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
 .actions {
   display: flex;
   align-items: center;
@@ -158,7 +202,8 @@ td:nth-child(11) {
   display: inline-flex;
 }
 
-.actions .edit {
+.actions .edit,
+.actions .view {
   background: #edf3fb;
   color: #082445;
 }
@@ -168,7 +213,9 @@ td:nth-child(11) {
   color: var(--red);
 }
 
-/* FINISH BUTTON IN TABLE */
+/* =========================================================
+   FINISH BUTTON
+========================================================= */
 .table-card .finish-btn {
   height: 32px !important;
   padding: 0 14px !important;
@@ -202,7 +249,28 @@ td:nth-child(11) {
   transform: translateY(0);
 }
 
-/* APPROVE / REJECT / VIEW BUTTONS */
+.table-card .locked-finish-btn {
+  background: #eef2f7 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  opacity: 0.85;
+  box-shadow: none !important;
+}
+
+.table-card .locked-finish-btn:hover {
+  background: #eef2f7 !important;
+  color: #64748b !important;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.table-card .locked-finish-btn i {
+  color: #64748b !important;
+}
+
+/* =========================================================
+   APPROVE / REJECT / VIEW BUTTONS
+========================================================= */
 .approve-btn,
 .reject-btn,
 .view-btn {
@@ -230,7 +298,9 @@ td:nth-child(11) {
   color: #082445;
 }
 
-/* ALERTS */
+/* =========================================================
+   ALERTS
+========================================================= */
 .alert-success {
   background: #dcfce7;
   color: #166534;
@@ -254,7 +324,9 @@ td:nth-child(11) {
   padding-left: 20px;
 }
 
-/* SUCCESS / DELETE MODALS */
+/* =========================================================
+   SUCCESS / DELETE / FINISH MODALS
+========================================================= */
 .success-modal-overlay,
 .delete-modal-overlay {
   display: none;
@@ -313,21 +385,29 @@ td:nth-child(11) {
   color: #dc2626;
 }
 
+.finish-icon {
+  background: #dcfce7 !important;
+  color: #16a34a !important;
+}
+
 .success-modal-box h2,
 .delete-modal-box h2 {
   margin: 0 0 8px;
   color: #061b3a;
 }
 
+.success-modal-box p,
+.delete-modal-box p {
+  color: #475569;
+  line-height: 1.5;
+}
+
 .success-modal-box p {
   margin-bottom: 20px;
-  color: #334155;
 }
 
 .delete-modal-box p {
   margin-bottom: 22px;
-  color: #475569;
-  line-height: 1.5;
 }
 
 .delete-modal-actions {
@@ -336,22 +416,36 @@ td:nth-child(11) {
   gap: 12px;
 }
 
-/* DELETE BUTTON */
-.danger-btn {
+/* MODAL BUTTONS */
+.danger-btn,
+.confirm-finish-btn {
   border: none;
   padding: 11px 20px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 700;
-  background: #dc2626;
+  font-weight: 800;
   color: #ffffff;
+}
+
+.danger-btn {
+  background: #dc2626;
 }
 
 .danger-btn:hover {
   background: #b91c1c;
 }
 
-/* READONLY INPUTS */
+.confirm-finish-btn {
+  background: #16a34a;
+}
+
+.confirm-finish-btn:hover {
+  background: #15803d;
+}
+
+/* =========================================================
+   FORM / READONLY / DISABLED
+========================================================= */
 input[readonly],
 textarea[readonly] {
   background: #f8fafc;
@@ -365,17 +459,29 @@ textarea[readonly] {
   margin-top: 5px;
 }
 
-/* PAGINATION SVG FIX */
-.pagination svg {
-  width: 18px !important;
-  height: 18px !important;
+#edit_bus_no:disabled,
+#edit_problem_issue:disabled,
+#edit_maintenance_type:disabled,
+#edit_status:disabled,
+#edit_assigned_mechanic:disabled,
+#editPartsNeededWrapper input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
 }
 
-.pagination p {
-  display: none;
+#editJobMainActions,
+#viewOnlyJobActions {
+  justify-content: flex-end;
 }
 
-/* MULTIPLE PARTS NEEDED */
+#viewOnlyJobActions .cancel-btn {
+  min-width: 110px;
+}
+
+/* =========================================================
+   MULTIPLE PARTS NEEDED
+========================================================= */
 .parts-needed-wrapper {
   display: flex;
   flex-direction: column;
@@ -443,18 +549,44 @@ textarea[readonly] {
   background: #fecaca;
 }
 
-@media (max-width: 768px) {
-  .part-needed-row {
-    grid-template-columns: 1fr;
-  }
-
-  .remove-part-btn,
-  .add-part-btn {
-    width: 100%;
-    justify-content: center;
-  }
+/* =========================================================
+   MODAL CANCEL BUTTON FIX
+========================================================= */
+.cancel-delete-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  min-width: 90px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-/* ANIMATION */
+
+.cancel-delete-btn:hover {
+  background: #e2e8f0;
+  color: #061b3a;
+}
+
+/* =========================================================
+   PAGINATION FIX
+========================================================= */
+.pagination svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.pagination p {
+  display: none;
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
 @keyframes popUp {
   from {
     transform: scale(0.95);
@@ -467,7 +599,9 @@ textarea[readonly] {
   }
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -507,16 +641,16 @@ textarea[readonly] {
     justify-content: center;
   }
 
-  .modal-box {
+  .modal-box,
+  .delete-modal-box,
+  .success-modal-box {
     width: 95%;
     padding: 22px;
   }
 
-  .job-form {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
+  .job-form,
+  .form-row,
+  .part-needed-row {
     grid-template-columns: 1fr;
   }
 
@@ -527,7 +661,11 @@ textarea[readonly] {
 
   .cancel-btn,
   .save-btn,
-  .danger-btn {
+  .danger-btn,
+  .confirm-finish-btn,
+  .remove-part-btn,
+  .add-part-btn {
     width: 100%;
+    justify-content: center;
   }
 }
