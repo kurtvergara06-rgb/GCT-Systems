@@ -14,9 +14,12 @@ class WarehousePartRequestController extends Controller
             ->whereIn('status', [
                 'Approved',
                 'For Purchase',
+<<<<<<< HEAD
                 'Ordered',
                 'For Pick-up',
                 'For Delivery',
+=======
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                 'Delivered',
                 'Picked Up',
                 'Issued',
@@ -62,10 +65,17 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
+<<<<<<< HEAD
         if (! in_array($purchaseRequest->status, ['Approved', 'Delivered', 'Picked Up'])) {
             return redirect()
                 ->back()
                 ->with('error', 'Only approved, delivered, or picked-up part requests can be issued.');
+=======
+        if (! in_array($purchaseRequest->status, ['Approved', 'Delivered'])) {
+            return redirect()
+                ->route('part-requests')
+                ->with('error', 'Only approved or delivered part requests can be issued.');
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         }
 
         $purchaseRequest->update([
@@ -75,7 +85,11 @@ class WarehousePartRequestController extends Controller
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
 
         return redirect()
+<<<<<<< HEAD
             ->back()
+=======
+            ->route('part-requests')
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             ->with('success', 'Part request issued successfully.');
     }
 
@@ -83,7 +97,11 @@ class WarehousePartRequestController extends Controller
     {
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
+<<<<<<< HEAD
                 ->back()
+=======
+                ->route('part-requests')
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                 ->with('error', 'Only approved part requests can be sent to purchase.');
         }
 
@@ -94,7 +112,11 @@ class WarehousePartRequestController extends Controller
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
         return redirect()
+<<<<<<< HEAD
             ->back()
+=======
+            ->route('part-requests')
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             ->with('success', 'Part request sent to purchase department.');
     }
 
@@ -118,4 +140,8 @@ class WarehousePartRequestController extends Controller
             'part_status' => $partStatus,
         ]);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb

@@ -190,12 +190,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const deliveringPrForm = document.getElementById('deliveringPrForm');
   const deliveredPrForm = document.getElementById('deliveredPrForm');
 
+<<<<<<< HEAD
   const forPurchaseModal = document.getElementById('forPurchaseModal');
   const openForPurchaseModal = document.getElementById('openForPurchaseModal');
   const forPurchasePrNo = document.getElementById('forPurchasePrNo');
   const cancelForPurchase = document.getElementById('cancelForPurchase');
   const confirmForPurchase = document.getElementById('confirmForPurchase');
 
+=======
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
   const prApprovalActions = document.getElementById('prApprovalActions');
   const warehouseActions = document.getElementById('warehouseActions');
   const purchaseActions = document.getElementById('purchaseActions');
@@ -343,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (closeViewOnlyPr) {
     closeViewOnlyPr.addEventListener('click', () => {
       closeModal(editPrModal);
+<<<<<<< HEAD
     });
   }
 
@@ -369,6 +373,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (forPurchasePrForm) {
         forPurchasePrForm.submit();
       }
+=======
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
     });
   }
 
@@ -436,7 +442,13 @@ document.addEventListener('DOMContentLoaded', function () {
       closeModal(prModal);
       closeModal(editPrModal);
       closeModal(deletePrModal);
+<<<<<<< HEAD
       closeModal(forPurchaseModal);
     }
   });
 });
+=======
+    }
+  });
+});
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
