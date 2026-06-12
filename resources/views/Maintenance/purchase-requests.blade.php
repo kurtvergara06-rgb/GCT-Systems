@@ -8,7 +8,26 @@
   ]"
 >
 
-  {{-- FEEDBACK MODALS --}}
+  @php
+    $statuses = $statuses ?? [
+      'Submitted',
+      'Approved',
+      'Rejected',
+      'For Purchase',
+      'Ordered',
+      'For Pick-up',
+      'For Delivery',
+      'Delivered',
+      'Picked Up',
+      'Issued',
+    ];
+
+    $submitted = $submitted ?? 0;
+    $rejected = $rejected ?? 0;
+    $approved = $approved ?? 0;
+    $issued = $issued ?? 0;
+  @endphp
+
   <x-ui.action-buttom-modal
     mode="feedback"
     feedback-type="success"
@@ -22,18 +41,14 @@
   />
 
   @if($errors->any())
-    <div id="validationErrorModal" class="delete-modal-overlay show">
+    <div id="validationErrorModal" class="delete-modal-overlay show active" style="display: flex;">
       <div class="delete-modal-box">
-
         <div class="delete-icon">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
 
         <h2>Form Error</h2>
-
-        <p>
-          Please check the form. Some required information is missing.
-        </p>
+        <p>Please check the form. Some required information is missing.</p>
 
         <ul style="text-align: left; margin: 12px 0 0; color: #dc2626; font-size: 13px;">
           @foreach($errors->all() as $error)
@@ -46,7 +61,6 @@
             Okay
           </button>
         </div>
-
       </div>
     </div>
   @endif
@@ -123,13 +137,19 @@
           </div>
         </div>
 
-        <x-ui.table-toolbar
-          :action="route('purchase-requests')"
-          class="toolbar purchase-toolbar"
-          search-placeholder="Search PR no., JO no., bus, or item..."
-          button-id="openPrModal"
-          button-label="New PR"
-        >
+        <form action="{{ route('purchase-requests') }}" method="GET" class="toolbar purchase-toolbar fixed-purchase-toolbar">
+
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search PR no., JO no., bus no., item..."
+            >
+          </div>
+
           <div class="filter-group">
             <label for="prStatusFilter">Status</label>
 
@@ -139,62 +159,34 @@
               class="pr-status-select"
               onchange="this.form.submit()"
             >
-              <option value="All Statuses" {{ request('status', 'All Statuses') == 'All Statuses' ? 'selected' : '' }}>
+              <option value="All Statuses" {{ request('status', 'All Statuses') === 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
               </option>
 
-              <option value="Submitted" {{ request('status') == 'Submitted' ? 'selected' : '' }}>
-                Submitted
-              </option>
-
-              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
-                Approved
-              </option>
-
-              <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>
-                Rejected
-              </option>
-
-              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
-                For Purchase
-              </option>
-
-              <option value="Ordered" {{ request('status') == 'Ordered' ? 'selected' : '' }}>
-                Ordered
-              </option>
-
-              <option value="For Pick-up" {{ request('status') == 'For Pick-up' ? 'selected' : '' }}>
-                For Pick-up
-              </option>
-
-              <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>
-                For Delivery
-              </option>
-
-              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
-                Delivered
-              </option>
-
-              <option value="Picked Up" {{ request('status') == 'Picked Up' ? 'selected' : '' }}>
-                Picked Up
-              </option>
-
-              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
-                Issued
-              </option>
+              @foreach($statuses as $status)
+                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
+                  {{ $status }}
+                </option>
+              @endforeach
             </select>
           </div>
-        </x-ui.table-toolbar>
+
+          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
+            <i class="fa-solid fa-plus"></i>
+            New PR
+          </button>
+
+        </form>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>PR #</th>
-                <th>JO No.</th>
+                <th>JO #</th>
                 <th>Bus #</th>
-                <th>Item</th>
-                <th>Quantity</th>
+                <th>Requested Item / Part</th>
+                <th>Qty</th>
                 <th class="status-col">Status</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -204,31 +196,20 @@
             <tbody>
               @forelse($purchaseRequests as $pr)
                 @php
-                  $viewOnlyStatuses = [
-                    'Approved',
-                    'Rejected',
-                    'For Purchase',
-                    'Ordered',
-                    'For Pick-up',
-                    'For Delivery',
-                    'Delivered',
-                    'Picked Up',
-                    'Issued',
-                  ];
-
-                  $isViewOnly = in_array($pr->status, $viewOnlyStatuses, true);
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $pr->status));
+
+                  $firstRequestedItem = trim(explode(',', $pr->item ?? '')[0] ?? '');
+
+                  if (str_contains($firstRequestedItem, ' - Qty:')) {
+                    $firstRequestedItem = trim(explode(' - Qty:', $firstRequestedItem)[0] ?? $firstRequestedItem);
+                  }
                 @endphp
 
                 <tr>
                   <td>{{ $pr->pr_no }}</td>
-
                   <td>{{ $pr->job_order_no }}</td>
-
                   <td>{{ $pr->bus_no }}</td>
-
-                  <td>{{ $pr->item }}</td>
-
+                  <td>{{ $firstRequestedItem ?: '—' }}</td>
                   <td>{{ $pr->quantity }}</td>
 
                   <td class="status-col">
@@ -244,10 +225,10 @@
                   <td>
                     <div class="actions">
 
-                      <x-ui.action-buttom-modal
-                        class="{{ $isViewOnly ? 'view open-edit-pr-modal' : 'edit open-edit-pr-modal' }}"
-                        title="{{ $isViewOnly ? 'View' : 'View / Edit' }}"
-                        icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
+                      <button
+                        type="button"
+                        class="action-btn view open-view-pr-modal"
+                        title="View"
                         data-id="{{ $pr->id }}"
                         data-pr-no="{{ $pr->pr_no }}"
                         data-job-order-no="{{ $pr->job_order_no }}"
@@ -259,10 +240,28 @@
                         data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
                         data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
                         data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                        data-for-purchase-url="{{ route('purchase-requests.for-purchase', $pr->id) }}"
-                        data-delivered-url="{{ route('purchase-requests.delivered', $pr->id) }}"
-                        data-issue-url="{{ route('purchase-requests.issue', $pr->id) }}"
-                      />
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="action-btn edit open-edit-pr-modal"
+                        title="Edit"
+                        data-id="{{ $pr->id }}"
+                        data-pr-no="{{ $pr->pr_no }}"
+                        data-job-order-no="{{ $pr->job_order_no }}"
+                        data-bus-no="{{ $pr->bus_no }}"
+                        data-item="{{ $pr->item }}"
+                        data-quantity="{{ $pr->quantity }}"
+                        data-status="{{ $pr->status }}"
+                        data-remarks="{{ $pr->remarks }}"
+                        data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
+                        data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
+                        data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
+                      >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
 
                       <form
                         id="deletePrForm-{{ $pr->id }}"
@@ -272,13 +271,15 @@
                         @csrf
                         @method('DELETE')
 
-                        <x-ui.action-buttom-modal
-                          class="delete open-delete-pr-modal"
+                        <button
+                          type="button"
+                          class="action-btn delete open-delete-pr-modal"
                           title="Delete"
-                          icon="fa-trash"
                           data-id="{{ $pr->id }}"
                           data-pr-no="{{ $pr->pr_no }}"
-                        />
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
                       </form>
 
                     </div>
@@ -301,253 +302,242 @@
     </main>
   </div>
 
+  @php
+    $autoJobOrder = $selectedJobOrder ?? null;
+
+    $autoFirstPartName = '';
+    $autoFirstPartQty = 1;
+
+    if ($autoJobOrder && $autoJobOrder->part_needed) {
+      $firstPartRaw = trim(explode(',', $autoJobOrder->part_needed)[0] ?? '');
+
+      if (str_contains($firstPartRaw, ' - Qty:')) {
+        [$name, $qty] = explode(' - Qty:', $firstPartRaw, 2);
+
+        $autoFirstPartName = trim($name);
+        $autoFirstPartQty = max(1, (int) trim($qty));
+      } else {
+        $autoFirstPartName = $firstPartRaw;
+        $autoFirstPartQty = 1;
+      }
+    }
+  @endphp
+
   {{-- NEW PR MODAL --}}
-  <div id="prModal" class="modal-overlay">
-    <div class="modal-box wide-modal">
+  <div
+    id="prModal"
+    class="modal-overlay {{ $autoJobOrder ? 'show active' : '' }}"
+    style="{{ $autoJobOrder ? 'display: flex;' : '' }}"
+  >
+    <div class="modal-box pr-jo-style-modal">
 
-      <div class="modal-header">
-        <h2>New Purchase Request</h2>
+      <div class="pr-jo-modal-header">
+        <div>
+          <h2>New Purchase Request</h2>
+          <p>Create a purchase request from a selected job order.</p>
+        </div>
 
-        <button type="button" id="closePrModal" class="close-btn">
-          &times;
+        <button type="button" id="closePrModal" class="pr-jo-close-btn">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <form action="{{ route('purchase-requests.store') }}" method="POST" class="job-form wide-form">
+      <form action="{{ route('purchase-requests.store') }}" method="POST" class="pr-jo-form">
         @csrf
 
-        <div class="form-section-title full-width">
-          <h3>Purchase Request Details</h3>
-          <p>Select a job order. The bus number, part, and quantity will be filled automatically.</p>
+        <div class="pr-jo-section-title full-width">
+          <h3>Purchase Request Information</h3>
+          <p>Select a job order and review the auto-filled part information.</p>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>PR No.</label>
           <input
             type="text"
             name="pr_no_display"
-            value="{{ $nextPrNo }}"
+            value="{{ $nextPrNo ?? '' }}"
             readonly
           >
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>JO No.</label>
           <select name="job_order_no" id="jobOrderSelect" required>
             <option value="">Select Job Order</option>
 
-            @foreach($jobOrders as $jobOrder)
+            @foreach($jobOrders ?? [] as $jobOrder)
               <option
                 value="{{ $jobOrder->job_order_no }}"
                 data-bus="{{ $jobOrder->bus_no }}"
                 data-parts="{{ $jobOrder->part_needed }}"
+                {{ $autoJobOrder && $autoJobOrder->id === $jobOrder->id ? 'selected' : '' }}
               >
                 {{ $jobOrder->job_order_no }}
               </option>
             @endforeach
+
+            @if($autoJobOrder && isset($jobOrders) && !$jobOrders->contains('id', $autoJobOrder->id))
+              <option
+                value="{{ $autoJobOrder->job_order_no }}"
+                data-bus="{{ $autoJobOrder->bus_no }}"
+                data-parts="{{ $autoJobOrder->part_needed }}"
+                selected
+              >
+                {{ $autoJobOrder->job_order_no }}
+              </option>
+            @endif
           </select>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Bus #</label>
           <input
             type="text"
             name="bus_no"
             id="busNoInput"
+            value="{{ $autoJobOrder ? $autoJobOrder->bus_no : '' }}"
             placeholder="Auto-filled from Job Order"
-            readonly
             required
           >
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Status</label>
-          <input
-            type="text"
-            value="Automatic: Submitted"
-            readonly
-          >
+          <input type="text" value="Submitted" readonly>
         </div>
 
-        <div class="form-group full-width">
+        <div class="pr-jo-form-group full-width">
           <label>Requested Item / Part</label>
           <input
             type="text"
             name="item"
             id="partInput"
-            placeholder="Auto-filled from selected Job Order"
-            readonly
+            value="{{ $autoFirstPartName }}"
+            placeholder="Requested item / part"
             required
           >
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Quantity</label>
           <input
             type="number"
             name="quantity"
             id="quantityInput"
             min="1"
-            placeholder="Auto-filled"
-            readonly
+            value="{{ $autoFirstPartQty }}"
+            placeholder="Quantity"
             required
           >
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Remarks</label>
           <input
             type="text"
             name="remarks"
+            value="{{ $autoJobOrder ? 'Created from Job Order ' . $autoJobOrder->job_order_no : '' }}"
             placeholder="Optional remarks..."
           >
         </div>
 
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelPrModal" class="cancel-btn">
+        <div class="pr-jo-actions full-width">
+          <button type="button" id="cancelPrModal" class="pr-jo-cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" name="submit_action" value="submit" class="save-btn">
+          <button type="submit" class="pr-jo-save-btn">
             Create PR
           </button>
         </div>
-      </form>
 
+      </form>
     </div>
   </div>
 
   {{-- EDIT / VIEW PR MODAL --}}
   <div id="editPrModal" class="modal-overlay">
-    <div class="modal-box wide-modal">
+    <div class="modal-box pr-jo-style-modal">
 
-      <div class="modal-header">
-        <h2>Purchase Request Details</h2>
+      <div class="pr-jo-modal-header">
+        <div>
+          <h2>Purchase Request Details</h2>
+          <p>Review and update the selected purchase request.</p>
+        </div>
 
-        <button type="button" id="closeEditPrModal" class="close-btn">
-          &times;
+        <button type="button" id="closeEditPrModal" class="pr-jo-close-btn">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <form id="editPrForm" method="POST" class="job-form wide-form">
+      <form id="editPrForm" method="POST" action="#" class="pr-jo-form">
         @csrf
         @method('PUT')
 
-        <div class="form-section-title full-width">
+        <div class="pr-jo-section-title full-width">
           <h3>Editable PR Information</h3>
-          <p id="editPrDescription">Review and update the selected purchase request.</p>
+          <p id="editPrDescription">You can edit this purchase request information.</p>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>PR No.</label>
-          <input
-            type="text"
-            name="pr_no"
-            id="edit_pr_no"
-            readonly
-            required
-          >
+          <input type="text" name="pr_no" id="edit_pr_no" readonly>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>JO No.</label>
-          <select name="job_order_no" id="edit_job_order_no" required>
-            <option value="">Select Job Order</option>
-
-            @foreach($jobOrders as $jobOrder)
-              <option
-                value="{{ $jobOrder->job_order_no }}"
-                data-bus="{{ $jobOrder->bus_no }}"
-                data-parts="{{ $jobOrder->part_needed }}"
-              >
-                {{ $jobOrder->job_order_no }}
-              </option>
-            @endforeach
-
-            @foreach($purchaseRequests as $prOption)
-              <option
-                value="{{ $prOption->job_order_no }}"
-                data-bus="{{ $prOption->bus_no }}"
-                data-parts="{{ $prOption->item }} - Qty: {{ $prOption->quantity }}"
-                class="existing-pr-option"
-              >
-                {{ $prOption->job_order_no }}
-              </option>
-            @endforeach
-          </select>
+          <input type="text" name="job_order_no" id="edit_job_order_no" readonly>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Bus #</label>
-          <input
-            type="text"
-            name="bus_no"
-            id="edit_bus_no"
-            readonly
-            required
-          >
+          <input type="text" name="bus_no" id="edit_bus_no" readonly>
         </div>
 
-        <div class="form-group">
+        <div class="pr-jo-form-group">
           <label>Status</label>
-          <input
-            type="text"
-            id="edit_status_display"
-            readonly
-          >
+          <input type="text" id="edit_status_display" readonly>
         </div>
 
-        <div class="form-group full-width">
+        <div class="pr-jo-form-group full-width">
           <label>Requested Item / Part</label>
-          <input
-            type="text"
-            name="item"
-            id="edit_item"
-            readonly
-            required
-          >
+
+          <div id="editPrPartsContainer" class="pr-parts-container">
+            {{-- JS creates rows here --}}
+          </div>
+
+          <input type="hidden" name="item" id="edit_item">
+          <input type="hidden" name="quantity" id="edit_quantity">
         </div>
 
-        <div class="form-group">
-          <label>Quantity</label>
-          <input
-            type="number"
-            name="quantity"
-            id="edit_quantity"
-            min="1"
-            readonly
-            required
-          >
-        </div>
-
-        <div class="form-group">
+        <div class="pr-jo-form-group full-width">
           <label>Remarks</label>
           <input
             type="text"
             name="remarks"
             id="edit_remarks"
+            placeholder="Optional remarks..."
           >
         </div>
 
-        <div class="modal-actions full-width" id="editPrMainActions">
-          <button type="button" id="cancelEditPrModal" class="cancel-btn">
+        <div class="pr-jo-actions full-width" id="editPrMainActions">
+          <button type="button" id="cancelEditPrModal" class="pr-jo-cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" name="submit_action" value="submit" class="save-btn" id="submitEditBtn">
+          <button type="submit" class="pr-jo-save-btn" id="submitEditBtn">
             Save Changes
           </button>
         </div>
 
-        <div class="modal-actions full-width" id="viewOnlyActions" style="display: none;">
-          <button type="button" id="closeViewOnlyPr" class="cancel-btn">
+        <div class="pr-jo-actions full-width" id="viewOnlyActions" style="display: none;">
+          <button type="button" id="closeViewOnlyPr" class="pr-jo-cancel-btn">
             Close
           </button>
         </div>
       </form>
 
-      {{-- SUB ADMIN APPROVAL ACTIONS --}}
-      <div class="modal-actions full-width pr-approval-actions" id="prApprovalActions" style="display: none;">
+      <div class="pr-approval-actions" id="prApprovalActions" style="display: none;">
         <form id="approvePrForm" method="POST" action="#">
           @csrf
 
@@ -565,27 +555,6 @@
           <button type="submit" class="reject-action-btn">
             <i class="fa-solid fa-xmark"></i>
             Reject
-          </button>
-        </form>
-      </div>
-
-      {{-- WAREHOUSE ACTIONS --}}
-      <div class="modal-actions full-width warehouse-actions" id="warehouseActions" style="display: none;">
-        <form id="issuePrForm" method="POST" action="#">
-          @csrf
-
-          <button type="submit" class="approve-action-btn">
-            <i class="fa-solid fa-box-open"></i>
-            Issue Parts
-          </button>
-        </form>
-
-        <form id="forPurchasePrForm" method="POST" action="#">
-          @csrf
-
-          <button type="submit" class="purchase-action-btn">
-            <i class="fa-solid fa-cart-shopping"></i>
-            For Purchase
           </button>
         </form>
       </div>

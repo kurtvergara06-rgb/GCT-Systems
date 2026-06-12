@@ -1,5 +1,5 @@
 ﻿<x-layout.app
-  title="FROMS - Purchase Order"
+  title="FROMS - Purchase Orders"
   :assets="[
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
@@ -7,6 +7,22 @@
     'resources/js/Purchase/purchase-orders.js'
   ]"
 >
+
+  @php
+    $statuses = $statuses ?? [
+      'Draft',
+      'Ordered',
+      'For Pick-up',
+      'For Delivery',
+      'Delivered',
+      'Picked Up',
+    ];
+
+    $totalOrders = $totalOrders ?? 0;
+    $ordered = $ordered ?? 0;
+    $forPickup = $forPickup ?? 0;
+    $delivered = $delivered ?? 0;
+  @endphp
 
   <x-ui.action-buttom-modal
     mode="feedback"
@@ -20,64 +36,6 @@
     :message="session('error')"
   />
 
-  @php
-    $purchaseRequestOptions = $availablePurchaseRequests->map(function ($pr) {
-      return [
-        'id' => $pr->id,
-        'pr_no' => $pr->pr_no,
-        'job_order_no' => $pr->job_order_no,
-        'bus_no' => $pr->bus_no,
-        'employee' => $pr->employee ?? $pr->requested_by ?? $pr->created_by ?? $pr->job_order_no ?? '',
-        'item' => $pr->item,
-        'quantity' => $pr->quantity,
-        'unit' => $pr->unit ?? 'PC',
-      ];
-    })->values();
-
-    $selectedPurchaseRequestData = null;
-
-    if ($selectedPurchaseRequest ?? false) {
-      $selectedPurchaseRequestData = [
-        'id' => $selectedPurchaseRequest->id,
-        'pr_no' => $selectedPurchaseRequest->pr_no,
-        'job_order_no' => $selectedPurchaseRequest->job_order_no,
-        'bus_no' => $selectedPurchaseRequest->bus_no,
-        'employee' => $selectedPurchaseRequest->employee
-          ?? $selectedPurchaseRequest->requested_by
-          ?? $selectedPurchaseRequest->created_by
-          ?? $selectedPurchaseRequest->job_order_no
-          ?? '',
-        'item' => $selectedPurchaseRequest->item,
-        'quantity' => $selectedPurchaseRequest->quantity,
-        'unit' => $selectedPurchaseRequest->unit ?? 'PC',
-      ];
-    }
-  @endphp
-
-  <script type="application/json" id="purchaseRequestOptionsJson">
-    @json($purchaseRequestOptions)
-  </script>
-
-  @if($selectedPurchaseRequestData)
-    <script type="application/json" id="selectedPurchaseRequestJson">
-      @json($selectedPurchaseRequestData)
-    </script>
-  @endif
-
-  @if($openPoModal ?? false)
-    <span id="openPoModalFlag" hidden></span>
-  @endif
-
-  <datalist id="purchaseRequestList">
-    @foreach($availablePurchaseRequests as $pr)
-      <option value="{{ $pr->pr_no }}">
-    @endforeach
-
-    @if($selectedPurchaseRequest ?? false)
-      <option value="{{ $selectedPurchaseRequest->pr_no }}">
-    @endif
-  </datalist>
-
   <div class="app">
 
     <x-layout.sidebar
@@ -89,7 +47,7 @@
       :items="[
         ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
         ['label' => 'Requested Purchase', 'route' => 'requested-purchase', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
+        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-days'],
       ]"
     />
 
@@ -100,16 +58,6 @@
         subtitle="Manage procurement records for vehicle parts, equipment & operational materials"
         notification-count="6"
       />
-
-      @if($errors->any())
-        <div class="alert-error">
-          <ul>
-            @foreach($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
-      @endif
 
       <section class="stats-grid">
 
@@ -139,7 +87,7 @@
 
         <x-ui.summary-card
           label="For Delivery / Done"
-          value="{{ $forDelivery + $delivered }}"
+          value="{{ $delivered }}"
           small="Delivery and completed"
           icon="fa-circle-check"
           color="green"
@@ -147,7 +95,7 @@
 
       </section>
 
-      <section class="table-card po-card">
+      <section class="table-card purchase-order-card">
 
         <div class="section-header">
           <div>
@@ -156,10 +104,11 @@
           </div>
         </div>
 
-        <form action="{{ route('purchase-orders') }}" method="GET" class="toolbar po-toolbar">
+        <form action="{{ route('purchase-orders') }}" method="GET" class="po-toolbar">
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
+
             <input
               type="text"
               name="search"
@@ -168,19 +117,21 @@
             >
           </div>
 
-          <select name="status" onchange="this.form.submit()">
-            <option value="All States" {{ request('status') == 'All States' ? 'selected' : '' }}>
-              All States
-            </option>
-
-            @foreach($statuses as $status)
-              <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                {{ $status }}
+          <div class="filter-group">
+            <select name="status" onchange="this.form.submit()">
+              <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
+                All States
               </option>
-            @endforeach
-          </select>
 
-          <button type="button" id="openPoModal" class="primary-btn">
+              @foreach($statuses as $status)
+                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
+                  {{ $status }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn">
             <i class="fa-solid fa-plus"></i>
             New PO
           </button>
@@ -188,7 +139,7 @@
         </form>
 
         <div class="table-wrap">
-          <table class="po-table">
+          <table>
             <thead>
               <tr>
                 <th>PO Number</th>
@@ -207,9 +158,14 @@
             <tbody>
               @forelse($purchaseOrders as $purchaseOrder)
                 @php
-                  $poItems = $purchaseOrder->items ?? [];
-                  $firstItem = $poItems[0] ?? null;
-                  $statusClass = strtolower(str_replace(' ', '-', $purchaseOrder->status));
+                  $items = is_array($purchaseOrder->items) ? $purchaseOrder->items : [];
+                  $firstItem = $items[0] ?? [];
+
+                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '—';
+                  $firstItemName = trim(explode(',', $itemName)[0] ?? $itemName);
+
+                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseOrder->status));
+                  $isDraft = strtolower($purchaseOrder->status ?? '') === 'draft';
                 @endphp
 
                 <tr>
@@ -218,7 +174,7 @@
                   <td>{{ $purchaseOrder->supplier_name }}</td>
 
                   <td>
-                    <strong>{{ $firstItem['item_description'] ?? '—' }}</strong>
+                    <strong>{{ $firstItemName ?: '—' }}</strong>
                   </td>
 
                   <td>{{ $firstItem['pr_no'] ?? '—' }}</td>
@@ -228,23 +184,22 @@
                   <td>{{ $firstItem['quantity'] ?? '—' }}</td>
 
                   <td>
-                    <strong>₱{{ number_format($purchaseOrder->net_amount, 2) }}</strong>
+                    <strong>₱{{ number_format((float) $purchaseOrder->net_amount, 2) }}</strong>
                   </td>
 
                   <td>
                     <form
                       action="{{ route('purchase-orders.update-status', $purchaseOrder->id) }}"
                       method="POST"
-                      class="po-status-form"
+                      class="status-update-form"
                     >
                       @csrf
                       @method('PATCH')
 
                       <select
                         name="status"
-                        class="po-status-dropdown {{ $statusClass }}"
+                        class="po-status-select {{ $statusClass }}"
                         onchange="this.form.submit()"
-                        title="Change PO status"
                       >
                         @foreach($statuses as $status)
                           <option value="{{ $status }}" {{ $purchaseOrder->status === $status ? 'selected' : '' }}>
@@ -255,51 +210,55 @@
                     </form>
                   </td>
 
-                  <td>{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('m/d/y') : '—' }}</td>
+                  <td>
+                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : '—' }}
+                  </td>
 
                   <td>
-                    <div class="po-actions">
+                    <div class="actions">
 
                       <button
                         type="button"
-                        class="edit open-edit-po-modal"
-                        title="View / Edit"
+                        class="action-btn {{ $isDraft ? 'edit open-edit-po-modal' : 'view open-view-po-modal' }}"
+                        title="{{ $isDraft ? 'Edit PO' : 'View PO' }}"
                         data-id="{{ $purchaseOrder->id }}"
-                        data-update-url="{{ route('purchase-orders.update', $purchaseOrder->id) }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
-                        data-po-date="{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('Y-m-d') : '' }}"
+                        data-po-date="{{ $purchaseOrder->po_date }}"
                         data-supplier-name="{{ $purchaseOrder->supplier_name }}"
                         data-supplier-address-tel="{{ $purchaseOrder->supplier_address_tel }}"
                         data-terms="{{ $purchaseOrder->terms }}"
                         data-terms-of-payment="{{ $purchaseOrder->terms_of_payment }}"
                         data-purpose="{{ $purchaseOrder->purpose }}"
+                        data-status="{{ $purchaseOrder->status }}"
                         data-delivery-fee="{{ $purchaseOrder->delivery_fee }}"
                         data-discount="{{ $purchaseOrder->discount }}"
                         data-vat="{{ $purchaseOrder->vat }}"
-                        data-status="{{ $purchaseOrder->status }}"
-                        data-items='@json($poItems)'
+                        data-items='@json($items)'
+                        data-update-url="{{ route('purchase-orders.update', $purchaseOrder->id) }}"
                       >
-                        <i class="fa-solid fa-pen-to-square"></i>
+                        <i class="fa-solid {{ $isDraft ? 'fa-pen-to-square' : 'fa-eye' }}"></i>
                       </button>
 
-                      <form
-                        id="deletePoForm-{{ $purchaseOrder->id }}"
-                        action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}"
-                        method="POST"
-                      >
-                        @csrf
-                        @method('DELETE')
-
-                        <button
-                          type="button"
-                          class="delete open-delete-po-modal"
-                          title="Delete"
-                          data-id="{{ $purchaseOrder->id }}"
-                          data-po-no="{{ $purchaseOrder->po_no }}"
+                      @if($isDraft)
+                        <form
+                          id="deletePoForm-{{ $purchaseOrder->id }}"
+                          action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}"
+                          method="POST"
                         >
-                          <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                      </form>
+                          @csrf
+                          @method('DELETE')
+
+                          <button
+                            type="button"
+                            class="action-btn delete open-delete-po-modal"
+                            title="Delete"
+                            data-id="{{ $purchaseOrder->id }}"
+                            data-po-no="{{ $purchaseOrder->po_no }}"
+                          >
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
+                        </form>
+                      @endif
 
                     </div>
                   </td>
@@ -319,77 +278,148 @@
       </section>
 
     </main>
-
   </div>
 
-  {{-- NEW PO MODAL --}}
-  <div id="poModal" class="modal-overlay">
-    <div class="modal-box po-document-modal">
+  {{-- CREATE / EDIT / VIEW PO MODAL --}}
+  <div
+    id="poModal"
+    class="modal-overlay {{ $openPoModal ?? false ? 'show active' : '' }}"
+    style="{{ $openPoModal ?? false ? 'display: flex;' : '' }}"
+  >
+    <div class="modal-box po-modal-box">
 
-      <div class="modal-header">
-        <h2>New Purchase Order</h2>
+      <div class="po-modal-header">
+        <div>
+          <h2 id="poModalTitle">New Purchase Order</h2>
+        </div>
 
-        <button type="button" id="closePoModal" class="close-btn">
-          &times;
+        <button type="button" id="closePoModal" class="po-close-btn">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <form action="{{ route('purchase-orders.store') }}" method="POST" class="po-document-form">
+      <div class="po-company-title">
+        <h3>GCT TRANSPORT SERVICES INC.</h3>
+        <p>PURCHASE ORDER</p>
+      </div>
+
+      <form id="poForm" action="{{ route('purchase-orders.store') }}" method="POST" class="po-form">
         @csrf
+        <input type="hidden" name="_method" id="poFormMethod" value="POST">
 
-        <input
-          type="hidden"
-          name="purchase_request_id"
-          id="purchaseRequestIdInput"
-          value="{{ $selectedPurchaseRequest?->id }}"
-        >
+        <div class="po-form-grid">
 
-        <div class="po-doc-header">
-          <div>
-            <h3>GCT TRANSPORT SERVICES INC.</h3>
-            <p>PURCHASE ORDER</p>
+          <div class="po-form-group">
+            <label>Supplier / To</label>
+            <input
+              type="text"
+              name="supplier_name"
+              id="supplier_name"
+              placeholder="Supplier name"
+              required
+            >
           </div>
+
+          <div class="po-form-group">
+            <label>PO Number</label>
+            <input
+              type="text"
+              name="po_no"
+              id="po_no"
+              value="{{ $nextPoNo ?? '' }}"
+              readonly
+            >
+          </div>
+
+          <div class="po-form-group">
+            <label>Address / Tel No.</label>
+            <input
+              type="text"
+              name="supplier_address_tel"
+              id="supplier_address_tel"
+              placeholder="Supplier address / contact"
+            >
+          </div>
+
+          <div class="po-form-group">
+            <label>Date</label>
+            <input
+              type="date"
+              name="po_date"
+              id="po_date"
+              value="{{ now()->toDateString() }}"
+              required
+            >
+          </div>
+
+          <div class="po-form-group">
+            <label>Terms</label>
+            <input
+              type="text"
+              name="terms"
+              id="terms"
+              placeholder="Example: 15"
+            >
+          </div>
+
+          <div class="po-form-group">
+            <label>Terms of Payment</label>
+            <input
+              type="text"
+              name="terms_of_payment"
+              id="terms_of_payment"
+              placeholder="Example: Check"
+            >
+          </div>
+
+          <div class="po-form-group">
+            <label>Status</label>
+            <select name="status" id="po_status" required>
+              @foreach($statuses as $status)
+                <option value="{{ $status }}" {{ $status === 'Draft' ? 'selected' : '' }}>
+                  {{ $status }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
         </div>
 
-        <div class="po-doc-grid">
-          <div class="form-group">
-            <label>Supplier / To</label>
-            <input type="text" name="supplier_name" placeholder="Supplier name" required>
+        <div class="po-request-info">
+          <div class="po-form-group">
+            <label>PR #</label>
+            <input
+              type="text"
+              id="main_pr_no"
+              placeholder="PR No."
+              readonly
+            >
           </div>
 
-          <div class="form-group">
-            <label>PO Number</label>
-            <input type="text" value="{{ $nextPoNo }}" readonly>
+          <div class="po-form-group">
+            <label>Bus No.</label>
+            <input
+              type="text"
+              id="main_bus_no"
+              placeholder="Bus No."
+            >
           </div>
 
-          <div class="form-group">
-            <label>Address / Tel No.</label>
-            <input type="text" name="supplier_address_tel" placeholder="Supplier address / contact">
-          </div>
-
-          <div class="form-group">
-            <label>Date</label>
-            <input type="text" value="{{ now()->format('m/d/Y') }}" readonly>
-          </div>
-
-          <div class="form-group">
-            <label>Terms</label>
-            <input type="text" name="terms" placeholder="Example: 15">
-          </div>
-
-          <div class="form-group">
-            <label>Terms of Payment</label>
-            <input type="text" name="terms_of_payment" placeholder="Example: Check">
+          <div class="po-form-group">
+            <label>Employee</label>
+            <input
+              type="text"
+              id="main_employee"
+              placeholder="Employee"
+              readonly
+            >
           </div>
         </div>
 
         <div class="po-items-section">
-          <label>Items</label>
+          <label class="po-items-title">Items</label>
 
-          <div class="po-items-head">
-            <span>PR #</span>
-            <span>Bus No.</span>
-            <span>Employee</span>
+          <div class="po-items-header">
             <span>Item Description</span>
             <span>Qty</span>
             <span>Unit</span>
@@ -398,287 +428,101 @@
             <span></span>
           </div>
 
-          <div id="poItemsWrapper" class="po-items-wrapper">
-            <div class="po-item-row">
-              <input
-                type="text"
-                class="po-pr-no"
-                name="items[0][pr_no]"
-                list="purchaseRequestList"
-                placeholder="PR No."
-                value="{{ $selectedPurchaseRequest?->pr_no }}"
-              >
-
-              <input
-                type="text"
-                class="po-bus-no"
-                name="items[0][bus_no]"
-                placeholder="Bus No."
-                value="{{ $selectedPurchaseRequest?->bus_no }}"
-                readonly
-              >
-
-              <input
-                type="text"
-                class="po-employee"
-                name="items[0][employee]"
-                placeholder="Employee"
-                value="{{ $selectedPurchaseRequest?->job_order_no }}"
-              >
-
-              <input
-                type="text"
-                class="po-item-description"
-                name="items[0][item_description]"
-                placeholder="Item description"
-                value="{{ $selectedPurchaseRequest?->item }}"
-                required
-              >
-
-              <input
-                type="number"
-                class="po-item-quantity"
-                name="items[0][quantity]"
-                min="1"
-                step="1"
-                placeholder="Qty"
-                value="{{ $selectedPurchaseRequest?->quantity }}"
-                required
-              >
-
-              <input
-                type="text"
-                class="po-item-unit"
-                name="items[0][unit]"
-                placeholder="Unit"
-                value="PC"
-              >
-
-              <input
-                type="text"
-                class="po-item-cost"
-                name="items[0][cost]"
-                placeholder="₱0.00"
-                required
-              >
-
-              <input
-                type="text"
-                class="po-item-amount"
-                value="₱0.00"
-                readonly
-              >
-
-              <button type="button" class="remove-po-item-btn" style="display: none;">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
+          <div id="poItemsContainer" class="po-items-container">
+            {{-- JS renders rows --}}
           </div>
 
-          <button type="button" id="addPoItemBtn" class="add-part-btn">
+          <button type="button" id="addPoItemBtn" class="add-po-item-btn">
             <i class="fa-solid fa-plus"></i>
             Add Other Item
           </button>
         </div>
 
         <div class="po-bottom-grid">
-          <div class="form-group">
+
+          <div class="po-form-group">
             <label>Purpose</label>
-            <textarea name="purpose" placeholder="Example: For Warehouse Stock.">{{ $selectedPurchaseRequest ? 'Created from ' . $selectedPurchaseRequest->pr_no : '' }}</textarea>
+            <textarea
+              name="purpose"
+              id="purpose"
+              rows="5"
+              placeholder="Example: For Warehouse Stock."
+            ></textarea>
           </div>
 
           <div class="po-totals-box">
-            <div>
+
+            <div class="po-total-row">
               <label>Gross Amount</label>
-              <input type="text" id="po_gross_display" value="₱0.00" readonly>
+              <input type="text" id="gross_amount_display" value="₱0.00" readonly>
             </div>
 
-            <div>
+            <div class="po-total-row">
               <label>Delivery Fee</label>
-              <input type="text" id="po_delivery_fee" name="delivery_fee" value="₱0.00">
+              <input
+                type="number"
+                name="delivery_fee"
+                id="delivery_fee"
+                min="0"
+                step="0.01"
+                value="0"
+              >
             </div>
 
-            <div>
+            <div class="po-total-row">
               <label>Discount</label>
-              <input type="text" id="po_discount" name="discount" value="₱0.00">
+              <input
+                type="number"
+                name="discount"
+                id="discount"
+                min="0"
+                step="0.01"
+                value="0"
+              >
             </div>
 
-            <div>
+            <div class="po-total-row">
               <label>VAT</label>
-              <input type="text" id="po_vat" name="vat" value="₱0.00">
+              <input
+                type="number"
+                name="vat"
+                id="vat"
+                min="0"
+                step="0.01"
+                value="0"
+              >
             </div>
 
-            <div>
+            <div class="po-total-row">
               <label>Net Amount</label>
-              <input type="text" id="po_net_display" value="₱0.00" readonly>
+              <input type="text" id="net_amount_display" value="₱0.00" readonly>
             </div>
+
           </div>
+
         </div>
 
-        <div class="form-group">
-          <label>Status</label>
-          <select name="status" required>
-            @foreach($statuses as $status)
-              <option value="{{ $status }}" {{ $status === 'Ordered' ? 'selected' : '' }}>
-                {{ $status }}
-              </option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelPoModal" class="cancel-btn">
+        <div class="po-modal-actions" id="poEditActions">
+          <button type="button" id="cancelPoModal" class="po-cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" class="save-btn">
+          <button type="submit" class="po-save-btn">
             Save Purchase Order
           </button>
         </div>
-      </form>
 
+        <div class="po-modal-actions" id="poViewActions" style="display: none;">
+          <button type="button" id="closeViewPoModal" class="po-cancel-btn">
+            Close
+          </button>
+        </div>
+
+      </form>
     </div>
   </div>
 
-  {{-- EDIT PO MODAL --}}
-  <div id="editPoModal" class="modal-overlay">
-    <div class="modal-box po-document-modal">
-
-      <div class="modal-header">
-        <h2>Purchase Order Details</h2>
-
-        <button type="button" id="closeEditPoModal" class="close-btn">
-          &times;
-        </button>
-      </div>
-
-      <form id="editPoForm" method="POST" class="po-document-form">
-        @csrf
-        @method('PUT')
-
-        <div class="po-doc-header">
-          <div>
-            <h3>GCT TRANSPORT SERVICES INC.</h3>
-            <p>PURCHASE ORDER</p>
-          </div>
-        </div>
-
-        <div class="po-doc-grid">
-          <div class="form-group">
-            <label>Supplier / To</label>
-            <input type="text" name="supplier_name" id="edit_supplier_name" required>
-          </div>
-
-          <div class="form-group">
-            <label>PO Number</label>
-            <input type="text" name="po_no" id="edit_po_no" readonly required>
-          </div>
-
-          <div class="form-group">
-            <label>Address / Tel No.</label>
-            <input type="text" name="supplier_address_tel" id="edit_supplier_address_tel">
-          </div>
-
-          <div class="form-group">
-            <label>Date</label>
-            <input type="date" name="po_date" id="edit_po_date" required>
-          </div>
-
-          <div class="form-group">
-            <label>Terms</label>
-            <input type="text" name="terms" id="edit_terms">
-          </div>
-
-          <div class="form-group">
-            <label>Terms of Payment</label>
-            <input type="text" name="terms_of_payment" id="edit_terms_of_payment">
-          </div>
-        </div>
-
-        <div class="po-items-section">
-          <label>Items</label>
-
-          <div class="po-items-head">
-            <span>PR #</span>
-            <span>Bus No.</span>
-            <span>Employee</span>
-            <span>Item Description</span>
-            <span>Qty</span>
-            <span>Unit</span>
-            <span>Cost</span>
-            <span>PO Amount</span>
-            <span></span>
-          </div>
-
-          <div id="editPoItemsWrapper" class="po-items-wrapper"></div>
-
-          <button type="button" id="editAddPoItemBtn" class="add-part-btn">
-            <i class="fa-solid fa-plus"></i>
-            Add Other Item
-          </button>
-        </div>
-
-        <div class="po-bottom-grid">
-          <div class="form-group">
-            <label>Purpose</label>
-            <textarea name="purpose" id="edit_purpose"></textarea>
-          </div>
-
-          <div class="po-totals-box">
-            <div>
-              <label>Gross Amount</label>
-              <input type="text" id="edit_po_gross_display" value="₱0.00" readonly>
-            </div>
-
-            <div>
-              <label>Delivery Fee</label>
-              <input type="text" id="edit_po_delivery_fee" name="delivery_fee" value="₱0.00">
-            </div>
-
-            <div>
-              <label>Discount</label>
-              <input type="text" id="edit_po_discount" name="discount" value="₱0.00">
-            </div>
-
-            <div>
-              <label>VAT</label>
-              <input type="text" id="edit_po_vat" name="vat" value="₱0.00">
-            </div>
-
-            <div>
-              <label>Net Amount</label>
-              <input type="text" id="edit_po_net_display" value="₱0.00" readonly>
-            </div>
-          </div>
-        </div>
-
-        <input type="hidden" name="purchase_request_id" id="edit_purchase_request_id">
-
-        <div class="form-group">
-          <label>Status</label>
-          <select name="status" id="edit_status" required>
-            @foreach($statuses as $status)
-              <option value="{{ $status }}">
-                {{ $status }}
-              </option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelEditPoModal" class="cancel-btn">
-            Cancel
-          </button>
-
-          <button type="submit" class="save-btn">
-            Update Purchase Order
-          </button>
-        </div>
-      </form>
-
-    </div>
-  </div>
-
+  {{-- DELETE MODAL --}}
   <x-ui.action-buttom-modal
     mode="delete"
     id="deletePoModal"

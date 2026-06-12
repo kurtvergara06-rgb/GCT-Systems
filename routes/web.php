@@ -9,22 +9,27 @@ use App\Http\Controllers\RequestedPurchaseController;
 use App\Http\Controllers\WarehousePartRequestController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'Login_Register.login')->name('login');
-Route::view('/register', 'Login_Register.register')->name('register');
+/*
+|--------------------------------------------------------------------------
+| Authentication Pages
+|--------------------------------------------------------------------------
+*/
+
+Route::view('/', 'Login_Register.login')
+    ->name('login');
+
+Route::view('/register', 'Login_Register.register')
+    ->name('register');
+
+
+/*
+|--------------------------------------------------------------------------
+| Maintenance Department
+|--------------------------------------------------------------------------
+*/
 
 Route::view('/maintenance-dashboard', 'Maintenance.maintenance-dashboard')
     ->name('maintenance-dashboard');
-
-Route::controller(JobOrderController::class)
-    ->prefix('job-orders')
-    ->name('job-orders')
-    ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store')->name('.store');
-        Route::put('/{jobOrder}', 'update')->name('.update');
-        Route::post('/{jobOrder}/finish', 'finish')->name('.finish');
-        Route::delete('/{jobOrder}', 'destroy')->name('.destroy');
-    });
 
 Route::view('/mechanic-list', 'Maintenance.mechanic-list')
     ->name('mechanic-list');
@@ -38,61 +43,118 @@ Route::view('/fuel-reports', 'Maintenance.fuel-reports')
 Route::view('/settings', 'Maintenance.settings')
     ->name('settings');
 
+
+/*
+|--------------------------------------------------------------------------
+| Maintenance Department - Job Orders
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(JobOrderController::class)
+    ->prefix('job-orders')
+    ->group(function () {
+        Route::get('/', 'index')->name('job-orders');
+        Route::post('/', 'store')->name('job-orders.store');
+        Route::put('/{jobOrder}', 'update')->name('job-orders.update');
+        Route::post('/{jobOrder}/finish', 'finish')->name('job-orders.finish');
+        Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->name('job-orders.create-pr');
+        Route::delete('/{jobOrder}', 'destroy')->name('job-orders.destroy');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Maintenance Department - Purchase Requests
+|--------------------------------------------------------------------------
+*/
+
 Route::controller(PurchaseRequestController::class)
     ->prefix('purchase-requests')
-    ->name('purchase-requests')
     ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store')->name('.store');
-        Route::put('/{purchaseRequest}', 'update')->name('.update');
-        Route::delete('/{purchaseRequest}', 'destroy')->name('.destroy');
-        Route::post('/{purchaseRequest}/approve', 'approve')->name('.approve');
-        Route::post('/{purchaseRequest}/reject', 'reject')->name('.reject');
-        Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('.for-purchase');
-        Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('.delivered');
-        Route::post('/{purchaseRequest}/issue', 'issue')->name('.issue');
+        Route::get('/', 'index')->name('purchase-requests');
+        Route::post('/', 'store')->name('purchase-requests.store');
+        Route::put('/{purchaseRequest}', 'update')->name('purchase-requests.update');
+        Route::delete('/{purchaseRequest}', 'destroy')->name('purchase-requests.destroy');
+
+        Route::post('/{purchaseRequest}/approve', 'approve')->name('purchase-requests.approve');
+        Route::post('/{purchaseRequest}/reject', 'reject')->name('purchase-requests.reject');
+        Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('purchase-requests.for-purchase');
+        Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('purchase-requests.delivered');
+        Route::post('/{purchaseRequest}/issue', 'issue')->name('purchase-requests.issue');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| Warehouse Department - Inventory
+|--------------------------------------------------------------------------
+*/
 
 Route::controller(InventoryController::class)
     ->prefix('inventory')
-    ->name('inventory')
     ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store')->name('.store');
-        Route::put('/{inventoryItem}', 'update')->name('.update');
-        Route::delete('/{inventoryItem}', 'destroy')->name('.destroy');
-        Route::post('/import', 'import')->name('.import');
+        Route::get('/', 'index')->name('inventory');
+        Route::post('/', 'store')->name('inventory.store');
+        Route::put('/{inventoryItem}', 'update')->name('inventory.update');
+        Route::delete('/{inventoryItem}', 'destroy')->name('inventory.destroy');
+        Route::post('/import', 'import')->name('inventory.import');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| Warehouse Department - Part Requests
+|--------------------------------------------------------------------------
+*/
 
 Route::controller(WarehousePartRequestController::class)
     ->prefix('part-requests')
-    ->name('part-requests')
     ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/{purchaseRequest}/issue', 'issue')->name('.issue');
-        Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')->name('.send-to-purchase');
+        Route::get('/', 'index')->name('part-requests');
+        Route::post('/{purchaseRequest}/issue', 'issue')->name('part-requests.issue');
+        Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')->name('part-requests.send-to-purchase');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| Purchase Department - Purchase Orders
+|--------------------------------------------------------------------------
+*/
 
 Route::controller(PurchaseOrderController::class)
     ->prefix('purchase-orders')
-    ->name('purchase-orders')
     ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store')->name('.store');
-        Route::put('/{purchaseOrder}', 'update')->name('.update');
-        Route::delete('/{purchaseOrder}', 'destroy')->name('.destroy');
+        Route::get('/', 'index')->name('purchase-orders');
+        Route::post('/', 'store')->name('purchase-orders.store');
+        Route::put('/{purchaseOrder}', 'update')->name('purchase-orders.update');
+        Route::patch('/{purchaseOrder}/status', 'updateStatus')->name('purchase-orders.update-status');
+        Route::delete('/{purchaseOrder}', 'destroy')->name('purchase-orders.destroy');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| Purchase Department - Requested Purchases
+|--------------------------------------------------------------------------
+*/
 
 Route::controller(RequestedPurchaseController::class)
     ->prefix('requested-purchase')
-    ->name('requested-purchase')
     ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/{purchaseRequest}/create-po', 'createPo')->name('.create-po');
+        Route::get('/', 'index')->name('requested-purchase');
+        Route::post('/{purchaseRequest}/create-po', 'createPo')->name('requested-purchase.create-po');
     });
 
 Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')
     ->name('scheduled-purchase');
+
+
+/*
+|--------------------------------------------------------------------------
+| Operations Department
+|--------------------------------------------------------------------------
+*/
 
 Route::view('/dashboard-operation', 'Operation.dashboard-operation')
     ->name('dashboard-operation');
@@ -103,19 +165,32 @@ Route::redirect('/attendance', '/driver-attendance')
 Route::view('/driver-attendance', 'Operation.driver-attendance')
     ->name('driver-attendance');
 
-Route::controller(MechanicAttendanceController::class)
-    ->prefix('mechanic-attendance')
-    ->name('mechanic-attendance')
-    ->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store')->name('.store');
-        Route::put('/{mechanicAttendance}', 'update')->name('.update');
-        Route::delete('/{mechanicAttendance}', 'destroy')->name('.destroy');
-        Route::post('/import', 'import')->name('.import');
-    });
-
 Route::redirect('/available-mechanics', '/mechanic-attendance')
     ->name('available-mechanics');
 
-Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])
-    ->name('purchase-orders.update-status');
+
+/*
+|--------------------------------------------------------------------------
+| Operations Department - Mechanic Attendance
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(MechanicAttendanceController::class)
+    ->prefix('mechanic-attendance')
+    ->group(function () {
+        Route::get('/', 'index')->name('mechanic-attendance');
+        Route::post('/', 'store')->name('mechanic-attendance.store');
+        Route::put('/{mechanicAttendance}', 'update')->name('mechanic-attendance.update');
+        Route::delete('/{mechanicAttendance}', 'destroy')->name('mechanic-attendance.destroy');
+        Route::post('/import', 'import')->name('mechanic-attendance.import');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Admin Department
+|--------------------------------------------------------------------------
+*/
+
+Route::view('/admin-dashboard', 'Admin.admin-dashboard')
+    ->name('admin-dashboard');

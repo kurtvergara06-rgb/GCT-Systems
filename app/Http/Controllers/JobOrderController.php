@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\JobOrder;
 use App\Models\MechanicAttendance;
+use App\Models\PurchaseRequest;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
+
 {
     public function index(Request $request)
     {
@@ -51,12 +53,20 @@ class JobOrderController extends Controller
         $onHold = JobOrder::where('status', 'On Hold')->count();
         $onGoing = JobOrder::where('status', 'On Going')->count();
         $completed = JobOrder::where('status', 'Completed')->count();
-        $urgentRepair = JobOrder::where('status', 'Urgent Repair')->count();
+
+        $needParts = JobOrder::query()
+            ->whereNotNull('part_needed')
+            ->where('part_needed', '!=', '')
+            ->where('status', '!=', 'Completed')
+            ->whereNotIn('part_status', ['Issued'])
+            ->count();
+
         $nextJobOrderNo = $this->generateJobOrderNo();
 
         $assignedActiveMechanics = JobOrder::query()
             ->where('status', '!=', 'Completed')
             ->whereNotNull('assigned_mechanic')
+            ->where('assigned_mechanic', '!=', '')
             ->pluck('assigned_mechanic')
             ->filter()
             ->unique()
@@ -77,7 +87,7 @@ class JobOrderController extends Controller
             'onHold',
             'onGoing',
             'completed',
-            'urgentRepair',
+            'needParts',
             'nextJobOrderNo',
             'availableMechanics',
             'allMechanics'
@@ -90,51 +100,64 @@ class JobOrderController extends Controller
             'bus_no' => 'required|string|max:255',
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
-            'assigned_mechanic' => 'required|string|max:255',
+            'assigned_mechanic' => 'nullable|string|max:255',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
         ]);
 
-        $mechanic = MechanicAttendance::where('mechanic_name', $validated['assigned_mechanic'])->first();
-        $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $validated['assigned_mechanic'])
-            ->where('status', '!=', 'Completed')
-            ->exists();
-
-        if (! $mechanic) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Selected mechanic was not found.');
-        }
-
-        if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Selected mechanic is not available. Only present mechanics without active job orders can be assigned.');
-        }
-
+        $assignedMechanic = $validated['assigned_mechanic'] ?? null;
         $partNeeded = $this->formatPartsNeeded($request->parts);
 
-        JobOrder::create([
+        $status = 'On Hold';
+
+        if ($assignedMechanic) {
+            $mechanic = MechanicAttendance::where('mechanic_name', $assignedMechanic)->first();
+
+            if (! $mechanic) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Selected mechanic was not found.');
+            }
+
+            $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $assignedMechanic)
+                ->where('status', '!=', 'Completed')
+                ->exists();
+
+            if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Selected mechanic is not available.');
+            }
+
+            $status = 'On Going';
+        }
+
+        $jobOrder = JobOrder::create([
             'job_order_no' => $this->generateJobOrderNo(),
             'bus_no' => $validated['bus_no'],
             'problem_issue' => $validated['problem_issue'],
             'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $validated['assigned_mechanic'],
+            'assigned_mechanic' => $assignedMechanic,
             'part_needed' => $partNeeded,
             'start_date' => now(),
             'completion_date' => null,
-            'status' => 'On Going',
+            'status' => $status,
             'part_status' => $partNeeded ? 'Not Requested' : 'No Parts Needed',
         ]);
 
-        $this->setMechanicStatus($validated['assigned_mechanic'], 'On Duty');
+        if ($assignedMechanic) {
+            $this->setMechanicStatus($assignedMechanic, 'On Duty');
+        }
 
         return redirect()
             ->back()
-            ->with('success', 'Job order created successfully.');
+            ->with('success', $jobOrder->status === 'On Hold'
+                ? 'Job order created and placed on hold because no mechanic was assigned.'
+                : 'Job order created successfully.'
+            );
     }
 
     public function update(Request $request, JobOrder $jobOrder)
@@ -150,17 +173,17 @@ class JobOrderController extends Controller
             'bus_no' => 'required|string|max:255',
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
-            'assigned_mechanic' => 'required|string|max:255',
-            'status' => 'required|string|in:On Hold,On Going',
+            'assigned_mechanic' => 'nullable|string|max:255',
+            'status' => 'nullable|string|in:On Hold,On Going',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
         ]);
 
         $oldMechanic = $jobOrder->assigned_mechanic;
-        $newMechanic = $validated['assigned_mechanic'];
+        $newMechanic = $validated['assigned_mechanic'] ?? null;
 
-        if ($oldMechanic !== $newMechanic) {
+        if ($newMechanic && $oldMechanic !== $newMechanic) {
             $mechanic = MechanicAttendance::where('mechanic_name', $newMechanic)->first();
 
             if (! $mechanic) {
@@ -179,7 +202,7 @@ class JobOrderController extends Controller
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Selected mechanic is already on duty. Please choose a present mechanic without an active job order.');
+                    ->with('error', 'Selected mechanic is already on duty.');
             }
         }
 
@@ -192,25 +215,88 @@ class JobOrderController extends Controller
             $partStatus = 'Not Requested';
         }
 
+        $status = $validated['status'] ?? $jobOrder->status;
+
+        if (! $newMechanic) {
+            $status = 'On Hold';
+        } elseif ($status === 'On Hold') {
+            $status = 'On Going';
+        }
+
         $jobOrder->update([
             'job_order_no' => $validated['job_order_no'],
             'bus_no' => $validated['bus_no'],
             'problem_issue' => $validated['problem_issue'],
             'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $validated['assigned_mechanic'],
-            'status' => $validated['status'],
+            'assigned_mechanic' => $newMechanic,
+            'status' => $status,
             'part_needed' => $partNeeded,
             'part_status' => $partStatus,
         ]);
 
-        if ($oldMechanic !== $newMechanic) {
+        if ($oldMechanic && $oldMechanic !== $newMechanic) {
             $this->setMechanicStatus($oldMechanic, 'Present');
+        }
+
+        if ($newMechanic && $oldMechanic !== $newMechanic) {
             $this->setMechanicStatus($newMechanic, 'On Duty');
         }
 
         return redirect()
             ->back()
             ->with('success', 'Job order updated successfully.');
+    }
+
+    public function createPurchaseRequest(JobOrder $jobOrder)
+    {
+        if (empty($jobOrder->part_needed)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot create PR because this job order has no parts needed.');
+        }
+
+        if ($jobOrder->status === 'Completed') {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot create PR because this job order is already completed.');
+        }
+
+        if (! in_array($jobOrder->part_status, [null, 'Not Requested', 'Rejected'], true)) {
+            return redirect()
+                ->back()
+                ->with('error', 'This job order already has an active purchase request.');
+        }
+
+        $hasActivePr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)
+            ->whereNotIn('status', ['Rejected', 'Issued'])
+            ->exists();
+
+        if ($hasActivePr) {
+            return redirect()
+                ->back()
+                ->with('error', 'This job order already has an active purchase request.');
+        }
+
+        $parsedParts = $this->parsePartsForPurchaseRequest($jobOrder->part_needed);
+
+        PurchaseRequest::create([
+            'pr_no' => $this->generatePrNo(),
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no,
+            'item' => $parsedParts['item'],
+            'quantity' => $parsedParts['quantity'],
+            'status' => 'Submitted',
+            'remarks' => 'Created from Job Order ' . $jobOrder->job_order_no,
+            'date_requested' => now(),
+        ]);
+
+        $jobOrder->update([
+            'part_status' => 'Submitted',
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Purchase request created successfully.');
     }
 
     public function finish(JobOrder $jobOrder)
@@ -250,7 +336,10 @@ class JobOrderController extends Controller
         $assignedMechanic = $jobOrder->assigned_mechanic;
 
         $jobOrder->delete();
-        $this->setMechanicStatus($assignedMechanic, 'Present');
+
+        if ($assignedMechanic) {
+            $this->setMechanicStatus($assignedMechanic, 'Present');
+        }
 
         return redirect()
             ->back()
@@ -303,6 +392,31 @@ class JobOrderController extends Controller
         return $newJobOrderNo;
     }
 
+    private function generatePrNo(): string
+    {
+        $year = now()->format('Y');
+
+        $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $lastPr) {
+            return "PR-{$year}-0001";
+        }
+
+        preg_match('/PR-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
+
+        $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
+        $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        while (PurchaseRequest::where('pr_no', $newPrNo)->exists()) {
+            $nextNumber++;
+            $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $newPrNo;
+    }
+
     private function formatPartsNeeded(?array $parts): ?string
     {
         if (! $parts) {
@@ -326,5 +440,38 @@ class JobOrderController extends Controller
             ? implode(', ', $formattedParts)
             : null;
     }
-}
 
+    private function parsePartsForPurchaseRequest(?string $partNeeded): array
+    {
+        if (! $partNeeded) {
+            return [
+                'item' => '',
+                'quantity' => 1,
+            ];
+        }
+
+        $parts = collect(explode(',', $partNeeded))
+            ->map(fn ($part) => trim($part))
+            ->filter();
+
+        $itemNames = [];
+        $totalQuantity = 0;
+
+        foreach ($parts as $part) {
+            if (str_contains($part, ' - Qty:')) {
+                [$name, $quantity] = explode(' - Qty:', $part);
+
+                $itemNames[] = trim($name);
+                $totalQuantity += (int) trim($quantity);
+            } else {
+                $itemNames[] = trim($part);
+                $totalQuantity += 1;
+            }
+        }
+
+        return [
+            'item' => implode(', ', $itemNames),
+            'quantity' => $totalQuantity > 0 ? $totalQuantity : 1,
+        ];
+    }
+}

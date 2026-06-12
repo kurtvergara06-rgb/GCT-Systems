@@ -4,26 +4,59 @@ document.addEventListener('DOMContentLoaded', function () {
   | Helpers
   |--------------------------------------------------------------------------
   */
+
   function openModal(modal) {
-    if (modal) {
-      modal.classList.add('show');
-      modal.style.display = 'flex';
-    }
+    if (!modal) return;
+
+    modal.classList.add('show');
+    modal.classList.add('active');
+    modal.style.display = 'flex';
   }
 
   function closeModal(modal) {
-    if (modal) {
-      modal.classList.remove('show');
-      modal.style.display = 'none';
+    if (!modal) return;
+
+    modal.classList.remove('show');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+
+  function closeAllModals() {
+    document
+      .querySelectorAll(
+        '.modal-overlay, .delete-modal-overlay, .success-modal-overlay, .error-modal-overlay, .feedback-modal-overlay, .action-modal-overlay'
+      )
+      .forEach(function (modal) {
+        closeModal(modal);
+      });
+  }
+
+  function setField(id, value, fallback = '—') {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    const finalValue =
+      value === undefined || value === null || value === '' || value === 'null'
+        ? fallback
+        : value;
+
+    if (
+      element.tagName === 'INPUT' ||
+      element.tagName === 'TEXTAREA' ||
+      element.tagName === 'SELECT'
+    ) {
+      element.value = finalValue;
+    } else {
+      element.textContent = finalValue;
     }
   }
 
-  function setText(id, value, fallback = '—') {
-    const element = document.getElementById(id);
-
-    if (element) {
-      element.textContent = value || fallback;
-    }
+  function slugStatus(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, '-');
   }
 
   /*
@@ -31,9 +64,10 @@ document.addEventListener('DOMContentLoaded', function () {
   | Sidebar Dropdown
   |--------------------------------------------------------------------------
   */
+
   document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
     button.addEventListener('click', function () {
-      const dropdown = this.closest('.menu-dropdown');
+      const dropdown = button.closest('.menu-dropdown');
 
       if (dropdown) {
         dropdown.classList.toggle('open');
@@ -43,26 +77,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
-  | View PR Details Modal
+  | View Purchase Request Modal
   |--------------------------------------------------------------------------
   */
+
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
   const closeViewPrModalBottom = document.getElementById('closeViewPrModalBottom');
 
-  document.querySelectorAll('.open-view-pr-modal').forEach(function (button) {
-    button.addEventListener('click', function () {
-      setText('view_pr_no', this.dataset.prNo);
-      setText('view_job_order_no', this.dataset.jobOrderNo);
-      setText('view_bus_no', this.dataset.busNo);
-      setText('view_item', this.dataset.item);
-      setText('view_quantity', this.dataset.quantity);
-      setText('view_status', this.dataset.status);
-      setText('view_created', this.dataset.created);
-      setText('view_remarks', this.dataset.remarks, 'No remarks');
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-view-pr-modal');
 
-      openModal(viewPrModal);
-    });
+    if (!button) return;
+
+    event.preventDefault();
+
+    setField('view_pr_no', button.dataset.prNo);
+    setField('view_job_order_no', button.dataset.jobOrderNo);
+    setField('view_bus_no', button.dataset.busNo);
+    setField('view_item', button.dataset.item);
+    setField('view_quantity', button.dataset.quantity);
+    setField('view_on_hand', button.dataset.onHand);
+    setField('view_inventory_status', button.dataset.inventoryStatus);
+    setField('view_status', button.dataset.status);
+    setField('view_created', button.dataset.created);
+    setField('view_remarks', button.dataset.remarks, 'No remarks');
+
+    openModal(viewPrModal);
   });
 
   if (closeViewPrModal) {
@@ -87,83 +128,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
-  | Feedback Modal Fallback
+  | Warehouse Status Filter Color
   |--------------------------------------------------------------------------
   */
-  const feedbackModal = document.getElementById('feedbackModal');
-  const closeFeedbackModal = document.getElementById('closeFeedbackModal');
-  const closeFeedbackModalBottom = document.getElementById('closeFeedbackModalBottom');
 
-  window.openFeedbackModal = function (data = {}) {
-    setText(
-      'feedback_reference_no',
-      data.referenceNo || data.prNo || data.jobOrderNo
-    );
-
-    setText('feedback_status', data.status);
-    setText('feedback_message', data.message, 'No feedback available.');
-    setText('feedback_remarks', data.remarks);
-
-    openModal(feedbackModal);
-  };
-
-  function closeFeedback() {
-    closeModal(feedbackModal);
-  }
-
-  if (closeFeedbackModal) {
-    closeFeedbackModal.addEventListener('click', closeFeedback);
-  }
-
-  if (closeFeedbackModalBottom) {
-    closeFeedbackModalBottom.addEventListener('click', closeFeedback);
-  }
-
-  if (feedbackModal) {
-    feedbackModal.addEventListener('click', function (event) {
-      if (event.target === feedbackModal) {
-        closeFeedback();
-      }
-    });
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Close Modals With Escape Key
-  |--------------------------------------------------------------------------
-  */
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-      closeModal(viewPrModal);
-      closeModal(feedbackModal);
-    }
-  });
-
-  
-});
-
-/* ========================================
-   WAREHOUSE STATUS FILTER COLOR
-======================================== */
-document.addEventListener('DOMContentLoaded', function () {
   const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
 
-  function slugStatus(value) {
-    return String(value || '')
-      .toLowerCase()
-      .replace(/\//g, '-')
-      .replace(/\s+/g, '-');
-  }
-
   function updateWarehouseStatusFilterColor() {
-    if (!warehouseStatusFilter) {
-      return;
-    }
+    if (!warehouseStatusFilter) return;
 
     warehouseStatusFilter.classList.remove(
-      'submitted',
       'approved',
-      'rejected',
       'for-purchase',
       'ordered',
       'for-pick-up',
@@ -173,7 +148,10 @@ document.addEventListener('DOMContentLoaded', function () {
       'issued'
     );
 
-    if (warehouseStatusFilter.value && warehouseStatusFilter.value !== 'All Statuses') {
+    if (
+      warehouseStatusFilter.value &&
+      warehouseStatusFilter.value !== 'All Statuses'
+    ) {
       warehouseStatusFilter.classList.add(slugStatus(warehouseStatusFilter.value));
     }
   }
@@ -183,4 +161,56 @@ document.addEventListener('DOMContentLoaded', function () {
   if (warehouseStatusFilter) {
     warehouseStatusFilter.addEventListener('change', updateWarehouseStatusFilterColor);
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Success / Error / Feedback Modal Okay Button
+  |--------------------------------------------------------------------------
+  */
+
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest(
+      'button, [data-close-modal], [data-close-feedback]'
+    );
+
+    if (!button) return;
+
+    const buttonText = button.textContent.trim().toLowerCase();
+
+    const isCloseButton =
+      buttonText === 'okay' ||
+      buttonText === 'ok' ||
+      buttonText === 'close' ||
+      button.classList.contains('feedback-ok-btn') ||
+      button.classList.contains('success-ok-btn') ||
+      button.classList.contains('error-ok-btn') ||
+      button.classList.contains('btn-ok') ||
+      button.hasAttribute('data-close-modal') ||
+      button.hasAttribute('data-close-feedback');
+
+    if (!isCloseButton) return;
+
+    const modal =
+      button.closest('.modal-overlay') ||
+      button.closest('.delete-modal-overlay') ||
+      button.closest('.success-modal-overlay') ||
+      button.closest('.error-modal-overlay') ||
+      button.closest('.feedback-modal-overlay') ||
+      button.closest('.action-modal-overlay') ||
+      button.closest('[class*="modal-overlay"]');
+
+    closeModal(modal);
+  });
+
+  /*
+  |--------------------------------------------------------------------------
+  | Escape Key Close
+  |--------------------------------------------------------------------------
+  */
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      closeAllModals();
+    }
+  });
 });
