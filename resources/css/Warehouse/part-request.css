@@ -1,0 +1,819 @@
+/* WAREHOUSE PART REQUESTS PAGE ONLY */
+
+/* SUMMARY CARDS */
+.inventory-stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* PAGE CARD */
+.inventory-card,
+.warehouse-part-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* SECTION HEADER */
+.section-header {
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.section-header p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* TOOLBAR */
+.inventory-toolbar,
+.warehouse-part-toolbar {
+  width: 100%;
+  padding: 12px 16px;
+  gap: 12px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.inventory-toolbar .search-box,
+.warehouse-part-toolbar .search-box {
+  flex: 1;
+}
+
+.inventory-toolbar .search-box input,
+.warehouse-part-toolbar .search-box input {
+  height: 38px;
+  font-size: 13px;
+  border-radius: 9px;
+  padding-left: 40px;
+}
+
+.inventory-toolbar .search-box i,
+.warehouse-part-toolbar .search-box i {
+  font-size: 13px;
+  left: 14px;
+}
+
+.inventory-toolbar .filter-group,
+.warehouse-part-toolbar .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.inventory-toolbar .filter-group label,
+.warehouse-part-toolbar .filter-group label {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.inventory-toolbar .filter-group select,
+.warehouse-part-toolbar .filter-group select {
+  height: 38px;
+  min-width: 150px;
+  max-width: 190px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+
+/* TABLE */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+}
+
+.inventory-table thead {
+  background: #f0f5fc;
+}
+
+.inventory-table th {
+  padding: 14px 13px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.inventory-table td {
+  padding: 18px 13px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.inventory-table tbody tr:hover {
+  background: #f7faff;
+}
+
+.inventory-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.qty-col,
+.status-col,
+.actions-col {
+  text-align: center;
+}
+
+/* ON HAND */
+.on-hand-pill {
+  min-width: 76px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.on-hand-pill.enough {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.on-hand-pill.low {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* INVENTORY BADGES */
+.inventory-badge {
+  min-width: 112px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.inventory-badge.available {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.inventory-badge.not-available {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* STATUS BADGES */
+.warehouse-status-badge {
+  min-width: 105px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.warehouse-status-badge.approved {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.warehouse-status-badge.for-purchase {
+  background: #dbeafe;
+  color: #0057f8;
+}
+
+.warehouse-status-badge.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.warehouse-status-badge.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.warehouse-status-badge.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.warehouse-status-badge.delivered {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.warehouse-status-badge.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.warehouse-status-badge.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* STATUS FILTER */
+.warehouse-status-select {
+  min-width: 145px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.warehouse-status-select:focus {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.18);
+}
+
+.warehouse-status-select.approved {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.warehouse-status-select.for-purchase {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.warehouse-status-select.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.warehouse-status-select.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.warehouse-status-select.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.warehouse-status-select.delivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.warehouse-status-select.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.warehouse-status-select.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* ACTION BUTTONS */
+.actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.inline-action-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.view-btn,
+.actions .view-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  background: #edf3fb;
+  color: #082445;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.view-btn:hover,
+.actions .view-btn:hover {
+  background: #dbeafe;
+  color: #0057f8;
+  transform: translateY(-1px);
+}
+
+.send-purchase-btn,
+.issue-part-btn {
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.send-purchase-btn {
+  background: #dbeafe;
+  color: #0057f8;
+}
+
+.send-purchase-btn:hover {
+  background: #0057f8;
+  color: #ffffff;
+}
+
+.issue-part-btn {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.issue-part-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* HIDE NO ACTION TEXT */
+.no-action {
+  display: none !important;
+}
+
+/* VIEW MODAL LIKE JOB ORDER MODAL */
+.warehouse-view-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 9999;
+}
+
+.warehouse-view-overlay.show,
+.warehouse-view-overlay.active {
+  display: flex;
+}
+
+.warehouse-edit-style-modal {
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 30px 34px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.warehouse-edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.warehouse-edit-header h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0b2344;
+  margin: 0 0 14px;
+}
+
+.warehouse-edit-header h3 {
+  font-size: 17px;
+  font-weight: 900;
+  color: #0b2344;
+  margin: 0 0 5px;
+}
+
+.warehouse-edit-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.warehouse-edit-close {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #0b2344;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.warehouse-edit-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+
+.warehouse-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.warehouse-field.full {
+  grid-column: 1 / -1;
+}
+
+.warehouse-field label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0b2344;
+}
+
+.warehouse-field input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.warehouse-field input[readonly] {
+  background: #f8fafc;
+}
+
+.warehouse-edit-footer {
+  margin-top: 26px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.warehouse-cancel-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #0b2344;
+}
+
+.warehouse-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+/* PAGINATION SVG FIX */
+.pagination svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.pagination p {
+  display: none;
+}
+
+/* =========================================================
+   PR EDIT MODAL - SAME SIDE / STYLE AS JO MODAL
+========================================================= */
+
+.pr-jo-style-modal {
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 30px 34px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.pr-jo-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.pr-jo-modal-header h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0b2344;
+  margin: 0 0 6px;
+}
+
+.pr-jo-modal-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.pr-jo-close-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #0b2344;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.pr-jo-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pr-jo-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+
+.pr-jo-section-title {
+  margin-bottom: 2px;
+}
+
+.pr-jo-section-title h3 {
+  font-size: 17px;
+  font-weight: 900;
+  color: #0b2344;
+  margin: 0 0 4px;
+}
+
+.pr-jo-section-title p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.pr-jo-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pr-jo-form-group.full-width,
+.pr-jo-section-title.full-width,
+.pr-jo-actions.full-width {
+  grid-column: 1 / -1;
+}
+
+.pr-jo-form-group label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0b2344;
+}
+
+.pr-jo-form-group input,
+.pr-jo-form-group select,
+.pr-jo-form-group textarea {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.pr-jo-form-group textarea {
+  min-height: 84px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.pr-jo-form-group input:focus,
+.pr-jo-form-group select:focus,
+.pr-jo-form-group textarea:focus {
+  border-color: #0057f8;
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.pr-jo-form-group input[readonly],
+.pr-jo-form-group select:disabled,
+.pr-jo-form-group textarea[readonly] {
+  background: #f8fafc;
+  color: #475569;
+}
+
+/* Buttons like JO modal */
+.pr-jo-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.pr-jo-cancel-btn,
+.pr-jo-save-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pr-jo-cancel-btn {
+  background: #f1f5f9;
+  color: #0b2344;
+}
+
+.pr-jo-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.pr-jo-save-btn {
+  background: #ffc400;
+  color: #0b2344;
+}
+
+.pr-jo-save-btn:hover {
+  filter: brightness(0.96);
+}
+
+/* Approve / Reject under PR modal */
+.pr-approval-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e5eaf2;
+}
+
+.approve-action-btn,
+.reject-action-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approve-action-btn {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.approve-action-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.reject-action-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.reject-action-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* Make PR modal not show JO multiple parts design */
+.pr-jo-style-modal .part-row,
+.pr-jo-style-modal .parts-row,
+.pr-jo-style-modal .remove-part-btn,
+.pr-jo-style-modal .add-part-btn,
+.pr-jo-style-modal .add-other-part,
+.pr-jo-style-modal #addPartBtn {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .pr-jo-style-modal {
+    padding: 24px;
+  }
+
+  .pr-jo-form {
+    grid-template-columns: 1fr;
+  }
+
+  .pr-jo-form-group.full-width,
+  .pr-jo-section-title.full-width,
+  .pr-jo-actions.full-width {
+    grid-column: auto;
+  }
+
+  .pr-jo-actions,
+  .pr-approval-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-jo-cancel-btn,
+  .pr-jo-save-btn,
+  .approve-action-btn,
+  .reject-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .inventory-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inventory-toolbar,
+  .warehouse-part-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .inventory-toolbar .search-box,
+  .warehouse-part-toolbar .search-box {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .inventory-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-toolbar,
+  .warehouse-part-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inventory-toolbar .filter-group,
+  .warehouse-part-toolbar .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .inventory-toolbar .filter-group select,
+  .warehouse-part-toolbar .filter-group select {
+    flex: 1;
+    max-width: none;
+  }
+
+  .warehouse-edit-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-field.full {
+    grid-column: auto;
+  }
+}

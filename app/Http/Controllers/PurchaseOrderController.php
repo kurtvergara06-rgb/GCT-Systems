@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InventoryItem;
 use App\Models\JobOrder;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PurchaseOrderController extends Controller
 {
@@ -160,6 +162,10 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+
+            if ($this->isInventoryPostingStatus($validated['status'])) {
+                $this->postPurchaseOrderToInventory($purchaseOrder);
+            }
         });
 
         return redirect()
@@ -219,6 +225,8 @@ class PurchaseOrderController extends Controller
         }
 
         DB::transaction(function () use ($purchaseOrder, $validated, $items, $totals, $purchaseRequest) {
+            $oldInventoryPostedAt = $purchaseOrder->inventory_posted_at;
+
             $purchaseOrder->update([
                 'po_no' => $validated['po_no'],
                 'po_date' => $validated['po_date'],
@@ -235,9 +243,14 @@ class PurchaseOrderController extends Controller
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
                 'status' => $validated['status'],
+                'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
             $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+
+            if ($this->isInventoryPostingStatus($validated['status'])) {
+                $this->postPurchaseOrderToInventory($purchaseOrder);
+            }
         });
 
         return redirect()
@@ -257,6 +270,10 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+
+            if ($this->isInventoryPostingStatus($validated['status'])) {
+                $this->postPurchaseOrderToInventory($purchaseOrder);
+            }
         });
 
         return redirect()
@@ -283,6 +300,110 @@ class PurchaseOrderController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Purchase order deleted successfully.');
+    }
+
+    private function isInventoryPostingStatus(string $status): bool
+    {
+        return in_array($status, ['Delivered', 'Picked Up'], true);
+    }
+
+    private function postPurchaseOrderToInventory(PurchaseOrder $purchaseOrder): void
+    {
+        $purchaseOrder->refresh();
+
+        if ($purchaseOrder->inventory_posted_at) {
+            return;
+        }
+
+        $items = $purchaseOrder->items;
+
+        if (! is_array($items) || count($items) === 0) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            $itemName = trim($item['item_description'] ?? '');
+
+            if ($itemName === '') {
+                continue;
+            }
+
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+            $unit = trim($item['unit'] ?? 'PC');
+            $supplier = $purchaseOrder->supplier_name ?: 'N/A';
+
+            $inventoryItem = $this->findInventoryItem($itemName);
+
+            if ($inventoryItem) {
+                $newOnHand = (int) $inventoryItem->on_hand + $quantity;
+
+                $inventoryItem->update([
+                    'on_hand' => $newOnHand,
+                    'quantity_available' => $newOnHand,
+                    'unit' => $inventoryItem->unit ?: $unit,
+                    'unit_of_measurement' => $inventoryItem->unit_of_measurement ?: $unit,
+                    'supplier' => $inventoryItem->supplier ?: $supplier,
+                    'status' => $this->inventoryStatus($newOnHand, (int) ($inventoryItem->reorder_level ?? 0)),
+                ]);
+            } else {
+                InventoryItem::create([
+                    'item_code' => $this->generateInventoryItemCode(),
+                    'item_name' => $itemName,
+                    'parts_name' => $itemName,
+                    'category' => 'Auto Parts',
+                    'on_hand' => $quantity,
+                    'quantity_available' => $quantity,
+                    'unit' => $unit,
+                    'unit_of_measurement' => $unit,
+                    'reorder_level' => 5,
+                    'status' => $this->inventoryStatus($quantity, 5),
+                    'supplier' => $supplier,
+                    'location' => 'Warehouse',
+                    'storage_location' => 'Warehouse',
+                ]);
+            }
+        }
+
+        $purchaseOrder->update([
+            'inventory_posted_at' => now(),
+        ]);
+    }
+
+    private function findInventoryItem(string $itemName): ?InventoryItem
+    {
+        $itemName = strtolower(trim($itemName));
+
+        if ($itemName === '') {
+            return null;
+        }
+
+        return InventoryItem::query()
+            ->whereRaw('LOWER(item_name) = ?', [$itemName])
+            ->orWhereRaw('LOWER(parts_name) = ?', [$itemName])
+            ->orWhereRaw('LOWER(item_code) = ?', [$itemName])
+            ->first();
+    }
+
+    private function inventoryStatus(int $onHand, int $reorderLevel): string
+    {
+        if ($onHand <= 0) {
+            return 'Critical';
+        }
+
+        if ($reorderLevel > 0 && $onHand <= $reorderLevel) {
+            return 'Low Stock';
+        }
+
+        return 'In Stock';
+    }
+
+    private function generateInventoryItemCode(): string
+    {
+        do {
+            $code = 'PART-' . strtoupper(Str::random(5));
+        } while (InventoryItem::where('item_code', $code)->exists());
+
+        return $code;
     }
 
     private function syncRelatedPurchaseRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void

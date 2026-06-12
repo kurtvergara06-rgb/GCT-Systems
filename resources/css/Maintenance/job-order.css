@@ -715,6 +715,120 @@ textarea[readonly] {
   color: #15803d;
 }
 
+/* PART STATUS BADGE COLORS */
+.part-status-badge {
+  min-width: 96px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Not Requested */
+.part-status-badge.not-requested {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Submitted */
+.part-status-badge.submitted {
+  background: #fff3cd;
+  color: #b77900;
+}
+
+/* Approved */
+.part-status-badge.approved {
+  background: #e8e7ff;
+  color: #4338ca;
+}
+
+/* Rejected */
+.part-status-badge.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* For Purchase */
+.part-status-badge.for-purchase {
+  background: #eaf2ff;
+  color: #0057f8;
+}
+
+/* Ordered */
+.part-status-badge.ordered {
+  background: #fff7dd;
+  color: #b77900;
+}
+
+/* For Pick-up */
+.part-status-badge.for-pick-up {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+/* For Delivery */
+.part-status-badge.for-delivery {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+/* Delivered */
+.part-status-badge.delivered {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Picked Up */
+.part-status-badge.picked-up {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Issued */
+.part-status-badge.issued {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.create-pr-form {
+  margin: 0;
+}
+
+.create-pr-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 9px;
+  background: #eaf2ff;
+  color: #0057f8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.create-pr-btn:hover {
+  background: #dbeafe;
+  color: #0047cc;
+  transform: translateY(-1px);
+}
+
+.create-pr-btn i {
+  font-size: 14px;
+}
+
+/* No Parts Needed */
+.part-status-badge.no-parts-needed {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #dce5f2;
+}
+
 /* =========================================================
    PAGINATION FIX
 ========================================================= */

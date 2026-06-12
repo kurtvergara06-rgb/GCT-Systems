@@ -4,6 +4,7 @@
    CARD / SECTION
 ================================ */
 .table-card,
+.purchase-order-card,
 .po-card {
   background: #ffffff;
   border: 1px solid var(--border);
@@ -79,6 +80,7 @@
 .po-toolbar .search-box input:focus,
 .po-toolbar select:focus {
   border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
 }
 
 .po-toolbar select {
@@ -113,10 +115,6 @@
   background: var(--yellow-dark);
 }
 
-.po-table-top {
-  display: none;
-}
-
 /* ================================
    TABLE
 ================================ */
@@ -125,17 +123,17 @@
   overflow-x: auto;
 }
 
-.po-table {
+.purchase-order-card table {
   width: 100%;
   min-width: 1050px;
   border-collapse: collapse;
 }
 
-.po-table thead {
+.purchase-order-card thead {
   background: #f0f5fc;
 }
 
-.po-table th {
+.purchase-order-card th {
   padding: 14px 13px;
   text-align: left;
   font-size: 13px;
@@ -145,7 +143,7 @@
   text-transform: uppercase;
 }
 
-.po-table td {
+.purchase-order-card td {
   padding: 14px 13px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
@@ -153,286 +151,373 @@
   vertical-align: middle;
 }
 
-.po-table tbody tr:hover {
+.purchase-order-card tbody tr:hover {
   background: #f7faff;
 }
 
-.po-table tbody tr:last-child td {
+.purchase-order-card tbody tr:last-child td {
   border-bottom: none;
 }
 
-.po-table strong {
+.purchase-order-card strong {
   font-weight: 800;
   color: var(--text);
 }
 
-.sub-text {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 4px;
+/* Qty column */
+.purchase-order-card th:nth-child(6),
+.purchase-order-card td:nth-child(6) {
+  text-align: center;
+}
+
+/* Status column */
+.purchase-order-card th:nth-child(8),
+.purchase-order-card td:nth-child(8) {
+  text-align: center;
+}
+
+/* Actions column */
+.purchase-order-card th:nth-child(10),
+.purchase-order-card td:nth-child(10) {
+  text-align: center;
 }
 
 /* ================================
-   STATUS BADGES
+   STATUS DROPDOWN
 ================================ */
-.badge {
-  min-width: 90px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.badge.pending {
-  background: #fff3cd;
-  color: #b77900;
-}
-
-.badge.for-purchase {
-  background: #e7f0ff;
-  color: #0057f8;
-}
-
-.badge.ordered {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.badge.approved,
-.badge.delivered {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.badge.shipped,
-.badge.for-delivery {
-  background: #ffedd5;
-  color: #ea580c;
-}
-
-.badge.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.badge.picked-up {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-/* ================================
-   STATUS DROPDOWN IN TABLE
-================================ */
-.po-status-form {
+.status-update-form {
   margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.po-status-dropdown {
+.po-status-select {
+  width: 120px;
+  height: 32px;
   border: none;
   outline: none;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 12px;
   border-radius: 999px;
-
-  /* smaller pill, text closer to arrow */
-  padding: 7px 14px 7px 10px;
-  min-width: 105px;
-  width: auto;
-
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
   text-align: center;
+  text-align-last: center;
   appearance: auto;
 }
 
-.po-status-dropdown.ordered {
-  background: #dbeafe;
-  color: #0057f8;
+.po-status-select.draft {
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.po-status-dropdown.for-pick-up {
+.po-status-select.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.po-status-select.for-pick-up {
   background: #fef3c7;
   color: #b45309;
 }
 
-.po-status-dropdown.for-delivery {
+.po-status-select.for-delivery {
   background: #ffedd5;
   color: #ea580c;
 }
 
-.po-status-dropdown.delivered {
+.po-status-select.delivered {
   background: #dcfce7;
   color: #16a34a;
 }
 
-.po-status-dropdown.picked-up {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-.po-status-dropdown:hover {
-  filter: brightness(0.98);
+.po-status-select.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
 /* ================================
    ACTION BUTTONS
 ================================ */
-.po-actions {
-  display: flex;
+.actions {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
-.po-actions button {
-  width: 30px;
-  height: 30px;
+.actions form {
+  margin: 0;
+  display: inline-flex;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   cursor: pointer;
   transition: 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 
-.po-actions .edit,
-.po-actions button:nth-child(1) {
+.action-btn.view {
   background: #edf3fb;
   color: #082445;
 }
 
-.po-actions .delete,
-.po-actions button:nth-child(2) {
+.action-btn.edit {
+  background: #eaf2ff;
+  color: #0057f8;
+}
+
+.action-btn.delete {
   background: #fff0f0;
   color: #dc2626;
 }
 
-.po-actions button:hover {
+.action-btn:hover {
   transform: translateY(-1px);
 }
 
 /* ================================
-   PO MODAL DOCUMENT
+   MODAL OVERLAY
 ================================ */
-.po-document-modal {
-  max-width: 1180px;
-  width: 94%;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 9999;
 }
 
-.po-document-form {
+.modal-overlay.show,
+.modal-overlay.active {
   display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.po-doc-header {
-  text-align: center;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #dce5f2;
-}
-
-.po-doc-header h3 {
-  font-size: 20px;
-  font-weight: 900;
-  color: #061b3a;
-  margin: 0;
-}
-
-.po-doc-header p {
-  font-size: 14px;
-  font-weight: 800;
-  color: #334155;
-  letter-spacing: 1px;
-  margin: 4px 0 0;
-}
-
-.po-doc-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
-  gap: 12px 16px;
 }
 
 /* ================================
-   PO ITEMS
+   PURCHASE ORDER MODAL
 ================================ */
-.po-items-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.po-modal-box {
+  width: min(1220px, 96vw) !important;
+  max-width: 1220px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 34px !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
 }
 
-.po-items-section > label {
-  font-size: 13px;
-  font-weight: 800;
+.po-modal-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.po-modal-box::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.po-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.po-modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
   color: #061b3a;
 }
 
-.po-items-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.po-close-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #061b3a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.po-items-head,
+.po-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.po-company-title {
+  text-align: center;
+  margin: 8px 0 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #dce5f2;
+}
+
+.po-company-title h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: #061b3a;
+  letter-spacing: 0.5px;
+}
+
+.po-company-title p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: #061b3a;
+  letter-spacing: 2px;
+}
+
+/* ================================
+   FORM
+================================ */
+.po-form {
+  width: 100%;
+}
+
+.po-form-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px 24px !important;
+}
+
+.po-form-group {
+  width: 100%;
+}
+
+.po-form-group label,
+.po-total-row label {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  color: #061b3a;
+  margin-bottom: 6px;
+}
+
+.po-form input,
+.po-form select,
+.po-form textarea,
+.po-item-row input {
+  width: 100% !important;
+  box-sizing: border-box;
+  border: 1px solid #dce5f2 !important;
+  border-radius: 10px !important;
+  padding: 0 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #061b3a;
+  background: #ffffff;
+  outline: none;
+}
+
+.po-form input,
+.po-form select,
+.po-item-row input {
+  height: 42px !important;
+}
+
+.po-form textarea {
+  min-height: 110px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.po-form input:focus,
+.po-form select:focus,
+.po-form textarea:focus,
+.po-item-row input:focus {
+  border-color: var(--yellow) !important;
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+}
+
+.po-form input[readonly],
+.po-item-row input[readonly],
+#po_no,
+#gross_amount_display,
+#net_amount_display,
+.item-amount {
+  background: #f8fafc !important;
+  font-weight: 800;
+}
+
+.po-form input:disabled,
+.po-form select:disabled,
+.po-form textarea:disabled,
+.po-item-row input:disabled {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+/* ================================
+   REQUEST INFO
+================================ */
+.po-request-info {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 18px !important;
+}
+
+/* ================================
+   ITEMS
+================================ */
+.po-items-section {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.po-items-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  color: #061b3a;
+  margin-bottom: 10px;
+}
+
+.po-items-header,
 .po-item-row {
-  display: grid;
-  grid-template-columns: 130px 110px 140px 1.5fr 70px 75px 120px 130px 42px;
-  gap: 8px;
+  display: grid !important;
+  grid-template-columns: 1.8fr 90px 100px 140px 160px 46px !important;
+  gap: 10px !important;
   align-items: center;
 }
 
-.po-items-head {
+.po-items-header {
+  margin-bottom: 8px;
   font-size: 11px;
   font-weight: 900;
   color: #334155;
   text-transform: uppercase;
 }
 
-.po-item-row input,
-.po-document-form input,
-.po-document-form select,
-.po-document-form textarea {
-  border: 1px solid #dce5f2;
-  border-radius: 9px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-family: inherit;
-  color: #061b3a;
-}
-
-.po-item-row input,
-.po-document-form input,
-.po-document-form select {
-  height: 38px;
-}
-
-.po-document-form textarea {
-  min-height: 105px;
-  padding-top: 10px;
-  resize: vertical;
-}
-
-.po-bus-no,
-.po-employee,
-.po-item-amount,
-#po_gross_display,
-#po_net_display,
-#edit_po_gross_display,
-#edit_po_net_display {
-  font-weight: 900;
-  background: #f8fafc;
+.po-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .remove-po-item-btn {
-  height: 38px;
-  width: 38px;
+  width: 42px;
+  height: 42px;
   border: none;
-  border-radius: 9px;
+  border-radius: 10px;
   background: #fee2e2;
   color: #dc2626;
   cursor: pointer;
@@ -445,144 +530,92 @@
   background: #fecaca;
 }
 
-.add-part-btn {
-  margin-top: 5px;
-  width: fit-content;
-  height: 38px;
-  padding: 0 14px;
+.add-po-item-btn {
+  margin-top: 12px;
+  height: 42px;
+  padding: 0 16px;
   border: 1px solid #dce5f2;
-  border-radius: 9px;
+  border-radius: 10px;
   background: #ffffff;
   color: #061b3a;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: fit-content;
 }
 
-.add-part-btn:hover {
+.add-po-item-btn:hover {
   background: #f8fafc;
 }
 
 /* ================================
-   TOTALS
+   BOTTOM / TOTALS
 ================================ */
 .po-bottom-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 0.9fr;
-  gap: 18px;
+  display: grid !important;
+  grid-template-columns: 1fr 360px !important;
+  gap: 24px !important;
+  margin-top: 20px !important;
   align-items: start;
 }
 
 .po-totals-box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.po-totals-box div {
+.po-total-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 130px 1fr;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.po-totals-box label {
-  font-size: 12px;
-  font-weight: 800;
-  color: #334155;
-}
-
-/* Center Qty and Status columns in Purchase Order table */
-
-/* Qty column */
-.po-table th:nth-child(6),
-.po-table td:nth-child(6) {
-  text-align: center;
-}
-
-/* Status column */
-.po-table th:nth-child(8),
-.po-table td:nth-child(8) {
-  text-align: center;
-}
-
-/* Center the status dropdown inside the status cell */
-.po-status-form {
+.po-modal-actions {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-/* Make status dropdown neat and centered */
-.po-status-dropdown {
-  text-align: center;
-  text-align-last: center;
-}
-
-/* ========================================
-   PURCHASE ORDER STATUS DROPDOWN ALIGNMENT + COLORS
-======================================== */
-
-.po-table th:nth-child(8),
-.po-table td:nth-child(8) {
-  text-align: center;
-}
-
-.po-status-form {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-.po-status-dropdown {
-  width: 112px;
-  min-width: 112px;
-  height: 32px;
+.po-cancel-btn,
+.po-save-btn {
+  height: 44px;
   border: none;
-  outline: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-weight: 900;
   cursor: pointer;
-  border-radius: 999px;
-  padding: 0 24px 0 12px;
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-  text-align-last: center;
-  appearance: auto;
 }
 
-/* Ordered = violet */
-.po-status-dropdown.ordered {
-  background: #ede9fe;
-  color: #7c3aed;
+.po-cancel-btn {
+  background: #f1f5f9;
+  color: #061b3a;
 }
 
-/* For Pick-up = yellow */
-.po-status-dropdown.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
+.po-save-btn {
+  background: var(--yellow);
+  color: #061b3a;
 }
 
-/* For Delivery = orange */
-.po-status-dropdown.for-delivery {
-  background: #ffedd5;
-  color: #ea580c;
+.po-save-btn:hover {
+  background: var(--yellow-dark);
 }
 
-/* Delivered = green */
-.po-status-dropdown.delivered {
-  background: #dcfce7;
-  color: #16a34a;
+/* ================================
+   PAGINATION FIX
+================================ */
+.pagination svg {
+  width: 18px !important;
+  height: 18px !important;
 }
 
-/* Picked Up = teal */
-.po-status-dropdown.picked-up {
-  background: #ccfbf1;
-  color: #0f766e;
+.pagination p {
+  display: none;
 }
 
 /* ================================
@@ -596,46 +629,40 @@
   .po-toolbar .search-box {
     flex-basis: 100%;
   }
+}
 
-  .po-items-head {
-    display: none;
+@media (max-width: 1100px) {
+  .po-modal-box {
+    width: 96vw !important;
+  }
+
+  .po-form-grid,
+  .po-request-info,
+  .po-bottom-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .po-items-header {
+    display: none !important;
   }
 
   .po-item-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .po-doc-grid,
-  .po-bottom-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 768px) {
-  .app {
+  .po-toolbar {
     flex-direction: column;
-  }
-
-  .main {
-    margin-left: 0;
-    width: 100%;
-    padding: 20px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    align-items: stretch;
   }
 
   .po-toolbar select,
   .po-toolbar .primary-btn {
     width: 100%;
+  }
+
+  .po-modal-box {
+    padding: 22px !important;
   }
 }

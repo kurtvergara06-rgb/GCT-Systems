@@ -3,14 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseOrder extends Model
 {
     protected $fillable = [
         'po_no',
         'po_date',
-        'purchase_request_id',
         'supplier_name',
         'supplier_address_tel',
         'terms',
@@ -23,28 +21,39 @@ class PurchaseOrder extends Model
         'vat',
         'net_amount',
         'status',
+        'inventory_posted_at',
     ];
 
     protected $casts = [
-        'po_date' => 'date',
         'items' => 'array',
+        'po_date' => 'date',
         'gross_amount' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'discount' => 'decimal:2',
         'vat' => 'decimal:2',
         'net_amount' => 'decimal:2',
+        'inventory_posted_at' => 'datetime',
     ];
 
-    public function purchaseRequest(): BelongsTo
+    public function getFirstPrNoAttribute()
     {
-        return $this->belongsTo(PurchaseRequest::class);
+        if (!$this->items || !is_array($this->items)) {
+            return null;
+        }
+
+        $first = $this->items[0] ?? null;
+
+        return $first['pr_no'] ?? null;
     }
 
-    public function getFirstPrNoAttribute(): ?string
+    public function relatedPurchaseRequest()
     {
-        $firstItem = $this->items[0] ?? null;
+        $prNo = $this->first_pr_no;
 
-        return $firstItem['pr_no'] ?? null;
+        if (!$prNo) {
+            return null;
+        }
+
+        return PurchaseRequest::where('pr_no', $prNo)->first();
     }
 }
-

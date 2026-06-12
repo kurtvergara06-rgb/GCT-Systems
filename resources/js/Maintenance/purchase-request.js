@@ -1,405 +1,457 @@
-document.addEventListener('DOMContentLoaded', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | Helpers
-  |--------------------------------------------------------------------------
-  */
+document.addEventListener('DOMContentLoaded', function () {
   function openModal(modal) {
-    if (modal) {
-      modal.classList.add('show');
-    }
+    if (!modal) return;
+
+    modal.classList.add('show');
+    modal.classList.add('active');
+    modal.style.display = 'flex';
   }
 
   function closeModal(modal) {
-    if (modal) {
-      modal.classList.remove('show');
-    }
+    if (!modal) return;
+
+    modal.classList.remove('show');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
   }
 
-  function parsePartNeeded(partNeeded) {
-    if (!partNeeded) {
-      return {
-        item: '',
-        quantity: '',
-      };
-    }
-
-    const firstPart = partNeeded.split(',')[0].trim();
-
-    if (firstPart.includes(' - Qty:')) {
-      const pieces = firstPart.split(' - Qty:');
-
-      return {
-        item: pieces[0] ? pieces[0].trim() : '',
-        quantity: pieces[1] ? pieces[1].trim() : 1,
-      };
-    }
-
-    return {
-      item: firstPart,
-      quantity: 1,
-    };
+  function closeAllModals() {
+    document
+      .querySelectorAll(
+        '.modal-overlay, .delete-modal-overlay, .success-modal-overlay, .error-modal-overlay, .feedback-modal-overlay, .action-modal-overlay'
+      )
+      .forEach(function (modal) {
+        closeModal(modal);
+      });
   }
 
-  function slugStatus(value) {
-    return String(value || '')
-      .toLowerCase()
-      .replace(/\//g, '-')
-      .replace(/\s+/g, '-');
-  }
+  function setValue(id, value) {
+    const element = document.getElementById(id);
 
-  /*
-  |--------------------------------------------------------------------------
-  | PR Status Filter Color
-  |--------------------------------------------------------------------------
-  */
-  function updatePrStatusFilterColor() {
-    const prStatusFilter = document.getElementById('prStatusFilter');
+    if (!element) return;
 
-    if (!prStatusFilter) {
+    if (value === undefined || value === null || value === 'null') {
+      element.value = '';
       return;
     }
 
-    prStatusFilter.classList.remove(
-      'submitted',
-      'approved',
-      'rejected',
-      'for-purchase',
-      'ordered',
-      'for-pick-up',
-      'for-delivery',
-      'delivered',
-      'picked-up',
-      'issued'
-    );
+    element.value = value;
+  }
 
-    if (prStatusFilter.value && prStatusFilter.value !== 'All Statuses') {
-      prStatusFilter.classList.add(slugStatus(prStatusFilter.value));
+  function parsePrParts(rawItem, rawQuantity) {
+    const itemText = String(rawItem || '').trim();
+    const fallbackQuantity = parseInt(rawQuantity || '1', 10) || 1;
+
+    if (!itemText) {
+      return [];
+    }
+
+    return itemText
+      .split(',')
+      .map(function (part, index) {
+        const cleanPart = part.trim();
+
+        if (!cleanPart) return null;
+
+        if (cleanPart.includes(' - Qty:')) {
+          const splitParts = cleanPart.split(' - Qty:');
+
+          return {
+            name: splitParts[0] ? splitParts[0].trim() : '',
+            quantity: splitParts[1] ? parseInt(splitParts[1].trim(), 10) || 1 : 1,
+          };
+        }
+
+        return {
+          name: cleanPart,
+          quantity: index === 0 ? fallbackQuantity : 1,
+        };
+      })
+      .filter(function (part) {
+        return part && part.name;
+      });
+  }
+
+  function syncPrHiddenFields() {
+    const container = document.getElementById('editPrPartsContainer');
+    const hiddenItem = document.getElementById('edit_item');
+    const hiddenQuantity = document.getElementById('edit_quantity');
+
+    if (!container) return;
+
+    const rows = container.querySelectorAll('.pr-part-row');
+    const items = [];
+    let totalQuantity = 0;
+
+    rows.forEach(function (row) {
+      const nameInput = row.querySelector('.pr-part-name');
+      const qtyInput = row.querySelector('.pr-part-qty');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const qty = qtyInput ? parseInt(qtyInput.value || '1', 10) || 1 : 1;
+
+      if (name) {
+        items.push(name);
+        totalQuantity += qty;
+      }
+    });
+
+    if (hiddenItem) {
+      hiddenItem.value = items.join(', ');
+    }
+
+    if (hiddenQuantity) {
+      hiddenQuantity.value = totalQuantity;
     }
   }
 
-  updatePrStatusFilterColor();
+  function renderPrPartsRows(rawItem, rawQuantity, isReadOnly) {
+    const container = document.getElementById('editPrPartsContainer');
 
-  const prStatusFilter = document.getElementById('prStatusFilter');
+    if (!container) return;
 
-  if (prStatusFilter) {
-    prStatusFilter.addEventListener('change', updatePrStatusFilterColor);
-  }
+    const parts = parsePrParts(rawItem, rawQuantity);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Validation Error Modal
-  |--------------------------------------------------------------------------
-  */
-  const validationErrorModal = document.getElementById('validationErrorModal');
-  const closeValidationErrorModal = document.getElementById('closeValidationErrorModal');
+    container.innerHTML = '';
 
-  if (closeValidationErrorModal && validationErrorModal) {
-    closeValidationErrorModal.addEventListener('click', () => {
-      closeModal(validationErrorModal);
+    if (parts.length === 0) {
+      const row = document.createElement('div');
+      row.className = 'pr-part-row';
+
+      row.innerHTML = `
+        <input type="text" class="pr-part-name" value="" placeholder="No requested part" readonly>
+        <input type="number" class="pr-part-qty" value="1" min="1" readonly>
+      `;
+
+      container.appendChild(row);
+      syncPrHiddenFields();
+      return;
+    }
+
+    parts.forEach(function (part) {
+      const row = document.createElement('div');
+      row.className = 'pr-part-row';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'pr-part-name';
+      nameInput.value = part.name;
+      nameInput.placeholder = 'Part name';
+      nameInput.readOnly = isReadOnly;
+
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'number';
+      qtyInput.className = 'pr-part-qty';
+      qtyInput.min = '1';
+      qtyInput.value = part.quantity;
+      qtyInput.placeholder = 'Qty';
+      qtyInput.readOnly = isReadOnly;
+
+      nameInput.addEventListener('input', syncPrHiddenFields);
+      qtyInput.addEventListener('input', syncPrHiddenFields);
+
+      row.appendChild(nameInput);
+      row.appendChild(qtyInput);
+
+      container.appendChild(row);
     });
+
+    syncPrHiddenFields();
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | New PR Modal
-  |--------------------------------------------------------------------------
-  */
+  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const dropdown = button.closest('.menu-dropdown');
+
+      if (dropdown) {
+        dropdown.classList.toggle('open');
+      }
+    });
+  });
+
   const prModal = document.getElementById('prModal');
   const openPrModal = document.getElementById('openPrModal');
   const closePrModal = document.getElementById('closePrModal');
   const cancelPrModal = document.getElementById('cancelPrModal');
 
-  if (openPrModal) {
-    openPrModal.addEventListener('click', () => {
+  if (openPrModal && prModal) {
+    openPrModal.addEventListener('click', function () {
       openModal(prModal);
     });
   }
 
-  if (closePrModal) {
-    closePrModal.addEventListener('click', () => {
+  if (closePrModal && prModal) {
+    closePrModal.addEventListener('click', function () {
       closeModal(prModal);
     });
   }
 
-  if (cancelPrModal) {
-    cancelPrModal.addEventListener('click', () => {
+  if (cancelPrModal && prModal) {
+    cancelPrModal.addEventListener('click', function () {
       closeModal(prModal);
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Auto Fill New PR From Job Order
-  |--------------------------------------------------------------------------
-  */
   const jobOrderSelect = document.getElementById('jobOrderSelect');
   const busNoInput = document.getElementById('busNoInput');
   const partInput = document.getElementById('partInput');
   const quantityInput = document.getElementById('quantityInput');
 
+  function parseFirstPartNeeded(rawParts) {
+    const firstPart = String(rawParts || '').split(',')[0].trim();
+
+    if (!firstPart) {
+      return {
+        name: '',
+        quantity: '1',
+      };
+    }
+
+    if (firstPart.includes(' - Qty:')) {
+      const parts = firstPart.split(' - Qty:');
+
+      return {
+        name: parts[0] ? parts[0].trim() : '',
+        quantity: parts[1] ? parts[1].trim() : '1',
+      };
+    }
+
+    return {
+      name: firstPart,
+      quantity: '1',
+    };
+  }
+
   if (jobOrderSelect) {
-    jobOrderSelect.addEventListener('change', () => {
+    jobOrderSelect.addEventListener('change', function () {
       const selected = jobOrderSelect.options[jobOrderSelect.selectedIndex];
-      const busNo = selected.dataset.bus || '';
-      const parts = selected.dataset.parts || '';
-      const parsed = parsePartNeeded(parts);
+
+      if (!selected) return;
+
+      const parsed = parseFirstPartNeeded(selected.dataset.parts);
 
       if (busNoInput) {
-        busNoInput.value = busNo;
+        busNoInput.value = selected.dataset.bus || '';
       }
 
       if (partInput) {
-        partInput.value = parsed.item;
+        partInput.value = parsed.name || '';
       }
 
       if (quantityInput) {
-        quantityInput.value = parsed.quantity || 1;
+        quantityInput.value = parsed.quantity || '1';
       }
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Edit / View PR Modal
-  |--------------------------------------------------------------------------
-  */
   const editPrModal = document.getElementById('editPrModal');
+  const editPrForm = document.getElementById('editPrForm');
   const closeEditPrModal = document.getElementById('closeEditPrModal');
   const cancelEditPrModal = document.getElementById('cancelEditPrModal');
   const closeViewOnlyPr = document.getElementById('closeViewOnlyPr');
 
-  const editPrForm = document.getElementById('editPrForm');
-  const editPrNo = document.getElementById('edit_pr_no');
-  const editJobOrderNo = document.getElementById('edit_job_order_no');
-  const editBusNo = document.getElementById('edit_bus_no');
-  const editStatusDisplay = document.getElementById('edit_status_display');
-  const editItem = document.getElementById('edit_item');
-  const editQuantity = document.getElementById('edit_quantity');
-  const editRemarks = document.getElementById('edit_remarks');
-
+  const editPrDescription = document.getElementById('editPrDescription');
   const editPrMainActions = document.getElementById('editPrMainActions');
   const viewOnlyActions = document.getElementById('viewOnlyActions');
   const prApprovalActions = document.getElementById('prApprovalActions');
-  const warehouseActions = document.getElementById('warehouseActions');
 
   const approvePrForm = document.getElementById('approvePrForm');
   const rejectPrForm = document.getElementById('rejectPrForm');
-  const issuePrForm = document.getElementById('issuePrForm');
-  const forPurchasePrForm = document.getElementById('forPurchasePrForm');
 
-  document.querySelectorAll('.open-edit-pr-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      const status = button.dataset.status || '';
+  function setPrModalMode(mode, status) {
+    const isView = mode === 'view';
+    const isSubmitted = status === 'Submitted';
 
-      if (editPrForm) {
-        editPrForm.action = button.dataset.updateUrl || '#';
-      }
+    if (editPrDescription) {
+      editPrDescription.textContent = isView
+        ? 'This purchase request is view only.'
+        : 'You can edit this purchase request information.';
+    }
 
-      if (approvePrForm) {
-        approvePrForm.action = button.dataset.approveUrl || '#';
-      }
+    if (editPrMainActions) {
+      editPrMainActions.style.display = isView ? 'none' : 'flex';
+    }
 
-      if (rejectPrForm) {
-        rejectPrForm.action = button.dataset.rejectUrl || '#';
-      }
+    if (viewOnlyActions) {
+      viewOnlyActions.style.display = isView ? 'flex' : 'none';
+    }
 
-      if (issuePrForm) {
-        issuePrForm.action = button.dataset.issueUrl || '#';
-      }
+    if (prApprovalActions) {
+      prApprovalActions.style.display = !isView && isSubmitted ? 'flex' : 'none';
+    }
 
-      if (forPurchasePrForm) {
-        forPurchasePrForm.action = button.dataset.forPurchaseUrl || '#';
-      }
+    const remarks = document.getElementById('edit_remarks');
 
-      if (editPrNo) {
-        editPrNo.value = button.dataset.prNo || '';
-      }
+    if (remarks) {
+      remarks.readOnly = isView;
+    }
 
-      if (editBusNo) {
-        editBusNo.value = button.dataset.busNo || '';
-      }
+    document
+      .querySelectorAll('#editPrPartsContainer input')
+      .forEach(function (input) {
+        input.readOnly = isView;
+      });
+  }
 
-      if (editStatusDisplay) {
-        editStatusDisplay.value = status;
-      }
+  function fillPrModal(button, mode) {
+    const status = button.dataset.status || 'Submitted';
 
-      if (editItem) {
-        editItem.value = button.dataset.item || '';
-      }
+    if (editPrForm) {
+      editPrForm.action = button.dataset.updateUrl || '#';
+    }
 
-      if (editQuantity) {
-        editQuantity.value = button.dataset.quantity || '';
-      }
+    if (approvePrForm) {
+      approvePrForm.action = button.dataset.approveUrl || '#';
+    }
 
-      if (editRemarks) {
-        editRemarks.value = button.dataset.remarks || '';
-      }
+    if (rejectPrForm) {
+      rejectPrForm.action = button.dataset.rejectUrl || '#';
+    }
 
-      if (editJobOrderNo) {
-        let optionExists = false;
+    setValue('edit_pr_no', button.dataset.prNo);
+    setValue('edit_job_order_no', button.dataset.jobOrderNo);
+    setValue('edit_bus_no', button.dataset.busNo);
+    setValue('edit_status_display', status);
+    setValue('edit_remarks', button.dataset.remarks);
 
-        Array.from(editJobOrderNo.options).forEach((option) => {
-          if (option.value === button.dataset.jobOrderNo) {
-            optionExists = true;
-          }
-        });
+    renderPrPartsRows(
+      button.dataset.item,
+      button.dataset.quantity,
+      mode === 'view'
+    );
 
-        if (!optionExists && button.dataset.jobOrderNo) {
-          const option = document.createElement('option');
-          option.value = button.dataset.jobOrderNo;
-          option.textContent = button.dataset.jobOrderNo;
-          option.dataset.bus = button.dataset.busNo || '';
-          option.dataset.parts = `${button.dataset.item || ''} - Qty: ${button.dataset.quantity || 1}`;
-          editJobOrderNo.appendChild(option);
-        }
+    setPrModalMode(mode, status);
 
-        editJobOrderNo.value = button.dataset.jobOrderNo || '';
-      }
+    openModal(editPrModal);
+  }
 
-      const canEdit = status === 'Submitted';
-      const canApproveReject = status === 'Submitted';
-      const canWarehouseAct = status === 'Approved';
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-view-pr-modal');
 
-      if (editPrMainActions) {
-        editPrMainActions.style.display = canEdit ? 'flex' : 'none';
-      }
+    if (!button) return;
 
-      if (viewOnlyActions) {
-        viewOnlyActions.style.display = canEdit ? 'none' : 'flex';
-      }
-
-      if (prApprovalActions) {
-        prApprovalActions.style.display = canApproveReject ? 'flex' : 'none';
-      }
-
-      if (warehouseActions) {
-        warehouseActions.style.display = canWarehouseAct ? 'flex' : 'none';
-      }
-
-      if (editRemarks) {
-        editRemarks.readOnly = !canEdit;
-      }
-
-      if (editJobOrderNo) {
-        editJobOrderNo.disabled = !canEdit;
-      }
-
-      openModal(editPrModal);
-    });
+    event.preventDefault();
+    fillPrModal(button, 'view');
   });
 
-  if (closeEditPrModal) {
-    closeEditPrModal.addEventListener('click', () => {
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-edit-pr-modal');
+
+    if (!button) return;
+
+    event.preventDefault();
+    fillPrModal(button, 'edit');
+  });
+
+  if (closeEditPrModal && editPrModal) {
+    closeEditPrModal.addEventListener('click', function () {
       closeModal(editPrModal);
     });
   }
 
-  if (cancelEditPrModal) {
-    cancelEditPrModal.addEventListener('click', () => {
+  if (cancelEditPrModal && editPrModal) {
+    cancelEditPrModal.addEventListener('click', function () {
       closeModal(editPrModal);
     });
   }
 
-  if (closeViewOnlyPr) {
-    closeViewOnlyPr.addEventListener('click', () => {
+  if (closeViewOnlyPr && editPrModal) {
+    closeViewOnlyPr.addEventListener('click', function () {
       closeModal(editPrModal);
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Auto Fill Edit PR From Job Order
-  |--------------------------------------------------------------------------
-  */
-  if (editJobOrderNo) {
-    editJobOrderNo.addEventListener('change', () => {
-      const selected = editJobOrderNo.options[editJobOrderNo.selectedIndex];
-      const busNo = selected.dataset.bus || '';
-      const parts = selected.dataset.parts || '';
-      const parsed = parsePartNeeded(parts);
-
-      if (editBusNo) {
-        editBusNo.value = busNo;
-      }
-
-      if (editItem) {
-        editItem.value = parsed.item;
-      }
-
-      if (editQuantity) {
-        editQuantity.value = parsed.quantity || 1;
-      }
-    });
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Delete PR Modal
-  |--------------------------------------------------------------------------
-  */
   const deletePrModal = document.getElementById('deletePrModal');
   const deletePrNo = document.getElementById('deletePrNo');
   const cancelDeletePr = document.getElementById('cancelDeletePr');
   const confirmDeletePr = document.getElementById('confirmDeletePr');
 
-  let selectedDeletePrForm = null;
+  let selectedDeleteForm = null;
 
-  document.querySelectorAll('.open-delete-pr-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.dataset.id;
-      const prNo = button.dataset.prNo;
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-delete-pr-modal');
 
-      selectedDeletePrForm = document.getElementById(`deletePrForm-${id}`);
+    if (!button) return;
 
-      if (deletePrNo) {
-        deletePrNo.textContent = prNo || 'this purchase request';
-      }
+    event.preventDefault();
 
-      openModal(deletePrModal);
-    });
+    const id = button.dataset.id;
+
+    selectedDeleteForm = document.getElementById('deletePrForm-' + id);
+
+    if (deletePrNo) {
+      deletePrNo.textContent = button.dataset.prNo || 'this purchase request';
+    }
+
+    openModal(deletePrModal);
   });
 
-  if (cancelDeletePr) {
-    cancelDeletePr.addEventListener('click', () => {
-      selectedDeletePrForm = null;
+  if (cancelDeletePr && deletePrModal) {
+    cancelDeletePr.addEventListener('click', function () {
+      selectedDeleteForm = null;
       closeModal(deletePrModal);
     });
   }
 
   if (confirmDeletePr) {
-    confirmDeletePr.addEventListener('click', () => {
-      if (selectedDeletePrForm) {
-        selectedDeletePrForm.submit();
+    confirmDeletePr.addEventListener('click', function () {
+      if (selectedDeleteForm) {
+        confirmDeletePr.disabled = true;
+        confirmDeletePr.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+        selectedDeleteForm.submit();
       }
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Close Modal By Clicking Outside
-  |--------------------------------------------------------------------------
-  */
-  document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((overlay) => {
-    overlay.addEventListener('click', (event) => {
-      if (event.target === overlay) {
-        overlay.classList.remove('show');
-      }
-    });
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest(
+      'button, [data-close-modal], [data-close-feedback]'
+    );
+
+    if (!button) return;
+
+    const buttonText = button.textContent.trim().toLowerCase();
+
+    const isCloseButton =
+      buttonText === 'okay' ||
+      buttonText === 'ok' ||
+      buttonText === 'close' ||
+      button.classList.contains('success-ok-btn') ||
+      button.classList.contains('error-ok-btn') ||
+      button.classList.contains('feedback-ok-btn') ||
+      button.classList.contains('btn-ok') ||
+      button.hasAttribute('data-close-modal') ||
+      button.hasAttribute('data-close-feedback');
+
+    if (!isCloseButton) return;
+
+    const modal =
+      button.closest('.modal-overlay') ||
+      button.closest('.delete-modal-overlay') ||
+      button.closest('.success-modal-overlay') ||
+      button.closest('.error-modal-overlay') ||
+      button.closest('.feedback-modal-overlay') ||
+      button.closest('.action-modal-overlay') ||
+      button.closest('[class*="modal-overlay"]');
+
+    closeModal(modal);
   });
 
-  /*
-  |--------------------------------------------------------------------------
-  | Escape Key Close
-  |--------------------------------------------------------------------------
-  */
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') {
-      return;
-    }
-
-    document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((overlay) => {
-      overlay.classList.remove('show');
+  document
+    .querySelectorAll(
+      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay, .error-modal-overlay, .feedback-modal-overlay, .action-modal-overlay'
+    )
+    .forEach(function (modal) {
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          closeModal(modal);
+        }
+      });
     });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      closeAllModals();
+    }
   });
 });

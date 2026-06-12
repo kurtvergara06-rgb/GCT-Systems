@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeEditJobModal = document.getElementById('closeEditJobModal');
   const cancelEditJobModal = document.getElementById('cancelEditJobModal');
+  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
 
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
@@ -52,6 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const editAssignedMechanic = document.getElementById('edit_assigned_mechanic');
 
   const editPartsNeededWrapper = document.getElementById('editPartsNeededWrapper');
+  const editJobMainActions = document.getElementById('editJobMainActions');
+  const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
+  const editAddPartBtn = document.getElementById('editAddPartBtn');
+  const editModalSubtitle = document.getElementById('editModalSubtitle');
+  const editModeDescription = document.getElementById('editModeDescription');
 
   function setEditModalReadonly(isReadonly) {
     const fields = [
@@ -74,10 +80,28 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const editAddPartBtn = document.getElementById('editAddPartBtn');
-
     if (editAddPartBtn) {
       editAddPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
+    }
+
+    if (editJobMainActions) {
+      editJobMainActions.style.display = isReadonly ? 'none' : 'flex';
+    }
+
+    if (viewOnlyJobActions) {
+      viewOnlyJobActions.style.display = isReadonly ? 'flex' : 'none';
+    }
+
+    if (editModalSubtitle) {
+      editModalSubtitle.textContent = isReadonly
+        ? 'View the selected job order details.'
+        : 'Review and update the selected job order.';
+    }
+
+    if (editModeDescription) {
+      editModeDescription.textContent = isReadonly
+        ? 'This completed job order is view only.'
+        : 'Review and update the selected job order.';
     }
   }
 
@@ -111,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderEditParts(partNeeded) {
+  function renderEditParts(partNeeded, isReadonly) {
     if (!editPartsNeededWrapper) return;
 
     const parts = parseParts(partNeeded);
@@ -130,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
           name="parts[${index}][name]"
           placeholder="Part name"
           value="${escapeInputValue(part.name)}"
+          ${isReadonly ? 'disabled' : ''}
         >
 
         <input
@@ -138,9 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
           min="1"
           placeholder="Quantity"
           value="${escapeInputValue(part.quantity)}"
+          ${isReadonly ? 'disabled' : ''}
         >
 
-        <button type="button" class="remove-part-btn">
+        <button type="button" class="remove-part-btn" ${isReadonly ? 'disabled' : ''}>
           <i class="fa-solid fa-xmark"></i>
         </button>
       `;
@@ -182,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editStatus) editStatus.value = status;
       if (editAssignedMechanic) editAssignedMechanic.value = button.dataset.assignedMechanic || '';
 
-      renderEditParts(button.dataset.partNeeded || '');
+      renderEditParts(button.dataset.partNeeded || '', isCompleted);
       setEditModalReadonly(isCompleted);
 
       openModal(editJobModal);
@@ -195,6 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (cancelEditJobModal) {
     cancelEditJobModal.addEventListener('click', () => closeModal(editJobModal));
+  }
+
+  if (closeViewOnlyJob) {
+    closeViewOnlyJob.addEventListener('click', () => closeModal(editJobModal));
   }
 
   const deleteJobModal = document.getElementById('deleteJobModal');
@@ -341,49 +371,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
   setupPartsRepeater('editPartsNeededWrapper', 'editAddPartBtn');
-}); 
+});
 
-/* ========================================
-   PART STATUS FILTER COLOR
-======================================== */
 document.addEventListener('DOMContentLoaded', function () {
-    const partStatusFilter = document.getElementById('partStatusFilter');
+  const partStatusFilter = document.getElementById('partStatusFilter');
 
-    function slugStatus(value) {
-        return String(value || '')
-            .toLowerCase()
-            .replace(/\//g, '-')
-            .replace(/\s+/g, '-');
-    }
+  function slugStatus(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, '-');
+  }
 
-    function updatePartStatusFilterColor() {
-        if (!partStatusFilter) return;
+  function updatePartStatusFilterColor() {
+    if (!partStatusFilter) return;
 
-        partStatusFilter.classList.remove(
-            'submitted',
-            'approved',
-            'rejected',
-            'for-purchase',
-            'ordered',
-            'for-pick-up',
-            'for-delivery',
-            'delivered',
-            'picked-up',
-            'issued'
-        );
+    partStatusFilter.classList.remove(
+      'not-requested',
+      'submitted',
+      'approved',
+      'rejected',
+      'for-purchase',
+      'ordered',
+      'for-pick-up',
+      'for-delivery',
+      'delivered',
+      'picked-up',
+      'issued',
+      'no-parts-needed'
+    );
 
-        const value = partStatusFilter.value;
+    const value = partStatusFilter.value;
 
-        if (!value) return;
+    if (!value || value === 'All Part Statuses') return;  
 
-        partStatusFilter.classList.add(slugStatus(value));
-    }
+    partStatusFilter.classList.add(slugStatus(value));
+  }
 
-    if (partStatusFilter) {
-        updatePartStatusFilterColor();
+  if (partStatusFilter) {
+    updatePartStatusFilterColor();
 
-        partStatusFilter.addEventListener('change', function () {
-            updatePartStatusFilterColor();
-        });
-    }
+    partStatusFilter.addEventListener('change', function () {
+      updatePartStatusFilterColor();
+    });
+  }
 });
