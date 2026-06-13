@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     event.preventDefault();
 
-    setField('viewRestockPrNo', button.dataset.prNo);
+    setField('viewRestockNo', button.dataset.restockNo);
     setField('viewRestockSource', button.dataset.sourceType);
     setField('viewRestockStatus', button.dataset.status);
     setField('viewRestockCreated', button.dataset.created);

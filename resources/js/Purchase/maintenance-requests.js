@@ -45,9 +45,102 @@ document.addEventListener('DOMContentLoaded', function () {
       .replaceAll('>', '&gt;');
   }
 
+  function splitQuantityAndUnit(value) {
+    const text = String(value || '').trim();
+
+    if (!text || text === '—') {
+      return {
+        quantity: '1',
+        unit: '—',
+      };
+    }
+
+    const match = text.match(/^(\d+)\s*(.*)$/);
+
+    if (!match) {
+      return {
+        quantity: text,
+        unit: '—',
+      };
+    }
+
+    return {
+      quantity: String(match[1] || '1').trim(),
+      unit: String(match[2] || '—').trim() || '—',
+    };
+  }
+
+  function cleanPartNameQuantityUnit(rawName, rawQuantity) {
+    let name = String(rawName || '').trim();
+    let quantityText = String(rawQuantity || '').trim();
+
+    /*
+      Example:
+      Engine Oil - Qty: 2 liter
+    */
+    if (name.toLowerCase().includes(' - qty:')) {
+      const splitParts = name.split(/ - qty:/i);
+
+      name = String(splitParts[0] || '').trim();
+      quantityText = String(splitParts[1] || quantityText || '1').trim();
+
+      const parsed = splitQuantityAndUnit(quantityText);
+
+      return {
+        name,
+        quantity: parsed.quantity,
+        unit: parsed.unit,
+      };
+    }
+
+    /*
+      Example:
+      Engine Oil (2 liter)
+    */
+    const parenthesisMatch = name.match(/^(.*?)\s*\((\d+\s*[^)]*)\)$/);
+
+    if (parenthesisMatch) {
+      name = String(parenthesisMatch[1] || '').trim();
+      quantityText = String(parenthesisMatch[2] || quantityText || '1').trim();
+
+      const parsed = splitQuantityAndUnit(quantityText);
+
+      return {
+        name,
+        quantity: parsed.quantity,
+        unit: parsed.unit,
+      };
+    }
+
+    /*
+      Example:
+      Engine Oil 2 liter
+      Oil Filter 4 pcs
+    */
+    const trailingQtyMatch = name.match(
+      /^(.*?)\s+(\d+)\s*(liter|liters|litre|litres|ltr|ltrs|pcs|pc|piece|pieces|set|sets|bottle|bottles|box|boxes|pack|packs|pair|pairs|gallon|gallons|kg|meter|meters)$/i
+    );
+
+    if (trailingQtyMatch && !quantityText) {
+      return {
+        name: String(trailingQtyMatch[1] || '').trim(),
+        quantity: String(trailingQtyMatch[2] || '1').trim(),
+        unit: String(trailingQtyMatch[3] || '—').trim(),
+      };
+    }
+
+    const parsed = splitQuantityAndUnit(quantityText || '1');
+
+    return {
+      name,
+      quantity: parsed.quantity,
+      unit: parsed.unit,
+    };
+  }
+
   function parseRequestedParts(rawItem, rawQuantity) {
     const itemText = String(rawItem || '').trim();
-    const fallbackQuantity = parseInt(rawQuantity || '1', 10) || 1;
+    const fallbackQuantity = String(rawQuantity || '1').trim();
 
     if (!itemText) return [];
 
@@ -58,36 +151,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cleanPart) return null;
 
-        if (cleanPart.toLowerCase().includes(' - qty:')) {
-          const splitParts = cleanPart.split(/ - qty:/i);
-          const quantityWithUnit = String(splitParts[1] || '').trim();
-
-          return {
-            name: String(splitParts[0] || '').trim(),
-            quantity: quantityWithUnit || '1',
-          };
-        }
-
-        if (cleanPart.match(/\(\d+\s*[^)]*\)$/)) {
-          const match = cleanPart.match(/^(.*?)\s*\((\d+\s*[^)]*)\)$/);
-
-          return {
-            name: match ? String(match[1] || '').trim() : cleanPart,
-            quantity: match ? String(match[2] || '').trim() : '1',
-          };
-        }
-
-        return {
-          name: cleanPart,
-          quantity: index === 0 ? String(fallbackQuantity) : '1',
-        };
+        return cleanPartNameQuantityUnit(
+          cleanPart,
+          index === 0 ? fallbackQuantity : ''
+        );
       })
       .filter(function (part) {
         return part && part.name;
       });
   }
 
-  function renderRequestedPartsFromDataset(button) {
+  function normalizePartFromJson(part) {
+    const rawName =
+      part.name ||
+      part.part_name ||
+      part.item ||
+      part.item_name ||
+      '';
+
+    const rawQuantity =
+      part.quantity_display ||
+      part.needed_display ||
+      part.quantity ||
+      part.needed ||
+      '';
+
+    const rawUnit =
+      part.unit ||
+      part.unit_of_measurement ||
+      '';
+
+    const parsed = cleanPartNameQuantityUnit(rawName, rawQuantity);
+
+    return {
+      name: parsed.name,
+      quantity: parsed.quantity,
+      unit: rawUnit ? rawUnit : parsed.unit,
+    };
+  }
+
+  function renderRequestedParts(button) {
     const container = document.getElementById('viewRequestedPartsContainer');
 
     if (!container) return;
@@ -100,6 +203,16 @@ document.addEventListener('DOMContentLoaded', function () {
       parts = [];
     }
 
+    if (Array.isArray(parts) && parts.length > 0) {
+      parts = parts
+        .map(function (part) {
+          return normalizePartFromJson(part);
+        })
+        .filter(function (part) {
+          return part && part.name;
+        });
+    }
+
     if (!Array.isArray(parts) || parts.length === 0) {
       parts = parseRequestedParts(button.dataset.item, button.dataset.quantity);
     }
@@ -107,8 +220,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!Array.isArray(parts) || parts.length === 0) {
       container.innerHTML = `
         <div class="requested-pr-breakdown-row">
-          <span>No parts found.</span>
-          <span>0</span>
+          <span>—</span>
+          <span>—</span>
+          <span>—</span>
         </div>
       `;
       return;
@@ -117,35 +231,17 @@ document.addEventListener('DOMContentLoaded', function () {
     let html = '';
 
     parts.forEach(function (part) {
-      const name = escapeHtml(part.name || '—');
-      const quantity = escapeHtml(
-        part.quantity_display ||
-        part.needed_display ||
-        part.quantity ||
-        part.needed ||
-        '0'
-      );
-
       html += `
         <div class="requested-pr-breakdown-row">
-          <span>${name}</span>
-          <span>${quantity}</span>
+          <span>${escapeHtml(part.name || '—')}</span>
+          <span>${escapeHtml(part.quantity || '1')}</span>
+          <span>${escapeHtml(part.unit || '—')}</span>
         </div>
       `;
     });
 
     container.innerHTML = html;
   }
-
-  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
-    button.addEventListener('click', function () {
-      const dropdown = button.closest('.menu-dropdown');
-
-      if (dropdown) {
-        dropdown.classList.toggle('open');
-      }
-    });
-  });
 
   const viewRequestedPrModal = document.getElementById('viewRequestedPrModal');
   const closeRequestedPrModal = document.getElementById('closeRequestedPrModal');
@@ -161,11 +257,10 @@ document.addEventListener('DOMContentLoaded', function () {
     setField('viewRequestedPrNo', button.dataset.prNo);
     setField('viewRequestedJoNo', button.dataset.jobOrderNo);
     setField('viewRequestedBusNo', button.dataset.busNo);
-    setField('viewRequestedStatus', button.dataset.status);
     setField('viewRequestedCreated', button.dataset.created);
     setField('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
 
-    renderRequestedPartsFromDataset(button);
+    renderRequestedParts(button);
 
     openModal(viewRequestedPrModal);
   });
@@ -190,49 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest(
-      'button, [data-close-modal], [data-close-feedback]'
-    );
-
-    if (!button) return;
-
-    const buttonText = button.textContent.trim().toLowerCase();
-
-    const isCloseButton =
-      buttonText === 'okay' ||
-      buttonText === 'ok' ||
-      buttonText === 'close' ||
-      button.classList.contains('success-ok-btn') ||
-      button.classList.contains('error-ok-btn') ||
-      button.classList.contains('feedback-ok-btn') ||
-      button.classList.contains('btn-ok') ||
-      button.hasAttribute('data-close-modal') ||
-      button.hasAttribute('data-close-feedback');
-
-    if (!isCloseButton) return;
-
-    const modal =
-      button.closest('.modal-overlay') ||
-      button.closest('.delete-modal-overlay') ||
-      button.closest('.success-modal-overlay') ||
-      button.closest('.error-modal-overlay') ||
-      button.closest('.feedback-modal-overlay') ||
-      button.closest('.action-modal-overlay') ||
-      button.closest('[class*="modal-overlay"]');
-
-    closeModal(modal);
-  });
-
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
-      document
-        .querySelectorAll(
-          '.modal-overlay.show, .delete-modal-overlay.show, .success-modal-overlay.show, .error-modal-overlay.show, .feedback-modal-overlay.show, .action-modal-overlay.show'
-        )
-        .forEach(function (modal) {
-          closeModal(modal);
-        });
+      closeModal(viewRequestedPrModal);
     }
   });
 });

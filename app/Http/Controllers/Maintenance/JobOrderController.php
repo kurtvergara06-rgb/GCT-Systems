@@ -197,7 +197,7 @@ class JobOrderController extends Controller
 
             $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $newMechanic)
                 ->where('status', '!=', 'Completed')
-                ->whereKeyNot($jobOrder->id)
+                ->where('id', '!=', $jobOrder->id)
                 ->exists();
 
             if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {

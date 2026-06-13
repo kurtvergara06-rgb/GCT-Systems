@@ -270,3 +270,302 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   SIDEBAR DROPDOWN FIX
+   Uses your real classes: .menu-item and .submenu-item
+========================================================= */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-dropdown {
+  width: 100%;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.menu-item {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 18px;
+  border-radius: 10px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.menu-item i {
+  width: 18px;
+  font-size: 14px;
+  color: inherit;
+}
+
+.menu-item span {
+  flex: 1;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: rgba(255, 196, 0, 0.12);
+  color: #ffffff;
+}
+
+.menu-item.active {
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 10px 25px rgba(255, 196, 0, 0.18);
+}
+
+/* Arrow */
+.dropdown-arrow {
+  width: auto !important;
+  font-size: 11px !important;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.menu-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Submenu */
+.submenu {
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+  margin-left: 28px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.menu-dropdown.open .submenu {
+  display: flex !important;
+}
+
+/* Child item */
+.submenu-item {
+  width: calc(100% - 4px);
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.2s ease;
+}
+
+.submenu-item i {
+  width: 16px;
+  font-size: 12px;
+  color: inherit;
+}
+
+.submenu-item span {
+  flex: 1;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 196, 0, 0.12);
+  color: #ffffff;
+}
+
+.submenu-item.active {
+  background: rgba(255, 196, 0, 0.20);
+  color: #ffc400;
+}
+
+/* Parent active/open */
+.menu-dropdown.open > .menu-item,
+.menu-dropdown.active > .menu-item {
+  background: #ffc400;
+  color: #061f3d;
+}
+
+.menu-dropdown.open > .menu-item i,
+.menu-dropdown.active > .menu-item i {
+  color: #061f3d;
+}
+
+/* Keep children readable */
+.menu-dropdown.open .submenu-item {
+  color: #cbd5e1;
+}
+
+.menu-dropdown.open .submenu-item.active {
+  color: #ffc400;
+}
+
+@media (max-width: 768px) {
+  .submenu {
+    margin-left: 20px;
+  }
+
+  .menu-item {
+    font-size: 13px;
+    padding: 0 14px;
+  }
+
+  .submenu-item {
+    font-size: 12px;
+  }
+}
+/* =========================================================
+   UNIVERSAL SIDEBAR DROPDOWN FIX
+   Works for Purchase, Operation, Maintenance, Warehouse
+========================================================= */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-dropdown {
+  width: 100%;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.menu-item {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 18px;
+  border-radius: 10px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.menu-item i {
+  width: 18px;
+  font-size: 14px;
+  color: inherit;
+}
+
+.menu-item span {
+  flex: 1;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: rgba(255, 196, 0, 0.12);
+  color: #ffffff;
+}
+
+.menu-item.active {
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 10px 25px rgba(255, 196, 0, 0.18);
+}
+
+.dropdown-arrow {
+  width: auto !important;
+  font-size: 11px !important;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.menu-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  display: none !important;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+  margin-left: 28px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.menu-dropdown.open .submenu {
+  display: flex !important;
+}
+
+.submenu-item {
+  width: calc(100% - 4px);
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.2s ease;
+}
+
+.submenu-item i {
+  width: 16px;
+  font-size: 12px;
+  color: inherit;
+}
+
+.submenu-item span {
+  flex: 1;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 196, 0, 0.12);
+  color: #ffffff;
+}
+
+.submenu-item.active {
+  background: rgba(255, 196, 0, 0.20);
+  color: #ffc400;
+}
+
+.menu-dropdown.open > .menu-item,
+.menu-dropdown.active > .menu-item {
+  background: #ffc400;
+  color: #061f3d;
+}
+
+.menu-dropdown.open > .menu-item i,
+.menu-dropdown.active > .menu-item i {
+  color: #061f3d;
+}
+
+.menu-dropdown.open .submenu-item {
+  color: #cbd5e1;
+}
+
+.menu-dropdown.open .submenu-item.active {
+  color: #ffc400;
+}

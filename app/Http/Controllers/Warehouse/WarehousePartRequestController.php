@@ -10,6 +10,13 @@ use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Active statuses only
+    |--------------------------------------------------------------------------
+    | Issued is removed here because Issued should not appear in the active table.
+    | Issued records will appear in the Issued Parts History table instead.
+    */
     private array $statuses = [
         'Approved',
         'For Purchase',
@@ -18,18 +25,18 @@ class WarehousePartRequestController extends Controller
         'For Delivery',
         'Delivered',
         'Picked Up',
-        'Issued',
     ];
 
     public function index(Request $request)
     {
         /*
-         * IMPORTANT:
-         * Warehouse page should NOT show generated purchase-only PRs like:
-         * PR-2026-0001-P
-         *
-         * Those records should appear only in Purchase > Requested Purchase.
-         */
+        |--------------------------------------------------------------------------
+        | Active Part Requests
+        |--------------------------------------------------------------------------
+        | Show original PR only.
+        | Hide purchase-side copied PRs like PR-2026-0001-P.
+        |--------------------------------------------------------------------------
+        */
         $query = PurchaseRequest::query()
             ->whereIn('status', $this->statuses)
             ->where(function ($q) {
@@ -59,67 +66,68 @@ class WarehousePartRequestController extends Controller
             ->withQueryString();
 
         $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
-            $parts = $this->parseParts($purchaseRequest->item);
-            $inventoryCheck = $this->checkInventoryAvailability($parts);
-
-            $firstPart = $inventoryCheck['breakdown'][0] ?? null;
-            $inventoryLabel = $this->getOverallInventoryLabel($inventoryCheck);
-            $missingPrAlreadyCreated = $this->missingPurchaseRequestExists($purchaseRequest);
-
-            $purchaseRequest->parts_breakdown = $inventoryCheck['breakdown'];
-            $purchaseRequest->inventory_check = $inventoryCheck;
-
-            $purchaseRequest->first_item_display = $firstPart['name'] ?? $purchaseRequest->item ?? '—';
-            $purchaseRequest->first_quantity_display = $firstPart['needed_display'] ?? '0';
-            $purchaseRequest->first_on_hand_display = $firstPart['available_display'] ?? '0';
-
-            $purchaseRequest->inventory_label = $inventoryLabel;
-            $purchaseRequest->first_inventory_status = $inventoryLabel;
-            $purchaseRequest->on_hand_available = $inventoryCheck['total_on_hand'];
-
-            /*
-             * If ALL parts are available, show Issue button.
-             */
-            $purchaseRequest->can_issue =
-                $purchaseRequest->status === 'Approved'
-                && $inventoryCheck['available'];
-
-            /*
-             * If SOME or ALL parts are missing, show Send to Purchase button.
-             * Hide it if missing PR already created.
-             */
-            $purchaseRequest->needs_purchase =
-                $purchaseRequest->status === 'Approved'
-                && ! $inventoryCheck['available']
-                && ! $missingPrAlreadyCreated;
-
-            $purchaseRequest->missing_pr_already_created = $missingPrAlreadyCreated;
-
-            return $purchaseRequest;
+            return $this->prepareRequestForWarehouse($purchaseRequest);
         });
 
-        $approved = PurchaseRequest::where('status', 'Approved')
+        /*
+        |--------------------------------------------------------------------------
+        | Issued History
+        |--------------------------------------------------------------------------
+        | This is the completed/history table below the active table.
+        |--------------------------------------------------------------------------
+        */
+        $issuedRequests = PurchaseRequest::query()
+            ->where('status', 'Issued')
+            ->where(function ($q) {
+                $q->where('pr_no', 'not like', '%-P%')
+                    ->orWhereNull('pr_no');
+            })
+            ->latest()
+            ->paginate(5, ['*'], 'history_page')
+            ->withQueryString();
+
+        $issuedRequests->getCollection()->transform(function ($purchaseRequest) {
+            return $this->prepareRequestForWarehouse($purchaseRequest);
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Summary Counts
+        |--------------------------------------------------------------------------
+        */
+        $approved = PurchaseRequest::query()
             ->where('pr_no', 'not like', '%-P%')
+            ->where('status', 'Approved')
             ->count();
 
-        $forPurchase = PurchaseRequest::where('status', 'For Purchase')
-            ->where('pr_no', 'not like', '%-P%')
+        $forPurchase = PurchaseRequest::query()
+            ->where('pr_no', 'like', '%-P%')
+            ->where('status', 'For Purchase')
             ->count();
 
-        $delivered = PurchaseRequest::where('status', 'Delivered')
-            ->where('pr_no', 'not like', '%-P%')
+        $ordered = PurchaseRequest::query()
+            ->where('pr_no', 'like', '%-P%')
+            ->where('status', 'Ordered')
             ->count();
 
-        $issued = PurchaseRequest::where('status', 'Issued')
+        $delivered = PurchaseRequest::query()
+            ->where('pr_no', 'like', '%-P%')
+            ->whereIn('status', ['Delivered', 'Picked Up'])
+            ->count();
+
+        $issued = PurchaseRequest::query()
             ->where('pr_no', 'not like', '%-P%')
+            ->where('status', 'Issued')
             ->count();
 
         $statuses = $this->statuses;
 
         return view('Warehouse.part-requests', compact(
             'purchaseRequests',
+            'issuedRequests',
             'approved',
             'forPurchase',
+            'ordered',
             'delivered',
             'issued',
             'statuses'
@@ -128,10 +136,13 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
-        if ($purchaseRequest->status !== 'Approved') {
+        $missingPurchaseRequest = $this->getMissingPurchaseRequest($purchaseRequest);
+        $displayStatus = $missingPurchaseRequest?->status ?? $purchaseRequest->status;
+
+        if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true)) {
             return redirect()
                 ->back()
-                ->with('error', 'Only approved purchase requests can be issued.');
+                ->with('error', 'Only approved, delivered, or picked up parts can be issued.');
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
@@ -140,7 +151,7 @@ class WarehousePartRequestController extends Controller
         if (! $inventoryCheck['available']) {
             return redirect()
                 ->back()
-                ->with('error', 'Cannot issue parts. One or more requested parts are not available.');
+                ->with('error', 'Cannot issue parts. One or more requested parts are not available in inventory yet.');
         }
 
         foreach ($parts as $part) {
@@ -159,6 +170,12 @@ class WarehousePartRequestController extends Controller
         $purchaseRequest->update([
             'status' => 'Issued',
         ]);
+
+        if ($missingPurchaseRequest) {
+            $missingPurchaseRequest->update([
+                'status' => 'Issued',
+            ]);
+        }
 
         JobOrder::where('job_order_no', $purchaseRequest->job_order_no)
             ->update([
@@ -193,10 +210,6 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'All requested parts are available. Please issue the parts instead.');
         }
 
-        /*
-         * This is the important part:
-         * Only missing / not available parts are sent to Purchase.
-         */
         $missingParts = $inventoryCheck['missing'] ?? [];
 
         if (count($missingParts) === 0) {
@@ -216,7 +229,9 @@ class WarehousePartRequestController extends Controller
             'item' => $missingItemText,
             'quantity' => $missingTotalQuantity,
             'status' => 'For Purchase',
+            'source_type' => 'Maintenance Request',
             'remarks' => 'Missing parts from ' . $purchaseRequest->pr_no . '. Only unavailable parts were sent to Purchase Department.',
+            'date_requested' => now(),
         ]);
 
         $oldRemarks = trim($purchaseRequest->remarks ?? '');
@@ -235,6 +250,72 @@ class WarehousePartRequestController extends Controller
             ->with('success', 'Only unavailable parts were sent to Purchase Department.');
     }
 
+    private function prepareRequestForWarehouse(PurchaseRequest $purchaseRequest): PurchaseRequest
+    {
+        $parts = $this->parseParts($purchaseRequest->item);
+        $inventoryCheck = $this->checkInventoryAvailability($parts);
+
+        $firstPart = $inventoryCheck['breakdown'][0] ?? null;
+        $inventoryLabel = $this->getOverallInventoryLabel($inventoryCheck);
+
+        $missingPurchaseRequest = $this->getMissingPurchaseRequest($purchaseRequest);
+        $missingPrAlreadyCreated = $missingPurchaseRequest !== null;
+
+        $warehouseDisplayStatus = $purchaseRequest->status;
+
+        if ($missingPurchaseRequest) {
+            $warehouseDisplayStatus = $missingPurchaseRequest->status;
+        }
+
+        $purchaseRequest->parts_breakdown = $inventoryCheck['breakdown'];
+        $purchaseRequest->inventory_check = $inventoryCheck;
+
+        $purchaseRequest->first_item_display = $firstPart['name'] ?? $purchaseRequest->item ?? '—';
+        $purchaseRequest->first_quantity_display = $firstPart['needed_display'] ?? '0';
+        $purchaseRequest->first_on_hand_display = $firstPart['available_display'] ?? '0';
+
+        $purchaseRequest->inventory_label = $inventoryLabel;
+        $purchaseRequest->first_inventory_status = $inventoryLabel;
+        $purchaseRequest->on_hand_available = $inventoryCheck['total_on_hand'];
+
+        $purchaseRequest->missing_pr_already_created = $missingPrAlreadyCreated;
+        $purchaseRequest->missing_purchase_request = $missingPurchaseRequest;
+        $purchaseRequest->purchase_progress_status = $warehouseDisplayStatus;
+
+        $purchaseRequest->can_issue =
+            $purchaseRequest->status !== 'Issued'
+            && $inventoryCheck['available']
+            && (
+                $purchaseRequest->status === 'Approved'
+                || in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
+            );
+
+        $purchaseRequest->needs_purchase =
+            $purchaseRequest->status === 'Approved'
+            && ! $inventoryCheck['available']
+            && ! $missingPrAlreadyCreated;
+
+        return $purchaseRequest;
+    }
+
+    private function getMissingPurchaseRequest(PurchaseRequest $purchaseRequest): ?PurchaseRequest
+    {
+        if (! $purchaseRequest->pr_no) {
+            return null;
+        }
+
+        return PurchaseRequest::query()
+            ->where('job_order_no', $purchaseRequest->job_order_no)
+            ->where('pr_no', 'like', $purchaseRequest->pr_no . '-P%')
+            ->latest()
+            ->first();
+    }
+
+    private function missingPurchaseRequestExists(PurchaseRequest $purchaseRequest): bool
+    {
+        return $this->getMissingPurchaseRequest($purchaseRequest) !== null;
+    }
+
     private function parseParts(?string $partsText): array
     {
         if (! $partsText) {
@@ -249,10 +330,6 @@ class WarehousePartRequestController extends Controller
                     return null;
                 }
 
-                /*
-                 * Format:
-                 * Engine Oil - Qty: 2 liter
-                 */
                 if (str_contains(strtolower($part), ' - qty:')) {
                     [$name, $quantityWithUnit] = preg_split('/ - qty:/i', $part, 2);
 
@@ -272,10 +349,6 @@ class WarehousePartRequestController extends Controller
                     ];
                 }
 
-                /*
-                 * Old format:
-                 * Engine Oil (2 liter)
-                 */
                 if (preg_match('/^(.*?)\s*\((\d+)\s*([^)]+)\)$/', $part, $matches)) {
                     $name = $this->cleanPartName($matches[1] ?? '');
                     $quantity = isset($matches[2]) ? (int) $matches[2] : 1;
@@ -397,12 +470,6 @@ class WarehousePartRequestController extends Controller
             return null;
         }
 
-        /*
-         * Your inventory table uses:
-         * item_name
-         * quantity_available
-         * unit_of_measurement
-         */
         $query = InventoryItem::query()
             ->where(function ($q) use ($partName) {
                 $q->whereRaw('LOWER(TRIM(item_name)) = ?', [$partName])
@@ -410,9 +477,7 @@ class WarehousePartRequestController extends Controller
             });
 
         if ($unit !== '') {
-            $query->where(function ($q) use ($unit) {
-                $q->whereRaw('LOWER(TRIM(unit_of_measurement)) = ?', [$unit]);
-            });
+            $query->whereRaw('LOWER(TRIM(unit_of_measurement)) = ?', [$unit]);
         }
 
         $item = $query->first();
@@ -462,15 +527,6 @@ class WarehousePartRequestController extends Controller
         }
 
         return $prNo;
-    }
-
-    private function missingPurchaseRequestExists(PurchaseRequest $purchaseRequest): bool
-    {
-        return PurchaseRequest::query()
-            ->where('job_order_no', $purchaseRequest->job_order_no)
-            ->where('status', 'For Purchase')
-            ->where('pr_no', 'like', $purchaseRequest->pr_no . '-P%')
-            ->exists();
     }
 
     private function cleanPartName(?string $name): string

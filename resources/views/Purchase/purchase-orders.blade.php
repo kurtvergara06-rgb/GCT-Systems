@@ -10,7 +10,6 @@
 
   @php
     $statuses = $statuses ?? [
-      'Draft',
       'Ordered',
       'For Pick-up',
       'For Delivery',
@@ -22,6 +21,71 @@
     $ordered = $ordered ?? 0;
     $forPickup = $forPickup ?? 0;
     $delivered = $delivered ?? 0;
+
+    $selectedPurchaseRequest = $selectedPurchaseRequest ?? null;
+    $openPoModal = $openPoModal ?? false;
+
+    $prefillItems = [];
+
+    if ($selectedPurchaseRequest) {
+      $rawItems = explode(',', $selectedPurchaseRequest->item ?? '');
+
+      foreach ($rawItems as $rawItem) {
+        $rawItem = trim($rawItem);
+
+        if ($rawItem === '') {
+          continue;
+        }
+
+        $itemName = $rawItem;
+        $quantity = 1;
+        $unit = 'PC';
+
+        if (str_contains(strtolower($rawItem), ' - qty:')) {
+          $parts = preg_split('/ - qty:/i', $rawItem, 2);
+          $itemName = trim($parts[0] ?? $rawItem);
+          $qtyUnit = trim($parts[1] ?? '1');
+
+          if (preg_match('/^(\d+)\s*(.*)$/', $qtyUnit, $matches)) {
+            $quantity = (int) ($matches[1] ?? 1);
+            $unit = trim($matches[2] ?? 'PC') ?: 'PC';
+          } else {
+            $quantity = (int) ($selectedPurchaseRequest->quantity ?? 1);
+          }
+        }
+
+        $prefillItems[] = [
+          'pr_no' => $selectedPurchaseRequest->pr_no,
+          'bus_no' => $selectedPurchaseRequest->bus_no,
+          'employee' => '',
+          'item_description' => $itemName,
+          'quantity' => $quantity > 0 ? $quantity : 1,
+          'unit' => $unit,
+          'cost' => 0,
+        ];
+      }
+
+      if (count($prefillItems) === 0) {
+        $prefillItems[] = [
+          'pr_no' => $selectedPurchaseRequest->pr_no,
+          'bus_no' => $selectedPurchaseRequest->bus_no,
+          'employee' => '',
+          'item_description' => $selectedPurchaseRequest->item ?? '',
+          'quantity' => $selectedPurchaseRequest->quantity ?? 1,
+          'unit' => 'PC',
+          'cost' => 0,
+        ];
+      }
+    }
+
+    $prefillData = $selectedPurchaseRequest ? [
+      'id' => $selectedPurchaseRequest->id,
+      'pr_no' => $selectedPurchaseRequest->pr_no,
+      'bus_no' => $selectedPurchaseRequest->bus_no,
+      'employee' => '',
+      'purpose' => $selectedPurchaseRequest->remarks ?? 'For purchase request ' . $selectedPurchaseRequest->pr_no,
+      'items' => $prefillItems,
+    ] : null;
   @endphp
 
   <x-ui.action-buttom-modal
@@ -41,13 +105,36 @@
     <x-layout.sidebar
       department="Purchase"
       subtitle="Department Module"
-      icon="fa-truck"
-      user-name="R. Lim"
+      icon="fa-cart-shopping"
+      user-name="P. Admin"
       user-role="Purchase Admin"
       :items="[
-        ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
-        ['label' => 'Requested Purchase', 'route' => 'requested-purchase', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-days'],
+        [
+          'label' => 'Purchase Orders',
+          'route' => 'purchase-orders',
+          'icon' => 'fa-file-invoice'
+        ],
+        [
+          'label' => 'Requested Purchase',
+          'icon' => 'fa-clipboard-list',
+          'children' => [
+            [
+              'label' => 'Maintenance Requests',
+              'route' => 'maintenance-requests',
+              'icon' => 'fa-screwdriver-wrench'
+            ],
+            [
+              'label' => 'Inventory Restock',
+              'route' => 'inventory-restock',
+              'icon' => 'fa-boxes-stacked'
+            ],
+          ],
+        ],
+        [
+          'label' => 'Scheduled Purchase',
+          'route' => 'scheduled-purchase',
+          'icon' => 'fa-calendar-check'
+        ],
       ]"
     />
 
@@ -283,8 +370,8 @@
   {{-- CREATE / EDIT / VIEW PO MODAL --}}
   <div
     id="poModal"
-    class="modal-overlay {{ $openPoModal ?? false ? 'show active' : '' }}"
-    style="{{ $openPoModal ?? false ? 'display: flex;' : '' }}"
+    class="modal-overlay {{ $openPoModal ? 'show active' : '' }}"
+    style="{{ $openPoModal ? 'display: flex;' : '' }}"
   >
     <div class="modal-box po-modal-box">
 
@@ -303,9 +390,23 @@
         <p>PURCHASE ORDER</p>
       </div>
 
-      <form id="poForm" action="{{ route('purchase-orders.store') }}" method="POST" class="po-form">
+      <form
+        id="poForm"
+        action="{{ route('purchase-orders.store') }}"
+        method="POST"
+        class="po-form"
+        data-store-url="{{ route('purchase-orders.store') }}"
+      >
         @csrf
+
         <input type="hidden" name="_method" id="poFormMethod" value="POST">
+
+        <input
+          type="hidden"
+          name="purchase_request_id"
+          id="purchase_request_id"
+          value="{{ $selectedPurchaseRequest?->id }}"
+        >
 
         <div class="po-form-grid">
 
@@ -376,7 +477,7 @@
             <label>Status</label>
             <select name="status" id="po_status" required>
               @foreach($statuses as $status)
-                <option value="{{ $status }}" {{ $status === 'Draft' ? 'selected' : '' }}>
+                <option value="{{ $status }}" {{ $status === 'Ordered' ? 'selected' : '' }}>
                   {{ $status }}
                 </option>
               @endforeach
@@ -392,6 +493,7 @@
               type="text"
               id="main_pr_no"
               placeholder="PR No."
+              value="{{ $selectedPurchaseRequest?->pr_no }}"
               readonly
             >
           </div>
@@ -402,6 +504,7 @@
               type="text"
               id="main_bus_no"
               placeholder="Bus No."
+              value="{{ $selectedPurchaseRequest?->bus_no }}"
             >
           </div>
 
@@ -447,7 +550,7 @@
               id="purpose"
               rows="5"
               placeholder="Example: For Warehouse Stock."
-            ></textarea>
+            >{{ $selectedPurchaseRequest?->remarks }}</textarea>
           </div>
 
           <div class="po-totals-box">
@@ -521,6 +624,11 @@
       </form>
     </div>
   </div>
+
+  <script>
+    window.purchaseOrderPrefill = @json($prefillData);
+    window.purchaseOrderShouldOpen = @json($openPoModal);
+  </script>
 
   {{-- DELETE MODAL --}}
   <x-ui.action-buttom-modal

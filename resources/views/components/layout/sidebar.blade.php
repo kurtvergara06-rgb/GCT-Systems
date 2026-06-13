@@ -28,7 +28,6 @@
       @php
         $hasChildren = isset($item['children']) && is_array($item['children']) && count($item['children']) > 0;
         $itemRoute = $item['route'] ?? null;
-
         $isParentActive = false;
 
         if ($hasChildren) {
@@ -45,10 +44,11 @@
 
       @if($hasChildren)
 
-        <div class="menu-dropdown {{ $isParentActive ? 'open' : '' }}">
+        <div class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}">
           <button
             type="button"
             class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
+            aria-expanded="{{ $isParentActive ? 'true' : 'false' }}"
           >
             <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
             <span>{{ $item['label'] ?? 'Menu' }}</span>

@@ -238,16 +238,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
-    button.addEventListener('click', function () {
-      const dropdown = button.closest('.menu-dropdown');
-
-      if (dropdown) {
-        dropdown.classList.toggle('open');
-      }
-    });
-  });
-
   const prModal = document.getElementById('prModal');
   const openPrModal = document.getElementById('openPrModal');
   const closePrModal = document.getElementById('closePrModal');

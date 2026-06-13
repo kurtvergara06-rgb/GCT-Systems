@@ -2,15 +2,17 @@
 
 namespace App\Models\Purchase;
 
-use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseOrder extends Model
 {
+    protected $table = 'purchase_orders';
+
     protected $fillable = [
         'po_no',
         'po_date',
+        'purchase_request_id',
         'supplier_name',
         'supplier_address_tel',
         'terms',
@@ -24,6 +26,8 @@ class PurchaseOrder extends Model
         'net_amount',
         'status',
         'inventory_posted_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -35,11 +39,18 @@ class PurchaseOrder extends Model
         'vat' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'inventory_posted_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    public function maintenanceRequest(): BelongsTo
+    {
+        return $this->belongsTo(MaintenanceRequest::class, 'purchase_request_id');
+    }
 
     public function getFirstPrNoAttribute()
     {
-        if (!$this->items || !is_array($this->items)) {
+        if (! $this->items || ! is_array($this->items)) {
             return null;
         }
 
@@ -48,19 +59,18 @@ class PurchaseOrder extends Model
         return $first['pr_no'] ?? null;
     }
 
-    public function purchaseRequest(): BelongsTo
+    public function relatedMaintenanceRequest()
     {
-        return $this->belongsTo(PurchaseRequest::class);
-    }
+        if ($this->maintenanceRequest) {
+            return $this->maintenanceRequest;
+        }
 
-    public function relatedPurchaseRequest()
-    {
         $prNo = $this->first_pr_no;
 
-        if (!$prNo) {
+        if (! $prNo) {
             return null;
         }
 
-        return PurchaseRequest::where('pr_no', $prNo)->first();
+        return MaintenanceRequest::where('pr_no', $prNo)->first();
     }
 }
