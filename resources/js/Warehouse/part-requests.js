@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-  /*
-  |--------------------------------------------------------------------------
-  | Helpers
-  |--------------------------------------------------------------------------
-  */
-
   function openModal(modal) {
     if (!modal) return;
 
@@ -56,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return String(value || '')
       .replaceAll('&', '&amp;')
       .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;')
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;');
   }
@@ -78,29 +73,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     let html = `
-      <div class="parts-breakdown-table">
-        <div class="parts-breakdown-head">
+      <div class="parts-breakdown-table no-status">
+        <div class="parts-breakdown-head no-status">
           <span>Part Name</span>
           <span>Quantity</span>
           <span>On Hand</span>
-          <span>Status</span>
         </div>
     `;
 
     parts.forEach(function (part) {
-      const status = part.status || 'Not Available';
-      const statusClass = status === 'Available' ? 'available' : 'not-available';
-
       html += `
-        <div class="parts-breakdown-row">
+        <div class="parts-breakdown-row no-status">
           <span class="part-name">${escapeHtml(part.name || '—')}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
           <span>${escapeHtml(part.available_display || part.available || '0')}</span>
-          <span>
-            <b class="mini-inventory-badge ${statusClass}">
-              ${escapeHtml(status)}
-            </b>
-          </span>
         </div>
       `;
     });
@@ -109,28 +95,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     container.innerHTML = html;
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Sidebar Dropdown
-  |--------------------------------------------------------------------------
-  */
-
-  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
-    button.addEventListener('click', function () {
-      const dropdown = button.closest('.menu-dropdown');
-
-      if (dropdown) {
-        dropdown.classList.toggle('open');
-      }
-    });
-  });
-
-  /*
-  |--------------------------------------------------------------------------
-  | View Purchase Request Modal
-  |--------------------------------------------------------------------------
-  */
 
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
@@ -154,8 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setField('view_pr_no', button.dataset.prNo);
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
-    setField('view_inventory_status', button.dataset.inventoryStatus);
-    setField('view_status', button.dataset.status);
     setField('view_created', button.dataset.created);
     setField('view_remarks', button.dataset.remarks, 'No remarks');
 
@@ -183,12 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Warehouse Status Filter Color
-  |--------------------------------------------------------------------------
-  */
 
   const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
 
@@ -219,12 +175,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (warehouseStatusFilter) {
     warehouseStatusFilter.addEventListener('change', updateWarehouseStatusFilterColor);
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Success / Error / Feedback Modal Okay Button
-  |--------------------------------------------------------------------------
-  */
 
   document.addEventListener('click', function (event) {
     const button = event.target.closest(
@@ -259,12 +209,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     closeModal(modal);
   });
-
-  /*
-  |--------------------------------------------------------------------------
-  | Escape Key Close
-  |--------------------------------------------------------------------------
-  */
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {

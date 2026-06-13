@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Purchase;
 
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
-use App\Models\Warehouse\InventoryItem;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
-use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Warehouse\InventoryItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class PurchaseOrderController extends Controller
         $query = PurchaseOrder::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('po_no', 'like', "%{$search}%")
@@ -37,7 +38,10 @@ class PurchaseOrderController extends Controller
             });
         }
 
-        if ($request->filled('status') && $request->status !== 'All States') {
+        if (
+            $request->filled('status') &&
+            ! in_array($request->status, ['All States', 'All Statuses'], true)
+        ) {
             $query->where('status', $request->status);
         }
 
@@ -55,15 +59,15 @@ class PurchaseOrderController extends Controller
         $nextPoNo = $this->generatePoNo();
         $statuses = $this->statuses;
 
-        $usedPurchaseRequestIds = PurchaseOrder::query()
+        $usedMaintenanceRequestIds = PurchaseOrder::query()
             ->whereNotNull('purchase_request_id')
             ->pluck('purchase_request_id')
             ->toArray();
 
-        $availablePurchaseRequests = PurchaseRequest::query()
+        $availablePurchaseRequests = MaintenanceRequest::query()
             ->where('status', 'For Purchase')
-            ->when(! empty($usedPurchaseRequestIds), function ($q) use ($usedPurchaseRequestIds) {
-                $q->whereNotIn('id', $usedPurchaseRequestIds);
+            ->when(! empty($usedMaintenanceRequestIds), function ($q) use ($usedMaintenanceRequestIds) {
+                $q->whereNotIn('id', $usedMaintenanceRequestIds);
             })
             ->orderBy('pr_no')
             ->get();
@@ -71,7 +75,7 @@ class PurchaseOrderController extends Controller
         $selectedPurchaseRequest = null;
 
         if ($request->filled('create_from_pr')) {
-            $selectedPurchaseRequest = PurchaseRequest::query()
+            $selectedPurchaseRequest = MaintenanceRequest::query()
                 ->where('id', $request->create_from_pr)
                 ->where('status', 'For Purchase')
                 ->first();
@@ -133,21 +137,21 @@ class PurchaseOrderController extends Controller
             $request->vat
         );
 
-        $purchaseRequest = null;
+        $maintenanceRequest = null;
 
         if (! empty($validated['purchase_request_id'])) {
-            $purchaseRequest = PurchaseRequest::find($validated['purchase_request_id']);
+            $maintenanceRequest = MaintenanceRequest::find($validated['purchase_request_id']);
         }
 
-        if (! $purchaseRequest) {
-            $purchaseRequest = $this->findFirstPurchaseRequest($items);
+        if (! $maintenanceRequest) {
+            $maintenanceRequest = $this->findFirstMaintenanceRequest($items);
         }
 
-        DB::transaction(function () use ($validated, $items, $totals, $purchaseRequest) {
+        DB::transaction(function () use ($validated, $items, $totals, $maintenanceRequest) {
             $purchaseOrder = PurchaseOrder::create([
                 'po_no' => $this->generatePoNo(),
                 'po_date' => now()->toDateString(),
-                'purchase_request_id' => $purchaseRequest?->id,
+                'purchase_request_id' => $maintenanceRequest?->id,
                 'supplier_name' => $validated['supplier_name'],
                 'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
                 'terms' => $validated['terms'] ?? null,
@@ -162,7 +166,7 @@ class PurchaseOrderController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
 
             if ($this->isInventoryPostingStatus($validated['status'])) {
                 $this->postPurchaseOrderToInventory($purchaseOrder);
@@ -215,23 +219,23 @@ class PurchaseOrderController extends Controller
             $request->vat
         );
 
-        $purchaseRequest = null;
+        $maintenanceRequest = null;
 
         if (! empty($validated['purchase_request_id'])) {
-            $purchaseRequest = PurchaseRequest::find($validated['purchase_request_id']);
+            $maintenanceRequest = MaintenanceRequest::find($validated['purchase_request_id']);
         }
 
-        if (! $purchaseRequest) {
-            $purchaseRequest = $purchaseOrder->purchaseRequest ?: $this->findFirstPurchaseRequest($items);
+        if (! $maintenanceRequest) {
+            $maintenanceRequest = $purchaseOrder->maintenanceRequest ?: $this->findFirstMaintenanceRequest($items);
         }
 
-        DB::transaction(function () use ($purchaseOrder, $validated, $items, $totals, $purchaseRequest) {
+        DB::transaction(function () use ($purchaseOrder, $validated, $items, $totals, $maintenanceRequest) {
             $oldInventoryPostedAt = $purchaseOrder->inventory_posted_at;
 
             $purchaseOrder->update([
                 'po_no' => $validated['po_no'],
                 'po_date' => $validated['po_date'],
-                'purchase_request_id' => $purchaseRequest?->id,
+                'purchase_request_id' => $maintenanceRequest?->id,
                 'supplier_name' => $validated['supplier_name'],
                 'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
                 'terms' => $validated['terms'] ?? null,
@@ -247,7 +251,7 @@ class PurchaseOrderController extends Controller
                 'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
-            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
 
             if ($this->isInventoryPostingStatus($validated['status'])) {
                 $this->postPurchaseOrderToInventory($purchaseOrder);
@@ -270,7 +274,7 @@ class PurchaseOrderController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
 
             if ($this->isInventoryPostingStatus($validated['status'])) {
                 $this->postPurchaseOrderToInventory($purchaseOrder);
@@ -285,16 +289,16 @@ class PurchaseOrderController extends Controller
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         DB::transaction(function () use ($purchaseOrder) {
-            $purchaseRequest = $purchaseOrder->purchaseRequest;
+            $maintenanceRequest = $purchaseOrder->maintenanceRequest;
 
             $purchaseOrder->delete();
 
-            if ($purchaseRequest && in_array($purchaseRequest->status, $this->statuses, true)) {
-                $purchaseRequest->update([
+            if ($maintenanceRequest && in_array($maintenanceRequest->status, $this->statuses, true)) {
+                $maintenanceRequest->update([
                     'status' => 'For Purchase',
                 ]);
 
-                $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
+                $this->updateRelatedJobOrderPartStatus($maintenanceRequest, 'For Purchase');
             }
         });
 
@@ -333,48 +337,48 @@ class PurchaseOrderController extends Controller
             $unit = trim($item['unit'] ?? 'PC');
             $supplier = $purchaseOrder->supplier_name ?: 'N/A';
 
-            /*
-            |--------------------------------------------------------------------------
-            | Important:
-            | If item_description is accidentally saved as "tire, oil",
-            | split it so inventory will receive separate records:
-            | tire
-            | oil
-            |--------------------------------------------------------------------------
-            */
             $itemNames = $this->splitItemNames($rawItemName);
 
             foreach ($itemNames as $itemName) {
                 $inventoryItem = $this->findInventoryItem($itemName);
 
                 if ($inventoryItem) {
-                    $newOnHand = (int) $inventoryItem->on_hand + $quantity;
+                    $newOnHand = (int) ($inventoryItem->on_hand ?? $inventoryItem->quantity_available ?? 0) + $quantity;
 
-                    $inventoryItem->update([
-                        'on_hand' => $newOnHand,
+                    $updateData = [
                         'quantity_available' => $newOnHand,
-                        'unit' => $inventoryItem->unit ?: $unit,
-                        'unit_of_measurement' => $inventoryItem->unit_of_measurement ?: $unit,
                         'supplier' => $inventoryItem->supplier ?: $supplier,
-                        'status' => $this->inventoryStatus(
+                    ];
+
+                    if (array_key_exists('on_hand', $inventoryItem->getAttributes())) {
+                        $updateData['on_hand'] = $newOnHand;
+                    }
+
+                    if (array_key_exists('unit', $inventoryItem->getAttributes())) {
+                        $updateData['unit'] = $inventoryItem->unit ?: $unit;
+                    }
+
+                    if (array_key_exists('unit_of_measurement', $inventoryItem->getAttributes())) {
+                        $updateData['unit_of_measurement'] = $inventoryItem->unit_of_measurement ?: $unit;
+                    }
+
+                    if (array_key_exists('status', $inventoryItem->getAttributes())) {
+                        $updateData['status'] = $this->inventoryStatus(
                             $newOnHand,
                             (int) ($inventoryItem->reorder_level ?? 0)
-                        ),
-                    ]);
+                        );
+                    }
+
+                    $inventoryItem->forceFill($updateData)->save();
                 } else {
                     InventoryItem::create([
                         'item_code' => $this->generateInventoryItemCode(),
                         'item_name' => $itemName,
-                        'parts_name' => $itemName,
                         'category' => 'Auto Parts',
-                        'on_hand' => $quantity,
                         'quantity_available' => $quantity,
-                        'unit' => $unit,
                         'unit_of_measurement' => $unit,
                         'reorder_level' => 5,
-                        'status' => $this->inventoryStatus($quantity, 5),
                         'supplier' => $supplier,
-                        'location' => 'Warehouse',
                         'storage_location' => 'Warehouse',
                     ]);
                 }
@@ -404,9 +408,15 @@ class PurchaseOrderController extends Controller
         }
 
         return InventoryItem::query()
-            ->whereRaw('LOWER(item_name) = ?', [$itemName])
-            ->orWhereRaw('LOWER(parts_name) = ?', [$itemName])
-            ->orWhereRaw('LOWER(item_code) = ?', [$itemName])
+            ->where(function ($q) use ($itemName) {
+                $q->whereRaw('LOWER(item_name) = ?', [$itemName]);
+
+                if (Schema::hasColumn('inventory_items', 'parts_name')) {
+                    $q->orWhereRaw('LOWER(parts_name) = ?', [$itemName]);
+                }
+
+                $q->orWhereRaw('LOWER(item_code) = ?', [$itemName]);
+            })
             ->first();
     }
 
@@ -432,14 +442,14 @@ class PurchaseOrderController extends Controller
         return $code;
     }
 
-    private function syncRelatedPurchaseRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
+    private function syncRelatedMaintenanceRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
     {
-        $purchaseRequests = collect();
+        $maintenanceRequests = collect();
 
         $purchaseOrder->refresh();
 
-        if ($purchaseOrder->purchaseRequest) {
-            $purchaseRequests->push($purchaseOrder->purchaseRequest);
+        if ($purchaseOrder->maintenanceRequest) {
+            $maintenanceRequests->push($purchaseOrder->maintenanceRequest);
         }
 
         foreach ($purchaseOrder->items ?? [] as $item) {
@@ -449,31 +459,35 @@ class PurchaseOrderController extends Controller
                 continue;
             }
 
-            $purchaseRequest = PurchaseRequest::where('pr_no', $prNo)->first();
+            $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)->first();
 
-            if ($purchaseRequest) {
-                $purchaseRequests->push($purchaseRequest);
+            if ($maintenanceRequest) {
+                $maintenanceRequests->push($maintenanceRequest);
             }
         }
 
-        $purchaseRequests
+        $maintenanceRequests
             ->unique('id')
-            ->each(function (PurchaseRequest $purchaseRequest) use ($status) {
-                if ($purchaseRequest->status === 'Issued') {
+            ->each(function (MaintenanceRequest $maintenanceRequest) use ($status) {
+                if ($maintenanceRequest->status === 'Issued') {
                     return;
                 }
 
-                $purchaseRequest->update([
+                $maintenanceRequest->update([
                     'status' => $status,
                 ]);
 
-                $this->updateRelatedJobOrderPartStatus($purchaseRequest, $status);
+                $this->updateRelatedJobOrderPartStatus($maintenanceRequest, $status);
             });
     }
 
-    private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
+    private function updateRelatedJobOrderPartStatus(MaintenanceRequest $maintenanceRequest, string $partStatus): void
     {
-        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
+        if ($maintenanceRequest->job_order_no === 'RESTOCK') {
+            return;
+        }
+
+        $jobOrder = JobOrder::where('job_order_no', $maintenanceRequest->job_order_no)->first();
 
         if (! $jobOrder || empty($jobOrder->part_needed)) {
             return;
@@ -484,7 +498,7 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    private function findFirstPurchaseRequest(array $items): ?PurchaseRequest
+    private function findFirstMaintenanceRequest(array $items): ?MaintenanceRequest
     {
         foreach ($items as $item) {
             $prNo = $item['pr_no'] ?? null;
@@ -493,10 +507,10 @@ class PurchaseOrderController extends Controller
                 continue;
             }
 
-            $purchaseRequest = PurchaseRequest::where('pr_no', $prNo)->first();
+            $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)->first();
 
-            if ($purchaseRequest) {
-                return $purchaseRequest;
+            if ($maintenanceRequest) {
+                return $maintenanceRequest;
             }
         }
 

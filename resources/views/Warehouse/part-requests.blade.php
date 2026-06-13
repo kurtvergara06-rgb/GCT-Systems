@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - Warehouse Part Requests"
   :assets="[
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
     'resources/css/Warehouse/part-request.css',
     'resources/js/Warehouse/part-requests.js'
   ]"
@@ -78,6 +78,7 @@
 
       </section>
 
+      {{-- ACTIVE REQUESTS TABLE --}}
       <section class="table-card inventory-card warehouse-part-card">
 
         <div class="section-header">
@@ -132,7 +133,7 @@
                 <th class="qty-col">Quantity</th>
                 <th class="qty-col">On Hand</th>
                 <th class="status-col">Inventory</th>
-                <th class="status-col">Status</th>
+                <th class="status-col">Purchase Status</th>
                 <th>Date</th>
                 <th class="actions-col">Actions</th>
               </tr>
@@ -141,18 +142,7 @@
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
-                  /*
-                    Display logic:
-                    - Original PR may still be Approved in database.
-                    - If missing parts were already sent to Purchase,
-                      show it as For Purchase in Warehouse table.
-                  */
-                  $status = $partRequest->status ?? 'Approved';
-
-                  if (($partRequest->missing_pr_already_created ?? false) && $status === 'Approved') {
-                      $status = 'For Purchase';
-                  }
-
+                  $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $status));
 
                   $itemName = $partRequest->first_item_display ?? '—';
@@ -171,17 +161,13 @@
 
                   $canIssue = $partRequest->can_issue ?? false;
 
-                  /*
-                    Hide Send to Purchase button if missing parts
-                    were already sent to Purchase.
-                  */
                   $needsPurchase = ($partRequest->needs_purchase ?? false)
                     && ! ($partRequest->missing_pr_already_created ?? false);
                 @endphp
 
                 <tr>
                   <td>
-                    <strong>{{ $partRequest->pr_no }}</strong>
+                    <strong>{{ $partRequest->pr_no ?? '—' }}</strong>
                   </td>
 
                   <td class="item-col">
@@ -278,7 +264,7 @@
               @empty
                 <x-ui.empty-row
                   colspan="8"
-                  message="No approved part requests found."
+                  message="No active part requests found."
                 />
               @endforelse
             </tbody>
@@ -286,6 +272,102 @@
         </div>
 
         <x-ui.table-footer :items="$purchaseRequests" />
+
+      </section>
+
+      {{-- ISSUED HISTORY TABLE --}}
+      <section class="table-card inventory-card warehouse-history-card">
+
+        <div class="section-header">
+          <div>
+            <h2>Issued Parts History</h2>
+            <p>Completed warehouse part requests that were already issued.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="inventory-table warehouse-part-table">
+            <thead>
+              <tr>
+                <th>PR #</th>
+                <th>JO No.</th>
+                <th>Bus #</th>
+                <th>Item</th>
+                <th class="qty-col">Quantity</th>
+                <th class="status-col">Status</th>
+                <th>Date Issued</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @forelse(($issuedRequests ?? []) as $history)
+                @php
+                  $itemName = $history->first_item_display ?? $history->item ?? '—';
+                  $quantity = $history->first_quantity_display ?? $history->quantity ?? '—';
+                @endphp
+
+                <tr>
+                  <td>
+                    <strong>{{ $history->pr_no ?? '—' }}</strong>
+                  </td>
+
+                  <td>{{ $history->job_order_no ?? '—' }}</td>
+
+                  <td>{{ $history->bus_no ?? '—' }}</td>
+
+                  <td>{{ $itemName }}</td>
+
+                  <td class="qty-col">
+                    {{ $quantity }}
+                  </td>
+
+                  <td class="status-col">
+                    <span class="warehouse-status-badge issued">
+                      Issued
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ $history->updated_at ? $history->updated_at->format('M d, Y') : '—' }}
+                  </td>
+
+                  <td class="actions-col">
+                    <div class="actions warehouse-actions">
+                      <button
+                        type="button"
+                        class="view-btn open-view-pr-modal"
+                        title="View Details"
+                        data-pr-no="{{ $history->pr_no }}"
+                        data-job-order-no="{{ $history->job_order_no }}"
+                        data-bus-no="{{ $history->bus_no }}"
+                        data-item="{{ $history->item }}"
+                        data-quantity="{{ $quantity }}"
+                        data-on-hand="{{ $history->first_on_hand_display ?? '0' }}"
+                        data-inventory-status="{{ $history->first_inventory_status ?? 'Available' }}"
+                        data-status="Issued"
+                        data-remarks="{{ $history->remarks ?? 'No remarks' }}"
+                        data-created="{{ $history->updated_at ? $history->updated_at->format('M d, Y') : '—' }}"
+                        data-parts='@json($history->parts_breakdown ?? [])'
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <x-ui.empty-row
+                  colspan="8"
+                  message="No issued history yet."
+                />
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
+        @if(isset($issuedRequests))
+          <x-ui.table-footer :items="$issuedRequests" />
+        @endif
 
       </section>
 
@@ -327,8 +409,8 @@
         </div>
 
         <div class="warehouse-field">
-          <label>Status</label>
-          <input id="view_status" type="text" value="—" readonly>
+          <label>Date Created</label>
+          <input id="view_created" type="text" value="—" readonly>
         </div>
 
         <div class="warehouse-field full">
@@ -337,16 +419,6 @@
           <div id="view_parts_breakdown" class="parts-breakdown-box">
             <div class="parts-breakdown-empty">No parts found.</div>
           </div>
-        </div>
-
-        <div class="warehouse-field">
-          <label>Inventory Status</label>
-          <input id="view_inventory_status" type="text" value="—" readonly>
-        </div>
-
-        <div class="warehouse-field">
-          <label>Date Created</label>
-          <input id="view_created" type="text" value="—" readonly>
         </div>
 
         <div class="warehouse-field full">

@@ -751,3 +751,57 @@
   background: #fff3cd;
   color: #b77900;
 }
+
+/* MODAL PARTS BREAKDOWN - REMOVE STATUS COLUMN */
+.parts-breakdown-table.no-status {
+  width: 100%;
+}
+
+.parts-breakdown-head.no-status,
+.parts-breakdown-row.no-status {
+  display: grid;
+  grid-template-columns: 1fr 130px 130px;
+  align-items: center;
+}
+
+.parts-breakdown-head.no-status {
+  background: #f0f5fc;
+  border-bottom: 1px solid #dce5f2;
+}
+
+.parts-breakdown-head.no-status span {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0b2344;
+  text-transform: uppercase;
+}
+
+.parts-breakdown-row.no-status {
+  border-bottom: 1px solid #e5eaf2;
+}
+
+.parts-breakdown-row.no-status:last-child {
+  border-bottom: none;
+}
+
+.parts-breakdown-row.no-status span {
+  padding: 13px 14px;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.parts-breakdown-head.no-status span:nth-child(2),
+.parts-breakdown-head.no-status span:nth-child(3),
+.parts-breakdown-row.no-status span:nth-child(2),
+.parts-breakdown-row.no-status span:nth-child(3) {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .parts-breakdown-head.no-status,
+  .parts-breakdown-row.no-status {
+    grid-template-columns: 1fr 90px 90px;
+  }
+}

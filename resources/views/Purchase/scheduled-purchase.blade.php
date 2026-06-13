@@ -8,17 +8,42 @@
   <div class="app">
 
     <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Purchase Admin"
-      :items="[
-        ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
-        ['label' => 'Requested Purchase', 'route' => 'requested-purchase', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
-      ]"
-    />
+  department="Purchase"
+  subtitle="Department Module"
+  icon="fa-cart-shopping"
+  user-name="P. Admin"
+  user-role="Purchase Admin"
+  :items="[
+    [
+      'label' => 'Purchase Orders',
+      'route' => 'purchase-orders',
+      'icon' => 'fa-file-invoice'
+    ],
+
+    [
+      'label' => 'Requested Purchase',
+      'icon' => 'fa-clipboard-list',
+      'children' => [
+        [
+          'label' => 'Maintenance Requests',
+          'route' => 'maintenance-requests',
+          'icon' => 'fa-screwdriver-wrench'
+        ],
+        [
+          'label' => 'Inventory Restock',
+          'route' => 'inventory-restock',
+          'icon' => 'fa-boxes-stacked'
+        ],
+      ],
+    ],
+
+    [
+      'label' => 'Scheduled Purchase',
+      'route' => 'scheduled-purchase',
+      'icon' => 'fa-calendar-check'
+    ],
+  ]"
+/>
 
     <!-- MAIN -->
     <main class="main">
