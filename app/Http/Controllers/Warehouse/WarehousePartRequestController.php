@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Warehouse;
 
-use App\Models\InventoryItem;
-use App\Models\JobOrder;
-use App\Models\PurchaseRequest;
+use App\Http\Controllers\Controller;
+
+use App\Models\Warehouse\InventoryItem;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
@@ -244,3 +246,4 @@ class WarehousePartRequestController extends Controller
             ->first();
     }
 }
+

@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Maintenance;
 
-use App\Models\JobOrder;
-use App\Models\PurchaseRequest;
+use App\Http\Controllers\Controller;
+
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\Request;
 
 class PurchaseRequestController extends Controller
@@ -353,3 +355,4 @@ class PurchaseRequestController extends Controller
         return $total > 0 ? $total : 1;
     }
 }
+

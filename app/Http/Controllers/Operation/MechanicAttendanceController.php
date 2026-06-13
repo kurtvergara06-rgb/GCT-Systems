@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Operation;
 
-use App\Models\MechanicAttendance;
+use App\Http\Controllers\Controller;
+
+use App\Models\Operation\MechanicAttendance;
 use Illuminate\Http\Request;
 
 class MechanicAttendanceController extends Controller
@@ -214,3 +216,4 @@ class MechanicAttendanceController extends Controller
         return $newMechanicId;
     }
 }
+

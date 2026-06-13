@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\JobOrderController;
-use App\Http\Controllers\MechanicAttendanceController;
-use App\Http\Controllers\PurchaseOrderController;
-use App\Http\Controllers\PurchaseRequestController;
-use App\Http\Controllers\RequestedPurchaseController;
-use App\Http\Controllers\WarehousePartRequestController;
+use App\Http\Controllers\Maintenance\JobOrderController;
+use App\Http\Controllers\Maintenance\PurchaseRequestController;
+use App\Http\Controllers\Warehouse\InventoryController;
+use App\Http\Controllers\Warehouse\WarehousePartRequestController;
+use App\Http\Controllers\Purchase\PurchaseOrderController;
+use App\Http\Controllers\Purchase\RequestedPurchaseController;
+use App\Http\Controllers\Operation\MechanicAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 /*

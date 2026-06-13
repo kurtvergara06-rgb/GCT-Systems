@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Purchase;
 
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseRequest;
+use App\Http\Controllers\Controller;
+
+use App\Models\Purchase\PurchaseOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -89,3 +91,4 @@ class RequestedPurchaseController extends Controller
             ->with('open_po_modal', true);
     }
 }
+
