@@ -44,14 +44,12 @@ td {
 /* CENTER SELECTED COLUMNS */
 th:nth-child(1),
 td:nth-child(1),
+th:nth-child(6),
+td:nth-child(6),
 th:nth-child(7),
 td:nth-child(7),
 th:nth-child(8),
-td:nth-child(8),
-th:nth-child(9),
-td:nth-child(9),
-th:nth-child(10),
-td:nth-child(10) {
+td:nth-child(8) {
   text-align: center;
 }
 
@@ -157,37 +155,6 @@ td:nth-child(10) {
   color: #dc2626;
 }
 
-/* PART STATUS BADGES */
-.badge.not-requested {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.badge.submitted {
-  background: #fef9c3;
-  color: #a16207;
-}
-
-.badge.approved {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.badge.for-purchase {
-  background: #fed7aa;
-  color: #9a3412;
-}
-
-.badge.delivered {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.issued {
-  background: #bbf7d0;
-  color: #15803d;
-}
-
 /* =========================================================
    ACTION BUTTONS
 ========================================================= */
@@ -211,6 +178,33 @@ td:nth-child(10) {
 .actions .delete {
   background: #fff0f0;
   color: var(--red);
+}
+
+.create-pr-form {
+  margin: 0;
+}
+
+.create-pr-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 9px;
+  background: #eaf2ff;
+  color: #0057f8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.create-pr-btn:hover {
+  background: #dbeafe;
+  color: #0047cc;
+  transform: translateY(-1px);
+}
+
+.create-pr-btn i {
+  font-size: 14px;
 }
 
 /* =========================================================
@@ -266,36 +260,6 @@ td:nth-child(10) {
 
 .table-card .locked-finish-btn i {
   color: #64748b !important;
-}
-
-/* =========================================================
-   APPROVE / REJECT / VIEW BUTTONS
-========================================================= */
-.approve-btn,
-.reject-btn,
-.view-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-right: 6px;
-}
-
-.approve-btn {
-  background: #ddf8e7;
-  color: #16a34a;
-}
-
-.reject-btn {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.view-btn {
-  background: #edf3fb;
-  color: #082445;
 }
 
 /* =========================================================
@@ -443,6 +407,26 @@ td:nth-child(10) {
   background: #15803d;
 }
 
+.cancel-delete-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  min-width: 90px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancel-delete-btn:hover {
+  background: #e2e8f0;
+  color: #061b3a;
+}
+
 /* =========================================================
    FORM / READONLY / DISABLED
 ========================================================= */
@@ -454,9 +438,10 @@ textarea[readonly] {
 }
 
 .form-group small {
+  display: block;
   color: #64748b;
   font-size: 12px;
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 #edit_bus_no:disabled,
@@ -464,7 +449,8 @@ textarea[readonly] {
 #edit_maintenance_type:disabled,
 #edit_status:disabled,
 #edit_assigned_mechanic:disabled,
-#editPartsNeededWrapper input:disabled {
+#editPartsNeededWrapper input:disabled,
+#editPartsNeededWrapper select:disabled {
   background: #f8fafc;
   color: #64748b;
   cursor: not-allowed;
@@ -480,22 +466,26 @@ textarea[readonly] {
 }
 
 /* =========================================================
-   MULTIPLE PARTS NEEDED
+   MULTIPLE REQUESTED PARTS FIX
 ========================================================= */
 .parts-needed-wrapper {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
+/* Main fix: Part name | Qty | Unit | Remove */
 .part-needed-row {
   display: grid;
-  grid-template-columns: 1fr 140px 38px;
+  grid-template-columns: minmax(0, 1fr) 110px 130px 38px;
   gap: 10px;
   align-items: center;
+  width: 100%;
 }
 
-.part-needed-row input {
+.part-needed-row input,
+.part-needed-row select {
   width: 100%;
   height: 42px;
   border: 1px solid var(--border);
@@ -504,17 +494,29 @@ textarea[readonly] {
   font-size: 13px;
   color: var(--text);
   outline: none;
+  background: #ffffff;
+  min-width: 0;
 }
 
-.part-needed-row input:focus {
+.part-needed-row input:focus,
+.part-needed-row select:focus {
   border-color: var(--yellow);
   box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.18);
+}
+
+.part-needed-row select {
+  cursor: pointer;
+}
+
+/* Prevent duplicate Add Other Part button from looking like a row button */
+.parts-needed-wrapper .add-part-btn {
+  display: none !important;
 }
 
 .add-part-btn {
   width: fit-content;
   height: 38px;
-  margin-top: 10px;
+  margin-top: 12px;
   border: 1px solid #d8e2f0;
   border-radius: 10px;
   background: #ffffff;
@@ -550,31 +552,8 @@ textarea[readonly] {
 }
 
 /* =========================================================
-   MODAL CANCEL BUTTON FIX
-========================================================= */
-.cancel-delete-btn {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 20px;
-  background: #f1f5f9;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  min-width: 90px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cancel-delete-btn:hover {
-  background: #e2e8f0;
-  color: #061b3a;
-}
-
-/* ========================================
    PART STATUS FILTER DROPDOWN
-======================================== */
+========================================================= */
 .part-status-select {
   min-width: 150px;
   border: 1px solid var(--border);
@@ -594,6 +573,11 @@ textarea[readonly] {
 }
 
 /* selected filter color states */
+.part-status-select.not-requested {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .part-status-select.submitted {
   background: #dbeafe;
   color: #1d4ed8;
@@ -644,78 +628,18 @@ textarea[readonly] {
   color: #15803d;
 }
 
-/* ========================================
+.part-status-select.no-parts-needed {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+/* =========================================================
    PART STATUS BADGES IN TABLE
-======================================== */
+========================================================= */
 .part-status-cell {
   text-align: center;
 }
 
-.part-status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 110px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* colors */
-.part-status-badge.submitted {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.part-status-badge.approved {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-
-.part-status-badge.rejected {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.part-status-badge.for-purchase {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.part-status-badge.ordered {
-  background: #ede9fe;
-  color: #7c3aed;
-}
-
-.part-status-badge.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.part-status-badge.for-delivery {
-  background: #ffedd5;
-  color: #ea580c;
-}
-
-.part-status-badge.delivered {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.part-status-badge.picked-up {
-  background: #ccfbf1;
-  color: #0f766e;
-}
-
-.part-status-badge.issued {
-  background: #bbf7d0;
-  color: #15803d;
-}
-
-/* PART STATUS BADGE COLORS */
 .part-status-badge {
   min-width: 96px;
   padding: 7px 12px;
@@ -729,100 +653,61 @@ textarea[readonly] {
   white-space: nowrap;
 }
 
-/* Not Requested */
 .part-status-badge.not-requested {
   background: #f1f5f9;
   color: #475569;
 }
 
-/* Submitted */
 .part-status-badge.submitted {
   background: #fff3cd;
   color: #b77900;
 }
 
-/* Approved */
 .part-status-badge.approved {
   background: #e8e7ff;
   color: #4338ca;
 }
 
-/* Rejected */
 .part-status-badge.rejected {
   background: #fee2e2;
   color: #dc2626;
 }
 
-/* For Purchase */
 .part-status-badge.for-purchase {
   background: #eaf2ff;
   color: #0057f8;
 }
 
-/* Ordered */
 .part-status-badge.ordered {
   background: #fff7dd;
   color: #b77900;
 }
 
-/* For Pick-up */
 .part-status-badge.for-pick-up {
   background: #f3e8ff;
   color: #7e22ce;
 }
 
-/* For Delivery */
 .part-status-badge.for-delivery {
   background: #ffedd5;
   color: #c2410c;
 }
 
-/* Delivered */
 .part-status-badge.delivered {
   background: #dcfce7;
   color: #15803d;
 }
 
-/* Picked Up */
 .part-status-badge.picked-up {
   background: #e0f2fe;
   color: #0369a1;
 }
 
-/* Issued */
 .part-status-badge.issued {
   background: #dcfce7;
   color: #15803d;
 }
 
-.create-pr-form {
-  margin: 0;
-}
-
-.create-pr-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 9px;
-  background: #eaf2ff;
-  color: #0057f8;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.create-pr-btn:hover {
-  background: #dbeafe;
-  color: #0047cc;
-  transform: translateY(-1px);
-}
-
-.create-pr-btn i {
-  font-size: 14px;
-}
-
-/* No Parts Needed */
 .part-status-badge.no-parts-needed {
   background: #f8fafc;
   color: #64748b;

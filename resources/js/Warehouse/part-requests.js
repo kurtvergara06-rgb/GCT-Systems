@@ -52,11 +52,62 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
   function slugStatus(value) {
     return String(value || '')
       .toLowerCase()
       .replace(/\//g, '-')
       .replace(/\s+/g, '-');
+  }
+
+  function renderPartsBreakdown(parts) {
+    const container = document.getElementById('view_parts_breakdown');
+
+    if (!container) return;
+
+    if (!Array.isArray(parts) || parts.length === 0) {
+      container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
+      return;
+    }
+
+    let html = `
+      <div class="parts-breakdown-table">
+        <div class="parts-breakdown-head">
+          <span>Part Name</span>
+          <span>Quantity</span>
+          <span>On Hand</span>
+          <span>Status</span>
+        </div>
+    `;
+
+    parts.forEach(function (part) {
+      const status = part.status || 'Not Available';
+      const statusClass = status === 'Available' ? 'available' : 'not-available';
+
+      html += `
+        <div class="parts-breakdown-row">
+          <span class="part-name">${escapeHtml(part.name || '—')}</span>
+          <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
+          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
+          <span>
+            <b class="mini-inventory-badge ${statusClass}">
+              ${escapeHtml(status)}
+            </b>
+          </span>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+
+    container.innerHTML = html;
   }
 
   /*
@@ -92,16 +143,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     event.preventDefault();
 
+    let parts = [];
+
+    try {
+      parts = JSON.parse(button.dataset.parts || '[]');
+    } catch (error) {
+      parts = [];
+    }
+
     setField('view_pr_no', button.dataset.prNo);
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
-    setField('view_item', button.dataset.item);
-    setField('view_quantity', button.dataset.quantity);
-    setField('view_on_hand', button.dataset.onHand);
     setField('view_inventory_status', button.dataset.inventoryStatus);
     setField('view_status', button.dataset.status);
     setField('view_created', button.dataset.created);
     setField('view_remarks', button.dataset.remarks, 'No remarks');
+
+    renderPartsBreakdown(parts);
 
     openModal(viewPrModal);
   });

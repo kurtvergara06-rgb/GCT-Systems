@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\Request;
@@ -91,9 +90,17 @@ class PurchaseRequestController extends Controller
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255',
             'bus_no' => 'required|string|max:255',
-            'parts' => 'required|array|min:1',
-            'parts.*.name' => 'required|string|max:255',
-            'parts.*.quantity' => 'required|integer|min:1',
+
+            // Main new format: parts[name, quantity, unit]
+            'parts' => 'nullable|array',
+            'parts.*.name' => 'nullable|string|max:255',
+            'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
+
+            // Fallback old format: item + quantity
+            'item' => 'nullable|string|max:1000',
+            'quantity' => 'nullable|integer|min:1',
+
             'remarks' => 'nullable|string|max:1000',
         ]);
 
@@ -108,8 +115,17 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'This job order already has an active purchase request.');
         }
 
-        $formattedParts = $this->formatPartsNeeded($validated['parts']);
-        $totalQuantity = $this->calculateTotalQuantity($validated['parts']);
+        $parts = $this->normalizePartsFromRequest($request);
+
+        if (count($parts) === 0) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Please add at least one requested part.');
+        }
+
+        $formattedParts = $this->formatPartsNeeded($parts);
+        $totalQuantity = $this->calculateTotalQuantity($parts);
 
         $purchaseRequest = PurchaseRequest::create([
             'pr_no' => $this->generatePrNo(),
@@ -140,14 +156,29 @@ class PurchaseRequestController extends Controller
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255',
             'bus_no' => 'required|string|max:255',
-            'parts' => 'required|array|min:1',
-            'parts.*.name' => 'required|string|max:255',
-            'parts.*.quantity' => 'required|integer|min:1',
+
+            'parts' => 'nullable|array',
+            'parts.*.name' => 'nullable|string|max:255',
+            'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
+
+            'item' => 'nullable|string|max:1000',
+            'quantity' => 'nullable|integer|min:1',
+
             'remarks' => 'nullable|string|max:1000',
         ]);
 
-        $formattedParts = $this->formatPartsNeeded($validated['parts']);
-        $totalQuantity = $this->calculateTotalQuantity($validated['parts']);
+        $parts = $this->normalizePartsFromRequest($request);
+
+        if (count($parts) === 0) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Please add at least one requested part.');
+        }
+
+        $formattedParts = $this->formatPartsNeeded($parts);
+        $totalQuantity = $this->calculateTotalQuantity($parts);
 
         $oldJobOrderNo = $purchaseRequest->job_order_no;
 
@@ -325,18 +356,57 @@ class PurchaseRequestController extends Controller
         return $newPrNo;
     }
 
+    private function normalizePartsFromRequest(Request $request): array
+    {
+        $parts = [];
+
+        if ($request->filled('parts') && is_array($request->parts)) {
+            foreach ($request->parts as $part) {
+                $name = trim($part['name'] ?? '');
+                $quantity = (int) ($part['quantity'] ?? 1);
+                $unit = trim($part['unit'] ?? '');
+
+                if ($name === '') {
+                    continue;
+                }
+
+                $parts[] = [
+                    'name' => $name,
+                    'quantity' => $quantity > 0 ? $quantity : 1,
+                    'unit' => $unit,
+                ];
+            }
+        }
+
+        // Fallback for old forms using item + quantity only
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
+
+        return $parts;
+    }
+
     private function formatPartsNeeded(array $parts): string
     {
         $formattedParts = [];
 
         foreach ($parts as $part) {
             $name = trim($part['name'] ?? '');
-            $quantity = $part['quantity'] ?? null;
+            $quantity = (int) ($part['quantity'] ?? 1);
+            $unit = trim($part['unit'] ?? '');
 
-            if ($name !== '') {
-                $formattedParts[] = $quantity
-                    ? "{$name} - Qty: {$quantity}"
-                    : $name;
+            if ($name === '') {
+                continue;
+            }
+
+            if ($unit !== '') {
+                $formattedParts[] = "{$name} - Qty: {$quantity} {$unit}";
+            } else {
+                $formattedParts[] = "{$name} - Qty: {$quantity}";
             }
         }
 
@@ -355,4 +425,3 @@ class PurchaseRequestController extends Controller
         return $total > 0 ? $total : 1;
     }
 }
-

@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
-use App\Models\Operation\MechanicAttendance;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Operation\MechanicAttendance;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
-
 {
-
     public function index(Request $request)
     {
         $query = JobOrder::query();
@@ -29,7 +27,6 @@ class JobOrderController extends Controller
                     ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('part_status', 'like', "%{$search}%");
             });
-
         }
 
         if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
@@ -107,6 +104,7 @@ class JobOrderController extends Controller
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
         ]);
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
@@ -181,6 +179,7 @@ class JobOrderController extends Controller
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
         ]);
 
         $oldMechanic = $jobOrder->assigned_mechanic;
@@ -286,8 +285,19 @@ class JobOrderController extends Controller
             'pr_no' => $this->generatePrNo(),
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
+
+            /*
+             * IMPORTANT:
+             * Keep the same format from JO:
+             * Engine Oil - Qty: 2 liter, Oil Filter - Qty: 4 liter
+             */
             'item' => $parsedParts['item'],
+
+            /*
+             * Quantity is still total quantity for summary/table.
+             */
             'quantity' => $parsedParts['quantity'],
+
             'status' => 'Submitted',
             'remarks' => 'Created from Job Order ' . $jobOrder->job_order_no,
             'date_requested' => now(),
@@ -431,11 +441,18 @@ class JobOrderController extends Controller
         foreach ($parts as $part) {
             $name = trim($part['name'] ?? '');
             $quantity = $part['quantity'] ?? null;
+            $unit = trim($part['unit'] ?? '');
 
-            if ($name !== '') {
-                $formattedParts[] = $quantity
-                    ? "{$name} - Qty: {$quantity}"
-                    : $name;
+            if ($name === '') {
+                continue;
+            }
+
+            if ($quantity && $unit) {
+                $formattedParts[] = "{$name} - Qty: {$quantity} {$unit}";
+            } elseif ($quantity) {
+                $formattedParts[] = "{$name} - Qty: {$quantity}";
+            } else {
+                $formattedParts[] = $name;
             }
         }
 
@@ -457,23 +474,42 @@ class JobOrderController extends Controller
             ->map(fn ($part) => trim($part))
             ->filter();
 
-        $itemNames = [];
+        $cleanParts = [];
         $totalQuantity = 0;
 
         foreach ($parts as $part) {
             if (str_contains($part, ' - Qty:')) {
-                [$name, $quantity] = explode(' - Qty:', $part);
+                [$name, $quantityWithUnit] = explode(' - Qty:', $part, 2);
 
-                $itemNames[] = trim($name);
-                $totalQuantity += (int) trim($quantity);
+                $name = trim($name);
+                $quantityWithUnit = trim($quantityWithUnit);
+
+                preg_match('/^(\d+)\s*(.*)$/', $quantityWithUnit, $matches);
+
+                $quantity = isset($matches[1]) ? (int) $matches[1] : 1;
+                $unit = isset($matches[2]) ? trim($matches[2]) : '';
+
+                if ($name !== '') {
+                    if ($unit !== '') {
+                        $cleanParts[] = "{$name} - Qty: {$quantity} {$unit}";
+                    } else {
+                        $cleanParts[] = "{$name} - Qty: {$quantity}";
+                    }
+
+                    $totalQuantity += $quantity > 0 ? $quantity : 1;
+                }
             } else {
-                $itemNames[] = trim($part);
-                $totalQuantity += 1;
+                $name = trim($part);
+
+                if ($name !== '') {
+                    $cleanParts[] = "{$name} - Qty: 1";
+                    $totalQuantity += 1;
+                }
             }
         }
 
         return [
-            'item' => implode(', ', $itemNames),
+            'item' => implode(', ', $cleanParts),
             'quantity' => $totalQuantity > 0 ? $totalQuantity : 1,
         ];
     }

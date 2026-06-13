@@ -100,7 +100,7 @@
         <div class="section-header">
           <div>
             <h2>Requested Purchase Records</h2>
-            <p>Only purchase process PRs are shown here. Issued requests are hidden.</p>
+            <p>Only unavailable warehouse parts are shown here for purchasing.</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@
         </form>
 
         <div class="table-wrap">
-          <table>
+          <table class="requested-purchase-table">
             <thead>
               <tr>
                 <th>PR #</th>
@@ -157,13 +157,27 @@
             <tbody>
               @forelse($purchaseRequests as $purchaseRequest)
                 @php
-                  $firstItem = trim(explode(',', $purchaseRequest->item ?? '')[0] ?? '');
+                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseRequest->status));
+                  $partsBreakdown = $purchaseRequest->parts_breakdown ?? [];
 
-                  if (str_contains(strtolower($firstItem), ' - qty:')) {
-                    $firstItem = trim(preg_split('/ - qty:/i', $firstItem)[0] ?? $firstItem);
+                  $firstItem = $purchaseRequest->first_item_display ?? null;
+                  $firstQuantity = $purchaseRequest->first_quantity_display ?? null;
+
+                  if (! $firstItem) {
+                    $firstItem = trim(explode(',', $purchaseRequest->item ?? '')[0] ?? '');
+
+                    if (str_contains(strtolower($firstItem), ' - qty:')) {
+                      $firstItem = trim(preg_split('/ - qty:/i', $firstItem)[0] ?? $firstItem);
+                    }
+
+                    if (preg_match('/^(.*?)\s*\((\d+\s*[^)]*)\)$/', $firstItem, $matches)) {
+                      $firstItem = trim($matches[1] ?? $firstItem);
+                    }
                   }
 
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseRequest->status));
+                  if (! $firstQuantity) {
+                    $firstQuantity = $purchaseRequest->quantity ?? '0';
+                  }
                 @endphp
 
                 <tr>
@@ -181,7 +195,7 @@
                     <strong>{{ $firstItem ?: '—' }}</strong>
                   </td>
 
-                  <td>{{ $purchaseRequest->quantity }}</td>
+                  <td>{{ $firstQuantity }}</td>
 
                   <td>
                     <span class="requested-status-badge {{ $statusClass }}">
@@ -207,7 +221,8 @@
                         data-quantity="{{ $purchaseRequest->quantity }}"
                         data-status="{{ $purchaseRequest->status }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
-                        data-remarks="{{ $purchaseRequest->remarks }}"
+                        data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
+                        data-parts='@json($partsBreakdown)'
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
@@ -251,13 +266,14 @@
   </div>
 
   {{-- VIEW REQUESTED PURCHASE MODAL --}}
-  <div id="viewRequestedPrModal" class="modal-overlay">
-    <div class="modal-box requested-pr-modal">
+  <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay">
+    <div class="requested-pr-style-modal">
 
       <div class="requested-pr-modal-header">
         <div>
-          <h2>Requested Purchase Details</h2>
-          <p>View the selected purchase request information.</p>
+          <h2>Purchase Request Details</h2>
+          <h3>PR Information</h3>
+          <p>This is a read-only view of unavailable parts sent by Warehouse.</p>
         </div>
 
         <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn">
@@ -265,53 +281,59 @@
         </button>
       </div>
 
-      <div class="requested-pr-grid">
+      <div class="requested-pr-form-grid">
 
         <div class="requested-pr-field">
           <label>PR No.</label>
-          <div id="viewRequestedPrNo">—</div>
+          <input id="viewRequestedPrNo" type="text" value="—" readonly>
         </div>
 
         <div class="requested-pr-field">
           <label>JO No.</label>
-          <div id="viewRequestedJoNo">—</div>
+          <input id="viewRequestedJoNo" type="text" value="—" readonly>
         </div>
 
         <div class="requested-pr-field">
           <label>Bus #</label>
-          <div id="viewRequestedBusNo">—</div>
+          <input id="viewRequestedBusNo" type="text" value="—" readonly>
         </div>
 
         <div class="requested-pr-field">
           <label>Status</label>
-          <div id="viewRequestedStatus">—</div>
+          <input id="viewRequestedStatus" type="text" value="—" readonly>
         </div>
 
-        {{-- ITEM ROWS LIKE:
-             tire | 8
-             oil  | 2
-        --}}
-        <div class="requested-pr-field full-width requested-parts-field">
-          <label>Requested Item / Part</label>
+        <div class="requested-pr-field full">
+          <label>Requested Parts Breakdown</label>
 
-          <div id="viewRequestedPartsContainer" class="requested-parts-container">
-            {{-- JS will render rows here --}}
+          <div class="requested-pr-breakdown-box">
+            <div class="requested-pr-breakdown-head">
+              <span>Part Name</span>
+              <span>Quantity</span>
+            </div>
+
+            <div id="viewRequestedPartsContainer" class="requested-pr-breakdown-body">
+              <div class="requested-pr-breakdown-row">
+                <span>No parts found.</span>
+                <span>0</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="requested-pr-field">
-          <label>Created</label>
-          <div id="viewRequestedCreated">—</div>
+          <label>Date Created</label>
+          <input id="viewRequestedCreated" type="text" value="—" readonly>
         </div>
 
-        <div class="requested-pr-field full-width">
+        <div class="requested-pr-field full">
           <label>Remarks</label>
-          <div id="viewRequestedRemarks">—</div>
+          <input id="viewRequestedRemarks" type="text" value="No remarks" readonly>
         </div>
 
       </div>
 
-      <div class="requested-pr-actions">
+      <div class="requested-pr-footer">
         <button type="button" id="closeRequestedPrModalBottom" class="requested-pr-close-bottom">
           Close
         </button>
