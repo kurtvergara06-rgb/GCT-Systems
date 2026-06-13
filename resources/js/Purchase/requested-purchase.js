@@ -15,17 +15,34 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.style.display = 'none';
   }
 
-  function setText(id, value, fallback = '—') {
+  function setField(id, value, fallback = '—') {
     const element = document.getElementById(id);
 
     if (!element) return;
 
-    if (value === undefined || value === null || value === '' || value === 'null') {
-      element.textContent = fallback;
-      return;
-    }
+    const finalValue =
+      value === undefined || value === null || value === '' || value === 'null'
+        ? fallback
+        : value;
 
-    element.textContent = value;
+    if (
+      element.tagName === 'INPUT' ||
+      element.tagName === 'TEXTAREA' ||
+      element.tagName === 'SELECT'
+    ) {
+      element.value = finalValue;
+    } else {
+      element.textContent = finalValue;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
   }
 
   function parseRequestedParts(rawItem, rawQuantity) {
@@ -41,27 +58,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cleanPart) return null;
 
-        /*
-          Supported format:
-          tire - Qty: 8, oil - Qty: 2
-        */
         if (cleanPart.toLowerCase().includes(' - qty:')) {
           const splitParts = cleanPart.split(/ - qty:/i);
+          const quantityWithUnit = String(splitParts[1] || '').trim();
 
           return {
-            name: splitParts[0] ? splitParts[0].trim() : '',
-            quantity: splitParts[1] ? parseInt(splitParts[1].trim(), 10) || 1 : 1,
+            name: String(splitParts[0] || '').trim(),
+            quantity: quantityWithUnit || '1',
           };
         }
 
-        /*
-          Fallback format:
-          tire, oil
-          First item gets main quantity. Other items default to 1.
-        */
+        if (cleanPart.match(/\(\d+\s*[^)]*\)$/)) {
+          const match = cleanPart.match(/^(.*?)\s*\((\d+\s*[^)]*)\)$/);
+
+          return {
+            name: match ? String(match[1] || '').trim() : cleanPart,
+            quantity: match ? String(match[2] || '').trim() : '1',
+          };
+        }
+
         return {
           name: cleanPart,
-          quantity: index === 0 ? fallbackQuantity : 1,
+          quantity: index === 0 ? String(fallbackQuantity) : '1',
         };
       })
       .filter(function (part) {
@@ -69,51 +87,56 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  function renderRequestedParts(rawItem, rawQuantity) {
+  function renderRequestedPartsFromDataset(button) {
     const container = document.getElementById('viewRequestedPartsContainer');
 
     if (!container) return;
 
-    const parts = parseRequestedParts(rawItem, rawQuantity);
+    let parts = [];
 
-    container.innerHTML = '';
+    try {
+      parts = JSON.parse(button.dataset.parts || '[]');
+    } catch (error) {
+      parts = [];
+    }
 
-    if (parts.length === 0) {
+    if (!Array.isArray(parts) || parts.length === 0) {
+      parts = parseRequestedParts(button.dataset.item, button.dataset.quantity);
+    }
+
+    if (!Array.isArray(parts) || parts.length === 0) {
       container.innerHTML = `
-        <div class="requested-part-row">
-          <input type="text" value="—" readonly>
-          <input type="number" value="0" readonly>
+        <div class="requested-pr-breakdown-row">
+          <span>No parts found.</span>
+          <span>0</span>
         </div>
       `;
       return;
     }
 
+    let html = '';
+
     parts.forEach(function (part) {
-      const row = document.createElement('div');
-      row.className = 'requested-part-row';
+      const name = escapeHtml(part.name || '—');
+      const quantity = escapeHtml(
+        part.quantity_display ||
+        part.needed_display ||
+        part.quantity ||
+        part.needed ||
+        '0'
+      );
 
-      const itemInput = document.createElement('input');
-      itemInput.type = 'text';
-      itemInput.value = part.name;
-      itemInput.readOnly = true;
-
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'number';
-      qtyInput.value = part.quantity;
-      qtyInput.readOnly = true;
-
-      row.appendChild(itemInput);
-      row.appendChild(qtyInput);
-
-      container.appendChild(row);
+      html += `
+        <div class="requested-pr-breakdown-row">
+          <span>${name}</span>
+          <span>${quantity}</span>
+        </div>
+      `;
     });
+
+    container.innerHTML = html;
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Sidebar Dropdown
-  |--------------------------------------------------------------------------
-  */
   document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
     button.addEventListener('click', function () {
       const dropdown = button.closest('.menu-dropdown');
@@ -124,11 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /*
-  |--------------------------------------------------------------------------
-  | Requested Purchase View Modal
-  |--------------------------------------------------------------------------
-  */
   const viewRequestedPrModal = document.getElementById('viewRequestedPrModal');
   const closeRequestedPrModal = document.getElementById('closeRequestedPrModal');
   const closeRequestedPrModalBottom = document.getElementById('closeRequestedPrModalBottom');
@@ -140,14 +158,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     event.preventDefault();
 
-    setText('viewRequestedPrNo', button.dataset.prNo);
-    setText('viewRequestedJoNo', button.dataset.jobOrderNo);
-    setText('viewRequestedBusNo', button.dataset.busNo);
-    setText('viewRequestedStatus', button.dataset.status);
-    setText('viewRequestedCreated', button.dataset.created);
-    setText('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
+    setField('viewRequestedPrNo', button.dataset.prNo);
+    setField('viewRequestedJoNo', button.dataset.jobOrderNo);
+    setField('viewRequestedBusNo', button.dataset.busNo);
+    setField('viewRequestedStatus', button.dataset.status);
+    setField('viewRequestedCreated', button.dataset.created);
+    setField('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
 
-    renderRequestedParts(button.dataset.item, button.dataset.quantity);
+    renderRequestedPartsFromDataset(button);
 
     openModal(viewRequestedPrModal);
   });
@@ -172,11 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Success / Error Modal Close
-  |--------------------------------------------------------------------------
-  */
   document.addEventListener('click', function (event) {
     const button = event.target.closest(
       'button, [data-close-modal], [data-close-feedback]'
@@ -211,15 +224,8 @@ document.addEventListener('DOMContentLoaded', function () {
     closeModal(modal);
   });
 
-  /*
-  |--------------------------------------------------------------------------
-  | Escape Key Close
-  |--------------------------------------------------------------------------
-  */
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
-      closeModal(viewRequestedPrModal);
-
       document
         .querySelectorAll(
           '.modal-overlay.show, .delete-modal-overlay.show, .success-modal-overlay.show, .error-modal-overlay.show, .feedback-modal-overlay.show, .action-modal-overlay.show'

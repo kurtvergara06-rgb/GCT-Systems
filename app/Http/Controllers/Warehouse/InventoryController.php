@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Warehouse\InventoryItem;
 use Illuminate\Http\Request;
 
@@ -14,7 +13,7 @@ class InventoryController extends Controller
         $query = InventoryItem::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('item_code', 'like', "%{$search}%")
@@ -29,9 +28,14 @@ class InventoryController extends Controller
             $query->where('category', $request->category);
         }
 
-        $inventoryItems = $query->latest()->paginate(8)->withQueryString();
+        $inventoryItems = $query
+            ->latest()
+            ->paginate(8)
+            ->withQueryString();
 
         $categories = InventoryItem::select('category')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
             ->distinct()
             ->orderBy('category')
             ->pluck('category');
@@ -69,6 +73,8 @@ class InventoryController extends Controller
             'storage_location' => 'nullable|string|max:255',
         ]);
 
+        $validated['unit_of_measurement'] = $this->normalizeUnit($validated['unit_of_measurement']);
+
         InventoryItem::create($validated);
 
         return redirect()
@@ -88,6 +94,8 @@ class InventoryController extends Controller
             'supplier' => 'nullable|string|max:255',
             'storage_location' => 'nullable|string|max:255',
         ]);
+
+        $validated['unit_of_measurement'] = $this->normalizeUnit($validated['unit_of_measurement']);
 
         $inventoryItem->update($validated);
 
@@ -114,20 +122,20 @@ class InventoryController extends Controller
         $file = fopen($request->file('import_file')->getRealPath(), 'r');
 
         $header = fgetcsv($file);
-    
+
         while (($row = fgetcsv($file)) !== false) {
             InventoryItem::updateOrCreate(
                 [
-                    'item_code' => $row[0] ?? null,
+                    'item_code' => trim($row[0] ?? ''),
                 ],
                 [
-                    'item_name' => $row[1] ?? '',
-                    'category' => $row[2] ?? '',
+                    'item_name' => trim($row[1] ?? ''),
+                    'category' => trim($row[2] ?? ''),
                     'quantity_available' => (int) ($row[3] ?? 0),
-                    'unit_of_measurement' => $row[4] ?? 'pcs',
+                    'unit_of_measurement' => $this->normalizeUnit($row[4] ?? 'pcs'),
                     'reorder_level' => (int) ($row[5] ?? 0),
-                    'supplier' => $row[6] ?? null,
-                    'storage_location' => $row[7] ?? null,
+                    'supplier' => trim($row[6] ?? '') ?: null,
+                    'storage_location' => trim($row[7] ?? '') ?: null,
                 ]
             );
         }
@@ -138,5 +146,26 @@ class InventoryController extends Controller
             ->route('inventory')
             ->with('success', 'Inventory data imported successfully.');
     }
-}
 
+    private function normalizeUnit(?string $unit): string
+    {
+        $unit = strtolower(trim($unit ?? 'pcs'));
+        $unit = preg_replace('/\s+/', ' ', $unit);
+
+        return match ($unit) {
+            'liter', 'liters', 'litre', 'litres', 'ltr', 'ltrs', 'l' => 'liter',
+            'piece', 'pieces', 'pc', 'pcs' => 'pcs',
+            'set', 'sets' => 'set',
+            'bottle', 'bottles' => 'bottle',
+            'box', 'boxes' => 'box',
+            'pack', 'packs' => 'pack',
+            'pair', 'pairs' => 'pair',
+            'roll', 'rolls' => 'roll',
+            'tube', 'tubes' => 'tube',
+            'gallon', 'gallons', 'gal' => 'gallon',
+            'meter', 'meters', 'm' => 'meter',
+            'kg', 'kilogram', 'kilograms' => 'kg',
+            default => $unit ?: 'pcs',
+        };
+    }
+}

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
-
-use App\Models\Purchase\PurchaseOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Purchase\PurchaseOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -26,7 +25,7 @@ class RequestedPurchaseController extends Controller
             ->whereIn('status', $this->purchaseStatuses);
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('pr_no', 'like', "%{$search}%")
@@ -46,6 +45,17 @@ class RequestedPurchaseController extends Controller
             ->latest()
             ->paginate(8)
             ->withQueryString();
+
+        $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
+            $parts = $this->parseParts($purchaseRequest->item);
+            $firstPart = $parts[0] ?? null;
+
+            $purchaseRequest->parts_breakdown = $parts;
+            $purchaseRequest->first_item_display = $firstPart['name'] ?? $purchaseRequest->item ?? '—';
+            $purchaseRequest->first_quantity_display = $firstPart['quantity_display'] ?? $purchaseRequest->quantity ?? '0';
+
+            return $purchaseRequest;
+        });
 
         $totalRequests = PurchaseRequest::whereIn('status', $this->purchaseStatuses)->count();
         $forPurchase = PurchaseRequest::where('status', 'For Purchase')->count();
@@ -90,5 +100,62 @@ class RequestedPurchaseController extends Controller
             ])
             ->with('open_po_modal', true);
     }
-}
 
+    private function parseParts(?string $partsText): array
+    {
+        if (! $partsText) {
+            return [];
+        }
+
+        return collect(explode(',', $partsText))
+            ->map(function ($part) {
+                $part = trim($part);
+
+                if ($part === '') {
+                    return null;
+                }
+
+                if (str_contains(strtolower($part), ' - qty:')) {
+                    [$name, $quantityWithUnit] = preg_split('/ - qty:/i', $part, 2);
+
+                    $name = trim($name ?? '');
+                    $quantityWithUnit = trim($quantityWithUnit ?? '');
+
+                    preg_match('/^(\d+)\s*(.*)$/', $quantityWithUnit, $matches);
+
+                    $quantity = isset($matches[1]) ? (int) $matches[1] : 1;
+                    $unit = isset($matches[2]) ? trim($matches[2]) : '';
+
+                    return [
+                        'name' => $name,
+                        'quantity' => max(1, $quantity),
+                        'unit' => $unit,
+                        'quantity_display' => trim(max(1, $quantity) . ($unit ? ' ' . $unit : '')),
+                    ];
+                }
+
+                if (preg_match('/^(.*?)\s*\((\d+)\s*([^)]+)\)$/', $part, $matches)) {
+                    $name = trim($matches[1] ?? '');
+                    $quantity = isset($matches[2]) ? (int) $matches[2] : 1;
+                    $unit = isset($matches[3]) ? trim($matches[3]) : '';
+
+                    return [
+                        'name' => $name,
+                        'quantity' => max(1, $quantity),
+                        'unit' => $unit,
+                        'quantity_display' => trim(max(1, $quantity) . ($unit ? ' ' . $unit : '')),
+                    ];
+                }
+
+                return [
+                    'name' => $part,
+                    'quantity' => 1,
+                    'unit' => '',
+                    'quantity_display' => '1',
+                ];
+            })
+            ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
+            ->values()
+            ->toArray();
+    }
+}

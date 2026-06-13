@@ -434,7 +434,7 @@
     </div>
 
     <div class="form-group full-width">
-      <label>Parts Needed</label>
+      <label>Requested Parts</label>
 
       <div id="partsNeededWrapper" class="parts-needed-wrapper">
         <div class="part-needed-row">
@@ -448,14 +448,32 @@
             type="number"
             name="parts[0][quantity]"
             min="1"
-            placeholder="Quantity"
+            placeholder="Qty"
           >
+
+          <select name="parts[0][unit]">
+            <option value="">Unit</option>
+            <option value="pcs">pcs</option>
+            <option value="set">set</option>
+            <option value="liter">liter</option>
+            <option value="gallon">gallon</option>
+            <option value="bottle">bottle</option>
+            <option value="box">box</option>
+            <option value="meter">meter</option>
+            <option value="kg">kg</option>
+            <option value="pack">pack</option>
+            <option value="pair">pair</option>
+            <option value="roll">roll</option>
+            <option value="tube">tube</option>
+          </select>
 
           <button type="button" class="remove-part-btn" style="display: none;">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
+
+      <small>Add each part separately so Warehouse can check inventory correctly.</small>
 
       <button type="button" id="addPartBtn" class="add-part-btn">
         <i class="fa-solid fa-plus"></i>
@@ -548,7 +566,7 @@
         </div>
 
         <div class="form-group full-width">
-          <label>Parts Needed</label>
+          <label>Requested Parts</label>
 
           <div id="editPartsNeededWrapper" class="parts-needed-wrapper"></div>
 

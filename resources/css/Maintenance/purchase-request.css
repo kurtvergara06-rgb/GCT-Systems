@@ -538,6 +538,13 @@ tbody tr:last-child td {
   color: #475569;
 }
 
+.pr-jo-form-group small {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  color: var(--pr-muted);
+}
+
 /* Modal buttons */
 .pr-jo-actions,
 .modal-actions {
@@ -631,16 +638,48 @@ tbody tr:last-child td {
 }
 
 /* =========================================================
-   REMOVE JO MULTI-PART DESIGN INSIDE PR MODAL
+   PR PARTS ROW: PART NAME | QTY | UNIT
 ========================================================= */
 
-.pr-jo-style-modal .part-row,
-.pr-jo-style-modal .parts-row,
-.pr-jo-style-modal .remove-part-btn,
-.pr-jo-style-modal .add-part-btn,
-.pr-jo-style-modal .add-other-part,
-.pr-jo-style-modal #addPartBtn {
-  display: none !important;
+.pr-parts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pr-part-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 130px;
+  gap: 10px;
+  align-items: center;
+}
+
+.pr-part-row input,
+.pr-part-row select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--pr-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  min-width: 0;
+}
+
+.pr-part-row input:focus,
+.pr-part-row select:focus {
+  border-color: var(--pr-blue);
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.pr-part-row input[readonly],
+.pr-part-row input:disabled,
+.pr-part-row select:disabled {
+  background: var(--pr-bg-soft);
+  color: #475569;
+  cursor: not-allowed;
 }
 
 /* =========================================================
@@ -756,69 +795,7 @@ tbody tr:last-child td {
     width: 100%;
     justify-content: center;
   }
-}
 
-.pr-parts-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pr-part-row {
-  display: grid;
-  grid-template-columns: 1fr 140px;
-  gap: 10px;
-  align-items: center;
-}
-
-.pr-part-row input {
-  width: 100%;
-  height: 46px;
-  border: 1px solid #dce5f2;
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: 14px;
-  color: #0f172a;
-  background: #ffffff;
-  outline: none;
-}
-
-.pr-part-row input[readonly] {
-  background: #f8fafc;
-  color: #475569;
-}
-
-.action-btn.edit {
-  background: #eaf2ff;
-  color: #0057f8;
-}
-
-.action-btn.edit:hover {
-  background: #0057f8;
-  color: #ffffff;
-}
-
-.action-btn.view {
-  background: #edf3fb;
-  color: #0b2344;
-}
-
-.action-btn.view:hover {
-  background: #0b2344;
-  color: #ffffff;
-}
-
-.action-btn.delete {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.action-btn.delete:hover {
-  background: #dc2626;
-  color: #ffffff;
-}
-
-@media (max-width: 768px) {
   .pr-part-row {
     grid-template-columns: 1fr;
   }

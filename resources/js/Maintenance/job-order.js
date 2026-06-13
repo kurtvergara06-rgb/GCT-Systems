@@ -11,6 +11,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function unitOptions(selectedUnit = '') {
+    const units = [
+      'pcs',
+      'set',
+      'liter',
+      'gallon',
+      'bottle',
+      'box',
+      'meter',
+      'kg',
+      'pack',
+      'pair',
+      'roll',
+      'tube',
+    ];
+
+    let html = '<option value="">Unit</option>';
+
+    units.forEach((unit) => {
+      html += `<option value="${unit}" ${selectedUnit === unit ? 'selected' : ''}>${unit}</option>`;
+    });
+
+    return html;
+  }
+
+  function escapeInputValue(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
   document.querySelectorAll('.close-feedback-modal, .feedback-ok-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const modal = button.closest('.success-modal-overlay, .delete-modal-overlay, .modal-overlay');
@@ -37,6 +70,76 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cancelJobModal) {
     cancelJobModal.addEventListener('click', () => closeModal(jobModal));
   }
+
+  function setupPartsRepeater(wrapperId, addButtonId) {
+    const wrapper = document.getElementById(wrapperId);
+    const addButton = document.getElementById(addButtonId);
+
+    if (!wrapper || !addButton) return;
+
+    let partIndex = wrapper.querySelectorAll('.part-needed-row').length;
+
+    function updateRemoveButtons() {
+      const rows = wrapper.querySelectorAll('.part-needed-row');
+
+      rows.forEach((row) => {
+        const removeButton = row.querySelector('.remove-part-btn');
+
+        if (removeButton) {
+          removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
+        }
+      });
+    }
+
+    addButton.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'part-needed-row';
+
+      row.innerHTML = `
+        <input
+          type="text"
+          name="parts[${partIndex}][name]"
+          placeholder="Part name"
+        >
+
+        <input
+          type="number"
+          name="parts[${partIndex}][quantity]"
+          min="1"
+          placeholder="Qty"
+        >
+
+        <select name="parts[${partIndex}][unit]">
+          ${unitOptions()}
+        </select>
+
+        <button type="button" class="remove-part-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      wrapper.appendChild(row);
+      partIndex++;
+      updateRemoveButtons();
+    });
+
+    wrapper.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.remove-part-btn');
+
+      if (removeButton) {
+        const rows = wrapper.querySelectorAll('.part-needed-row');
+
+        if (rows.length > 1) {
+          removeButton.closest('.part-needed-row').remove();
+          updateRemoveButtons();
+        }
+      }
+    });
+
+    updateRemoveButtons();
+  }
+
+  setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
 
   const editJobModal = document.getElementById('editJobModal');
   const editJobForm = document.getElementById('editJobForm');
@@ -75,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (editPartsNeededWrapper) {
-      editPartsNeededWrapper.querySelectorAll('input, button').forEach((element) => {
+      editPartsNeededWrapper.querySelectorAll('input, select, button').forEach((element) => {
         element.disabled = isReadonly;
       });
     }
@@ -105,14 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function escapeInputValue(value) {
-    return String(value || '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
-  }
-
   function parseParts(partNeeded) {
     if (!partNeeded) return [];
 
@@ -121,17 +216,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (cleanPart.includes(' - Qty:')) {
         const pieces = cleanPart.split(' - Qty:');
+        const name = pieces[0] ? pieces[0].trim() : '';
+        const quantityWithUnit = pieces[1] ? pieces[1].trim() : '';
+
+        const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
 
         return {
-          name: pieces[0] ? pieces[0].trim() : '',
-          quantity: pieces[1] ? pieces[1].trim() : '',
+          name: name,
+          quantity: match ? match[1] : quantityWithUnit,
+          unit: match && match[2] ? match[2].trim() : '',
         };
       }
 
       return {
         name: cleanPart,
         quantity: '',
+        unit: '',
       };
+    });
+  }
+
+  function updateEditRemoveButtons() {
+    if (!editPartsNeededWrapper) return;
+
+    const rows = editPartsNeededWrapper.querySelectorAll('.part-needed-row');
+
+    rows.forEach((row) => {
+      const removeButton = row.querySelector('.remove-part-btn');
+
+      if (removeButton) {
+        removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
+      }
     });
   }
 
@@ -142,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editPartsNeededWrapper.innerHTML = '';
 
-    const rows = parts.length > 0 ? parts : [{ name: '', quantity: '' }];
+    const rows = parts.length > 0 ? parts : [{ name: '', quantity: '', unit: '' }];
 
     rows.forEach((part, index) => {
       const row = document.createElement('div');
@@ -161,10 +276,14 @@ document.addEventListener('DOMContentLoaded', () => {
           type="number"
           name="parts[${index}][quantity]"
           min="1"
-          placeholder="Quantity"
+          placeholder="Qty"
           value="${escapeInputValue(part.quantity)}"
           ${isReadonly ? 'disabled' : ''}
         >
+
+        <select name="parts[${index}][unit]" ${isReadonly ? 'disabled' : ''}>
+          ${unitOptions(part.unit)}
+        </select>
 
         <button type="button" class="remove-part-btn" ${isReadonly ? 'disabled' : ''}>
           <i class="fa-solid fa-xmark"></i>
@@ -175,20 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateEditRemoveButtons();
-  }
-
-  function updateEditRemoveButtons() {
-    if (!editPartsNeededWrapper) return;
-
-    const rows = editPartsNeededWrapper.querySelectorAll('.part-needed-row');
-
-    rows.forEach((row) => {
-      const removeButton = row.querySelector('.remove-part-btn');
-
-      if (removeButton) {
-        removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
-      }
-    });
   }
 
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
@@ -214,6 +319,56 @@ document.addEventListener('DOMContentLoaded', () => {
       openModal(editJobModal);
     });
   });
+
+  if (editAddPartBtn && editPartsNeededWrapper) {
+    let editPartIndex = 0;
+
+    editAddPartBtn.addEventListener('click', () => {
+      editPartIndex = editPartsNeededWrapper.querySelectorAll('.part-needed-row').length;
+
+      const row = document.createElement('div');
+      row.className = 'part-needed-row';
+
+      row.innerHTML = `
+        <input
+          type="text"
+          name="parts[${editPartIndex}][name]"
+          placeholder="Part name"
+        >
+
+        <input
+          type="number"
+          name="parts[${editPartIndex}][quantity]"
+          min="1"
+          placeholder="Qty"
+        >
+
+        <select name="parts[${editPartIndex}][unit]">
+          ${unitOptions()}
+        </select>
+
+        <button type="button" class="remove-part-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      editPartsNeededWrapper.appendChild(row);
+      updateEditRemoveButtons();
+    });
+
+    editPartsNeededWrapper.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.remove-part-btn');
+
+      if (removeButton) {
+        const rows = editPartsNeededWrapper.querySelectorAll('.part-needed-row');
+
+        if (rows.length > 1) {
+          removeButton.closest('.part-needed-row').remove();
+          updateEditRemoveButtons();
+        }
+      }
+    });
+  }
 
   if (closeEditJobModal) {
     closeEditJobModal.addEventListener('click', () => closeModal(editJobModal));
@@ -308,69 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-
-  function setupPartsRepeater(wrapperId, addButtonId) {
-    const wrapper = document.getElementById(wrapperId);
-    const addButton = document.getElementById(addButtonId);
-
-    if (!wrapper || !addButton) return;
-
-    let partIndex = wrapper.querySelectorAll('.part-needed-row').length;
-
-    function updateRemoveButtons() {
-      const rows = wrapper.querySelectorAll('.part-needed-row');
-
-      rows.forEach((row) => {
-        const removeButton = row.querySelector('.remove-part-btn');
-
-        if (removeButton) {
-          removeButton.style.display = rows.length > 1 ? 'inline-flex' : 'none';
-        }
-      });
-    }
-
-    addButton.addEventListener('click', () => {
-      const row = document.createElement('div');
-      row.className = 'part-needed-row';
-
-      row.innerHTML = `
-        <input
-          type="text"
-          name="parts[${partIndex}][name]"
-          placeholder="Part name"
-        >
-
-        <input
-          type="number"
-          name="parts[${partIndex}][quantity]"
-          min="1"
-          placeholder="Quantity"
-        >
-
-        <button type="button" class="remove-part-btn">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      `;
-
-      wrapper.appendChild(row);
-      partIndex++;
-      updateRemoveButtons();
-    });
-
-    wrapper.addEventListener('click', (event) => {
-      const removeButton = event.target.closest('.remove-part-btn');
-
-      if (removeButton) {
-        removeButton.closest('.part-needed-row').remove();
-        updateRemoveButtons();
-      }
-    });
-
-    updateRemoveButtons();
-  }
-
-  setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
-  setupPartsRepeater('editPartsNeededWrapper', 'editAddPartBtn');
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -403,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const value = partStatusFilter.value;
 
-    if (!value || value === 'All Part Statuses') return;  
+    if (!value || value === 'All Part Statuses') return;
 
     partStatusFilter.classList.add(slugStatus(value));
   }

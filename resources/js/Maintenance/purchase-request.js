@@ -38,6 +38,61 @@ document.addEventListener('DOMContentLoaded', function () {
     element.value = value;
   }
 
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
+  function normalizeUnit(unit) {
+    const cleanUnit = String(unit || '').trim().toLowerCase();
+
+    if (cleanUnit === 'liters') return 'liter';
+    if (cleanUnit === 'ltr') return 'liter';
+    if (cleanUnit === 'ltrs') return 'liter';
+    if (cleanUnit === 'piece') return 'pcs';
+    if (cleanUnit === 'pieces') return 'pcs';
+    if (cleanUnit === 'pc') return 'pcs';
+    if (cleanUnit === 'sets') return 'set';
+    if (cleanUnit === 'bottles') return 'bottle';
+    if (cleanUnit === 'boxes') return 'box';
+    if (cleanUnit === 'packs') return 'pack';
+    if (cleanUnit === 'pairs') return 'pair';
+    if (cleanUnit === 'rolls') return 'roll';
+    if (cleanUnit === 'tubes') return 'tube';
+
+    return cleanUnit;
+  }
+
+  function unitOptions(selectedUnit = '') {
+    const normalizedSelectedUnit = normalizeUnit(selectedUnit);
+
+    const units = [
+      'pcs',
+      'set',
+      'liter',
+      'gallon',
+      'bottle',
+      'box',
+      'meter',
+      'kg',
+      'pack',
+      'pair',
+      'roll',
+      'tube',
+    ];
+
+    let html = '<option value="">Unit</option>';
+
+    units.forEach(function (unit) {
+      html += `<option value="${unit}" ${normalizedSelectedUnit === unit ? 'selected' : ''}>${unit}</option>`;
+    });
+
+    return html;
+  }
+
   function parsePrParts(rawItem, rawQuantity) {
     const itemText = String(rawItem || '').trim();
     const fallbackQuantity = parseInt(rawQuantity || '1', 10) || 1;
@@ -53,18 +108,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cleanPart) return null;
 
+        /*
+         * Correct format:
+         * Engine Oil - Qty: 2 liter
+         * Oil Filter - Qty: 4 pcs
+         */
         if (cleanPart.includes(' - Qty:')) {
           const splitParts = cleanPart.split(' - Qty:');
+          const name = splitParts[0] ? splitParts[0].trim() : '';
+          const quantityWithUnit = splitParts[1] ? splitParts[1].trim() : '';
+
+          const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
 
           return {
-            name: splitParts[0] ? splitParts[0].trim() : '',
-            quantity: splitParts[1] ? parseInt(splitParts[1].trim(), 10) || 1 : 1,
+            name: name,
+            quantity: match ? match[1] : '1',
+            unit: match && match[2] ? normalizeUnit(match[2]) : '',
+          };
+        }
+
+        /*
+         * Old format support:
+         * Engine Oil (2 liter)
+         * Oil Filter (4 liter)
+         */
+        const oldFormatMatch = cleanPart.match(/^(.*?)\s*\((\d+)\s*([^)]+)\)$/);
+
+        if (oldFormatMatch) {
+          return {
+            name: oldFormatMatch[1] ? oldFormatMatch[1].trim() : '',
+            quantity: oldFormatMatch[2] ? oldFormatMatch[2].trim() : '1',
+            unit: oldFormatMatch[3] ? normalizeUnit(oldFormatMatch[3]) : '',
           };
         }
 
         return {
           name: cleanPart,
           quantity: index === 0 ? fallbackQuantity : 1,
+          unit: '',
         };
       })
       .filter(function (part) {
@@ -72,44 +153,13 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  function syncPrHiddenFields() {
-    const container = document.getElementById('editPrPartsContainer');
-    const hiddenItem = document.getElementById('edit_item');
-    const hiddenQuantity = document.getElementById('edit_quantity');
+  function renderPartsRows(containerId, rawItem, rawQuantity, options = {}) {
+    const container = document.getElementById(containerId);
 
     if (!container) return;
 
-    const rows = container.querySelectorAll('.pr-part-row');
-    const items = [];
-    let totalQuantity = 0;
-
-    rows.forEach(function (row) {
-      const nameInput = row.querySelector('.pr-part-name');
-      const qtyInput = row.querySelector('.pr-part-qty');
-
-      const name = nameInput ? nameInput.value.trim() : '';
-      const qty = qtyInput ? parseInt(qtyInput.value || '1', 10) || 1 : 1;
-
-      if (name) {
-        items.push(name);
-        totalQuantity += qty;
-      }
-    });
-
-    if (hiddenItem) {
-      hiddenItem.value = items.join(', ');
-    }
-
-    if (hiddenQuantity) {
-      hiddenQuantity.value = totalQuantity;
-    }
-  }
-
-  function renderPrPartsRows(rawItem, rawQuantity, isReadOnly) {
-    const container = document.getElementById('editPrPartsContainer');
-
-    if (!container) return;
-
+    const isReadOnly = options.isReadOnly || false;
+    const prefix = options.prefix || 'parts';
     const parts = parsePrParts(rawItem, rawQuantity);
 
     container.innerHTML = '';
@@ -119,44 +169,73 @@ document.addEventListener('DOMContentLoaded', function () {
       row.className = 'pr-part-row';
 
       row.innerHTML = `
-        <input type="text" class="pr-part-name" value="" placeholder="No requested part" readonly>
-        <input type="number" class="pr-part-qty" value="1" min="1" readonly>
+        <input
+          type="text"
+          name="${prefix}[0][name]"
+          class="pr-part-name"
+          value=""
+          placeholder="Part name"
+          ${isReadOnly ? 'readonly disabled' : ''}
+        >
+
+        <input
+          type="number"
+          name="${prefix}[0][quantity]"
+          class="pr-part-qty"
+          value="1"
+          min="1"
+          placeholder="Qty"
+          ${isReadOnly ? 'readonly disabled' : ''}
+        >
+
+        <select
+          name="${prefix}[0][unit]"
+          class="pr-part-unit"
+          ${isReadOnly ? 'disabled' : ''}
+        >
+          ${unitOptions()}
+        </select>
       `;
 
       container.appendChild(row);
-      syncPrHiddenFields();
       return;
     }
 
-    parts.forEach(function (part) {
+    parts.forEach(function (part, index) {
       const row = document.createElement('div');
       row.className = 'pr-part-row';
 
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'pr-part-name';
-      nameInput.value = part.name;
-      nameInput.placeholder = 'Part name';
-      nameInput.readOnly = isReadOnly;
+      row.innerHTML = `
+        <input
+          type="text"
+          name="${prefix}[${index}][name]"
+          class="pr-part-name"
+          value="${escapeHtml(part.name)}"
+          placeholder="Part name"
+          ${isReadOnly ? 'readonly disabled' : ''}
+        >
 
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'number';
-      qtyInput.className = 'pr-part-qty';
-      qtyInput.min = '1';
-      qtyInput.value = part.quantity;
-      qtyInput.placeholder = 'Qty';
-      qtyInput.readOnly = isReadOnly;
+        <input
+          type="number"
+          name="${prefix}[${index}][quantity]"
+          class="pr-part-qty"
+          min="1"
+          value="${escapeHtml(part.quantity)}"
+          placeholder="Qty"
+          ${isReadOnly ? 'readonly disabled' : ''}
+        >
 
-      nameInput.addEventListener('input', syncPrHiddenFields);
-      qtyInput.addEventListener('input', syncPrHiddenFields);
-
-      row.appendChild(nameInput);
-      row.appendChild(qtyInput);
+        <select
+          name="${prefix}[${index}][unit]"
+          class="pr-part-unit"
+          ${isReadOnly ? 'disabled' : ''}
+        >
+          ${unitOptions(part.unit)}
+        </select>
+      `;
 
       container.appendChild(row);
     });
-
-    syncPrHiddenFields();
   }
 
   document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
@@ -194,32 +273,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const jobOrderSelect = document.getElementById('jobOrderSelect');
   const busNoInput = document.getElementById('busNoInput');
-  const partInput = document.getElementById('partInput');
-  const quantityInput = document.getElementById('quantityInput');
+  const newPrPartsContainer = document.getElementById('newPrPartsContainer');
 
-  function parseFirstPartNeeded(rawParts) {
-    const firstPart = String(rawParts || '').split(',')[0].trim();
+  if (newPrPartsContainer) {
+    const initialParts = newPrPartsContainer.dataset.initialParts || '';
 
-    if (!firstPart) {
-      return {
-        name: '',
-        quantity: '1',
-      };
-    }
-
-    if (firstPart.includes(' - Qty:')) {
-      const parts = firstPart.split(' - Qty:');
-
-      return {
-        name: parts[0] ? parts[0].trim() : '',
-        quantity: parts[1] ? parts[1].trim() : '1',
-      };
-    }
-
-    return {
-      name: firstPart,
-      quantity: '1',
-    };
+    renderPartsRows('newPrPartsContainer', initialParts, 1, {
+      isReadOnly: true,
+      prefix: 'parts',
+    });
   }
 
   if (jobOrderSelect) {
@@ -228,19 +290,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!selected) return;
 
-      const parsed = parseFirstPartNeeded(selected.dataset.parts);
-
       if (busNoInput) {
         busNoInput.value = selected.dataset.bus || '';
       }
 
-      if (partInput) {
-        partInput.value = parsed.name || '';
-      }
-
-      if (quantityInput) {
-        quantityInput.value = parsed.quantity || '1';
-      }
+      renderPartsRows('newPrPartsContainer', selected.dataset.parts || '', 1, {
+        isReadOnly: true,
+        prefix: 'parts',
+      });
     });
   }
 
@@ -287,9 +344,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document
-      .querySelectorAll('#editPrPartsContainer input')
-      .forEach(function (input) {
-        input.readOnly = isView;
+      .querySelectorAll('#editPrPartsContainer input, #editPrPartsContainer select')
+      .forEach(function (field) {
+        if (isView) {
+          field.setAttribute('disabled', 'disabled');
+          field.setAttribute('readonly', 'readonly');
+        } else {
+          field.removeAttribute('disabled');
+          field.removeAttribute('readonly');
+        }
       });
   }
 
@@ -314,11 +377,10 @@ document.addEventListener('DOMContentLoaded', function () {
     setValue('edit_status_display', status);
     setValue('edit_remarks', button.dataset.remarks);
 
-    renderPrPartsRows(
-      button.dataset.item,
-      button.dataset.quantity,
-      mode === 'view'
-    );
+    renderPartsRows('editPrPartsContainer', button.dataset.item, button.dataset.quantity, {
+      isReadOnly: mode === 'view',
+      prefix: 'parts',
+    });
 
     setPrModalMode(mode, status);
 
