@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Maintenance;
 
+use App\Models\Purchase\PurchaseOrder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -31,3 +32,4 @@ class PurchaseRequest extends Model
         return $this->hasOne(PurchaseOrder::class);
     }
 }
+

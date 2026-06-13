@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Maintenance;
 
-use App\Models\JobOrder;
-use App\Models\MechanicAttendance;
-use App\Models\PurchaseRequest;
+use App\Http\Controllers\Controller;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Operation\MechanicAttendance;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
 
 {
+
     public function index(Request $request)
     {
         $query = JobOrder::query();
@@ -27,6 +29,7 @@ class JobOrderController extends Controller
                     ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('part_status', 'like', "%{$search}%");
             });
+
         }
 
         if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
