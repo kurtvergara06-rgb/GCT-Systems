@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   @vite([
-    'resources/css/Login_Register/login.css',
-    'resources/js/Login_Register/login.js'
+    'resources/css/Login/login.css',
+    'resources/js/Login/login.js'
   ])
 </head>
 
@@ -21,7 +21,7 @@
     <section class="left-panel">
       <div class="left-content">
 
-        <img src="img/gct_logo.png" alt="GCT Transport Services Logo" class="company-logo">
+        <img src="{{ asset('img/gct_logo.png') }}" alt="GCT Transport Services Logo" class="company-logo">
 
         <h1>GCT Transport Services, Inc.</h1>
 
@@ -66,19 +66,34 @@
         <h2>Welcome Back</h2>
         <p class="subtitle">Sign in to access your company system</p>
 
-        <form id="loginForm">
+        @if(session('error'))
+          <div class="login-alert">
+            {{ session('error') }}
+          </div>
+        @endif
 
-                  <div class="form-group">
-            <label for="loginUsername">Username</label>
+        @if($errors->any())
+          <div class="login-alert">
+            {{ $errors->first() }}
+          </div>
+        @endif
+
+        <form id="loginForm" method="POST" action="{{ route('login.submit') }}">
+          @csrf
+
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
 
             <div class="input-box">
               <i class="fa-regular fa-user"></i>
-              <input 
-                type="text" 
-                id="loginUsername" 
-                name="username"
-                placeholder="Enter your username" 
+              <input
+                type="email"
+                id="loginEmail"
+                name="email"
+                value="{{ old('email') }}"
+                placeholder="Enter your email"
                 required
+                autocomplete="email"
               >
             </div>
           </div>
@@ -88,19 +103,22 @@
 
             <div class="input-box">
               <i class="fa-solid fa-lock"></i>
-              <input 
-                type="password" 
-                id="loginPassword" 
-                placeholder="Enter your password" 
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                placeholder="Enter your password"
                 required
+                autocomplete="current-password"
               >
+
               <i class="fa-regular fa-eye toggle-password" id="passwordIcon"></i>
             </div>
           </div>
 
           <div class="login-options">
             <label>
-              <input type="checkbox" checked>
+              <input type="checkbox" name="remember" value="1">
               Remember me
             </label>
 
@@ -110,12 +128,6 @@
           <button type="submit" class="login-btn" id="loginBtn">
             Sign In
           </button>
-
-
-         <div class="register-box">
-          <span>Don't have an account?</span>
-          <a href="{{ route('register') }}">Register</a>
-        </div>
         </form>
 
       </div>
@@ -134,7 +146,6 @@
       </footer>
 
     </section>
-    
 
   </main>
 

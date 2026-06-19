@@ -9,20 +9,31 @@
 
   <div class="app">
 
+    <div class="app">
+
     <x-layout.sidebar
       department="Admin"
       subtitle="System Management"
       icon="fa-user-shield"
-      user-name="System Admin"
-      user-role="Administrator"
+      user-name="S. Admin"
+      user-role="System Admin"
       :items="[
-        ['label' => 'Dashboard', 'route' => 'admin-dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Maintenance', 'route' => 'maintenance-dashboard', 'icon' => 'fa-truck'],
-        ['label' => 'Warehouse', 'route' => 'inventory', 'icon' => 'fa-warehouse'],
-        ['label' => 'Purchase', 'route' => 'purchase-orders', 'icon' => 'fa-cart-shopping'],
-        ['label' => 'Operations', 'route' => 'dashboard-operation', 'icon' => 'fa-users-gear'],
-        ['label' => 'Settings', 'route' => 'settings', 'icon' => 'fa-gear'],
-      ]"
+        [
+          'label' => 'Dashboard',
+          'route' => 'admin.dashboard',
+          'icon' => 'fa-table-cells-large'
+        ],
+        [
+          'label' => 'User Management',
+          'route' => 'admin.users',
+          'icon' => 'fa-users-gear'
+        ],
+        [
+          'label' => 'Permissions',
+          'route' => 'admin.permissions',
+          'icon' => 'fa-lock'
+        ],
+]"
     />
 
     <main class="main">
