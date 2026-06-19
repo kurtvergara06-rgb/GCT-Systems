@@ -279,17 +279,20 @@
                   </td>
 
                   <td>
-                    <span class="role-pill {{ $roleClass }}">
-                      {{ $roleDisplay }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$roleDisplay" 
+                      type="user"
+                      :class="$roleClass"
+                    />
                   </td>
 
                   <td>{{ $user->department ?? '—' }}</td>
 
                   <td>
-                    <span class="status-pill {{ $statusClass }}">
-                      {{ $user->status ?? 'Inactive' }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$user->status ?? 'Inactive'" 
+                      type="user"
+                    />
                   </td>
 
                   <td>

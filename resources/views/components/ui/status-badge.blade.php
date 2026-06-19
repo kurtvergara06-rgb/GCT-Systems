@@ -1,40 +1,42 @@
 @props([
   'status' => '',
+  'type' => 'default', // purchase, inventory, user, job, default
+  'class' => '',
 ])
 
 @php
-  $badgeClass = match($status) {
-    // Job Order Statuses
-    'On Hold' => 'hold',
-    'On Going' => 'ongoing',
-    'Completed' => 'completed',
-    'Urgent Repair' => 'urgent',
-
-    // Purchase Request Statuses
-    'Submitted' => 'submitted',
-    'Approved' => 'approved',
-    'Rejected' => 'rejected',
-    'For Purchase' => 'for-purchase',
-    'Ordered' => 'ordered',
-    'For Pick-up' => 'for-pick-up',
-    'For Delivery' => 'for-delivery',
-    'Delivered' => 'delivered',
-    'Picked Up' => 'picked-up',
-    'Issued' => 'issued',
-
-    // Part Statuses (for Job Orders)
-    'Not Requested' => 'not-requested',
-
-    // Inventory Statuses
-    'In Stock' => 'in-stock',
-    'Low Stock' => 'low-stock',
-    'Critical' => 'critical',
-    'Out of Stock' => 'out-of-stock',
-
-    default => 'draft',
-  };
+  /**
+   * Status Badge Component - Reusable status display badge
+   * 
+   * Automatically converts status strings to CSS classes:
+   * "Submitted" → "submitted"
+   * "For Purchase" → "for-purchase"
+   * "Picked Up" → "picked-up"
+   * etc.
+   */
+  
+  // Convert status to CSS class
+  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $status ?? ''));
+  
+  // Build badge class
+  $badgeClass = 'badge';
+  
+  // Add type-specific class
+  if ($type !== 'default') {
+    $badgeClass .= ' ' . $type . '-badge';
+  }
+  
+  // Add status-specific class
+  if ($statusClass) {
+    $badgeClass .= ' ' . $statusClass;
+  }
+  
+  // Add custom classes
+  if ($class) {
+    $badgeClass .= ' ' . $class;
+  }
 @endphp
 
-<span class="badge {{ $badgeClass }}">
+<span class="{{ $badgeClass }}" {{ $attributes }}>
   {{ $status ?: 'Unknown' }}
 </span>

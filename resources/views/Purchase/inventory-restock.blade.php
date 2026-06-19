@@ -211,9 +211,10 @@
                   </td>
 
                   <td class="center-text">
-                    <span class="restock-status-badge {{ $statusClass }}">
-                      {{ $restockRequest->status ?? '—' }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$restockRequest->status ?? '—'" 
+                      type="purchase"
+                    />
                   </td>
 
                   <td>
@@ -342,9 +343,10 @@
                   </td>
 
                   <td class="center-text">
-                    <span class="restock-status-badge {{ $historyStatusClass }}">
-                      {{ $history->status ?? '—' }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$history->status ?? '—'" 
+                      type="purchase"
+                    />
                   </td>
 
                   <td>

@@ -187,9 +187,10 @@
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
-                    <span class="badge {{ $badgeClass }}">
-                      {{ $status }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$status"
+                      type="inventory"
+                    />
                   </td>
                   <td>{{ $item->supplier ?? '—' }}</td>
                   <td>{{ $item->storage_location ?? '—' }}</td>

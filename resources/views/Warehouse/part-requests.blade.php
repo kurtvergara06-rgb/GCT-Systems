@@ -185,15 +185,17 @@
                   </td>
 
                   <td class="status-col">
-                    <span class="inventory-badge {{ $inventoryClass }}">
-                      {{ $inventoryStatus }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$inventoryStatus"
+                      type="inventory"
+                    />
                   </td>
 
                   <td class="status-col">
-                    <span class="warehouse-status-badge {{ $statusClass }}">
-                      {{ $status }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$status"
+                      type="purchase"
+                    />
                   </td>
 
                   <td>
@@ -323,9 +325,10 @@
                   </td>
 
                   <td class="status-col">
-                    <span class="warehouse-status-badge issued">
-                      Issued
-                    </span>
+                    <x-ui.status-badge 
+                      status="Issued"
+                      type="purchase"
+                    />
                   </td>
 
                   <td>

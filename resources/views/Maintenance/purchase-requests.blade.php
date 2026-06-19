@@ -214,9 +214,10 @@
                   <td>{{ $pr->quantity }}</td>
 
                   <td class="status-col">
-                    <span class="pr-status-badge {{ $statusClass }}">
-                      {{ $pr->status }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$pr->status" 
+                      type="purchase"
+                    />
                   </td>
 
                   <td>

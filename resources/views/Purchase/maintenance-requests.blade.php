@@ -189,9 +189,10 @@
                   <td>{{ $firstQuantity }}</td>
 
                   <td>
-                    <span class="requested-status-badge {{ $statusClass }}">
-                      {{ $purchaseRequest->status ?? '—' }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$purchaseRequest->status ?? '—'" 
+                      type="purchase"
+                    />
                   </td>
 
                   <td>
@@ -302,9 +303,10 @@
                   <td>{{ $quantity }}</td>
 
                   <td>
-                    <span class="requested-status-badge issued">
-                      Issued
-                    </span>
+                    <x-ui.status-badge 
+                      status="Issued"
+                      type="purchase"
+                    />
                   </td>
 
                   <td>

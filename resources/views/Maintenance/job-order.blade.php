@@ -315,9 +315,10 @@
                     @if(!$jobOrder->part_needed || $partStatus === '----')
                       <span class="empty">----</span>
                     @else
-                      <span class="part-status-badge {{ $partStatusClass }}">
-                        {{ $partStatus }}
-                      </span>
+                      <x-ui.status-badge 
+                        :status="$partStatus"
+                        type="job"
+                      />
                     @endif
                   </td>
 
