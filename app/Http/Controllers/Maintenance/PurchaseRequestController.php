@@ -22,15 +22,31 @@ class PurchaseRequestController extends Controller
         'Issued',
     ];
 
+    private function canApprovePurchaseRequest(): bool
+    {
+        if (! auth()->check()) {
+            return false;
+        }
+
+        $user = auth()->user();
+
+        $role = strtolower(trim($user->role ?? ''));
+        $department = strtolower(trim($user->department ?? ''));
+
+        return $department === 'maintenance' && in_array($role, [
+            'admin',
+            'head',
+            'maintenance_admin',
+            'maintenance admin',
+            'maintenance-admin',
+            'maintenance_head',
+            'maintenance head',
+            'maintenance-head',
+        ], true);
+    }
+
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        | Hide purchase-side copied PRs like PR-2026-0001-P.
-        | Maintenance page should only show the original PR.
-        |--------------------------------------------------------------------------
-        */
         $query = PurchaseRequest::query()
             ->where('pr_no', 'not like', '%-P');
 
@@ -56,11 +72,6 @@ class PurchaseRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Counts should also hide PR-xxxx-P copies.
-        |--------------------------------------------------------------------------
-        */
         $submitted = PurchaseRequest::where('pr_no', 'not like', '%-P')
             ->where('status', 'Submitted')
             ->count();
@@ -98,6 +109,8 @@ class PurchaseRequestController extends Controller
 
         $statuses = $this->statuses;
 
+        $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
+
         return view('Maintenance.purchase-requests', compact(
             'purchaseRequests',
             'submitted',
@@ -108,7 +121,8 @@ class PurchaseRequestController extends Controller
             'nextPrNo',
             'jobOrders',
             'selectedJobOrder',
-            'statuses'
+            'statuses',
+            'isMaintenanceAdmin'
         ));
     }
 
@@ -118,25 +132,17 @@ class PurchaseRequestController extends Controller
             'job_order_no' => 'required|string|max:255',
             'bus_no' => 'required|string|max:255',
 
-            // Main new format: parts[name, quantity, unit]
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
 
-            // Fallback old format: item + quantity
             'item' => 'nullable|string|max:1000',
             'quantity' => 'nullable|integer|min:1',
 
             'remarks' => 'nullable|string|max:1000',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Check only original PRs.
-        | Do not block because of purchase-side copy like PR-2026-0001-P.
-        |--------------------------------------------------------------------------
-        */
         $hasActiveRequest = PurchaseRequest::where('job_order_no', $validated['job_order_no'])
             ->where('pr_no', 'not like', '%-P')
             ->whereNotIn('status', ['Rejected', 'Issued'])
@@ -250,6 +256,10 @@ class PurchaseRequestController extends Controller
 
     public function approve(PurchaseRequest $purchaseRequest)
     {
+        if (! $this->canApprovePurchaseRequest()) {
+            abort(403, 'Only Maintenance Head or Maintenance Admin can approve purchase requests.');
+        }
+
         if ($purchaseRequest->status !== 'Submitted') {
             return redirect()
                 ->back()
@@ -258,6 +268,7 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest->update([
             'status' => 'Approved',
+            'approved_at' => now(),
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Approved');
@@ -269,6 +280,10 @@ class PurchaseRequestController extends Controller
 
     public function reject(PurchaseRequest $purchaseRequest)
     {
+        if (! $this->canApprovePurchaseRequest()) {
+            abort(403, 'Only Maintenance Head or Maintenance Admin can reject purchase requests.');
+        }
+
         if ($purchaseRequest->status !== 'Submitted') {
             return redirect()
                 ->back()
@@ -277,6 +292,8 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest->update([
             'status' => 'Rejected',
+            'rejected_at' => now(),
+            'remarks' => 'Rejected by Maintenance Head',
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Rejected');
@@ -322,6 +339,7 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest->update([
             'status' => 'Issued',
+            'issued_at' => now(),
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
@@ -373,11 +391,6 @@ class PurchaseRequestController extends Controller
     {
         $year = now()->format('Y');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ignore PR copies ending in -P when generating the next Maintenance PR.
-        |--------------------------------------------------------------------------
-        */
         $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
             ->where('pr_no', 'not like', '%-P')
             ->orderByDesc('id')
@@ -423,7 +436,6 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        // Fallback for old forms using item + quantity only
         if (count($parts) === 0 && $request->filled('item')) {
             $parts[] = [
                 'name' => trim($request->item),

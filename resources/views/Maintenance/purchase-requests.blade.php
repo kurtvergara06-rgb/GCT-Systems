@@ -26,6 +26,8 @@
     $rejected = $rejected ?? 0;
     $approved = $approved ?? 0;
     $issued = $issued ?? 0;
+
+    $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
   @endphp
 
   <x-ui.action-buttom-modal
@@ -67,12 +69,33 @@
 
   <div class="app">
 
+    @php
+      $sidebarUser = auth()->user();
+
+      $sidebarName = $sidebarUser?->name ?? 'Guest User';
+
+      $sidebarRoleRaw = strtolower(trim($sidebarUser?->role ?? ''));
+      $sidebarDepartmentRaw = trim($sidebarUser?->department ?? 'Maintenance');
+
+      if (str_contains($sidebarRoleRaw, 'admin')) {
+        $sidebarRoleLabel = 'Admin';
+      } elseif (str_contains($sidebarRoleRaw, 'head')) {
+        $sidebarRoleLabel = 'Head';
+      } elseif (str_contains($sidebarRoleRaw, 'staff')) {
+        $sidebarRoleLabel = 'Staff';
+      } else {
+        $sidebarRoleLabel = ucwords(str_replace(['_', '-'], ' ', $sidebarRoleRaw ?: 'User'));
+      }
+
+      $sidebarRole = $sidebarDepartmentRaw . ' ' . $sidebarRoleLabel;
+    @endphp
+
     <x-layout.sidebar
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
+      :user-name="$sidebarName"
+      :user-role="$sidebarRole"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
@@ -240,6 +263,7 @@
                         data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
                         data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
                         data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
+                        data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
@@ -259,6 +283,7 @@
                         data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
                         data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
                         data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
+                        data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
                       >
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
@@ -474,14 +499,45 @@
           >
         </div>
 
-        <div class="pr-jo-actions full-width" id="editPrMainActions">
-          <button type="button" id="cancelEditPrModal" class="pr-jo-cancel-btn">
-            Cancel
-          </button>
+        <div class="pr-modal-footer full-width" id="editPrMainActions">
+          <div class="pr-modal-left-actions">
+            <button type="button" id="cancelEditPrModal" class="pr-jo-cancel-btn">
+              Cancel
+            </button>
 
-          <button type="submit" class="pr-jo-save-btn" id="submitEditBtn">
-            Save Changes
-          </button>
+            <button type="submit" class="pr-jo-save-btn" id="submitEditBtn">
+              Save Changes
+            </button>
+          </div>
+
+          <div
+            class="pr-approval-actions"
+            id="prApprovalActions"
+            style="display: none;"
+            data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
+          >
+            @if($isMaintenanceAdmin)
+              <form id="approvePrForm" method="POST" action="#">
+                @csrf
+
+                <button type="submit" class="approve-action-btn">
+                  <i class="fa-solid fa-check"></i>
+                  Approve
+                </button>
+              </form>
+
+              <form id="rejectPrForm" method="POST" action="#">
+                @csrf
+
+                <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
+
+                <button type="submit" class="reject-action-btn">
+                  <i class="fa-solid fa-xmark"></i>
+                  Reject
+                </button>
+              </form>
+            @endif
+          </div>
         </div>
 
         <div class="pr-jo-actions full-width" id="viewOnlyActions" style="display: none;">
@@ -489,29 +545,8 @@
             Close
           </button>
         </div>
+
       </form>
-
-      <div class="pr-approval-actions" id="prApprovalActions" style="display: none;">
-        <form id="approvePrForm" method="POST" action="#">
-          @csrf
-
-          <button type="submit" class="approve-action-btn">
-            <i class="fa-solid fa-check"></i>
-            Approve
-          </button>
-        </form>
-
-        <form id="rejectPrForm" method="POST" action="#">
-          @csrf
-
-          <input type="hidden" name="remarks" value="Rejected by sub admin">
-
-          <button type="submit" class="reject-action-btn">
-            <i class="fa-solid fa-xmark"></i>
-            Reject
-          </button>
-        </form>
-      </div>
 
     </div>
   </div>
