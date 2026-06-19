@@ -27,22 +27,74 @@ class WarehousePartRequestController extends Controller
         'Picked Up',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Warehouse Maintenance PR Base Query
+    |--------------------------------------------------------------------------
+    | This page must show Maintenance Job Order part requests only.
+    | Inventory restock requests like RST-2026-0001 must NOT appear here.
+    */
+    private function warehouseMaintenanceRequestQuery()
+    {
+        return PurchaseRequest::query()
+            ->where(function ($q) {
+                $q->where('pr_no', 'not like', '%-P%')
+                    ->orWhereNull('pr_no');
+            })
+            ->where(function ($q) {
+                $q->whereNull('job_order_no')
+                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request');
+            });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Purchase-side missing parts query
+    |--------------------------------------------------------------------------
+    | These are copied PRs created from unavailable Warehouse parts.
+    | Restock copied/records must still be excluded.
+    */
+    private function missingPartsPurchaseQuery()
+    {
+        return PurchaseRequest::query()
+            ->where('pr_no', 'like', '%-P%')
+            ->where(function ($q) {
+                $q->whereNull('job_order_no')
+                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request');
+            });
+    }
+
     public function index(Request $request)
     {
         /*
         |--------------------------------------------------------------------------
         | Active Part Requests
         |--------------------------------------------------------------------------
-        | Show original PR only.
-        | Hide purchase-side copied PRs like PR-2026-0001-P.
+        | Show Maintenance PR only.
+        | Hide:
+        | - purchase-side copied PRs like PR-2026-0001-P
+        | - inventory restock requests like RST-2026-0001
+        | - RESTOCK job_order_no / bus_no
         |--------------------------------------------------------------------------
         */
-        $query = PurchaseRequest::query()
-            ->whereIn('status', $this->statuses)
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            });
+        $query = $this->warehouseMaintenanceRequestQuery()
+            ->whereIn('status', $this->statuses);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -73,15 +125,11 @@ class WarehousePartRequestController extends Controller
         |--------------------------------------------------------------------------
         | Issued History
         |--------------------------------------------------------------------------
-        | This is the completed/history table below the active table.
+        | Maintenance issued history only.
         |--------------------------------------------------------------------------
         */
-        $issuedRequests = PurchaseRequest::query()
+        $issuedRequests = $this->warehouseMaintenanceRequestQuery()
             ->where('status', 'Issued')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->latest()
             ->paginate(5, ['*'], 'history_page')
             ->withQueryString();
@@ -94,29 +142,26 @@ class WarehousePartRequestController extends Controller
         |--------------------------------------------------------------------------
         | Summary Counts
         |--------------------------------------------------------------------------
+        | Restock requests are excluded here too.
+        |--------------------------------------------------------------------------
         */
-        $approved = PurchaseRequest::query()
-            ->where('pr_no', 'not like', '%-P%')
+        $approved = $this->warehouseMaintenanceRequestQuery()
             ->where('status', 'Approved')
             ->count();
 
-        $forPurchase = PurchaseRequest::query()
-            ->where('pr_no', 'like', '%-P%')
+        $forPurchase = $this->missingPartsPurchaseQuery()
             ->where('status', 'For Purchase')
             ->count();
 
-        $ordered = PurchaseRequest::query()
-            ->where('pr_no', 'like', '%-P%')
+        $ordered = $this->missingPartsPurchaseQuery()
             ->where('status', 'Ordered')
             ->count();
 
-        $delivered = PurchaseRequest::query()
-            ->where('pr_no', 'like', '%-P%')
+        $delivered = $this->missingPartsPurchaseQuery()
             ->whereIn('status', ['Delivered', 'Picked Up'])
             ->count();
 
-        $issued = PurchaseRequest::query()
-            ->where('pr_no', 'not like', '%-P%')
+        $issued = $this->warehouseMaintenanceRequestQuery()
             ->where('status', 'Issued')
             ->count();
 
@@ -136,6 +181,12 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be issued from Warehouse Part Requests.');
+        }
+
         $missingPurchaseRequest = $this->getMissingPurchaseRequest($purchaseRequest);
         $displayStatus = $missingPurchaseRequest?->status ?? $purchaseRequest->status;
 
@@ -189,6 +240,12 @@ class WarehousePartRequestController extends Controller
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
+        }
+
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
                 ->back()
@@ -306,6 +363,14 @@ class WarehousePartRequestController extends Controller
 
         return PurchaseRequest::query()
             ->where('job_order_no', $purchaseRequest->job_order_no)
+            ->where(function ($q) {
+                $q->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request');
+            })
             ->where('pr_no', 'like', $purchaseRequest->pr_no . '-P%')
             ->latest()
             ->first();
@@ -314,6 +379,14 @@ class WarehousePartRequestController extends Controller
     private function missingPurchaseRequestExists(PurchaseRequest $purchaseRequest): bool
     {
         return $this->getMissingPurchaseRequest($purchaseRequest) !== null;
+    }
+
+    private function isRestockRequest(PurchaseRequest $purchaseRequest): bool
+    {
+        return str_starts_with(strtoupper(trim($purchaseRequest->pr_no ?? '')), 'RST-')
+            || strtoupper(trim($purchaseRequest->job_order_no ?? '')) === 'RESTOCK'
+            || strtoupper(trim($purchaseRequest->bus_no ?? '')) === 'RESTOCK'
+            || strtolower(trim($purchaseRequest->source_type ?? '')) === 'inventory restock';
     }
 
     private function parseParts(?string $partsText): array

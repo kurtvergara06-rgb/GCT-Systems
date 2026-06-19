@@ -287,16 +287,24 @@
   font-weight: 900;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Admin */
 .role-pill.system-admin {
   background: #fee2e2;
   color: #dc2626;
 }
 
+.role-pill.admin-staff {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+/* Maintenance */
 .role-pill.maintenance-head {
   background: #fef3c7;
   color: #b45309;
@@ -307,29 +315,48 @@
   color: #a16207;
 }
 
+/* Warehouse */
+.role-pill.warehouse-head {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .role-pill.warehouse-staff {
-  background: #ccfbf1;
-  color: #0f766e;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
-.role-pill.purchasing-head {
-  background: #e0e7ff;
-  color: #4f46e5;
+/* Purchase */
+.role-pill.purchase-head {
+  background: #dcfce7;
+  color: #15803d;
 }
 
-.role-pill.purchasing-staff {
+.role-pill.purchase-staff {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Operation */
+.role-pill.operation-head {
   background: #ede9fe;
-  color: #7c3aed;
+  color: #6d28d9;
 }
 
 .role-pill.operation-staff {
-  background: #cffafe;
-  color: #0891b2;
+  background: #ede9fe;
+  color: #6d28d9;
 }
 
-.role-pill.operation-head {
-  background: #bae6fd;
-  color: #0369a1;
+/* Backward support if old value is Purchasing */
+.role-pill.purchasing-head {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.role-pill.purchasing-staff {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 /* STATUS */
@@ -378,8 +405,6 @@
   height: 32px;
   border: none;
   border-radius: 9px;
-  background: #eef5ff;
-  color: #0b2344;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -390,9 +415,79 @@
 }
 
 .action-menu button:hover {
-  background: #dbeafe;
-  color: #0057f8;
   transform: translateY(-1px);
+}
+
+.action-menu button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* View */
+.action-view {
+  background: #eaf2ff;
+  color: #0b5ed7;
+}
+
+.action-view:hover {
+  background: #dbeafe;
+  color: #084298;
+}
+
+/* Edit */
+.action-edit {
+  background: #edf5ff;
+  color: #2563eb;
+}
+
+.action-edit:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Reset password */
+.action-reset {
+  background: #f1f0ff;
+  color: #4f46e5;
+}
+
+.action-reset:hover {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* Activate */
+.action-activate {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.action-activate:hover {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* Deactivate */
+.action-deactivate {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.action-deactivate:hover {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+/* Delete */
+.action-delete {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.action-delete:hover {
+  background: #fecaca !important;
+  color: #991b1b !important;
 }
 
 /* EMPTY AND FOOTER */

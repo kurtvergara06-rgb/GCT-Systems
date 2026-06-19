@@ -1,10 +1,10 @@
 <x-layout.app
   title="FROMS - Job Orders"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Maintenance/job-order.css',
-    'resources/js/Main-style/sidebar.js',
+    'resources/js/Main-js/sidebar.js',
     'resources/js/Maintenance/job-order.js'
   ]"
 >
@@ -315,9 +315,10 @@
                     @if(!$jobOrder->part_needed || $partStatus === '----')
                       <span class="empty">----</span>
                     @else
-                      <span class="part-status-badge {{ $partStatusClass }}">
-                        {{ $partStatus }}
-                      </span>
+                      <x-ui.status-badge 
+                        :status="$partStatus"
+                        type="job"
+                      />
                     @endif
                   </td>
 
@@ -491,7 +492,7 @@
             <option value="tube">tube</option>
           </select>
 
-          <button type="button" class="remove-part-btn" style="display: none;">
+          <button type="button" class="remove-part-btn">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
