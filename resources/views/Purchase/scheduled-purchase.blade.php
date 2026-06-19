@@ -1,4 +1,4 @@
-﻿<x-layout.app
+<x-layout.app
   title="FROMS - Scheduled Purchase"
   :assets="[
     'resources/css/Purchase/scheduled-purchase.css'

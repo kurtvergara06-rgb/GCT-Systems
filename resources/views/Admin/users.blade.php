@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - User Management"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Admin/users.css',
     'resources/js/Admin/users.js'
   ]"

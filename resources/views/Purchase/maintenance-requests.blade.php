@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - Maintenance Requests"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/maintenance-requests.css',
     'resources/js/Purchase/maintenance-requests.js'
   ]"

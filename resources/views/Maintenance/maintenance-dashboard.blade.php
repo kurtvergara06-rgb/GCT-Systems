@@ -1,10 +1,10 @@
 <x-layout.app
   title="FROMS - Dashboard"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Maintenance/dashboard.css',
-    'resources/js/Main-style/sidebar.js'
+    'resources/js/Main-js/sidebar.js'
   ]"
 >
 

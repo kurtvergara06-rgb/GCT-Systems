@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - Inventory Restock"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/inventory-restock.css',
     'resources/js/Purchase/inventory-restock.js'
   ]"

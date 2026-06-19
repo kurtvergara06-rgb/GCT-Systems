@@ -1,8 +1,8 @@
-ï»¿<x-layout.app
+<x-layout.app
   title="FROMS - Purchase Orders"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/purchase-orders.css',
     'resources/js/Purchase/purchase-orders.js'
   ]"
@@ -248,7 +248,7 @@
                   $items = is_array($purchaseOrder->items) ? $purchaseOrder->items : [];
                   $firstItem = $items[0] ?? [];
 
-                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? 'â€”';
+                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '—';
                   $firstItemName = trim(explode(',', $itemName)[0] ?? $itemName);
 
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseOrder->status));
@@ -261,17 +261,17 @@
                   <td>{{ $purchaseOrder->supplier_name }}</td>
 
                   <td>
-                    <strong>{{ $firstItemName ?: 'â€”' }}</strong>
+                    <strong>{{ $firstItemName ?: '—' }}</strong>
                   </td>
 
-                  <td>{{ $firstItem['pr_no'] ?? 'â€”' }}</td>
+                  <td>{{ $firstItem['pr_no'] ?? '—' }}</td>
 
-                  <td>{{ $firstItem['bus_no'] ?? 'â€”' }}</td>
+                  <td>{{ $firstItem['bus_no'] ?? '—' }}</td>
 
-                  <td>{{ $firstItem['quantity'] ?? 'â€”' }}</td>
+                  <td>{{ $firstItem['quantity'] ?? '—' }}</td>
 
                   <td>
-                    <strong>â‚±{{ number_format((float) $purchaseOrder->net_amount, 2) }}</strong>
+                    <strong>?{{ number_format((float) $purchaseOrder->net_amount, 2) }}</strong>
                   </td>
 
                   <td>
@@ -298,7 +298,7 @@
                   </td>
 
                   <td>
-                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : 'â€”' }}
+                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : '—' }}
                   </td>
 
                   <td>
@@ -557,7 +557,7 @@
 
             <div class="po-total-row">
               <label>Gross Amount</label>
-              <input type="text" id="gross_amount_display" value="â‚±0.00" readonly>
+              <input type="text" id="gross_amount_display" value="?0.00" readonly>
             </div>
 
             <div class="po-total-row">
@@ -598,7 +598,7 @@
 
             <div class="po-total-row">
               <label>Net Amount</label>
-              <input type="text" id="net_amount_display" value="â‚±0.00" readonly>
+              <input type="text" id="net_amount_display" value="?0.00" readonly>
             </div>
 
           </div>

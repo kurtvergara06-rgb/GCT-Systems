@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - Warehouse Part Requests"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Warehouse/part-request.css',
     'resources/js/Warehouse/part-requests.js'
   ]"

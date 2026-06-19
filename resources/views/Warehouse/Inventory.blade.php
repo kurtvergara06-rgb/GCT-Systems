@@ -2,7 +2,7 @@
   title="FROMS - Warehouse Inventory"
   :assets="[
     'resources/css/Warehouse/inventory.css',
-    'resources/css/Main-style/main.css',
+    'resources/css/Main-styles/main.css',
     'resources/js/Warehouse/inventory.js'
   ]"
 >
