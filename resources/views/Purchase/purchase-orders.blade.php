@@ -248,7 +248,7 @@
                   $items = is_array($purchaseOrder->items) ? $purchaseOrder->items : [];
                   $firstItem = $items[0] ?? [];
 
-                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '—';
+                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? 'ï¿½';
                   $firstItemName = trim(explode(',', $itemName)[0] ?? $itemName);
 
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseOrder->status));
@@ -261,17 +261,17 @@
                   <td>{{ $purchaseOrder->supplier_name }}</td>
 
                   <td>
-                    <strong>{{ $firstItemName ?: '—' }}</strong>
+                    <strong>{{ $firstItemName ?: 'ï¿½' }}</strong>
                   </td>
 
-                  <td>{{ $firstItem['pr_no'] ?? '—' }}</td>
+                  <td>{{ $firstItem['pr_no'] ?? 'ï¿½' }}</td>
 
-                  <td>{{ $firstItem['bus_no'] ?? '—' }}</td>
+                  <td>{{ $firstItem['bus_no'] ?? 'ï¿½' }}</td>
 
-                  <td>{{ $firstItem['quantity'] ?? '—' }}</td>
+                  <td>{{ $firstItem['quantity'] ?? 'ï¿½' }}</td>
 
                   <td>
-                    <strong>?{{ number_format((float) $purchaseOrder->net_amount, 2) }}</strong>
+                    &#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}
                   </td>
 
                   <td>
@@ -298,7 +298,7 @@
                   </td>
 
                   <td>
-                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : '—' }}
+                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : 'ï¿½' }}
                   </td>
 
                   <td>

@@ -329,6 +329,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const approvePrForm = document.getElementById('approvePrForm');
   const rejectPrForm = document.getElementById('rejectPrForm');
+  const approvePrBtn = document.getElementById('approvePrBtn');
+  const rejectPrBtn = document.getElementById('rejectPrBtn');
+
+  if (approvePrBtn && approvePrForm) {
+    approvePrBtn.addEventListener('click', function () {
+      if (!approvePrForm.action || approvePrForm.action.endsWith('#')) {
+        alert('No purchase request selected.');
+        return;
+      }
+
+      approvePrBtn.disabled = true;
+      approvePrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Approving...';
+
+      approvePrForm.submit();
+    });
+  }
+
+  if (rejectPrBtn && rejectPrForm) {
+    rejectPrBtn.addEventListener('click', function () {
+      if (!rejectPrForm.action || rejectPrForm.action.endsWith('#')) {
+        alert('No purchase request selected.');
+        return;
+      }
+
+      rejectPrBtn.disabled = true;
+      rejectPrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rejecting...';
+
+      rejectPrForm.submit();
+    });
+  }
 
   function setPrModalMode(mode, status, canApprove) {
     const isView = mode === 'view';
@@ -392,6 +422,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (rejectPrForm) {
       rejectPrForm.action = button.dataset.rejectUrl || '#';
+    }
+
+    if (approvePrBtn) {
+      approvePrBtn.disabled = false;
+      approvePrBtn.innerHTML = '<i class="fa-solid fa-check"></i> Approve';
+    }
+
+    if (rejectPrBtn) {
+      rejectPrBtn.disabled = false;
+      rejectPrBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Reject';
     }
 
     setValue('edit_pr_no', button.dataset.prNo);

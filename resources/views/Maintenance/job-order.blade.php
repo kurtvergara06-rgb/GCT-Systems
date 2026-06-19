@@ -491,7 +491,7 @@
             <option value="tube">tube</option>
           </select>
 
-          <button type="button" class="remove-part-btn" style="display: none;">
+          <button type="button" class="remove-part-btn">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>

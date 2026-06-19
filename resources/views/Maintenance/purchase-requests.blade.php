@@ -495,25 +495,15 @@
             data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
           >
             @if($isMaintenanceAdmin)
-              <form id="approvePrForm" method="POST" action="#">
-                @csrf
+              <button type="button" id="approvePrBtn" class="approve-action-btn">
+                <i class="fa-solid fa-check"></i>
+                Approve
+              </button>
 
-                <button type="submit" class="approve-action-btn">
-                  <i class="fa-solid fa-check"></i>
-                  Approve
-                </button>
-              </form>
-
-              <form id="rejectPrForm" method="POST" action="#">
-                @csrf
-
-                <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
-
-                <button type="submit" class="reject-action-btn">
-                  <i class="fa-solid fa-xmark"></i>
-                  Reject
-                </button>
-              </form>
+              <button type="button" id="rejectPrBtn" class="reject-action-btn">
+                <i class="fa-solid fa-xmark"></i>
+                Reject
+              </button>
             @endif
           </div>
         </div>
@@ -528,6 +518,16 @@
 
     </div>
   </div>
+
+  {{-- HIDDEN APPROVE / REJECT FORMS --}}
+  <form id="approvePrForm" method="POST" action="#" style="display: none;">
+    @csrf
+  </form>
+
+  <form id="rejectPrForm" method="POST" action="#" style="display: none;">
+    @csrf
+    <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
+  </form>
 
   {{-- DELETE MODAL --}}
   <x-ui.action-buttom-modal

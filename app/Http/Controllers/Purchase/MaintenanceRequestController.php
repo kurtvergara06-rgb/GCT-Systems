@@ -33,8 +33,13 @@ class MaintenanceRequestController extends Controller
         |--------------------------------------------------------------------------
         | Base Query
         |--------------------------------------------------------------------------
-        | Maintenance Requests only.
-        | This includes original PR records and excludes Inventory Restock records.
+        | Purchase Department should show Maintenance Request records that were sent
+        | by Warehouse for purchasing.
+        |
+        | IMPORTANT:
+        | - Include PR numbers with "-P" because Warehouse creates those when
+        |   unavailable parts are sent to Purchase.
+        | - Exclude Inventory Restock records like RST-2026-0001.
         |--------------------------------------------------------------------------
         */
         $baseQuery = MaintenanceRequest::query()
@@ -42,22 +47,30 @@ class MaintenanceRequestController extends Controller
                 $q->whereNull('source_type')
                     ->orWhere('source_type', 'Maintenance Request')
                     ->orWhere('source_type', 'Job Order');
+            })
+            ->where(function ($q) {
+                $q->whereNull('job_order_no')
+                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('pr_no')
+                    ->orWhere('pr_no', 'not like', 'RST-%');
             });
 
         /*
         |--------------------------------------------------------------------------
         | Active Purchase Requests
         |--------------------------------------------------------------------------
-        | Hide copied Purchase PR numbers with "-P" to avoid duplicate display.
-        | Example hidden here: PR-2026-0001-P
+        | Show Maintenance PRs that need Purchase Department processing.
+        | This includes "-P" records created from Warehouse missing parts.
         |--------------------------------------------------------------------------
         */
         $query = (clone $baseQuery)
-            ->whereIn('status', $this->purchaseStatuses)
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            });
+            ->whereIn('status', $this->purchaseStatuses);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -89,16 +102,12 @@ class MaintenanceRequestController extends Controller
         |--------------------------------------------------------------------------
         | Issued Purchase History
         |--------------------------------------------------------------------------
-        | Show only original PR.
-        | Hide copied "-P" PR records.
+        | Show completed Maintenance purchase requests already issued by Warehouse.
+        | Restock records are excluded.
         |--------------------------------------------------------------------------
         */
         $issuedRequests = (clone $baseQuery)
             ->where('status', 'Issued')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->latest()
             ->paginate(5, ['*'], 'history_page')
             ->withQueryString();
@@ -111,63 +120,33 @@ class MaintenanceRequestController extends Controller
         |--------------------------------------------------------------------------
         | Summary Counts
         |--------------------------------------------------------------------------
-        | Counts should also exclude "-P" to avoid duplicate counting.
-        |--------------------------------------------------------------------------
         */
         $totalRequests = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses)
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $forPurchase = (clone $baseQuery)
             ->where('status', 'For Purchase')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $ordered = (clone $baseQuery)
             ->where('status', 'Ordered')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $forPickup = (clone $baseQuery)
             ->where('status', 'For Pick-up')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $forDelivery = (clone $baseQuery)
             ->where('status', 'For Delivery')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $delivered = (clone $baseQuery)
             ->whereIn('status', ['Delivered', 'Picked Up'])
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $pickedUp = (clone $baseQuery)
             ->where('status', 'Picked Up')
-            ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
-            })
             ->count();
 
         $statuses = $this->purchaseStatuses;
@@ -211,7 +190,7 @@ class MaintenanceRequestController extends Controller
     {
         $parts = collect($this->partParser->parsePartText($purchaseRequest->item))
             ->map(function ($part) {
-                $unit = $part['unit'] !== '' ? $part['unit'] : '—';
+                $unit = ($part['unit'] ?? '') !== '' ? $part['unit'] : '—';
 
                 return [
                     'name' => $part['name'] ?? '',
@@ -240,5 +219,4 @@ class MaintenanceRequestController extends Controller
 
         return $purchaseRequest;
     }
-
 }

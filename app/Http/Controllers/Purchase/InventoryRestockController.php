@@ -8,20 +8,41 @@ use Illuminate\Http\Request;
 
 class InventoryRestockController extends Controller
 {
-    private array $statuses = [
+    /*
+    |--------------------------------------------------------------------------
+    | Active Statuses
+    |--------------------------------------------------------------------------
+    | These stay in the main Inventory Restock Records table.
+    */
+    private array $activeStatuses = [
         'For Purchase',
         'Ordered',
         'For Pick-up',
         'For Delivery',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | History Statuses
+    |--------------------------------------------------------------------------
+    | Delivered / Picked Up / Issued records should move to history.
+    */
+    private array $historyStatuses = [
         'Delivered',
         'Picked Up',
+        'Issued',
     ];
 
     public function index(Request $request)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Active Inventory Restock Records
+        |--------------------------------------------------------------------------
+        */
         $query = MaintenanceRequest::query()
             ->where('source_type', 'Auto Restock')
-            ->whereIn('status', $this->statuses);
+            ->whereIn('status', $this->activeStatuses);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -34,7 +55,7 @@ class InventoryRestockController extends Controller
             });
         }
 
-        if ($request->filled('status') && $request->status !== 'All Statuses') {
+        if ($request->filled('status') && $request->status !== 'All States') {
             $query->where('status', $request->status);
         }
 
@@ -43,9 +64,26 @@ class InventoryRestockController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Restock History
+        |--------------------------------------------------------------------------
+        */
+        $historyRequests = MaintenanceRequest::query()
+            ->where('source_type', 'Auto Restock')
+            ->whereIn('status', $this->historyStatuses)
+            ->latest()
+            ->paginate(5, ['*'], 'history_page')
+            ->withQueryString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Summary Cards
+        |--------------------------------------------------------------------------
+        */
         $totalRequests = MaintenanceRequest::query()
             ->where('source_type', 'Auto Restock')
-            ->whereIn('status', $this->statuses)
+            ->whereIn('status', $this->activeStatuses)
             ->count();
 
         $forPurchase = MaintenanceRequest::query()
@@ -63,10 +101,11 @@ class InventoryRestockController extends Controller
             ->whereIn('status', ['Delivered', 'Picked Up'])
             ->count();
 
-        $statuses = $this->statuses;
+        $statuses = array_merge($this->activeStatuses, $this->historyStatuses);
 
         return view('Purchase.inventory-restock', compact(
             'restockRequests',
+            'historyRequests',
             'totalRequests',
             'forPurchase',
             'ordered',

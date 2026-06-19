@@ -46,8 +46,8 @@ body {
 .left-panel::before {
   inset: 0;
   background:
-    linear-gradient(115deg, transparent 35%, rgba(255,255,255,.05) 36%, transparent 58%),
-    linear-gradient(150deg, transparent 60%, rgba(255,196,0,.25) 61%, transparent 63%);
+    linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .05) 36%, transparent 58%),
+    linear-gradient(150deg, transparent 60%, rgba(255, 196, 0, .25) 61%, transparent 63%);
 }
 
 .left-panel::after {
@@ -55,7 +55,7 @@ body {
   height: 260px;
   left: -180px;
   bottom: 40px;
-  border: 1px solid rgba(255,196,0,.35);
+  border: 1px solid rgba(255, 196, 0, .35);
   border-radius: 50%;
   transform: rotate(-12deg);
 }
@@ -119,7 +119,7 @@ body {
   color: var(--yellow);
   display: grid;
   place-items: center;
-  filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .35));
 }
 
 .security-box {
@@ -134,7 +134,7 @@ body {
 .security-icon {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(255,255,255,.55);
+  border: 3px solid rgba(255, 255, 255, .55);
   border-radius: 16px;
   display: grid;
   place-items: center;
@@ -157,10 +157,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 35px;
+  overflow-y: auto;
+  padding-top: 85px;
+  padding-bottom: 35px;
   background:
-    radial-gradient(circle at top, rgba(0,87,248,.08), transparent 35%),
+    radial-gradient(circle at top, rgba(0, 87, 248, .08), transparent 35%),
     linear-gradient(135deg, #fff, #f5f8ff);
 }
 
@@ -168,9 +171,10 @@ body {
   width: 100%;
   max-width: 580px;
   padding: 40px;
-  background: rgba(255,255,255,.92);
+  margin-top: 20px;
+  background: rgba(255, 255, 255, .92);
   border-radius: 14px;
-  box-shadow: 0 25px 55px rgba(23,47,77,.12);
+  box-shadow: 0 25px 55px rgba(23, 47, 77, .12);
 }
 
 .user-icon {
@@ -223,7 +227,7 @@ body {
 
 .input-box:focus-within {
   border-color: var(--blue);
-  box-shadow: 0 0 0 4px rgba(0,87,248,.12);
+  box-shadow: 0 0 0 4px rgba(0, 87, 248, .12);
 }
 
 .input-box i {
@@ -296,7 +300,7 @@ body {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0,87,248,.28);
+  box-shadow: 0 8px 18px rgba(0, 87, 248, .28);
   transition: .25s;
 }
 
@@ -316,7 +320,6 @@ body {
   color: var(--muted);
   font-size: 14px;
   text-align: center;
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -360,22 +363,13 @@ body {
   text-decoration: underline;
 }
 
-/* Make the registration side scrollable */
-.right-panel {
-  overflow-y: auto;
-  justify-content: flex-start;
-  padding-top: 35px;
-  padding-bottom: 35px;
-}
-
-/* Make registration card smaller and fit better */
+/* REGISTER PAGE */
 .register-card {
   max-width: 640px;
   padding: 28px 38px;
-  margin: auto 0;
+  margin: 0;
 }
 
-/* Make the top icon smaller */
 .register-card .user-icon {
   width: 60px;
   height: 60px;
@@ -383,7 +377,6 @@ body {
   margin-bottom: 16px;
 }
 
-/* Make title area smaller */
 .register-card h2 {
   font-size: 27px;
   margin-bottom: 6px;
@@ -393,7 +386,6 @@ body {
   margin-bottom: 24px;
 }
 
-/* Better spacing for registration inputs */
 .register-card .form-group {
   margin-bottom: 18px;
 }
@@ -402,7 +394,6 @@ body {
   height: 52px;
 }
 
-/* Better select design */
 .input-box select {
   width: 100%;
   height: 100%;
@@ -416,7 +407,6 @@ body {
   -webkit-appearance: none;
 }
 
-/* Add custom dropdown arrow */
 .select-box {
   position: relative;
 }
@@ -431,12 +421,10 @@ body {
   pointer-events: none;
 }
 
-/* Fix icon spacing inside select */
 .select-box i {
   margin-right: 16px;
 }
 
-/* Create account button spacing */
 .register-card .login-btn {
   margin-top: 4px;
 }
@@ -447,10 +435,18 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .left-content,
-  .right-panel {
+  .left-content {
     min-height: auto;
     padding: 40px 25px;
+  }
+
+  .right-panel {
+    min-height: auto;
+    padding: 60px 25px 35px;
+  }
+
+  .login-card {
+    margin-top: 0;
   }
 }
 

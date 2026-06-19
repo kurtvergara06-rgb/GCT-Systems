@@ -71,7 +71,7 @@
         <x-ui.summary-card
           label="Total Requests"
           value="{{ $totalRequests ?? 0 }}"
-          small="Auto restock inbox"
+          small="Active restock inbox"
           icon="fa-file"
           color="gray"
         />
@@ -95,19 +95,20 @@
         <x-ui.summary-card
           label="Delivered / Picked Up"
           value="{{ $delivered ?? 0 }}"
-          small="Ready for warehouse receive"
+          small="Moved to history"
           icon="fa-box"
           color="green"
         />
 
       </section>
 
+      {{-- ACTIVE RESTOCK TABLE --}}
       <section class="table-card restock-card">
 
         <div class="section-header">
           <div>
             <h2>Inventory Restock Records</h2>
-            <p>Only automatic warehouse restock requests are shown here.</p>
+            <p>Only active automatic warehouse restock requests are shown here.</p>
           </div>
         </div>
 
@@ -254,7 +255,7 @@
               @empty
                 <x-ui.empty-row
                   colspan="7"
-                  message="No inventory restock requests found."
+                  message="No active inventory restock requests found."
                 />
               @endforelse
             </tbody>
@@ -263,6 +264,127 @@
 
         @if(isset($restockRequests))
           <x-ui.table-footer :items="$restockRequests" />
+        @endif
+
+      </section>
+
+      {{-- RESTOCK HISTORY TABLE --}}
+      <section class="table-card restock-card restock-history-card">
+
+        <div class="section-header">
+          <div>
+            <h2>Inventory Restock History</h2>
+            <p>Delivered, picked up, and issued automatic restock requests are shown here.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="restock-table">
+            <thead>
+              <tr>
+                <th>Restock #</th>
+                <th>Source</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Date Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @forelse(($historyRequests ?? []) as $history)
+                @php
+                  $historyStatusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $history->status ?? ''));
+
+                  $itemName = trim($history->item ?? '—');
+                  $quantity = $history->quantity ?? '1';
+                  $unit = '—';
+
+                  if (str_contains(strtolower($itemName), ' - qty:')) {
+                    $parts = preg_split('/ - qty:/i', $itemName, 2);
+
+                    $itemName = trim($parts[0] ?? $itemName);
+                    $quantityUnitText = trim($parts[1] ?? '');
+
+                    if (preg_match('/^(\d+)\s*(.*)$/', $quantityUnitText, $matches)) {
+                      $quantity = trim($matches[1] ?? $quantity);
+                      $unit = trim($matches[2] ?? '—') ?: '—';
+                    }
+                  }
+
+                  if (preg_match('/^(.*?)\s*\((\d+)\s*([^)]*)\)$/', $itemName, $matches)) {
+                    $itemName = trim($matches[1] ?? $itemName);
+                    $quantity = trim($matches[2] ?? $quantity);
+                    $unit = trim($matches[3] ?? '—') ?: '—';
+                  }
+
+                  $quantityDisplay = trim($quantity . ' ' . ($unit !== '—' ? $unit : ''));
+                @endphp
+
+                <tr>
+                  <td>
+                    <strong class="restock-no">
+                      {{ $history->pr_no ?? '—' }}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span class="source-badge">
+                      Auto Restock
+                    </span>
+                  </td>
+
+                  <td>{{ $itemName }}</td>
+
+                  <td class="center-text">
+                    {{ $quantityDisplay }}
+                  </td>
+
+                  <td class="center-text">
+                    <span class="restock-status-badge {{ $historyStatusClass }}">
+                      {{ $history->status ?? '—' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}
+                  </td>
+
+                  <td class="center-text">
+                    <div class="actions">
+
+                      <button
+                        type="button"
+                        class="action-btn view open-restock-view-modal"
+                        title="View Details"
+                        data-restock-no="{{ $history->pr_no ?? '—' }}"
+                        data-source-type="{{ $history->source_type ?? 'Auto Restock' }}"
+                        data-item="{{ $itemName }}"
+                        data-quantity="{{ $quantity }}"
+                        data-unit="{{ $unit }}"
+                        data-status="{{ $history->status ?? '—' }}"
+                        data-created="{{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}"
+                        data-remarks="{{ $history->remarks ?? 'No remarks' }}"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <x-ui.empty-row
+                  colspan="7"
+                  message="No inventory restock history yet."
+                />
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
+        @if(isset($historyRequests))
+          <x-ui.table-footer :items="$historyRequests" />
         @endif
 
       </section>
@@ -304,7 +426,7 @@
         </div>
 
         <div class="restock-field">
-          <label>Date Created</label>
+          <label>Date Created / Updated</label>
           <input id="viewRestockCreated" type="text" value="—" readonly>
         </div>
 

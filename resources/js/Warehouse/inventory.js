@@ -15,73 +15,111 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.style.display = 'none';
   }
 
-  function setField(id, value, fallback = '—') {
-    const element = document.getElementById(id);
-
-    if (!element) return;
-
-    const finalValue =
-      value === undefined || value === null || value === '' || value === 'null'
-        ? fallback
-        : value;
-
-    if (
-      element.tagName === 'INPUT' ||
-      element.tagName === 'TEXTAREA' ||
-      element.tagName === 'SELECT'
-    ) {
-      element.value = finalValue;
-    } else {
-      element.textContent = finalValue;
-    }
+  function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(function (modal) {
+      closeModal(modal);
+    });
   }
 
-  const restockViewModal = document.getElementById('restockViewModal');
-  const closeRestockViewModal = document.getElementById('closeRestockViewModal');
-  const closeRestockViewModalBottom = document.getElementById('closeRestockViewModalBottom');
+  function setInputValue(id, value) {
+    const input = document.getElementById(id);
+
+    if (!input) return;
+
+    input.value =
+      value === undefined || value === null || value === 'null'
+        ? ''
+        : value;
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | ADD ITEM MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const addModal = document.getElementById('addModal');
+  const openAddModal = document.getElementById('openAddModal');
+
+  if (openAddModal && addModal) {
+    openAddModal.addEventListener('click', function (event) {
+      event.preventDefault();
+      openModal(addModal);
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | IMPORT MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const importModal = document.getElementById('importModal');
+  const openImportModal = document.getElementById('openImportModal');
+
+  if (openImportModal && importModal) {
+    openImportModal.addEventListener('click', function (event) {
+      event.preventDefault();
+      openModal(importModal);
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | EDIT ITEM MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const editModal = document.getElementById('editModal');
+  const editForm = document.getElementById('editForm');
 
   document.addEventListener('click', function (event) {
-    const button = event.target.closest('.open-restock-view-modal');
+    const button = event.target.closest('.openEditModal');
 
     if (!button) return;
 
     event.preventDefault();
 
-    setField('viewRestockPrNo', button.dataset.prNo);
-    setField('viewRestockSource', button.dataset.sourceType);
-    setField('viewRestockStatus', button.dataset.status);
-    setField('viewRestockCreated', button.dataset.created);
-    setField('viewRestockItem', button.dataset.item);
-    setField('viewRestockQuantity', button.dataset.quantity);
-    setField('viewRestockUnit', button.dataset.unit);
-    setField('viewRestockRemarks', button.dataset.remarks, 'No remarks');
+    if (editForm) {
+      editForm.action = button.dataset.action || '#';
+    }
 
-    openModal(restockViewModal);
+    setInputValue('edit_item_code', button.dataset.code);
+    setInputValue('edit_item_name', button.dataset.name);
+    setInputValue('edit_category', button.dataset.category);
+    setInputValue('edit_quantity', button.dataset.quantity);
+    setInputValue('edit_unit', button.dataset.unit);
+    setInputValue('edit_reorder', button.dataset.reorder);
+    setInputValue('edit_supplier', button.dataset.supplier);
+    setInputValue('edit_location', button.dataset.location);
+
+    openModal(editModal);
   });
 
-  if (closeRestockViewModal) {
-    closeRestockViewModal.addEventListener('click', function () {
-      closeModal(restockViewModal);
-    });
-  }
+  /*
+  |--------------------------------------------------------------------------
+  | CLOSE BUTTONS
+  |--------------------------------------------------------------------------
+  */
 
-  if (closeRestockViewModalBottom) {
-    closeRestockViewModalBottom.addEventListener('click', function () {
-      closeModal(restockViewModal);
+  document.querySelectorAll('.closeModal').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const modal = button.closest('.modal-overlay');
+      closeModal(modal);
     });
-  }
+  });
 
-  if (restockViewModal) {
-    restockViewModal.addEventListener('click', function (event) {
-      if (event.target === restockViewModal) {
-        closeModal(restockViewModal);
+  document.querySelectorAll('.modal-overlay').forEach(function (modal) {
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) {
+        closeModal(modal);
       }
     });
-  }
+  });
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
-      closeModal(restockViewModal);
+      closeAllModals();
     }
   });
 });

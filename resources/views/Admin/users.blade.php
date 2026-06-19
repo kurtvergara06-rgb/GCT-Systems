@@ -30,7 +30,7 @@
       $roleLabel = $normalizeRoleLabel($user->role ?? '');
 
       if (strtolower($department) === 'admin') {
-        return 'System Admin';
+        return strtolower($user->role ?? '') === 'head' ? 'System Admin' : 'Admin Staff';
       }
 
       if ($department === '') {
@@ -46,10 +46,22 @@
     $sidebarRoleLabel = $normalizeRoleLabel($authUser?->role ?? 'head');
 
     if (strtolower($sidebarDepartment) === 'admin') {
-      $sidebarRole = 'System Admin';
+      $sidebarRole = strtolower($authUser?->role ?? '') === 'head' ? 'System Admin' : 'Admin Staff';
     } else {
       $sidebarRole = $sidebarDepartment . ' ' . $sidebarRoleLabel;
     }
+
+    $isCurrentUserAdminHead =
+      strtolower(trim($authUser?->department ?? '')) === 'admin'
+      && strtolower(trim($authUser?->role ?? '')) === 'head';
+
+    $departmentOptions = collect($departments ?? []);
+
+    if ($isCurrentUserAdminHead && ! $departmentOptions->contains('Admin')) {
+      $departmentOptions->prepend('Admin');
+    }
+
+    $departmentOptions = $departmentOptions->unique()->values();
   @endphp
 
   <div class="app admin-users-app">
@@ -87,7 +99,7 @@
         notification-count="6"
       />
 
-      @if(session('success') || $errors->any())
+      @if(session('success') || session('error') || $errors->any())
         <div class="feedback-modal-overlay show" id="feedbackModal">
           <div class="feedback-modal">
 
@@ -104,7 +116,7 @@
             </h2>
 
             <p>
-              {{ session('success') ?? $errors->first() }}
+              {{ session('success') ?? session('error') ?? $errors->first() }}
             </p>
 
             <button type="button" class="feedback-ok-btn" id="closeFeedbackModal">
@@ -182,7 +194,7 @@
               All Departments
             </option>
 
-            @foreach(($departments ?? []) as $department)
+            @foreach($departmentOptions as $department)
               <option value="{{ $department }}" {{ request('department') === $department ? 'selected' : '' }}>
                 {{ $department }}
               </option>
@@ -250,6 +262,8 @@
                   $lastLoginDisplay = $user->last_login_at
                       ? \Carbon\Carbon::parse($user->last_login_at)->format('m/d/y h:i A')
                       : 'Never';
+
+                  $isOwnAccount = auth()->id() === $user->id;
                 @endphp
 
                 <tr>
@@ -287,7 +301,7 @@
 
                       <button
                         type="button"
-                        class="open-view-user-modal"
+                        class="open-view-user-modal action-view"
                         title="View"
                         data-name="{{ $user->name }}"
                         data-email="{{ $user->email }}"
@@ -303,7 +317,7 @@
 
                       <button
                         type="button"
-                        class="open-edit-user-modal"
+                        class="open-edit-user-modal action-edit"
                         title="Edit"
                         data-update-url="{{ route('admin.users.update', $user) }}"
                         data-name="{{ $user->name }}"
@@ -317,7 +331,7 @@
 
                       <button
                         type="button"
-                        class="open-reset-password-modal"
+                        class="open-reset-password-modal action-reset"
                         title="Reset Password"
                         data-reset-url="{{ route('admin.users.reset-password', $user) }}"
                         data-name="{{ $user->name }}"
@@ -332,7 +346,12 @@
 
                           <input type="hidden" name="status" value="Inactive">
 
-                          <button type="submit" title="Deactivate">
+                          <button
+                            type="submit"
+                            class="action-deactivate"
+                            title="Deactivate"
+                            @if($isOwnAccount) disabled @endif
+                          >
                             <i class="fa-solid fa-user-slash"></i>
                           </button>
                         </form>
@@ -343,8 +362,23 @@
 
                           <input type="hidden" name="status" value="Active">
 
-                          <button type="submit" title="Activate">
+                          <button type="submit" class="action-activate" title="Activate">
                             <i class="fa-solid fa-user-check"></i>
+                          </button>
+                        </form>
+                      @endif
+
+                      @if(! $isOwnAccount)
+                        <form
+                          action="{{ route('admin.users.destroy', $user) }}"
+                          method="POST"
+                          onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');"
+                        >
+                          @csrf
+                          @method('DELETE')
+
+                          <button type="submit" class="action-delete" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
                           </button>
                         </form>
                       @endif
@@ -404,6 +438,7 @@
         id="userForm"
         method="POST"
         action="{{ route('admin.users.store') }}"
+        data-store-url="{{ route('admin.users.store') }}"
       >
         @csrf
 
@@ -448,7 +483,7 @@
             <select name="department" id="userDepartmentInput" required>
               <option value="">Select Department</option>
 
-              @foreach(($departments ?? []) as $department)
+              @foreach($departmentOptions as $department)
                 <option value="{{ $department }}">{{ $department }}</option>
               @endforeach
             </select>
