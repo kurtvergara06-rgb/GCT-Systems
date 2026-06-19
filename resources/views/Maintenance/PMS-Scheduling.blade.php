@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - PMS Scheduling"
   :assets="[
-    'resources/css/Maintenance/pms-scheduling.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Maintenance/pms-scheduling.css',
+    'resources/js/Main-style/sidebar.js'
   ]"
 >
 
@@ -11,8 +14,6 @@
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
@@ -23,6 +24,8 @@
         ['label' => 'Settings', 'route' => 'settings', 'icon' => 'fa-gear'],
       ]"
     />
+
+
 
     <main class="main">
 

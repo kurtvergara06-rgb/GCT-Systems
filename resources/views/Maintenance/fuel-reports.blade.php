@@ -1,72 +1,12 @@
 <x-layout.app
-  title="FROMS - Purchase Requests"
+  title="FROMS - Fuel Reports"
   :assets="[
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
-    'resources/css/Maintenance/purchase-request.css',
-    'resources/js/Main-style/sidebar.js',
-    'resources/js/Maintenance/purchase-request.js'
+    'resources/css/Maintenance/fuel-reports.css',
+    'resources/js/Main-style/sidebar.js'
   ]"
 >
-
-  @php
-    $statuses = $statuses ?? [
-      'Submitted',
-      'Approved',
-      'Rejected',
-      'For Purchase',
-      'Ordered',
-      'For Pick-up',
-      'For Delivery',
-      'Delivered',
-      'Picked Up',
-      'Issued',
-    ];
-
-    $submitted = $submitted ?? 0;
-    $rejected = $rejected ?? 0;
-    $approved = $approved ?? 0;
-    $issued = $issued ?? 0;
-
-    $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
-  @endphp
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
-  @if($errors->any())
-    <div id="validationErrorModal" class="delete-modal-overlay show active" style="display: flex;">
-      <div class="delete-modal-box">
-        <div class="delete-icon">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-
-        <h2>Form Error</h2>
-        <p>Please check the form. Some required information is missing.</p>
-
-        <ul style="text-align: left; margin: 12px 0 0; color: #dc2626; font-size: 13px;">
-          @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-
-        <div class="delete-modal-actions">
-          <button type="button" id="closeValidationErrorModal" class="cancel-delete-btn">
-            Okay
-          </button>
-        </div>
-      </div>
-    </div>
-  @endif
 
   <div class="app">
 
@@ -85,33 +25,15 @@
       ]"
     />
 
-
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Fuel Reports</h1>
-          <p>Track vehicle fuel efficiency, fuel usage, and inefficient trips</p>
-        </div>
+      <x-layout.topbar
+        title="Fuel Reports"
+        subtitle="Track vehicle fuel efficiency, fuel usage, and inefficient trips"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- SUMMARY CARDS -->
+      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <div class="stat-card">
@@ -172,7 +94,7 @@
 
       </section>
 
-      <!-- EFFICIENCY BY VEHICLE -->
+      {{-- EFFICIENCY BY VEHICLE --}}
       <section class="table-card fuel-card">
 
         <div class="section-header">
@@ -197,7 +119,7 @@
             </select>
           </div>
 
-          <button class="primary-btn">
+          <button class="primary-btn" type="button">
             <i class="fa-solid fa-plus"></i>
             Add Fuel Record
           </button>
@@ -293,7 +215,7 @@
 
       </section>
 
-      <!-- RECENT FUEL RECORDS -->
+      {{-- RECENT FUEL RECORDS --}}
       <section class="table-card fuel-card">
 
         <div class="section-header">

@@ -107,9 +107,9 @@ class PurchaseOrderController extends Controller
             'terms' => 'nullable|string|max:255',
             'terms_of_payment' => 'nullable|string|max:255',
             'purpose' => 'nullable|string',
-            'delivery_fee' => 'nullable',
-            'discount' => 'nullable',
-            'vat' => 'nullable',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'vat' => 'nullable|numeric|min:0',
             'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
@@ -118,7 +118,7 @@ class PurchaseOrderController extends Controller
             'items.*.item_description' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit' => 'nullable|string|max:50',
-            'items.*.cost' => 'required',
+            'items.*.cost' => 'required|numeric|min:0',
         ]);
 
         $items = $this->cleanItems($request->items);
@@ -189,9 +189,9 @@ class PurchaseOrderController extends Controller
             'terms' => 'nullable|string|max:255',
             'terms_of_payment' => 'nullable|string|max:255',
             'purpose' => 'nullable|string',
-            'delivery_fee' => 'nullable',
-            'discount' => 'nullable',
-            'vat' => 'nullable',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'vat' => 'nullable|numeric|min:0',
             'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
@@ -200,7 +200,7 @@ class PurchaseOrderController extends Controller
             'items.*.item_description' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit' => 'nullable|string|max:50',
-            'items.*.cost' => 'required',
+            'items.*.cost' => 'required|numeric|min:0',
         ]);
 
         $items = $this->cleanItems($request->items);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\PartParser;
 use Illuminate\Http\Request;
 
 class PurchaseRequestController extends Controller
@@ -21,6 +22,13 @@ class PurchaseRequestController extends Controller
         'Picked Up',
         'Issued',
     ];
+
+    private PartParser $partParser;
+
+    public function __construct(PartParser $partParser)
+    {
+        $this->partParser = $partParser;
+    }
 
     private function canApprovePurchaseRequest(): bool
     {
@@ -187,7 +195,15 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'This job order already has an active purchase request.');
         }
 
-        $parts = $this->normalizePartsFromRequest($request);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
 
         if (count($parts) === 0) {
             return redirect()
@@ -196,8 +212,8 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Please add at least one requested part.');
         }
 
-        $formattedParts = $this->formatPartsNeeded($parts);
-        $totalQuantity = $this->calculateTotalQuantity($parts);
+        $formattedParts = $this->partParser->formatParts($parts);
+        $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
 
         $purchaseRequest = PurchaseRequest::create([
             'pr_no' => $this->generatePrNo(),
@@ -263,7 +279,15 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Selected job order was not found.');
         }
 
-        $parts = $this->normalizePartsFromRequest($request);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
 
         if (count($parts) === 0) {
             return redirect()
@@ -272,8 +296,8 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Please add at least one requested part.');
         }
 
-        $formattedParts = $this->formatPartsNeeded($parts);
-        $totalQuantity = $this->calculateTotalQuantity($parts);
+        $formattedParts = $this->partParser->formatParts($parts);
+        $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
 
         $oldJobOrderNo = $purchaseRequest->job_order_no;
 
@@ -524,71 +548,4 @@ class PurchaseRequestController extends Controller
         return $newPrNo;
     }
 
-    private function normalizePartsFromRequest(Request $request): array
-    {
-        $parts = [];
-
-        if ($request->filled('parts') && is_array($request->parts)) {
-            foreach ($request->parts as $part) {
-                $name = trim($part['name'] ?? '');
-                $quantity = (int) ($part['quantity'] ?? 1);
-                $unit = trim($part['unit'] ?? '');
-
-                if ($name === '') {
-                    continue;
-                }
-
-                $parts[] = [
-                    'name' => $name,
-                    'quantity' => $quantity > 0 ? $quantity : 1,
-                    'unit' => $unit,
-                ];
-            }
-        }
-
-        if (count($parts) === 0 && $request->filled('item')) {
-            $parts[] = [
-                'name' => trim($request->item),
-                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
-                'unit' => trim($request->unit ?? ''),
-            ];
-        }
-
-        return $parts;
-    }
-
-    private function formatPartsNeeded(array $parts): string
-    {
-        $formattedParts = [];
-
-        foreach ($parts as $part) {
-            $name = trim($part['name'] ?? '');
-            $quantity = (int) ($part['quantity'] ?? 1);
-            $unit = trim($part['unit'] ?? '');
-
-            if ($name === '') {
-                continue;
-            }
-
-            if ($unit !== '') {
-                $formattedParts[] = "{$name} - Qty: {$quantity} {$unit}";
-            } else {
-                $formattedParts[] = "{$name} - Qty: {$quantity}";
-            }
-        }
-
-        return implode(', ', $formattedParts);
-    }
-
-    private function calculateTotalQuantity(array $parts): int
-    {
-        $total = 0;
-
-        foreach ($parts as $part) {
-            $quantity = (int) ($part['quantity'] ?? 1);
-            $total += $quantity > 0 ? $quantity : 1;
-        }
-
-        return $total > 0 ? $total : 1;
-    }
 }

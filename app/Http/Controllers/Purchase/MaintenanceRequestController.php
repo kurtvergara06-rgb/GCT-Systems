@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Purchase;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
+use App\Services\PartParser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,13 @@ class MaintenanceRequestController extends Controller
         'Delivered',
         'Picked Up',
     ];
+
+    private PartParser $partParser;
+
+    public function __construct(PartParser $partParser)
+    {
+        $this->partParser = $partParser;
+    }
 
     public function index(Request $request)
     {
@@ -201,7 +209,20 @@ class MaintenanceRequestController extends Controller
 
     private function prepareRequestForDisplay(MaintenanceRequest $purchaseRequest): MaintenanceRequest
     {
-        $parts = $this->parseParts($purchaseRequest->item);
+        $parts = collect($this->partParser->parsePartText($purchaseRequest->item))
+            ->map(function ($part) {
+                $unit = $part['unit'] !== '' ? $part['unit'] : '—';
+
+                return [
+                    'name' => $part['name'] ?? '',
+                    'quantity' => $part['quantity'] ?? 1,
+                    'unit' => $unit,
+                    'quantity_display' => trim(($part['quantity'] ?? 1) . ' ' . $unit),
+                ];
+            })
+            ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
+            ->values()
+            ->toArray();
 
         $purchaseRequest->parts_breakdown = $parts;
         $purchaseRequest->first_item_display = $parts[0]['name'] ?? $purchaseRequest->item ?? '—';
@@ -220,120 +241,4 @@ class MaintenanceRequestController extends Controller
         return $purchaseRequest;
     }
 
-    private function parseParts(?string $partsText): array
-    {
-        if (! $partsText) {
-            return [];
-        }
-
-        return collect(explode(',', $partsText))
-            ->map(function ($part) {
-                $part = trim($part);
-
-                if ($part === '') {
-                    return null;
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Format: Engine Oil - Qty: 2 liter
-                |--------------------------------------------------------------------------
-                */
-                if (str_contains(strtolower($part), ' - qty:')) {
-                    [$name, $quantityWithUnit] = preg_split('/ - qty:/i', $part, 2);
-
-                    $parsed = $this->splitQuantityAndUnit($quantityWithUnit);
-
-                    return [
-                        'name' => trim($name),
-                        'quantity' => $parsed['quantity'],
-                        'unit' => $parsed['unit'],
-                        'quantity_display' => trim($parsed['quantity'] . ' ' . $parsed['unit']),
-                    ];
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Format: Engine Oil (2 liter)
-                |--------------------------------------------------------------------------
-                */
-                if (preg_match('/^(.*?)\s*\((\d+\s*[^)]*)\)$/', $part, $matches)) {
-                    $parsed = $this->splitQuantityAndUnit($matches[2] ?? '1');
-
-                    return [
-                        'name' => trim($matches[1] ?? $part),
-                        'quantity' => $parsed['quantity'],
-                        'unit' => $parsed['unit'],
-                        'quantity_display' => trim($parsed['quantity'] . ' ' . $parsed['unit']),
-                    ];
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Format: Engine Oil 2 liter
-                |--------------------------------------------------------------------------
-                */
-                if (preg_match('/^(.*?)\s+(\d+)\s*(liter|liters|litre|litres|ltr|ltrs|pcs|pc|piece|pieces|set|sets|bottle|bottles|box|boxes|pack|packs|pair|pairs|gallon|gallons|kg|meter|meters)$/i', $part, $matches)) {
-                    return [
-                        'name' => trim($matches[1] ?? $part),
-                        'quantity' => trim($matches[2] ?? '1'),
-                        'unit' => $this->normalizeUnit($matches[3] ?? ''),
-                        'quantity_display' => trim(($matches[2] ?? '1') . ' ' . $this->normalizeUnit($matches[3] ?? '')),
-                    ];
-                }
-
-                return [
-                    'name' => $part,
-                    'quantity' => '1',
-                    'unit' => '—',
-                    'quantity_display' => '1',
-                ];
-            })
-            ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
-            ->values()
-            ->toArray();
-    }
-
-    private function splitQuantityAndUnit(?string $value): array
-    {
-        $value = trim($value ?? '');
-
-        if ($value === '') {
-            return [
-                'quantity' => '1',
-                'unit' => '—',
-            ];
-        }
-
-        if (preg_match('/^(\d+)\s*(.*)$/', $value, $matches)) {
-            return [
-                'quantity' => trim($matches[1] ?? '1'),
-                'unit' => $this->normalizeUnit($matches[2] ?? ''),
-            ];
-        }
-
-        return [
-            'quantity' => $value,
-            'unit' => '—',
-        ];
-    }
-
-    private function normalizeUnit(?string $unit): string
-    {
-        $unit = strtolower(trim($unit ?? ''));
-
-        return match ($unit) {
-            'liter', 'liters', 'litre', 'litres', 'ltr', 'ltrs', 'l' => 'liter',
-            'piece', 'pieces', 'pc', 'pcs' => 'pcs',
-            'set', 'sets' => 'set',
-            'bottle', 'bottles' => 'bottle',
-            'box', 'boxes' => 'box',
-            'pack', 'packs' => 'pack',
-            'pair', 'pairs' => 'pair',
-            'gallon', 'gallons', 'gal' => 'gallon',
-            'kg', 'kilogram', 'kilograms' => 'kg',
-            'meter', 'meters', 'm' => 'meter',
-            default => $unit !== '' ? $unit : '—',
-        };
-    }
 }
