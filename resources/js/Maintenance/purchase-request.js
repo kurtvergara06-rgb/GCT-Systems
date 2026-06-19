@@ -108,11 +108,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cleanPart) return null;
 
-        /*
-         * Correct format:
-         * Engine Oil - Qty: 2 liter
-         * Oil Filter - Qty: 4 pcs
-         */
         if (cleanPart.includes(' - Qty:')) {
           const splitParts = cleanPart.split(' - Qty:');
           const name = splitParts[0] ? splitParts[0].trim() : '';
@@ -127,11 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
           };
         }
 
-        /*
-         * Old format support:
-         * Engine Oil (2 liter)
-         * Oil Filter (4 liter)
-         */
         const oldFormatMatch = cleanPart.match(/^(.*?)\s*\((\d+)\s*([^)]+)\)$/);
 
         if (oldFormatMatch) {
@@ -153,6 +143,86 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
+  function refreshPartIndexes(container, prefix) {
+    const rows = container.querySelectorAll('.pr-part-row');
+
+    rows.forEach(function (row, index) {
+      const nameInput = row.querySelector('.pr-part-name');
+      const qtyInput = row.querySelector('.pr-part-qty');
+      const unitSelect = row.querySelector('.pr-part-unit');
+
+      if (nameInput) {
+        nameInput.name = `${prefix}[${index}][name]`;
+      }
+
+      if (qtyInput) {
+        qtyInput.name = `${prefix}[${index}][quantity]`;
+      }
+
+      if (unitSelect) {
+        unitSelect.name = `${prefix}[${index}][unit]`;
+      }
+    });
+  }
+
+  function createPartRow(part, index, prefix, isReadOnly, container) {
+    const row = document.createElement('div');
+    row.className = 'pr-part-row';
+
+    const name = part && part.name ? part.name : '';
+    const quantity = part && part.quantity ? part.quantity : '1';
+    const unit = part && part.unit ? part.unit : '';
+
+    row.innerHTML = `
+      <input
+        type="text"
+        name="${prefix}[${index}][name]"
+        class="pr-part-name"
+        value="${escapeHtml(name)}"
+        placeholder="Part name"
+        ${isReadOnly ? 'readonly disabled' : ''}
+      >
+
+      <input
+        type="number"
+        name="${prefix}[${index}][quantity]"
+        class="pr-part-qty"
+        min="1"
+        value="${escapeHtml(quantity)}"
+        placeholder="Qty"
+        ${isReadOnly ? 'readonly disabled' : ''}
+      >
+
+      <select
+        name="${prefix}[${index}][unit]"
+        class="pr-part-unit"
+        ${isReadOnly ? 'disabled' : ''}
+      >
+        ${unitOptions(unit)}
+      </select>
+
+      <button
+        type="button"
+        class="remove-part-btn"
+        title="Remove Part"
+        ${isReadOnly ? 'style="display: none;"' : ''}
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    `;
+
+    const removeBtn = row.querySelector('.remove-part-btn');
+
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        row.remove();
+        refreshPartIndexes(container, prefix);
+      });
+    }
+
+    return row;
+  }
+
   function renderPartsRows(containerId, rawItem, rawQuantity, options = {}) {
     const container = document.getElementById(containerId);
 
@@ -164,76 +234,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     container.innerHTML = '';
 
+    if (isReadOnly) {
+      container.classList.add('view-only');
+    } else {
+      container.classList.remove('view-only');
+    }
+
     if (parts.length === 0) {
-      const row = document.createElement('div');
-      row.className = 'pr-part-row';
+      const emptyRow = createPartRow(
+        {
+          name: '',
+          quantity: '1',
+          unit: '',
+        },
+        0,
+        prefix,
+        isReadOnly,
+        container
+      );
 
-      row.innerHTML = `
-        <input
-          type="text"
-          name="${prefix}[0][name]"
-          class="pr-part-name"
-          value=""
-          placeholder="Part name"
-          ${isReadOnly ? 'readonly disabled' : ''}
-        >
-
-        <input
-          type="number"
-          name="${prefix}[0][quantity]"
-          class="pr-part-qty"
-          value="1"
-          min="1"
-          placeholder="Qty"
-          ${isReadOnly ? 'readonly disabled' : ''}
-        >
-
-        <select
-          name="${prefix}[0][unit]"
-          class="pr-part-unit"
-          ${isReadOnly ? 'disabled' : ''}
-        >
-          ${unitOptions()}
-        </select>
-      `;
-
-      container.appendChild(row);
+      container.appendChild(emptyRow);
       return;
     }
 
     parts.forEach(function (part, index) {
-      const row = document.createElement('div');
-      row.className = 'pr-part-row';
-
-      row.innerHTML = `
-        <input
-          type="text"
-          name="${prefix}[${index}][name]"
-          class="pr-part-name"
-          value="${escapeHtml(part.name)}"
-          placeholder="Part name"
-          ${isReadOnly ? 'readonly disabled' : ''}
-        >
-
-        <input
-          type="number"
-          name="${prefix}[${index}][quantity]"
-          class="pr-part-qty"
-          min="1"
-          value="${escapeHtml(part.quantity)}"
-          placeholder="Qty"
-          ${isReadOnly ? 'readonly disabled' : ''}
-        >
-
-        <select
-          name="${prefix}[${index}][unit]"
-          class="pr-part-unit"
-          ${isReadOnly ? 'disabled' : ''}
-        >
-          ${unitOptions(part.unit)}
-        </select>
-      `;
-
+      const row = createPartRow(part, index, prefix, isReadOnly, container);
       container.appendChild(row);
     });
   }
@@ -269,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const initialParts = newPrPartsContainer.dataset.initialParts || '';
 
     renderPartsRows('newPrPartsContainer', initialParts, 1, {
-      isReadOnly: true,
+      isReadOnly: false,
       prefix: 'parts',
     });
   }
@@ -285,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       renderPartsRows('newPrPartsContainer', selected.dataset.parts || '', 1, {
-        isReadOnly: true,
+        isReadOnly: false,
         prefix: 'parts',
       });
     });
@@ -305,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const approvePrForm = document.getElementById('approvePrForm');
   const rejectPrForm = document.getElementById('rejectPrForm');
 
-  function setPrModalMode(mode, status) {
+  function setPrModalMode(mode, status, canApprove) {
     const isView = mode === 'view';
     const isSubmitted = status === 'Submitted';
 
@@ -324,7 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (prApprovalActions) {
-      prApprovalActions.style.display = !isView && isSubmitted ? 'flex' : 'none';
+      prApprovalActions.style.display =
+        !isView && isSubmitted && canApprove ? 'flex' : 'none';
     }
 
     const remarks = document.getElementById('edit_remarks');
@@ -344,10 +370,17 @@ document.addEventListener('DOMContentLoaded', function () {
           field.removeAttribute('readonly');
         }
       });
+
+    document
+      .querySelectorAll('#editPrPartsContainer .remove-part-btn')
+      .forEach(function (button) {
+        button.style.display = isView ? 'none' : 'inline-flex';
+      });
   }
 
   function fillPrModal(button, mode) {
     const status = button.dataset.status || 'Submitted';
+    const canApprove = button.dataset.canApprove === '1';
 
     if (editPrForm) {
       editPrForm.action = button.dataset.updateUrl || '#';
@@ -372,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
       prefix: 'parts',
     });
 
-    setPrModalMode(mode, status);
+    setPrModalMode(mode, status, canApprove);
 
     openModal(editPrModal);
   }

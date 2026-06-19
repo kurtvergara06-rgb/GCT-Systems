@@ -6,10 +6,12 @@
 :root {
   --pr-blue: #0057f8;
   --pr-navy: #0b2344;
+  --pr-text: #0f172a;
   --pr-muted: #64748b;
   --pr-border: #dce5f2;
   --pr-bg-soft: #f8fafc;
   --pr-table-head: #f0f5fc;
+  --pr-yellow-main: #ffc400;
 
   --pr-green-bg: #dcfce7;
   --pr-green: #15803d;
@@ -21,6 +23,7 @@
   --pr-yellow: #b45309;
 
   --pr-blue-bg: #dbeafe;
+
   --pr-purple-bg: #e0e7ff;
   --pr-purple: #4338ca;
 
@@ -29,6 +32,8 @@
 
   --pr-teal-bg: #ccfbf1;
   --pr-teal: #0f766e;
+
+  --pr-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
 }
 
 /* =========================================================
@@ -41,7 +46,7 @@
   border: 1px solid var(--pr-border);
   border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  box-shadow: var(--pr-shadow);
   margin-bottom: 20px;
   overflow: hidden;
 }
@@ -57,11 +62,11 @@
 .section-header h2 {
   font-size: 18px;
   font-weight: 900;
-  color: var(--text, #0f172a);
+  color: var(--text, var(--pr-text));
 }
 
 .section-header p {
-  color: var(--muted, #64748b);
+  color: var(--muted, var(--pr-muted));
   font-size: 12px;
   margin-top: 4px;
 }
@@ -108,7 +113,7 @@
   padding: 0 14px 0 40px;
   outline: none;
   font-size: 13px;
-  color: var(--text, #0f172a);
+  color: var(--text, var(--pr-text));
   background: #ffffff;
 }
 
@@ -131,7 +136,7 @@
 .fixed-purchase-toolbar .filter-group label {
   font-size: 12px;
   font-weight: 700;
-  color: var(--muted, #64748b);
+  color: var(--muted, var(--pr-muted));
   white-space: nowrap;
 }
 
@@ -146,7 +151,7 @@
   padding: 0 10px;
   outline: none;
   background: #ffffff;
-  color: var(--text, #0f172a);
+  color: var(--text, var(--pr-text));
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -192,7 +197,7 @@ th {
   text-align: left;
   font-size: 13px;
   font-weight: 900;
-  color: var(--text, #0f172a);
+  color: var(--text, var(--pr-text));
   white-space: nowrap;
   text-transform: uppercase;
 }
@@ -201,7 +206,7 @@ td {
   padding: 16px 13px;
   border-bottom: 1px solid var(--pr-border);
   font-size: 14px;
-  color: var(--text, #0f172a);
+  color: var(--text, var(--pr-text));
   vertical-align: middle;
 }
 
@@ -278,11 +283,7 @@ tbody tr:last-child td {
 }
 
 .pr-status-badge.delivered,
-.badge.delivered {
-  background: var(--pr-teal-bg);
-  color: var(--pr-teal);
-}
-
+.badge.delivered,
 .pr-status-badge.picked-up,
 .badge.picked-up {
   background: var(--pr-teal-bg);
@@ -358,7 +359,12 @@ tbody tr:last-child td {
    MODAL OVERLAY
 ========================================================= */
 
-.modal-overlay {
+.modal-overlay,
+.delete-modal-overlay,
+.success-modal-overlay,
+.error-modal-overlay,
+.feedback-modal-overlay,
+.action-modal-overlay {
   position: fixed;
   inset: 0;
   display: none;
@@ -369,13 +375,31 @@ tbody tr:last-child td {
   z-index: 9999;
 }
 
+.delete-modal-overlay,
+.success-modal-overlay,
+.error-modal-overlay,
+.feedback-modal-overlay,
+.action-modal-overlay {
+  z-index: 10000;
+}
+
 .modal-overlay.show,
-.modal-overlay.active {
+.modal-overlay.active,
+.delete-modal-overlay.show,
+.success-modal-overlay.show,
+.error-modal-overlay.show,
+.feedback-modal-overlay.show,
+.action-modal-overlay.show,
+.delete-modal-overlay.active,
+.success-modal-overlay.active,
+.error-modal-overlay.active,
+.feedback-modal-overlay.active,
+.action-modal-overlay.active {
   display: flex;
 }
 
 /* =========================================================
-   PR MODAL SAME STYLE AS JO MODAL
+   PR MODAL
 ========================================================= */
 
 .modal-box,
@@ -391,7 +415,6 @@ tbody tr:last-child td {
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
 }
 
-/* Header */
 .pr-jo-modal-header,
 .modal-header {
   display: flex;
@@ -438,7 +461,10 @@ tbody tr:last-child td {
   color: var(--pr-red);
 }
 
-/* Form grid */
+/* =========================================================
+   MODAL FORM
+========================================================= */
+
 .pr-jo-form,
 .job-form,
 .wide-form,
@@ -448,7 +474,6 @@ tbody tr:last-child td {
   gap: 14px 18px;
 }
 
-/* Section title */
 .pr-jo-section-title,
 .form-section-title {
   margin-bottom: 2px;
@@ -469,7 +494,6 @@ tbody tr:last-child td {
   margin: 0;
 }
 
-/* Groups */
 .pr-jo-form-group,
 .form-group {
   display: flex;
@@ -482,7 +506,8 @@ tbody tr:last-child td {
 .pr-jo-actions.full-width,
 .form-group.full-width,
 .form-section-title.full-width,
-.modal-actions.full-width {
+.modal-actions.full-width,
+.pr-modal-footer.full-width {
   grid-column: 1 / -1;
 }
 
@@ -493,7 +518,6 @@ tbody tr:last-child td {
   color: var(--pr-navy);
 }
 
-/* Inputs */
 .pr-jo-form-group input,
 .pr-jo-form-group select,
 .pr-jo-form-group textarea,
@@ -506,7 +530,7 @@ tbody tr:last-child td {
   border-radius: 10px;
   padding: 0 14px;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--pr-text);
   background: #ffffff;
   outline: none;
 }
@@ -523,7 +547,9 @@ tbody tr:last-child td {
 .pr-jo-form-group textarea:focus,
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.pr-part-row input:focus,
+.pr-part-row select:focus {
   border-color: var(--pr-blue);
   box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
 }
@@ -533,7 +559,10 @@ tbody tr:last-child td {
 .pr-jo-form-group textarea[readonly],
 .form-group input[readonly],
 .form-group select:disabled,
-.form-group textarea[readonly] {
+.form-group textarea[readonly],
+.pr-part-row input[readonly],
+.pr-part-row input:disabled,
+.pr-part-row select:disabled {
   background: var(--pr-bg-soft);
   color: #475569;
 }
@@ -545,7 +574,66 @@ tbody tr:last-child td {
   color: var(--pr-muted);
 }
 
-/* Modal buttons */
+/* =========================================================
+   REQUESTED PART ROW
+   Part name | Qty | Unit | X
+========================================================= */
+
+.pr-parts-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pr-part-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 95px 115px 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.pr-part-row input,
+.pr-part-row select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--pr-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--pr-text);
+  background: #ffffff;
+  outline: none;
+  min-width: 0;
+}
+
+.remove-part-btn {
+  width: 38px;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: var(--pr-red-bg);
+  color: var(--pr-red);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.remove-part-btn:hover {
+  background: #fecaca;
+}
+
+.pr-parts-container.view-only .remove-part-btn {
+  display: none;
+}
+
+/* =========================================================
+   MODAL BUTTONS
+========================================================= */
+
 .pr-jo-actions,
 .modal-actions {
   display: flex;
@@ -555,17 +643,56 @@ tbody tr:last-child td {
   margin-top: 16px;
 }
 
+.pr-modal-footer {
+  width: 100%;
+  border-top: 1px solid #e5edf7;
+  padding-top: 18px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pr-modal-left-actions,
+.pr-approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pr-approval-actions {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
+.pr-approval-actions form {
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+}
+
 .pr-jo-cancel-btn,
 .pr-jo-save-btn,
 .cancel-btn,
-.save-btn {
-  height: 44px;
+.save-btn,
+.approve-action-btn,
+.reject-action-btn {
+  height: 42px;
+  min-width: 94px;
   border: none;
   border-radius: 10px;
-  padding: 0 18px;
-  font-size: 14px;
+  padding: 0 16px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .pr-jo-cancel-btn,
@@ -581,40 +708,13 @@ tbody tr:last-child td {
 
 .pr-jo-save-btn,
 .save-btn {
-  background: #ffc400;
+  background: var(--pr-yellow-main);
   color: var(--pr-navy);
 }
 
 .pr-jo-save-btn:hover,
 .save-btn:hover {
   filter: brightness(0.96);
-}
-
-/* =========================================================
-   APPROVE / REJECT BUTTONS
-========================================================= */
-
-.pr-approval-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid #e5eaf2;
-}
-
-.approve-action-btn,
-.reject-action-btn {
-  height: 44px;
-  border: none;
-  border-radius: 10px;
-  padding: 0 18px;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .approve-action-btn {
@@ -635,83 +735,6 @@ tbody tr:last-child td {
 .reject-action-btn:hover {
   background: var(--pr-red);
   color: #ffffff;
-}
-
-/* =========================================================
-   PR PARTS ROW: PART NAME | QTY | UNIT
-========================================================= */
-
-.pr-parts-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pr-part-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 110px 130px;
-  gap: 10px;
-  align-items: center;
-}
-
-.pr-part-row input,
-.pr-part-row select {
-  width: 100%;
-  height: 46px;
-  border: 1px solid var(--pr-border);
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: 14px;
-  color: #0f172a;
-  background: #ffffff;
-  outline: none;
-  min-width: 0;
-}
-
-.pr-part-row input:focus,
-.pr-part-row select:focus {
-  border-color: var(--pr-blue);
-  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
-}
-
-.pr-part-row input[readonly],
-.pr-part-row input:disabled,
-.pr-part-row select:disabled {
-  background: var(--pr-bg-soft);
-  color: #475569;
-  cursor: not-allowed;
-}
-
-/* =========================================================
-   DELETE / FEEDBACK MODAL SUPPORT
-========================================================= */
-
-.delete-modal-overlay,
-.success-modal-overlay,
-.error-modal-overlay,
-.feedback-modal-overlay,
-.action-modal-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.45);
-  z-index: 10000;
-}
-
-.delete-modal-overlay.show,
-.success-modal-overlay.show,
-.error-modal-overlay.show,
-.feedback-modal-overlay.show,
-.action-modal-overlay.show,
-.delete-modal-overlay.active,
-.success-modal-overlay.active,
-.error-modal-overlay.active,
-.feedback-modal-overlay.active,
-.action-modal-overlay.active {
-  display: flex;
 }
 
 /* =========================================================
@@ -775,12 +798,15 @@ tbody tr:last-child td {
   .pr-jo-actions.full-width,
   .form-group.full-width,
   .form-section-title.full-width,
-  .modal-actions.full-width {
+  .modal-actions.full-width,
+  .pr-modal-footer.full-width {
     grid-column: auto;
   }
 
   .pr-jo-actions,
   .modal-actions,
+  .pr-modal-footer,
+  .pr-modal-left-actions,
   .pr-approval-actions {
     flex-direction: column;
     align-items: stretch;
@@ -793,11 +819,14 @@ tbody tr:last-child td {
   .approve-action-btn,
   .reject-action-btn {
     width: 100%;
-    justify-content: center;
   }
 
   .pr-part-row {
     grid-template-columns: 1fr;
+  }
+
+  .remove-part-btn {
+    width: 100%;
   }
 }
 
@@ -821,101 +850,5 @@ tbody tr:last-child td {
   .fixed-pr-modal,
   .pr-jo-style-modal {
     padding: 24px;
-  }
-}
-
-.pr-modal-footer {
-  grid-column: 1 / -1;
-  width: 100%;
-  border-top: 1px solid #e5edf7;
-  padding-top: 14px;
-  margin-top: 8px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pr-modal-left-actions,
-.pr-approval-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pr-approval-actions form {
-  margin: 0;
-}
-
-.approve-action-btn,
-.reject-action-btn {
-  min-width: 105px;
-  height: 42px;
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.approve-action-btn {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.reject-action-btn {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.pr-part-row {
-  display: grid;
-  grid-template-columns: 1fr 95px 115px 36px;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.remove-part-btn {
-  width: 36px;
-  height: 40px;
-  border: none;
-  border-radius: 9px;
-  background: #fee2e2;
-  color: #dc2626;
-  cursor: pointer;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remove-part-btn:hover {
-  background: #fecaca;
-}
-
-@media (max-width: 768px) {
-  .pr-modal-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .pr-modal-left-actions,
-  .pr-approval-actions {
-    justify-content: flex-end;
-  }
-
-  .pr-part-row {
-    grid-template-columns: 1fr;
-  }
-
-  .remove-part-btn {
-    width: 100%;
   }
 }

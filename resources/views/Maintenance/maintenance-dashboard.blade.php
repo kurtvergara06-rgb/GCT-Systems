@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - Dashboard"
   :assets="[
-    'resources/css/Maintenance/dashboard.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Maintenance/dashboard.css',
+    'resources/js/Main-style/sidebar.js'
   ]"
 >
 
@@ -11,8 +14,6 @@
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
@@ -26,30 +27,13 @@
 
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Dashboard</h1>
-          <p>Monitor fleet maintenance operations and key service activities</p>
-        </div>
+      <x-layout.topbar
+        title="Dashboard"
+        subtitle="Monitor fleet maintenance operations and key service activities"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- ALERT -->
+      {{-- ALERT --}}
       <section class="alert-banner">
         <div class="alert-left">
           <i class="fa-solid fa-triangle-exclamation"></i>
@@ -60,10 +44,10 @@
           </div>
         </div>
 
-        <button>View Overdue</button>
+        <button type="button">View Overdue</button>
       </section>
 
-      <!-- STATS -->
+      {{-- STATS --}}
       <section class="stats-grid">
 
         <div class="stat-card">
@@ -124,7 +108,7 @@
 
       </section>
 
-      <!-- CHARTS -->
+      {{-- CHARTS --}}
       <section class="dashboard-grid">
 
         <div class="panel">
@@ -208,13 +192,13 @@
 
       </section>
 
-      <!-- BOTTOM CONTENT -->
+      {{-- BOTTOM CONTENT --}}
       <section class="bottom-grid">
 
         <div class="panel">
           <div class="panel-header">
             <h3>Recent Activity</h3>
-            <button class="small-btn">View All</button>
+            <button type="button" class="small-btn">View All</button>
           </div>
 
           <div class="activity-list">
@@ -277,7 +261,7 @@
         <div class="panel">
           <div class="panel-header">
             <h3>Upcoming Maintenance</h3>
-            <button class="small-btn">View All</button>
+            <button type="button" class="small-btn">View All</button>
           </div>
 
           <table>

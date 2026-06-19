@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - Mechanic List"
   :assets="[
-    'resources/css/Maintenance/mechanic-list.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Maintenance/mechanic-list.css',
+    'resources/js/Main-style/sidebar.js'
   ]"
 >
 
@@ -11,8 +14,6 @@
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
@@ -26,30 +27,13 @@
 
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Mechanic List</h1>
-          <p>Monitor mechanic availability, assigned jobs, and work history</p>
-        </div>
+      <x-layout.topbar
+        title="Mechanic List"
+        subtitle="Monitor mechanic availability, assigned jobs, and work history"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- SUMMARY CARDS -->
+      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <div class="stat-card">
@@ -110,7 +94,7 @@
 
       </section>
 
-      <!-- MECHANIC LIST -->
+      {{-- MECHANIC LIST --}}
       <section class="table-card">
 
         <div class="section-header">
@@ -144,7 +128,7 @@
             </select>
           </div>
 
-          <button class="primary-btn">
+          <button class="primary-btn" type="button">
             <i class="fa-solid fa-plus"></i>
             New Mechanic
           </button>
@@ -176,8 +160,8 @@
                 <td>Apr 5, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -192,8 +176,8 @@
                 <td>Apr 4, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -208,8 +192,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -224,8 +208,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -240,8 +224,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -256,8 +240,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -272,8 +256,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -288,8 +272,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -304,8 +288,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -320,8 +304,8 @@
                 <td>Apr 3, 2026</td>
                 <td>
                   <div class="actions">
-                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -331,7 +315,7 @@
 
       </section>
 
-      <!-- JOB HISTORY -->
+      {{-- JOB HISTORY --}}
       <section class="table-card history-card">
 
         <div class="section-header">
