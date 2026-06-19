@@ -66,6 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
     role = String(role || '').trim().toLowerCase();
     role = role.replace(/[_-]/g, ' ');
 
+    /*
+      IMPORTANT:
+      Admin role is removed.
+      If old database value is admin/system admin, convert it to head.
+      Final valid role values: head, staff only.
+    */
     if (
       role === 'admin' ||
       role === 'system admin' ||
@@ -74,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
       role === 'purchase admin' ||
       role === 'operation admin'
     ) {
-      return 'admin';
+      return 'head';
     }
 
     if (

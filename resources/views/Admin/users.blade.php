@@ -14,10 +14,6 @@
       $role = strtolower(trim($role ?? ''));
       $role = str_replace(['_', '-'], ' ', $role);
 
-      if (str_contains($role, 'admin')) {
-        return 'Admin';
-      }
-
       if (str_contains($role, 'head')) {
         return 'Head';
       }
@@ -33,12 +29,12 @@
       $department = trim($user->department ?? '');
       $roleLabel = $normalizeRoleLabel($user->role ?? '');
 
-      if ($department === '') {
-        return $roleLabel;
+      if (strtolower($department) === 'admin') {
+        return 'System Admin';
       }
 
-      if (strtolower($department) === 'admin' && strtolower($roleLabel) === 'admin') {
-        return 'System Admin';
+      if ($department === '') {
+        return $roleLabel;
       }
 
       return $department . ' ' . $roleLabel;
@@ -47,9 +43,9 @@
     $sidebarName = $authUser?->name ?? 'System Admin';
 
     $sidebarDepartment = trim($authUser?->department ?? 'Admin');
-    $sidebarRoleLabel = $normalizeRoleLabel($authUser?->role ?? 'admin');
+    $sidebarRoleLabel = $normalizeRoleLabel($authUser?->role ?? 'head');
 
-    if (strtolower($sidebarDepartment) === 'admin' && strtolower($sidebarRoleLabel) === 'admin') {
+    if (strtolower($sidebarDepartment) === 'admin') {
       $sidebarRole = 'System Admin';
     } else {
       $sidebarRole = $sidebarDepartment . ' ' . $sidebarRoleLabel;

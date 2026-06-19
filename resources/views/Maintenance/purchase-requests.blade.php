@@ -4,6 +4,7 @@
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
     'resources/css/Maintenance/purchase-request.css',
+    'resources/js/Main-style/sidebar.js',
     'resources/js/Maintenance/purchase-request.js'
   ]"
 >
@@ -69,33 +70,10 @@
 
   <div class="app">
 
-    @php
-      $sidebarUser = auth()->user();
-
-      $sidebarName = $sidebarUser?->name ?? 'Guest User';
-
-      $sidebarRoleRaw = strtolower(trim($sidebarUser?->role ?? ''));
-      $sidebarDepartmentRaw = trim($sidebarUser?->department ?? 'Maintenance');
-
-      if (str_contains($sidebarRoleRaw, 'admin')) {
-        $sidebarRoleLabel = 'Admin';
-      } elseif (str_contains($sidebarRoleRaw, 'head')) {
-        $sidebarRoleLabel = 'Head';
-      } elseif (str_contains($sidebarRoleRaw, 'staff')) {
-        $sidebarRoleLabel = 'Staff';
-      } else {
-        $sidebarRoleLabel = ucwords(str_replace(['_', '-'], ' ', $sidebarRoleRaw ?: 'User'));
-      }
-
-      $sidebarRole = $sidebarDepartmentRaw . ' ' . $sidebarRoleLabel;
-    @endphp
-
     <x-layout.sidebar
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      :user-name="$sidebarName"
-      :user-role="$sidebarRole"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
