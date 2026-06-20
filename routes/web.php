@@ -283,4 +283,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{user}', 'destroy')->name('admin.users.destroy');
     });
 
+    Route::view('/batch-file-processing', 'Admin.batch-file-processing')
+    ->name('batch-file-processing');
+
 });

@@ -7,62 +7,16 @@
     'resources/js/Admin/users.js'
   ]"
 >
-  @php
+@php
     $authUser = auth()->user();
-
-    $normalizeRoleLabel = function ($role) {
-      $role = strtolower(trim($role ?? ''));
-      $role = str_replace(['_', '-'], ' ', $role);
-
-      if (str_contains($role, 'head')) {
-        return 'Head';
-      }
-
-      if (str_contains($role, 'staff')) {
-        return 'Staff';
-      }
-
-      return ucwords($role ?: 'User');
-    };
-
-    $formatRole = function ($user) use ($normalizeRoleLabel) {
-      $department = trim($user->department ?? '');
-      $roleLabel = $normalizeRoleLabel($user->role ?? '');
-
-      if (strtolower($department) === 'admin') {
-        return strtolower($user->role ?? '') === 'head' ? 'System Admin' : 'Admin Staff';
-      }
-
-      if ($department === '') {
-        return $roleLabel;
-      }
-
-      return $department . ' ' . $roleLabel;
-    };
 
     $sidebarName = $authUser?->name ?? 'System Admin';
 
-    $sidebarDepartment = trim($authUser?->department ?? 'Admin');
-    $sidebarRoleLabel = $normalizeRoleLabel($authUser?->role ?? 'head');
-
-    if (strtolower($sidebarDepartment) === 'admin') {
-      $sidebarRole = strtolower($authUser?->role ?? '') === 'head' ? 'System Admin' : 'Admin Staff';
-    } else {
-      $sidebarRole = $sidebarDepartment . ' ' . $sidebarRoleLabel;
-    }
-
-    $isCurrentUserAdminHead =
-      strtolower(trim($authUser?->department ?? '')) === 'admin'
-      && strtolower(trim($authUser?->role ?? '')) === 'head';
-
-    $departmentOptions = collect($departments ?? []);
-
-    if ($isCurrentUserAdminHead && ! $departmentOptions->contains('Admin')) {
-      $departmentOptions->prepend('Admin');
-    }
-
-    $departmentOptions = $departmentOptions->unique()->values();
-  @endphp
+    $sidebarDepartment = $authUser?->department ?? 'Admin';
+    $sidebarRole = strtolower($authUser?->role ?? '') === 'head'
+        ? 'System Admin'
+        : $sidebarDepartment . ' ' . ucfirst($authUser?->role ?? 'Staff');
+@endphp
 
   <div class="app admin-users-app">
 
@@ -73,22 +27,27 @@
       :user-name="$sidebarName"
       :user-role="$sidebarRole"
       :items="[
-        [
-          'label' => 'Dashboard',
-          'route' => 'admin.dashboard',
-          'icon' => 'fa-table-cells-large'
-        ],
-        [
-          'label' => 'User Management',
-          'route' => 'admin.users',
-          'icon' => 'fa-users-gear'
-        ],
-        [
-          'label' => 'Permissions',
-          'route' => 'admin.permissions',
-          'icon' => 'fa-lock'
-        ],
-      ]"
+                [
+                    'label' => 'Dashboard',
+                    'route' => 'admin.dashboard',
+                    'icon' => 'fa-table-cells-large'
+                ],
+                [
+                    'label' => 'User Management',
+                    'route' => 'admin.users',
+                    'icon' => 'fa-users-gear'
+                ],
+                [
+                    'label' => 'Permissions',
+                    'route' => 'admin.permissions',
+                    'icon' => 'fa-lock'
+                ],
+                [
+                    'label' => 'Batch File Processing',
+                    'route' => 'batch-file-processing',
+                    'icon' => 'fa-file-arrow-up'
+                ],
+            ]"
     />
 
     <main class="main users-main">

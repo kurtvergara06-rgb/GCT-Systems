@@ -16,9 +16,11 @@
         $role = strtolower(trim($authUser?->role ?? 'head'));
 
         if (strtolower($department) === 'admin') {
-            $sidebarRole = $role === 'head' ? 'System Admin' : 'Admin Staff';
+            $sidebarRole = $role === 'head'
+                ? 'System Admin'
+                : 'Admin Staff';
         } else {
-            $sidebarRole = $department . ' ' . ucfirst($role);
+            $sidebarRole = $department . ' ' . ucfirst($role ?: 'Staff');
         }
     @endphp
 
@@ -133,7 +135,6 @@
                             <div class="batch-stat-icon blue">
                                 <i class="fa-solid fa-file-arrow-up"></i>
                             </div>
-
                             <div>
                                 <span>Files Uploaded</span>
                                 <strong>3</strong>
@@ -144,7 +145,6 @@
                             <div class="batch-stat-icon green">
                                 <i class="fa-solid fa-circle-check"></i>
                             </div>
-
                             <div>
                                 <span>Processed</span>
                                 <strong>2</strong>
@@ -155,7 +155,6 @@
                             <div class="batch-stat-icon yellow">
                                 <i class="fa-solid fa-clock"></i>
                             </div>
-
                             <div>
                                 <span>In Review</span>
                                 <strong>1</strong>
@@ -166,7 +165,6 @@
                             <div class="batch-stat-icon navy">
                                 <i class="fa-solid fa-database"></i>
                             </div>
-
                             <div>
                                 <span>Records Extracted</span>
                                 <strong>1,220</strong>
