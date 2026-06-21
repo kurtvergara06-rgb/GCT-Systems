@@ -10,6 +10,7 @@ use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
+use App\Http\Controllers\Admin\BatchFileProcessingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -283,7 +284,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{user}', 'destroy')->name('admin.users.destroy');
     });
 
-    Route::view('/batch-file-processing', 'Admin.batch-file-processing')
-    ->name('batch-file-processing');
+    Route::controller(BatchFileProcessingController::class)
+    ->prefix('batch-file-processing')
+    ->group(function () {
+        Route::get('/', 'index')->name('batch-file-processing');
+        Route::post('/upload', 'upload')->name('batch-file-processing.upload');
+        Route::get('/export', 'export')->name('batch-file-processing.export');
+    });
 
 });

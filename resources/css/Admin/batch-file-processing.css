@@ -607,3 +607,28 @@
         display: none;
     }
 }
+
+/* Keep Parsed Fields panel compact and scrollable */
+.parsed-fields-card {
+    min-height: 0;
+}
+
+.parsed-fields-card .parsed-fields-list {
+    max-height: 330px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+/* Small scrollbar */
+.parsed-fields-card .parsed-fields-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.parsed-fields-card .parsed-fields-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.parsed-fields-card .parsed-fields-list::-webkit-scrollbar-track {
+    background: transparent;
+}
