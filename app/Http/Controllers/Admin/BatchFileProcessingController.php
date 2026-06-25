@@ -27,11 +27,25 @@ class BatchFileProcessingController extends Controller
             $selectedBatchId = $batches->first()->id;
         }
 
+        $selectedBatch = $selectedBatchId
+            ? BatchUpload::with(['tripRecords' => function ($query) {
+                $query->orderBy('beginning_at');
+            }])->find($selectedBatchId)
+            : null;
+
+        /*
+        Only PROCESSED batches will appear in Structured Trip Records.
+        In Review batches remain visible only in the review modals.
+        */
         $recordsQuery = GpsTripRecord::query()
             ->with('batchUpload')
-            ->when($selectedBatchId, function ($query) use ($selectedBatchId) {
-                $query->where('batch_upload_id', $selectedBatchId);
+            ->whereHas('batchUpload', function ($query) {
+                $query->where('status', 'Processed');
             });
+
+        if ($selectedBatchId) {
+            $recordsQuery->where('batch_upload_id', $selectedBatchId);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -47,17 +61,43 @@ class BatchFileProcessingController extends Controller
         $records = $recordsQuery
             ->latest('beginning_at')
             ->paginate(10)
-            ->withQueryString();
+            ->withQueryString()
+            ->appends([
+                'batch_id' => $selectedBatchId,
+                'search' => $request->query('search'),
+                'selected_record' => $request->query('selected_record'),
+            ]);
 
         $selectedRecordId = $request->integer('selected_record');
 
+        /*
+        For the preview panels:
+        - Use the clicked record when selected_record exists.
+        - Otherwise use the latest record from the selected upload,
+          even if its batch is still In Review.
+        */
         $selectedRecord = $selectedRecordId
-            ? GpsTripRecord::find($selectedRecordId)
-            : $records->first();
+            ? GpsTripRecord::with('batchUpload')->find($selectedRecordId)
+            : ($selectedBatch?->tripRecords()
+                ->latest('beginning_at')
+                ->first());
+
+        $allSelectedRecords = $selectedBatch
+            ? $selectedBatch->tripRecords()
+                ->orderBy('beginning_at')
+                ->get()
+            : collect();
 
         $filesUploaded = BatchUpload::count();
-        $processedBatches = BatchUpload::where('status', 'Processed')->count();
-        $inReviewBatches = BatchUpload::where('status', 'In Review')->count();
+
+        $processedBatches = BatchUpload::query()
+            ->where('status', 'Processed')
+            ->count();
+
+        $inReviewBatches = BatchUpload::query()
+            ->where('status', 'In Review')
+            ->count();
+
         $recordsExtracted = GpsTripRecord::count();
 
         return view('Admin.batch-file-processing', compact(
@@ -65,6 +105,8 @@ class BatchFileProcessingController extends Controller
             'records',
             'selectedRecord',
             'selectedBatchId',
+            'selectedBatch',
+            'allSelectedRecords',
             'filesUploaded',
             'processedBatches',
             'inReviewBatches',
@@ -105,12 +147,12 @@ class BatchFileProcessingController extends Controller
             $result = $this->processCsvFile($batch);
 
             $batch->update([
-                'status' => $result['failed'] > 0 ? 'In Review' : 'Processed',
+                'status' => 'In Review',
                 'total_records' => $result['total'],
                 'processed_records' => $result['processed'],
                 'failed_records' => $result['failed'],
                 'error_message' => $result['failed'] > 0
-                    ? 'Some rows could not be processed. Please review the GPS report.'
+                    ? ($result['first_error'] ?? 'Some rows could not be processed. Please review the report data.')
                     : null,
             ]);
 
@@ -120,7 +162,7 @@ class BatchFileProcessingController extends Controller
                 ])
                 ->with(
                     'success',
-                    "{$result['processed']} GPS trip record(s) processed successfully."
+                    "{$result['processed']} GPS trip record(s) uploaded and waiting for review."
                 );
         } catch (\Throwable $exception) {
             $batch->update([
@@ -134,12 +176,46 @@ class BatchFileProcessingController extends Controller
         }
     }
 
+    public function confirm(BatchUpload $batchUpload)
+    {
+        if ($batchUpload->status === 'Failed') {
+            return redirect()
+                ->route('batch-file-processing')
+                ->with('error', 'A failed upload cannot be marked as processed.');
+        }
+
+        $batchUpload->update([
+            'status' => 'Processed',
+        ]);
+
+        return redirect()
+            ->route('batch-file-processing', [
+                'batch_id' => $batchUpload->id,
+            ])
+            ->with('success', 'Batch data was reviewed and marked as Processed.');
+    }
+
+    public function destroy(BatchUpload $batchUpload)
+    {
+        Storage::disk('public')->delete($batchUpload->file_path);
+
+        $batchUpload->delete();
+
+        return redirect()
+            ->route('batch-file-processing')
+            ->with('success', 'Uploaded file and all related trip records were deleted.');
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $query = GpsTripRecord::query()
-            ->when($request->filled('batch_id'), function ($query) use ($request) {
-                $query->where('batch_upload_id', $request->batch_id);
+            ->whereHas('batchUpload', function ($query) {
+                $query->where('status', 'Processed');
             });
+
+        if ($request->filled('batch_id')) {
+            $query->where('batch_upload_id', $request->batch_id);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -244,6 +320,7 @@ class BatchFileProcessingController extends Controller
         $total = 0;
         $processed = 0;
         $failed = 0;
+        $firstFailureMessage = null;
 
         DB::transaction(function () use (
             $handle,
@@ -251,7 +328,8 @@ class BatchFileProcessingController extends Controller
             $batch,
             &$total,
             &$processed,
-            &$failed
+            &$failed,
+            &$firstFailureMessage
         ) {
             while (($row = fgetcsv($handle)) !== false) {
                 $hasValues = count(
@@ -285,6 +363,8 @@ class BatchFileProcessingController extends Controller
                         throw new \RuntimeException('Missing Bus Number in a trip row.');
                     }
 
+                    $busNo = strtoupper(trim($busNo));
+
                     $beginning = $this->parseDateTime(
                         $this->valueFromRow($data, [
                             'beginning',
@@ -301,6 +381,18 @@ class BatchFileProcessingController extends Controller
                         ])
                     );
 
+                    $initialLocation = $this->valueFromRow($data, [
+                        'initial location',
+                        'start location',
+                        'origin',
+                    ]);
+
+                    $finalLocation = $this->valueFromRow($data, [
+                        'final location',
+                        'end location',
+                        'destination',
+                    ]);
+
                     $idlingMinutes = $this->durationToMinutes(
                         $this->valueFromRow($data, [
                             'idling',
@@ -309,9 +401,49 @@ class BatchFileProcessingController extends Controller
                         ])
                     );
 
+                    $duplicateQuery = GpsTripRecord::query()
+                        ->where('batch_upload_id', $batch->id)
+                        ->where('bus_no', $busNo)
+                        ->where(function ($query) use ($beginning) {
+                            if ($beginning === null) {
+                                $query->whereNull('beginning_at');
+                            } else {
+                                $query->where('beginning_at', $beginning);
+                            }
+                        })
+                        ->where(function ($query) use ($ending) {
+                            if ($ending === null) {
+                                $query->whereNull('ending_at');
+                            } else {
+                                $query->where('ending_at', $ending);
+                            }
+                        })
+                        ->where(function ($query) use ($initialLocation) {
+                            if ($initialLocation === null || $initialLocation === '') {
+                                $query->whereNull('initial_location');
+                            } else {
+                                $query->where('initial_location', $initialLocation);
+                            }
+                        })
+                        ->where(function ($query) use ($finalLocation) {
+                            if ($finalLocation === null || $finalLocation === '') {
+                                $query->whereNull('final_location');
+                            } else {
+                                $query->where('final_location', $finalLocation);
+                            }
+                        });
+
+                    if ($duplicateQuery->exists()) {
+                        $failed++;
+                        if ($firstFailureMessage === null) {
+                            $firstFailureMessage = 'Duplicate row skipped during batch processing.';
+                        }
+                        continue;
+                    }
+
                     GpsTripRecord::create([
                         'batch_upload_id' => $batch->id,
-                        'bus_no' => strtoupper(trim($busNo)),
+                        'bus_no' => $busNo,
 
                         'grouping' => $this->valueFromRow($data, [
                             'grouping',
@@ -321,20 +453,9 @@ class BatchFileProcessingController extends Controller
                         ]),
 
                         'beginning_at' => $beginning,
-
-                        'initial_location' => $this->valueFromRow($data, [
-                            'initial location',
-                            'start location',
-                            'origin',
-                        ]),
-
+                        'initial_location' => $initialLocation,
                         'ending_at' => $ending,
-
-                        'final_location' => $this->valueFromRow($data, [
-                            'final location',
-                            'end location',
-                            'destination',
-                        ]),
+                        'final_location' => $finalLocation,
 
                         'engine_hours' => $this->numericValue(
                             $this->valueFromRow($data, ['engine hours'])
@@ -364,28 +485,33 @@ class BatchFileProcessingController extends Controller
                         ),
 
                         'severity' => $this->severityFromIdleMinutes($idlingMinutes),
-
                         'raw_data' => $data,
                     ]);
 
                     $processed++;
-                } catch (\Throwable) {
+                } catch (\Throwable $exception) {
                     $failed++;
+                    if ($firstFailureMessage === null) {
+                        $firstFailureMessage = $exception->getMessage();
+                    }
                 }
             }
         });
 
         fclose($handle);
 
-        return compact('total', 'processed', 'failed');
+        return [
+            'total' => $total,
+            'processed' => $processed,
+            'failed' => $failed,
+            'first_error' => $firstFailureMessage,
+        ];
     }
 
     private function normalizeHeader(?string $header): string
     {
         $header = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header);
-
         $header = strtolower(trim($header));
-
         $header = str_replace(['_', '-', '.'], ' ', $header);
 
         return trim(preg_replace('/\s+/', ' ', $header));

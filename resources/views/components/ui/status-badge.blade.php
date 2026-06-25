@@ -1,42 +1,68 @@
 @props([
-  'status' => '',
-  'type' => 'default', // purchase, inventory, user, job, default
-  'class' => '',
+    'status' => '',
+    'type' => 'default',
+    'class' => '',
 ])
 
 @php
-  /**
-   * Status Badge Component - Reusable status display badge
-   * 
-   * Automatically converts status strings to CSS classes:
-   * "Submitted" → "submitted"
-   * "For Purchase" → "for-purchase"
-   * "Picked Up" → "picked-up"
-   * etc.
-   */
-  
-  // Convert status to CSS class
-  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $status ?? ''));
-  
-  // Build badge class
-  $badgeClass = 'badge';
-  
-  // Add type-specific class
-  if ($type !== 'default') {
-    $badgeClass .= ' ' . $type . '-badge';
-  }
-  
-  // Add status-specific class
-  if ($statusClass) {
-    $badgeClass .= ' ' . $statusClass;
-  }
-  
-  // Add custom classes
-  if ($class) {
-    $badgeClass .= ' ' . $class;
-  }
+    $value = trim($status ?? '');
+
+    $statusClass = strtolower(
+        str_replace(
+            [' ', '/', '_'],
+            ['-', '-', '-'],
+            $value
+        )
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Management Badges
+    |--------------------------------------------------------------------------
+    | Role examples:
+    | System Admin       -> system-admin
+    | Maintenance Head   -> maintenance-head
+    | Purchase Staff     -> purchase-staff
+    |
+    | Status examples:
+    | Active             -> active
+    | Inactive           -> inactive
+    | Pending            -> pending
+    */
+    if ($type === 'user') {
+        $userStatuses = ['active', 'inactive', 'pending'];
+
+        if (in_array($statusClass, $userStatuses)) {
+            $badgeClass = 'status-pill ' . $statusClass;
+        } else {
+            $badgeClass = 'role-pill ' . $statusClass;
+        }
+
+        if ($class) {
+            $badgeClass .= ' ' . $class;
+        }
+    } else {
+        /*
+        |--------------------------------------------------------------------------
+        | Other Modules: Purchase, Inventory, Job Orders, etc.
+        |--------------------------------------------------------------------------
+        */
+        $badgeClass = 'badge';
+
+        if ($type !== 'default') {
+            $badgeClass .= ' ' . $type . '-badge';
+        }
+
+        if ($statusClass) {
+            $badgeClass .= ' ' . $statusClass;
+        }
+
+        if ($class) {
+            $badgeClass .= ' ' . $class;
+        }
+    }
 @endphp
 
 <span class="{{ $badgeClass }}" {{ $attributes }}>
-  {{ $status ?: 'Unknown' }}
+    {{ $value ?: 'Unknown' }}
 </span>
