@@ -632,3 +632,711 @@
 .parsed-fields-card .parsed-fields-list::-webkit-scrollbar-track {
     background: transparent;
 }
+.upload-action-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.upload-data-btn {
+    min-width: 128px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 15px;
+    background: #ffc400;
+    color: #062b4f;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.2s ease;
+}
+
+.upload-data-btn:hover:not(:disabled) {
+    background: #eab308;
+    transform: translateY(-1px);
+}
+
+.upload-data-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+/* UPLOAD BUTTON */
+
+.upload-action-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.upload-data-btn {
+    min-width: 128px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 15px;
+    background: #ffc400;
+    color: #062b4f;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.upload-data-btn:hover:not(:disabled) {
+    background: #eab308;
+    transform: translateY(-1px);
+}
+
+.upload-data-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* BATCH SUCCESS / ERROR MODAL */
+
+.batch-feedback-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+}
+
+.batch-feedback-overlay.show {
+    display: flex;
+}
+
+.batch-feedback-modal {
+    width: min(430px, 94vw);
+    padding: 30px 28px;
+    border-radius: 18px;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+}
+
+.batch-feedback-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.batch-feedback-icon.success {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.batch-feedback-icon.error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.batch-feedback-modal h2 {
+    margin: 0;
+    color: #0b2344;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.batch-feedback-modal p {
+    margin: 10px 0 18px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.batch-error-tip {
+    margin-bottom: 20px;
+    padding: 11px 13px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: #fff7f7;
+    color: #991b1b;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.batch-error-tip i {
+    margin-right: 5px;
+    color: #dc2626;
+}
+
+.batch-feedback-close-btn {
+    min-width: 130px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #ffc400;
+    color: #062b4f;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.batch-feedback-close-btn:hover {
+    filter: brightness(0.97);
+}
+/* =========================================================
+   BATCH REVIEW, DELETE, VIEW ALL, AND MODAL
+========================================================= */
+
+/* Uploaded file row with delete button */
+.uploaded-file-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.uploaded-file-row .uploaded-file {
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+}
+
+.uploaded-file-row form {
+    margin: 0;
+}
+
+/* Delete uploaded file */
+.delete-upload-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 9px;
+    background: #fee2e2;
+    color: #dc2626;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.delete-upload-btn:hover {
+    background: #fecaca;
+    color: #991b1b;
+    transform: translateY(-1px);
+}
+
+/* Failed upload status */
+.failed-badge {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* In Review status */
+.review-badge {
+    padding: 5px 8px !important;
+    border-radius: 999px !important;
+    background: #fff3cd !important;
+    color: #b45309 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    white-space: nowrap;
+}
+
+/* View All button */
+.view-all-records-btn {
+    height: 32px;
+    border: 1px solid #bdd5fc;
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #f5f9ff;
+    color: #0057f8;
+    font-size: 11px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s ease;
+}
+
+.view-all-records-btn:hover {
+    background: #0057f8;
+    border-color: #0057f8;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* Bottom View All Data */
+.view-files-btn {
+    margin-top: 14px;
+    border: none;
+    background: transparent;
+    color: #0057f8;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.view-files-btn:hover {
+    color: #062b4f;
+    transform: translateX(3px);
+}
+
+/* All records modal background */
+.records-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.records-modal-overlay.show {
+    display: flex;
+}
+
+/* Modal main container */
+.records-modal {
+    width: min(1450px, 96vw);
+    max-height: 90vh;
+    overflow: hidden;
+    padding: 24px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+    animation: recordsModalPop 0.2s ease;
+}
+
+@keyframes recordsModalPop {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Modal header */
+.records-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.records-modal-header h2 {
+    margin: 0;
+    color: #0b2344;
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.records-modal-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.records-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #0b2344;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.records-modal-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Modal tools */
+.records-modal-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.modal-search {
+    position: relative;
+    width: min(340px, 100%);
+}
+
+.modal-search i {
+    position: absolute;
+    top: 50%;
+    left: 13px;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 12px;
+}
+
+.modal-search input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+    padding: 0 12px 0 36px;
+    outline: none;
+    color: #0f172a;
+    font-size: 12px;
+}
+
+.modal-search input:focus {
+    border-color: #0057f8;
+    box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+/* Mark as Processed */
+.confirm-batch-btn {
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 15px;
+    background: #ffc400;
+    color: #062b4f;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.confirm-batch-btn:hover {
+    background: #eab308;
+    transform: translateY(-1px);
+}
+
+/* Modal table */
+.records-modal-table-wrap {
+    max-height: 60vh;
+    overflow: auto;
+    border: 1px solid #dce5f2;
+    border-radius: 12px;
+}
+
+.records-modal-table {
+    width: 100%;
+    min-width: 1550px;
+    border-collapse: collapse;
+}
+
+.records-modal-table th,
+.records-modal-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #e5eaf2;
+    color: #475569;
+    font-size: 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.records-modal-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f0f5fc;
+    color: #0b2344;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.records-modal-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+    .records-modal {
+        padding: 18px;
+    }
+
+    .records-modal-tools {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .modal-search {
+        width: 100%;
+    }
+
+    .confirm-batch-btn {
+        width: 100%;
+    }
+
+    .uploaded-file-row {
+        align-items: flex-start;
+    }
+}
+/* =========================================================
+   CUSTOM DELETE MODAL - BATCH PAGE ONLY
+========================================================= */
+
+.batch-delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.batch-delete-modal-overlay.show {
+    display: flex;
+}
+
+.batch-delete-modal {
+    width: min(430px, 100%);
+    padding: 28px;
+    border-radius: 18px;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+    animation: batchDeletePop 0.2s ease;
+}
+
+@keyframes batchDeletePop {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.batch-delete-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+}
+
+.batch-delete-modal h2 {
+    margin: 0;
+    color: #0b2344;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.batch-delete-modal p {
+    margin: 12px 0 22px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.batch-delete-modal p strong {
+    color: #0b2344;
+    word-break: break-word;
+}
+
+.batch-delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.batch-delete-cancel-btn,
+.batch-delete-confirm-btn {
+    min-width: 125px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.batch-delete-cancel-btn {
+    border: 1px solid #dce5f2;
+    background: #ffffff;
+    color: #475569;
+}
+
+.batch-delete-cancel-btn:hover {
+    background: #f1f5f9;
+}
+
+.batch-delete-confirm-btn {
+    border: none;
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.batch-delete-confirm-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.batch-table-footer nav svg,
+.batch-table-footer .pagination svg {
+width: 16px !important;
+height: 16px !important;
+min-width: 16px !important;
+min-height: 16px !important;
+max-width: 16px !important;
+max-height: 16px !important;
+display: block !important;
+}
+
+.batch-table-footer nav a,
+.batch-table-footer nav span {
+line-height: 1 !important;
+}
+
+.batch-table-footer nav a[rel="prev"],
+.batch-table-footer nav a[rel="next"] {
+width: 34px !important;
+height: 34px !important;
+padding: 0 !important;
+display: inline-flex !important;
+align-items: center !important;
+justify-content: center !important;
+overflow: hidden !important;
+}
+
+.raw-record-modal {
+    width: min(720px, 96vw);
+}
+
+.raw-record-table-wrap {
+    max-height: 58vh;
+    overflow: auto;
+    border: 1px solid #dce5f2;
+    border-radius: 12px;
+}
+
+.raw-record-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.raw-record-table th,
+.raw-record-table td {
+    padding: 13px 15px;
+    border-bottom: 1px solid #e5eaf2;
+    color: #475569;
+    font-size: 13px;
+    text-align: left;
+}
+
+.raw-record-table th {
+    position: sticky;
+    top: 0;
+    background: #f0f5fc;
+    color: #062b4f;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.raw-record-table td:first-child {
+    width: 35%;
+    color: #062b4f;
+    font-weight: 800;
+}
+
+.raw-record-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.batch-pagination {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.batch-pagination a,
+.batch-pagination span {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #dce5f2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.batch-pagination .page-number.active {
+    border-color: #0057f8;
+    background: #0057f8;
+    color: #ffffff;
+}
+
+.batch-pagination .page-arrow {
+    font-size: 23px;
+    line-height: 1;
+}
+
+.batch-pagination .page-arrow:hover:not(.disabled),
+.batch-pagination .page-number:hover:not(.active) {
+    border-color: #0057f8;
+    background: #f0f6ff;
+    color: #0057f8;
+}
+
+.batch-pagination .disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
