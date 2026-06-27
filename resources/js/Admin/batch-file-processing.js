@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const extension = file.name.split('.').pop().toLowerCase();
 
-        if (extension !== 'csv' && extension !== 'txt') {
-            alert('Please upload only CSV or TXT files.');
+        if (!['csv', 'txt', 'pdf'].includes(extension)) {
+            alert('Please upload only CSV, TXT, or PDF files.');
 
             if (fileInput) {
                 fileInput.value = '';
