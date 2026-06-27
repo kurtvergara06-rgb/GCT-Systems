@@ -52,25 +52,33 @@
         }
 
         $fields = [
-            'Record No.' => $selectedRecord?->record_no,
             'Bus No.' => $selectedRecord?->bus_no,
+            'Record No.' => $selectedRecord?->record_no,
             'Grouping' => $selectedRecord?->grouping,
             'Type' => $selectedRecord?->trip_type,
             'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i A'),
             'Initial Location' => $selectedRecord?->initial_location,
             'End' => $selectedRecord?->ending_at?->format('M d, Y h:i A'),
             'Final Location' => $selectedRecord?->final_location,
-            'Duration' => $selectedRecord?->duration_minutes !== null ? $selectedRecord->duration_minutes . ' mins' : null,
-            'Total Time' => $selectedRecord?->total_minutes !== null ? $selectedRecord->total_minutes . ' mins' : null,
-            'In Motion' => $selectedRecord?->in_motion_minutes !== null ? $selectedRecord->in_motion_minutes . ' mins' : null,
-            'Idling' => $selectedRecord?->idling_minutes !== null ? $selectedRecord->idling_minutes . ' mins' : null,
-            'Mileage' => $selectedRecord?->mileage_km !== null ? $selectedRecord->mileage_km . ' km' : null,
+            'Duration' => $selectedRecord?->duration_minutes !== null
+                ? $selectedRecord->duration_minutes . ' mins'
+                : null,
+            'Total Time' => $selectedRecord?->total_minutes !== null
+                ? $selectedRecord->total_minutes . ' mins'
+                : null,
+            'In Motion' => $selectedRecord?->in_motion_minutes !== null
+                ? $selectedRecord->in_motion_minutes . ' mins'
+                : null,
+            'Idling' => $selectedRecord?->idling_minutes !== null
+                ? $selectedRecord->idling_minutes . ' mins'
+                : null,
+            'Mileage' => $selectedRecord?->mileage_km !== null
+                ? $selectedRecord->mileage_km . ' km'
+                : null,
             'Engine Hours' => $selectedRecord?->engine_hours,
-            'Location' => $selectedRecord?->location,
-            'Coordinates' => $selectedRecord?->coordinates,
-            'Description' => $selectedRecord?->description,
-            'Severity' => $selectedRecord?->severity,
-            'Source Format' => $selectedRecord?->source_format,
+            'Recorded Location' => $selectedRecord?->location,
+            'Recorded Coordinates' => $selectedRecord?->coordinates,
+            'Remarks' => $selectedRecord?->description,
         ];
 
         $rawHeaders = [];
@@ -151,9 +159,7 @@
                         @if(! $isSuccess)
                             <div class="batch-error-tip">
                                 <i class="fa-solid fa-circle-info"></i>
-                                Make sure the uploaded CSV contains a
-                                <strong>Bus No.</strong> or
-                                <strong>Vehicle ID</strong> column.
+                                Make sure the uploaded file contains valid GPS report data.
                             </div>
                         @endif
 
@@ -185,7 +191,7 @@
                                 Upload GPS Files
                             </h2>
 
-                            <p>Upload CSV or TXT reports for extraction and review.</p>
+                            <p>Upload CSV, TXT, or PDF reports for extraction and review.</p>
                         </div>
                     </div>
 
@@ -339,8 +345,8 @@
                                     href="{{ route('batch-file-processing', ['batch_id' => $batch->id]) }}"
                                     class="uploaded-file {{ $selectedBatchId == $batch->id ? 'active-file' : '' }}"
                                 >
-                                    <div class="file-icon csv">
-                                        <i class="fa-solid fa-file-csv"></i>
+                                    <div class="file-icon {{ strtolower($batch->file_type ?? 'csv') }}">
+                                        <i class="fa-solid fa-file"></i>
                                     </div>
 
                                     <div class="file-info">
@@ -506,7 +512,7 @@
                                     type="text"
                                     name="search"
                                     value="{{ request('search') }}"
-                                    placeholder="Search bus, route, or location..."
+                                    placeholder="Search record, group, or location..."
                                 >
                             </div>
                         </form>
@@ -525,17 +531,20 @@
                     <table class="batch-records-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Record No.</th>
                                 <th>Bus No.</th>
+                                <th>Record No.</th>
                                 <th>Grouping</th>
                                 <th>Type</th>
                                 <th>Beginning</th>
+                                <th>Initial Location</th>
                                 <th>End</th>
+                                <th>Final Location</th>
                                 <th>Duration</th>
+                                <th>Total Time</th>
+                                <th>In Motion</th>
+                                <th>Idling</th>
                                 <th>Mileage</th>
-                                <th>Source Format</th>
-                                <th>Severity</th>
+                                <th>Engine Hours</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -543,22 +552,20 @@
                         <tbody>
                             @forelse($records as $record)
                                 <tr>
-                                    <td>{{ ($records->firstItem() ?? 1) + $loop->index }}</td>
-                                    <td>{{ $record->record_no ?? '—' }}</td>
                                     <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
+                                    <td>{{ $record->record_no ?? '—' }}</td>
                                     <td>{{ $record->grouping ?? '—' }}</td>
                                     <td>{{ $record->trip_type ?? '—' }}</td>
                                     <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                                    <td>{{ $record->initial_location ?? '—' }}</td>
                                     <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                                    <td>{{ $record->final_location ?? '—' }}</td>
                                     <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
+                                    <td>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</td>
+                                    <td>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</td>
+                                    <td>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</td>
                                     <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
-                                    <td>{{ $record->source_format ?? '—' }}</td>
-
-                                    <td>
-                                        <span class="severity-{{ strtolower($record->severity ?? 'normal') }}">
-                                            {{ $record->severity ?? 'Normal' }}
-                                        </span>
-                                    </td>
+                                    <td>{{ $record->engine_hours ?? '—' }}</td>
 
                                     <td>
                                         <a
@@ -576,7 +583,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="12" class="empty-users">
+                                    <td colspan="15" class="empty-users">
                                         No trip records found yet.
                                     </td>
                                 </tr>
@@ -661,8 +668,6 @@
                             <table class="records-modal-table">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-
                                         @foreach($rawHeaders as $rawHeader)
                                             <th>
                                                 {{ ucwords(str_replace(['_', '-'], ' ', $rawHeader)) }}
@@ -686,8 +691,6 @@
                                         @endphp
 
                                         <tr data-raw-search="{{ strtolower($rawSearchText) }}">
-                                            <td>{{ $loop->iteration }}</td>
-
                                             @foreach($rawHeaders as $rawHeader)
                                                 @php
                                                     $rawValue = $rawData[$rawHeader] ?? '—';
@@ -765,9 +768,8 @@
                             <table class="records-modal-table">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>Record No.</th>
                                         <th>Bus No.</th>
+                                        <th>Record No.</th>
                                         <th>Grouping</th>
                                         <th>Type</th>
                                         <th>Beginning</th>
@@ -775,16 +777,14 @@
                                         <th>End</th>
                                         <th>Final Location</th>
                                         <th>Duration</th>
-                                        <th>Location</th>
-                                        <th>Coordinates</th>
-                                        <th>Description</th>
-                                        <th>Engine Hours</th>
                                         <th>Total Time</th>
                                         <th>In Motion</th>
                                         <th>Idling</th>
                                         <th>Mileage</th>
-                                        <th>Source Format</th>
-                                        <th>Severity</th>
+                                        <th>Engine Hours</th>
+                                        <th>Recorded Location</th>
+                                        <th>Recorded Coordinates</th>
+                                        <th>Remarks</th>
                                     </tr>
                                 </thead>
 
@@ -792,15 +792,15 @@
                                     @foreach($allSelectedRecords as $record)
                                         <tr
                                             data-search="{{ strtolower(
+                                                ($record->record_no ?? '') . ' ' .
                                                 ($record->bus_no ?? '') . ' ' .
                                                 ($record->grouping ?? '') . ' ' .
                                                 ($record->initial_location ?? '') . ' ' .
                                                 ($record->final_location ?? '')
                                             ) }}"
                                         >
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $record->record_no ?? '—' }}</td>
                                             <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
+                                            <td>{{ $record->record_no ?? '—' }}</td>
                                             <td>{{ $record->grouping ?? '—' }}</td>
                                             <td>{{ $record->trip_type ?? '—' }}</td>
                                             <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
@@ -808,21 +808,14 @@
                                             <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
                                             <td>{{ $record->final_location ?? '—' }}</td>
                                             <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
-                                            <td>{{ $record->location ?? '—' }}</td>
-                                            <td>{{ $record->coordinates ?? '—' }}</td>
-                                            <td>{{ $record->description ?? '—' }}</td>
-                                            <td>{{ $record->engine_hours ?? '—' }}</td>
                                             <td>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</td>
                                             <td>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</td>
                                             <td>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</td>
                                             <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
-                                            <td>{{ $record->source_format ?? '—' }}</td>
-
-                                            <td>
-                                                <span class="severity-{{ strtolower($record->severity ?? 'normal') }}">
-                                                    {{ $record->severity ?? 'Normal' }}
-                                                </span>
-                                            </td>
+                                            <td>{{ $record->engine_hours ?? '—' }}</td>
+                                            <td>{{ $record->location ?? '—' }}</td>
+                                            <td>{{ $record->coordinates ?? '—' }}</td>
+                                            <td>{{ $record->description ?? '—' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
