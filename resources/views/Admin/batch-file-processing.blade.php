@@ -52,26 +52,25 @@
         }
 
         $fields = [
+            'Record No.' => $selectedRecord?->record_no,
             'Bus No.' => $selectedRecord?->bus_no,
             'Grouping' => $selectedRecord?->grouping,
+            'Type' => $selectedRecord?->trip_type,
             'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i A'),
             'Initial Location' => $selectedRecord?->initial_location,
             'End' => $selectedRecord?->ending_at?->format('M d, Y h:i A'),
             'Final Location' => $selectedRecord?->final_location,
+            'Duration' => $selectedRecord?->duration_minutes !== null ? $selectedRecord->duration_minutes . ' mins' : null,
+            'Total Time' => $selectedRecord?->total_minutes !== null ? $selectedRecord->total_minutes . ' mins' : null,
+            'In Motion' => $selectedRecord?->in_motion_minutes !== null ? $selectedRecord->in_motion_minutes . ' mins' : null,
+            'Idling' => $selectedRecord?->idling_minutes !== null ? $selectedRecord->idling_minutes . ' mins' : null,
+            'Mileage' => $selectedRecord?->mileage_km !== null ? $selectedRecord->mileage_km . ' km' : null,
             'Engine Hours' => $selectedRecord?->engine_hours,
-            'Total Time' => $selectedRecord?->total_minutes
-                ? $selectedRecord->total_minutes . ' mins'
-                : null,
-            'In Motion' => $selectedRecord?->in_motion_minutes
-                ? $selectedRecord->in_motion_minutes . ' mins'
-                : null,
-            'Idling' => $selectedRecord?->idling_minutes
-                ? $selectedRecord->idling_minutes . ' mins'
-                : null,
-            'Mileage' => $selectedRecord?->mileage_km
-                ? $selectedRecord->mileage_km . ' km'
-                : null,
+            'Location' => $selectedRecord?->location,
+            'Coordinates' => $selectedRecord?->coordinates,
+            'Description' => $selectedRecord?->description,
             'Severity' => $selectedRecord?->severity,
+            'Source Format' => $selectedRecord?->source_format,
         ];
 
         $rawHeaders = [];
@@ -194,7 +193,7 @@
                         type="file"
                         id="gpsFileInput"
                         name="gps_file"
-                        accept=".csv,.txt"
+                        accept=".csv,.txt,.pdf"
                         hidden
                         required
                     >
@@ -225,7 +224,7 @@
                     <div class="upload-details">
                         <span>
                             <i class="fa-solid fa-file-lines"></i>
-                            CSV and TXT supported
+                            CSV, TXT, and PDF supported
                         </span>
 
                         <span>
@@ -513,7 +512,7 @@
                         </form>
 
                         <a
-                            href="{{ route('batch-file-processing.export', array_filter(request()->only(['batch_id', 'search']))) }}"
+                            href="{{ route('batch-file-processing.export', array_filter(array_merge(request()->only(['batch_id', 'search']), ['selected_record' => request('selected_record')]), fn ($value) => $value !== null && $value !== '')) }}"
                             class="primary-btn export-btn"
                         >
                             <i class="fa-solid fa-file-export"></i>
@@ -527,13 +526,15 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Record No.</th>
                                 <th>Bus No.</th>
                                 <th>Grouping</th>
+                                <th>Type</th>
                                 <th>Beginning</th>
                                 <th>End</th>
-                                <th>In Motion</th>
-                                <th>Idling</th>
+                                <th>Duration</th>
                                 <th>Mileage</th>
+                                <th>Source Format</th>
                                 <th>Severity</th>
                                 <th>Actions</th>
                             </tr>
@@ -543,13 +544,15 @@
                             @forelse($records as $record)
                                 <tr>
                                     <td>{{ ($records->firstItem() ?? 1) + $loop->index }}</td>
-                                    <td><strong>{{ $record->bus_no }}</strong></td>
+                                    <td>{{ $record->record_no ?? '—' }}</td>
+                                    <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
                                     <td>{{ $record->grouping ?? '—' }}</td>
+                                    <td>{{ $record->trip_type ?? '—' }}</td>
                                     <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
                                     <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                                    <td>{{ $record->in_motion_minutes ?? 0 }} mins</td>
-                                    <td>{{ $record->idling_minutes ?? 0 }} mins</td>
-                                    <td>{{ $record->mileage_km ?? 0 }} km</td>
+                                    <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
+                                    <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
+                                    <td>{{ $record->source_format ?? '—' }}</td>
 
                                     <td>
                                         <span class="severity-{{ strtolower($record->severity ?? 'normal') }}">
@@ -573,7 +576,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="empty-users">
+                                    <td colspan="12" class="empty-users">
                                         No trip records found yet.
                                     </td>
                                 </tr>
@@ -594,14 +597,14 @@
                             @if($records->onFirstPage())
                                 <span class="page-arrow disabled">&lsaquo;</span>
                             @else
-                                <a href="{{ $records->previousPageUrl() }}" class="page-arrow">
+                                <a href="{{ $records->previousPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}" class="page-arrow">
                                     &lsaquo;
                                 </a>
                             @endif
 
                             @for($page = 1; $page <= $records->lastPage(); $page++)
                                 <a
-                                    href="{{ $records->url($page) }}"
+                                    href="{{ $records->url($page) }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
                                     class="page-number {{ $records->currentPage() === $page ? 'active' : '' }}"
                                 >
                                     {{ $page }}
@@ -609,7 +612,7 @@
                             @endfor
 
                             @if($records->hasMorePages())
-                                <a href="{{ $records->nextPageUrl() }}" class="page-arrow">
+                                <a href="{{ $records->nextPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}" class="page-arrow">
                                     &rsaquo;
                                 </a>
                             @else
@@ -763,17 +766,24 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>Record No.</th>
                                         <th>Bus No.</th>
                                         <th>Grouping</th>
+                                        <th>Type</th>
                                         <th>Beginning</th>
                                         <th>Initial Location</th>
                                         <th>End</th>
                                         <th>Final Location</th>
+                                        <th>Duration</th>
+                                        <th>Location</th>
+                                        <th>Coordinates</th>
+                                        <th>Description</th>
                                         <th>Engine Hours</th>
                                         <th>Total Time</th>
                                         <th>In Motion</th>
                                         <th>Idling</th>
                                         <th>Mileage</th>
+                                        <th>Source Format</th>
                                         <th>Severity</th>
                                     </tr>
                                 </thead>
@@ -789,17 +799,24 @@
                                             ) }}"
                                         >
                                             <td>{{ $loop->iteration }}</td>
-                                            <td><strong>{{ $record->bus_no }}</strong></td>
+                                            <td>{{ $record->record_no ?? '—' }}</td>
+                                            <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
                                             <td>{{ $record->grouping ?? '—' }}</td>
+                                            <td>{{ $record->trip_type ?? '—' }}</td>
                                             <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
                                             <td>{{ $record->initial_location ?? '—' }}</td>
                                             <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
                                             <td>{{ $record->final_location ?? '—' }}</td>
+                                            <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
+                                            <td>{{ $record->location ?? '—' }}</td>
+                                            <td>{{ $record->coordinates ?? '—' }}</td>
+                                            <td>{{ $record->description ?? '—' }}</td>
                                             <td>{{ $record->engine_hours ?? '—' }}</td>
-                                            <td>{{ $record->total_minutes ?? 0 }} mins</td>
-                                            <td>{{ $record->in_motion_minutes ?? 0 }} mins</td>
-                                            <td>{{ $record->idling_minutes ?? 0 }} mins</td>
-                                            <td>{{ $record->mileage_km ?? 0 }} km</td>
+                                            <td>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</td>
+                                            <td>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</td>
+                                            <td>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</td>
+                                            <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
+                                            <td>{{ $record->source_format ?? '—' }}</td>
 
                                             <td>
                                                 <span class="severity-{{ strtolower($record->severity ?? 'normal') }}">
