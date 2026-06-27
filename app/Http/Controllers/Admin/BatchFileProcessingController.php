@@ -136,9 +136,21 @@ class BatchFileProcessingController extends Controller
                     : null,
             ]);
 
+            $message = "{$result['processed']} valid record(s) saved";
+            if (isset($result['skipped_headers']) && $result['skipped_headers'] > 0) {
+                $message .= ", {$result['skipped_headers']} header row(s) skipped";
+            }
+            if (isset($result['skipped_no_bus_no']) && $result['skipped_no_bus_no'] > 0) {
+                $message .= ", {$result['skipped_no_bus_no']} row(s) skipped (no Bus No.)";
+            }
+            if ($result['failed'] > 0) {
+                $message .= ", {$result['failed']} failed";
+            }
+            $message .= ".";
+
             return redirect()
                 ->route('batch-file-processing', ['batch_id' => $batch->id])
-                ->with('success', "{$result['processed']} GPS trip record(s) uploaded and waiting for review.");
+                ->with('success', $message);
         } catch (\Throwable $exception) {
             $batch->update([
                 'status' => 'Failed',
@@ -345,36 +357,89 @@ class BatchFileProcessingController extends Controller
 
         $payload = $response->json();
 
-        if (empty($payload['success']) || empty($payload['records']) || ! is_array($payload['records'])) {
+        // Validate Python API response
+        if (empty($payload['success']) || !isset($payload['records']) || !is_array($payload['records'])) {
+            \Log::warning('Python API returned empty records', ['payload' => $payload]);
             return [
                 'total' => 0,
                 'processed' => 0,
                 'failed' => 0,
-                'first_error' => null,
+                'skipped_headers' => 0,
+                'skipped_no_bus_no' => 0,
+                'first_error' => 'No records found in PDF',
             ];
         }
 
-        $total = count($payload['records']);
+        $records = $payload['records'];
+        $total = count($records);
         $processed = 0;
         $failed = 0;
+        $skipped_no_bus_no = 0;
         $firstFailureMessage = null;
         $seenSignatures = [];
 
-        DB::transaction(function () use ($batch, $payload, &$processed, &$failed, &$firstFailureMessage, &$seenSignatures) {
-            foreach ($payload['records'] as $item) {
-                try {
-                    $recordPayload = $this->mapUnifiedRecord($this->normalizePdfItem($item), $payload['source_format'] ?? 'GPS Report');
-                    $signature = $this->fingerprintRecord($recordPayload);
+        \Log::info('Processing PDF with ' . $total . ' records from Python API');
 
-                    if (in_array($signature, $seenSignatures, true)) {
-                        throw new \RuntimeException('Duplicate row skipped during batch processing.');
+        DB::transaction(function () use ($batch, $records, &$processed, &$failed, &$skipped_no_bus_no, &$firstFailureMessage, &$seenSignatures) {
+            foreach ($records as $item) {
+                try {
+                    // Python API already validated Bus No., but check anyway
+                    $busNo = $item['bus_no'] ?? null;
+                    if (!$busNo || trim($busNo) === '') {
+                        $skipped_no_bus_no++;
+                        \Log::debug('Skipping record without bus_no');
+                        continue;
                     }
 
-                    $seenSignatures[] = $signature;
-                    $this->saveRecord($batch, $recordPayload, $item);
+                    // Parse dates from Python API format (e.g., "2026-06-25 04:30 AM")
+                    $beginningAt = null;
+                    if (!empty($item['beginning'])) {
+                        try {
+                            $beginningAt = Carbon::createFromFormat('Y-m-d h:i A', $item['beginning']);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to parse beginning date', ['value' => $item['beginning']]);
+                        }
+                    }
+
+                    $endingAt = null;
+                    if (!empty($item['ending'])) {
+                        try {
+                            $endingAt = Carbon::createFromFormat('Y-m-d h:i A', $item['ending']);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to parse ending date', ['value' => $item['ending']]);
+                        }
+                    }
+
+                    // Create GPS record directly from Python API data
+                    GpsTripRecord::create([
+                        'batch_upload_id' => $batch->id,
+                        'bus_no' => $busNo,
+                        'record_no' => $item['record_no'] ?? null,
+                        'grouping' => $item['grouping'] ?? null,
+                        'trip_type' => $item['trip_type'] ?? null,
+                        'beginning_at' => $beginningAt,
+                        'initial_location' => $item['initial_location'] ?? null,
+                        'ending_at' => $endingAt,
+                        'final_location' => $item['final_location'] ?? null,
+                        'duration_minutes' => !empty($item['duration_minutes']) ? (float) $item['duration_minutes'] : null,
+                        'total_minutes' => !empty($item['total_minutes']) ? (float) $item['total_minutes'] : null,
+                        'in_motion_minutes' => !empty($item['in_motion_minutes']) ? (float) $item['in_motion_minutes'] : null,
+                        'idling_minutes' => !empty($item['idling_minutes']) ? (float) $item['idling_minutes'] : null,
+                        'mileage_km' => !empty($item['mileage_km']) ? (float) $item['mileage_km'] : null,
+                        'engine_hours' => !empty($item['engine_hours']) ? (float) $item['engine_hours'] : null,
+                        'location' => $item['location'] ?? null,
+                        'coordinates' => $item['coordinates'] ?? null,
+                        'description' => $item['description'] ?? null,
+                        'source_format' => 'GPS Report',
+                        'severity' => 'Normal',
+                        'raw_data' => $item['raw_data'] ?? $item,
+                    ]);
+
                     $processed++;
+                    \Log::debug('Saved GPS record for bus: ' . $busNo);
                 } catch (\Throwable $exception) {
                     $failed++;
+                    \Log::error('Failed to save GPS record: ' . $exception->getMessage(), ['item' => $item ?? []]);
                     if ($firstFailureMessage === null) {
                         $firstFailureMessage = $exception->getMessage();
                     }
@@ -382,10 +447,19 @@ class BatchFileProcessingController extends Controller
             }
         });
 
+        \Log::info('PDF processing complete', [
+            'total' => $total,
+            'processed' => $processed,
+            'failed' => $failed,
+            'skipped_no_bus_no' => $skipped_no_bus_no,
+        ]);
+
         return [
             'total' => $total,
             'processed' => $processed,
             'failed' => $failed,
+            'skipped_headers' => 0,
+            'skipped_no_bus_no' => $skipped_no_bus_no,
             'first_error' => $firstFailureMessage,
         ];
     }
@@ -419,35 +493,35 @@ class BatchFileProcessingController extends Controller
 
     private function mapUnifiedRecord(array $data, string $sourceFormat): array
     {
-        $beginning = $this->parseDateTime($this->valueFromRow($data, ['beginning', 'beginning at', 'start time', 'start', 'departure']));
-        $ending = $this->parseDateTime($this->valueFromRow($data, ['end', 'ending', 'end time', 'arrival']));
+        $beginning = $this->parseDateTime($this->valueFromRow($data, ['beginning', 'beginning at', 'start time', 'start', 'departure', 'start date']));
+        $ending = $this->parseDateTime($this->valueFromRow($data, ['end', 'ending', 'end time', 'arrival', 'end date']));
 
-        $durationMinutes = $this->durationToMinutes($this->valueFromRow($data, ['duration', 'duration minutes', 'total time', 'total duration', 'trip duration']));
-        $totalMinutes = $this->durationToMinutes($this->valueFromRow($data, ['total minutes', 'total time', 'total duration']));
-        $inMotionMinutes = $this->durationToMinutes($this->valueFromRow($data, ['in motion', 'moving time', 'in motion minutes']));
-        $idlingMinutes = $this->durationToMinutes($this->valueFromRow($data, ['idling', 'idle', 'idle time', 'idle duration']));
+        $durationMinutes = $this->durationToMinutes($this->valueFromRow($data, ['duration', 'duration minutes', 'trip duration']));
+        $totalMinutes = $this->durationToMinutes($this->valueFromRow($data, ['total time', 'total minutes', 'total mins', 'total duration']));
+        $inMotionMinutes = $this->durationToMinutes($this->valueFromRow($data, ['move time', 'moving time', 'in motion', 'in motion minutes', 'moving mins', 'moving minutes']));
+        $idlingMinutes = $this->durationToMinutes($this->valueFromRow($data, ['idling', 'idle', 'idle time', 'idle duration', 'idle mins', 'idle minutes']));
 
-        $busNo = $this->valueFromRow($data, ['bus no', 'bus number', 'bus', 'vehicle id', 'vehicle', 'vehicle number']);
+        $busNo = $this->valueFromRow($data, ['bus no', 'bus number', 'bus', 'vehicle id', 'vehicle', 'vehicle number', 'vehicle no', 'unit no', 'unit number', 'unit', 'fleet no', 'fleet number']);
         $recordNo = $this->valueFromRow($data, ['record no', 'record number', 'no', 'record']);
 
         return [
             'record_no' => $this->cleanValue($recordNo),
             'bus_no' => $this->cleanValue($busNo),
-            'grouping' => $this->cleanValue($this->valueFromRow($data, ['grouping', 'group', 'route', 'route name'])),
+            'grouping' => $this->cleanValue($this->valueFromRow($data, ['grouping', 'groupings', 'group', 'route', 'route name'])),
             'trip_type' => $this->cleanValue($this->valueFromRow($data, ['type', 'trip type', 'trip'])),
             'beginning_at' => $beginning,
-            'initial_location' => $this->cleanValue($this->valueFromRow($data, ['initial location', 'start location', 'origin'])),
+            'initial_location' => $this->cleanValue($this->valueFromRow($data, ['initial location', 'origin', 'from', 'start location'])),
             'ending_at' => $ending,
-            'final_location' => $this->cleanValue($this->valueFromRow($data, ['final location', 'end location', 'destination'])),
+            'final_location' => $this->cleanValue($this->valueFromRow($data, ['final location', 'destination', 'to', 'end location'])),
             'duration_minutes' => $durationMinutes,
             'total_minutes' => $totalMinutes ?? $durationMinutes,
             'in_motion_minutes' => $inMotionMinutes,
             'idling_minutes' => $idlingMinutes,
-            'mileage_km' => $this->numericValue($this->valueFromRow($data, ['mileage', 'distance', 'mileage km'])),
-            'engine_hours' => $this->numericValue($this->valueFromRow($data, ['engine hours', 'engine hour'])),
+            'mileage_km' => $this->numericValue($this->valueFromRow($data, ['mileage', 'mileage km', 'mileage in trips', 'distance', 'km'])),
+            'engine_hours' => $this->numericValue($this->valueFromRow($data, ['engine hours', 'engine hour', 'hrs'])),
             'location' => $this->cleanValue($this->valueFromRow($data, ['location', 'location name', 'site'])),
-            'coordinates' => $this->cleanValue($this->valueFromRow($data, ['coordinates', 'coordinate', 'lat lng', 'gps coordinates'])),
-            'description' => $this->cleanValue($this->valueFromRow($data, ['description', 'remarks', 'comment', 'notes'])),
+            'coordinates' => $this->cleanValue($this->valueFromRow($data, ['coordinates', 'coordinate', 'lat lng', 'gps coordinates', 'gps'])),
+            'description' => $this->cleanValue($this->valueFromRow($data, ['description', 'remarks', 'comments', 'comment', 'notes'])),
             'source_format' => $sourceFormat,
             'severity' => $this->severityFromIdleMinutes($idlingMinutes),
         ];
