@@ -811,3 +811,23 @@ textarea[readonly] {
     justify-content: center;
   }
 }
+
+/* Keep Part Status filter one fixed color */
+.part-status-select,
+.part-status-select.not-requested,
+.part-status-select.submitted,
+.part-status-select.approved,
+.part-status-select.rejected,
+.part-status-select.for-purchase,
+.part-status-select.ordered,
+.part-status-select.for-pick-up,
+.part-status-select.for-delivery,
+.part-status-select.delivered,
+.part-status-select.picked-up,
+.part-status-select.issued,
+.part-status-select.no-parts-needed {
+    background: #ffffff !important;
+    color: #0b2344 !important;
+    border-color: #dce5f2 !important;
+    box-shadow: none !important;
+}

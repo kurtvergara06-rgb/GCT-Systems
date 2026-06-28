@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editModeDescription) {
       editModeDescription.textContent = isReadonly
-        ? 'This completed job order is view only.'
+        ? 'This job order is view only because it is completed or its Purchase Request is already approved or being processed.'
         : 'Review and update the selected job order.';
     }
   }
@@ -274,7 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => {
       const id = button.dataset.id;
       const status = button.dataset.status || 'On Going';
+
       const isCompleted = status === 'Completed';
+      const isViewOnly = button.dataset.viewOnly === '1';
+
+      const shouldBeViewOnly = isCompleted || isViewOnly;
 
       if (editJobForm) {
         editJobForm.action = `/job-orders/${id}`;
@@ -287,8 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editStatus) editStatus.value = status;
       if (editAssignedMechanic) editAssignedMechanic.value = button.dataset.assignedMechanic || '';
 
-      renderEditParts(button.dataset.partNeeded || '', isCompleted);
-      setEditModalReadonly(isCompleted);
+      renderEditParts(
+        button.dataset.partNeeded || '',
+        shouldBeViewOnly
+      );
+
+      setEditModalReadonly(shouldBeViewOnly);
 
       openModal(editJobModal);
     });
