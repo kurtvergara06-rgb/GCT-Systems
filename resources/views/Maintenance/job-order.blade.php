@@ -255,6 +255,21 @@
                     && !$isCompleted
                     && in_array($jobOrder->part_status, [null, 'Not Requested', 'Rejected'], true);
 
+                  $isLockedByPurchaseRequest = in_array($jobOrder->part_status, [
+                    'Approved',
+                    'For Purchase',
+                    'Ordered',
+                    'For Pick-up',
+                    'For Delivery',
+                    'Delivered',
+                    'Picked Up',
+                    'Issued',
+                  ], true);
+
+                  $isViewOnly = $isCompleted || $isLockedByPurchaseRequest;
+
+                  $partStatusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $partStatus));
+
                   $hasActivePr = $hasNeededParts
                     && !$isCompleted
                     && !$canCreatePr
@@ -331,9 +346,9 @@
                     <div class="actions">
 
                       <x-ui.action-buttom-modal
-                        class="{{ $isCompleted ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
-                        title="{{ $isCompleted ? 'View' : 'View / Edit' }}"
-                        icon="{{ $isCompleted ? 'fa-eye' : 'fa-pen-to-square' }}"
+                        class="{{ $isViewOnly ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
+                        title="{{ $isViewOnly ? 'View Only - PR is already approved or being processed' : 'View / Edit' }}"
+                        icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                         data-id="{{ $jobOrder->id }}"
                         data-job-order-no="{{ $jobOrder->job_order_no }}"
                         data-bus-no="{{ $jobOrder->bus_no }}"
@@ -342,7 +357,8 @@
                         data-assigned-mechanic="{{ $jobOrder->assigned_mechanic }}"
                         data-part-needed="{{ $jobOrder->part_needed }}"
                         data-status="{{ $jobOrder->status }}"
-                      />
+                        data-view-only="{{ $isViewOnly ? '1' : '0' }}"
+/>
 
                       @if($canCreatePr)
                         <form
