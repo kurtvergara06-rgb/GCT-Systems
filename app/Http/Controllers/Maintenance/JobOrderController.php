@@ -7,10 +7,13 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
 use App\Services\PartParser;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     private PartParser $partParser;
 
     public function __construct(PartParser $partParser)
@@ -116,13 +119,19 @@ class JobOrderController extends Controller
         ]);
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
+
         $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
-        $partNeeded = count($parts) > 0 ? $this->partParser->formatParts($parts) : null;
+        $partNeeded = count($parts) > 0
+            ? $this->partParser->formatParts($parts)
+            : null;
 
         $status = 'On Hold';
 
         if ($assignedMechanic) {
-            $mechanic = MechanicAttendance::where('mechanic_name', $assignedMechanic)->first();
+            $mechanic = MechanicAttendance::where(
+                'mechanic_name',
+                $assignedMechanic
+            )->first();
 
             if (! $mechanic) {
                 return redirect()
@@ -131,7 +140,10 @@ class JobOrderController extends Controller
                     ->with('error', 'Selected mechanic was not found.');
             }
 
-            $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $assignedMechanic)
+            $hasActiveJobOrder = JobOrder::where(
+                'assigned_mechanic',
+                $assignedMechanic
+            )
                 ->where('status', '!=', 'Completed')
                 ->exists();
 
@@ -155,18 +167,30 @@ class JobOrderController extends Controller
             'start_date' => now(),
             'completion_date' => null,
             'status' => $status,
-            'part_status' => $partNeeded ? 'Not Requested' : 'No Parts Needed',
+            'part_status' => $partNeeded
+                ? 'Not Requested'
+                : 'No Parts Needed',
         ]);
 
         if ($assignedMechanic) {
             $this->setMechanicStatus($assignedMechanic, 'On Duty');
         }
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'created',
+            $jobOrder->id,
+            'A job order was created.'
+        );
+
         return redirect()
             ->back()
-            ->with('success', $jobOrder->status === 'On Hold'
-                ? 'Job order created and placed on hold because no mechanic was assigned.'
-                : 'Job order created successfully.'
+            ->with(
+                'success',
+                $jobOrder->status === 'On Hold'
+                    ? 'Job order created and placed on hold because no mechanic was assigned.'
+                    : 'Job order created successfully.'
             );
     }
 
@@ -195,7 +219,10 @@ class JobOrderController extends Controller
         $newMechanic = $validated['assigned_mechanic'] ?? null;
 
         if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $mechanic = MechanicAttendance::where('mechanic_name', $newMechanic)->first();
+            $mechanic = MechanicAttendance::where(
+                'mechanic_name',
+                $newMechanic
+            )->first();
 
             if (! $mechanic) {
                 return redirect()
@@ -204,7 +231,10 @@ class JobOrderController extends Controller
                     ->with('error', 'Selected mechanic was not found.');
             }
 
-            $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $newMechanic)
+            $hasActiveJobOrder = JobOrder::where(
+                'assigned_mechanic',
+                $newMechanic
+            )
                 ->where('status', '!=', 'Completed')
                 ->where('id', '!=', $jobOrder->id)
                 ->exists();
@@ -218,7 +248,10 @@ class JobOrderController extends Controller
         }
 
         $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
-        $partNeeded = count($parts) > 0 ? $this->partParser->formatParts($parts) : null;
+        $partNeeded = count($parts) > 0
+            ? $this->partParser->formatParts($parts)
+            : null;
+
         $partStatus = $jobOrder->part_status;
 
         if (! $partNeeded) {
@@ -245,6 +278,14 @@ class JobOrderController extends Controller
             'part_needed' => $partNeeded,
             'part_status' => $partStatus,
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'updated',
+            $jobOrder->id,
+            'A job order was updated.'
+        );
 
         if ($oldMechanic && $oldMechanic !== $newMechanic) {
             $this->setMechanicStatus($oldMechanic, 'Present');
@@ -279,7 +320,10 @@ class JobOrderController extends Controller
                 ->with('error', 'This job order already has an active purchase request.');
         }
 
-        $hasActivePr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)
+        $hasActivePr = PurchaseRequest::where(
+            'job_order_no',
+            $jobOrder->job_order_no
+        )
             ->whereNotIn('status', ['Rejected', 'Issued'])
             ->exists();
 
@@ -290,28 +334,18 @@ class JobOrderController extends Controller
         }
 
         $parts = $this->partParser->parsePartText($jobOrder->part_needed);
+
         $parsedParts = [
             'item' => $this->partParser->formatParts($parts),
             'quantity' => $this->partParser->calculateTotalQuantity($parts),
         ];
 
-        PurchaseRequest::create([
+        $purchaseRequest = PurchaseRequest::create([
             'pr_no' => $this->generatePrNo(),
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
-
-            /*
-             * IMPORTANT:
-             * Keep the same format from JO:
-             * Engine Oil - Qty: 2 liter, Oil Filter - Qty: 4 liter
-             */
             'item' => $parsedParts['item'],
-
-            /*
-             * Quantity is still total quantity for summary/table.
-             */
             'quantity' => $parsedParts['quantity'],
-
             'status' => 'Submitted',
             'remarks' => 'Created from Job Order ' . $jobOrder->job_order_no,
             'date_requested' => now(),
@@ -320,6 +354,22 @@ class JobOrderController extends Controller
         $jobOrder->update([
             'part_status' => 'Submitted',
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'created',
+            $purchaseRequest->id,
+            'A purchase request was created from a job order.'
+        );
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'status_updated',
+            $jobOrder->id,
+            'Job order part status was updated to Submitted.'
+        );
 
         return redirect()
             ->back()
@@ -353,6 +403,14 @@ class JobOrderController extends Controller
 
         $this->setMechanicStatus($jobOrder->assigned_mechanic, 'Present');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'status_updated',
+            $jobOrder->id,
+            'A job order was marked as completed.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Job order marked as completed.');
@@ -360,6 +418,7 @@ class JobOrderController extends Controller
 
     public function destroy(JobOrder $jobOrder)
     {
+        $jobOrderId = $jobOrder->id;
         $assignedMechanic = $jobOrder->assigned_mechanic;
 
         $jobOrder->delete();
@@ -367,6 +426,14 @@ class JobOrderController extends Controller
         if ($assignedMechanic) {
             $this->setMechanicStatus($assignedMechanic, 'Present');
         }
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'deleted',
+            $jobOrderId,
+            'A job order was deleted.'
+        );
 
         return redirect()
             ->back()
@@ -398,7 +465,11 @@ class JobOrderController extends Controller
     {
         $year = now()->format('Y');
 
-        $lastJobOrder = JobOrder::where('job_order_no', 'like', "JO-{$year}-%")
+        $lastJobOrder = JobOrder::where(
+            'job_order_no',
+            'like',
+            "JO-{$year}-%"
+        )
             ->orderByDesc('id')
             ->first();
 
@@ -406,14 +477,30 @@ class JobOrderController extends Controller
             return "JO-{$year}-0001";
         }
 
-        preg_match('/JO-' . $year . '-(\d+)/', $lastJobOrder->job_order_no, $matches);
+        preg_match(
+            '/JO-' . $year . '-(\d+)/',
+            $lastJobOrder->job_order_no,
+            $matches
+        );
 
         $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
-        $newJobOrderNo = 'JO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        $newJobOrderNo = 'JO-' . $year . '-' . str_pad(
+            $nextNumber,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
 
         while (JobOrder::where('job_order_no', $newJobOrderNo)->exists()) {
             $nextNumber++;
-            $newJobOrderNo = 'JO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            $newJobOrderNo = 'JO-' . $year . '-' . str_pad(
+                $nextNumber,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
         }
 
         return $newJobOrderNo;
@@ -423,7 +510,11 @@ class JobOrderController extends Controller
     {
         $year = now()->format('Y');
 
-        $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
+        $lastPr = PurchaseRequest::where(
+            'pr_no',
+            'like',
+            "PR-{$year}-%"
+        )
             ->orderByDesc('id')
             ->first();
 
@@ -431,18 +522,32 @@ class JobOrderController extends Controller
             return "PR-{$year}-0001";
         }
 
-        preg_match('/PR-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
+        preg_match(
+            '/PR-' . $year . '-(\d+)/',
+            $lastPr->pr_no,
+            $matches
+        );
 
         $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
-        $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        $newPrNo = 'PR-' . $year . '-' . str_pad(
+            $nextNumber,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
 
         while (PurchaseRequest::where('pr_no', $newPrNo)->exists()) {
             $nextNumber++;
-            $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            $newPrNo = 'PR-' . $year . '-' . str_pad(
+                $nextNumber,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
         }
 
         return $newPrNo;
     }
-
-
 }

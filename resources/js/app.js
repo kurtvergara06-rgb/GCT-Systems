@@ -1,13 +1,9 @@
-import '../css/Login_Register/login.css';
-import './Login_Register/login.js';
+import './echo';
 
-
-import '../css/Login_Register/register.css';
-import './Login_Register/register.js';
-
-import '../css/Maintenance/dashboard.css';
-import './Maintenance/dashboard.js';
+import '../css/Login/login.css';
+import './Login/login.js';
 
 import '../css/Maintenance/job-order.css';
 import './Maintenance/job-order.js';
 
+import './Admin/batch-file-processing.js';

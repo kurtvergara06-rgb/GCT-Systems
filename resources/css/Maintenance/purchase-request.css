@@ -626,6 +626,27 @@ tbody tr:last-child td {
   background: #fecaca;
 }
 
+.add-part-btn {
+  height: 42px;
+  min-width: 144px;
+  border: 1px solid #d8e2f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--pr-navy);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.add-part-btn:hover {
+  background: #f1f5f9;
+}
+
 .pr-parts-container.view-only .remove-part-btn {
   display: none;
 }

@@ -267,6 +267,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const openPrModal = document.getElementById('openPrModal');
   const closePrModal = document.getElementById('closePrModal');
   const cancelPrModal = document.getElementById('cancelPrModal');
+  const addNewPrPartBtn = document.getElementById('addNewPrPartBtn');
+  const addEditPrPartBtn = document.getElementById('addEditPrPartBtn');
 
   if (openPrModal && prModal) {
     openPrModal.addEventListener('click', function () {
@@ -289,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const jobOrderSelect = document.getElementById('jobOrderSelect');
   const busNoInput = document.getElementById('busNoInput');
   const newPrPartsContainer = document.getElementById('newPrPartsContainer');
+  const editPrPartsContainer = document.getElementById('editPrPartsContainer');
 
   if (newPrPartsContainer) {
     const initialParts = newPrPartsContainer.dataset.initialParts || '';
@@ -316,6 +319,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  if (addNewPrPartBtn && newPrPartsContainer) {
+    addNewPrPartBtn.addEventListener('click', function () {
+      const index = newPrPartsContainer.querySelectorAll('.pr-part-row').length;
+      const row = createPartRow(
+        { name: '', quantity: '1', unit: '' },
+        index,
+        'parts',
+        false,
+        newPrPartsContainer
+      );
+
+      newPrPartsContainer.appendChild(row);
+      refreshPartIndexes(newPrPartsContainer, 'parts');
+    });
+  }
+
   const editPrModal = document.getElementById('editPrModal');
   const editPrForm = document.getElementById('editPrForm');
   const closeEditPrModal = document.getElementById('closeEditPrModal');
@@ -331,6 +350,22 @@ document.addEventListener('DOMContentLoaded', function () {
   const rejectPrForm = document.getElementById('rejectPrForm');
   const approvePrBtn = document.getElementById('approvePrBtn');
   const rejectPrBtn = document.getElementById('rejectPrBtn');
+
+  if (addEditPrPartBtn && editPrPartsContainer) {
+    addEditPrPartBtn.addEventListener('click', function () {
+      const index = editPrPartsContainer.querySelectorAll('.pr-part-row').length;
+      const row = createPartRow(
+        { name: '', quantity: '1', unit: '' },
+        index,
+        'parts',
+        false,
+        editPrPartsContainer
+      );
+
+      editPrPartsContainer.appendChild(row);
+      refreshPartIndexes(editPrPartsContainer, 'parts');
+    });
+  }
 
   if (approvePrBtn && approvePrForm) {
     approvePrBtn.addEventListener('click', function () {
@@ -381,6 +416,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (prApprovalActions) {
       prApprovalActions.style.display =
         !isView && isSubmitted && canApprove ? 'flex' : 'none';
+    }
+
+    if (addEditPrPartBtn) {
+      addEditPrPartBtn.style.display = isView ? 'none' : 'inline-flex';
     }
 
     const remarks = document.getElementById('edit_remarks');

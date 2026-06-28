@@ -805,3 +805,13 @@
     grid-template-columns: 1fr 90px 90px;
   }
 }
+
+.disabled-action-btn {
+    opacity: 0.42;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(1);
+    background: #edf1f7 !important;
+    color: #8b98aa !important;
+    box-shadow: none !important;
+}

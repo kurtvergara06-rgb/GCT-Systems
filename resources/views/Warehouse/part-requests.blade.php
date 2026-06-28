@@ -88,8 +88,11 @@
           </div>
         </div>
 
-        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
-
+        <form
+          action="{{ route('part-requests') }}"
+          method="GET"
+          class="toolbar inventory-toolbar warehouse-part-toolbar"
+        >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
 
@@ -121,7 +124,6 @@
               @endforeach
             </select>
           </div>
-
         </form>
 
         <div class="table-wrap">
@@ -142,27 +144,33 @@
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
-                  $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $status));
+                  $status = $partRequest->purchase_progress_status
+                    ?? $partRequest->status
+                    ?? 'Approved';
 
                   $itemName = $partRequest->first_item_display ?? '—';
                   $quantity = $partRequest->first_quantity_display ?? '0';
                   $onHand = $partRequest->first_on_hand_display ?? '0';
 
-                  $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
+                  $inventoryStatus = $partRequest->first_inventory_status
+                    ?? $partRequest->inventory_label
+                    ?? 'Not Available';
 
-                  $inventoryClass = match ($inventoryStatus) {
-                      'Available' => 'available',
-                      'Not Fully Available' => 'not-fully-available',
-                      default => 'not-available',
-                  };
+                  $onHandClass = $inventoryStatus === 'Available'
+                    ? 'enough'
+                    : 'low';
 
-                  $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
+                  $rawCanIssue = $partRequest->can_issue ?? false;
 
-                  $canIssue = $partRequest->can_issue ?? false;
+                  $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
 
-                  $needsPurchase = ($partRequest->needs_purchase ?? false)
-                    && ! ($partRequest->missing_pr_already_created ?? false);
+                  $canSendToPurchase = ($partRequest->needs_purchase ?? false)
+                    && !$missingPrAlreadyCreated
+                    && $status === 'Approved';
+
+                  $canIssue = $rawCanIssue
+                    && $inventoryStatus === 'Available'
+                    && in_array($status, ['Approved', 'Delivered'], true);
                 @endphp
 
                 <tr>
@@ -185,14 +193,14 @@
                   </td>
 
                   <td class="status-col">
-                    <x-ui.status-badge 
+                    <x-ui.status-badge
                       :status="$inventoryStatus"
                       type="inventory"
                     />
                   </td>
 
                   <td class="status-col">
-                    <x-ui.status-badge 
+                    <x-ui.status-badge
                       :status="$status"
                       type="purchase"
                     />
@@ -205,6 +213,7 @@
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
 
+                      {{-- VIEW BUTTON: ALWAYS ACTIVE --}}
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
@@ -224,7 +233,8 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      @if($needsPurchase)
+                      {{-- SEND TO PURCHASE BUTTON --}}
+                      @if($canSendToPurchase)
                         <form
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
                           method="POST"
@@ -235,13 +245,29 @@
                           <button
                             type="submit"
                             class="send-purchase-btn icon-only-btn"
-                            title="Send to Purchase"
+                            title="Send Missing Parts to Purchase"
                           >
                             <i class="fa-solid fa-cart-shopping"></i>
                           </button>
                         </form>
+                      @else
+                        <button
+                          type="button"
+                          class="send-purchase-btn icon-only-btn disabled-action-btn"
+                          title="{{
+                            $status === 'For Purchase'
+                              ? 'This request was already sent to Purchase'
+                              : ($missingPrAlreadyCreated
+                                ? 'Missing parts request was already sent to Purchase'
+                                : 'All parts are available or request is already processed')
+                          }}"
+                          disabled
+                        >
+                          <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
                       @endif
 
+                      {{-- ISSUE PARTS BUTTON --}}
                       @if($canIssue)
                         <form
                           action="{{ route('part-requests.issue', $partRequest->id) }}"
@@ -258,6 +284,21 @@
                             <i class="fa-solid fa-box-open"></i>
                           </button>
                         </form>
+                      @else
+                        <button
+                          type="button"
+                          class="issue-part-btn icon-only-btn disabled-action-btn"
+                          title="{{
+                            $inventoryStatus !== 'Available'
+                              ? 'Parts cannot be issued because inventory is not available'
+                              : ($status === 'For Purchase'
+                                ? 'Parts cannot be issued while this request is For Purchase'
+                                : 'Parts cannot be issued until the request is delivered')
+                          }}"
+                          disabled
+                        >
+                          <i class="fa-solid fa-box-open"></i>
+                        </button>
                       @endif
 
                     </div>
@@ -325,7 +366,7 @@
                   </td>
 
                   <td class="status-col">
-                    <x-ui.status-badge 
+                    <x-ui.status-badge
                       status="Issued"
                       type="purchase"
                     />
@@ -337,6 +378,7 @@
 
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
+
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
@@ -355,6 +397,25 @@
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
+
+                      <button
+                        type="button"
+                        class="send-purchase-btn icon-only-btn disabled-action-btn"
+                        title="Request was already issued"
+                        disabled
+                      >
+                        <i class="fa-solid fa-cart-shopping"></i>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="issue-part-btn icon-only-btn disabled-action-btn"
+                        title="Parts were already issued"
+                        disabled
+                      >
+                        <i class="fa-solid fa-box-open"></i>
+                      </button>
+
                     </div>
                   </td>
                 </tr>
