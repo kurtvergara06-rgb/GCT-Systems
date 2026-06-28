@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeModal(modal) {
     if (modal) {
       modal.classList.remove('show');
+      modal.classList.remove('active');
+      modal.style.display = '';
     }
   }
 
@@ -30,7 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let html = '<option value="">Unit</option>';
 
     units.forEach((unit) => {
-      html += `<option value="${unit}" ${selectedUnit === unit ? 'selected' : ''}>${unit}</option>`;
+      html += `
+        <option value="${unit}" ${selectedUnit === unit ? 'selected' : ''}>
+          ${unit}
+        </option>
+      `;
     });
 
     return html;
@@ -45,7 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function refreshPartIndexes(wrapper) {
-    if (!wrapper) return;
+    if (!wrapper) {
+      return;
+    }
 
     wrapper.querySelectorAll('.part-needed-row').forEach((row, index) => {
       const nameInput = row.querySelector('input[name*="[name]"]');
@@ -68,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createPartRow(index, part = {}, isReadonly = false) {
     const row = document.createElement('div');
+
     row.className = 'part-needed-row';
 
     row.innerHTML = `
@@ -92,7 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ${unitOptions(part.unit || '')}
       </select>
 
-      <button type="button" class="remove-part-btn" ${isReadonly ? 'disabled' : ''}>
+      <button
+        type="button"
+        class="remove-part-btn"
+        ${isReadonly ? 'disabled' : ''}
+      >
         <i class="fa-solid fa-xmark"></i>
       </button>
     `;
@@ -100,51 +113,27 @@ document.addEventListener('DOMContentLoaded', () => {
     return row;
   }
 
-  document.querySelectorAll('.close-feedback-modal, .feedback-ok-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay, .delete-modal-overlay, .modal-overlay');
-
-      if (modal) {
-        modal.classList.remove('show');
-      }
-    });
-  });
-
-  const jobModal = document.getElementById('jobModal');
-  const openJobModal = document.getElementById('openJobModal');
-  const closeJobModal = document.getElementById('closeJobModal');
-  const cancelJobModal = document.getElementById('cancelJobModal');
-
-  if (openJobModal) {
-    openJobModal.addEventListener('click', () => openModal(jobModal));
-  }
-
-  if (closeJobModal) {
-    closeJobModal.addEventListener('click', () => closeModal(jobModal));
-  }
-
-  if (cancelJobModal) {
-    cancelJobModal.addEventListener('click', () => closeModal(jobModal));
-  }
-
   function setupPartsRepeater(wrapperId, addButtonId) {
     const wrapper = document.getElementById(wrapperId);
     const addButton = document.getElementById(addButtonId);
 
-    if (!wrapper || !addButton) return;
+    if (!wrapper || !addButton) {
+      return;
+    }
 
     addButton.addEventListener('click', () => {
-      const partIndex = wrapper.querySelectorAll('.part-needed-row').length;
-      const row = createPartRow(partIndex);
+      const index = wrapper.querySelectorAll('.part-needed-row').length;
 
-      wrapper.appendChild(row);
+      wrapper.appendChild(createPartRow(index));
       refreshPartIndexes(wrapper);
     });
 
     wrapper.addEventListener('click', (event) => {
       const removeButton = event.target.closest('.remove-part-btn');
 
-      if (!removeButton) return;
+      if (!removeButton) {
+        return;
+      }
 
       const row = removeButton.closest('.part-needed-row');
 
@@ -157,14 +146,33 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshPartIndexes(wrapper);
   }
 
+  const jobModal = document.getElementById('jobModal');
+  const openJobModal = document.getElementById('openJobModal');
+  const closeJobModal = document.getElementById('closeJobModal');
+  const cancelJobModal = document.getElementById('cancelJobModal');
+
+  if (openJobModal) {
+    openJobModal.addEventListener('click', () => {
+      openModal(jobModal);
+    });
+  }
+
+  if (closeJobModal) {
+    closeJobModal.addEventListener('click', () => {
+      closeModal(jobModal);
+    });
+  }
+
+  if (cancelJobModal) {
+    cancelJobModal.addEventListener('click', () => {
+      closeModal(jobModal);
+    });
+  }
+
   setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
 
   const editJobModal = document.getElementById('editJobModal');
   const editJobForm = document.getElementById('editJobForm');
-
-  const closeEditJobModal = document.getElementById('closeEditJobModal');
-  const cancelEditJobModal = document.getElementById('cancelEditJobModal');
-  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
 
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
@@ -177,28 +185,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const editJobMainActions = document.getElementById('editJobMainActions');
   const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
   const editAddPartBtn = document.getElementById('editAddPartBtn');
+
+  const closeEditJobModal = document.getElementById('closeEditJobModal');
+  const cancelEditJobModal = document.getElementById('cancelEditJobModal');
+  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
+
   const editModalSubtitle = document.getElementById('editModalSubtitle');
   const editModeDescription = document.getElementById('editModeDescription');
 
   function setEditModalReadonly(isReadonly) {
-    const fields = [
+    [
       editBusNo,
       editProblemIssue,
       editMaintenanceType,
       editStatus,
       editAssignedMechanic,
-    ];
-
-    fields.forEach((field) => {
+    ].forEach((field) => {
       if (field) {
         field.disabled = isReadonly;
       }
     });
 
     if (editPartsNeededWrapper) {
-      editPartsNeededWrapper.querySelectorAll('input, select, button').forEach((element) => {
-        element.disabled = isReadonly;
-      });
+      editPartsNeededWrapper
+        .querySelectorAll('input, select, button')
+        .forEach((field) => {
+          field.disabled = isReadonly;
+        });
     }
 
     if (editAddPartBtn) {
@@ -221,75 +234,107 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editModeDescription) {
       editModeDescription.textContent = isReadonly
-        ? 'This job order is view only because it is completed or its Purchase Request is already approved or being processed.'
+        ? 'This Job Order is view-only because it is completed or its Purchase Request is already being processed.'
         : 'Review and update the selected job order.';
     }
   }
 
   function parseParts(partNeeded) {
-    if (!partNeeded) return [];
+    if (!partNeeded) {
+      return [];
+    }
 
-    return partNeeded.split(',').map((part) => {
-      const cleanPart = part.trim();
+    return String(partNeeded)
+      .split(',')
+      .map((part) => {
+        const cleanPart = part.trim();
 
-      if (cleanPart.includes(' - Qty:')) {
-        const pieces = cleanPart.split(' - Qty:');
-        const name = pieces[0] ? pieces[0].trim() : '';
-        const quantityWithUnit = pieces[1] ? pieces[1].trim() : '';
+        if (!cleanPart) {
+          return null;
+        }
 
-        const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
+        if (cleanPart.includes(' - Qty:')) {
+          const pieces = cleanPart.split(' - Qty:');
+          const name = pieces[0]?.trim() || '';
+          const quantityWithUnit = pieces[1]?.trim() || '';
+          const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
+
+          return {
+            name,
+            quantity: match ? match[1] : '',
+            unit: match && match[2] ? match[2].trim() : '',
+          };
+        }
 
         return {
-          name: name,
-          quantity: match ? match[1] : quantityWithUnit,
-          unit: match && match[2] ? match[2].trim() : '',
+          name: cleanPart,
+          quantity: '',
+          unit: '',
         };
-      }
-
-      return {
-        name: cleanPart,
-        quantity: '',
-        unit: '',
-      };
-    });
+      })
+      .filter(Boolean);
   }
 
   function renderEditParts(partNeeded, isReadonly) {
-    if (!editPartsNeededWrapper) return;
+    if (!editPartsNeededWrapper) {
+      return;
+    }
 
     const parts = parseParts(partNeeded);
-    const rows = parts.length > 0 ? parts : [{ name: '', quantity: '', unit: '' }];
+
+    const rows = parts.length
+      ? parts
+      : [{ name: '', quantity: '', unit: '' }];
 
     editPartsNeededWrapper.innerHTML = '';
 
     rows.forEach((part, index) => {
-      const row = createPartRow(index, part, isReadonly);
-      editPartsNeededWrapper.appendChild(row);
+      editPartsNeededWrapper.appendChild(
+        createPartRow(index, part, isReadonly)
+      );
     });
 
     refreshPartIndexes(editPartsNeededWrapper);
   }
 
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+
       const id = button.dataset.id;
       const status = button.dataset.status || 'On Going';
 
       const isCompleted = status === 'Completed';
       const isViewOnly = button.dataset.viewOnly === '1';
-
       const shouldBeViewOnly = isCompleted || isViewOnly;
 
       if (editJobForm) {
         editJobForm.action = `/job-orders/${id}`;
       }
 
-      if (editJobOrderNo) editJobOrderNo.value = button.dataset.jobOrderNo || '';
-      if (editBusNo) editBusNo.value = button.dataset.busNo || '';
-      if (editProblemIssue) editProblemIssue.value = button.dataset.problemIssue || '';
-      if (editMaintenanceType) editMaintenanceType.value = button.dataset.maintenanceType || '';
-      if (editStatus) editStatus.value = status;
-      if (editAssignedMechanic) editAssignedMechanic.value = button.dataset.assignedMechanic || '';
+      if (editJobOrderNo) {
+        editJobOrderNo.value = button.dataset.jobOrderNo || '';
+      }
+
+      if (editBusNo) {
+        editBusNo.value = button.dataset.busNo || '';
+      }
+
+      if (editProblemIssue) {
+        editProblemIssue.value = button.dataset.problemIssue || '';
+      }
+
+      if (editMaintenanceType) {
+        editMaintenanceType.value = button.dataset.maintenanceType || '';
+      }
+
+      if (editStatus) {
+        editStatus.value = status;
+      }
+
+      if (editAssignedMechanic) {
+        editAssignedMechanic.value = button.dataset.assignedMechanic || '';
+      }
 
       renderEditParts(
         button.dataset.partNeeded || '',
@@ -297,24 +342,26 @@ document.addEventListener('DOMContentLoaded', () => {
       );
 
       setEditModalReadonly(shouldBeViewOnly);
-
       openModal(editJobModal);
     });
   });
 
   if (editAddPartBtn && editPartsNeededWrapper) {
     editAddPartBtn.addEventListener('click', () => {
-      const editPartIndex = editPartsNeededWrapper.querySelectorAll('.part-needed-row').length;
-      const row = createPartRow(editPartIndex);
+      const index = editPartsNeededWrapper.querySelectorAll(
+        '.part-needed-row'
+      ).length;
 
-      editPartsNeededWrapper.appendChild(row);
+      editPartsNeededWrapper.appendChild(createPartRow(index));
       refreshPartIndexes(editPartsNeededWrapper);
     });
 
     editPartsNeededWrapper.addEventListener('click', (event) => {
       const removeButton = event.target.closest('.remove-part-btn');
 
-      if (!removeButton) return;
+      if (!removeButton) {
+        return;
+      }
 
       const row = removeButton.closest('.part-needed-row');
 
@@ -326,15 +373,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (closeEditJobModal) {
-    closeEditJobModal.addEventListener('click', () => closeModal(editJobModal));
+    closeEditJobModal.addEventListener('click', () => {
+      closeModal(editJobModal);
+    });
   }
 
   if (cancelEditJobModal) {
-    cancelEditJobModal.addEventListener('click', () => closeModal(editJobModal));
+    cancelEditJobModal.addEventListener('click', () => {
+      closeModal(editJobModal);
+    });
   }
 
   if (closeViewOnlyJob) {
-    closeViewOnlyJob.addEventListener('click', () => closeModal(editJobModal));
+    closeViewOnlyJob.addEventListener('click', () => {
+      closeModal(editJobModal);
+    });
   }
 
   const deleteJobModal = document.getElementById('deleteJobModal');
@@ -345,7 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedDeleteForm = null;
 
   document.querySelectorAll('.open-delete-modal').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
       const id = button.dataset.id;
       const joNo = button.dataset.joNo;
 
@@ -411,29 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((modal) => {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        modal.classList.remove('show');
-      }
-    });
-  });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
   const partStatusFilter = document.getElementById('partStatusFilter');
 
-  function slugStatus(value) {
-    return String(value || '')
-      .toLowerCase()
-      .replace(/\//g, '-')
-      .replace(/\s+/g, '-');
-  }
-
-  function updatePartStatusFilterColor() {
-    if (!partStatusFilter) return;
-
-    partStatusFilter.classList.remove(
+  if (partStatusFilter) {
+    const classes = [
       'not-requested',
       'submitted',
       'approved',
@@ -445,105 +482,131 @@ document.addEventListener('DOMContentLoaded', function () {
       'delivered',
       'picked-up',
       'issued',
-      'no-parts-needed'
-    );
+      'no-parts-needed',
+    ];
 
-    const value = partStatusFilter.value;
+    function slugStatus(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/\//g, '-')
+        .replace(/\s+/g, '-');
+    }
 
-    if (!value || value === 'All Part Statuses') return;
+    function updatePartStatusFilterColor() {
+      partStatusFilter.classList.remove(...classes);
 
-    partStatusFilter.classList.add(slugStatus(value));
-  }
+      const value = partStatusFilter.value;
 
-  if (partStatusFilter) {
+      if (value && value !== 'All Part Statuses') {
+        partStatusFilter.classList.add(slugStatus(value));
+      }
+    }
+
     updatePartStatusFilterColor();
 
-    partStatusFilter.addEventListener('change', function () {
+    partStatusFilter.addEventListener('change', () => {
       updatePartStatusFilterColor();
     });
   }
+
+  document.querySelectorAll(
+    '.success-modal-overlay button, .success-modal-overlay .feedback-ok-btn, .success-modal-overlay .close-feedback-modal'
+  ).forEach((button) => {
+    button.addEventListener('click', () => {
+      const modal = button.closest('.success-modal-overlay');
+
+      if (modal) {
+        closeModal(modal);
+      }
+    });
+  });
+
+  document
+    .querySelectorAll(
+      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+    )
+    .forEach((modal) => {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal(modal);
+        }
+      });
+    });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    async function refreshAvailableMechanicsDropdown() {
-        const jobModal = document.getElementById('jobModal');
+  async function refreshAvailableMechanicsDropdown() {
+    const jobModal = document.getElementById('jobModal');
 
-        if (!jobModal) {
-            return;
-        }
-
-        const mechanicSelect = jobModal.querySelector(
-            'select[name="assigned_mechanic"]'
-        );
-
-        if (!mechanicSelect) {
-            return;
-        }
-
-        const selectedMechanic = mechanicSelect.value;
-
-        try {
-            const response = await fetch(
-                '/job-orders/available-mechanics',
-                {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Unable to load available mechanics.');
-            }
-
-            const mechanics = await response.json();
-
-            mechanicSelect.innerHTML = '';
-
-            const defaultOption = document.createElement('option');
-
-            defaultOption.value = '';
-            defaultOption.textContent =
-                mechanics.length > 0
-                    ? 'Select Available Mechanic'
-                    : 'No available mechanic - JO will be On Hold';
-
-            mechanicSelect.appendChild(defaultOption);
-
-            mechanics.forEach((mechanic) => {
-                const option = document.createElement('option');
-
-                option.value = mechanic.mechanic_name;
-                option.textContent = mechanic.mechanic_name;
-
-                if (mechanic.mechanic_name === selectedMechanic) {
-                    option.selected = true;
-                }
-
-                mechanicSelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error(
-                'Unable to update available mechanic dropdown:',
-                error
-            );
-        }
+    if (!jobModal) {
+      return;
     }
 
-    window.addEventListener('system-data-updated', (event) => {
-        const payload = event.detail;
+    const mechanicSelect = jobModal.querySelector(
+      'select[name="assigned_mechanic"]'
+    );
 
-        const isMechanicAttendanceUpdate =
-            payload &&
-            payload.module === 'Operation' &&
-            payload.entity === 'Attendance';
+    if (!mechanicSelect) {
+      return;
+    }
 
-        if (!isMechanicAttendanceUpdate) {
-            return;
+    const selectedMechanic = mechanicSelect.value;
+
+    try {
+      const response = await fetch('/job-orders/available-mechanics', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to load available mechanics.');
+      }
+
+      const mechanics = await response.json();
+
+      mechanicSelect.innerHTML = '';
+
+      const defaultOption = document.createElement('option');
+
+      defaultOption.value = '';
+      defaultOption.textContent = mechanics.length
+        ? 'Select Available Mechanic'
+        : 'No available mechanic - JO will be On Hold';
+
+      mechanicSelect.appendChild(defaultOption);
+
+      mechanics.forEach((mechanic) => {
+        const option = document.createElement('option');
+
+        option.value = mechanic.mechanic_name;
+        option.textContent = mechanic.mechanic_name;
+
+        if (mechanic.mechanic_name === selectedMechanic) {
+          option.selected = true;
         }
 
-        refreshAvailableMechanicsDropdown();
-    });
+        mechanicSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error(
+        'Unable to update available mechanic dropdown:',
+        error
+      );
+    }
+  }
+
+  window.addEventListener('system-data-updated', (event) => {
+    const payload = event.detail;
+
+    if (
+      payload &&
+      payload.module === 'Operation' &&
+      payload.entity === 'Attendance'
+    ) {
+      refreshAvailableMechanicsDropdown();
+    }
+  });
 });

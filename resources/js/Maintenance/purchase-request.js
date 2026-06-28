@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeModal(modal) {
     if (modal) {
       modal.classList.remove('show');
+      modal.classList.remove('active');
       modal.style.display = '';
     }
   }
@@ -68,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const pieces = cleanPart.split(' - Qty:');
           const name = pieces[0]?.trim() || '';
           const quantityWithUnit = pieces[1]?.trim() || '';
-
           const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
 
           return {
@@ -534,18 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document
-    .querySelectorAll(
-      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
-    )
-    .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
-        }
-      });
-    });
-
   const prStatusFilter = document.getElementById('prStatusFilter');
 
   if (prStatusFilter) {
@@ -572,4 +560,28 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePrStatusFilterColor();
     });
   }
+
+  document.querySelectorAll(
+    '.success-modal-overlay button, .success-modal-overlay .feedback-ok-btn, .success-modal-overlay .close-feedback-modal'
+  ).forEach((button) => {
+    button.addEventListener('click', () => {
+      const modal = button.closest('.success-modal-overlay');
+
+      if (modal) {
+        closeModal(modal);
+      }
+    });
+  });
+
+  document
+    .querySelectorAll(
+      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+    )
+    .forEach((modal) => {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal(modal);
+        }
+      });
+    });
 });

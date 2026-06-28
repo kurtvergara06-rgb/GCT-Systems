@@ -111,3 +111,56 @@
     grid-template-columns:1fr;
   }
 }
+
+/* =========================================================
+   STATUS BADGES - FORCE COLORS
+========================================================= */
+.attendance-table .badge,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  border: none;
+  white-space: nowrap;
+}
+
+/* Present */
+.attendance-table .badge.present,
+.badge.present {
+  background: #dcfce7 !important;
+  color: #16a34a !important;
+}
+
+/* Late */
+.attendance-table .badge.late,
+.badge.late {
+  background: #fef3c7 !important;
+  color: #d97706 !important;
+}
+
+/* On Duty */
+.attendance-table .badge.duty,
+.badge.duty {
+  background: #dbeafe !important;
+  color: #2563eb !important;
+}
+
+/* Absent */
+.attendance-table .badge.absent,
+.badge.absent {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+/* On Leave */
+.attendance-table .badge.leave,
+.badge.leave {
+  background: #ede9fe !important;
+  color: #7c3aed !important;
+}
