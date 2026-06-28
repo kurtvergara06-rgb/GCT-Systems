@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\BatchUpload;
 use App\Models\Admin\GpsTripRecord;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BatchFileProcessingController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
     public function index(Request $request)
     {
         $batches = BatchUpload::query()
@@ -136,6 +138,14 @@ class BatchFileProcessingController extends Controller
                     : null,
             ]);
 
+            $this->broadcastSystemDataUpdated(
+                'Admin',
+                'BatchUpload',
+                'created',
+                $batch->id,
+                'A GPS batch file was uploaded and processed.'
+            );
+
             $message = "{$result['processed']} valid record(s) saved";
             if (isset($result['skipped_headers']) && $result['skipped_headers'] > 0) {
                 $message .= ", {$result['skipped_headers']} header row(s) skipped";
@@ -169,6 +179,14 @@ class BatchFileProcessingController extends Controller
 
         $batchUpload->update(['status' => 'Processed']);
 
+        $this->broadcastSystemDataUpdated(
+            'Admin',
+            'BatchUpload',
+            'updated',
+            $batchUpload->id,
+            'A GPS batch upload was marked as Processed.'
+        );
+
         return redirect()->route('batch-file-processing', ['batch_id' => $batchUpload->id])->with('success', 'Batch data was reviewed and marked as Processed.');
     }
 
@@ -176,6 +194,14 @@ class BatchFileProcessingController extends Controller
     {
         Storage::disk('public')->delete($batchUpload->file_path);
         $batchUpload->delete();
+
+        $this->broadcastSystemDataUpdated(
+            'Admin',
+            'BatchUpload',
+            'deleted',
+            $batchUpload->id,
+            'A GPS batch upload was deleted.'
+        );
 
         return redirect()->route('batch-file-processing')->with('success', 'Uploaded file and all related trip records were deleted.');
     }

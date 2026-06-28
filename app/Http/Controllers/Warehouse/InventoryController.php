@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Warehouse\InventoryItem;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
     public function index(Request $request)
     {
         /*
@@ -97,7 +99,9 @@ class InventoryController extends Controller
             'storage_location' => ['nullable', 'string', 'max:255'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $inventoryItem = null;
+
+        DB::transaction(function () use ($validated, &$inventoryItem) {
             $validated['quantity_available'] = $validated['quantity_available'] ?? $validated['on_hand'];
 
             $validated['status'] = $this->inventoryStatus(
@@ -109,6 +113,16 @@ class InventoryController extends Controller
 
             $this->createAutoRestockRequestIfNeeded($inventoryItem);
         });
+
+        if ($inventoryItem) {
+            $this->broadcastSystemDataUpdated(
+                'Warehouse',
+                'Inventory',
+                'created',
+                $inventoryItem->id,
+                'A new inventory item was added.'
+            );
+        }
 
         return redirect()
             ->route('inventory')
@@ -145,6 +159,14 @@ class InventoryController extends Controller
             $this->createAutoRestockRequestIfNeeded($inventoryItem->fresh());
         });
 
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'Inventory',
+            'updated',
+            $inventoryItem->id,
+            'An inventory item was updated.'
+        );
+
         return redirect()
             ->route('inventory')
             ->with('success', 'Inventory item updated successfully.');
@@ -153,6 +175,14 @@ class InventoryController extends Controller
     public function destroy(InventoryItem $inventoryItem): RedirectResponse
     {
         $inventoryItem->delete();
+
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'Inventory',
+            'deleted',
+            $inventoryItem->id,
+            'An inventory item was deleted.'
+        );
 
         return redirect()
             ->route('inventory')
@@ -245,6 +275,14 @@ class InventoryController extends Controller
         });
 
         fclose($handle);
+
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'Inventory',
+            'updated',
+            null,
+            "Inventory import completed. Created: {$created}, Updated: {$updated}."
+        );
 
         return redirect()
             ->route('inventory')

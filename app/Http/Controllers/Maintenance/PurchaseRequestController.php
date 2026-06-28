@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Services\PartParser;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
     private array $statuses = [
         'Submitted',
         'Approved',
@@ -230,6 +232,14 @@ class PurchaseRequestController extends Controller
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Submitted');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'created',
+            $purchaseRequest->id,
+            'A maintenance purchase request was created.'
+        );
+
         return redirect()
             ->route('purchase-requests')
             ->with('success', 'Purchase request created successfully.');
@@ -417,6 +427,14 @@ class PurchaseRequestController extends Controller
             'status' => 'For Purchase',
         ]);
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked For Purchase.'
+        );
+
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
         return redirect()
@@ -435,6 +453,14 @@ class PurchaseRequestController extends Controller
         $purchaseRequest->update([
             'status' => 'Delivered',
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked Delivered.'
+        );
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Delivered');
 
@@ -455,6 +481,14 @@ class PurchaseRequestController extends Controller
             'status' => 'Issued',
             'issued_at' => now(),
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked Issued.'
+        );
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
 
