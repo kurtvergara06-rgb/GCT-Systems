@@ -77,6 +77,7 @@ window.realtimePageRouteMap = {
         '/driver-attendance',
         '/dashboard-operation',
         '/admin/dashboard',
+        '/mechanic-list',
     ],
 };
 
