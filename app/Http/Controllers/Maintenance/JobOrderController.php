@@ -105,6 +105,29 @@ class JobOrderController extends Controller
         ));
     }
 
+    public function availableMechanics()
+    {
+        $assignedActiveMechanics = JobOrder::query()
+            ->where('status', '!=', 'Completed')
+            ->whereNotNull('assigned_mechanic')
+            ->where('assigned_mechanic', '!=', '')
+            ->pluck('assigned_mechanic')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $mechanics = MechanicAttendance::query()
+            ->where('status', 'Present')
+            ->whereNotIn('mechanic_name', $assignedActiveMechanics)
+            ->orderBy('mechanic_name')
+            ->get([
+                'id',
+                'mechanic_name',
+            ]);
+
+        return response()->json($mechanics);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -121,6 +144,7 @@ class JobOrderController extends Controller
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
 
         $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
             : null;
@@ -202,6 +226,21 @@ class JobOrderController extends Controller
                 ->with('error', 'Completed job orders can only be viewed.');
         }
 
+        if (in_array($jobOrder->part_status, [
+            'Approved',
+            'For Purchase',
+            'Ordered',
+            'For Pick-up',
+            'For Delivery',
+            'Delivered',
+            'Picked Up',
+            'Issued',
+        ], true)) {
+            return redirect()
+                ->back()
+                ->with('error', 'This Job Order can no longer be edited because its Purchase Request is already approved or being processed.');
+        }
+
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
             'bus_no' => 'required|string|max:255',
@@ -248,6 +287,7 @@ class JobOrderController extends Controller
         }
 
         $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
             : null;

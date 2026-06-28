@@ -455,3 +455,87 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    async function refreshAvailableMechanicsDropdown() {
+        const jobModal = document.getElementById('jobModal');
+
+        if (!jobModal) {
+            return;
+        }
+
+        const mechanicSelect = jobModal.querySelector(
+            'select[name="assigned_mechanic"]'
+        );
+
+        if (!mechanicSelect) {
+            return;
+        }
+
+        const selectedMechanic = mechanicSelect.value;
+
+        try {
+            const response = await fetch(
+                '/job-orders/available-mechanics',
+                {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Unable to load available mechanics.');
+            }
+
+            const mechanics = await response.json();
+
+            mechanicSelect.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+
+            defaultOption.value = '';
+            defaultOption.textContent =
+                mechanics.length > 0
+                    ? 'Select Available Mechanic'
+                    : 'No available mechanic - JO will be On Hold';
+
+            mechanicSelect.appendChild(defaultOption);
+
+            mechanics.forEach((mechanic) => {
+                const option = document.createElement('option');
+
+                option.value = mechanic.mechanic_name;
+                option.textContent = mechanic.mechanic_name;
+
+                if (mechanic.mechanic_name === selectedMechanic) {
+                    option.selected = true;
+                }
+
+                mechanicSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error(
+                'Unable to update available mechanic dropdown:',
+                error
+            );
+        }
+    }
+
+    window.addEventListener('system-data-updated', (event) => {
+        const payload = event.detail;
+
+        const isMechanicAttendanceUpdate =
+            payload &&
+            payload.module === 'Operation' &&
+            payload.entity === 'Attendance';
+
+        if (!isMechanicAttendanceUpdate) {
+            return;
+        }
+
+        refreshAvailableMechanicsDropdown();
+    });
+});
