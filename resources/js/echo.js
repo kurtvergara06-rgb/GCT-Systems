@@ -62,6 +62,7 @@ window.realtimePageRouteMap = {
         '/part-requests',
         '/purchase-requests',
         '/job-orders',
+        '/inventory',
         '/admin/dashboard',
     ],
 
@@ -81,7 +82,9 @@ window.realtimePageRouteMap = {
 
 window.showSystemNotification = function (message) {
     try {
-        const oldNotification = document.querySelector('.system-data-updated-notification');
+        const oldNotification = document.querySelector(
+            '.system-data-updated-notification'
+        );
 
         if (oldNotification) {
             oldNotification.remove();
@@ -130,7 +133,10 @@ window.showSystemNotification = function (message) {
 
 window.listenForSystemUpdates = function () {
     if (!window.Echo || !window.Echo.channel) {
-        console.warn('Realtime listener was not started because Echo is unavailable.');
+        console.warn(
+            'Realtime listener was not started because Echo is unavailable.'
+        );
+
         return;
     }
 
@@ -150,21 +156,32 @@ window.listenForSystemUpdates = function () {
         .listen('.SystemDataUpdated', (payload) => {
             console.log('SystemDataUpdated received:', payload);
 
+            window.dispatchEvent(
+                new CustomEvent('system-data-updated', {
+                    detail: payload,
+                })
+            );
+
             try {
-                const message = payload?.message || 'System data was updated.';
+                const message =
+                    payload?.message || 'System data was updated.';
 
                 window.showSystemNotification(message);
 
                 const currentPath = window.location.pathname;
                 const routeKey = `${payload.module}:${payload.entity}`;
-                const watchRoutes = window.realtimePageRouteMap[routeKey] || [];
+
+                const watchRoutes =
+                    window.realtimePageRouteMap[routeKey] || [];
 
                 console.log('Current path:', currentPath);
                 console.log('Route key:', routeKey);
                 console.log('Watch routes:', watchRoutes);
 
                 if (watchRoutes.includes(currentPath)) {
-                    console.log('Reloading page because it is affected by this update.');
+                    console.log(
+                        'Reloading page because it is affected by this update.'
+                    );
 
                     setTimeout(() => {
                         window.location.reload();
