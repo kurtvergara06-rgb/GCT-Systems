@@ -31,7 +31,6 @@
       user-role="Operation Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
-
         [
           'label' => 'Attendance',
           'icon' => 'fa-calendar-check',
@@ -40,20 +39,17 @@
             ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-users-gear'],
           ]
         ],
-
       ]"
     />
 
     <main class="main">
 
-      {{-- TOP BAR --}}
       <x-layout.topbar
         title="Mechanic Attendance"
         subtitle="Manage and track mechanic attendance and availability"
         notification-count="6"
       />
 
-      {{-- ERROR ALERT --}}
       @if($errors->any())
         <div class="alert-error">
           <ul>
@@ -64,7 +60,6 @@
         </div>
       @endif
 
-    {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <x-ui.summary-card
@@ -101,7 +96,6 @@
 
       </section>
 
-      {{-- MECHANIC ATTENDANCE TABLE --}}
       <section class="table-card attendance-card">
 
         <div class="section-header">
@@ -111,10 +105,14 @@
           </div>
         </div>
 
-        <form action="{{ route('mechanic-attendance') }}" method="GET" class="toolbar attendance-toolbar">
-
+        <form
+          action="{{ route('mechanic-attendance') }}"
+          method="GET"
+          class="toolbar attendance-toolbar"
+        >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
+
             <input
               type="text"
               name="search"
@@ -125,6 +123,7 @@
 
           <div class="filter-group">
             <label>Status</label>
+
             <select name="status" onchange="this.form.submit()">
               <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>
                 All Status
@@ -152,16 +151,23 @@
             </select>
           </div>
 
-          <button type="button" id="openImportAttendanceModal" class="secondary-btn import-btn">
+          <button
+            type="button"
+            id="openImportAttendanceModal"
+            class="secondary-btn import-btn"
+          >
             <i class="fa-solid fa-file-import"></i>
             Import Data
           </button>
 
-          <button type="button" id="openMechanicAttendanceModal" class="primary-btn">
+          <button
+            type="button"
+            id="openMechanicAttendanceModal"
+            class="primary-btn"
+          >
             <i class="fa-solid fa-plus"></i>
             Add New Mechanic
           </button>
-
         </form>
 
         <div class="table-wrap">
@@ -200,19 +206,42 @@
                   <td>{{ $attendance->assigned_job ?? 'Available' }}</td>
 
                   <td>
-                    {{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}
+                    {{ $attendance->attendance_date
+                      ? $attendance->attendance_date->format('m/d/y')
+                      : '—'
+                    }}
                   </td>
 
                   <td>
-                    {{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}
+                    {{ $attendance->time_in
+                      ? date('h:i A', strtotime($attendance->time_in))
+                      : '--:--'
+                    }}
                   </td>
 
                   <td>
-                    {{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}
+                    {{ $attendance->time_out
+                      ? date('h:i A', strtotime($attendance->time_out))
+                      : '--:--'
+                    }}
                   </td>
 
+                  @php
+                    $statusStyle = match($attendance->status) {
+                      'Present' => 'background:#dcfce7 !important; color:#16a34a !important;',
+                      'Late' => 'background:#fef3c7 !important; color:#d97706 !important;',
+                      'On Duty' => 'background:#dbeafe !important; color:#2563eb !important;',
+                      'Absent' => 'background:#fee2e2 !important; color:#dc2626 !important;',
+                      'On Leave' => 'background:#ede9fe !important; color:#7c3aed !important;',
+                      default => 'background:#f1f5f9 !important; color:#64748b !important;',
+                    };
+                  @endphp
+
                   <td>
-                    <span class="badge {{ $statusClass }}">
+                    <span
+                      class="badge {{ $statusClass }}"
+                      style="{{ $statusStyle }}"
+                    >
                       {{ $attendance->status }}
                     </span>
                   </td>
@@ -244,13 +273,16 @@
                         @csrf
                         @method('DELETE')
 
-                        <x-ui.action-buttom-modal
-                          class="delete open-delete-attendance-modal"
+                        <button
+                          type="button"
+                          class="action-btn delete open-delete-attendance-modal"
                           title="Delete"
-                          icon="fa-trash"
                           data-id="{{ $attendance->id }}"
                           data-mechanic-id="{{ $attendance->mechanic_id }}"
-                        />
+                          data-mechanic-name="{{ $attendance->mechanic_name }}"
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
                       </form>
 
                     </div>
@@ -274,63 +306,67 @@
 
   </div>
 
-    {{-- IMPORT ATTENDANCE MODAL --}}
-    <div id="importAttendanceModal" class="modal-overlay">
-      <div class="modal-box">
+  {{-- IMPORT ATTENDANCE MODAL --}}
+  <div id="importAttendanceModal" class="modal-overlay">
+    <div class="modal-box">
 
-        <div class="modal-header">
-          <h2>Import Mechanic Attendance Data</h2>
+      <div class="modal-header">
+        <h2>Import Mechanic Attendance Data</h2>
 
-          <button type="button" id="closeImportAttendanceModal" class="close-btn">
-            &times;
-          </button>
+        <button type="button" id="closeImportAttendanceModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <form
+        id="importAttendanceForm"
+        action="{{ route('mechanic-attendance.import') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="job-form"
+      >
+        @csrf
+
+        <div class="form-section-title full-width">
+          <h3>Upload CSV File</h3>
+          <p>Upload mechanic attendance records using a CSV file.</p>
         </div>
 
-        <form
-          id="importAttendanceForm"
-          action="{{ route('mechanic-attendance.import') }}"
-          method="POST"
-          enctype="multipart/form-data"
-          class="job-form"
-        >
-          @csrf
-          <input type="hidden" name="_token" value="{{ csrf_token() }}">
+        <div class="form-group full-width">
+          <label>CSV File</label>
 
-          <div class="form-section-title full-width">
-            <h3>Upload CSV File</h3>
-            <p>Upload mechanic attendance records using a CSV file.</p>
-          </div>
+          <input
+            type="file"
+            name="import_file"
+            accept=".csv,.txt"
+            required
+          >
+        </div>
 
-          <div class="form-group full-width">
-            <label>CSV File</label>
-            <input
-              type="file"
-              name="import_file"
-              accept=".csv,.txt"
-              required
-            >
-          </div>
+        <div class="form-group full-width">
+          <small>
+            Required columns:
+            mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status
+          </small>
+        </div>
 
-          <div class="form-group full-width">
-            <small>
-              Required columns:
-              mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status
-            </small>
-          </div>
+        <div class="modal-actions full-width">
+          <button
+            type="button"
+            id="cancelImportAttendanceModal"
+            class="cancel-btn"
+          >
+            Cancel
+          </button>
 
-          <div class="modal-actions full-width">
-            <button type="button" id="cancelImportAttendanceModal" class="cancel-btn">
-              Cancel
-            </button>
+          <button type="submit" class="save-btn">
+            Import Data
+          </button>
+        </div>
+      </form>
 
-            <button type="submit" class="save-btn">
-              Import Data
-            </button>
-          </div>
-        </form>
-
-      </div>
     </div>
+  </div>
 
   {{-- NEW MECHANIC ATTENDANCE MODAL --}}
   <div id="mechanicAttendanceModal" class="modal-overlay">
@@ -344,7 +380,11 @@
         </button>
       </div>
 
-      <form action="{{ route('mechanic-attendance.store') }}" method="POST" class="job-form wide-form">
+      <form
+        action="{{ route('mechanic-attendance.store') }}"
+        method="POST"
+        class="job-form wide-form"
+      >
         @csrf
 
         <div class="form-section-title full-width">
@@ -354,6 +394,7 @@
 
         <div class="form-group">
           <label>Mechanic ID</label>
+
           <input
             type="text"
             value="{{ $nextMechanicId }}"
@@ -363,6 +404,7 @@
 
         <div class="form-group">
           <label>Mechanic Name</label>
+
           <input
             type="text"
             name="mechanic_name"
@@ -373,6 +415,7 @@
 
         <div class="form-group">
           <label>Shift</label>
+
           <select name="shift" required>
             <option value="Morning">Morning</option>
             <option value="Afternoon">Afternoon</option>
@@ -382,6 +425,7 @@
 
         <div class="form-group">
           <label>Assigned Job</label>
+
           <input
             type="text"
             name="assigned_job"
@@ -391,6 +435,7 @@
 
         <div class="form-group">
           <label>Date</label>
+
           <input
             type="date"
             name="attendance_date"
@@ -401,6 +446,7 @@
 
         <div class="form-group">
           <label>Time-in</label>
+
           <input
             type="time"
             name="time_in"
@@ -409,6 +455,7 @@
 
         <div class="form-group">
           <label>Time-out</label>
+
           <input
             type="time"
             name="time_out"
@@ -417,6 +464,7 @@
 
         <div class="form-group">
           <label>Status</label>
+
           <select name="status" required>
             <option value="Present">Present</option>
             <option value="Late">Late</option>
@@ -427,7 +475,11 @@
         </div>
 
         <div class="modal-actions full-width">
-          <button type="button" id="cancelMechanicAttendanceModal" class="cancel-btn">
+          <button
+            type="button"
+            id="cancelMechanicAttendanceModal"
+            class="cancel-btn"
+          >
             Cancel
           </button>
 
@@ -447,12 +499,20 @@
       <div class="modal-header">
         <h2>Edit Mechanic Attendance</h2>
 
-        <button type="button" id="closeEditMechanicAttendanceModal" class="close-btn">
+        <button
+          type="button"
+          id="closeEditMechanicAttendanceModal"
+          class="close-btn"
+        >
           &times;
         </button>
       </div>
 
-      <form id="editMechanicAttendanceForm" method="POST" class="job-form wide-form">
+      <form
+        id="editMechanicAttendanceForm"
+        method="POST"
+        class="job-form wide-form"
+      >
         @csrf
         @method('PUT')
 
@@ -463,6 +523,7 @@
 
         <div class="form-group">
           <label>Mechanic ID</label>
+
           <input
             type="text"
             id="edit_mechanic_id"
@@ -472,6 +533,7 @@
 
         <div class="form-group">
           <label>Mechanic Name</label>
+
           <input
             type="text"
             name="mechanic_name"
@@ -482,6 +544,7 @@
 
         <div class="form-group">
           <label>Shift</label>
+
           <select name="shift" id="edit_shift" required>
             <option value="Morning">Morning</option>
             <option value="Afternoon">Afternoon</option>
@@ -491,6 +554,7 @@
 
         <div class="form-group">
           <label>Assigned Job</label>
+
           <input
             type="text"
             name="assigned_job"
@@ -500,6 +564,7 @@
 
         <div class="form-group">
           <label>Date</label>
+
           <input
             type="date"
             name="attendance_date"
@@ -510,6 +575,7 @@
 
         <div class="form-group">
           <label>Time-in</label>
+
           <input
             type="time"
             name="time_in"
@@ -519,6 +585,7 @@
 
         <div class="form-group">
           <label>Time-out</label>
+
           <input
             type="time"
             name="time_out"
@@ -528,6 +595,7 @@
 
         <div class="form-group">
           <label>Status</label>
+
           <select name="status" id="edit_status" required>
             <option value="Present">Present</option>
             <option value="Late">Late</option>
@@ -538,7 +606,11 @@
         </div>
 
         <div class="modal-actions full-width">
-          <button type="button" id="cancelEditMechanicAttendanceModal" class="cancel-btn">
+          <button
+            type="button"
+            id="cancelEditMechanicAttendanceModal"
+            class="cancel-btn"
+          >
             Cancel
           </button>
 

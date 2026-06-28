@@ -84,11 +84,21 @@ document.addEventListener('DOMContentLoaded', function () {
   | Edit Attendance Modal
   |--------------------------------------------------------------------------
   */
-  const editMechanicAttendanceModal = document.getElementById('editMechanicAttendanceModal');
-  const editMechanicAttendanceForm = document.getElementById('editMechanicAttendanceForm');
+  const editMechanicAttendanceModal = document.getElementById(
+    'editMechanicAttendanceModal'
+  );
 
-  const closeEditMechanicAttendanceModal = document.getElementById('closeEditMechanicAttendanceModal');
-  const cancelEditMechanicAttendanceModal = document.getElementById('cancelEditMechanicAttendanceModal');
+  const editMechanicAttendanceForm = document.getElementById(
+    'editMechanicAttendanceForm'
+  );
+
+  const closeEditMechanicAttendanceModal = document.getElementById(
+    'closeEditMechanicAttendanceModal'
+  );
+
+  const cancelEditMechanicAttendanceModal = document.getElementById(
+    'cancelEditMechanicAttendanceModal'
+  );
 
   const editMechanicId = document.getElementById('edit_mechanic_id');
   const editMechanicName = document.getElementById('edit_mechanic_name');
@@ -99,24 +109,49 @@ document.addEventListener('DOMContentLoaded', function () {
   const editTimeOut = document.getElementById('edit_time_out');
   const editStatus = document.getElementById('edit_status');
 
-  document.querySelectorAll('.open-edit-attendance-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      if (editMechanicAttendanceForm) {
-        editMechanicAttendanceForm.action = button.dataset.updateUrl || '#';
-      }
+  document
+    .querySelectorAll('.open-edit-attendance-modal')
+    .forEach((button) => {
+      button.addEventListener('click', () => {
+        if (editMechanicAttendanceForm) {
+          editMechanicAttendanceForm.action = button.dataset.updateUrl || '#';
+        }
 
-      if (editMechanicId) editMechanicId.value = button.dataset.mechanicId || '';
-      if (editMechanicName) editMechanicName.value = button.dataset.mechanicName || '';
-      if (editShift) editShift.value = button.dataset.shift || 'Morning';
-      if (editAssignedJob) editAssignedJob.value = button.dataset.assignedJob || '';
-      if (editAttendanceDate) editAttendanceDate.value = button.dataset.attendanceDate || '';
-      if (editTimeIn) editTimeIn.value = button.dataset.timeIn || '';
-      if (editTimeOut) editTimeOut.value = button.dataset.timeOut || '';
-      if (editStatus) editStatus.value = button.dataset.status || 'Present';
+        if (editMechanicId) {
+          editMechanicId.value = button.dataset.mechanicId || '';
+        }
 
-      openModal(editMechanicAttendanceModal);
+        if (editMechanicName) {
+          editMechanicName.value = button.dataset.mechanicName || '';
+        }
+
+        if (editShift) {
+          editShift.value = button.dataset.shift || 'Morning';
+        }
+
+        if (editAssignedJob) {
+          editAssignedJob.value = button.dataset.assignedJob || '';
+        }
+
+        if (editAttendanceDate) {
+          editAttendanceDate.value = button.dataset.attendanceDate || '';
+        }
+
+        if (editTimeIn) {
+          editTimeIn.value = button.dataset.timeIn || '';
+        }
+
+        if (editTimeOut) {
+          editTimeOut.value = button.dataset.timeOut || '';
+        }
+
+        if (editStatus) {
+          editStatus.value = button.dataset.status || 'Present';
+        }
+
+        openModal(editMechanicAttendanceModal);
+      });
     });
-  });
 
   if (closeEditMechanicAttendanceModal) {
     closeEditMechanicAttendanceModal.addEventListener('click', () => {
@@ -136,23 +171,41 @@ document.addEventListener('DOMContentLoaded', function () {
   |--------------------------------------------------------------------------
   */
   const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
+
   const deleteAttendanceName = document.getElementById('deleteAttendanceName');
-  const cancelDeleteAttendance = document.getElementById('cancelDeleteAttendance');
-  const confirmDeleteAttendance = document.getElementById('confirmDeleteAttendance');
+
+  const cancelDeleteAttendance = document.getElementById(
+    'cancelDeleteAttendance'
+  );
+
+  const confirmDeleteAttendance = document.getElementById(
+    'confirmDeleteAttendance'
+  );
 
   let selectedDeleteForm = null;
 
-  document.querySelectorAll('.open-delete-attendance-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedDeleteForm = document.getElementById(`deleteAttendanceForm-${button.dataset.id}`);
+  document
+    .querySelectorAll('.open-delete-attendance-modal')
+    .forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
 
-      if (deleteAttendanceName) {
-        deleteAttendanceName.textContent = button.dataset.mechanicId || 'this attendance record';
-      }
+        const attendanceId = button.dataset.id;
 
-      openModal(deleteAttendanceModal);
+        selectedDeleteForm = document.getElementById(
+          `deleteAttendanceForm-${attendanceId}`
+        );
+
+        if (deleteAttendanceName) {
+          deleteAttendanceName.textContent =
+            button.dataset.mechanicName ||
+            button.dataset.mechanicId ||
+            'this attendance record';
+        }
+
+        openModal(deleteAttendanceModal);
+      });
     });
-  });
 
   if (cancelDeleteAttendance) {
     cancelDeleteAttendance.addEventListener('click', () => {
@@ -171,11 +224,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
-  | Close When Clicking Outside
+  | Close Modal When Clicking Outside
   |--------------------------------------------------------------------------
   */
   document
-    .querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay')
+    .querySelectorAll(
+      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+    )
     .forEach((modal) => {
       modal.addEventListener('click', (event) => {
         if (event.target === modal) {
@@ -184,6 +239,11 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
+  /*
+  |--------------------------------------------------------------------------
+  | Close Modal Using Escape Key
+  |--------------------------------------------------------------------------
+  */
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeModal(importAttendanceModal);

@@ -873,3 +873,13 @@ tbody tr:last-child td {
     padding: 24px;
   }
 }
+
+.disabled-pr-edit-btn {
+  opacity: 0.42 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  filter: grayscale(1) !important;
+  background: #edf1f7 !important;
+  color: #8794a8 !important;
+  box-shadow: none !important;
+}
