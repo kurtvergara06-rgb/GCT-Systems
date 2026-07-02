@@ -1089,3 +1089,165 @@
         width: 100%;
     }
 }
+
+.parsed-fields-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-record-btn {
+    height: 32px;
+    padding: 0 11px;
+    border: none;
+    border-radius: 8px;
+    background: #0057f8;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.edit-record-btn:hover {
+    background: #003fbd;
+}
+
+.edit-trip-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100002;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.edit-trip-modal-overlay.show {
+    display: flex;
+}
+
+.edit-trip-modal {
+    width: min(950px, 96vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+}
+
+.edit-trip-modal-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.edit-trip-modal-header h2 {
+    margin: 0;
+    color: #0b2344;
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.edit-trip-modal-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.edit-trip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.edit-trip-grid .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.edit-trip-grid .form-group label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.edit-trip-grid input,
+.edit-trip-grid textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dce5f2;
+    border-radius: 9px;
+    outline: none;
+    color: #0f172a;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.edit-trip-grid input:focus,
+.edit-trip-grid textarea:focus {
+    border-color: #0057f8;
+    box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.edit-trip-grid textarea {
+    resize: vertical;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.edit-trip-actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.edit-trip-save-btn {
+    min-width: 145px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #0057f8;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.edit-trip-save-btn:hover {
+    background: #003fbd;
+}
+
+.file-icon.xls,
+.file-icon.xlsx {
+    background: #15803d;
+}
+
+@media (max-width: 760px) {
+    .parsed-fields-actions,
+    .edit-trip-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .edit-trip-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-trip-save-btn,
+    .edit-trip-actions button {
+        width: 100%;
+    }
+}

@@ -269,5 +269,8 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/{batchUpload}/confirm', 'confirm')
                 ->name('batch-file-processing.confirm');
+
+            Route::put('/records/{gpsTripRecord}', 'updateRecord')
+                ->name('batch-file-processing.records.update');
         });
 });

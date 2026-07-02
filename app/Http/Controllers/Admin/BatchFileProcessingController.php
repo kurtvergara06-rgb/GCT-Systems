@@ -12,11 +12,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BatchFileProcessingController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
     public function index(Request $request)
     {
         $batches = BatchUpload::query()
@@ -37,13 +40,21 @@ class BatchFileProcessingController extends Controller
             : null;
 
         $recordsQuery = GpsTripRecord::query()
-            ->with('batchUpload')
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
-            });
+            ->with('batchUpload');
 
+        /*
+         |--------------------------------------------------------------
+         | If an uploaded batch is selected, show its records even when
+         | the batch is still In Review. This allows Admin to edit them.
+         | If no batch is selected, show only Processed records.
+         |--------------------------------------------------------------
+         */
         if ($selectedBatchId) {
             $recordsQuery->where('batch_upload_id', $selectedBatchId);
+        } else {
+            $recordsQuery->whereHas('batchUpload', function ($query) {
+                $query->where('status', 'Processed');
+            });
         }
 
         if ($request->filled('search')) {
@@ -72,17 +83,38 @@ class BatchFileProcessingController extends Controller
             ]);
 
         $selectedRecordId = $request->integer('selected_record');
+
         $selectedRecord = $selectedRecordId
             ? GpsTripRecord::with('batchUpload')->find($selectedRecordId)
             : ($selectedBatch?->tripRecords()->latest('beginning_at')->first());
+
+        /*
+         | Prevent selecting a record that does not belong to the
+         | selected upload batch.
+         */
+        if (
+            $selectedRecord &&
+            $selectedBatchId &&
+            $selectedRecord->batch_upload_id !== $selectedBatchId
+        ) {
+            $selectedRecord = $selectedBatch?->tripRecords()
+                ->latest('beginning_at')
+                ->first();
+        }
 
         $allSelectedRecords = $selectedBatch
             ? $selectedBatch->tripRecords()->orderBy('beginning_at')->get()
             : collect();
 
         $filesUploaded = BatchUpload::count();
-        $processedBatches = BatchUpload::query()->where('status', 'Processed')->count();
-        $inReviewBatches = BatchUpload::query()->where('status', 'In Review')->count();
+        $processedBatches = BatchUpload::query()
+            ->where('status', 'Processed')
+            ->count();
+
+        $inReviewBatches = BatchUpload::query()
+            ->where('status', 'In Review')
+            ->count();
+
         $recordsExtracted = GpsTripRecord::count();
 
         return view('Admin.batch-file-processing', compact(
@@ -102,13 +134,28 @@ class BatchFileProcessingController extends Controller
     public function upload(Request $request)
     {
         $validated = $request->validate([
-            'gps_file' => ['required', 'file', 'mimes:csv,txt,pdf', 'max:51200'],
+            'gps_file' => [
+                'required',
+                'file',
+                'mimes:csv,txt,pdf,xls,xlsx',
+                'max:51200',
+            ],
         ]);
 
         $file = $validated['gps_file'];
         $extension = strtolower($file->getClientOriginalExtension());
-        $storedName = now()->format('YmdHis') . '_' . Str::random(10) . '.' . $extension;
-        $filePath = $file->storeAs('gps-batches', $storedName, 'public');
+
+        $storedName = now()->format('YmdHis')
+            . '_'
+            . Str::random(10)
+            . '.'
+            . $extension;
+
+        $filePath = $file->storeAs(
+            'gps-batches',
+            $storedName,
+            'public'
+        );
 
         $batch = BatchUpload::create([
             'file_name' => $file->getClientOriginalName(),
@@ -124,9 +171,13 @@ class BatchFileProcessingController extends Controller
         ]);
 
         try {
-            $result = $extension === 'pdf'
-                ? $this->processPdfFile($batch)
-                : $this->processCsvFile($batch);
+            if ($extension === 'pdf') {
+                $result = $this->processPdfFile($batch);
+            } elseif (in_array($extension, ['xls', 'xlsx'], true)) {
+                $result = $this->processExcelFile($batch);
+            } else {
+                $result = $this->processCsvFile($batch);
+            }
 
             $batch->update([
                 'status' => 'In Review',
@@ -134,7 +185,10 @@ class BatchFileProcessingController extends Controller
                 'processed_records' => $result['processed'],
                 'failed_records' => $result['failed'],
                 'error_message' => $result['failed'] > 0
-                    ? ($result['first_error'] ?? 'Some rows could not be processed. Please review the report data.')
+                    ? (
+                        $result['first_error']
+                        ?? 'Some rows could not be processed. Please review the report data.'
+                    )
                     : null,
             ]);
 
@@ -147,37 +201,118 @@ class BatchFileProcessingController extends Controller
             );
 
             $message = "{$result['processed']} valid record(s) saved";
-            if (isset($result['skipped_headers']) && $result['skipped_headers'] > 0) {
+
+            if (! empty($result['skipped_headers'])) {
                 $message .= ", {$result['skipped_headers']} header row(s) skipped";
             }
-            if (isset($result['skipped_no_bus_no']) && $result['skipped_no_bus_no'] > 0) {
+
+            if (! empty($result['skipped_no_bus_no'])) {
                 $message .= ", {$result['skipped_no_bus_no']} row(s) skipped (no Bus No.)";
             }
+
             if ($result['failed'] > 0) {
                 $message .= ", {$result['failed']} failed";
             }
-            $message .= ".";
 
             return redirect()
                 ->route('batch-file-processing', ['batch_id' => $batch->id])
-                ->with('success', $message);
+                ->with('success', $message . '.');
         } catch (\Throwable $exception) {
             $batch->update([
                 'status' => 'Failed',
                 'error_message' => $exception->getMessage(),
             ]);
 
-            return redirect()->route('batch-file-processing')->with('error', $exception->getMessage());
+            return redirect()
+                ->route('batch-file-processing')
+                ->with('error', $exception->getMessage());
         }
+    }
+
+    public function updateRecord(
+        Request $request,
+        GpsTripRecord $gpsTripRecord
+    ) {
+        $gpsTripRecord->load('batchUpload');
+
+        if ($gpsTripRecord->batchUpload?->status !== 'In Review') {
+            return back()->with(
+                'error',
+                'Only records with In Review status can be edited.'
+            );
+        }
+
+        $validated = $request->validate([
+            'bus_no' => ['required', 'string', 'max:100'],
+            'record_no' => ['nullable', 'string', 'max:100'],
+            'grouping' => ['nullable', 'string', 'max:255'],
+            'trip_type' => ['nullable', 'string', 'max:100'],
+            'beginning_at' => ['nullable', 'date'],
+            'initial_location' => ['nullable', 'string', 'max:255'],
+            'ending_at' => ['nullable', 'date'],
+            'final_location' => ['nullable', 'string', 'max:255'],
+            'duration_minutes' => ['nullable', 'numeric', 'min:0'],
+            'total_minutes' => ['nullable', 'numeric', 'min:0'],
+            'in_motion_minutes' => ['nullable', 'numeric', 'min:0'],
+            'idling_minutes' => ['nullable', 'numeric', 'min:0'],
+            'mileage_km' => ['nullable', 'numeric', 'min:0'],
+            'engine_hours' => ['nullable', 'numeric', 'min:0'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'coordinates' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $validated['beginning_at'] = ! empty($validated['beginning_at'])
+            ? Carbon::parse($validated['beginning_at'])
+            : null;
+
+        $validated['ending_at'] = ! empty($validated['ending_at'])
+            ? Carbon::parse($validated['ending_at'])
+            : null;
+
+        $gpsTripRecord->update($validated);
+
+        $this->broadcastSystemDataUpdated(
+            'Admin',
+            'GpsTripRecord',
+            'updated',
+            $gpsTripRecord->id,
+            'A GPS trip record was updated during review.'
+        );
+
+        return redirect()
+            ->route('batch-file-processing', [
+                'batch_id' => $gpsTripRecord->batch_upload_id,
+                'selected_record' => $gpsTripRecord->id,
+            ])
+            ->with('success', 'GPS trip record updated successfully.');
     }
 
     public function confirm(BatchUpload $batchUpload)
     {
         if ($batchUpload->status === 'Failed') {
-            return redirect()->route('batch-file-processing')->with('error', 'A failed upload cannot be marked as processed.');
+            return redirect()
+                ->route('batch-file-processing')
+                ->with(
+                    'error',
+                    'A failed upload cannot be marked as processed.'
+                );
         }
 
-        $batchUpload->update(['status' => 'Processed']);
+        if ($batchUpload->tripRecords()->count() === 0) {
+            return redirect()
+                ->route('batch-file-processing', [
+                    'batch_id' => $batchUpload->id,
+                ])
+                ->with(
+                    'error',
+                    'This batch has no valid trip records to process.'
+                );
+        }
+
+        $batchUpload->update([
+            'status' => 'Processed',
+        ]);
 
         $this->broadcastSystemDataUpdated(
             'Admin',
@@ -187,23 +322,38 @@ class BatchFileProcessingController extends Controller
             'A GPS batch upload was marked as Processed.'
         );
 
-        return redirect()->route('batch-file-processing', ['batch_id' => $batchUpload->id])->with('success', 'Batch data was reviewed and marked as Processed.');
+        return redirect()
+            ->route('batch-file-processing', [
+                'batch_id' => $batchUpload->id,
+            ])
+            ->with(
+                'success',
+                'Batch data was reviewed and marked as Processed.'
+            );
     }
 
     public function destroy(BatchUpload $batchUpload)
     {
         Storage::disk('public')->delete($batchUpload->file_path);
+
+        $batchId = $batchUpload->id;
+
         $batchUpload->delete();
 
         $this->broadcastSystemDataUpdated(
             'Admin',
             'BatchUpload',
             'deleted',
-            $batchUpload->id,
+            $batchId,
             'A GPS batch upload was deleted.'
         );
 
-        return redirect()->route('batch-file-processing')->with('success', 'Uploaded file and all related trip records were deleted.');
+        return redirect()
+            ->route('batch-file-processing')
+            ->with(
+                'success',
+                'Uploaded file and all related trip records were deleted.'
+            );
     }
 
     public function export(Request $request): StreamedResponse
@@ -230,7 +380,9 @@ class BatchFileProcessingController extends Controller
             });
         }
 
-        $fileName = 'gps-trip-records-' . now()->format('Y-m-d-His') . '.csv';
+        $fileName = 'gps-trip-records-'
+            . now()->format('Y-m-d-His')
+            . '.csv';
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -241,29 +393,49 @@ class BatchFileProcessingController extends Controller
                 'Grouping',
                 'Type',
                 'Beginning',
+                'Initial Location',
                 'End',
+                'Final Location',
                 'Duration',
+                'Total Time',
+                'In Motion',
+                'Idling',
                 'Mileage',
+                'Engine Hours',
+                'Recorded Location',
+                'Coordinates',
+                'Remarks',
                 'Source Format',
                 'Severity',
             ]);
 
-            $query->orderByDesc('beginning_at')->chunk(200, function ($records) use ($handle) {
-                foreach ($records as $record) {
-                    fputcsv($handle, [
-                        $record->record_no,
-                        $record->bus_no,
-                        $record->grouping,
-                        $record->trip_type,
-                        $record->beginning_at?->format('Y-m-d h:i A'),
-                        $record->ending_at?->format('Y-m-d h:i A'),
-                        $record->duration_minutes,
-                        $record->mileage_km,
-                        $record->source_format,
-                        $record->severity,
-                    ]);
-                }
-            });
+            $query
+                ->orderByDesc('beginning_at')
+                ->chunk(200, function ($records) use ($handle) {
+                    foreach ($records as $record) {
+                        fputcsv($handle, [
+                            $record->record_no,
+                            $record->bus_no,
+                            $record->grouping,
+                            $record->trip_type,
+                            $record->beginning_at?->format('Y-m-d h:i A'),
+                            $record->initial_location,
+                            $record->ending_at?->format('Y-m-d h:i A'),
+                            $record->final_location,
+                            $record->duration_minutes,
+                            $record->total_minutes,
+                            $record->in_motion_minutes,
+                            $record->idling_minutes,
+                            $record->mileage_km,
+                            $record->engine_hours,
+                            $record->location,
+                            $record->coordinates,
+                            $record->description,
+                            $record->source_format,
+                            $record->severity,
+                        ]);
+                    }
+                });
 
             fclose($handle);
         }, $fileName, [
@@ -274,20 +446,29 @@ class BatchFileProcessingController extends Controller
     private function processCsvFile(BatchUpload $batch): array
     {
         $absolutePath = Storage::disk('public')->path($batch->file_path);
+
         $handle = fopen($absolutePath, 'r');
 
         if (! $handle) {
-            throw new \RuntimeException('Unable to read the uploaded GPS report.');
+            throw new \RuntimeException(
+                'Unable to read the uploaded GPS report.'
+            );
         }
 
         $headers = fgetcsv($handle);
 
         if (! $headers) {
             fclose($handle);
-            throw new \RuntimeException('The GPS report is empty or has no header row.');
+
+            throw new \RuntimeException(
+                'The GPS report is empty or has no header row.'
+            );
         }
 
-        $headers = array_map(fn ($header) => $this->normalizeHeader($header), $headers);
+        $headers = array_map(
+            fn ($header) => $this->normalizeHeader($header),
+            $headers
+        );
 
         $total = 0;
         $processed = 0;
@@ -295,9 +476,21 @@ class BatchFileProcessingController extends Controller
         $firstFailureMessage = null;
         $seenSignatures = [];
 
-        DB::transaction(function () use ($handle, $headers, $batch, &$total, &$processed, &$failed, &$firstFailureMessage, &$seenSignatures) {
+        DB::transaction(function () use (
+            $handle,
+            $headers,
+            $batch,
+            &$total,
+            &$processed,
+            &$failed,
+            &$firstFailureMessage,
+            &$seenSignatures
+        ) {
             while (($row = fgetcsv($handle)) !== false) {
-                $hasValues = count(array_filter($row, fn ($value) => trim((string) $value) !== '')) > 0;
+                $hasValues = count(array_filter(
+                    $row,
+                    fn ($value) => trim((string) $value) !== ''
+                )) > 0;
 
                 if (! $hasValues) {
                     continue;
@@ -307,25 +500,43 @@ class BatchFileProcessingController extends Controller
 
                 try {
                     $row = array_pad($row, count($headers), null);
-                    $data = array_combine($headers, array_slice($row, 0, count($headers)));
+
+                    $data = array_combine(
+                        $headers,
+                        array_slice($row, 0, count($headers))
+                    );
+
                     $normalizedData = [];
 
                     foreach ($data as $key => $value) {
                         $normalizedData[$key] = $this->cleanValue($value);
                     }
 
-                    $payload = $this->mapUnifiedRecord($normalizedData, 'CSV');
+                    $payload = $this->mapUnifiedRecord(
+                        $normalizedData,
+                        'CSV'
+                    );
+
                     $signature = $this->fingerprintRecord($payload);
 
                     if (in_array($signature, $seenSignatures, true)) {
-                        throw new \RuntimeException('Duplicate row skipped during batch processing.');
+                        throw new \RuntimeException(
+                            'Duplicate row skipped during batch processing.'
+                        );
                     }
 
                     $seenSignatures[] = $signature;
-                    $this->saveRecord($batch, $payload, $normalizedData);
+
+                    $this->saveRecord(
+                        $batch,
+                        $payload,
+                        $normalizedData
+                    );
+
                     $processed++;
                 } catch (\Throwable $exception) {
                     $failed++;
+
                     if ($firstFailureMessage === null) {
                         $firstFailureMessage = $exception->getMessage();
                     }
@@ -343,13 +554,167 @@ class BatchFileProcessingController extends Controller
         ];
     }
 
+    private function processExcelFile(BatchUpload $batch): array
+    {
+        $absolutePath = Storage::disk('public')->path($batch->file_path);
+
+        if (! file_exists($absolutePath)) {
+            throw new \RuntimeException(
+                'Unable to read the uploaded Excel file.'
+            );
+        }
+
+        $spreadsheet = IOFactory::load($absolutePath);
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        $rows = $worksheet->toArray(
+            null,
+            true,
+            true,
+            false
+        );
+
+        if (count($rows) < 2) {
+            throw new \RuntimeException(
+                'The Excel file is empty or has no data rows.'
+            );
+        }
+
+        $headers = array_map(
+            fn ($header) => $this->normalizeHeader((string) $header),
+            $rows[0]
+        );
+
+        $total = 0;
+        $processed = 0;
+        $failed = 0;
+        $firstFailureMessage = null;
+        $seenSignatures = [];
+
+        DB::transaction(function () use (
+            $rows,
+            $headers,
+            $batch,
+            &$total,
+            &$processed,
+            &$failed,
+            &$firstFailureMessage,
+            &$seenSignatures
+        ) {
+            foreach (array_slice($rows, 1) as $row) {
+                $hasValues = count(array_filter(
+                    $row,
+                    fn ($value) => trim((string) $value) !== ''
+                )) > 0;
+
+                if (! $hasValues) {
+                    continue;
+                }
+
+                $total++;
+
+                try {
+                    $row = array_pad($row, count($headers), null);
+
+                    $data = array_combine(
+                        $headers,
+                        array_slice($row, 0, count($headers))
+                    );
+
+                    $normalizedData = [];
+
+                    foreach ($data as $key => $value) {
+                        if (
+                            is_numeric($value) &&
+                            $this->looksLikeExcelDateColumn($key)
+                        ) {
+                            try {
+                                $value = ExcelDate::excelToDateTimeObject(
+                                    $value
+                                )->format('Y-m-d H:i:s');
+                            } catch (\Throwable) {
+                                // Keep original Excel value.
+                            }
+                        }
+
+                        $normalizedData[$key] = $this->cleanValue($value);
+                    }
+
+                    $payload = $this->mapUnifiedRecord(
+                        $normalizedData,
+                        'Excel'
+                    );
+
+                    $signature = $this->fingerprintRecord($payload);
+
+                    if (in_array($signature, $seenSignatures, true)) {
+                        throw new \RuntimeException(
+                            'Duplicate row skipped during Excel processing.'
+                        );
+                    }
+
+                    $seenSignatures[] = $signature;
+
+                    $this->saveRecord(
+                        $batch,
+                        $payload,
+                        $normalizedData
+                    );
+
+                    $processed++;
+                } catch (\Throwable $exception) {
+                    $failed++;
+
+                    if ($firstFailureMessage === null) {
+                        $firstFailureMessage = $exception->getMessage();
+                    }
+                }
+            }
+        });
+
+        return [
+            'total' => $total,
+            'processed' => $processed,
+            'failed' => $failed,
+            'first_error' => $firstFailureMessage,
+        ];
+    }
+
+    private function looksLikeExcelDateColumn(string $header): bool
+    {
+        $header = $this->normalizeHeader($header);
+
+        return in_array($header, [
+            'beginning',
+            'beginning at',
+            'start',
+            'start time',
+            'start date',
+            'departure',
+            'end',
+            'ending',
+            'end time',
+            'end date',
+            'arrival',
+        ], true);
+    }
+
     private function processPdfFile(BatchUpload $batch): array
     {
         $absolutePath = Storage::disk('public')->path($batch->file_path);
-        $apiUrl = rtrim(config('services.nlp.api_url', env('NLP_API_URL', 'http://127.0.0.1:8000')), '/');
+
+        $apiUrl = rtrim(
+            config(
+                'services.nlp.api_url',
+                env('NLP_API_URL', 'http://127.0.0.1:8000')
+            ),
+            '/'
+        );
 
         if (! file_exists($absolutePath)) {
-            throw new \RuntimeException('Unable to read the uploaded PDF report.');
+            throw new \RuntimeException(
+                'Unable to read the uploaded PDF report.'
+            );
         }
 
         try {
@@ -363,36 +728,64 @@ class BatchFileProcessingController extends Controller
                 ->post($apiUrl . '/nlp/extract-pdf');
         } catch (\Exception $exception) {
             $errorMessage = $exception->getMessage();
-            if (str_contains($errorMessage, 'timeout') || str_contains($errorMessage, 'Connection')) {
-                throw new \RuntimeException('Python NLP service is unavailable. Start the Python Engine and try again.');
+
+            if (
+                str_contains($errorMessage, 'timeout') ||
+                str_contains($errorMessage, 'Connection')
+            ) {
+                throw new \RuntimeException(
+                    'Python NLP service is unavailable. Start the Python Engine and try again.'
+                );
             }
-            throw new \RuntimeException('Failed to connect to Python NLP service: ' . $errorMessage);
+
+            throw new \RuntimeException(
+                'Failed to connect to Python NLP service: '
+                . $errorMessage
+            );
         }
 
         if ($response->failed()) {
             $statusCode = $response->status();
             $responseBody = $response->body();
-            
+
             if ($statusCode === 422) {
-                $errorDetails = $response->json('detail') ?? $responseBody ?? 'Validation error from Python NLP service';
-                throw new \RuntimeException('PDF processing validation error: ' . $errorDetails);
+                $errorDetails = $response->json('detail')
+                    ?? $responseBody
+                    ?? 'Validation error from Python NLP service';
+
+                throw new \RuntimeException(
+                    'PDF processing validation error: '
+                    . $errorDetails
+                );
             }
-            
-            throw new \RuntimeException('Python NLP service returned error ' . $statusCode . ': ' . $responseBody);
+
+            throw new \RuntimeException(
+                'Python NLP service returned error '
+                . $statusCode
+                . ': '
+                . $responseBody
+            );
         }
 
         $payload = $response->json();
 
-        // Validate Python API response
-        if (empty($payload['success']) || !isset($payload['records']) || !is_array($payload['records'])) {
-            \Log::warning('Python API returned empty records', ['payload' => $payload]);
+        if (
+            empty($payload['success']) ||
+            ! isset($payload['records']) ||
+            ! is_array($payload['records'])
+        ) {
+            \Log::warning(
+                'Python API returned empty records',
+                ['payload' => $payload]
+            );
+
             return [
                 'total' => 0,
                 'processed' => 0,
                 'failed' => 0,
                 'skipped_headers' => 0,
                 'skipped_no_bus_no' => 0,
-                'first_error' => 'No records found in PDF',
+                'first_error' => 'No records found in PDF.',
             ];
         }
 
@@ -400,72 +793,90 @@ class BatchFileProcessingController extends Controller
         $total = count($records);
         $processed = 0;
         $failed = 0;
-        $skipped_no_bus_no = 0;
+        $skippedNoBusNo = 0;
         $firstFailureMessage = null;
         $seenSignatures = [];
 
-        \Log::info('Processing PDF with ' . $total . ' records from Python API');
-
-        DB::transaction(function () use ($batch, $records, &$processed, &$failed, &$skipped_no_bus_no, &$firstFailureMessage, &$seenSignatures) {
+        DB::transaction(function () use (
+            $batch,
+            $records,
+            &$processed,
+            &$failed,
+            &$skippedNoBusNo,
+            &$firstFailureMessage,
+            &$seenSignatures
+        ) {
             foreach ($records as $item) {
                 try {
-                    // Python API already validated Bus No., but check anyway
                     $busNo = $item['bus_no'] ?? null;
-                    if (!$busNo || trim($busNo) === '') {
-                        $skipped_no_bus_no++;
-                        \Log::debug('Skipping record without bus_no');
+
+                    if (! $busNo || trim($busNo) === '') {
+                        $skippedNoBusNo++;
                         continue;
                     }
 
-                    // Parse dates from Python API format (e.g., "2026-06-25 04:30 AM")
-                    $beginningAt = null;
-                    if (!empty($item['beginning'])) {
-                        try {
-                            $beginningAt = Carbon::createFromFormat('Y-m-d h:i A', $item['beginning']);
-                        } catch (\Exception $e) {
-                            \Log::warning('Failed to parse beginning date', ['value' => $item['beginning']]);
-                        }
-                    }
+                    $beginningAt = ! empty($item['beginning'])
+                        ? $this->parseDateTime($item['beginning'])
+                        : null;
 
-                    $endingAt = null;
-                    if (!empty($item['ending'])) {
-                        try {
-                            $endingAt = Carbon::createFromFormat('Y-m-d h:i A', $item['ending']);
-                        } catch (\Exception $e) {
-                            \Log::warning('Failed to parse ending date', ['value' => $item['ending']]);
-                        }
-                    }
+                    $endingAt = ! empty($item['ending'])
+                        ? $this->parseDateTime($item['ending'])
+                        : null;
 
-                    // Create GPS record directly from Python API data
-                    GpsTripRecord::create([
-                        'batch_upload_id' => $batch->id,
-                        'bus_no' => $busNo,
+                    $payload = [
                         'record_no' => $item['record_no'] ?? null,
+                        'bus_no' => $busNo,
                         'grouping' => $item['grouping'] ?? null,
                         'trip_type' => $item['trip_type'] ?? null,
                         'beginning_at' => $beginningAt,
                         'initial_location' => $item['initial_location'] ?? null,
                         'ending_at' => $endingAt,
                         'final_location' => $item['final_location'] ?? null,
-                        'duration_minutes' => !empty($item['duration_minutes']) ? (float) $item['duration_minutes'] : null,
-                        'total_minutes' => !empty($item['total_minutes']) ? (float) $item['total_minutes'] : null,
-                        'in_motion_minutes' => !empty($item['in_motion_minutes']) ? (float) $item['in_motion_minutes'] : null,
-                        'idling_minutes' => !empty($item['idling_minutes']) ? (float) $item['idling_minutes'] : null,
-                        'mileage_km' => !empty($item['mileage_km']) ? (float) $item['mileage_km'] : null,
-                        'engine_hours' => !empty($item['engine_hours']) ? (float) $item['engine_hours'] : null,
+                        'duration_minutes' => ! empty($item['duration_minutes'])
+                            ? (float) $item['duration_minutes']
+                            : null,
+                        'total_minutes' => ! empty($item['total_minutes'])
+                            ? (float) $item['total_minutes']
+                            : null,
+                        'in_motion_minutes' => ! empty($item['in_motion_minutes'])
+                            ? (float) $item['in_motion_minutes']
+                            : null,
+                        'idling_minutes' => ! empty($item['idling_minutes'])
+                            ? (float) $item['idling_minutes']
+                            : null,
+                        'mileage_km' => ! empty($item['mileage_km'])
+                            ? (float) $item['mileage_km']
+                            : null,
+                        'engine_hours' => ! empty($item['engine_hours'])
+                            ? (float) $item['engine_hours']
+                            : null,
                         'location' => $item['location'] ?? null,
                         'coordinates' => $item['coordinates'] ?? null,
                         'description' => $item['description'] ?? null,
                         'source_format' => 'GPS Report',
                         'severity' => 'Normal',
-                        'raw_data' => $item['raw_data'] ?? $item,
-                    ]);
+                    ];
+
+                    $signature = $this->fingerprintRecord($payload);
+
+                    if (in_array($signature, $seenSignatures, true)) {
+                        throw new \RuntimeException(
+                            'Duplicate PDF record skipped during batch processing.'
+                        );
+                    }
+
+                    $seenSignatures[] = $signature;
+
+                    $this->saveRecord(
+                        $batch,
+                        $payload,
+                        $item['raw_data'] ?? $item
+                    );
 
                     $processed++;
-                    \Log::debug('Saved GPS record for bus: ' . $busNo);
                 } catch (\Throwable $exception) {
                     $failed++;
-                    \Log::error('Failed to save GPS record: ' . $exception->getMessage(), ['item' => $item ?? []]);
+
                     if ($firstFailureMessage === null) {
                         $firstFailureMessage = $exception->getMessage();
                     }
@@ -473,25 +884,21 @@ class BatchFileProcessingController extends Controller
             }
         });
 
-        \Log::info('PDF processing complete', [
-            'total' => $total,
-            'processed' => $processed,
-            'failed' => $failed,
-            'skipped_no_bus_no' => $skipped_no_bus_no,
-        ]);
-
         return [
             'total' => $total,
             'processed' => $processed,
             'failed' => $failed,
             'skipped_headers' => 0,
-            'skipped_no_bus_no' => $skipped_no_bus_no,
+            'skipped_no_bus_no' => $skippedNoBusNo,
             'first_error' => $firstFailureMessage,
         ];
     }
 
-    private function saveRecord(BatchUpload $batch, array $payload, array $rawData): void
-    {
+    private function saveRecord(
+        BatchUpload $batch,
+        array $payload,
+        array $rawData
+    ): void {
         GpsTripRecord::create([
             'batch_upload_id' => $batch->id,
             'record_no' => $payload['record_no'] ?? null,
@@ -513,62 +920,255 @@ class BatchFileProcessingController extends Controller
             'description' => $payload['description'] ?? null,
             'source_format' => $payload['source_format'] ?? 'GPS Report',
             'severity' => $payload['severity'] ?? 'Normal',
-            'raw_data' => array_merge($rawData, ['source_format' => $payload['source_format'] ?? 'GPS Report']),
+            'raw_data' => array_merge(
+                $rawData,
+                [
+                    'source_format' => $payload['source_format']
+                        ?? 'GPS Report',
+                ]
+            ),
         ]);
     }
 
-    private function mapUnifiedRecord(array $data, string $sourceFormat): array
-    {
-        $beginning = $this->parseDateTime($this->valueFromRow($data, ['beginning', 'beginning at', 'start time', 'start', 'departure', 'start date']));
-        $ending = $this->parseDateTime($this->valueFromRow($data, ['end', 'ending', 'end time', 'arrival', 'end date']));
+    private function mapUnifiedRecord(
+        array $data,
+        string $sourceFormat
+    ): array {
+        $beginning = $this->parseDateTime(
+            $this->valueFromRow(
+                $data,
+                [
+                    'beginning',
+                    'beginning at',
+                    'start time',
+                    'start',
+                    'departure',
+                    'start date',
+                ]
+            )
+        );
 
-        $durationMinutes = $this->durationToMinutes($this->valueFromRow($data, ['duration', 'duration minutes', 'trip duration']));
-        $totalMinutes = $this->durationToMinutes($this->valueFromRow($data, ['total time', 'total minutes', 'total mins', 'total duration']));
-        $inMotionMinutes = $this->durationToMinutes($this->valueFromRow($data, ['move time', 'moving time', 'in motion', 'in motion minutes', 'moving mins', 'moving minutes']));
-        $idlingMinutes = $this->durationToMinutes($this->valueFromRow($data, ['idling', 'idle', 'idle time', 'idle duration', 'idle mins', 'idle minutes']));
+        $ending = $this->parseDateTime(
+            $this->valueFromRow(
+                $data,
+                [
+                    'end',
+                    'ending',
+                    'end time',
+                    'arrival',
+                    'end date',
+                ]
+            )
+        );
 
-        $busNo = $this->valueFromRow($data, ['bus no', 'bus number', 'bus', 'vehicle id', 'vehicle', 'vehicle number', 'vehicle no', 'unit no', 'unit number', 'unit', 'fleet no', 'fleet number']);
-        $recordNo = $this->valueFromRow($data, ['record no', 'record number', 'no', 'record']);
+        $durationMinutes = $this->durationToMinutes(
+            $this->valueFromRow(
+                $data,
+                [
+                    'duration',
+                    'duration minutes',
+                    'trip duration',
+                ]
+            )
+        );
+
+        $totalMinutes = $this->durationToMinutes(
+            $this->valueFromRow(
+                $data,
+                [
+                    'total time',
+                    'total minutes',
+                    'total mins',
+                    'total duration',
+                ]
+            )
+        );
+
+        $inMotionMinutes = $this->durationToMinutes(
+            $this->valueFromRow(
+                $data,
+                [
+                    'move time',
+                    'moving time',
+                    'in motion',
+                    'in motion minutes',
+                    'moving mins',
+                    'moving minutes',
+                ]
+            )
+        );
+
+        $idlingMinutes = $this->durationToMinutes(
+            $this->valueFromRow(
+                $data,
+                [
+                    'idling',
+                    'idle',
+                    'idle time',
+                    'idle duration',
+                    'idle mins',
+                    'idle minutes',
+                ]
+            )
+        );
+
+        $busNo = $this->valueFromRow(
+            $data,
+            [
+                'bus no',
+                'bus number',
+                'bus',
+                'vehicle id',
+                'vehicle',
+                'vehicle number',
+                'vehicle no',
+                'unit no',
+                'unit number',
+                'unit',
+                'fleet no',
+                'fleet number',
+            ]
+        );
+
+        $recordNo = $this->valueFromRow(
+            $data,
+            [
+                'record no',
+                'record number',
+                'no',
+                'record',
+            ]
+        );
 
         return [
             'record_no' => $this->cleanValue($recordNo),
             'bus_no' => $this->cleanValue($busNo),
-            'grouping' => $this->cleanValue($this->valueFromRow($data, ['grouping', 'groupings', 'group', 'route', 'route name'])),
-            'trip_type' => $this->cleanValue($this->valueFromRow($data, ['type', 'trip type', 'trip'])),
+            'grouping' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'grouping',
+                        'groupings',
+                        'group',
+                        'route',
+                        'route name',
+                    ]
+                )
+            ),
+            'trip_type' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'type',
+                        'trip type',
+                        'trip',
+                    ]
+                )
+            ),
             'beginning_at' => $beginning,
-            'initial_location' => $this->cleanValue($this->valueFromRow($data, ['initial location', 'origin', 'from', 'start location'])),
+            'initial_location' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'initial location',
+                        'origin',
+                        'from',
+                        'start location',
+                    ]
+                )
+            ),
             'ending_at' => $ending,
-            'final_location' => $this->cleanValue($this->valueFromRow($data, ['final location', 'destination', 'to', 'end location'])),
+            'final_location' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'final location',
+                        'destination',
+                        'to',
+                        'end location',
+                    ]
+                )
+            ),
             'duration_minutes' => $durationMinutes,
             'total_minutes' => $totalMinutes ?? $durationMinutes,
             'in_motion_minutes' => $inMotionMinutes,
             'idling_minutes' => $idlingMinutes,
-            'mileage_km' => $this->numericValue($this->valueFromRow($data, ['mileage', 'mileage km', 'mileage in trips', 'distance', 'km'])),
-            'engine_hours' => $this->numericValue($this->valueFromRow($data, ['engine hours', 'engine hour', 'hrs'])),
-            'location' => $this->cleanValue($this->valueFromRow($data, ['location', 'location name', 'site'])),
-            'coordinates' => $this->cleanValue($this->valueFromRow($data, ['coordinates', 'coordinate', 'lat lng', 'gps coordinates', 'gps'])),
-            'description' => $this->cleanValue($this->valueFromRow($data, ['description', 'remarks', 'comments', 'comment', 'notes'])),
+            'mileage_km' => $this->numericValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'mileage',
+                        'mileage km',
+                        'mileage in trips',
+                        'distance',
+                        'km',
+                    ]
+                )
+            ),
+            'engine_hours' => $this->numericValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'engine hours',
+                        'engine hour',
+                        'hrs',
+                    ]
+                )
+            ),
+            'location' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'location',
+                        'location name',
+                        'site',
+                    ]
+                )
+            ),
+            'coordinates' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'coordinates',
+                        'coordinate',
+                        'lat lng',
+                        'gps coordinates',
+                        'gps',
+                    ]
+                )
+            ),
+            'description' => $this->cleanValue(
+                $this->valueFromRow(
+                    $data,
+                    [
+                        'description',
+                        'remarks',
+                        'comments',
+                        'comment',
+                        'notes',
+                    ]
+                )
+            ),
             'source_format' => $sourceFormat,
             'severity' => $this->severityFromIdleMinutes($idlingMinutes),
         ];
     }
 
-    private function normalizePdfItem(array $item): array
-    {
-        $normalized = [];
-
-        foreach ($item as $key => $value) {
-            $normalized[$this->normalizeHeader((string) $key)] = $this->cleanValue(is_array($value) ? json_encode($value) : (string) $value);
-        }
-
-        return $normalized;
-    }
-
     private function normalizeHeader(?string $header): string
     {
-        $header = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header);
+        $header = preg_replace(
+            '/^\xEF\xBB\xBF/',
+            '',
+            (string) $header
+        );
+
         $header = mb_strtolower(trim($header), 'UTF-8');
-        $header = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $header);
+
+        $header = preg_replace(
+            '/[^\p{L}\p{N}]+/u',
+            ' ',
+            $header
+        );
 
         return trim(preg_replace('/\s+/', ' ', $header));
     }
@@ -584,8 +1184,10 @@ class BatchFileProcessingController extends Controller
         return $value === '' ? null : $value;
     }
 
-    private function valueFromRow(array $data, array $possibleHeaders): ?string
-    {
+    private function valueFromRow(
+        array $data,
+        array $possibleHeaders
+    ): ?string {
         foreach ($possibleHeaders as $header) {
             $header = $this->normalizeHeader($header);
 
@@ -604,9 +1206,13 @@ class BatchFileProcessingController extends Controller
             $payload['bus_no'] ?? null,
             $payload['grouping'] ?? null,
             $payload['trip_type'] ?? null,
-            $payload['beginning_at'] ? $payload['beginning_at']->toDateTimeString() : null,
+            isset($payload['beginning_at']) && $payload['beginning_at']
+                ? $payload['beginning_at']->toDateTimeString()
+                : null,
             $payload['initial_location'] ?? null,
-            $payload['ending_at'] ? $payload['ending_at']->toDateTimeString() : null,
+            isset($payload['ending_at']) && $payload['ending_at']
+                ? $payload['ending_at']->toDateTimeString()
+                : null,
             $payload['final_location'] ?? null,
             $payload['duration_minutes'] ?? null,
             $payload['location'] ?? null,
@@ -614,7 +1220,15 @@ class BatchFileProcessingController extends Controller
             $payload['description'] ?? null,
         ];
 
-        return md5(implode('|', array_map(fn ($value) => (string) ($value ?? ''), $values)));
+        return md5(
+            implode(
+                '|',
+                array_map(
+                    fn ($value) => (string) ($value ?? ''),
+                    $values
+                )
+            )
+        );
     }
 
     private function numericValue(?string $value): ?float
@@ -623,9 +1237,15 @@ class BatchFileProcessingController extends Controller
             return null;
         }
 
-        $cleanValue = preg_replace('/[^0-9.\-]/', '', str_replace(',', '', $value));
+        $cleanValue = preg_replace(
+            '/[^0-9.\-]/',
+            '',
+            str_replace(',', '', $value)
+        );
 
-        return is_numeric($cleanValue) ? (float) $cleanValue : null;
+        return is_numeric($cleanValue)
+            ? (float) $cleanValue
+            : null;
     }
 
     private function durationToMinutes(?string $value): ?int
@@ -636,19 +1256,43 @@ class BatchFileProcessingController extends Controller
 
         $value = strtolower(trim($value));
 
-        if (preg_match('/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/', $value, $matches)) {
+        if (
+            preg_match(
+                '/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/',
+                $value,
+                $matches
+            )
+        ) {
             $hours = (int) $matches[1];
             $minutes = (int) $matches[2];
-            $seconds = isset($matches[3]) ? (int) $matches[3] : 0;
+            $seconds = isset($matches[3])
+                ? (int) $matches[3]
+                : 0;
 
-            return ($hours * 60) + $minutes + (int) round($seconds / 60);
+            return ($hours * 60)
+                + $minutes
+                + (int) round($seconds / 60);
         }
 
-        preg_match('/(\d+)\s*(h|hour|hours)/', $value, $hourMatches);
-        preg_match('/(\d+)\s*(m|min|mins|minute|minutes)/', $value, $minuteMatches);
+        preg_match(
+            '/(\d+)\s*(h|hour|hours)/',
+            $value,
+            $hourMatches
+        );
 
-        $hours = isset($hourMatches[1]) ? (int) $hourMatches[1] : 0;
-        $minutes = isset($minuteMatches[1]) ? (int) $minuteMatches[1] : 0;
+        preg_match(
+            '/(\d+)\s*(m|min|mins|minute|minutes)/',
+            $value,
+            $minuteMatches
+        );
+
+        $hours = isset($hourMatches[1])
+            ? (int) $hourMatches[1]
+            : 0;
+
+        $minutes = isset($minuteMatches[1])
+            ? (int) $minuteMatches[1]
+            : 0;
 
         if ($hours > 0 || $minutes > 0) {
             return ($hours * 60) + $minutes;
@@ -656,7 +1300,9 @@ class BatchFileProcessingController extends Controller
 
         $numeric = $this->numericValue($value);
 
-        return $numeric !== null ? (int) round($numeric) : null;
+        return $numeric !== null
+            ? (int) round($numeric)
+            : null;
     }
 
     private function parseDateTime(?string $value): ?Carbon
