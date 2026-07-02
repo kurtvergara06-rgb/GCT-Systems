@@ -107,7 +107,7 @@
         $tableSubtitle = 'Select an uploaded GPS file to view trip records.';
 
         if ($selectedBatch?->status === 'In Review') {
-            $tableSubtitle = 'Uploaded GPS trip records waiting for admin review.';
+            $tableSubtitle = 'Uploaded GPS trip records waiting for admin review and correction.';
         } elseif ($selectedBatch?->status === 'Processed') {
             $tableSubtitle = 'Approved GPS trip records ready for analytics and reporting.';
         } elseif ($selectedBatch?->status === 'Failed') {
@@ -191,7 +191,7 @@
                                 Upload GPS Files
                             </h2>
 
-                            <p>Upload CSV, TXT, or PDF reports for extraction and review.</p>
+                            <p>Upload PDF, CSV, TXT, XLS, or XLSX reports for extraction and review.</p>
                         </div>
                     </div>
 
@@ -199,7 +199,7 @@
                         type="file"
                         id="gpsFileInput"
                         name="gps_file"
-                        accept=".csv,.txt,.pdf"
+                        accept=".csv,.txt,.pdf,.xls,.xlsx"
                         hidden
                         required
                     >
@@ -230,7 +230,7 @@
                     <div class="upload-details">
                         <span>
                             <i class="fa-solid fa-file-lines"></i>
-                            CSV, TXT, and PDF supported
+                            PDF, CSV, TXT, XLS, and XLSX supported
                         </span>
 
                         <span>
@@ -461,16 +461,29 @@
                             <p>Cleaned and structured values from the selected trip record.</p>
                         </div>
 
-                        @if($selectedBatch && $allSelectedRecords->isNotEmpty())
-                            <button
-                                type="button"
-                                class="view-all-records-btn"
-                                data-open-records-modal
-                            >
-                                <i class="fa-solid fa-table-list"></i>
-                                View Cleaned Records
-                            </button>
-                        @endif
+                        <div class="parsed-fields-actions">
+                            @if($selectedRecord && $selectedBatch?->status === 'In Review')
+                                <button
+                                    type="button"
+                                    class="edit-record-btn"
+                                    id="openEditTripRecordModal"
+                                >
+                                    <i class="fa-solid fa-pen"></i>
+                                    Edit Record
+                                </button>
+                            @endif
+
+                            @if($selectedBatch && $allSelectedRecords->isNotEmpty())
+                                <button
+                                    type="button"
+                                    class="view-all-records-btn"
+                                    data-open-records-modal
+                                >
+                                    <i class="fa-solid fa-table-list"></i>
+                                    View Cleaned Records
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="parsed-fields-list">
@@ -488,7 +501,7 @@
                 <div class="section-header">
                     <div>
                         <h2>Structured Trip Records</h2>
-                        <p>Processed GPS trip records ready for analytics and reporting.</p>
+                        <p>{{ $tableSubtitle }}</p>
                     </div>
 
                     <div class="table-header-actions">
@@ -517,13 +530,15 @@
                             </div>
                         </form>
 
-                        <a
-                            href="{{ route('batch-file-processing.export', array_filter(array_merge(request()->only(['batch_id', 'search']), ['selected_record' => request('selected_record')]), fn ($value) => $value !== null && $value !== '')) }}"
-                            class="primary-btn export-btn"
-                        >
-                            <i class="fa-solid fa-file-export"></i>
-                            Export CSV
-                        </a>
+                        @if($selectedBatch?->status === 'Processed')
+                            <a
+                                href="{{ route('batch-file-processing.export', array_filter(array_merge(request()->only(['batch_id', 'search']), ['selected_record' => request('selected_record')]), fn ($value) => $value !== null && $value !== '')) }}"
+                                class="primary-btn export-btn"
+                            >
+                                <i class="fa-solid fa-file-export"></i>
+                                Export CSV
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -604,7 +619,10 @@
                             @if($records->onFirstPage())
                                 <span class="page-arrow disabled">&lsaquo;</span>
                             @else
-                                <a href="{{ $records->previousPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}" class="page-arrow">
+                                <a
+                                    href="{{ $records->previousPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
+                                    class="page-arrow"
+                                >
                                     &lsaquo;
                                 </a>
                             @endif
@@ -619,7 +637,10 @@
                             @endfor
 
                             @if($records->hasMorePages())
-                                <a href="{{ $records->nextPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}" class="page-arrow">
+                                <a
+                                    href="{{ $records->nextPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
+                                    class="page-arrow"
+                                >
                                     &rsaquo;
                                 </a>
                             @else
@@ -785,6 +806,7 @@
                                         <th>Recorded Location</th>
                                         <th>Recorded Coordinates</th>
                                         <th>Remarks</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
 
@@ -816,11 +838,236 @@
                                             <td>{{ $record->location ?? '—' }}</td>
                                             <td>{{ $record->coordinates ?? '—' }}</td>
                                             <td>{{ $record->description ?? '—' }}</td>
+
+                                            <td>
+                                                <a
+                                                    href="{{ route('batch-file-processing', [
+                                                        'batch_id' => $selectedBatchId,
+                                                        'selected_record' => $record->id,
+                                                    ]) }}"
+                                                    class="table-action"
+                                                    title="View selected record"
+                                                >
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($selectedRecord && $selectedBatch?->status === 'In Review')
+                <div class="edit-trip-modal-overlay" id="editTripRecordModal">
+                    <div class="edit-trip-modal">
+                        <div class="edit-trip-modal-header">
+                            <div>
+                                <h2>Edit GPS Trip Record</h2>
+                                <p>Correct extracted values before marking the batch as processed.</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="records-modal-close"
+                                id="closeEditTripRecordModal"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <form
+                            action="{{ route('batch-file-processing.records.update', $selectedRecord) }}"
+                            method="POST"
+                            class="edit-trip-form"
+                        >
+                            @csrf
+                            @method('PUT')
+
+                            <div class="edit-trip-grid">
+                                <div class="form-group">
+                                    <label>Bus No. *</label>
+                                    <input
+                                        type="text"
+                                        name="bus_no"
+                                        value="{{ old('bus_no', $selectedRecord->bus_no) }}"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Record No.</label>
+                                    <input
+                                        type="text"
+                                        name="record_no"
+                                        value="{{ old('record_no', $selectedRecord->record_no) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Grouping / Route</label>
+                                    <input
+                                        type="text"
+                                        name="grouping"
+                                        value="{{ old('grouping', $selectedRecord->grouping) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Trip Type</label>
+                                    <input
+                                        type="text"
+                                        name="trip_type"
+                                        value="{{ old('trip_type', $selectedRecord->trip_type) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Beginning</label>
+                                    <input
+                                        type="datetime-local"
+                                        name="beginning_at"
+                                        value="{{ old('beginning_at', $selectedRecord->beginning_at?->format('Y-m-d\TH:i')) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>End</label>
+                                    <input
+                                        type="datetime-local"
+                                        name="ending_at"
+                                        value="{{ old('ending_at', $selectedRecord->ending_at?->format('Y-m-d\TH:i')) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Initial Location</label>
+                                    <input
+                                        type="text"
+                                        name="initial_location"
+                                        value="{{ old('initial_location', $selectedRecord->initial_location) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Final Location</label>
+                                    <input
+                                        type="text"
+                                        name="final_location"
+                                        value="{{ old('final_location', $selectedRecord->final_location) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Duration Minutes</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        name="duration_minutes"
+                                        value="{{ old('duration_minutes', $selectedRecord->duration_minutes) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Total Minutes</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        name="total_minutes"
+                                        value="{{ old('total_minutes', $selectedRecord->total_minutes) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>In Motion Minutes</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        name="in_motion_minutes"
+                                        value="{{ old('in_motion_minutes', $selectedRecord->in_motion_minutes) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Idling Minutes</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        name="idling_minutes"
+                                        value="{{ old('idling_minutes', $selectedRecord->idling_minutes) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Mileage (KM)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        name="mileage_km"
+                                        value="{{ old('mileage_km', $selectedRecord->mileage_km) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Engine Hours</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        name="engine_hours"
+                                        value="{{ old('engine_hours', $selectedRecord->engine_hours) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Recorded Location</label>
+                                    <input
+                                        type="text"
+                                        name="location"
+                                        value="{{ old('location', $selectedRecord->location) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Coordinates</label>
+                                    <input
+                                        type="text"
+                                        name="coordinates"
+                                        value="{{ old('coordinates', $selectedRecord->coordinates) }}"
+                                    >
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label>Remarks</label>
+                                    <textarea
+                                        name="description"
+                                        rows="3"
+                                    >{{ old('description', $selectedRecord->description) }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="edit-trip-actions">
+                                <button
+                                    type="button"
+                                    class="batch-delete-cancel-btn"
+                                    id="cancelEditTripRecordModal"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button type="submit" class="edit-trip-save-btn">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    Update Record
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             @endif
