@@ -1251,3 +1251,226 @@
         width: 100%;
     }
 }
+
+.batch-editor-modal {
+    width: min(1600px, 97vw);
+}
+
+.batch-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.batch-editor-note {
+    margin: 0 0 14px;
+    padding: 11px 13px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.batch-editor-note i {
+    margin-right: 6px;
+}
+
+.unsaved-changes-label {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.unsaved-changes-label.has-changes {
+    background: #fff3cd;
+    color: #b45309;
+}
+
+.save-all-records-btn {
+    height: 38px;
+    padding: 0 13px;
+    border: none;
+    border-radius: 9px;
+    background: #0057f8;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    transition: 0.2s ease;
+}
+
+.save-all-records-btn:hover:not(:disabled) {
+    background: #003fbd;
+}
+
+.save-all-records-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.batch-editor-table td {
+    min-width: 145px;
+    vertical-align: middle;
+}
+
+.batch-editor-table td:last-child {
+    min-width: 70px;
+}
+
+.batch-edit-input {
+    width: 100%;
+    min-width: 120px;
+    padding: 8px 9px;
+    border: 1px solid #dce5f2;
+    border-radius: 7px;
+    outline: none;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 11px;
+    font-family: inherit;
+    transition: 0.2s ease;
+}
+
+.batch-edit-input:focus {
+    border-color: #0057f8;
+    box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.batch-edit-textarea {
+    min-width: 220px;
+    resize: vertical;
+}
+
+.datetime-input {
+    min-width: 180px;
+}
+
+.number-input {
+    min-width: 95px;
+}
+
+.batch-edit-row.row-edited td {
+    background: #fff9e6 !important;
+}
+
+.batch-edit-row.row-edited .batch-edit-input {
+    border-color: #f59e0b;
+    background: #fffdf5;
+}
+
+@media (max-width: 760px) {
+    .batch-editor-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .save-all-records-btn,
+    .unsaved-changes-label {
+        width: 100%;
+    }
+}
+
+.batch-editor-modal {
+    width: min(1750px, 97vw);
+    padding: 16px 20px 18px;
+}
+
+.batch-editor-modal .records-modal-header {
+    margin-bottom: 10px;
+}
+
+.batch-editor-modal .records-modal-header h2 {
+    font-size: 16px;
+}
+
+.batch-editor-modal .records-modal-header p {
+    margin-top: 2px;
+    font-size: 10px;
+}
+
+.batch-editor-modal .records-modal-tools {
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.batch-editor-modal .modal-search {
+    width: 295px;
+}
+
+.batch-editor-modal .modal-search input {
+    height: 34px;
+    font-size: 11px;
+}
+
+.batch-editor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    margin-left: auto;
+}
+
+.batch-editor-actions form {
+    margin: 0;
+}
+
+.unsaved-changes-label {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.unsaved-changes-label.has-changes {
+    background: #fff3cd;
+    color: #b45309;
+}
+
+.save-all-records-btn,
+.confirm-batch-btn {
+    height: 34px;
+    padding: 0 11px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.save-all-records-btn {
+    min-width: auto;
+}
+
+.confirm-batch-btn {
+    min-width: auto;
+}
+
+.batch-editor-note {
+    margin-bottom: 10px;
+    padding: 9px 11px;
+    font-size: 10px;
+}
+
+.batch-editor-table th {
+    font-size: 10px;
+}
+
+.batch-editor-table td {
+    min-width: 110px;
+}
+
+.batch-editor-table td:last-child {
+    min-width: 210px;
+}

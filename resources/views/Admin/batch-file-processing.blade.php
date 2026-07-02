@@ -98,21 +98,13 @@
             $rawRows[$rawRecord->id] = $recordRawData;
 
             foreach (array_keys($recordRawData) as $rawHeader) {
-                if (!in_array($rawHeader, $rawHeaders, true)) {
+                if (! in_array($rawHeader, $rawHeaders, true)) {
                     $rawHeaders[] = $rawHeader;
                 }
             }
         }
 
-        $tableSubtitle = 'Select an uploaded GPS file to view trip records.';
-
-        if ($selectedBatch?->status === 'In Review') {
-            $tableSubtitle = 'Uploaded GPS trip records waiting for admin review and correction.';
-        } elseif ($selectedBatch?->status === 'Processed') {
-            $tableSubtitle = 'Approved GPS trip records ready for analytics and reporting.';
-        } elseif ($selectedBatch?->status === 'Failed') {
-            $tableSubtitle = 'This upload failed validation and needs correction.';
-        }
+        $tableSubtitle = 'Only processed GPS trip records are shown here and ready for analytics and reporting.';
     @endphp
 
     <div class="app">
@@ -152,7 +144,7 @@
                             <i class="fa-solid {{ $isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation' }}"></i>
                         </div>
 
-                        <h2>{{ $isSuccess ? 'Success' : 'Upload Failed' }}</h2>
+                        <h2>{{ $isSuccess ? 'Success' : 'Error' }}</h2>
 
                         <p>{{ $feedbackMessage }}</p>
 
@@ -260,7 +252,7 @@
                                 Current Batch Summary
                             </h2>
 
-                            <p>Overview of your latest uploaded GPS files.</p>
+                            <p>Overview of uploaded GPS files.</p>
                         </div>
 
                         <button type="button" class="secondary-btn">
@@ -334,7 +326,7 @@
                                 Uploaded Files
                             </h3>
 
-                            <p>Select a file to review all extracted records.</p>
+                            <p>Select a file to review extracted records.</p>
                         </div>
                     </div>
 
@@ -358,13 +350,12 @@
                                         </span>
                                     </div>
 
-                                    <span class="
-                                        {{ $batch->status === 'Processed'
-                                            ? 'processed-badge'
-                                            : ($batch->status === 'Failed'
-                                                ? 'failed-badge'
-                                                : 'review-badge') }}
-                                    ">
+                                    <span class="{{ $batch->status === 'Processed'
+                                        ? 'processed-badge'
+                                        : ($batch->status === 'Failed'
+                                            ? 'failed-badge'
+                                            : 'review-badge') }}"
+                                    >
                                         {{ $batch->status }}
                                     </span>
                                 </a>
@@ -411,13 +402,6 @@
                         </div>
 
                         <div class="record-navigation">
-                            @if($records->total() > 0)
-                                <span>
-                                    Record {{ $records->firstItem() ?? 1 }}
-                                    of {{ $records->total() }}
-                                </span>
-                            @endif
-
                             @if($selectedBatch && count($rawHeaders) > 0)
                                 <button
                                     type="button"
@@ -432,7 +416,7 @@
                     </div>
 
                     <div class="text-preview">
-<pre>{{ $rawPreview }}</pre>
+                        <pre>{{ $rawPreview }}</pre>
                     </div>
 
                     @if($selectedRecord)
@@ -458,32 +442,19 @@
                                 Parsed Fields
                             </h3>
 
-                            <p>Cleaned and structured values from the selected trip record.</p>
+                            <p>Cleaned structured values from the selected trip record.</p>
                         </div>
 
-                        <div class="parsed-fields-actions">
-                            @if($selectedRecord && $selectedBatch?->status === 'In Review')
-                                <button
-                                    type="button"
-                                    class="edit-record-btn"
-                                    id="openEditTripRecordModal"
-                                >
-                                    <i class="fa-solid fa-pen"></i>
-                                    Edit Record
-                                </button>
-                            @endif
-
-                            @if($selectedBatch && $allSelectedRecords->isNotEmpty())
-                                <button
-                                    type="button"
-                                    class="view-all-records-btn"
-                                    data-open-records-modal
-                                >
-                                    <i class="fa-solid fa-table-list"></i>
-                                    View Cleaned Records
-                                </button>
-                            @endif
-                        </div>
+                        @if($selectedBatch && $allSelectedRecords->isNotEmpty())
+                            <button
+                                type="button"
+                                class="view-all-records-btn parsed-view-records-btn"
+                                data-open-records-modal
+                            >
+                                <i class="fa-solid fa-table-list"></i>
+                                View Cleaned Records
+                            </button>
+                        @endif
                     </div>
 
                     <div class="parsed-fields-list">
@@ -510,14 +481,6 @@
                             action="{{ route('batch-file-processing') }}"
                             class="batch-search-form"
                         >
-                            @if($selectedBatchId)
-                                <input
-                                    type="hidden"
-                                    name="batch_id"
-                                    value="{{ $selectedBatchId }}"
-                                >
-                            @endif
-
                             <div class="mini-search">
                                 <i class="fa-solid fa-magnifying-glass"></i>
 
@@ -530,9 +493,11 @@
                             </div>
                         </form>
 
-                        @if($selectedBatch?->status === 'Processed')
+                        @if($records->total() > 0)
                             <a
-                                href="{{ route('batch-file-processing.export', array_filter(array_merge(request()->only(['batch_id', 'search']), ['selected_record' => request('selected_record')]), fn ($value) => $value !== null && $value !== '')) }}"
+                                href="{{ route('batch-file-processing.export', [
+                                    'search' => request('search'),
+                                ]) }}"
                                 class="primary-btn export-btn"
                             >
                                 <i class="fa-solid fa-file-export"></i>
@@ -585,7 +550,6 @@
                                     <td>
                                         <a
                                             href="{{ route('batch-file-processing', [
-                                                'batch_id' => $selectedBatchId,
                                                 'selected_record' => $record->id,
                                                 'search' => request('search'),
                                             ]) }}"
@@ -599,7 +563,7 @@
                             @empty
                                 <tr>
                                     <td colspan="15" class="empty-users">
-                                        No trip records found yet.
+                                        No processed trip records available yet.
                                     </td>
                                 </tr>
                             @endforelse
@@ -619,17 +583,14 @@
                             @if($records->onFirstPage())
                                 <span class="page-arrow disabled">&lsaquo;</span>
                             @else
-                                <a
-                                    href="{{ $records->previousPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
-                                    class="page-arrow"
-                                >
+                                <a href="{{ $records->previousPageUrl() }}" class="page-arrow">
                                     &lsaquo;
                                 </a>
                             @endif
 
                             @for($page = 1; $page <= $records->lastPage(); $page++)
                                 <a
-                                    href="{{ $records->url($page) }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
+                                    href="{{ $records->url($page) }}"
                                     class="page-number {{ $records->currentPage() === $page ? 'active' : '' }}"
                                 >
                                     {{ $page }}
@@ -637,10 +598,7 @@
                             @endfor
 
                             @if($records->hasMorePages())
-                                <a
-                                    href="{{ $records->nextPageUrl() }}&batch_id={{ $selectedBatchId }}&search={{ urlencode(request('search')) }}&selected_record={{ request('selected_record') }}"
-                                    class="page-arrow"
-                                >
+                                <a href="{{ $records->nextPageUrl() }}" class="page-arrow">
                                     &rsaquo;
                                 </a>
                             @else
@@ -738,10 +696,15 @@
 
             @if($selectedBatch && $allSelectedRecords->isNotEmpty())
                 <div class="records-modal-overlay" id="allBatchRecordsModal">
-                    <div class="records-modal">
+                    <div class="records-modal batch-editor-modal">
                         <div class="records-modal-header">
                             <div>
-                                <h2>Cleaned Structured Records</h2>
+                                <h2>
+                                    {{ $selectedBatch->status === 'In Review'
+                                        ? 'Review and Edit GPS Records'
+                                        : 'Cleaned Structured Records'
+                                    }}
+                                </h2>
 
                                 <p>
                                     {{ $selectedBatch->file_name }}
@@ -765,307 +728,270 @@
                                 <input
                                     type="text"
                                     id="allBatchRecordsSearch"
-                                    placeholder="Search cleaned records..."
+                                    placeholder="Search records..."
                                 >
                             </div>
 
                             @if($selectedBatch->status === 'In Review')
-                                <form
-                                    action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
-                                    method="POST"
-                                >
-                                    @csrf
-                                    @method('PATCH')
+                                <div class="batch-editor-actions">
+                                    <span class="unsaved-changes-label" id="unsavedChangesLabel">
+                                        All changes saved
+                                    </span>
 
-                                    <button type="submit" class="confirm-batch-btn">
-                                        <i class="fa-solid fa-circle-check"></i>
-                                        Mark as Processed
+                                    <button
+                                        type="button"
+                                        class="save-all-records-btn"
+                                        id="saveAllBatchRecordsBtn"
+                                        disabled
+                                    >
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        Save All Changes
                                     </button>
-                                </form>
+
+                                    <form
+                                        action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
+                                        method="POST"
+                                        id="confirmBatchForm"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <button type="submit" class="confirm-batch-btn">
+                                            <i class="fa-solid fa-check"></i>
+                                            Mark as Processed
+                                        </button>
+                                    </form>
+                                </div>
                             @endif
                         </div>
 
-                        <div class="records-modal-table-wrap">
-                            <table class="records-modal-table">
-                                <thead>
-                                    <tr>
-                                        <th>Bus No.</th>
-                                        <th>Record No.</th>
-                                        <th>Grouping</th>
-                                        <th>Type</th>
-                                        <th>Beginning</th>
-                                        <th>Initial Location</th>
-                                        <th>End</th>
-                                        <th>Final Location</th>
-                                        <th>Duration</th>
-                                        <th>Total Time</th>
-                                        <th>In Motion</th>
-                                        <th>Idling</th>
-                                        <th>Mileage</th>
-                                        <th>Engine Hours</th>
-                                        <th>Recorded Location</th>
-                                        <th>Recorded Coordinates</th>
-                                        <th>Remarks</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="allBatchRecordsTableBody">
-                                    @foreach($allSelectedRecords as $record)
-                                        <tr
-                                            data-search="{{ strtolower(
-                                                ($record->record_no ?? '') . ' ' .
-                                                ($record->bus_no ?? '') . ' ' .
-                                                ($record->grouping ?? '') . ' ' .
-                                                ($record->initial_location ?? '') . ' ' .
-                                                ($record->final_location ?? '')
-                                            ) }}"
-                                        >
-                                            <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
-                                            <td>{{ $record->record_no ?? '—' }}</td>
-                                            <td>{{ $record->grouping ?? '—' }}</td>
-                                            <td>{{ $record->trip_type ?? '—' }}</td>
-                                            <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                                            <td>{{ $record->initial_location ?? '—' }}</td>
-                                            <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                                            <td>{{ $record->final_location ?? '—' }}</td>
-                                            <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
-                                            <td>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</td>
-                                            <td>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</td>
-                                            <td>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</td>
-                                            <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
-                                            <td>{{ $record->engine_hours ?? '—' }}</td>
-                                            <td>{{ $record->location ?? '—' }}</td>
-                                            <td>{{ $record->coordinates ?? '—' }}</td>
-                                            <td>{{ $record->description ?? '—' }}</td>
-
-                                            <td>
-                                                <a
-                                                    href="{{ route('batch-file-processing', [
-                                                        'batch_id' => $selectedBatchId,
-                                                        'selected_record' => $record->id,
-                                                    ]) }}"
-                                                    class="table-action"
-                                                    title="View selected record"
-                                                >
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if($selectedRecord && $selectedBatch?->status === 'In Review')
-                <div class="edit-trip-modal-overlay" id="editTripRecordModal">
-                    <div class="edit-trip-modal">
-                        <div class="edit-trip-modal-header">
-                            <div>
-                                <h2>Edit GPS Trip Record</h2>
-                                <p>Correct extracted values before marking the batch as processed.</p>
+                        @if($selectedBatch->status === 'In Review')
+                            <div class="batch-editor-note">
+                                <i class="fa-solid fa-circle-info"></i>
+                                Click a field to edit it. Edited rows are highlighted. Save all corrections before marking this batch as processed.
                             </div>
-
-                            <button
-                                type="button"
-                                class="records-modal-close"
-                                id="closeEditTripRecordModal"
-                            >
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                        </div>
+                        @endif
 
                         <form
-                            action="{{ route('batch-file-processing.records.update', $selectedRecord) }}"
+                            action="{{ route('batch-file-processing.records.bulk-update', $selectedBatch) }}"
                             method="POST"
-                            class="edit-trip-form"
+                            id="bulkUpdateRecordsForm"
                         >
                             @csrf
                             @method('PUT')
 
-                            <div class="edit-trip-grid">
-                                <div class="form-group">
-                                    <label>Bus No. *</label>
-                                    <input
-                                        type="text"
-                                        name="bus_no"
-                                        value="{{ old('bus_no', $selectedRecord->bus_no) }}"
-                                        required
-                                    >
-                                </div>
+                            <div class="records-modal-table-wrap">
+                                <table class="records-modal-table batch-editor-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Bus No.</th>
+                                            <th>Record No.</th>
+                                            <th>Grouping / Route</th>
+                                            <th>Trip Type</th>
+                                            <th>Beginning</th>
+                                            <th>Initial Location</th>
+                                            <th>End</th>
+                                            <th>Final Location</th>
+                                            <th>Duration</th>
+                                            <th>Total</th>
+                                            <th>In Motion</th>
+                                            <th>Idling</th>
+                                            <th>Mileage</th>
+                                            <th>Engine Hours</th>
+                                            <th>Location</th>
+                                            <th>Coordinates</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
 
-                                <div class="form-group">
-                                    <label>Record No.</label>
-                                    <input
-                                        type="text"
-                                        name="record_no"
-                                        value="{{ old('record_no', $selectedRecord->record_no) }}"
-                                    >
-                                </div>
+                                    <tbody id="allBatchRecordsTableBody">
+                                        @foreach($allSelectedRecords as $index => $record)
+                                            <tr
+                                                class="batch-edit-row"
+                                                data-search="{{ strtolower(
+                                                    ($record->record_no ?? '') . ' ' .
+                                                    ($record->bus_no ?? '') . ' ' .
+                                                    ($record->grouping ?? '') . ' ' .
+                                                    ($record->initial_location ?? '') . ' ' .
+                                                    ($record->final_location ?? '')
+                                                ) }}"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="records[{{ $index }}][id]"
+                                                    value="{{ $record->id }}"
+                                                >
 
-                                <div class="form-group">
-                                    <label>Grouping / Route</label>
-                                    <input
-                                        type="text"
-                                        name="grouping"
-                                        value="{{ old('grouping', $selectedRecord->grouping) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][bus_no]"
+                                                            value="{{ $record->bus_no }}"
+                                                            required
+                                                        >
+                                                    @else
+                                                        <strong>{{ $record->bus_no ?? '—' }}</strong>
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Trip Type</label>
-                                    <input
-                                        type="text"
-                                        name="trip_type"
-                                        value="{{ old('trip_type', $selectedRecord->trip_type) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][record_no]"
+                                                            value="{{ $record->record_no }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->record_no ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Beginning</label>
-                                    <input
-                                        type="datetime-local"
-                                        name="beginning_at"
-                                        value="{{ old('beginning_at', $selectedRecord->beginning_at?->format('Y-m-d\TH:i')) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][grouping]"
+                                                            value="{{ $record->grouping }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->grouping ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>End</label>
-                                    <input
-                                        type="datetime-local"
-                                        name="ending_at"
-                                        value="{{ old('ending_at', $selectedRecord->ending_at?->format('Y-m-d\TH:i')) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][trip_type]"
+                                                            value="{{ $record->trip_type }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->trip_type ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Initial Location</label>
-                                    <input
-                                        type="text"
-                                        name="initial_location"
-                                        value="{{ old('initial_location', $selectedRecord->initial_location) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input datetime-input"
+                                                            type="datetime-local"
+                                                            name="records[{{ $index }}][beginning_at]"
+                                                            value="{{ $record->beginning_at?->format('Y-m-d\TH:i') }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Final Location</label>
-                                    <input
-                                        type="text"
-                                        name="final_location"
-                                        value="{{ old('final_location', $selectedRecord->final_location) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][initial_location]"
+                                                            value="{{ $record->initial_location }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->initial_location ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Duration Minutes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        name="duration_minutes"
-                                        value="{{ old('duration_minutes', $selectedRecord->duration_minutes) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input datetime-input"
+                                                            type="datetime-local"
+                                                            name="records[{{ $index }}][ending_at]"
+                                                            value="{{ $record->ending_at?->format('Y-m-d\TH:i') }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Total Minutes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        name="total_minutes"
-                                        value="{{ old('total_minutes', $selectedRecord->total_minutes) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][final_location]"
+                                                            value="{{ $record->final_location }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->final_location ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>In Motion Minutes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        name="in_motion_minutes"
-                                        value="{{ old('in_motion_minutes', $selectedRecord->in_motion_minutes) }}"
-                                    >
-                                </div>
+                                                @foreach([
+                                                    'duration_minutes' => $record->duration_minutes,
+                                                    'total_minutes' => $record->total_minutes,
+                                                    'in_motion_minutes' => $record->in_motion_minutes,
+                                                    'idling_minutes' => $record->idling_minutes,
+                                                    'mileage_km' => $record->mileage_km,
+                                                    'engine_hours' => $record->engine_hours,
+                                                ] as $field => $value)
+                                                    <td>
+                                                        @if($selectedBatch->status === 'In Review')
+                                                            <input
+                                                                class="batch-edit-input number-input"
+                                                                type="number"
+                                                                step="0.01"
+                                                                min="0"
+                                                                name="records[{{ $index }}][{{ $field }}]"
+                                                                value="{{ $value }}"
+                                                            >
+                                                        @else
+                                                            {{ $value ?? '—' }}
+                                                        @endif
+                                                    </td>
+                                                @endforeach
 
-                                <div class="form-group">
-                                    <label>Idling Minutes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        name="idling_minutes"
-                                        value="{{ old('idling_minutes', $selectedRecord->idling_minutes) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][location]"
+                                                            value="{{ $record->location }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->location ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Mileage (KM)</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        name="mileage_km"
-                                        value="{{ old('mileage_km', $selectedRecord->mileage_km) }}"
-                                    >
-                                </div>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <input
+                                                            class="batch-edit-input"
+                                                            type="text"
+                                                            name="records[{{ $index }}][coordinates]"
+                                                            value="{{ $record->coordinates }}"
+                                                        >
+                                                    @else
+                                                        {{ $record->coordinates ?? '—' }}
+                                                    @endif
+                                                </td>
 
-                                <div class="form-group">
-                                    <label>Engine Hours</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        name="engine_hours"
-                                        value="{{ old('engine_hours', $selectedRecord->engine_hours) }}"
-                                    >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Recorded Location</label>
-                                    <input
-                                        type="text"
-                                        name="location"
-                                        value="{{ old('location', $selectedRecord->location) }}"
-                                    >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Coordinates</label>
-                                    <input
-                                        type="text"
-                                        name="coordinates"
-                                        value="{{ old('coordinates', $selectedRecord->coordinates) }}"
-                                    >
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label>Remarks</label>
-                                    <textarea
-                                        name="description"
-                                        rows="3"
-                                    >{{ old('description', $selectedRecord->description) }}</textarea>
-                                </div>
-                            </div>
-
-                            <div class="edit-trip-actions">
-                                <button
-                                    type="button"
-                                    class="batch-delete-cancel-btn"
-                                    id="cancelEditTripRecordModal"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button type="submit" class="edit-trip-save-btn">
-                                    <i class="fa-solid fa-floppy-disk"></i>
-                                    Update Record
-                                </button>
+                                                <td>
+                                                    @if($selectedBatch->status === 'In Review')
+                                                        <textarea
+                                                            class="batch-edit-input batch-edit-textarea"
+                                                            name="records[{{ $index }}][description]"
+                                                            rows="2"
+                                                        >{{ $record->description }}</textarea>
+                                                    @else
+                                                        {{ $record->description ?? '—' }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </form>
                     </div>

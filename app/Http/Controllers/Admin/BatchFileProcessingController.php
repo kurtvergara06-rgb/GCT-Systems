@@ -39,23 +39,19 @@ class BatchFileProcessingController extends Controller
             }])->find($selectedBatchId)
             : null;
 
-        $recordsQuery = GpsTripRecord::query()
-            ->with('batchUpload');
-
         /*
-         |--------------------------------------------------------------
-         | If an uploaded batch is selected, show its records even when
-         | the batch is still In Review. This allows Admin to edit them.
-         | If no batch is selected, show only Processed records.
-         |--------------------------------------------------------------
-         */
-        if ($selectedBatchId) {
-            $recordsQuery->where('batch_upload_id', $selectedBatchId);
-        } else {
-            $recordsQuery->whereHas('batchUpload', function ($query) {
+        |--------------------------------------------------------------------------
+        | Main Structured Trip Records Table
+        |--------------------------------------------------------------------------
+        | Only Processed records are shown here.
+        | In Review records remain inside View Cleaned Records for editing.
+        |--------------------------------------------------------------------------
+        */
+        $recordsQuery = GpsTripRecord::query()
+            ->with('batchUpload')
+            ->whereHas('batchUpload', function ($query) {
                 $query->where('status', 'Processed');
             });
-        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -88,10 +84,6 @@ class BatchFileProcessingController extends Controller
             ? GpsTripRecord::with('batchUpload')->find($selectedRecordId)
             : ($selectedBatch?->tripRecords()->latest('beginning_at')->first());
 
-        /*
-         | Prevent selecting a record that does not belong to the
-         | selected upload batch.
-         */
         if (
             $selectedRecord &&
             $selectedBatchId &&
@@ -107,6 +99,7 @@ class BatchFileProcessingController extends Controller
             : collect();
 
         $filesUploaded = BatchUpload::count();
+
         $processedBatches = BatchUpload::query()
             ->where('status', 'Processed')
             ->count();
@@ -242,33 +235,9 @@ class BatchFileProcessingController extends Controller
             );
         }
 
-        $validated = $request->validate([
-            'bus_no' => ['required', 'string', 'max:100'],
-            'record_no' => ['nullable', 'string', 'max:100'],
-            'grouping' => ['nullable', 'string', 'max:255'],
-            'trip_type' => ['nullable', 'string', 'max:100'],
-            'beginning_at' => ['nullable', 'date'],
-            'initial_location' => ['nullable', 'string', 'max:255'],
-            'ending_at' => ['nullable', 'date'],
-            'final_location' => ['nullable', 'string', 'max:255'],
-            'duration_minutes' => ['nullable', 'numeric', 'min:0'],
-            'total_minutes' => ['nullable', 'numeric', 'min:0'],
-            'in_motion_minutes' => ['nullable', 'numeric', 'min:0'],
-            'idling_minutes' => ['nullable', 'numeric', 'min:0'],
-            'mileage_km' => ['nullable', 'numeric', 'min:0'],
-            'engine_hours' => ['nullable', 'numeric', 'min:0'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'coordinates' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validate($this->recordValidationRules());
 
-        $validated['beginning_at'] = ! empty($validated['beginning_at'])
-            ? Carbon::parse($validated['beginning_at'])
-            : null;
-
-        $validated['ending_at'] = ! empty($validated['ending_at'])
-            ? Carbon::parse($validated['ending_at'])
-            : null;
+        $validated = $this->prepareRecordDates($validated);
 
         $gpsTripRecord->update($validated);
 
@@ -288,6 +257,74 @@ class BatchFileProcessingController extends Controller
             ->with('success', 'GPS trip record updated successfully.');
     }
 
+    public function bulkUpdateRecords(
+        Request $request,
+        BatchUpload $batchUpload
+    ) {
+        if ($batchUpload->status !== 'In Review') {
+            return back()->with(
+                'error',
+                'Only records with In Review status can be edited.'
+            );
+        }
+
+        $validated = $request->validate([
+            'records' => ['required', 'array', 'min:1'],
+
+            'records.*.id' => ['required', 'integer'],
+            'records.*.bus_no' => ['required', 'string', 'max:100'],
+            'records.*.record_no' => ['nullable', 'string', 'max:100'],
+            'records.*.grouping' => ['nullable', 'string', 'max:255'],
+            'records.*.trip_type' => ['nullable', 'string', 'max:100'],
+            'records.*.beginning_at' => ['nullable', 'date'],
+            'records.*.initial_location' => ['nullable', 'string', 'max:255'],
+            'records.*.ending_at' => ['nullable', 'date'],
+            'records.*.final_location' => ['nullable', 'string', 'max:255'],
+            'records.*.duration_minutes' => ['nullable', 'numeric', 'min:0'],
+            'records.*.total_minutes' => ['nullable', 'numeric', 'min:0'],
+            'records.*.in_motion_minutes' => ['nullable', 'numeric', 'min:0'],
+            'records.*.idling_minutes' => ['nullable', 'numeric', 'min:0'],
+            'records.*.mileage_km' => ['nullable', 'numeric', 'min:0'],
+            'records.*.engine_hours' => ['nullable', 'numeric', 'min:0'],
+            'records.*.location' => ['nullable', 'string', 'max:255'],
+            'records.*.coordinates' => ['nullable', 'string', 'max:255'],
+            'records.*.description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($validated, $batchUpload) {
+            foreach ($validated['records'] as $recordData) {
+                $recordId = $recordData['id'];
+
+                $record = $batchUpload->tripRecords()
+                    ->whereKey($recordId)
+                    ->firstOrFail();
+
+                unset($recordData['id']);
+
+                $recordData = $this->prepareRecordDates($recordData);
+
+                $record->update($recordData);
+            }
+        });
+
+        $this->broadcastSystemDataUpdated(
+            'Admin',
+            'GpsTripRecord',
+            'updated',
+            $batchUpload->id,
+            'GPS trip records were bulk updated during review.'
+        );
+
+        return redirect()
+            ->route('batch-file-processing', [
+                'batch_id' => $batchUpload->id,
+            ])
+            ->with(
+                'success',
+                'All edited GPS trip records were saved successfully.'
+            );
+    }
+
     public function confirm(BatchUpload $batchUpload)
     {
         if ($batchUpload->status === 'Failed') {
@@ -296,6 +333,17 @@ class BatchFileProcessingController extends Controller
                 ->with(
                     'error',
                     'A failed upload cannot be marked as processed.'
+                );
+        }
+
+        if ($batchUpload->status !== 'In Review') {
+            return redirect()
+                ->route('batch-file-processing', [
+                    'batch_id' => $batchUpload->id,
+                ])
+                ->with(
+                    'error',
+                    'Only an In Review batch can be marked as Processed.'
                 );
         }
 
@@ -633,7 +681,7 @@ class BatchFileProcessingController extends Controller
                                     $value
                                 )->format('Y-m-d H:i:s');
                             } catch (\Throwable) {
-                                // Keep original Excel value.
+                                // Keep original value.
                             }
                         }
 
@@ -739,8 +787,7 @@ class BatchFileProcessingController extends Controller
             }
 
             throw new \RuntimeException(
-                'Failed to connect to Python NLP service: '
-                . $errorMessage
+                'Failed to connect to Python NLP service: ' . $errorMessage
             );
         }
 
@@ -754,8 +801,7 @@ class BatchFileProcessingController extends Controller
                     ?? 'Validation error from Python NLP service';
 
                 throw new \RuntimeException(
-                    'PDF processing validation error: '
-                    . $errorDetails
+                    'PDF processing validation error: ' . $errorDetails
                 );
             }
 
@@ -774,11 +820,6 @@ class BatchFileProcessingController extends Controller
             ! isset($payload['records']) ||
             ! is_array($payload['records'])
         ) {
-            \Log::warning(
-                'Python API returned empty records',
-                ['payload' => $payload]
-            );
-
             return [
                 'total' => 0,
                 'processed' => 0,
@@ -823,7 +864,7 @@ class BatchFileProcessingController extends Controller
                         ? $this->parseDateTime($item['ending'])
                         : null;
 
-                    $payload = [
+                    $recordPayload = [
                         'record_no' => $item['record_no'] ?? null,
                         'bus_no' => $busNo,
                         'grouping' => $item['grouping'] ?? null,
@@ -857,7 +898,7 @@ class BatchFileProcessingController extends Controller
                         'severity' => 'Normal',
                     ];
 
-                    $signature = $this->fingerprintRecord($payload);
+                    $signature = $this->fingerprintRecord($recordPayload);
 
                     if (in_array($signature, $seenSignatures, true)) {
                         throw new \RuntimeException(
@@ -867,10 +908,16 @@ class BatchFileProcessingController extends Controller
 
                     $seenSignatures[] = $signature;
 
+                    $rawData = $item['raw_data'] ?? $item;
+
+                    if (! is_array($rawData)) {
+                        $rawData = ['raw_value' => $rawData];
+                    }
+
                     $this->saveRecord(
                         $batch,
-                        $payload,
-                        $item['raw_data'] ?? $item
+                        $recordPayload,
+                        $rawData
                     );
 
                     $processed++;
@@ -1154,6 +1201,42 @@ class BatchFileProcessingController extends Controller
         ];
     }
 
+    private function recordValidationRules(): array
+    {
+        return [
+            'bus_no' => ['required', 'string', 'max:100'],
+            'record_no' => ['nullable', 'string', 'max:100'],
+            'grouping' => ['nullable', 'string', 'max:255'],
+            'trip_type' => ['nullable', 'string', 'max:100'],
+            'beginning_at' => ['nullable', 'date'],
+            'initial_location' => ['nullable', 'string', 'max:255'],
+            'ending_at' => ['nullable', 'date'],
+            'final_location' => ['nullable', 'string', 'max:255'],
+            'duration_minutes' => ['nullable', 'numeric', 'min:0'],
+            'total_minutes' => ['nullable', 'numeric', 'min:0'],
+            'in_motion_minutes' => ['nullable', 'numeric', 'min:0'],
+            'idling_minutes' => ['nullable', 'numeric', 'min:0'],
+            'mileage_km' => ['nullable', 'numeric', 'min:0'],
+            'engine_hours' => ['nullable', 'numeric', 'min:0'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'coordinates' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    private function prepareRecordDates(array $data): array
+    {
+        $data['beginning_at'] = ! empty($data['beginning_at'])
+            ? Carbon::parse($data['beginning_at'])
+            : null;
+
+        $data['ending_at'] = ! empty($data['ending_at'])
+            ? Carbon::parse($data['ending_at'])
+            : null;
+
+        return $data;
+    }
+
     private function normalizeHeader(?string $header): string
     {
         $header = preg_replace(
@@ -1201,18 +1284,21 @@ class BatchFileProcessingController extends Controller
 
     private function fingerprintRecord(array $payload): string
     {
+        $beginning = $payload['beginning_at'] ?? null;
+        $ending = $payload['ending_at'] ?? null;
+
         $values = [
             $payload['record_no'] ?? null,
             $payload['bus_no'] ?? null,
             $payload['grouping'] ?? null,
             $payload['trip_type'] ?? null,
-            isset($payload['beginning_at']) && $payload['beginning_at']
-                ? $payload['beginning_at']->toDateTimeString()
-                : null,
+            $beginning instanceof Carbon
+                ? $beginning->toDateTimeString()
+                : $beginning,
             $payload['initial_location'] ?? null,
-            isset($payload['ending_at']) && $payload['ending_at']
-                ? $payload['ending_at']->toDateTimeString()
-                : null,
+            $ending instanceof Carbon
+                ? $ending->toDateTimeString()
+                : $ending,
             $payload['final_location'] ?? null,
             $payload['duration_minutes'] ?? null,
             $payload['location'] ?? null,
