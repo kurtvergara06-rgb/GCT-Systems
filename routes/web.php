@@ -272,5 +272,8 @@ Route::middleware('auth')->group(function () {
 
             Route::put('/records/{gpsTripRecord}', 'updateRecord')
                 ->name('batch-file-processing.records.update');
+
+            Route::put('/{batchUpload}/records/bulk-update', 'bulkUpdateRecords')
+                ->name('batch-file-processing.records.bulk-update');
         });
 });

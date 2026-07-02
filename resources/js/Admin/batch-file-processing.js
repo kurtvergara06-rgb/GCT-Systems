@@ -269,3 +269,78 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+    const bulkUpdateRecordsForm = document.getElementById('bulkUpdateRecordsForm');
+    const saveAllBatchRecordsBtn = document.getElementById('saveAllBatchRecordsBtn');
+    const unsavedChangesLabel = document.getElementById('unsavedChangesLabel');
+    const confirmBatchForm = document.getElementById('confirmBatchForm');
+
+    let hasUnsavedBatchChanges = false;
+
+    function updateBatchSaveState() {
+        if (!saveAllBatchRecordsBtn || !unsavedChangesLabel) {
+            return;
+        }
+
+        saveAllBatchRecordsBtn.disabled = !hasUnsavedBatchChanges;
+
+        if (hasUnsavedBatchChanges) {
+            unsavedChangesLabel.textContent = 'Unsaved changes';
+            unsavedChangesLabel.classList.add('has-changes');
+        } else {
+            unsavedChangesLabel.textContent = 'No unsaved changes';
+            unsavedChangesLabel.classList.remove('has-changes');
+        }
+    }
+
+    document.querySelectorAll('.batch-edit-input').forEach(function (input) {
+        input.dataset.originalValue = input.value;
+
+        input.addEventListener('input', function () {
+            const row = input.closest('.batch-edit-row');
+
+            if (row) {
+                const rowInputs = row.querySelectorAll('.batch-edit-input');
+
+                const rowChanged = Array.from(rowInputs).some(function (rowInput) {
+                    return rowInput.value !== rowInput.dataset.originalValue;
+                });
+
+                row.classList.toggle('row-edited', rowChanged);
+            }
+
+            hasUnsavedBatchChanges = document.querySelectorAll(
+                '.batch-edit-row.row-edited'
+            ).length > 0;
+
+            updateBatchSaveState();
+        });
+    });
+
+    if (saveAllBatchRecordsBtn && bulkUpdateRecordsForm) {
+        saveAllBatchRecordsBtn.addEventListener('click', function () {
+            if (!hasUnsavedBatchChanges) {
+                return;
+            }
+
+            saveAllBatchRecordsBtn.disabled = true;
+            saveAllBatchRecordsBtn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+            bulkUpdateRecordsForm.submit();
+        });
+    }
+
+    if (confirmBatchForm) {
+        confirmBatchForm.addEventListener('submit', function (event) {
+            if (hasUnsavedBatchChanges) {
+                event.preventDefault();
+
+                alert(
+                    'Please save your edited records before marking this batch as Processed.'
+                );
+            }
+        });
+    }
+
+    updateBatchSaveState();
