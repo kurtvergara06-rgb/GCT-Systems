@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\BatchUpload;
 use App\Models\Admin\GpsTripRecord;
+use App\Models\Maintenance\Bus;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -362,6 +363,8 @@ class BatchFileProcessingController extends Controller
             'status' => 'Processed',
         ]);
 
+        $this->syncBusesFromProcessedBatch($batchUpload);
+
         $this->broadcastSystemDataUpdated(
             'Admin',
             'BatchUpload',
@@ -382,11 +385,21 @@ class BatchFileProcessingController extends Controller
 
     public function destroy(BatchUpload $batchUpload)
     {
+        $affectedBusNumbers = $batchUpload->tripRecords()
+            ->whereNotNull('bus_no')
+            ->pluck('bus_no')
+            ->map(fn ($busNo) => strtoupper(trim($busNo)))
+            ->filter()
+            ->unique()
+            ->values();
+
         Storage::disk('public')->delete($batchUpload->file_path);
 
         $batchId = $batchUpload->id;
 
         $batchUpload->delete();
+
+        $this->refreshBusesLatestGps($affectedBusNumbers);
 
         $this->broadcastSystemDataUpdated(
             'Admin',
@@ -1416,5 +1429,65 @@ class BatchFileProcessingController extends Controller
             $idleMinutes >= 10 => 'Low',
             default => 'Normal',
         };
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bus Master List GPS Synchronization
+    |--------------------------------------------------------------------------
+    */
+    private function syncBusesFromProcessedBatch(BatchUpload $batchUpload): void
+    {
+        $busNumbers = $batchUpload->tripRecords()
+            ->whereNotNull('bus_no')
+            ->whereNotNull('mileage_km')
+            ->pluck('bus_no')
+            ->map(fn ($busNo) => strtoupper(trim($busNo)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $this->refreshBusesLatestGps($busNumbers);
+    }
+
+    private function refreshBusesLatestGps($busNumbers): void
+    {
+        foreach ($busNumbers as $busNo) {
+            $bus = Bus::whereRaw('UPPER(TRIM(bus_no)) = ?', [$busNo])->first();
+
+            /*
+             | Do not create buses automatically from GPS data.
+             | Operations owns the official Bus Master List.
+             */
+            if (! $bus) {
+                continue;
+            }
+
+            $latestRecord = GpsTripRecord::query()
+                ->whereRaw('UPPER(TRIM(bus_no)) = ?', [$busNo])
+                ->whereNotNull('mileage_km')
+                ->whereHas('batchUpload', function ($query) {
+                    $query->where('status', 'Processed');
+                })
+                ->orderByDesc('beginning_at')
+                ->orderByDesc('id')
+                ->first();
+
+            if (! $latestRecord) {
+                $bus->update([
+                    'latest_gps_km' => null,
+                    'latest_gps_at' => null,
+                ]);
+
+                continue;
+            }
+
+            $bus->update([
+                'latest_gps_km' => $latestRecord->mileage_km,
+                'latest_gps_at' => $latestRecord->beginning_at
+                    ?? $latestRecord->created_at,
+            ]);
+        }
     }
 }
