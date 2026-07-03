@@ -81,11 +81,11 @@ window.realtimePageRouteMap = {
     ],
 
     'Operation:Bus': [
-    '/bus-master-list',
-    '/dashboard-operation',
-    '/job-orders',
-    '/pms-scheduling',
-    '/admin/dashboard',
+        '/bus-master-list',
+        '/dashboard-operation',
+        '/job-orders',
+        '/pms-scheduling',
+        '/admin/dashboard',
     ],
 };
 
@@ -102,39 +102,100 @@ window.showSystemNotification = function (message) {
         const notification = document.createElement('div');
 
         notification.className = 'system-data-updated-notification';
-        notification.textContent = message;
+
+        notification.innerHTML = `
+            <div style="
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 193, 7, 0.16);
+                color: #facc15;
+                flex-shrink: 0;
+            ">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+
+            <div style="min-width: 0; flex: 1;">
+                <strong style="
+                    display: block;
+                    color: #ffffff;
+                    font-size: 14px;
+                    margin-bottom: 3px;
+                ">
+                    System Updated
+                </strong>
+
+                <span style="
+                    display: block;
+                    color: #cbd5e1;
+                    font-size: 13px;
+                    line-height: 1.4;
+                ">
+                    ${message}
+                </span>
+            </div>
+
+            <button
+                type="button"
+                aria-label="Close notification"
+                style="
+                    border: none;
+                    background: transparent;
+                    color: #94a3b8;
+                    cursor: pointer;
+                    font-size: 16px;
+                    padding: 2px 4px;
+                    margin-left: 4px;
+                "
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
 
         Object.assign(notification.style, {
             position: 'fixed',
-            top: '1rem',
-            right: '1rem',
-            zIndex: '99999',
-            backgroundColor: '#111827',
-            color: '#ffffff',
-            padding: '0.75rem 1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-            fontSize: '0.95rem',
-            opacity: '0',
-            transition: 'opacity 0.2s ease-in-out',
-            maxWidth: '320px',
-            lineHeight: '1.4',
+            top: '20px',
+            right: '20px',
+            zIndex: '9999999',
+            width: 'min(390px, calc(100vw - 40px))',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            padding: '14px 15px',
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, #081a32, #102b4d)',
+            border: '1px solid rgba(250, 204, 21, 0.45)',
+            boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
             fontFamily: 'Arial, sans-serif',
+            opacity: '0',
+            transform: 'translateY(-12px)',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
         });
+
+        const closeButton = notification.querySelector('button');
+
+        const removeNotification = function () {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-12px)';
+
+            setTimeout(() => {
+                notification.remove();
+            }, 250);
+        };
+
+        closeButton?.addEventListener('click', removeNotification);
 
         document.body.appendChild(notification);
 
         requestAnimationFrame(() => {
             notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
         });
 
-        setTimeout(() => {
-            notification.style.opacity = '0';
-
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
+        setTimeout(removeNotification, 8000);
     } catch (error) {
         console.warn('Realtime notification failed:', error);
     }
@@ -189,12 +250,12 @@ window.listenForSystemUpdates = function () {
 
                 if (watchRoutes.includes(currentPath)) {
                     console.log(
-                        'Reloading page because it is affected by this update.'
+                        'Reloading page after showing realtime notification.'
                     );
 
                     setTimeout(() => {
                         window.location.reload();
-                    }, 600);
+                    }, 8000);
                 }
             } catch (error) {
                 console.warn('System updates listener error:', error);
