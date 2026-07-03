@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
@@ -40,7 +41,10 @@ class JobOrderController extends Controller
             });
         }
 
-        if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
+        if (
+            $request->filled('part_status') &&
+            $request->part_status !== 'All Part Statuses'
+        ) {
             if ($request->part_status === 'No Parts Needed') {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
@@ -52,7 +56,10 @@ class JobOrderController extends Controller
             }
         }
 
-        if ($request->filled('maintenance_type') && $request->maintenance_type !== 'All Types') {
+        if (
+            $request->filled('maintenance_type') &&
+            $request->maintenance_type !== 'All Types'
+        ) {
             $query->where('maintenance_type', $request->maintenance_type);
         }
 
@@ -62,7 +69,9 @@ class JobOrderController extends Controller
             ->withQueryString();
 
         $onHold = JobOrder::where('status', 'On Hold')->count();
+
         $onGoing = JobOrder::where('status', 'On Going')->count();
+
         $completed = JobOrder::where('status', 'Completed')->count();
 
         $needParts = JobOrder::query()
@@ -93,6 +102,18 @@ class JobOrderController extends Controller
             ->orderBy('mechanic_name')
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Bus Master List
+        |--------------------------------------------------------------------------
+        | Only Active buses can be selected when creating or editing
+        | a Job Order.
+        */
+        $buses = Bus::query()
+            ->where('status', 'Active')
+            ->orderBy('bus_no')
+            ->get();
+
         return view('Maintenance.job-order', compact(
             'jobOrders',
             'onHold',
@@ -101,7 +122,8 @@ class JobOrderController extends Controller
             'needParts',
             'nextJobOrderNo',
             'availableMechanics',
-            'allMechanics'
+            'allMechanics',
+            'buses'
         ));
     }
 
@@ -131,7 +153,7 @@ class JobOrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'bus_no' => 'required|string|max:255',
+            'bus_no' => 'required|string|exists:buses,bus_no',
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'nullable|string|max:255',
@@ -143,7 +165,9 @@ class JobOrderController extends Controller
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
 
-        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        $parts = $this->partParser->normalizePartsInput(
+            $request->parts ?? []
+        );
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -238,12 +262,15 @@ class JobOrderController extends Controller
         ], true)) {
             return redirect()
                 ->back()
-                ->with('error', 'This Job Order can no longer be edited because its Purchase Request is already approved or being processed.');
+                ->with(
+                    'error',
+                    'This Job Order can no longer be edited because its Purchase Request is already approved or being processed.'
+                );
         }
 
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
-            'bus_no' => 'required|string|max:255',
+            'bus_no' => 'required|string|exists:buses,bus_no',
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'nullable|string|max:255',
@@ -286,7 +313,9 @@ class JobOrderController extends Controller
             }
         }
 
-        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        $parts = $this->partParser->normalizePartsInput(
+            $request->parts ?? []
+        );
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -296,7 +325,10 @@ class JobOrderController extends Controller
 
         if (! $partNeeded) {
             $partStatus = 'No Parts Needed';
-        } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed'], true)) {
+        } elseif (
+            ! $partStatus ||
+            in_array($partStatus, ['Unknown', 'No Parts Needed'], true)
+        ) {
             $partStatus = 'Not Requested';
         }
 
@@ -345,19 +377,32 @@ class JobOrderController extends Controller
         if (empty($jobOrder->part_needed)) {
             return redirect()
                 ->back()
-                ->with('error', 'Cannot create PR because this job order has no parts needed.');
+                ->with(
+                    'error',
+                    'Cannot create PR because this job order has no parts needed.'
+                );
         }
 
         if ($jobOrder->status === 'Completed') {
             return redirect()
                 ->back()
-                ->with('error', 'Cannot create PR because this job order is already completed.');
+                ->with(
+                    'error',
+                    'Cannot create PR because this job order is already completed.'
+                );
         }
 
-        if (! in_array($jobOrder->part_status, [null, 'Not Requested', 'Rejected'], true)) {
+        if (! in_array(
+            $jobOrder->part_status,
+            [null, 'Not Requested', 'Rejected'],
+            true
+        )) {
             return redirect()
                 ->back()
-                ->with('error', 'This job order already has an active purchase request.');
+                ->with(
+                    'error',
+                    'This job order already has an active purchase request.'
+                );
         }
 
         $hasActivePr = PurchaseRequest::where(
@@ -370,7 +415,10 @@ class JobOrderController extends Controller
         if ($hasActivePr) {
             return redirect()
                 ->back()
-                ->with('error', 'This job order already has an active purchase request.');
+                ->with(
+                    'error',
+                    'This job order already has an active purchase request.'
+                );
         }
 
         $parts = $this->partParser->parsePartText($jobOrder->part_needed);
@@ -427,13 +475,19 @@ class JobOrderController extends Controller
         if ($jobOrder->status === 'On Hold') {
             return redirect()
                 ->back()
-                ->with('error', 'This job order cannot be finished because it is currently on hold.');
+                ->with(
+                    'error',
+                    'This job order cannot be finished because it is currently on hold.'
+                );
         }
 
         if (! $this->canFinishWithPartStatus($jobOrder)) {
             return redirect()
                 ->back()
-                ->with('error', 'This job order cannot be finished yet. The part status must be Issued or Rejected first.');
+                ->with(
+                    'error',
+                    'This job order cannot be finished yet. The part status must be Issued or Rejected first.'
+                );
         }
 
         $jobOrder->update([
@@ -441,7 +495,10 @@ class JobOrderController extends Controller
             'status' => 'Completed',
         ]);
 
-        $this->setMechanicStatus($jobOrder->assigned_mechanic, 'Present');
+        $this->setMechanicStatus(
+            $jobOrder->assigned_mechanic,
+            'Present'
+        );
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -480,16 +537,20 @@ class JobOrderController extends Controller
             ->with('success', 'Job order deleted successfully.');
     }
 
-    private function setMechanicStatus(?string $mechanicName, string $status): void
-    {
+    private function setMechanicStatus(
+        ?string $mechanicName,
+        string $status
+    ): void {
         if (! $mechanicName) {
             return;
         }
 
-        MechanicAttendance::where('mechanic_name', $mechanicName)
-            ->update([
-                'status' => $status,
-            ]);
+        MechanicAttendance::where(
+            'mechanic_name',
+            $mechanicName
+        )->update([
+            'status' => $status,
+        ]);
     }
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
@@ -498,7 +559,11 @@ class JobOrderController extends Controller
             return true;
         }
 
-        return in_array($jobOrder->part_status, ['Issued', 'Rejected'], true);
+        return in_array(
+            $jobOrder->part_status,
+            ['Issued', 'Rejected'],
+            true
+        );
     }
 
     private function generateJobOrderNo(): string
