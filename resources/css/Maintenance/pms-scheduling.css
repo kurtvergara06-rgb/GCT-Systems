@@ -317,24 +317,6 @@
     margin: 0;
 }
 
-.pms-alert {
-    margin-bottom: 16px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.pms-alert.success {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.pms-alert.error {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
 .pms-empty-row {
     text-align: center;
     color: var(--muted);
@@ -435,4 +417,35 @@
     .pms-header {
         flex-direction: column;
     }
+}
+
+.pms-modal input[readonly] {
+    background: #f8fafc;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.pms-modal input[readonly]:focus {
+    border-color: var(--border);
+    box-shadow: none;
+}
+
+.pms-modal select {
+    width: 100%;
+}
+
+#pmsStatusPreview {
+    font-weight: 800;
+}
+
+#pmsStatusPreview[value="Upcoming"] {
+    color: #16a34a;
+}
+
+#pmsStatusPreview[value="Due Soon"] {
+    color: #b77900;
+}
+
+#pmsStatusPreview[value="Overdue"] {
+    color: #dc2626;
 }

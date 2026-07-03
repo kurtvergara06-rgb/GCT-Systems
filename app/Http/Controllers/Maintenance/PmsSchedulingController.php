@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\PmsSchedule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class PmsSchedulingController extends Controller
 {
@@ -30,11 +28,15 @@ class PmsSchedulingController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Latest processed GPS record per bus
+        |--------------------------------------------------------------------------
+        */
         $gpsByBus = $processedRecords
             ->groupBy('bus_no')
             ->map(function ($records) {
                 $latestRecord = $records->first();
-
                 $previousRecord = $records->skip(1)->first();
 
                 $currentKm = (float) $latestRecord->mileage_km;
@@ -48,12 +50,31 @@ class PmsSchedulingController extends Controller
                     : 0;
 
                 return [
+                    'bus_no' => $latestRecord->bus_no,
                     'current_km' => $currentKm,
                     'km_traveled' => $kmTraveled,
                     'gps_report_date' => $latestRecord->beginning_at
                         ?? $latestRecord->created_at,
                 ];
             });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Bus dropdown source
+        |--------------------------------------------------------------------------
+        | Only buses that have Processed GPS mileage records appear here.
+        |--------------------------------------------------------------------------
+        */
+        $processedBuses = $gpsByBus
+            ->map(function ($gps) {
+                return (object) [
+                    'bus_no' => $gps['bus_no'],
+                    'current_km' => $gps['current_km'],
+                    'gps_report_date' => $gps['gps_report_date'],
+                ];
+            })
+            ->sortBy('bus_no')
+            ->values();
 
         $rows = $schedules->map(function (PmsSchedule $schedule) use ($gpsByBus) {
             $gps = $gpsByBus->get($schedule->bus_no);
@@ -120,20 +141,13 @@ class PmsSchedulingController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
-        $upcomingCount = $rows
-            ->where('status', 'Upcoming')
-            ->count();
-
-        $dueSoonCount = $rows
-            ->where('status', 'Due Soon')
-            ->count();
-
-        $overdueCount = $rows
-            ->where('status', 'Overdue')
-            ->count();
+        $upcomingCount = $rows->where('status', 'Upcoming')->count();
+        $dueSoonCount = $rows->where('status', 'Due Soon')->count();
+        $overdueCount = $rows->where('status', 'Overdue')->count();
 
         return view('Maintenance.PMS-Scheduling', compact(
             'rows',
+            'processedBuses',
             'gpsRecordsToday',
             'upcomingCount',
             'dueSoonCount',
@@ -144,7 +158,12 @@ class PmsSchedulingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'bus_no' => ['required', 'string', 'max:255', 'unique:pms_schedules,bus_no'],
+            'bus_no' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:pms_schedules,bus_no',
+            ],
             'last_pms_km' => ['required', 'numeric', 'min:0'],
             'pms_interval_km' => ['required', 'numeric', 'min:1'],
             'maintenance_type' => ['required', 'string', 'max:255'],
@@ -214,7 +233,7 @@ class PmsSchedulingController extends Controller
                 ->route('PMS-Scheduling')
                 ->with(
                     'error',
-                    'Cannot create PMS Job Order because no processed GPS mileage record exists for this bus.'
+                    'No processed GPS mileage record was found for this bus.'
                 );
         }
 
@@ -243,17 +262,5 @@ class PmsSchedulingController extends Controller
                 'maintenance_type' => 'PMS',
                 'problem_issue' => $issue,
             ]);
-    }
-
-    public static function resetAfterPmsCompletion(
-        PmsSchedule $pmsSchedule,
-        float $completedMileageKm
-    ): void {
-        $pmsSchedule->update([
-            'last_pms_km' => $completedMileageKm,
-            'next_pms_km' =>
-                $completedMileageKm
-                + (float) $pmsSchedule->pms_interval_km,
-        ]);
     }
 }
