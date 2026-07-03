@@ -4,9 +4,30 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Maintenance/pms-scheduling.css',
-        'resources/js/Main-js/sidebar.js'
+        'resources/js/Main-js/sidebar.js',
+        'resources/js/Maintenance/pms-scheduling.js'
     ]"
 >
+    <x-ui.action-buttom-modal
+        mode="feedback"
+        feedback-type="success"
+        :message="session('success')"
+    />
+
+    <x-ui.action-buttom-modal
+        mode="feedback"
+        feedback-type="error"
+        :message="session('error')"
+    />
+
+    @if($errors->any())
+        <x-ui.action-buttom-modal
+            mode="feedback"
+            feedback-type="error"
+            :message="$errors->first()"
+        />
+    @endif
+
     <div class="app">
         <x-layout.sidebar
             department="Maintenance"
@@ -29,27 +50,6 @@
                 subtitle="Monitor preventive maintenance schedules based on processed GPS vehicle mileage data."
                 notification-count="6"
             />
-
-            @if(session('success'))
-                <div class="pms-alert success">
-                    <i class="fa-solid fa-circle-check"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="pms-alert error">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="pms-alert error">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    {{ $errors->first() }}
-                </div>
-            @endif
 
             <section class="stats-grid">
                 <div class="stat-card">
@@ -113,15 +113,17 @@
                 <div class="section-header pms-header">
                     <div>
                         <h2>Automated PMS Record</h2>
+
                         <p>
-                            The system reads only Processed GPS mileage reports and compares Current KM against Next PMS KM.
+                            The system reads only processed GPS mileage reports and compares
+                            Current KM against Next PMS KM.
                         </p>
                     </div>
 
                     <button
                         type="button"
                         class="pms-add-btn"
-                        onclick="document.getElementById('addPmsModal').classList.add('show')"
+                        data-open-add-pms
                     >
                         <i class="fa-solid fa-plus"></i>
                         Add PMS Schedule
@@ -142,17 +144,33 @@
                         </div>
 
                         <div class="filter-group">
-                            <label>Status</label>
+                            <label for="pmsStatusFilter">Status</label>
 
-                            <select name="status" onchange="this.form.submit()">
+                            <select
+                                name="status"
+                                id="pmsStatusFilter"
+                                onchange="this.form.submit()"
+                            >
                                 <option value="All Status">All Status</option>
-                                <option value="Upcoming" @selected(request('status') === 'Upcoming')>
+
+                                <option
+                                    value="Upcoming"
+                                    @selected(request('status') === 'Upcoming')
+                                >
                                     Upcoming
                                 </option>
-                                <option value="Due Soon" @selected(request('status') === 'Due Soon')>
+
+                                <option
+                                    value="Due Soon"
+                                    @selected(request('status') === 'Due Soon')
+                                >
                                     Due Soon
                                 </option>
-                                <option value="Overdue" @selected(request('status') === 'Overdue')>
+
+                                <option
+                                    value="Overdue"
+                                    @selected(request('status') === 'Overdue')
+                                >
                                     Overdue
                                 </option>
                             </select>
@@ -191,7 +209,9 @@
                         <tbody>
                             @forelse($rows as $row)
                                 <tr>
-                                    <td><strong>{{ $row->bus_no }}</strong></td>
+                                    <td>
+                                        <strong>{{ $row->bus_no }}</strong>
+                                    </td>
 
                                     <td>
                                         {{ $row->gps_report_date
@@ -214,9 +234,17 @@
                                         }}
                                     </td>
 
-                                    <td>{{ number_format($row->last_pms_km, 2) }} km</td>
-                                    <td>{{ number_format($row->next_pms_km, 2) }} km</td>
-                                    <td>{{ $row->maintenance_type }}</td>
+                                    <td>
+                                        {{ number_format($row->last_pms_km, 2) }} km
+                                    </td>
+
+                                    <td>
+                                        {{ number_format($row->next_pms_km, 2) }} km
+                                    </td>
+
+                                    <td>
+                                        {{ $row->maintenance_type }}
+                                    </td>
 
                                     <td>
                                         {{ $row->status === 'Overdue'
@@ -248,17 +276,14 @@
 
                                             <button
                                                 type="button"
-                                                class="edit"
+                                                class="edit open-edit-pms"
                                                 title="Edit PMS Schedule"
-                                                onclick="
-                                                    document.getElementById('editPmsForm').action='{{ route('pms-schedules.update', $row->schedule) }}';
-                                                    document.getElementById('edit_bus_no').value='{{ $row->bus_no }}';
-                                                    document.getElementById('edit_last_pms_km').value='{{ $row->last_pms_km }}';
-                                                    document.getElementById('edit_pms_interval_km').value='{{ $row->pms_interval_km }}';
-                                                    document.getElementById('edit_maintenance_type').value='{{ $row->maintenance_type }}';
-                                                    document.getElementById('edit_recommended_date').value='{{ optional($row->recommended_date)->format('Y-m-d') }}';
-                                                    document.getElementById('editPmsModal').classList.add('show');
-                                                "
+                                                data-action="{{ route('pms-schedules.update', $row->schedule) }}"
+                                                data-bus-no="{{ $row->bus_no }}"
+                                                data-last-pms-km="{{ $row->last_pms_km }}"
+                                                data-pms-interval-km="{{ $row->pms_interval_km }}"
+                                                data-maintenance-type="{{ $row->maintenance_type }}"
+                                                data-recommended-date="{{ $row->recommended_date ? \Carbon\Carbon::parse($row->recommended_date)->format('Y-m-d') : '' }}"
                                             >
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
@@ -271,7 +296,11 @@
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button type="submit" class="delete" title="Delete PMS Schedule">
+                                                <button
+                                                    type="submit"
+                                                    class="delete"
+                                                    title="Delete PMS Schedule"
+                                                >
                                                     <i class="fa-solid fa-trash"></i>
                                                 </button>
                                             </form>
@@ -295,13 +324,13 @@
                     <div class="pms-modal-header">
                         <div>
                             <h2>Add PMS Schedule</h2>
-                            <p>Create a maintenance interval for a bus.</p>
+                            <p>Select a bus with processed GPS mileage data.</p>
                         </div>
 
                         <button
                             type="button"
                             class="pms-close-btn"
-                            onclick="document.getElementById('addPmsModal').classList.remove('show')"
+                            data-close-add-pms
                         >
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -312,33 +341,135 @@
 
                         <div class="pms-form-grid">
                             <div class="form-group">
-                                <label>Vehicle ID / Bus No.</label>
-                                <input type="text" name="bus_no" placeholder="Example: BUS 0001" required>
+                                <label for="pmsBusSelect">Vehicle ID / Bus No.</label>
+
+                                <select
+                                    name="bus_no"
+                                    id="pmsBusSelect"
+                                    required
+                                >
+                                    <option value="">
+                                        Select processed GPS bus
+                                    </option>
+
+                                    @foreach($processedBuses as $bus)
+                                        <option
+                                            value="{{ $bus->bus_no }}"
+                                            data-current-km="{{ $bus->current_km }}"
+                                            data-gps-date="{{ $bus->gps_report_date ? \Carbon\Carbon::parse($bus->gps_report_date)->format('M d, Y h:i A') : '' }}"
+                                        >
+                                            {{ $bus->bus_no }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label>Last PMS KM</label>
-                                <input type="number" step="0.01" min="0" name="last_pms_km" required>
+                                <label for="currentGpsKm">Current GPS KM</label>
+
+                                <input
+                                    type="text"
+                                    id="currentGpsKm"
+                                    readonly
+                                    placeholder="Select a bus first"
+                                >
                             </div>
 
                             <div class="form-group">
-                                <label>PMS Interval KM</label>
-                                <input type="number" step="0.01" min="1" name="pms_interval_km" value="5000" required>
+                                <label for="gpsReportDate">GPS Report Date</label>
+
+                                <input
+                                    type="text"
+                                    id="gpsReportDate"
+                                    readonly
+                                    placeholder="Select a bus first"
+                                >
                             </div>
 
                             <div class="form-group">
-                                <label>Maintenance Type</label>
-                                <select name="maintenance_type" required>
-                                    <option value="Preventive Maintenance">Preventive Maintenance</option>
-                                    <option value="Oil Change">Oil Change</option>
-                                    <option value="Brake Inspection">Brake Inspection</option>
-                                    <option value="Regular Check-up">Regular Check-up</option>
+                                <label for="lastPmsKm">Last PMS KM</label>
+
+                                <input
+                                    id="lastPmsKm"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    name="last_pms_km"
+                                    placeholder="Enter last completed PMS KM"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pmsIntervalKm">PMS Interval KM</label>
+
+                                <input
+                                    id="pmsIntervalKm"
+                                    type="number"
+                                    step="0.01"
+                                    min="1"
+                                    name="pms_interval_km"
+                                    value="5000"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nextPmsKm">Next PMS KM</label>
+
+                                <input
+                                    type="text"
+                                    id="nextPmsKm"
+                                    readonly
+                                    placeholder="Automatic"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pmsStatusPreview">Predicted Status</label>
+
+                                <input
+                                    type="text"
+                                    id="pmsStatusPreview"
+                                    readonly
+                                    placeholder="Automatic"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maintenanceType">Maintenance Type</label>
+
+                                <select
+                                    name="maintenance_type"
+                                    id="maintenanceType"
+                                    required
+                                >
+                                    <option value="Preventive Maintenance">
+                                        Preventive Maintenance
+                                    </option>
+
+                                    <option value="Oil Change">
+                                        Oil Change
+                                    </option>
+
+                                    <option value="Brake Inspection">
+                                        Brake Inspection
+                                    </option>
+
+                                    <option value="Regular Check-up">
+                                        Regular Check-up
+                                    </option>
                                 </select>
                             </div>
 
                             <div class="form-group full-width">
-                                <label>Recommended Date</label>
-                                <input type="date" name="recommended_date">
+                                <label for="recommendedDate">Recommended Date</label>
+
+                                <input
+                                    type="date"
+                                    id="recommendedDate"
+                                    name="recommended_date"
+                                >
                             </div>
                         </div>
 
@@ -346,7 +477,7 @@
                             <button
                                 type="button"
                                 class="pms-cancel-btn"
-                                onclick="document.getElementById('addPmsModal').classList.remove('show')"
+                                data-close-add-pms
                             >
                                 Cancel
                             </button>
@@ -371,45 +502,92 @@
                         <button
                             type="button"
                             class="pms-close-btn"
-                            onclick="document.getElementById('editPmsModal').classList.remove('show')"
+                            data-close-edit-pms
                         >
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
 
-                    <form id="editPmsForm" method="POST" action="">
+                    <form
+                        id="editPmsForm"
+                        method="POST"
+                        action=""
+                    >
                         @csrf
                         @method('PUT')
 
                         <div class="pms-form-grid">
                             <div class="form-group">
-                                <label>Vehicle ID / Bus No.</label>
-                                <input id="edit_bus_no" type="text" name="bus_no" required>
+                                <label for="edit_bus_no">Vehicle ID / Bus No.</label>
+
+                                <input
+                                    id="edit_bus_no"
+                                    type="text"
+                                    name="bus_no"
+                                    required
+                                >
                             </div>
 
                             <div class="form-group">
-                                <label>Last PMS KM</label>
-                                <input id="edit_last_pms_km" type="number" step="0.01" min="0" name="last_pms_km" required>
+                                <label for="edit_last_pms_km">Last PMS KM</label>
+
+                                <input
+                                    id="edit_last_pms_km"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    name="last_pms_km"
+                                    required
+                                >
                             </div>
 
                             <div class="form-group">
-                                <label>PMS Interval KM</label>
-                                <input id="edit_pms_interval_km" type="number" step="0.01" min="1" name="pms_interval_km" required>
+                                <label for="edit_pms_interval_km">PMS Interval KM</label>
+
+                                <input
+                                    id="edit_pms_interval_km"
+                                    type="number"
+                                    step="0.01"
+                                    min="1"
+                                    name="pms_interval_km"
+                                    required
+                                >
                             </div>
 
                             <div class="form-group">
-                                <label>Maintenance Type</label>
-                                <select id="edit_maintenance_type" name="maintenance_type" required>
-                                    <option value="Preventive Maintenance">Preventive Maintenance</option>
-                                    <option value="Oil Change">Oil Change</option>
-                                    <option value="Brake Inspection">Brake Inspection</option>
-                                    <option value="Regular Check-up">Regular Check-up</option>
+                                <label for="edit_maintenance_type">Maintenance Type</label>
+
+                                <select
+                                    id="edit_maintenance_type"
+                                    name="maintenance_type"
+                                    required
+                                >
+                                    <option value="Preventive Maintenance">
+                                        Preventive Maintenance
+                                    </option>
+
+                                    <option value="Oil Change">
+                                        Oil Change
+                                    </option>
+
+                                    <option value="Brake Inspection">
+                                        Brake Inspection
+                                    </option>
+
+                                    <option value="Regular Check-up">
+                                        Regular Check-up
+                                    </option>
                                 </select>
                             </div>
 
                             <div class="form-group full-width">
-                                <label>Recommended Date</label>
-                                <input id="edit_recommended_date" type="date" name="recommended_date">
+                                <label for="edit_recommended_date">Recommended Date</label>
+
+                                <input
+                                    id="edit_recommended_date"
+                                    type="date"
+                                    name="recommended_date"
+                                >
                             </div>
                         </div>
 
@@ -417,7 +595,7 @@
                             <button
                                 type="button"
                                 class="pms-cancel-btn"
-                                onclick="document.getElementById('editPmsModal').classList.remove('show')"
+                                data-close-edit-pms
                             >
                                 Cancel
                             </button>
@@ -434,11 +612,15 @@
     </div>
 
     <script>
-        document.querySelectorAll('.pms-modal-overlay').forEach(function (modal) {
-            modal.addEventListener('click', function (event) {
-                if (event.target === modal) {
-                    modal.classList.remove('show');
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.close-feedback-modal').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const modal = button.closest('.success-modal-overlay');
+
+                    if (modal) {
+                        modal.classList.remove('show');
+                    }
+                });
             });
         });
     </script>
