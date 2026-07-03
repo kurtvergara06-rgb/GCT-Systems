@@ -79,6 +79,14 @@ window.realtimePageRouteMap = {
         '/admin/dashboard',
         '/mechanic-list',
     ],
+
+    'Operation:Bus': [
+    '/bus-master-list',
+    '/dashboard-operation',
+    '/job-orders',
+    '/pms-scheduling',
+    '/admin/dashboard',
+    ],
 };
 
 window.showSystemNotification = function (message) {
