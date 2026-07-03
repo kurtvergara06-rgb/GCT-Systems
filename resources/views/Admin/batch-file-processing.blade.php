@@ -1012,7 +1012,7 @@
                         All related trip records will also be removed.
                     </p>
 
-                    <form id="batchDeleteForm" method="POST" action="">
+                    <form id="batchDeleteForm" method="POST" action="{{ url('/batch-file-processing/0') }}">
                         @csrf
                         @method('DELETE')
 

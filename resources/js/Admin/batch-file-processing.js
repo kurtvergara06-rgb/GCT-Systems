@@ -22,12 +22,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteFileName = document.getElementById('batchDeleteFileName');
     const cancelDeleteButton = document.getElementById('cancelBatchDelete');
 
-    const editTripRecordModal = document.getElementById('editTripRecordModal');
-    const openEditTripRecordModal = document.getElementById('openEditTripRecordModal');
-    const closeEditTripRecordModal = document.getElementById('closeEditTripRecordModal');
-    const cancelEditTripRecordModal = document.getElementById('cancelEditTripRecordModal');
+    const bulkUpdateRecordsForm = document.getElementById('bulkUpdateRecordsForm');
+    const saveAllBatchRecordsBtn = document.getElementById('saveAllBatchRecordsBtn');
+    const unsavedChangesLabel = document.getElementById('unsavedChangesLabel');
+    const confirmBatchForm = document.getElementById('confirmBatchForm');
 
     const allowedExtensions = ['csv', 'txt', 'pdf', 'xls', 'xlsx'];
+
+    let hasUnsavedBatchChanges = false;
 
     function openModal(modal) {
         if (modal) {
@@ -72,6 +74,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (uploadButton) {
             uploadButton.disabled = false;
+        }
+    }
+
+    function updateBatchSaveState() {
+        if (!saveAllBatchRecordsBtn || !unsavedChangesLabel) {
+            return;
+        }
+
+        saveAllBatchRecordsBtn.disabled = !hasUnsavedBatchChanges;
+
+        if (hasUnsavedBatchChanges) {
+            unsavedChangesLabel.textContent = 'Unsaved changes';
+            unsavedChangesLabel.classList.add('has-changes');
+        } else {
+            unsavedChangesLabel.textContent = 'No unsaved changes';
+            unsavedChangesLabel.classList.remove('has-changes');
         }
     }
 
@@ -215,40 +233,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (openEditTripRecordModal) {
-        openEditTripRecordModal.addEventListener('click', function () {
-            openModal(editTripRecordModal);
-        });
-    }
-
-    if (closeEditTripRecordModal) {
-        closeEditTripRecordModal.addEventListener('click', function () {
-            closeModal(editTripRecordModal);
-        });
-    }
-
-    if (cancelEditTripRecordModal) {
-        cancelEditTripRecordModal.addEventListener('click', function () {
-            closeModal(editTripRecordModal);
-        });
-    }
-
-    if (editTripRecordModal) {
-        editTripRecordModal.addEventListener('click', function (event) {
-            if (event.target === editTripRecordModal) {
-                closeModal(editTripRecordModal);
-            }
-        });
-    }
-
     document.querySelectorAll('[data-delete-batch]').forEach(function (button) {
         button.addEventListener('click', function () {
-            if (deleteForm) {
-                deleteForm.action = button.dataset.deleteUrl;
+            const deleteUrl = button.dataset.deleteUrl;
+            const batchName = button.dataset.deleteName;
+
+            if (deleteForm && deleteUrl) {
+                deleteForm.setAttribute('action', deleteUrl);
             }
 
             if (deleteFileName) {
-                deleteFileName.textContent = button.dataset.deleteName;
+                deleteFileName.textContent =
+                    batchName || 'this uploaded file';
             }
 
             openModal(deleteModal);
@@ -267,30 +263,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeModal(deleteModal);
             }
         });
-    }
-});
-
-    const bulkUpdateRecordsForm = document.getElementById('bulkUpdateRecordsForm');
-    const saveAllBatchRecordsBtn = document.getElementById('saveAllBatchRecordsBtn');
-    const unsavedChangesLabel = document.getElementById('unsavedChangesLabel');
-    const confirmBatchForm = document.getElementById('confirmBatchForm');
-
-    let hasUnsavedBatchChanges = false;
-
-    function updateBatchSaveState() {
-        if (!saveAllBatchRecordsBtn || !unsavedChangesLabel) {
-            return;
-        }
-
-        saveAllBatchRecordsBtn.disabled = !hasUnsavedBatchChanges;
-
-        if (hasUnsavedBatchChanges) {
-            unsavedChangesLabel.textContent = 'Unsaved changes';
-            unsavedChangesLabel.classList.add('has-changes');
-        } else {
-            unsavedChangesLabel.textContent = 'No unsaved changes';
-            unsavedChangesLabel.classList.remove('has-changes');
-        }
     }
 
     document.querySelectorAll('.batch-edit-input').forEach(function (input) {
@@ -344,3 +316,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateBatchSaveState();
+});
