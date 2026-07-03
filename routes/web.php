@@ -230,10 +230,11 @@
             ->name('available-mechanics');
 
         Route::controller(BusController::class)
-             ->prefix('bus-master-list')
+              ->prefix('bus-master-list')
              ->group(function () {
         Route::get('/', 'index')->name('bus-master-list');
         Route::post('/', 'store')->name('bus-master-list.store');
+        Route::post('/import', 'import')->name('bus-master-list.import');
         Route::put('/{bus}', 'update')->name('bus-master-list.update');
         Route::delete('/{bus}', 'destroy')->name('bus-master-list.destroy');
     });

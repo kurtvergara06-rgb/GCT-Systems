@@ -411,12 +411,21 @@
 
     <div class="form-group">
       <label>Bus #</label>
-      <input
-        type="text"
-        name="bus_no"
-        placeholder="Example: BUS-2026-0001"
-        required
-      >
+
+      <select name="bus_no" required>
+        <option value="">Select Bus</option>
+
+        @forelse($buses as $bus)
+          <option value="{{ $bus->bus_no }}">
+            {{ $bus->bus_no }}
+            {{ $bus->plate_no ? ' - ' . $bus->plate_no : '' }}
+          </option>
+        @empty
+          <option value="" disabled>
+            No active buses found. Add a bus in Bus Master List first.
+          </option>
+        @endforelse
+      </select>
     </div>
 
     <div class="form-group full-width">
@@ -528,7 +537,17 @@
 
         <div class="form-group">
           <label>Bus #</label>
-          <input type="text" name="bus_no" id="edit_bus_no" required>
+
+          <select name="bus_no" id="edit_bus_no" required>
+            <option value="">Select Bus</option>
+
+            @foreach($buses as $bus)
+              <option value="{{ $bus->bus_no }}">
+                {{ $bus->bus_no }}
+                {{ $bus->plate_no ? ' - ' . $bus->plate_no : '' }}
+              </option>
+            @endforeach
+          </select>
         </div>
 
         <div class="form-group full-width">

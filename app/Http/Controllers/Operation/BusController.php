@@ -25,7 +25,10 @@ class BusController extends Controller
             });
         }
 
-        if ($request->filled('status') && $request->status !== 'All Status') {
+        if (
+            $request->filled('status') &&
+            $request->status !== 'All Status'
+        ) {
             $query->where('status', $request->status);
         }
 
@@ -34,23 +37,20 @@ class BusController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        /*
-        | Get only the latest GPS record from batches
-        | that Admin already marked as Processed.
-        */
         $gpsRecords = GpsTripRecord::query()
             ->whereNotNull('bus_no')
             ->whereNotNull('mileage_km')
             ->whereHas('batchUpload', function ($query) {
                 $query->where('status', 'Processed');
             })
-            ->orderBy('bus_no')
             ->orderByDesc('beginning_at')
             ->orderByDesc('id')
             ->get();
 
         $gpsByBus = $gpsRecords
-            ->groupBy('bus_no')
+            ->groupBy(function ($record) {
+                return strtoupper(trim($record->bus_no));
+            })
             ->map(function ($records) {
                 $latest = $records->first();
 
@@ -61,7 +61,7 @@ class BusController extends Controller
             });
 
         $buses->getCollection()->transform(function (Bus $bus) use ($gpsByBus) {
-            $gps = $gpsByBus->get($bus->bus_no);
+            $gps = $gpsByBus->get(strtoupper(trim($bus->bus_no)));
 
             $bus->display_latest_gps_km = $gps['latest_gps_km'] ?? null;
             $bus->display_latest_gps_at = $gps['latest_gps_at'] ?? null;
@@ -70,12 +70,15 @@ class BusController extends Controller
         });
 
         $totalBuses = Bus::count();
-
         $activeBuses = Bus::where('status', 'Active')->count();
-
         $underMaintenance = Bus::where('status', 'Under Maintenance')->count();
 
-        $withGpsData = Bus::whereIn('bus_no', $gpsByBus->keys())->count();
+        $withGpsData = Bus::query()
+            ->get()
+            ->filter(function (Bus $bus) use ($gpsByBus) {
+                return $gpsByBus->has(strtoupper(trim($bus->bus_no)));
+            })
+            ->count();
 
         return view('Operation.bus-master-list', compact(
             'buses',
@@ -119,6 +122,127 @@ class BusController extends Controller
         return redirect()
             ->route('bus-master-list')
             ->with('success', 'Bus added successfully.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $file = $request->file('csv_file');
+
+        if (! $file || ! $file->isValid()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Please upload a valid CSV file.');
+        }
+
+        $handle = fopen($file->getRealPath(), 'r');
+
+        if (! $handle) {
+            return redirect()
+                ->back()
+                ->with('error', 'Unable to read the CSV file.');
+        }
+
+        $header = fgetcsv($handle);
+
+        if (! $header) {
+            fclose($handle);
+
+            return redirect()
+                ->back()
+                ->with('error', 'The CSV file is empty.');
+        }
+
+        $header = array_map(function ($value) {
+            $value = preg_replace('/^\xEF\xBB\xBF/', '', (string) $value);
+
+            return strtolower(trim($value));
+        }, $header);
+
+        if (! in_array('bus_no', $header, true)) {
+            fclose($handle);
+
+            return redirect()
+                ->back()
+                ->with('error', 'CSV must have a bus_no column.');
+        }
+
+        $added = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
+                continue;
+            }
+
+            $row = array_pad($row, count($header), null);
+
+            $data = array_combine(
+                $header,
+                array_slice($row, 0, count($header))
+            );
+
+            $busNo = strtoupper(trim($data['bus_no'] ?? ''));
+
+            if ($busNo === '') {
+                $skipped++;
+                continue;
+            }
+
+            $lastPmsKm = is_numeric($data['last_pms_km'] ?? null)
+                ? (float) $data['last_pms_km']
+                : 0;
+
+            $pmsIntervalKm = is_numeric($data['pms_interval_km'] ?? null)
+                ? (float) $data['pms_interval_km']
+                : 5000;
+
+            $status = trim($data['status'] ?? '');
+
+            if (! in_array($status, ['Active', 'Inactive', 'Under Maintenance'], true)) {
+                $status = 'Active';
+            }
+
+            $busData = [
+                'plate_no' => trim($data['plate_no'] ?? '') ?: null,
+                'bus_model' => trim($data['bus_model'] ?? '') ?: null,
+                'year_model' => trim($data['year_model'] ?? '') ?: null,
+                'capacity' => is_numeric($data['capacity'] ?? null)
+                    ? (int) $data['capacity']
+                    : null,
+                'route_grouping' => trim($data['route_grouping'] ?? '') ?: null,
+                'status' => $status,
+                'last_pms_km' => $lastPmsKm,
+                'pms_interval_km' => $pmsIntervalKm,
+                'next_pms_km' => $lastPmsKm + $pmsIntervalKm,
+            ];
+
+            $existingBus = Bus::where('bus_no', $busNo)->first();
+
+            if ($existingBus) {
+                $existingBus->update($busData);
+                $updated++;
+            } else {
+                Bus::create(array_merge([
+                    'bus_no' => $busNo,
+                ], $busData));
+
+                $added++;
+            }
+        }
+
+        fclose($handle);
+
+        return redirect()
+            ->route('bus-master-list')
+            ->with(
+                'success',
+                "CSV imported. Added: {$added}, Updated: {$updated}, Skipped: {$skipped}."
+            );
     }
 
     public function update(Request $request, Bus $bus)
