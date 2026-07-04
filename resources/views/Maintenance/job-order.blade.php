@@ -404,6 +404,13 @@
     close-id="closeJobModal"
     cancel-id="cancelJobModal"
   >
+    <input
+      type="hidden"
+      name="pms_schedule_id"
+      id="pms_schedule_id"
+      value=""
+    >
+
     <div class="form-group">
       <label>JO No.</label>
       <input type="text" value="{{ $nextJobOrderNo }}" readonly>
@@ -577,7 +584,7 @@
           <select name="assigned_mechanic" id="edit_assigned_mechanic">
             <option value="">No mechanic assigned</option>
 
-            @foreach($allMechanics as $mechanic)
+            @foreach($availableMechanics as $mechanic)
               <option value="{{ $mechanic->mechanic_name }}">
                 {{ $mechanic->mechanic_name }}
               </option>
@@ -654,5 +661,25 @@
     cancel-id="cancelDeleteJob"
     confirm-id="confirmDeleteJob"
   />
+
+
+  @if(request('create_pms') && $pmsCreate)
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('jobModal');
+        const busSelect = document.querySelector('#jobModal select[name="bus_no"]');
+        const issueField = document.querySelector('#jobModal textarea[name="problem_issue"]');
+        const typeSelect = document.querySelector('#jobModal select[name="maintenance_type"]');
+        const pmsScheduleId = document.getElementById('pms_schedule_id');
+
+        if (busSelect) busSelect.value = @json($pmsCreate->bus_no);
+        if (issueField) issueField.value = @json(request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.'));
+        if (typeSelect) typeSelect.value = 'PMS';
+        if (pmsScheduleId) pmsScheduleId.value = @json($pmsCreate->id);
+
+        if (modal) modal.classList.add('show', 'active');
+      });
+    </script>
+  @endif
 
 </x-layout.app>

@@ -245,3 +245,36 @@
         width: 100%;
     }
 }
+
+/* Bus Status Badges */
+.bus-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 105px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-maintenance {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-default {
+    background: #e2e8f0;
+    color: #475569;
+}

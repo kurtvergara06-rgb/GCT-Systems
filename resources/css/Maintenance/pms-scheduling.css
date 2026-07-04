@@ -449,3 +449,43 @@
 #pmsStatusPreview[value="Overdue"] {
     color: #dc2626;
 }
+
+/* PMS action icons */
+.create-pms-jo-btn,
+.pms-table .edit {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.create-pms-jo-btn {
+    background: #fbbf24;
+    color: #163b62;
+}
+
+.create-pms-jo-btn:hover {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+.create-pms-jo-btn i {
+    display: inline-block;
+    font-size: 14px;
+    color: inherit;
+}
+
+.pms-table .edit {
+    background: #e8f1ff;
+    color: #2563eb;
+}
+
+.pms-table .edit:hover {
+    background: #d8e8ff;
+}

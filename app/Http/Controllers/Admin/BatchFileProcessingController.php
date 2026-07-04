@@ -54,6 +54,21 @@ class BatchFileProcessingController extends Controller
                 $query->where('status', 'Processed');
             });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Structured Trip Records Table
+        |--------------------------------------------------------------------------
+        | Show records only for the Uploaded File selected by the user.
+        | Records are available here only after that selected batch is Processed.
+        |--------------------------------------------------------------------------
+        */
+        if ($selectedBatch && $selectedBatch->status === 'Processed') {
+            $recordsQuery->where('batch_upload_id', $selectedBatch->id);
+        } else {
+            // Keep the table empty for In Review, Failed, or no selected batch.
+            $recordsQuery->whereRaw('1 = 0');
+        }
+
         if ($request->filled('search')) {
             $search = trim($request->search);
 
@@ -71,7 +86,7 @@ class BatchFileProcessingController extends Controller
 
         $records = $recordsQuery
             ->latest('beginning_at')
-            ->paginate(10)
+            ->paginate(25)
             ->withQueryString()
             ->appends([
                 'batch_id' => $selectedBatchId,
@@ -366,14 +381,6 @@ class BatchFileProcessingController extends Controller
         $this->syncBusesFromProcessedBatch($batchUpload);
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Bus',
-            'updated',
-            $batchUpload->id,
-            'Processed GPS data updated Bus Master List mileage.'
-        );
-
-        $this->broadcastSystemDataUpdated(
             'Admin',
             'BatchUpload',
             'updated',
@@ -401,37 +408,13 @@ class BatchFileProcessingController extends Controller
             ->unique()
             ->values();
 
-        $batchId = $batchUpload->id;
-
         Storage::disk('public')->delete($batchUpload->file_path);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete the GPS records first so they are no longer included when
-        | checking the remaining Processed GPS data for each bus.
-        |--------------------------------------------------------------------------
-        */
-        $batchUpload->tripRecords()->delete();
+        $batchId = $batchUpload->id;
 
         $batchUpload->delete();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Refresh only the buses affected by this deleted batch.
-        |
-        | If another Processed batch still has GPS data for the same bus,
-        | keep that newer remaining value. Otherwise clear the bus GPS fields.
-        |--------------------------------------------------------------------------
-        */
         $this->refreshBusesLatestGps($affectedBusNumbers);
-
-        $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Bus',
-            'updated',
-            $batchId,
-            'GPS data was removed or refreshed in the Bus Master List.'
-        );
 
         $this->broadcastSystemDataUpdated(
             'Admin',
@@ -445,7 +428,7 @@ class BatchFileProcessingController extends Controller
             ->route('batch-file-processing')
             ->with(
                 'success',
-                'Uploaded file, GPS records, and related Bus Master List GPS data were deleted.'
+                'Uploaded file and all related trip records were deleted.'
             );
     }
 
