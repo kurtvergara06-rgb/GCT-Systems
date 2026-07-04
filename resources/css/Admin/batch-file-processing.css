@@ -1474,3 +1474,69 @@
 .batch-editor-table td:last-child {
     min-width: 210px;
 }
+
+/* Simple Previous / Next pagination */
+.batch-simple-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    min-width: max-content;
+}
+
+.simple-page-button {
+    min-width: 82px;
+    height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d8e2ef;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #163b62;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: 0.2s ease;
+}
+
+.simple-page-button:hover:not(.disabled) {
+    background: #edf4ff;
+    border-color: #8db8ff;
+    color: #0f4c81;
+}
+
+.simple-page-button.disabled {
+    color: #94a3b8;
+    background: #f8fafc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.simple-page-info {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.batch-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+    .batch-table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .batch-simple-pagination {
+        justify-content: flex-start;
+    }
+}

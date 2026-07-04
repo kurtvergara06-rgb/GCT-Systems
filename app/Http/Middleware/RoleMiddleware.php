@@ -8,8 +8,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string ...$roles): Response
-    {
+    public function handle(
+        Request $request,
+        Closure $next,
+        string ...$roles
+    ): Response {
         if (! auth()->check()) {
             return redirect()->route('login');
         }
@@ -21,13 +24,34 @@ class RoleMiddleware
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Your account is not active. Please contact the system administrator.');
+                ->with(
+                    'error',
+                    'Your account is not active. Please contact the system administrator.'
+                );
         }
 
-        if ($user->role === 'System Admin') {
+        $department = strtolower(trim($user->department ?? ''));
+        $role = strtolower(trim($user->role ?? ''));
+
+        /*
+        |--------------------------------------------------------------------------
+        | System Admin Access
+        |--------------------------------------------------------------------------
+        | An Admin department user with role "head" is your System Admin.
+        */
+        $isSystemAdmin =
+            ($department === 'admin' && $role === 'head')
+            || $role === 'system admin';
+
+        if ($isSystemAdmin) {
             return $next($request);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Standard Department Roles
+        |--------------------------------------------------------------------------
+        */
         if (! in_array($user->role, $roles, true)) {
             abort(403, 'Unauthorized access.');
         }
