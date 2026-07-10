@@ -14,6 +14,7 @@
     use App\Http\Controllers\Maintenance\MechanicListController;
     use App\Http\Controllers\Maintenance\PmsSchedulingController;
     use App\Http\Controllers\Operation\BusController;
+    use App\Http\Controllers\Maintenance\FuelReportController;
     use Illuminate\Support\Facades\Route;
 
     /*
@@ -62,8 +63,12 @@
                 ->name('pms-schedules.create-job-order');
         });
 
-        Route::view('/fuel-reports', 'Maintenance.fuel-reports')
-            ->name('fuel-reports');
+        Route::controller(FuelReportController::class)
+            ->prefix('fuel-reports')
+            ->group(function () {
+                Route::get('/', 'index')->name('fuel-reports');
+                Route::post('/', 'store')->name('fuel-reports.store');
+            });
 
         Route::view('/settings', 'Maintenance.settings')
             ->name('settings');

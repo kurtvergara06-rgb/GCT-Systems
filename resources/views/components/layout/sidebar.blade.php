@@ -39,7 +39,24 @@
   $initials = $initials ?: 'U';
 @endphp
 
-<aside class="sidebar">
+<script>
+  if (localStorage.getItem('gctSidebarCollapsed') === '1') {
+    document.documentElement.classList.add('sidebar-start-collapsed');
+  }
+</script>
+
+<aside class="sidebar" id="appSidebar">
+
+  {{-- COLLAPSE ARROW --}}
+  <button
+    type="button"
+    class="sidebar-collapse-btn"
+    id="sidebarCollapseBtn"
+    aria-label="Toggle sidebar"
+    title="Toggle sidebar"
+  >
+    <i class="fa-solid fa-chevron-left"></i>
+  </button>
 
   {{-- BRAND --}}
   <div class="brand">
@@ -47,7 +64,7 @@
       <i class="fa-solid {{ $icon }}"></i>
     </div>
 
-    <div>
+    <div class="brand-text">
       <h2>{{ $department }}</h2>
       <p>{{ $subtitle }}</p>
     </div>
@@ -81,6 +98,7 @@
             type="button"
             class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
             aria-expanded="{{ $isParentActive ? 'true' : 'false' }}"
+            title="{{ $item['label'] ?? 'Menu' }}"
           >
             <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
             <span>{{ $item['label'] ?? 'Menu' }}</span>
@@ -93,6 +111,7 @@
                 <a
                   href="{{ route($child['route']) }}"
                   class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
+                  title="{{ $child['label'] ?? 'Submenu' }}"
                 >
                   <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
                   <span>{{ $child['label'] ?? 'Submenu' }}</span>
@@ -108,6 +127,7 @@
           <a
             href="{{ route($itemRoute) }}"
             class="menu-item {{ request()->routeIs($itemRoute) ? 'active' : '' }}"
+            title="{{ $item['label'] ?? 'Menu' }}"
           >
             <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
             <span>{{ $item['label'] ?? 'Menu' }}</span>
@@ -127,6 +147,7 @@
       class="user-box sidebar-profile-toggle"
       id="sidebarProfileToggle"
       aria-expanded="false"
+      title="{{ $displayName }}"
     >
       <div class="avatar">
         <span>{{ $initials }}</span>

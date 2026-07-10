@@ -8,6 +8,26 @@
   ]"
 >
 
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="success"
+    :message="session('success')"
+  />
+
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="error"
+    :message="session('error')"
+  />
+
+  @if($errors->any())
+    <x-ui.action-buttom-modal
+      mode="feedback"
+      feedback-type="error"
+      :message="$errors->first()"
+    />
+  @endif
+
   <div class="app">
 
     <x-layout.sidebar
@@ -43,7 +63,7 @@
 
           <div>
             <p>Total Fuel Used</p>
-            <h2>2,153 L</h2>
+            <h2>{{ number_format($totalFuelUsed, 0) }} L</h2>
             <small>Recorded fuel consumption</small>
           </div>
 
@@ -57,7 +77,7 @@
 
           <div>
             <p>Total Distance</p>
-            <h2>7,480 km</h2>
+            <h2>{{ number_format($totalDistance, 0) }} km</h2>
             <small>Distance travelled</small>
           </div>
 
@@ -71,7 +91,7 @@
 
           <div>
             <p>Fleet Average</p>
-            <h2>3.47</h2>
+            <h2>{{ number_format($fleetAverage, 2) }}</h2>
             <small>Average km/L</small>
           </div>
 
@@ -85,7 +105,7 @@
 
           <div>
             <p>Inefficient Vehicles</p>
-            <h2>2</h2>
+            <h2>{{ $inefficientVehicles }}</h2>
             <small>Needs checking</small>
           </div>
 
@@ -104,26 +124,33 @@
           </div>
         </div>
 
-        <div class="toolbar fuel-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search vehicle">
-          </div>
+        <form method="GET" action="{{ route('fuel-reports') }}">
+          <div class="toolbar fuel-toolbar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Search vehicle or driver"
+              >
+            </div>
 
-          <div class="filter-group">
-            <label>Date</label>
-            <select>
-              <option>This Month</option>
-              <option>This Week</option>
-              <option>Today</option>
-            </select>
-          </div>
+            <div class="filter-group">
+              <label>Date</label>
+              <select name="date_filter" onchange="this.form.submit()">
+                <option value="This Month" @selected(request('date_filter', 'This Month') === 'This Month')>This Month</option>
+                <option value="This Week" @selected(request('date_filter') === 'This Week')>This Week</option>
+                <option value="Today" @selected(request('date_filter') === 'Today')>Today</option>
+              </select>
+            </div>
 
-          <button class="primary-btn" type="button">
-            <i class="fa-solid fa-plus"></i>
-            Add Fuel Record
-          </button>
-        </div>
+            <button class="primary-btn" type="button" id="openFuelModal">
+              <i class="fa-solid fa-plus"></i>
+              Add Fuel Record
+            </button>
+          </div>
+        </form>
 
         <div class="table-wrap">
           <table class="fuel-table">
@@ -140,75 +167,35 @@
             </thead>
 
             <tbody>
-              <tr>
-                <td>BUS 001</td>
-                <td>1,296</td>
-                <td>370.3</td>
-                <td>3.50</td>
-                <td>-3.0%</td>
-                <td>6</td>
-                <td><span class="badge normal">Normal</span></td>
-              </tr>
+              @forelse($vehicleSummaries as $vehicle)
+                @php
+                  $statusClass = strtolower($vehicle->status);
+                  $vsSign = $vehicle->vs_fleet_avg >= 0 ? '+' : '';
+                @endphp
 
-              <tr>
-                <td>BUS 002</td>
-                <td>1,266</td>
-                <td>312.0</td>
-                <td>4.06</td>
-                <td>+12.4%</td>
-                <td>7</td>
-                <td><span class="badge efficient">Efficient</span></td>
-              </tr>
-
-              <tr class="danger-row">
-                <td>BUS 003</td>
-                <td>1,270</td>
-                <td>453.6</td>
-                <td>2.80</td>
-                <td>-22.4%</td>
-                <td>6</td>
-                <td>
-                  <span class="badge inefficient">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    Inefficient
-                  </span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>BUS 004</td>
-                <td>1,229</td>
-                <td>279.4</td>
-                <td>4.40</td>
-                <td>+21.9%</td>
-                <td>7</td>
-                <td><span class="badge efficient">Efficient</span></td>
-              </tr>
-
-              <tr class="danger-row">
-                <td>BUS 005</td>
-                <td>1,197</td>
-                <td>299.3</td>
-                <td>4.00</td>
-                <td>-10.8%</td>
-                <td>6</td>
-                <td>
-                  <span class="badge inefficient">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    Inefficient
-                  </span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>BUS 006</td>
-                <td>1,217</td>
-                <td>438.2</td>
-                <td>2.90</td>
-                <td>-19.6%</td>
-                <td>7</td>
-                <td><span class="badge normal">Normal</span></td>
-              </tr>
+                <tr class="{{ $vehicle->status === 'Inefficient' ? 'danger-row' : '' }}">
+                  <td>{{ $vehicle->bus_no }}</td>
+                  <td>{{ number_format($vehicle->total_km, 2) }}</td>
+                  <td>{{ number_format($vehicle->total_liters, 2) }}</td>
+                  <td>{{ number_format($vehicle->km_per_liter, 2) }}</td>
+                  <td>{{ $vsSign }}{{ number_format($vehicle->vs_fleet_average, 1) }}%</td>
+                  <td>{{ $vehicle->entries }}</td>
+                  <td>
+                    <span class="badge {{ $statusClass }}">
+                      @if($vehicle->status === 'Inefficient')
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                      @endif
+                      {{ $vehicle->status }}
+                    </span>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" style="text-align:center; padding: 24px;">
+                    No fuel records found.
+                  </td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
@@ -239,59 +226,22 @@
             </thead>
 
             <tbody>
-              <tr>
-                <td>Apr 29, 2026</td>
-                <td>BUS 001</td>
-                <td>240 km</td>
-                <td>58.3 L</td>
-                <td>3.0</td>
-                <td>Jose Cruz</td>
-              </tr>
-
-              <tr>
-                <td>Apr 29, 2026</td>
-                <td>BUS 002</td>
-                <td>3 km</td>
-                <td>4.0 L</td>
-                <td>0.75</td>
-                <td>Rodolfo Castillo</td>
-              </tr>
-
-              <tr>
-                <td>Apr 26, 2026</td>
-                <td>BUS 003</td>
-                <td>239 km</td>
-                <td>58.3 L</td>
-                <td>4.10</td>
-                <td>Marg Patel</td>
-              </tr>
-
-              <tr>
-                <td>Apr 24, 2026</td>
-                <td>BUS 004</td>
-                <td>195 km</td>
-                <td>70.0 L</td>
-                <td>2.80</td>
-                <td>Ricky Okafor</td>
-              </tr>
-
-              <tr>
-                <td>Apr 24, 2026</td>
-                <td>BUS 005</td>
-                <td>216 km</td>
-                <td>43.0 L</td>
-                <td>4.40</td>
-                <td>Sung Lee</td>
-              </tr>
-
-              <tr>
-                <td>Apr 23, 2026</td>
-                <td>BUS 006</td>
-                <td>438.2 km</td>
-                <td>48.0 L</td>
-                <td>4.00</td>
-                <td>Nestor Ocampo</td>
-              </tr>
+              @forelse($recentFuelRecords as $record)
+                <tr>
+                  <td>{{ $record->report_date?->format('M d, Y') }}</td>
+                  <td>{{ $record->bus_no }}</td>
+                  <td>{{ number_format((float) $record->distance_km, 2) }} km</td>
+                  <td>{{ number_format((float) $record->fuel_liters, 2) }} L</td>
+                  <td>{{ number_format((float) $record->km_per_liter, 2) }}</td>
+                  <td>{{ $record->driver_name ?: '—' }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" style="text-align:center; padding: 24px;">
+                    No recent fuel records found.
+                  </td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
@@ -301,5 +251,217 @@
     </main>
 
   </div>
+
+  {{-- ADD FUEL RECORD MODAL --}}
+  <div class="fuel-modal-overlay" id="fuelModal">
+    <div class="fuel-modal">
+      <div class="fuel-modal-header">
+        <div>
+          <h2>Add Fuel Record</h2>
+          <p>Fuel liters are encoded manually. Distance can be auto-filled from GPS Mileage Report.</p>
+        </div>
+
+        <button type="button" class="fuel-modal-close" id="closeFuelModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form action="{{ route('fuel-reports.store') }}" method="POST">
+        @csrf
+
+        <div class="fuel-form-grid">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" name="report_date" value="{{ old('report_date', now()->toDateString()) }}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Vehicle</label>
+            <select name="bus_no" required>
+              <option value="">Select bus</option>
+              @foreach($buses as $bus)
+                <option value="{{ $bus->bus_no }}" @selected(old('bus_no') === $bus->bus_no)>
+                  {{ $bus->bus_no }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Driver Name</label>
+            <input type="text" name="driver_name" value="{{ old('driver_name') }}" placeholder="Optional">
+          </div>
+
+          <div class="form-group">
+            <label>Fuel Liters</label>
+            <input type="number" step="0.01" min="0.01" name="fuel_liters" value="{{ old('fuel_liters') }}" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Distance KM</label>
+            <input type="number" step="0.01" min="0" name="distance_km" value="{{ old('distance_km') }}" placeholder="Leave blank to use GPS Mileage Report for selected date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Remarks</label>
+            <textarea name="remarks" rows="3" placeholder="Optional remarks">{{ old('remarks') }}</textarea>
+          </div>
+        </div>
+
+        <div class="fuel-modal-actions">
+          <button type="button" class="fuel-cancel-btn" id="cancelFuelModal">Cancel</button>
+          <button type="submit" class="primary-btn">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Save Fuel Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .fuel-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 24px;
+    }
+
+    .fuel-modal-overlay.show {
+      display: flex;
+    }
+
+    .fuel-modal {
+      width: min(760px, 100%);
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+    }
+
+    .fuel-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .fuel-modal-header h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .fuel-modal-header p {
+      margin: 5px 0 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .fuel-modal-close {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 10px;
+      background: #f1f5f9;
+      color: #0f172a;
+      cursor: pointer;
+    }
+
+    .fuel-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .fuel-form-grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .fuel-form-grid label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .fuel-form-grid input,
+    .fuel-form-grid select,
+    .fuel-form-grid textarea {
+      width: 100%;
+      border: 1px solid #dbe4f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      color: #0f172a;
+      outline: none;
+    }
+
+    .fuel-form-grid textarea {
+      resize: vertical;
+    }
+
+    .fuel-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .fuel-cancel-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 0 18px;
+      min-height: 44px;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    @media (max-width: 700px) {
+      .fuel-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('fuelModal');
+      const openBtn = document.getElementById('openFuelModal');
+      const closeBtn = document.getElementById('closeFuelModal');
+      const cancelBtn = document.getElementById('cancelFuelModal');
+
+      function openModal() {
+        if (modal) modal.classList.add('show');
+      }
+
+      function closeModal() {
+        if (modal) modal.classList.remove('show');
+      }
+
+      if (openBtn) openBtn.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+      if (modal) {
+        modal.addEventListener('click', function (event) {
+          if (event.target === modal) closeModal();
+        });
+      }
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeModal();
+      });
+    });
+  </script>
 
 </x-layout.app>
