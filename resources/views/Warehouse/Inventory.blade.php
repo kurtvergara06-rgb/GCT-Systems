@@ -46,20 +46,7 @@
         </div>
       </header>
 
-      {{-- ALERTS --}}
-      @if(session('success'))
-        <div class="alert success-alert">
-          {{ session('success') }}
-        </div>
-      @endif
-
-      @if($errors->any())
-        <div class="alert error-alert">
-          {{ $errors->first() }}
-        </div>
-      @endif
-
-          {{-- SUMMARY CARDS --}}
+      {{-- SUMMARY CARDS --}}
           <section class="stats-grid inventory-stats">
 
             <x-ui.summary-card
@@ -201,7 +188,7 @@
 
                       <button
                         type="button"
-                        class="edit openEditModal"
+                        class="action-btn edit openEditModal"
                         title="Edit Item"
                         data-action="{{ route('inventory.update', $item->id) }}"
                         data-code="{{ $item->item_code }}"
@@ -222,7 +209,7 @@
 
                         <button
                           type="submit"
-                          class="delete"
+                          class="action-btn delete"
                           title="Delete Item"
                           onclick="return confirm('Delete this inventory item?')"
                         >
@@ -234,11 +221,10 @@
                   </td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="11" style="text-align:center; padding: 30px;">
-                    No inventory items found.
-                  </td>
-                </tr>
+                <x-ui.empty-row
+                  colspan="11"
+                  message="No inventory items found."
+                />
               @endforelse
             </tbody>
           </table>
@@ -332,7 +318,7 @@
         </div>
 
         <div class="modal-actions full-width">
-          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Save Item</button>
         </div>
 
@@ -399,7 +385,7 @@
         </div>
 
         <div class="modal-actions full-width">
-          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Update Item</button>
         </div>
 
@@ -472,7 +458,7 @@
       </div>
 
       <div class="modal-actions full-width">
-        <button type="button" class="cancel-btn closeModal">Close</button>
+        <button type="button" class="secondary-btn cancel-btn closeModal">Close</button>
       </div>
 
     </div>
@@ -500,7 +486,7 @@
         </div>
 
         <div class="modal-actions full-width">
-          <button type="button" class="cancel-btn closeModal">Cancel</button>
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Import Data</button>
         </div>
 

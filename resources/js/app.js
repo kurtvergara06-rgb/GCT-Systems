@@ -1,5 +1,8 @@
 import './echo';
 
+import '../css/Main-styles/system-toast.css';
+import './Main-js/system-toast.js';
+
 import '../css/Login/login.css';
 import './Login/login.js';
 

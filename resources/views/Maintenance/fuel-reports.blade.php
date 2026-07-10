@@ -8,26 +8,6 @@
   ]"
 >
 
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
-  @if($errors->any())
-    <x-ui.action-buttom-modal
-      mode="feedback"
-      feedback-type="error"
-      :message="$errors->first()"
-    />
-  @endif
-
   <div class="app">
 
     <x-layout.sidebar
@@ -191,9 +171,10 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="7" style="text-align:center; padding: 24px;">
-                    No fuel records found.
-                  </td>
+                  <x-ui.empty-row
+                    colspan="7"
+                    message="No fuel records found."
+                  />
                 </tr>
               @endforelse
             </tbody>
@@ -237,9 +218,10 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="6" style="text-align:center; padding: 24px;">
-                    No recent fuel records found.
-                  </td>
+                  <x-ui.empty-row
+                    colspan="6"
+                    message="No recent fuel records found."
+                  />
                 </tr>
               @endforelse
             </tbody>
@@ -309,7 +291,7 @@
         </div>
 
         <div class="fuel-modal-actions">
-          <button type="button" class="fuel-cancel-btn" id="cancelFuelModal">Cancel</button>
+          <button type="button" class="secondary-btn fuel-cancel-btn" id="cancelFuelModal">Cancel</button>
           <button type="submit" class="primary-btn">
             <i class="fa-solid fa-floppy-disk"></i>
             Save Fuel Record

@@ -31,21 +31,9 @@
     $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
   @endphp
 
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
   @if($errors->any())
-    <div id="validationErrorModal" class="delete-modal-overlay show active" style="display: flex;">
-      <div class="delete-modal-box">
+    <div id="validationErrorModal" class="modal-overlay show active">
+      <div class="modal-card delete-modal-box">
         <div class="delete-icon">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
@@ -53,14 +41,14 @@
         <h2>Form Error</h2>
         <p>Please check the form. Some required information is missing.</p>
 
-        <ul style="text-align: left; margin: 12px 0 0; color: #dc2626; font-size: 13px;">
+        <ul class="form-error-list">
           @foreach($errors->all() as $error)
             <li>{{ $error }}</li>
           @endforeach
         </ul>
 
         <div class="delete-modal-actions">
-          <button type="button" id="closeValidationErrorModal" class="cancel-delete-btn">
+          <button type="button" id="closeValidationErrorModal" class="secondary-btn cancel-delete-btn">
             Okay
           </button>
         </div>
@@ -345,7 +333,6 @@
   <div
     id="prModal"
     class="modal-overlay {{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
-    style="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'display: flex;' : '' }}"
   >
     <div class="modal-box pr-jo-style-modal">
 
@@ -454,11 +441,11 @@
         </div>
 
         <div class="pr-jo-actions full-width">
-          <button type="button" id="cancelPrModal" class="pr-jo-cancel-btn">
+          <button type="button" id="cancelPrModal" class="secondary-btn pr-jo-cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" class="pr-jo-save-btn">
+          <button type="submit" class="primary-btn pr-jo-save-btn">
             Create PR
           </button>
         </div>
@@ -540,19 +527,18 @@
 
         <div class="pr-modal-footer full-width" id="editPrMainActions">
           <div class="pr-modal-left-actions">
-            <button type="button" id="cancelEditPrModal" class="pr-jo-cancel-btn">
+            <button type="button" id="cancelEditPrModal" class="secondary-btn pr-jo-cancel-btn">
               Cancel
             </button>
 
-            <button type="submit" class="pr-jo-save-btn" id="submitEditBtn">
+            <button type="submit" class="primary-btn pr-jo-save-btn" id="submitEditBtn">
               Save Changes
             </button>
           </div>
 
           <div
-            class="pr-approval-actions"
+            class="pr-approval-actions hidden"
             id="prApprovalActions"
-            style="display: none;"
             data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
           >
             @if($isMaintenanceAdmin)
@@ -570,11 +556,10 @@
         </div>
 
         <div
-          class="pr-jo-actions full-width"
+          class="pr-jo-actions full-width hidden"
           id="viewOnlyActions"
-          style="display: none;"
         >
-          <button type="button" id="closeViewOnlyPr" class="pr-jo-cancel-btn">
+          <button type="button" id="closeViewOnlyPr" class="secondary-btn pr-jo-cancel-btn">
             Close
           </button>
         </div>
@@ -584,11 +569,11 @@
   </div>
 
   {{-- HIDDEN APPROVE / REJECT FORMS --}}
-  <form id="approvePrForm" method="POST" action="#" style="display: none;">
+  <form id="approvePrForm" method="POST" action="#" class="hidden">
     @csrf
   </form>
 
-  <form id="rejectPrForm" method="POST" action="#" style="display: none;">
+  <form id="rejectPrForm" method="POST" action="#" class="hidden">
     @csrf
     <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
   </form>

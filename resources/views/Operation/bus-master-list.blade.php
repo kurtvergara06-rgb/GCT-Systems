@@ -8,26 +8,6 @@
         'resources/js/Operation/bus-master-list.js'
     ]"
 >
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="success"
-        :message="session('success')"
-    />
-
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="error"
-        :message="session('error')"
-    />
-
-    @if($errors->any())
-        <x-ui.action-buttom-modal
-            mode="feedback"
-            feedback-type="error"
-            :message="$errors->first()"
-        />
-    @endif
-
     <div class="app">
 
         <x-layout.sidebar
@@ -411,12 +391,12 @@
                     <button
                         type="button"
                         id="cancelImportBusModal"
-                        class="cancel-btn"
+                        class="secondary-btn cancel-btn"
                     >
                         Cancel
                     </button>
 
-                    <button type="submit" class="save-btn">
+                    <button type="submit" class="primary-btn save-btn">
                         Import CSV
                     </button>
                 </div>
@@ -523,12 +503,12 @@
                     <button
                         type="button"
                         id="cancelEditBusModal"
-                        class="cancel-btn"
+                        class="secondary-btn cancel-btn"
                     >
                         Cancel
                     </button>
 
-                    <button type="submit" class="save-btn">
+                    <button type="submit" class="primary-btn save-btn">
                         Update Bus
                     </button>
                 </div>

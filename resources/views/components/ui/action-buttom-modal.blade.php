@@ -18,11 +18,15 @@
   'confirmId' => 'confirmDelete',
 ])
 
+@php
+  $buttonClasses = 'action-btn ' . trim($class);
+@endphp
+
 @if($mode === 'button')
 
   <button
     type="{{ $type }}"
-    {{ $attributes->merge(['class' => $class]) }}
+    {{ $attributes->merge(['class' => $buttonClasses]) }}
     title="{{ $title }}"
   >
     @if($icon)
@@ -40,8 +44,8 @@
   @endphp
 
   @if($message)
-    <div class="success-modal-overlay show">
-      <div class="success-modal-box">
+    <div class="modal-overlay show">
+      <div class="modal-card success-modal-box">
         <div class="{{ $iconWrapper }}">
           <i class="fa-solid {{ $iconClass }}"></i>
         </div>
@@ -49,7 +53,7 @@
         <h2>{{ $modalTitle }}</h2>
         <p>{{ $message }}</p>
 
-        <button type="button" class="save-btn close-feedback-modal">
+        <button type="button" class="primary-btn close-feedback-modal">
           {{ $buttonText }}
         </button>
       </div>
@@ -58,8 +62,8 @@
 
 @elseif($mode === 'delete')
 
-  <div id="{{ $id }}" class="delete-modal-overlay">
-    <div class="delete-modal-box">
+  <div id="{{ $id }}" class="modal-overlay">
+    <div class="modal-card delete-modal-box">
       <div class="delete-icon">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
@@ -73,7 +77,7 @@
       </p>
 
       <div class="delete-modal-actions">
-        <button type="button" id="{{ $cancelId }}" class="cancel-btn">
+        <button type="button" id="{{ $cancelId }}" class="secondary-btn cancel-btn">
           Cancel
         </button>
 
