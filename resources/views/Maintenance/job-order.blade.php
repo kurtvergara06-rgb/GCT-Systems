@@ -9,25 +9,12 @@
   ]"
 >
 
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
   @if($errors->any())
     <div
       id="validationErrorModal"
-      class="delete-modal-overlay show active"
-      style="display: flex;"
+      class="modal-overlay delete-modal-overlay show active"
     >
-      <div class="delete-modal-box">
+      <div class="modal-card delete-modal-box">
         <div class="delete-icon">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
@@ -35,7 +22,7 @@
         <h2>Form Error</h2>
         <p>Please check the form. Some required information is missing.</p>
 
-        <ul style="text-align:left; margin:12px 0 0; color:#dc2626; font-size:13px;">
+        <ul class="form-error-list">
           @foreach($errors->all() as $error)
             <li>{{ $error }}</li>
           @endforeach
@@ -45,7 +32,7 @@
           <button
             type="button"
             id="closeValidationErrorModal"
-            class="cancel-delete-btn"
+            class="secondary-btn cancel-delete-btn"
           >
             Okay
           </button>
@@ -345,10 +332,9 @@
                       @elseif($hasActivePr)
                         <button
                           type="button"
-                          class="action-btn"
+                          class="action-btn disabled-action-btn"
                           title="Purchase Request already created"
                           disabled
-                          style="opacity:0.55; cursor:not-allowed;"
                         >
                           <i class="fa-solid fa-file-circle-check"></i>
                         </button>
@@ -515,7 +501,7 @@
   </x-ui.form-modal>
 
   <div id="editJobModal" class="modal-overlay">
-    <div class="modal-box wide-modal">
+    <div class="modal-card modal-box wide-modal">
 
       <div class="modal-header">
         <div>
@@ -603,21 +589,20 @@
         </div>
 
         <div class="modal-actions full-width" id="editJobMainActions">
-          <button type="button" id="cancelEditJobModal" class="cancel-btn">
+          <button type="button" id="cancelEditJobModal" class="secondary-btn cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" class="save-btn">
+          <button type="submit" class="primary-btn save-btn">
             Update Job Order
           </button>
         </div>
 
         <div
-          class="modal-actions full-width"
+          class="modal-actions full-width hidden"
           id="viewOnlyJobActions"
-          style="display:none;"
         >
-          <button type="button" id="closeViewOnlyJob" class="cancel-btn">
+          <button type="button" id="closeViewOnlyJob" class="secondary-btn cancel-btn">
             Close
           </button>
         </div>
@@ -641,11 +626,11 @@
       </p>
 
       <div class="delete-modal-actions">
-        <button type="button" id="cancelFinishJob" class="cancel-delete-btn">
+        <button type="button" id="cancelFinishJob" class="secondary-btn cancel-delete-btn">
           Cancel
         </button>
 
-        <button type="button" id="confirmFinishJob" class="confirm-finish-btn">
+        <button type="button" id="confirmFinishJob" class="warning-btn confirm-finish-btn">
           Yes, Finish
         </button>
       </div>

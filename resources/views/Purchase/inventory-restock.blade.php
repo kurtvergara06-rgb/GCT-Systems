@@ -8,18 +8,6 @@
   ]"
 >
 
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
   <div class="app">
 
     <x-layout.sidebar

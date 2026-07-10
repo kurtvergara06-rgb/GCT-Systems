@@ -91,111 +91,12 @@ window.realtimePageRouteMap = {
 
 window.showSystemNotification = function (message) {
     try {
-        const oldNotification = document.querySelector(
-            '.system-data-updated-notification'
-        );
-
-        if (oldNotification) {
-            oldNotification.remove();
+        if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(message, 'warning', 'System Updated', {
+                timeout: 8000,
+                keepRealtime: true,
+            });
         }
-
-        const notification = document.createElement('div');
-
-        notification.className = 'system-data-updated-notification';
-
-        notification.innerHTML = `
-            <div style="
-                width: 34px;
-                height: 34px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(255, 193, 7, 0.16);
-                color: #facc15;
-                flex-shrink: 0;
-            ">
-                <i class="fa-solid fa-bell"></i>
-            </div>
-
-            <div style="min-width: 0; flex: 1;">
-                <strong style="
-                    display: block;
-                    color: #ffffff;
-                    font-size: 14px;
-                    margin-bottom: 3px;
-                ">
-                    System Updated
-                </strong>
-
-                <span style="
-                    display: block;
-                    color: #cbd5e1;
-                    font-size: 13px;
-                    line-height: 1.4;
-                ">
-                    ${message}
-                </span>
-            </div>
-
-            <button
-                type="button"
-                aria-label="Close notification"
-                style="
-                    border: none;
-                    background: transparent;
-                    color: #94a3b8;
-                    cursor: pointer;
-                    font-size: 16px;
-                    padding: 2px 4px;
-                    margin-left: 4px;
-                "
-            >
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        `;
-
-        Object.assign(notification.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            zIndex: '9999999',
-            width: 'min(390px, calc(100vw - 40px))',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '12px',
-            padding: '14px 15px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #081a32, #102b4d)',
-            border: '1px solid rgba(250, 204, 21, 0.45)',
-            boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
-            fontFamily: 'Arial, sans-serif',
-            opacity: '0',
-            transform: 'translateY(-12px)',
-            transition: 'opacity 0.25s ease, transform 0.25s ease',
-        });
-
-        const closeButton = notification.querySelector('button');
-
-        const removeNotification = function () {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-12px)';
-
-            setTimeout(() => {
-                notification.remove();
-            }, 250);
-        };
-
-        closeButton?.addEventListener('click', removeNotification);
-
-        document.body.appendChild(notification);
-
-        requestAnimationFrame(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-        });
-
-        setTimeout(removeNotification, 8000);
     } catch (error) {
         console.warn('Realtime notification failed:', error);
     }

@@ -100,34 +100,6 @@
                 notification-count="6"
             />
 
-            @if(session('success') || session('error') || $errors->any())
-                <div class="feedback-modal-overlay show" id="feedbackModal">
-                    <div class="feedback-modal">
-
-                        <div class="feedback-icon {{ session('success') ? 'success' : 'error' }}">
-                            @if(session('success'))
-                                <i class="fa-solid fa-check"></i>
-                            @else
-                                <i class="fa-solid fa-xmark"></i>
-                            @endif
-                        </div>
-
-                        <h2>
-                            {{ session('success') ? 'Success!' : 'Error!' }}
-                        </h2>
-
-                        <p>
-                            {{ session('success') ?? session('error') ?? $errors->first() }}
-                        </p>
-
-                        <button type="button" class="feedback-ok-btn" id="closeFeedbackModal">
-                            Okay
-                        </button>
-
-                    </div>
-                </div>
-            @endif
-
             <section class="stats-grid">
 
                 <x-ui.summary-card
@@ -581,12 +553,12 @@
 
                 </div>
 
-                <div class="admin-modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelUserFormModal">
+                <div class="admin-modal-footer modal-actions">
+                    <button type="button" class="secondary-btn btn-cancel" id="cancelUserFormModal">
                         Cancel
                     </button>
 
-                    <button type="submit" class="btn-save" id="userFormSaveBtn">
+                    <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">
                         Save User
                     </button>
                 </div>
@@ -644,8 +616,8 @@
 
             </div>
 
-            <div class="admin-modal-footer">
-                <button type="button" class="btn-cancel" id="closeViewUserModalBottom">
+            <div class="admin-modal-footer modal-actions">
+                <button type="button" class="secondary-btn btn-cancel" id="closeViewUserModalBottom">
                     Close
                 </button>
             </div>
@@ -705,12 +677,12 @@
 
                 </div>
 
-                <div class="admin-modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelResetPasswordModal">
+                <div class="admin-modal-footer modal-actions">
+                    <button type="button" class="secondary-btn btn-cancel" id="cancelResetPasswordModal">
                         Cancel
                     </button>
 
-                    <button type="submit" class="btn-save">
+                    <button type="submit" class="primary-btn btn-save">
                         Reset Password
                     </button>
                 </div>

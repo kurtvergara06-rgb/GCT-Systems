@@ -9,6 +9,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   @vite([
+    'resources/css/Main-styles/theme.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Login/login.css',
     'resources/js/Login/login.js'
   ])
@@ -65,18 +68,6 @@
 
         <h2>Welcome Back</h2>
         <p class="subtitle">Sign in to access your company system</p>
-
-        @if(session('error'))
-          <div class="login-alert">
-            {{ session('error') }}
-          </div>
-        @endif
-
-        @if($errors->any())
-          <div class="login-alert">
-            {{ $errors->first() }}
-          </div>
-        @endif
 
         <form id="loginForm" method="POST" action="{{ route('login.submit') }}">
           @csrf

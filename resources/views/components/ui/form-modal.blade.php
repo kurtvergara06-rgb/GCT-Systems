@@ -9,11 +9,11 @@
   'submitText' => 'Save',
   'cancelId' => null,
   'closeId' => null,
-  'submitClass' => 'save-btn',
+  'submitClass' => 'primary-btn',
 ])
 
 <div id="{{ $id }}" class="modal-overlay">
-  <div class="modal-box wide-modal">
+  <div class="modal-card modal-box wide-modal">
 
     <div class="modal-header">
       <h2>{{ $title }}</h2>
@@ -21,7 +21,7 @@
       <button
         type="button"
         id="{{ $closeId ?? 'close-' . $id }}"
-        class="close-btn"
+        class="modal-close close-btn"
       >
         &times;
       </button>
@@ -55,7 +55,7 @@
         <button
           type="button"
           id="{{ $cancelId ?? 'cancel-' . $id }}"
-          class="cancel-btn"
+          class="secondary-btn cancel-btn"
         >
           Cancel
         </button>

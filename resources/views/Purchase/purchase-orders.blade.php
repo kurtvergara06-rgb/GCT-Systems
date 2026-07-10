@@ -88,18 +88,6 @@
     ] : null;
   @endphp
 
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="success"
-    :message="session('success')"
-  />
-
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
   <div class="app">
 
     <x-layout.sidebar
@@ -371,9 +359,8 @@
   <div
     id="poModal"
     class="modal-overlay {{ $openPoModal ? 'show active' : '' }}"
-    style="{{ $openPoModal ? 'display: flex;' : '' }}"
   >
-    <div class="modal-box po-modal-box">
+    <div class="modal-card modal-box po-modal-box">
 
       <div class="po-modal-header">
         <div>
@@ -606,17 +593,17 @@
         </div>
 
         <div class="po-modal-actions" id="poEditActions">
-          <button type="button" id="cancelPoModal" class="po-cancel-btn">
+          <button type="button" id="cancelPoModal" class="secondary-btn po-cancel-btn">
             Cancel
           </button>
 
-          <button type="submit" class="po-save-btn">
+          <button type="submit" class="primary-btn po-save-btn">
             Save Purchase Order
           </button>
         </div>
 
-        <div class="po-modal-actions" id="poViewActions" style="display: none;">
-          <button type="button" id="closeViewPoModal" class="po-cancel-btn">
+        <div class="po-modal-actions hidden" id="poViewActions">
+          <button type="button" id="closeViewPoModal" class="secondary-btn po-cancel-btn">
             Close
           </button>
         </div>

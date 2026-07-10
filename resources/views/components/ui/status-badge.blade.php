@@ -7,13 +7,47 @@
 @php
     $value = trim($status ?? '');
 
-    $statusClass = strtolower(
+    $statusKey = strtolower(
         str_replace(
             [' ', '/', '_'],
             ['-', '-', '-'],
             $value
         )
     );
+
+    $statusMap = [
+        'active' => 'active',
+        'present' => 'active',
+        'available' => 'active',
+        'approved' => 'active',
+        'completed' => 'completed',
+        'done' => 'completed',
+        'ongoing' => 'ongoing',
+        'on-going' => 'ongoing',
+        'in-progress' => 'ongoing',
+        'pending' => 'pending',
+        'late' => 'pending',
+        'on-hold' => 'pending',
+        'upcoming' => 'upcoming',
+        'due-soon' => 'due-soon',
+        'overdue' => 'overdue',
+        'efficient' => 'efficient',
+        'normal' => 'normal',
+        'inefficient' => 'inefficient',
+        'under-maintenance' => 'under-maintenance',
+        'under-maintainance' => 'under-maintenance',
+        'inactive' => 'inactive',
+        'absent' => 'inactive',
+        'rejected' => 'inactive',
+        'for-purchase' => 'pending',
+        'for-pick-up' => 'pending',
+        'ordered' => 'upcoming',
+        'delivered' => 'completed',
+        'issued' => 'active',
+        'submitted' => 'pending',
+    ];
+
+    $statusClass = $statusMap[$statusKey] ?? $statusKey;
 
     /*
     |--------------------------------------------------------------------------
