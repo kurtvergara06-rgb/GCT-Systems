@@ -1,31 +1,29 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models\Maintenance;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class FuelReport extends Model
 {
-    public function up(): void
-    {
-        Schema::create('fuel_reports', function (Blueprint $table) {
-            $table->id();
-            $table->date('report_date');
-            $table->string('bus_no');
-            $table->string('driver_name')->nullable();
-            $table->decimal('distance_km', 12, 2)->default(0);
-            $table->decimal('fuel_liters', 12, 2)->default(0);
-            $table->decimal('km_per_liter', 10, 2)->default(0);
-            $table->string('status')->default('Normal');
-            $table->text('remarks')->nullable();
-            $table->timestamps();
+    use HasFactory;
 
-            $table->index(['bus_no', 'report_date']);
-        });
-    }
+    protected $fillable = [
+        'report_date',
+        'bus_no',
+        'driver_name',
+        'distance_km',
+        'fuel_liters',
+        'km_per_liter',
+        'status',
+        'remarks',
+    ];
 
-    public function down(): void
-    {
-        Schema::dropIfExists('fuel_reports');
-    }
-};
+    protected $casts = [
+        'report_date' => 'date',
+        'distance_km' => 'decimal:2',
+        'fuel_liters' => 'decimal:2',
+        'km_per_liter' => 'decimal:2',
+    ];
+}

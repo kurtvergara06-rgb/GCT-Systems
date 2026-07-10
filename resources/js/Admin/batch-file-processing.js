@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeAllRecordsModal = document.getElementById('closeAllBatchRecordsModal');
     const recordsSearch = document.getElementById('allBatchRecordsSearch');
 
+    const cleanDataModal = document.getElementById('cleanDataModal');
+    const closeCleanDataModal = document.getElementById('closeCleanDataModal');
+    const cleanDataSearch = document.getElementById('cleanDataSearch');
+
     const deleteModal = document.getElementById('batchDeleteModal');
     const deleteForm = document.getElementById('batchDeleteForm');
     const deleteFileName = document.getElementById('batchDeleteFileName');
@@ -25,46 +29,87 @@ document.addEventListener('DOMContentLoaded', function () {
     const bulkUpdateRecordsForm = document.getElementById('bulkUpdateRecordsForm');
     const saveAllBatchRecordsBtn = document.getElementById('saveAllBatchRecordsBtn');
     const unsavedChangesLabel = document.getElementById('unsavedChangesLabel');
+
     const confirmBatchForm = document.getElementById('confirmBatchForm');
+    const markBatchProcessedBtn = document.getElementById(
+        'markBatchProcessedBtn'
+    );
 
     const allowedExtensions = ['csv', 'txt', 'pdf', 'xls', 'xlsx'];
 
     let hasUnsavedBatchChanges = false;
 
     function openModal(modal) {
-        if (modal) {
-            modal.classList.add('show');
+        if (!modal) {
+            return;
         }
+
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
     }
 
     function closeModal(modal) {
-        if (modal) {
-            modal.classList.remove('show');
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('show');
+
+        const hasOpenModal = document.querySelector('.modal-overlay.show');
+
+        if (!hasOpenModal) {
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        if (typeof window.showSystemNotification === 'function') {
+            window.showSystemNotification(message, type);
+            return;
+        }
+
+        console.warn(message);
+    }
+
+    function getFileExtension(fileName) {
+        const parts = String(fileName || '').split('.');
+
+        if (parts.length < 2) {
+            return '';
+        }
+
+        return parts.pop().toLowerCase();
+    }
+
+    function resetSelectedFile() {
+        if (fileInput) {
+            fileInput.value = '';
+        }
+
+        if (selectedFileName) {
+            selectedFileName.textContent = 'Drag and drop GPS files here';
+        }
+
+        if (uploadButton) {
+            uploadButton.disabled = true;
         }
     }
 
     function setSelectedFile(file) {
         if (!file) {
+            resetSelectedFile();
             return;
         }
 
-        const extension = file.name.split('.').pop().toLowerCase();
+        const extension = getFileExtension(file.name);
 
         if (!allowedExtensions.includes(extension)) {
-            alert('Please upload only PDF, CSV, TXT, XLS, or XLSX files.');
+            showNotification(
+                'Please upload only PDF, CSV, TXT, XLS, or XLSX files.',
+                'error'
+            );
 
-            if (fileInput) {
-                fileInput.value = '';
-            }
-
-            if (selectedFileName) {
-                selectedFileName.textContent = 'Drag and drop GPS files here';
-            }
-
-            if (uploadButton) {
-                uploadButton.disabled = true;
-            }
-
+            resetSelectedFile();
             return;
         }
 
@@ -93,8 +138,39 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updateEditedRow(input) {
+        const row = input.closest('.batch-edit-row');
+
+        if (!row) {
+            return;
+        }
+
+        const rowInputs = row.querySelectorAll('.batch-edit-input');
+
+        const rowChanged = Array.from(rowInputs).some(function (rowInput) {
+            return rowInput.value !== rowInput.dataset.originalValue;
+        });
+
+        row.classList.toggle('row-edited', rowChanged);
+
+        hasUnsavedBatchChanges =
+            document.querySelectorAll('.batch-edit-row.row-edited').length > 0;
+
+        updateBatchSaveState();
+    }
+
     if (chooseFileBtn && fileInput) {
         chooseFileBtn.addEventListener('click', function () {
+            fileInput.click();
+        });
+    }
+
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', function (event) {
+            if (event.target.closest('#chooseGpsFileBtn')) {
+                return;
+            }
+
             fileInput.click();
         });
     }
@@ -125,16 +201,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const extension = file.name.split('.').pop().toLowerCase();
+            const extension = getFileExtension(file.name);
 
             if (!allowedExtensions.includes(extension)) {
-                alert('Please upload only PDF, CSV, TXT, XLS, or XLSX files.');
+                showNotification(
+                    'Please upload only PDF, CSV, TXT, XLS, or XLSX files.',
+                    'error'
+                );
                 return;
             }
 
             const transfer = new DataTransfer();
             transfer.items.add(file);
-
             fileInput.files = transfer.files;
 
             setSelectedFile(file);
@@ -145,7 +223,12 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadForm.addEventListener('submit', function (event) {
             if (!fileInput.files.length) {
                 event.preventDefault();
-                alert('Please select a GPS report first.');
+
+                showNotification(
+                    'Please select a GPS report first.',
+                    'warning'
+                );
+
                 return;
             }
 
@@ -169,11 +252,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.querySelectorAll('[data-open-raw-modal]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            openModal(rawUploadModal);
+    document
+        .querySelectorAll('[data-open-raw-modal]')
+        .forEach(function (button) {
+            button.addEventListener('click', function () {
+                openModal(rawUploadModal);
+            });
         });
-    });
 
     if (closeRawUploadModal) {
         closeRawUploadModal.addEventListener('click', function () {
@@ -193,19 +278,25 @@ document.addEventListener('DOMContentLoaded', function () {
         rawUploadSearch.addEventListener('input', function () {
             const keyword = rawUploadSearch.value.toLowerCase().trim();
 
-            document.querySelectorAll('#rawUploadTableBody tr').forEach(function (row) {
-                const searchText = row.dataset.rawSearch || '';
+            document
+                .querySelectorAll('#rawUploadTableBody tr')
+                .forEach(function (row) {
+                    const searchText = row.dataset.rawSearch || '';
 
-                row.style.display = searchText.includes(keyword) ? '' : 'none';
-            });
+                    row.style.display = searchText.includes(keyword)
+                        ? ''
+                        : 'none';
+                });
         });
     }
 
-    document.querySelectorAll('[data-open-records-modal]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            openModal(allRecordsModal);
+    document
+        .querySelectorAll('[data-open-records-modal]')
+        .forEach(function (button) {
+            button.addEventListener('click', function () {
+                openModal(allRecordsModal);
+            });
         });
-    });
 
     if (closeAllRecordsModal) {
         closeAllRecordsModal.addEventListener('click', function () {
@@ -225,31 +316,75 @@ document.addEventListener('DOMContentLoaded', function () {
         recordsSearch.addEventListener('input', function () {
             const keyword = recordsSearch.value.toLowerCase().trim();
 
-            document.querySelectorAll('#allBatchRecordsTableBody tr').forEach(function (row) {
-                const searchText = row.dataset.search || '';
+            document
+                .querySelectorAll('#allBatchRecordsTableBody tr')
+                .forEach(function (row) {
+                    const searchText = row.dataset.search || '';
 
-                row.style.display = searchText.includes(keyword) ? '' : 'none';
-            });
+                    row.style.display = searchText.includes(keyword)
+                        ? ''
+                        : 'none';
+                });
         });
     }
 
-    document.querySelectorAll('[data-delete-batch]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            const deleteUrl = button.dataset.deleteUrl;
-            const batchName = button.dataset.deleteName;
-
-            if (deleteForm && deleteUrl) {
-                deleteForm.setAttribute('action', deleteUrl);
-            }
-
-            if (deleteFileName) {
-                deleteFileName.textContent =
-                    batchName || 'this uploaded file';
-            }
-
-            openModal(deleteModal);
+    document
+        .querySelectorAll('[data-open-clean-data-modal]')
+        .forEach(function (button) {
+            button.addEventListener('click', function () {
+                openModal(cleanDataModal);
+            });
         });
-    });
+
+    if (closeCleanDataModal) {
+        closeCleanDataModal.addEventListener('click', function () {
+            closeModal(cleanDataModal);
+        });
+    }
+
+    if (cleanDataModal) {
+        cleanDataModal.addEventListener('click', function (event) {
+            if (event.target === cleanDataModal) {
+                closeModal(cleanDataModal);
+            }
+        });
+    }
+
+    if (cleanDataSearch) {
+        cleanDataSearch.addEventListener('input', function () {
+            const keyword = cleanDataSearch.value.toLowerCase().trim();
+
+            document
+                .querySelectorAll('#cleanDataTableBody tr')
+                .forEach(function (row) {
+                    const searchText = row.dataset.cleanSearch || '';
+
+                    row.style.display = searchText.includes(keyword)
+                        ? ''
+                        : 'none';
+                });
+        });
+    }
+
+    document
+        .querySelectorAll('[data-delete-batch]')
+        .forEach(function (button) {
+            button.addEventListener('click', function () {
+                const deleteUrl = button.dataset.deleteUrl;
+                const batchName = button.dataset.deleteName;
+
+                if (deleteForm && deleteUrl) {
+                    deleteForm.setAttribute('action', deleteUrl);
+                }
+
+                if (deleteFileName) {
+                    deleteFileName.textContent =
+                        batchName || 'this uploaded file';
+                }
+
+                openModal(deleteModal);
+            });
+        });
 
     if (cancelDeleteButton) {
         cancelDeleteButton.addEventListener('click', function () {
@@ -265,29 +400,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.querySelectorAll('.batch-edit-input').forEach(function (input) {
-        input.dataset.originalValue = input.value;
+    document
+        .querySelectorAll('.batch-edit-input')
+        .forEach(function (input) {
+            input.dataset.originalValue = input.value;
 
-        input.addEventListener('input', function () {
-            const row = input.closest('.batch-edit-row');
+            input.addEventListener('input', function () {
+                updateEditedRow(input);
+            });
 
-            if (row) {
-                const rowInputs = row.querySelectorAll('.batch-edit-input');
-
-                const rowChanged = Array.from(rowInputs).some(function (rowInput) {
-                    return rowInput.value !== rowInput.dataset.originalValue;
-                });
-
-                row.classList.toggle('row-edited', rowChanged);
-            }
-
-            hasUnsavedBatchChanges = document.querySelectorAll(
-                '.batch-edit-row.row-edited'
-            ).length > 0;
-
-            updateBatchSaveState();
+            input.addEventListener('change', function () {
+                updateEditedRow(input);
+            });
         });
-    });
 
     if (saveAllBatchRecordsBtn && bulkUpdateRecordsForm) {
         saveAllBatchRecordsBtn.addEventListener('click', function () {
@@ -308,12 +433,39 @@ document.addEventListener('DOMContentLoaded', function () {
             if (hasUnsavedBatchChanges) {
                 event.preventDefault();
 
-                alert(
-                    'Please save your edited records before marking this batch as Processed.'
+                showNotification(
+                    'Please save your edited records before marking this batch as Processed.',
+                    'warning'
                 );
+
+                return;
+            }
+
+            if (markBatchProcessedBtn) {
+                markBatchProcessedBtn.disabled = true;
+                markBatchProcessedBtn.innerHTML =
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
             }
         });
     }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') {
+            return;
+        }
+
+        [
+            feedbackModal,
+            rawUploadModal,
+            allRecordsModal,
+            cleanDataModal,
+            deleteModal,
+        ].forEach(function (modal) {
+            if (modal && modal.classList.contains('show')) {
+                closeModal(modal);
+            }
+        });
+    });
 
     updateBatchSaveState();
 });

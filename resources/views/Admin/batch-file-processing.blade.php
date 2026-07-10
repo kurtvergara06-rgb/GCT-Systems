@@ -361,14 +361,14 @@
                         </div>
 
                         <div class="record-navigation">
-                            @if($selectedBatch && count($rawHeaders) > 0)
+                            @if($selectedBatch)
                                 <button
                                     type="button"
-                                    class="view-all-records-btn"
-                                    data-open-raw-modal
+                                    class="edit-record-btn"
+                                    data-open-records-modal
                                 >
-                                    <i class="fa-solid fa-file-lines"></i>
-                                    View Full Raw Upload
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Edit Extracted Data
                                 </button>
                             @endif
                         </div>
@@ -404,6 +404,18 @@
                             <p>Cleaned structured values from the selected trip record.</p>
                         </div>
 
+                        @if($selectedBatch)
+                            <div class="parsed-fields-actions">
+                                <button
+                                    type="button"
+                                    class="edit-record-btn"
+                                    data-open-clean-data-modal
+                                >
+                                    <i class="fa-solid fa-eye"></i>
+                                    View Clean Data
+                                </button>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="parsed-fields-list">
@@ -723,19 +735,6 @@
                                         Save All Changes
                                     </button>
 
-                                    <form
-                                        action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
-                                        method="POST"
-                                        id="confirmBatchForm"
-                                    >
-                                        @csrf
-                                        @method('PATCH')
-
-                                        <button type="submit" class="confirm-batch-btn">
-                                            <i class="fa-solid fa-check"></i>
-                                            Mark as Processed
-                                        </button>
-                                    </form>
                                 </div>
                             @endif
                         </div>
@@ -743,7 +742,7 @@
                         @if($selectedBatch->status === 'In Review')
                             <div class="batch-editor-note">
                                 <i class="fa-solid fa-circle-info"></i>
-                                Click a field to edit it. Edited rows are highlighted. Save all corrections before marking this batch as processed.
+                                Click a field to edit it. Edited rows are highlighted. Save all corrections when you are finished.
                             </div>
                         @endif
 
@@ -969,6 +968,129 @@
                                 </table>
                             </div>
                         </form>
+                    </div>
+                </div>
+            @endif
+
+
+            @if($selectedBatch && $allSelectedRecords->isNotEmpty())
+                <div class="records-modal-overlay" id="cleanDataModal">
+                    <div class="records-modal clean-data-modal">
+                        <div class="records-modal-header">
+                            <div>
+                                <h2>View Clean Data</h2>
+
+                                <p>
+                                    {{ $selectedBatch->file_name }}
+                                    · {{ $allSelectedRecords->count() }} record(s)
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="records-modal-close"
+                                id="closeCleanDataModal"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div class="records-modal-tools clean-data-tools">
+                            <div class="modal-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+
+                                <input
+                                    type="text"
+                                    id="cleanDataSearch"
+                                    placeholder="Search clean records..."
+                                >
+                            </div>
+
+                            @if($selectedBatch->status === 'In Review')
+                                <form
+                                    action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
+                                    method="POST"
+                                    id="confirmBatchForm"
+                                    class="clean-data-process-form"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <button
+                                        type="submit"
+                                        class="confirm-batch-btn"
+                                        id="markBatchProcessedBtn"
+                                    >
+                                        <i class="fa-solid fa-check"></i>
+                                        Mark as Processed
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+
+                        <div class="batch-editor-note clean-data-note">
+                            <i class="fa-solid fa-circle-info"></i>
+                            These cleaned structured values are generated automatically from the extracted data. Use Edit Extracted Data to make corrections before processing.
+                        </div>
+
+                        <div class="records-modal-table-wrap">
+                            <table class="records-modal-table clean-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bus No.</th>
+                                        <th>Record No.</th>
+                                        <th>Grouping / Route</th>
+                                        <th>Trip Type</th>
+                                        <th>Beginning</th>
+                                        <th>Initial Location</th>
+                                        <th>End</th>
+                                        <th>Final Location</th>
+                                        <th>Duration</th>
+                                        <th>Total</th>
+                                        <th>In Motion</th>
+                                        <th>Idling</th>
+                                        <th>Mileage</th>
+                                        <th>Engine Hours</th>
+                                        <th>Location</th>
+                                        <th>Coordinates</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="cleanDataTableBody">
+                                    @foreach($allSelectedRecords as $record)
+                                        <tr
+                                            data-clean-search="{{ strtolower(
+                                                ($record->record_no ?? '') . ' ' .
+                                                ($record->bus_no ?? '') . ' ' .
+                                                ($record->grouping ?? '') . ' ' .
+                                                ($record->trip_type ?? '') . ' ' .
+                                                ($record->initial_location ?? '') . ' ' .
+                                                ($record->final_location ?? '')
+                                            ) }}"
+                                        >
+                                            <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
+                                            <td>{{ $record->record_no ?? '—' }}</td>
+                                            <td>{{ $record->grouping ?? '—' }}</td>
+                                            <td>{{ $record->trip_type ?? '—' }}</td>
+                                            <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                                            <td>{{ $record->initial_location ?? '—' }}</td>
+                                            <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                                            <td>{{ $record->final_location ?? '—' }}</td>
+                                            <td>{{ $record->duration_minutes ?? '—' }}</td>
+                                            <td>{{ $record->total_minutes ?? '—' }}</td>
+                                            <td>{{ $record->in_motion_minutes ?? '—' }}</td>
+                                            <td>{{ $record->idling_minutes ?? '—' }}</td>
+                                            <td>{{ $record->mileage_km ?? '—' }}</td>
+                                            <td>{{ $record->engine_hours ?? '—' }}</td>
+                                            <td>{{ $record->location ?? '—' }}</td>
+                                            <td>{{ $record->coordinates ?? '—' }}</td>
+                                            <td>{{ $record->description ?? '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             @endif
