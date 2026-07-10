@@ -106,7 +106,7 @@
                             type="text"
                             name="search"
                             value="{{ request('search') }}"
-                            placeholder="Search bus number, plate, model, route, or status..."
+                            placeholder="Search bus ID, model, route, or status..."
                         >
                     </div>
 
@@ -154,8 +154,7 @@
                     <table class="bus-table">
                         <thead>
                             <tr>
-                                <th>Bus No.</th>
-                                <th>Plate No.</th>
+                                <th>Bus ID</th>
                                 <th>Model</th>
                                 <th>Route / Grouping</th>
                                 <th>Latest GPS KM</th>
@@ -170,7 +169,6 @@
                             @forelse($buses as $bus)
                                 <tr>
                                     <td><strong>{{ $bus->bus_no }}</strong></td>
-                                    <td>{{ $bus->plate_no ?: '—' }}</td>
                                     <td>{{ $bus->bus_model ?: '—' }}</td>
                                     <td>{{ $bus->route_grouping ?: '—' }}</td>
 
@@ -242,7 +240,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="9"
+                                    colspan="8"
                                     message="No bus records found. Add your first bus."
                                 />
                             @endforelse

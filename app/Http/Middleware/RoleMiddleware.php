@@ -11,7 +11,7 @@ class RoleMiddleware
     public function handle(
         Request $request,
         Closure $next,
-        string ...$roles
+        string ...$allowedAccess
     ): Response {
         if (! auth()->check()) {
             return redirect()->route('login');
@@ -19,8 +19,10 @@ class RoleMiddleware
 
         $user = auth()->user();
 
-        if ($user->status !== 'Active') {
+        if (strcasecmp(trim((string) $user->status), 'Active') !== 0) {
             auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             return redirect()
                 ->route('login')
@@ -30,14 +32,17 @@ class RoleMiddleware
                 );
         }
 
-        $department = strtolower(trim($user->department ?? ''));
-        $role = strtolower(trim($user->role ?? ''));
+        $department = strtolower(trim((string) $user->department));
+        $role = strtolower(trim((string) $user->role));
+
+        $department = str_replace(['_', '-'], ' ', $department);
+        $role = str_replace(['_', '-'], ' ', $role);
 
         /*
         |--------------------------------------------------------------------------
-        | System Admin Access
+        | System Administrator
         |--------------------------------------------------------------------------
-        | An Admin department user with role "head" is your System Admin.
+        | Admin Head can access all modules.
         */
         $isSystemAdmin =
             ($department === 'admin' && $role === 'head')
@@ -49,13 +54,63 @@ class RoleMiddleware
 
         /*
         |--------------------------------------------------------------------------
-        | Standard Department Roles
+        | Department and Role Authorization
         |--------------------------------------------------------------------------
+        |
+        | Examples:
+        | role:operation:head
+        | role:operation:head,operation:staff
+        | role:warehouse:head,warehouse:staff
+        |
         */
-        if (! in_array($user->role, $roles, true)) {
-            abort(403, 'Unauthorized access.');
+        foreach ($allowedAccess as $access) {
+            $access = strtolower(trim($access));
+
+            if ($access === '') {
+                continue;
+            }
+
+            $parts = explode(':', $access, 2);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Backward-compatible role-only check
+            |--------------------------------------------------------------------------
+            | Example: role:head
+            */
+            if (count($parts) === 1) {
+                if ($role === $parts[0]) {
+                    return $next($request);
+                }
+
+                continue;
+            }
+
+            [$allowedDepartment, $allowedRole] = $parts;
+
+            $allowedDepartment = str_replace(
+                ['_', '-'],
+                ' ',
+                trim($allowedDepartment)
+            );
+
+            $allowedRole = str_replace(
+                ['_', '-'],
+                ' ',
+                trim($allowedRole)
+            );
+
+            if (
+                $department === $allowedDepartment
+                && $role === $allowedRole
+            ) {
+                return $next($request);
+            }
         }
 
-        return $next($request);
+        abort(
+            403,
+            'You are not authorized to access this department module.'
+        );
     }
 }
