@@ -73,7 +73,7 @@
       ]"
     />
 
-    <main class="main">
+    <main class="main purchase-page">
 
       <x-layout.topbar
         title="Purchase Requests"
@@ -81,7 +81,7 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      <section class="stats-grid purchase-stats-grid">
 
         <x-ui.summary-card
           label="Submitted"
@@ -117,7 +117,7 @@
 
       </section>
 
-      <section class="table-card purchase-card">
+      <section class="table-card purchase-card purchase-request-card">
 
         <div class="section-header">
           <div>
@@ -177,8 +177,8 @@
 
         </form>
 
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap purchase-table-wrap">
+          <table class="purchase-request-table">
             <thead>
               <tr>
                 <th>PR #</th>

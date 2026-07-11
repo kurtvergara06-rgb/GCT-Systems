@@ -513,10 +513,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (confirmDeletePr) {
-    confirmDeletePr.addEventListener('click', () => {
-      if (selectedDeleteForm) {
-        selectedDeleteForm.submit();
+    confirmDeletePr.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (!selectedDeleteForm) {
+        return;
       }
+
+      confirmDeletePr.disabled = true;
+      confirmDeletePr.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+
+      selectedDeleteForm.requestSubmit();
     });
   }
 

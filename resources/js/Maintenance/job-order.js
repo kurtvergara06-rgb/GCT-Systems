@@ -178,7 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const editJobOrderNo = document.getElementById('edit_job_order_no');
   const editBusNo = document.getElementById('edit_bus_no');
   const editProblemIssue = document.getElementById('edit_problem_issue');
-  const editMaintenanceType = document.getElementById('edit_maintenance_type');
+  const editMaintenanceType = document.getElementById(
+    'edit_maintenance_type'
+  );
   const editStatus = document.getElementById('edit_status');
   const editAssignedMechanic = document.getElementById(
     'edit_assigned_mechanic'
@@ -193,11 +195,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const editAddPartBtn = document.getElementById('editAddPartBtn');
 
   const closeEditJobModal = document.getElementById('closeEditJobModal');
-  const cancelEditJobModal = document.getElementById('cancelEditJobModal');
+  const cancelEditJobModal = document.getElementById(
+    'cancelEditJobModal'
+  );
   const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
 
   const editModalSubtitle = document.getElementById('editModalSubtitle');
-  const editModeDescription = document.getElementById('editModeDescription');
+  const editModeDescription = document.getElementById(
+    'editModeDescription'
+  );
 
   function setEditModalReadonly(isReadonly) {
     [
@@ -221,15 +227,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (editAddPartBtn) {
-      editAddPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
+      editAddPartBtn.style.display = isReadonly
+        ? 'none'
+        : 'inline-flex';
     }
 
     if (editJobMainActions) {
-      editJobMainActions.style.display = isReadonly ? 'none' : 'flex';
+      editJobMainActions.style.display = isReadonly
+        ? 'none'
+        : 'flex';
     }
 
     if (viewOnlyJobActions) {
-      viewOnlyJobActions.style.display = isReadonly ? 'flex' : 'none';
+      viewOnlyJobActions.style.display = isReadonly
+        ? 'flex'
+        : 'none';
     }
 
     if (editModalSubtitle) {
@@ -310,23 +322,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentValue = String(currentMechanic || '').trim();
 
-    const oldCurrentOption = Array.from(editAssignedMechanic.options).find(
-      (option) => option.dataset.currentAssignment === 'true'
+    const oldCurrentOption = Array.from(
+      editAssignedMechanic.options
+    ).find(
+      (option) =>
+        option.dataset.currentAssignment === 'true'
     );
 
     if (oldCurrentOption) {
       oldCurrentOption.remove();
     }
 
-    const alreadyExists = Array.from(editAssignedMechanic.options).some(
-      (option) => option.value === currentValue
-    );
+    const alreadyExists = Array.from(
+      editAssignedMechanic.options
+    ).some((option) => option.value === currentValue);
 
     if (currentValue && !alreadyExists) {
       const currentOption = document.createElement('option');
 
       currentOption.value = currentValue;
-      currentOption.textContent = `${currentValue} (Current assignment)`;
+      currentOption.textContent =
+        `${currentValue} (Current assignment)`;
       currentOption.dataset.currentAssignment = 'true';
 
       editAssignedMechanic.insertBefore(
@@ -354,7 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (editJobOrderNo) {
-        editJobOrderNo.value = button.dataset.jobOrderNo || '';
+        editJobOrderNo.value =
+          button.dataset.jobOrderNo || '';
       }
 
       if (editBusNo) {
@@ -362,18 +379,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (editProblemIssue) {
-        editProblemIssue.value = button.dataset.problemIssue || '';
+        editProblemIssue.value =
+          button.dataset.problemIssue || '';
       }
 
       if (editMaintenanceType) {
-        editMaintenanceType.value = button.dataset.maintenanceType || '';
+        editMaintenanceType.value =
+          button.dataset.maintenanceType || '';
       }
 
       if (editStatus) {
         editStatus.value = status;
       }
 
-      setEditMechanicOptions(button.dataset.assignedMechanic || '');
+      setEditMechanicOptions(
+        button.dataset.assignedMechanic || ''
+      );
 
       renderEditParts(
         button.dataset.partNeeded || '',
@@ -391,24 +412,34 @@ document.addEventListener('DOMContentLoaded', () => {
         '.part-needed-row'
       ).length;
 
-      editPartsNeededWrapper.appendChild(createPartRow(index));
+      editPartsNeededWrapper.appendChild(
+        createPartRow(index)
+      );
+
       refreshPartIndexes(editPartsNeededWrapper);
     });
 
-    editPartsNeededWrapper.addEventListener('click', (event) => {
-      const removeButton = event.target.closest('.remove-part-btn');
+    editPartsNeededWrapper.addEventListener(
+      'click',
+      (event) => {
+        const removeButton = event.target.closest(
+          '.remove-part-btn'
+        );
 
-      if (!removeButton) {
-        return;
+        if (!removeButton) {
+          return;
+        }
+
+        const row = removeButton.closest(
+          '.part-needed-row'
+        );
+
+        if (row) {
+          row.remove();
+          refreshPartIndexes(editPartsNeededWrapper);
+        }
       }
-
-      const row = removeButton.closest('.part-needed-row');
-
-      if (row) {
-        row.remove();
-        refreshPartIndexes(editPartsNeededWrapper);
-      }
-    });
+    );
   }
 
   if (closeEditJobModal) {
@@ -429,67 +460,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const deleteJobModal = document.getElementById('deleteJobModal');
-  const deleteJoNo = document.getElementById('deleteJoNo');
-  const cancelDeleteJob = document.getElementById('cancelDeleteJob');
-  const confirmDeleteJob = document.getElementById('confirmDeleteJob');
+  const deleteJobModal =
+    document.getElementById('deleteJobModal');
+
+  const deleteJoNo =
+    document.getElementById('deleteJoNo');
+
+  const cancelDeleteJob =
+    document.getElementById('cancelDeleteJob');
+
+  const confirmDeleteJob =
+    document.getElementById('confirmDeleteJob');
 
   let selectedDeleteForm = null;
 
-  document.querySelectorAll('.open-delete-modal').forEach((button) => {
-    button.addEventListener('click', (event) => {
+  document
+    .querySelectorAll('.open-delete-modal')
+    .forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const id = button.dataset.id;
+        const joNo = button.dataset.joNo;
+
+        selectedDeleteForm = document.getElementById(
+          `deleteForm-${id}`
+        );
+
+        if (!selectedDeleteForm) {
+          console.error(
+            `Delete form deleteForm-${id} was not found.`
+          );
+          return;
+        }
+
+        if (deleteJoNo) {
+          deleteJoNo.textContent =
+            joNo || 'this job order';
+        }
+
+        if (confirmDeleteJob) {
+          confirmDeleteJob.disabled = false;
+          confirmDeleteJob.innerHTML = 'Yes, Delete';
+        }
+
+        openModal(deleteJobModal);
+      });
+    });
+
+  if (cancelDeleteJob) {
+    cancelDeleteJob.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
 
-      const id = button.dataset.id;
-      const joNo = button.dataset.joNo;
-
-      selectedDeleteForm = document.getElementById(`deleteForm-${id}`);
-
-      if (deleteJoNo) {
-        deleteJoNo.textContent = joNo || 'this job order';
-      }
-
-      openModal(deleteJobModal);
-    });
-  });
-
-  if (cancelDeleteJob) {
-    cancelDeleteJob.addEventListener('click', () => {
       selectedDeleteForm = null;
       closeModal(deleteJobModal);
     });
   }
 
   if (confirmDeleteJob) {
-    confirmDeleteJob.addEventListener('click', () => {
-      if (selectedDeleteForm) {
-        selectedDeleteForm.submit();
+    confirmDeleteJob.addEventListener(
+      'click',
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!selectedDeleteForm) {
+          console.error(
+            'No Job Order delete form was selected.'
+          );
+          return;
+        }
+
+        confirmDeleteJob.disabled = true;
+        confirmDeleteJob.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+
+        selectedDeleteForm.requestSubmit();
       }
-    });
+    );
   }
 
-  const finishJobModal = document.getElementById('finishJobModal');
-  const finishJoNo = document.getElementById('finishJoNo');
-  const cancelFinishJob = document.getElementById('cancelFinishJob');
-  const confirmFinishJob = document.getElementById('confirmFinishJob');
+  const finishJobModal =
+    document.getElementById('finishJobModal');
+
+  const finishJoNo =
+    document.getElementById('finishJoNo');
+
+  const cancelFinishJob =
+    document.getElementById('cancelFinishJob');
+
+  const confirmFinishJob =
+    document.getElementById('confirmFinishJob');
 
   let selectedFinishForm = null;
 
-  document.querySelectorAll('.open-finish-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.dataset.id;
-      const joNo = button.dataset.joNo;
+  document
+    .querySelectorAll('.open-finish-modal')
+    .forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.dataset.id;
+        const joNo = button.dataset.joNo;
 
-      selectedFinishForm = document.getElementById(`finishForm-${id}`);
+        selectedFinishForm = document.getElementById(
+          `finishForm-${id}`
+        );
 
-      if (finishJoNo) {
-        finishJoNo.textContent = joNo || 'this job order';
-      }
+        if (finishJoNo) {
+          finishJoNo.textContent =
+            joNo || 'this job order';
+        }
 
-      openModal(finishJobModal);
+        openModal(finishJobModal);
+      });
     });
-  });
 
   if (cancelFinishJob) {
     cancelFinishJob.addEventListener('click', () => {
@@ -501,12 +586,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (confirmFinishJob) {
     confirmFinishJob.addEventListener('click', () => {
       if (selectedFinishForm) {
-        selectedFinishForm.submit();
+        selectedFinishForm.requestSubmit();
       }
     });
   }
 
-  const partStatusFilter = document.getElementById('partStatusFilter');
+  const partStatusFilter =
+    document.getElementById('partStatusFilter');
 
   if (partStatusFilter) {
     const classes = [
@@ -537,7 +623,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = partStatusFilter.value;
 
       if (value && value !== 'All Part Statuses') {
-        partStatusFilter.classList.add(slugStatus(value));
+        partStatusFilter.classList.add(
+          slugStatus(value)
+        );
       }
     }
 
@@ -548,21 +636,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.querySelectorAll(
-    '.success-modal-overlay button, .success-modal-overlay .feedback-ok-btn, .success-modal-overlay .close-feedback-modal'
-  ).forEach((button) => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay');
+  document
+    .querySelectorAll(
+      '.success-modal-overlay button, ' +
+        '.success-modal-overlay .feedback-ok-btn, ' +
+        '.success-modal-overlay .close-feedback-modal'
+    )
+    .forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = button.closest(
+          '.success-modal-overlay'
+        );
 
-      if (modal) {
-        closeModal(modal);
-      }
+        if (modal) {
+          closeModal(modal);
+        }
+      });
     });
-  });
 
   document
     .querySelectorAll(
-      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+      '.modal-overlay, ' +
+        '.delete-modal-overlay, ' +
+        '.success-modal-overlay'
     )
     .forEach((modal) => {
       modal.addEventListener('click', (event) => {
@@ -573,76 +669,106 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   async function refreshAvailableMechanicsDropdown() {
-    const newJobMechanicSelect = document.querySelector(
-      '#jobModal select[name="assigned_mechanic"]'
-    );
+    const newJobMechanicSelect =
+      document.querySelector(
+        '#jobModal select[name="assigned_mechanic"]'
+      );
 
     try {
-      const response = await fetch('/job-orders/available-mechanics', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      });
+      const response = await fetch(
+        '/job-orders/available-mechanics',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Unable to load available mechanics.');
+        throw new Error(
+          'Unable to load available mechanics.'
+        );
       }
 
       const mechanics = await response.json();
 
       if (newJobMechanicSelect) {
-        const selectedMechanic = newJobMechanicSelect.value;
+        const selectedMechanic =
+          newJobMechanicSelect.value;
 
         newJobMechanicSelect.innerHTML = '';
 
-        const defaultOption = document.createElement('option');
+        const defaultOption =
+          document.createElement('option');
 
         defaultOption.value = '';
+
         defaultOption.textContent = mechanics.length
           ? 'Select Available Mechanic'
           : 'No available mechanic - JO will be On Hold';
 
-        newJobMechanicSelect.appendChild(defaultOption);
+        newJobMechanicSelect.appendChild(
+          defaultOption
+        );
 
         mechanics.forEach((mechanic) => {
-          const option = document.createElement('option');
+          const option =
+            document.createElement('option');
 
           option.value = mechanic.mechanic_name;
-          option.textContent = mechanic.mechanic_name;
+          option.textContent =
+            mechanic.mechanic_name;
 
-          if (mechanic.mechanic_name === selectedMechanic) {
+          if (
+            mechanic.mechanic_name ===
+            selectedMechanic
+          ) {
             option.selected = true;
           }
 
-          newJobMechanicSelect.appendChild(option);
+          newJobMechanicSelect.appendChild(
+            option
+          );
         });
       }
 
       if (editAssignedMechanic) {
-        const currentAssigned = editAssignedMechanic.value;
+        const currentAssigned =
+          editAssignedMechanic.value;
 
         Array.from(editAssignedMechanic.options)
           .filter(
             (option) =>
               option.value !== '' &&
-              option.dataset.currentAssignment !== 'true'
+              option.dataset.currentAssignment !==
+                'true'
           )
           .forEach((option) => option.remove());
 
         mechanics.forEach((mechanic) => {
-          const exists = Array.from(editAssignedMechanic.options).some(
-            (option) => option.value === mechanic.mechanic_name
+          const exists = Array.from(
+            editAssignedMechanic.options
+          ).some(
+            (option) =>
+              option.value ===
+              mechanic.mechanic_name
           );
 
           if (!exists) {
-            const option = document.createElement('option');
+            const option =
+              document.createElement('option');
 
-            option.value = mechanic.mechanic_name;
-            option.textContent = mechanic.mechanic_name;
+            option.value =
+              mechanic.mechanic_name;
 
-            editAssignedMechanic.appendChild(option);
+            option.textContent =
+              mechanic.mechanic_name;
+
+            editAssignedMechanic.appendChild(
+              option
+            );
           }
         });
 
@@ -656,15 +782,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.addEventListener('system-data-updated', (event) => {
-    const payload = event.detail;
+  window.addEventListener(
+    'system-data-updated',
+    (event) => {
+      const payload = event.detail;
 
-    if (
-      payload &&
-      payload.module === 'Operation' &&
-      payload.entity === 'Attendance'
-    ) {
-      refreshAvailableMechanicsDropdown();
+      if (
+        payload &&
+        payload.module === 'Operation' &&
+        payload.entity === 'Attendance'
+      ) {
+        refreshAvailableMechanicsDropdown();
+      }
     }
-  });
+  );
 });

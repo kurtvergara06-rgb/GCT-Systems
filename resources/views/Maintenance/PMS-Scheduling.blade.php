@@ -24,14 +24,14 @@
             ]"
         />
 
-        <main class="main">
+        <main class="main pms-page">
             <x-layout.topbar
                 title="PMS Scheduling"
                 subtitle="Monitor preventive maintenance tasks based on processed GPS vehicle mileage data."
                 notification-count="6"
             />
 
-            <section class="stats-grid">
+            <section class="stats-grid pms-stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
                         <i class="fa-solid fa-file-lines"></i>
@@ -41,7 +41,6 @@
                         <h2>{{ $gpsRecordsToday }}</h2>
                         <small>Processed mileage reports</small>
                     </div>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
                 </div>
 
                 <div class="stat-card">
@@ -53,7 +52,6 @@
                         <h2>{{ $upcomingCount }}</h2>
                         <small>Scheduled maintenance tasks</small>
                     </div>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
                 </div>
 
                 <div class="stat-card">
@@ -65,7 +63,6 @@
                         <h2>{{ $dueSoonCount }}</h2>
                         <small>Within 500 KM of PMS</small>
                     </div>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
                 </div>
 
                 <div class="stat-card">
@@ -76,12 +73,10 @@
                         <p>Overdue</p>
                         <h2>{{ $overdueCount }}</h2>
                         <small>Needs immediate action</small>
-                    </div>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
                 </div>
             </section>
 
-            <section class="table-card pms-card">
+            <section class="table-card pms-card pms-table-card">
                 <div class="section-header pms-header">
                     <div>
                         <h2>Automated PMS Record</h2>
@@ -637,85 +632,4 @@
             </div>
         </main>
     </div>
-
-    <style>
-        .pms-wide-modal {
-            width: min(1100px, 96vw);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .pms-popup-table-wrap {
-            margin-top: 16px;
-        }
-
-        .pms-action-placeholder {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            color: #94a3b8;
-            font-weight: 700;
-        }
-
-        .create-pms-jo-btn,
-        .pms-edit-task-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .create-pms-jo-btn {
-            color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .create-pms-jo-btn:hover {
-            background: #dbeafe;
-        }
-
-        .pms-edit-task-btn {
-            color: #d97706;
-            background: #fffbeb;
-        }
-
-        .pms-edit-task-btn:hover {
-            background: #fef3c7;
-        }
-
-        .pms-view-tasks-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 10px;
-            color: #2563eb;
-            background: #eff6ff;
-            cursor: pointer;
-        }
-
-        .pms-view-tasks-btn:hover {
-            background: #dbeafe;
-        }
-
-        .actions {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-        }
-
-        .actions form {
-            margin: 0;
-        }
-    </style>
 </x-layout.app>
