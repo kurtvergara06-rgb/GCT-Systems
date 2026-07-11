@@ -408,14 +408,17 @@
       <select name="bus_no" required>
         <option value="">Select Bus</option>
 
-        @forelse($buses as $bus)
-          <option value="{{ $bus->bus_no }}">
+        @forelse($availableBuses as $bus)
+          <option
+            value="{{ $bus->bus_no }}"
+            @selected(old('bus_no') === $bus->bus_no)
+          >
             {{ $bus->bus_no }}
             {{ $bus->plate_no ? ' - ' . $bus->plate_no : '' }}
           </option>
         @empty
           <option value="" disabled>
-            No active buses found. Add a bus in Bus Master List first.
+            No available buses. All active buses currently have an active Job Order.
           </option>
         @endforelse
       </select>
@@ -431,13 +434,13 @@
     </div>
 
     <div class="form-group">
-      <label>Maintenance Type</label>
-      <select name="maintenance_type" required>
+    <label>Maintenance Type</label>
+
+    <select name="maintenance_type" required>
         <option value="">Select Maintenance Type</option>
-        <option value="PMS">PMS</option>
         <option value="Repair">Repair</option>
-      </select>
-    </div>
+    </select>
+</div>
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
