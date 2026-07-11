@@ -26,7 +26,7 @@
       ]"
     />
 
-    <main class="main">
+    <main class="main mechanic-page">
 
       <x-layout.topbar
         title="Mechanic List"
@@ -34,7 +34,7 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      <section class="stats-grid mechanic-stats-grid">
 
         <x-ui.summary-card
           label="Total Mechanics"
@@ -70,7 +70,7 @@
 
       </section>
 
-      <section class="table-card mechanic-list-card">
+      <section class="table-card mechanic-list-card mechanic-table-card">
 
         <div class="section-header">
           <div>
@@ -96,7 +96,6 @@
           </div>
 
           <div class="filter-group">
-            <label for="dateFilter">Date</label>
 
             <select
               name="date_filter"
@@ -127,7 +126,7 @@
           </div>
 
           <div class="filter-group">
-            <label for="availabilityFilter">Status</label>
+            <label for="availabilityFilter"></label>
 
             <select
               name="availability"
@@ -199,11 +198,14 @@
                     {{ $mechanic->assigned_job ?: '--:--' }}
                   </td>
 
-                  <td>
-                    {{ $mechanic->attendance_date
-                      ? $mechanic->attendance_date->format('m/d/y')
-                      : '--:--'
-                    }}
+                  <td class="{{ $mechanic->attendance_date ? 'mechanic-date-cell' : 'empty' }}">
+                    @if($mechanic->attendance_date)
+                      <span class="mechanic-date-value">
+                        {{ $mechanic->attendance_date->format('M d, Y') }}
+                      </span>
+                    @else
+                      --:--
+                    @endif
                   </td>
 
                   <td>{{ $timeIn }}</td>

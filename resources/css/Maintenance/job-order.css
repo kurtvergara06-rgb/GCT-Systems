@@ -832,3 +832,506 @@ textarea[readonly] {
     box-shadow: none !important;
 }
 
+/* =========================================================
+   GCT-BRANDED JOB ORDERS POLISH
+========================================================= */
+
+.jo-page {
+  --jo-blue: #0b40b5;
+  --jo-blue-dark: #07338f;
+  --jo-navy: #061f3d;
+  --jo-yellow: #ffc400;
+  --jo-yellow-dark: #f5a800;
+  --jo-page-bg: #f4f7fb;
+  --jo-card: #ffffff;
+  --jo-text: #0f172a;
+  --jo-muted: #64748b;
+  --jo-border: #dce5f2;
+  --jo-table-head: #f3f7fc;
+  --jo-soft-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+  --jo-hover-shadow: 0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+.jo-page .topbar { margin-bottom: 20px; }
+.jo-page .topbar h1 { color: var(--jo-navy); letter-spacing: -0.02em; }
+.jo-page .topbar p { color: var(--jo-muted); }
+
+.jo-page .jo-stats-grid { gap: 16px; margin-bottom: 20px; }
+
+.jo-page .jo-stats-grid .stat-card,
+.jo-page .jo-stats-grid .stat-card-link {
+  min-height: 112px;
+  padding: 18px 20px;
+  border: 1px solid var(--jo-border);
+  border-radius: 16px;
+  background: var(--jo-card);
+  box-shadow: var(--jo-soft-shadow);
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.jo-page .jo-stats-grid .stat-card:hover,
+.jo-page .jo-stats-grid .stat-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--jo-hover-shadow);
+}
+
+.jo-page .jo-stats-grid .stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  font-size: 18px;
+}
+
+.jo-page .jo-stats-grid .stat-card p,
+.jo-page .jo-stats-grid .stat-card-link p {
+  margin: 0;
+  color: var(--jo-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.jo-page .jo-stats-grid .stat-card h2,
+.jo-page .jo-stats-grid .stat-card-link h2 {
+  margin: 3px 0 2px;
+  color: var(--jo-navy);
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.jo-page .jo-stats-grid .stat-card small,
+.jo-page .jo-stats-grid .stat-card-link small {
+  color: var(--jo-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.jo-page .jo-table-card {
+  padding: 16px;
+  border: 1px solid var(--jo-border);
+  border-radius: 16px;
+  background: var(--jo-card);
+  box-shadow: var(--jo-soft-shadow);
+  overflow: hidden;
+}
+
+.jo-page .jo-table-card .section-header { margin-bottom: 12px; }
+.jo-page .jo-table-card .section-header h2 {
+  color: var(--jo-navy);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.jo-page .jo-table-card .section-header p {
+  margin-top: 3px;
+  color: var(--jo-muted);
+  font-size: 12px;
+}
+
+.jo-page .job-toolbar {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--jo-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.jo-page .job-toolbar .search-box { min-width: 0; }
+
+.jo-page .job-toolbar .search-box input {
+  width: 100%;
+  height: 40px;
+  padding: 0 14px 0 40px;
+  border: 1px solid var(--jo-border);
+  border-radius: 9px;
+  color: var(--jo-text);
+  background: #ffffff;
+  font-size: 13px;
+}
+
+.jo-page .job-toolbar .search-box input::placeholder { color: #8a98ac; }
+
+.jo-page .job-toolbar .search-box input:focus,
+.jo-page .job-toolbar .filter-group select:focus {
+  border-color: var(--jo-blue);
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+  outline: none;
+}
+
+.jo-page .job-toolbar .search-box i {
+  left: 14px;
+  color: var(--jo-blue);
+  font-size: 13px;
+}
+
+.jo-page .job-toolbar .filter-group {
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.jo-page .job-toolbar .filter-group label {
+  color: var(--jo-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.jo-page .job-toolbar .filter-group select,
+.jo-page .job-toolbar .part-status-select {
+  width: 100%;
+  min-width: 150px;
+  height: 40px;
+  padding: 0 34px 0 11px;
+  border: 1px solid var(--jo-border) !important;
+  border-radius: 9px;
+  background-color: #ffffff !important;
+  color: var(--jo-text) !important;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.jo-page .job-toolbar .primary-btn {
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--jo-yellow-dark);
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--jo-yellow), var(--jo-yellow-dark));
+  color: var(--jo-navy);
+  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.22);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.jo-page .job-toolbar .primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+.jo-page .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.jo-page .job-orders-table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.jo-page .job-orders-table thead { background: var(--jo-table-head); }
+
+.jo-page .job-orders-table th {
+  padding: 13px 14px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--jo-border);
+}
+
+.jo-page .job-orders-table td {
+  padding: 13px 14px;
+  color: var(--jo-text);
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #e7edf5;
+  vertical-align: middle;
+}
+
+.jo-page .job-orders-table tbody tr { transition: background-color 0.18s ease; }
+.jo-page .job-orders-table tbody tr:hover { background: #f8fbff; }
+.jo-page .job-orders-table tbody tr:last-child td { border-bottom: none; }
+
+.jo-page .job-orders-table th:nth-child(-n+5),
+.jo-page .job-orders-table td:nth-child(-n+5) { text-align: left; }
+
+.jo-page .job-orders-table th:nth-child(n+6),
+.jo-page .job-orders-table td:nth-child(n+6) { text-align: center; }
+
+.jo-page .date-time-cell .date-value,
+.jo-page .date-time-cell .time-value {
+  display: block;
+  white-space: nowrap;
+}
+
+.jo-page .date-time-cell .date-value {
+  color: var(--jo-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jo-page .date-time-cell .time-value {
+  margin-top: 3px;
+  color: var(--jo-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.jo-page .job-orders-table .badge,
+.jo-page .job-orders-table .part-status-badge,
+.jo-page .job-orders-table .finish-btn {
+  min-height: 26px !important;
+  padding: 0 11px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+.jo-page .job-orders-table .badge.ongoing,
+.jo-page .job-orders-table .badge.on-going {
+  background: #e0ecff;
+  color: var(--jo-blue);
+  border: 1px solid #bfd4ff;
+}
+
+.jo-page .job-orders-table .badge.on-hold,
+.jo-page .job-orders-table .badge.hold {
+  background: #fff4c7;
+  color: #9a6700;
+  border: 1px solid #f9df7a;
+}
+
+.jo-page .job-orders-table .badge.completed {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #b7efca;
+}
+
+.jo-page .job-orders-table .part-status-badge.submitted {
+  background: #fff3cd;
+  color: #9a6700;
+  border: 1px solid #f8dd82;
+}
+
+.jo-page .job-orders-table .part-status-badge.approved {
+  background: #e8e7ff;
+  color: #4338ca;
+  border: 1px solid #cfccff;
+}
+
+.jo-page .job-orders-table .part-status-badge.rejected {
+  background: #fee2e2;
+  color: #c62828;
+  border: 1px solid #fecaca;
+}
+
+.jo-page .job-orders-table .part-status-badge.for-purchase {
+  background: #e0ecff;
+  color: var(--jo-blue);
+  border: 1px solid #bfd4ff;
+}
+
+.jo-page .job-orders-table .part-status-badge.ordered {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.jo-page .job-orders-table .part-status-badge.for-pick-up {
+  background: #fff3cd;
+  color: #9a6700;
+  border: 1px solid #f8dd82;
+}
+
+.jo-page .job-orders-table .part-status-badge.for-delivery {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.jo-page .job-orders-table .part-status-badge.delivered,
+.jo-page .job-orders-table .part-status-badge.issued {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #b7efca;
+}
+
+.jo-page .job-orders-table .part-status-badge.picked-up {
+  background: #dff6ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.jo-page .job-orders-table .part-status-badge.not-requested,
+.jo-page .job-orders-table .part-status-badge.no-parts-needed {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #dce5f2;
+}
+
+.jo-page .job-orders-table .finish-btn { box-shadow: none !important; }
+
+.jo-page .job-orders-table .finish-btn:not(.locked-finish-btn) {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #b7efca !important;
+}
+
+.jo-page .job-orders-table .finish-btn:not(.locked-finish-btn):hover {
+  background: #bbf7d0 !important;
+  transform: translateY(-1px);
+}
+
+.jo-page .job-orders-table .locked-finish-btn {
+  background: #eef2f7 !important;
+  color: #64748b !important;
+  border: 1px solid #dce5f2 !important;
+  opacity: 1;
+}
+
+.jo-page .job-orders-table .actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.jo-page .job-orders-table .actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.jo-page .job-orders-table .actions .action-btn,
+.jo-page .job-orders-table .actions > button,
+.jo-page .job-orders-table .actions form > button {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.jo-page .job-orders-table .actions .edit,
+.jo-page .job-orders-table .actions .view {
+  background: #eaf2ff;
+  color: var(--jo-blue);
+  border-color: #d4e3ff;
+}
+
+.jo-page .job-orders-table .actions .edit:hover,
+.jo-page .job-orders-table .actions .view:hover {
+  background: var(--jo-blue);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.jo-page .job-orders-table .actions .create-pr-btn {
+  background: #fff4c7;
+  color: #9a6700;
+  border-color: #f8dd82;
+}
+
+.jo-page .job-orders-table .actions .create-pr-btn:hover {
+  background: var(--jo-yellow);
+  color: var(--jo-navy);
+}
+
+.jo-page .job-orders-table .actions .delete {
+  background: #fff0f0;
+  color: #dc2626;
+  border-color: #fee2e2;
+}
+
+.jo-page .job-orders-table .actions .delete:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.jo-page .job-orders-table .actions .disabled-action-btn {
+  background: #eef2f7;
+  color: #94a3b8;
+  border-color: #dce5f2;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.jo-page .table-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e7edf5;
+}
+
+.jo-page .table-footer p,
+.jo-page .page-number {
+  color: var(--jo-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.jo-page .page-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--jo-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--jo-navy);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.jo-page .page-btn:not(.disabled):hover {
+  border-color: var(--jo-blue);
+  color: var(--jo-blue);
+  background: #f5f8ff;
+}
+
+.jo-page .page-btn.disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 1200px) {
+  .jo-page .job-toolbar { grid-template-columns: 1fr 1fr; }
+  .jo-page .job-toolbar .search-box {
+    grid-column: 1 / -1;
+    min-width: 100%;
+  }
+  .jo-page .job-toolbar .primary-btn { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .jo-page .jo-stats-grid { grid-template-columns: 1fr; }
+  .jo-page .job-toolbar { grid-template-columns: 1fr; }
+  .jo-page .job-toolbar .search-box { grid-column: auto; }
+  .jo-page .job-toolbar .filter-group,
+  .jo-page .job-toolbar .filter-group select,
+  .jo-page .job-toolbar .part-status-select {
+    width: 100%;
+    max-width: none;
+  }
+  .jo-page .jo-table-card { padding: 12px; }
+  .jo-page .job-orders-table { min-width: 980px; }
+}

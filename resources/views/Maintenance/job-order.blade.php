@@ -394,7 +394,7 @@
       type="hidden"
       name="pms_schedule_id"
       id="pms_schedule_id"
-      value=""
+      value="{{ old('pms_schedule_id', request('pms_schedule_id')) }}"
     >
 
     <div class="form-group">
@@ -403,15 +403,19 @@
     </div>
 
     <div class="form-group">
-      <label>Bus #</label>
+      <label for="job_bus_no">Bus #</label>
 
-      <select name="bus_no" required>
+      <select
+        name="bus_no"
+        id="job_bus_no"
+        required
+      >
         <option value="">Select Bus</option>
 
         @forelse($availableBuses as $bus)
           <option
             value="{{ $bus->bus_no }}"
-            @selected(old('bus_no') === $bus->bus_no)
+            @selected(old('bus_no', request('bus_no')) === $bus->bus_no)
           >
             {{ $bus->bus_no }}
             {{ $bus->plate_no ? ' - ' . $bus->plate_no : '' }}
@@ -425,22 +429,60 @@
     </div>
 
     <div class="form-group full-width">
-      <label>Problem / Issue</label>
+      <label for="job_problem_issue">Problem / Issue</label>
+
       <textarea
         name="problem_issue"
+        id="job_problem_issue"
         placeholder="Describe the problem or issue..."
         required
-      ></textarea>
+      >{{ old('problem_issue', request('problem_issue')) }}</textarea>
     </div>
 
     <div class="form-group">
-    <label>Maintenance Type</label>
+      <label for="job_maintenance_type">Maintenance Type</label>
 
-    <select name="maintenance_type" required>
-        <option value="">Select Maintenance Type</option>
-        <option value="Repair">Repair</option>
-    </select>
-</div>
+      @if(request('create_pms') && $pmsCreate)
+        <input
+          type="hidden"
+          name="maintenance_type"
+          value="PMS"
+        >
+
+        <select
+          id="job_maintenance_type"
+          disabled
+        >
+          <option value="PMS" selected>PMS</option>
+        </select>
+
+        <small>
+          Maintenance type is locked because this Job Order came from PMS Scheduling.
+        </small>
+      @else
+        <select
+          name="maintenance_type"
+          id="job_maintenance_type"
+          required
+        >
+          <option value="">Select Maintenance Type</option>
+
+          <option
+            value="Repair"
+            @selected(old('maintenance_type') === 'Repair')
+          >
+            Repair
+          </option>
+
+          <option
+            value="PMS"
+            @selected(old('maintenance_type') === 'PMS')
+          >
+            PMS
+          </option>
+        </select>
+      @endif
+    </div>
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
@@ -651,23 +693,30 @@
   />
 
 
-  @if(request('create_pms') && $pmsCreate)
+ @if(request('create_pms') && $pmsCreate)
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const modal = document.getElementById('jobModal');
-        const busSelect = document.querySelector('#jobModal select[name="bus_no"]');
-        const issueField = document.querySelector('#jobModal textarea[name="problem_issue"]');
-        const typeSelect = document.querySelector('#jobModal select[name="maintenance_type"]');
-        const pmsScheduleId = document.getElementById('pms_schedule_id');
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('jobModal');
 
-        if (busSelect) busSelect.value = @json($pmsCreate->bus_no);
-        if (issueField) issueField.value = @json(request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.'));
-        if (typeSelect) typeSelect.value = 'PMS';
-        if (pmsScheduleId) pmsScheduleId.value = @json($pmsCreate->id);
+            if (modal) {
+                modal.classList.add('show', 'active');
+            }
 
-        if (modal) modal.classList.add('show', 'active');
-      });
+            const cleanUrl = new URL(window.location.href);
+
+            cleanUrl.searchParams.delete('create_pms');
+            cleanUrl.searchParams.delete('pms_schedule_id');
+            cleanUrl.searchParams.delete('bus_no');
+            cleanUrl.searchParams.delete('maintenance_type');
+            cleanUrl.searchParams.delete('problem_issue');
+
+            window.history.replaceState(
+                {},
+                document.title,
+                cleanUrl.pathname + cleanUrl.search
+            );
+        });
     </script>
-  @endif
+@endif
 
 </x-layout.app>
