@@ -108,13 +108,30 @@ class JobOrderController extends Controller
         |--------------------------------------------------------------------------
         | Bus Master List
         |--------------------------------------------------------------------------
-        | Only Active buses can be selected when creating or editing
-        | a Job Order.
+        | $buses contains every active bus and is used by the Edit modal.
+        | $availableBuses excludes buses with an active Job Order and is used by
+        | the New Job Order modal.
         */
+        $activeJobOrderBusNumbers = JobOrder::query()
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->whereNotNull('bus_no')
+            ->pluck('bus_no')
+            ->map(fn ($busNo) => strtoupper(trim($busNo)))
+            ->unique()
+            ->values();
+
         $buses = Bus::query()
             ->where('status', 'Active')
             ->orderBy('bus_no')
             ->get();
+
+        $availableBuses = $buses
+            ->reject(function (Bus $bus) use ($activeJobOrderBusNumbers) {
+                return $activeJobOrderBusNumbers->contains(
+                    strtoupper(trim($bus->bus_no))
+                );
+            })
+            ->values();
 
         $pmsCreate = null;
 
@@ -132,6 +149,7 @@ class JobOrderController extends Controller
             'availableMechanics',
             'allMechanics',
             'buses',
+            'availableBuses',
             'pmsCreate'
         ));
     }
@@ -172,6 +190,24 @@ class JobOrderController extends Controller
             'parts.*.unit' => 'nullable|string|max:50',
             'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
         ]);
+
+        $hasActiveBusJobOrder = JobOrder::query()
+            ->whereRaw(
+                'UPPER(TRIM(bus_no)) = ?',
+                [strtoupper(trim($validated['bus_no']))]
+            )
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->exists();
+
+        if ($hasActiveBusJobOrder) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'This bus already has an active Job Order. Complete the existing Job Order before creating another one.'
+                );
+        }
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
 
@@ -326,6 +362,25 @@ class JobOrderController extends Controller
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
         ]);
+
+        $hasAnotherActiveBusJobOrder = JobOrder::query()
+            ->whereRaw(
+                'UPPER(TRIM(bus_no)) = ?',
+                [strtoupper(trim($validated['bus_no']))]
+            )
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->where('id', '!=', $jobOrder->id)
+            ->exists();
+
+        if ($hasAnotherActiveBusJobOrder) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'This bus already has another active Job Order.'
+                );
+        }
 
         $oldMechanic = $jobOrder->assigned_mechanic;
         $newMechanic = $validated['assigned_mechanic'] ?? null;
