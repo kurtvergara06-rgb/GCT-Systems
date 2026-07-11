@@ -100,7 +100,7 @@
                 notification-count="6"
             />
 
-            <section class="stats-grid">
+            <section class="stats-grid users-stats-grid">
 
                 <x-ui.summary-card
                     label="Total Users"
@@ -136,87 +136,100 @@
 
             </section>
 
-            <section class="users-card">
+            <section class="table-card users-card users-table-card">
 
-                <div class="users-card-header">
+                <div class="section-header users-section-header">
                     <div>
                         <h2>System User Accounts</h2>
                         <p>Manage account creation, department assignment, and role access.</p>
                     </div>
-
-                    <button type="button" class="add-user-btn" id="openAddUserModal">
-                        <i class="fa-solid fa-plus"></i>
-                        Add User
-                    </button>
                 </div>
 
-                <form action="{{ route('admin.users') }}" method="GET" class="users-toolbar">
+                <x-ui.table-toolbar
+                    :action="route('admin.users')"
+                    class="toolbar users-toolbar"
+                    search-placeholder="Search by name, email, role, or department..."
+                    button-id="openAddUserModal"
+                    button-label="Add User"
+                >
+                    <div class="filter-group">
+                        <label for="departmentFilter">Department</label>
 
-                    <div class="users-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search by name, email, role, or department..."
+                        <select
+                            name="department"
+                            id="departmentFilter"
+                            onchange="this.form.submit()"
                         >
+                            <option
+                                value="All Departments"
+                                {{ request('department', 'All Departments') === 'All Departments' ? 'selected' : '' }}
+                            >
+                                All Departments
+                            </option>
+
+                            @foreach($departmentOptions as $department)
+                                <option
+                                    value="{{ $department }}"
+                                    {{ request('department') === $department ? 'selected' : '' }}
+                                >
+                                    {{ $department }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <select name="department" onchange="this.form.submit()">
-                        <option
-                            value="All Departments"
-                            {{ request('department', 'All Departments') === 'All Departments' ? 'selected' : '' }}
+                    <div class="filter-group">
+                        <label for="roleFilter">Role</label>
+
+                        <select
+                            name="role"
+                            id="roleFilter"
+                            onchange="this.form.submit()"
                         >
-                            All Departments
-                        </option>
-
-                        @foreach($departmentOptions as $department)
                             <option
-                                value="{{ $department }}"
-                                {{ request('department') === $department ? 'selected' : '' }}
+                                value="All Roles"
+                                {{ request('role', 'All Roles') === 'All Roles' ? 'selected' : '' }}
                             >
-                                {{ $department }}
+                                All Roles
                             </option>
-                        @endforeach
-                    </select>
 
-                    <select name="role" onchange="this.form.submit()">
-                        <option
-                            value="All Roles"
-                            {{ request('role', 'All Roles') === 'All Roles' ? 'selected' : '' }}
+                            @foreach(($roles ?? []) as $roleValue => $roleLabel)
+                                <option
+                                    value="{{ $roleValue }}"
+                                    {{ request('role') === $roleValue ? 'selected' : '' }}
+                                >
+                                    {{ $roleLabel }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+
+                        <select
+                            name="status"
+                            id="statusFilter"
+                            onchange="this.form.submit()"
                         >
-                            All Roles
-                        </option>
-
-                        @foreach(($roles ?? []) as $roleValue => $roleLabel)
                             <option
-                                value="{{ $roleValue }}"
-                                {{ request('role') === $roleValue ? 'selected' : '' }}
+                                value="All Status"
+                                {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}
                             >
-                                {{ $roleLabel }}
+                                All Status
                             </option>
-                        @endforeach
-                    </select>
 
-                    <select name="status" onchange="this.form.submit()">
-                        <option
-                            value="All Status"
-                            {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}
-                        >
-                            All Status
-                        </option>
-
-                        @foreach(($statuses ?? []) as $status)
-                            <option
-                                value="{{ $status }}"
-                                {{ request('status') === $status ? 'selected' : '' }}
-                            >
-                                {{ $status }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                </form>
+                            @foreach(($statuses ?? []) as $status)
+                                <option
+                                    value="{{ $status }}"
+                                    {{ request('status') === $status ? 'selected' : '' }}
+                                >
+                                    {{ $status }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </x-ui.table-toolbar>
 
                 <div class="users-table-wrap">
                     <table class="users-table">
@@ -415,32 +428,17 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="6" class="empty-users">
-                                        No users found.
-                                    </td>
-                                </tr>
+                                <x-ui.empty-row
+                                    colspan="6"
+                                    message="No users found."
+                                />
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
                 @if(isset($users))
-                    <div class="users-footer">
-                        <div>
-                            Showing
-                            {{ $users->firstItem() ?? 0 }}
-                            to
-                            {{ $users->lastItem() ?? 0 }}
-                            of
-                            {{ $users->total() }}
-                            entries
-                        </div>
-
-                        <div>
-                            {{ $users->links() }}
-                        </div>
-                    </div>
+                    <x-ui.table-footer :items="$users" />
                 @endif
 
             </section>
@@ -693,4 +691,3 @@
     </div>
 
 </x-layout.app>
-
