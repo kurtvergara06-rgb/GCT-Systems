@@ -195,6 +195,12 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
+        if ($this->isFinalStatus($purchaseOrder->status)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Delivered or picked-up purchase orders can no longer be edited.');
+        }
+
         $validated = $request->validate([
             'po_no' => 'required|string|max:255|unique:purchase_orders,po_no,' . $purchaseOrder->id,
             'po_date' => 'required|date',
@@ -288,6 +294,12 @@ class PurchaseOrderController extends Controller
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
+        if ($this->isFinalStatus($purchaseOrder->status)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Delivered or picked-up purchase orders can no longer be changed.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
         ]);
@@ -319,6 +331,12 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
+        if ($this->isFinalStatus($purchaseOrder->status)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Delivered or picked-up purchase orders can no longer be deleted.');
+        }
+
         $purchaseOrderId = $purchaseOrder->id;
 
         DB::transaction(function () use ($purchaseOrder) {
@@ -348,9 +366,14 @@ class PurchaseOrderController extends Controller
             ->with('success', 'Purchase order deleted successfully.');
     }
 
-    private function isInventoryPostingStatus(string $status): bool
+    private function isFinalStatus(?string $status): bool
     {
         return in_array($status, ['Delivered', 'Picked Up'], true);
+    }
+
+    private function isInventoryPostingStatus(string $status): bool
+    {
+        return $this->isFinalStatus($status);
     }
 
     private function postPurchaseOrderToInventory(PurchaseOrder $purchaseOrder): void
@@ -483,8 +506,10 @@ class PurchaseOrderController extends Controller
         return $code;
     }
 
-    private function syncRelatedMaintenanceRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
-    {
+    private function syncRelatedMaintenanceRequestsAndJobOrders(
+        PurchaseOrder $purchaseOrder,
+        string $status
+    ): void {
         $maintenanceRequests = collect();
 
         $purchaseOrder->refresh();
@@ -494,7 +519,7 @@ class PurchaseOrderController extends Controller
         }
 
         foreach ($purchaseOrder->items ?? [] as $item) {
-            $prNo = $item['pr_no'] ?? null;
+            $prNo = $this->normalizePrNo($item['pr_no'] ?? null);
 
             if (! $prNo) {
                 continue;
@@ -518,7 +543,10 @@ class PurchaseOrderController extends Controller
                     'status' => $status,
                 ]);
 
-                $this->updateRelatedJobOrderPartStatus($maintenanceRequest, $status);
+                $this->updateRelatedJobOrderPartStatus(
+                    $maintenanceRequest,
+                    $status
+                );
             });
     }
 
@@ -542,7 +570,7 @@ class PurchaseOrderController extends Controller
     private function findFirstMaintenanceRequest(array $items): ?MaintenanceRequest
     {
         foreach ($items as $item) {
-            $prNo = $item['pr_no'] ?? null;
+            $prNo = $this->normalizePrNo($item['pr_no'] ?? null);
 
             if (! $prNo) {
                 continue;
@@ -556,6 +584,17 @@ class PurchaseOrderController extends Controller
         }
 
         return null;
+    }
+
+    private function normalizePrNo(?string $prNo): ?string
+    {
+        $prNo = trim((string) $prNo);
+
+        if ($prNo === '') {
+            return null;
+        }
+
+        return preg_replace('/-P$/i', '', $prNo);
     }
 
     private function cleanItems(?array $items): array
