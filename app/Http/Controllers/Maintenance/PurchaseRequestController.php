@@ -42,10 +42,39 @@ class PurchaseRequestController extends Controller
 
         $user = Auth::user();
 
-        $role = strtolower(trim($user->role ?? ''));
-        $department = strtolower(trim($user->department ?? ''));
+        $department = strtolower(trim((string) ($user->department ?? '')));
+        $role = strtolower(trim((string) ($user->role ?? '')));
 
-        return $department === 'maintenance' && $role === 'head';
+        $normalizedDepartment = preg_replace(
+            '/\s+/',
+            ' ',
+            str_replace(['_', '-'], ' ', $department)
+        );
+
+        $normalizedRole = preg_replace(
+            '/\s+/',
+            ' ',
+            str_replace(['_', '-'], ' ', $role)
+        );
+
+        $isMaintenanceHead =
+            $normalizedDepartment === 'maintenance'
+            && in_array($normalizedRole, [
+                'head',
+                'admin',
+                'maintenance head',
+                'maintenance admin',
+            ], true);
+
+        $isSystemAdmin =
+            $normalizedDepartment === 'admin'
+            && in_array($normalizedRole, [
+                'head',
+                'admin',
+                'system admin',
+            ], true);
+
+        return $isMaintenanceHead || $isSystemAdmin;
     }
 
     private function maintenancePurchaseRequestQuery()
@@ -64,39 +93,6 @@ class PurchaseRequestController extends Controller
                 $query->whereNull('source_type')
                     ->orWhere('source_type', 'Maintenance Request');
             });
-    }
-
-    private function availableJobOrdersForPurchaseRequest()
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | Hide Job Orders that already have an active PR
-        |--------------------------------------------------------------------------
-        | Submitted, Approved, For Purchase, Ordered, Delivered, etc.
-        | Rejected JOs can appear again because a new PR may be created.
-        */
-
-        $jobOrdersWithActivePr = PurchaseRequest::query()
-            ->where('pr_no', 'not like', '%-P')
-            ->where(function ($query) {
-                $query->whereNull('source_type')
-                    ->orWhere('source_type', 'Maintenance Request');
-            })
-            ->whereNotIn('status', ['Rejected', 'Issued'])
-            ->whereNotNull('job_order_no')
-            ->pluck('job_order_no')
-            ->filter()
-            ->unique()
-            ->values();
-
-        return JobOrder::query()
-            ->whereNotNull('part_needed')
-            ->where('part_needed', '!=', '')
-            ->where('status', '!=', 'Completed')
-            ->whereIn('part_status', ['Not Requested', 'Rejected'])
-            ->whereNotIn('job_order_no', $jobOrdersWithActivePr)
-            ->orderByDesc('created_at')
-            ->get();
     }
 
     public function index(Request $request)
@@ -147,33 +143,17 @@ class PurchaseRequestController extends Controller
 
         $nextPrNo = $this->generatePrNo();
 
-        $jobOrders = $this->availableJobOrdersForPurchaseRequest();
+        $jobOrders = JobOrder::query()
+            ->whereNotNull('part_needed')
+            ->where('part_needed', '!=', '')
+            ->where('status', '!=', 'Completed')
+            ->orderByDesc('created_at')
+            ->get();
 
         $selectedJobOrder = null;
 
         if ($request->filled('job_order_id')) {
             $selectedJobOrder = JobOrder::find($request->job_order_id);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Do not allow a manually opened JO if it has an active PR
-            |--------------------------------------------------------------------------
-            */
-            if ($selectedJobOrder) {
-                $hasActivePr = PurchaseRequest::query()
-                    ->where('job_order_no', $selectedJobOrder->job_order_no)
-                    ->where('pr_no', 'not like', '%-P')
-                    ->where(function ($query) {
-                        $query->whereNull('source_type')
-                            ->orWhere('source_type', 'Maintenance Request');
-                    })
-                    ->whereNotIn('status', ['Rejected', 'Issued'])
-                    ->exists();
-
-                if ($hasActivePr) {
-                    $selectedJobOrder = null;
-                }
-            }
         }
 
         $statuses = $this->statuses;
@@ -228,20 +208,6 @@ class PurchaseRequestController extends Controller
                 ->back()
                 ->withInput()
                 ->with('error', 'Selected job order was not found.');
-        }
-
-        if ($jobOrder->status === 'Completed') {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Completed job orders cannot create a purchase request.');
-        }
-
-        if (! in_array($jobOrder->part_status, ['Not Requested', 'Rejected'], true)) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'This job order already has a purchase request or is already being processed.');
         }
 
         $hasActiveRequest = PurchaseRequest::where(
@@ -338,7 +304,39 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ]);
 
+        if (
+            strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' ||
+            strtoupper(trim($validated['bus_no'])) === 'RESTOCK'
+        ) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Inventory restock requests are not allowed in Maintenance Purchase Requests.');
+        }
+
+        $jobOrder = JobOrder::where(
+            'job_order_no',
+            $validated['job_order_no']
+        )->first();
+
+        if (! $jobOrder) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Selected job order was not found.');
+        }
+
         $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0
+                    ? (int) ($request->quantity ?? 1)
+                    : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
 
         if (count($parts) === 0) {
             return redirect()
@@ -350,11 +348,47 @@ class PurchaseRequestController extends Controller
         $formattedParts = $this->partParser->formatParts($parts);
         $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
 
+        $oldJobOrderNo = $purchaseRequest->job_order_no;
+
         $purchaseRequest->update([
+            'job_order_no' => $validated['job_order_no'],
+            'bus_no' => $validated['bus_no'],
             'item' => $formattedParts,
             'quantity' => $totalQuantity,
+            'source_type' => 'Maintenance Request',
             'remarks' => $validated['remarks'] ?? null,
         ]);
+
+        if ($oldJobOrderNo !== $purchaseRequest->job_order_no) {
+            $oldJobOrder = JobOrder::where(
+                'job_order_no',
+                $oldJobOrderNo
+            )->first();
+
+            if ($oldJobOrder) {
+                $hasOtherRequest = PurchaseRequest::where(
+                    'job_order_no',
+                    $oldJobOrderNo
+                )
+                    ->where('pr_no', 'not like', '%-P')
+                    ->where(function ($query) {
+                        $query->whereNull('source_type')
+                            ->orWhere('source_type', 'Maintenance Request');
+                    })
+                    ->exists();
+
+                if (! $hasOtherRequest) {
+                    $oldJobOrder->update([
+                        'part_status' => 'Not Requested',
+                    ]);
+                }
+            }
+        }
+
+        $this->updateRelatedJobOrderPartStatus(
+            $purchaseRequest,
+            $purchaseRequest->status
+        );
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -559,7 +593,6 @@ class PurchaseRequestController extends Controller
                     $query->whereNull('source_type')
                         ->orWhere('source_type', 'Maintenance Request');
                 })
-                ->whereNotIn('status', ['Rejected', 'Issued'])
                 ->exists();
 
             if (! $hasOtherRequest) {

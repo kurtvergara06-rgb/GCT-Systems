@@ -478,10 +478,16 @@
 
         <div class="form-group full-width">
           <label>Upload CSV File</label>
-          <input type="file" name="import_file" accept=".csv,.txt" required>
+          <input
+            type="file"
+            name="inventory_file"
+            id="inventoryFile"
+            accept=".csv,.txt"
+            required
+          >
 
           <small>
-            CSV format: item_code, item_name, category, quantity_available, unit, reorder_level, supplier, storage_location
+            CSV format: item_code, parts_name, category, on_hand, unit, reorder_level, supplier, storage_location
           </small>
         </div>
 

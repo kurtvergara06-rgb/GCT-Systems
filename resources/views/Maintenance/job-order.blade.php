@@ -58,7 +58,7 @@
       ]"
     />
 
-    <main class="main">
+    <main class="main jo-page">
 
       <x-layout.topbar
         title="Job Orders"
@@ -66,7 +66,7 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      <section class="stats-grid jo-stats-grid">
 
         <x-ui.summary-card
           label="On Hold"
@@ -102,7 +102,7 @@
 
       </section>
 
-      <section class="table-card">
+      <section class="table-card jo-table-card">
 
         <div class="section-header">
           <div>
@@ -159,7 +159,7 @@
         </x-ui.table-toolbar>
 
         <div class="table-wrap">
-          <table>
+          <table class="job-orders-table">
             <thead>
               <tr>
                 <th>Bus #</th>
@@ -242,13 +242,27 @@
                     {{ $jobOrder->assigned_mechanic ?: 'No mechanic assigned' }}
                   </td>
 
-                  <td class="{{ $jobOrder->start_date ? '' : 'empty' }}">
-                    {{ $jobOrder->start_date ? date('m/d/y | h:i A', strtotime($jobOrder->start_date)) : '—' }}
+                  <td class="{{ $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
+                    @if($jobOrder->start_date)
+                      <span class="date-value">
+                        {{ date('M d, Y', strtotime($jobOrder->start_date)) }}
+                      </span>
+                      <span class="time-value">
+                        {{ date('h:i A', strtotime($jobOrder->start_date)) }}
+                      </span>
+                    @else
+                      —
+                    @endif
                   </td>
 
-                  <td class="{{ $jobOrder->completion_date ? '' : 'empty' }}">
+                  <td class="{{ $jobOrder->completion_date ? 'date-time-cell' : 'empty' }}">
                     @if($jobOrder->completion_date)
-                      {{ date('m/d/y | h:i A', strtotime($jobOrder->completion_date)) }}
+                      <span class="date-value">
+                        {{ date('M d, Y', strtotime($jobOrder->completion_date)) }}
+                      </span>
+                      <span class="time-value">
+                        {{ date('h:i A', strtotime($jobOrder->completion_date)) }}
+                      </span>
                     @else
                       @if($canFinish)
                         <form
@@ -329,15 +343,6 @@
                             <i class="fa-solid fa-file-circle-plus"></i>
                           </button>
                         </form>
-                      @elseif($hasActivePr)
-                        <button
-                          type="button"
-                          class="action-btn disabled-action-btn"
-                          title="Purchase Request already created"
-                          disabled
-                        >
-                          <i class="fa-solid fa-file-circle-check"></i>
-                        </button>
                       @endif
 
                       <form
@@ -394,7 +399,7 @@
       type="hidden"
       name="pms_schedule_id"
       id="pms_schedule_id"
-      value="{{ old('pms_schedule_id', request('pms_schedule_id')) }}"
+      value=""
     >
 
     <div class="form-group">
@@ -403,19 +408,15 @@
     </div>
 
     <div class="form-group">
-      <label for="job_bus_no">Bus #</label>
+      <label>Bus #</label>
 
-      <select
-        name="bus_no"
-        id="job_bus_no"
-        required
-      >
+      <select name="bus_no" required>
         <option value="">Select Bus</option>
 
         @forelse($availableBuses as $bus)
           <option
             value="{{ $bus->bus_no }}"
-            @selected(old('bus_no', request('bus_no')) === $bus->bus_no)
+            @selected(old('bus_no') === $bus->bus_no)
           >
             {{ $bus->bus_no }}
             {{ $bus->plate_no ? ' - ' . $bus->plate_no : '' }}
@@ -429,60 +430,22 @@
     </div>
 
     <div class="form-group full-width">
-      <label for="job_problem_issue">Problem / Issue</label>
-
+      <label>Problem / Issue</label>
       <textarea
         name="problem_issue"
-        id="job_problem_issue"
         placeholder="Describe the problem or issue..."
         required
-      >{{ old('problem_issue', request('problem_issue')) }}</textarea>
+      ></textarea>
     </div>
 
     <div class="form-group">
-      <label for="job_maintenance_type">Maintenance Type</label>
+    <label>Maintenance Type</label>
 
-      @if(request('create_pms') && $pmsCreate)
-        <input
-          type="hidden"
-          name="maintenance_type"
-          value="PMS"
-        >
-
-        <select
-          id="job_maintenance_type"
-          disabled
-        >
-          <option value="PMS" selected>PMS</option>
-        </select>
-
-        <small>
-          Maintenance type is locked because this Job Order came from PMS Scheduling.
-        </small>
-      @else
-        <select
-          name="maintenance_type"
-          id="job_maintenance_type"
-          required
-        >
-          <option value="">Select Maintenance Type</option>
-
-          <option
-            value="Repair"
-            @selected(old('maintenance_type') === 'Repair')
-          >
-            Repair
-          </option>
-
-          <option
-            value="PMS"
-            @selected(old('maintenance_type') === 'PMS')
-          >
-            PMS
-          </option>
-        </select>
-      @endif
-    </div>
+    <select name="maintenance_type" required>
+        <option value="">Select Maintenance Type</option>
+        <option value="Repair">Repair</option>
+    </select>
+</div>
 
     <div class="form-group">
       <label>Assigned Mechanic</label>
@@ -693,30 +656,23 @@
   />
 
 
- @if(request('create_pms') && $pmsCreate)
+  @if(request('create_pms') && $pmsCreate)
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('jobModal');
+      document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('jobModal');
+        const busSelect = document.querySelector('#jobModal select[name="bus_no"]');
+        const issueField = document.querySelector('#jobModal textarea[name="problem_issue"]');
+        const typeSelect = document.querySelector('#jobModal select[name="maintenance_type"]');
+        const pmsScheduleId = document.getElementById('pms_schedule_id');
 
-            if (modal) {
-                modal.classList.add('show', 'active');
-            }
+        if (busSelect) busSelect.value = @json($pmsCreate->bus_no);
+        if (issueField) issueField.value = @json(request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.'));
+        if (typeSelect) typeSelect.value = 'PMS';
+        if (pmsScheduleId) pmsScheduleId.value = @json($pmsCreate->id);
 
-            const cleanUrl = new URL(window.location.href);
-
-            cleanUrl.searchParams.delete('create_pms');
-            cleanUrl.searchParams.delete('pms_schedule_id');
-            cleanUrl.searchParams.delete('bus_no');
-            cleanUrl.searchParams.delete('maintenance_type');
-            cleanUrl.searchParams.delete('problem_issue');
-
-            window.history.replaceState(
-                {},
-                document.title,
-                cleanUrl.pathname + cleanUrl.search
-            );
-        });
+        if (modal) modal.classList.add('show', 'active');
+      });
     </script>
-@endif
+  @endif
 
 </x-layout.app>
