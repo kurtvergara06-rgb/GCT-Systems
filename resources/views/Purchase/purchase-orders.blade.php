@@ -137,9 +137,9 @@
       <section class="stats-grid">
 
         <x-ui.summary-card
-          label="Total Orders"
+          label="Total Purchase Orders"
           value="{{ $totalOrders }}"
-          small="Purchase orders"
+          small="All procurement records"
           icon="fa-file-invoice"
           color="gray"
         />
@@ -147,7 +147,7 @@
         <x-ui.summary-card
           label="Ordered"
           value="{{ $ordered }}"
-          small="PO created"
+          small="Awaiting supplier action"
           icon="fa-file-invoice"
           color="blue"
         />
@@ -155,15 +155,15 @@
         <x-ui.summary-card
           label="For Pick-up"
           value="{{ $forPickup }}"
-          small="Waiting pickup"
+          small="Ready for collection"
           icon="fa-box"
           color="yellow"
         />
 
         <x-ui.summary-card
-          label="For Delivery / Done"
+          label="Delivered / Picked Up"
           value="{{ $delivered }}"
-          small="Delivery and completed"
+          small="Completed procurement"
           icon="fa-circle-check"
           color="green"
         />
@@ -172,10 +172,21 @@
 
       <section class="table-card purchase-order-card">
 
-        <div class="section-header">
-          <div>
-            <h2>Purchase Order Records</h2>
-            <p>Track purchase orders, supplier status, and procurement progress</p>
+        <div class="section-header po-section-header">
+          <div class="section-heading">
+            <span class="section-icon">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </span>
+
+            <div>
+              <h2>Purchase Order Records</h2>
+              <p>Track supplier orders, procurement progress, amounts, and delivery status.</p>
+            </div>
+          </div>
+
+          <div class="section-count">
+            <span>{{ $purchaseOrders->total() }}</span>
+            records
           </div>
         </div>
 
@@ -192,10 +203,11 @@
             >
           </div>
 
-          <div class="filter-group">
-            <select name="status" onchange="this.form.submit()">
+          <div class="filter-group po-filter-field">
+            <label for="poStatusFilter"></label>
+            <select id="poStatusFilter" name="status" onchange="this.form.submit()">
               <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
-                All States
+                All Statuses
               </option>
 
               @foreach($statuses as $status)
@@ -217,11 +229,11 @@
           <table>
             <thead>
               <tr>
-                <th>PO Number</th>
+                <th>PO NO.</th>
                 <th>Supplier</th>
                 <th>Item</th>
-                <th>PR No.</th>
-                <th>Bus No.</th>
+                <th>Request No.</th>
+                <th>Request Type</th>
                 <th>Qty</th>
                 <th>Net Amount</th>
                 <th>Status</th>
@@ -236,30 +248,62 @@
                   $items = is_array($purchaseOrder->items) ? $purchaseOrder->items : [];
                   $firstItem = $items[0] ?? [];
 
-                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '�';
+                  $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '—';
                   $firstItemName = trim(explode(',', $itemName)[0] ?? $itemName);
+
+                  $rawRequestNo = $firstItem['pr_no'] ?? '—';
+                  $displayRequestNo = preg_replace('/-P$/', '', $rawRequestNo);
+
+                  $isInventoryRestock =
+                    str_starts_with(strtoupper($displayRequestNo), 'RST-')
+                    || strtoupper((string) ($firstItem['bus_no'] ?? '')) === 'RESTOCK';
+
+                  $requestType = $isInventoryRestock
+                    ? 'Inventory Restock'
+                    : 'Maintenance Request';
 
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseOrder->status));
                   $isDraft = strtolower($purchaseOrder->status ?? '') === 'draft';
+                  $isFinalStatus = in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true);
                 @endphp
 
                 <tr>
-                  <td>{{ $purchaseOrder->po_no }}</td>
-
-                  <td>{{ $purchaseOrder->supplier_name }}</td>
-
                   <td>
-                    <strong>{{ $firstItemName ?: '�' }}</strong>
+                    <div class="po-number-cell">
+                      <span class="po-document-icon"><i class="fa-solid fa-file-invoice"></i></span>
+                      <div>
+                        <strong>{{ $purchaseOrder->po_no }}</strong>
+                        <small>Purchase order</small>
+                      </div>
+                    </div>
                   </td>
 
-                  <td>{{ $firstItem['pr_no'] ?? '�' }}</td>
-
-                  <td>{{ $firstItem['bus_no'] ?? '�' }}</td>
-
-                  <td>{{ $firstItem['quantity'] ?? '�' }}</td>
+                  <td>
+                    <div class="po-primary-text">{{ $purchaseOrder->supplier_name }}</div>
+                    <div class="po-secondary-text">{{ $purchaseOrder->supplier_address_tel ?: 'No contact details' }}</div>
+                  </td>
 
                   <td>
-                    &#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}
+                    <strong>{{ $firstItemName ?: '—' }}</strong>
+                  </td>
+
+                  <td>
+                    <span class="po-reference">
+                      {{ $displayRequestNo }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span class="po-request-type {{ $isInventoryRestock ? 'inventory-restock' : 'maintenance-request' }}">
+                      <i class="fa-solid {{ $isInventoryRestock ? 'fa-boxes-stacked' : 'fa-screwdriver-wrench' }}"></i>
+                      {{ $requestType }}
+                    </span>
+                  </td>
+
+                  <td><span class="po-qty">{{ $firstItem['quantity'] ?? '—' }}</span></td>
+
+                  <td>
+                    <div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div>
                   </td>
 
                   <td>
@@ -273,8 +317,10 @@
 
                       <select
                         name="status"
-                        class="po-status-select {{ $statusClass }}"
+                        class="po-status-select {{ $statusClass }} {{ $isFinalStatus ? 'is-final' : '' }}"
                         onchange="this.form.submit()"
+                        title="{{ $isFinalStatus ? 'Final status — this purchase order can no longer be changed.' : 'Change purchase order status' }}"
+                        {{ $isFinalStatus ? 'disabled' : '' }}
                       >
                         @foreach($statuses as $status)
                           <option value="{{ $status }}" {{ $purchaseOrder->status === $status ? 'selected' : '' }}>
@@ -286,7 +332,7 @@
                   </td>
 
                   <td>
-                    {{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('m/d/y') : '�' }}
+                    <div class="po-date"><strong>{{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('M d, Y') : '—' }}</strong><small>{{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('l') : '' }}</small></div>
                   </td>
 
                   <td>
@@ -544,7 +590,7 @@
 
             <div class="po-total-row">
               <label>Gross Amount</label>
-              <input type="text" id="gross_amount_display" value="?0.00" readonly>
+              <input type="text" id="gross_amount_display" value="₱0.00" readonly>
             </div>
 
             <div class="po-total-row">
@@ -585,7 +631,7 @@
 
             <div class="po-total-row">
               <label>Net Amount</label>
-              <input type="text" id="net_amount_display" value="?0.00" readonly>
+              <input type="text" id="net_amount_display" value="₱0.00" readonly>
             </div>
 
           </div>

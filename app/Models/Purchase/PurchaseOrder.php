@@ -26,8 +26,6 @@ class PurchaseOrder extends Model
         'net_amount',
         'status',
         'inventory_posted_at',
-        'created_at',
-        'updated_at',
     ];
 
     protected $casts = [
@@ -39,38 +37,50 @@ class PurchaseOrder extends Model
         'vat' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'inventory_posted_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function maintenanceRequest(): BelongsTo
     {
-        return $this->belongsTo(MaintenanceRequest::class, 'purchase_request_id');
+        return $this->belongsTo(
+            MaintenanceRequest::class,
+            'purchase_request_id'
+        );
     }
 
-    public function getFirstPrNoAttribute()
+    public function getFirstPrNoAttribute(): ?string
     {
-        if (! $this->items || ! is_array($this->items)) {
+        if (! is_array($this->items) || empty($this->items)) {
             return null;
         }
 
-        $first = $this->items[0] ?? null;
+        $firstItem = $this->items[0] ?? [];
 
-        return $first['pr_no'] ?? null;
+        return $firstItem['pr_no'] ?? null;
     }
 
-    public function relatedMaintenanceRequest()
+    public function relatedMaintenanceRequest(): ?MaintenanceRequest
     {
         if ($this->maintenanceRequest) {
             return $this->maintenanceRequest;
         }
 
-        $prNo = $this->first_pr_no;
+        $prNo = $this->normalizePrNo($this->first_pr_no);
 
         if (! $prNo) {
             return null;
         }
 
         return MaintenanceRequest::where('pr_no', $prNo)->first();
+    }
+
+    private function normalizePrNo(?string $prNo): ?string
+    {
+        $prNo = trim((string) $prNo);
+
+        if ($prNo === '') {
+            return null;
+        }
+
+        return preg_replace('/-P$/i', '', $prNo);
     }
 }

@@ -1,301 +1,480 @@
-/* PURCHASE ORDERS PAGE ONLY */
+/* =========================================================
+   PURCHASE ORDERS PAGE
+   Visual design aligned with the Job Orders page
+========================================================= */
 
-/* ================================
-   CARD / SECTION
-================================ */
-.table-card,
 .purchase-order-card,
+.table-card.po-card,
 .po-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  width: 100%;
+  padding: 16px;
   margin-bottom: 20px;
   overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
 }
 
-.section-header {
+.purchase-order-card .section-header,
+.po-section-header {
+  display: block;
   margin-bottom: 12px;
 }
 
-.section-header h2 {
+.section-heading {
+  display: block;
+}
+
+.section-icon,
+.section-count {
+  display: none !important;
+}
+
+.purchase-order-card .section-header h2,
+.po-section-header h2 {
+  margin: 0;
+  color: #061f3d;
   font-size: 18px;
   font-weight: 800;
-  color: var(--text);
-  margin: 0;
+  letter-spacing: -0.01em;
 }
 
-.section-header p {
-  color: var(--muted);
+.purchase-order-card .section-header p,
+.po-section-header p {
+  margin: 3px 0 0;
+  color: #64748b;
   font-size: 12px;
-  margin-top: 3px;
 }
 
-/* ================================
-   TOOLBAR
-================================ */
+/* Toolbar */
 .po-toolbar {
   width: 100%;
-  padding: 12px 16px;
-  gap: 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 150px auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
   background: #ffffff;
 }
 
 .po-toolbar .search-box {
-  flex: 1;
   position: relative;
+  min-width: 0;
 }
 
 .po-toolbar .search-box i {
   position: absolute;
   left: 14px;
   top: 50%;
+  z-index: 1;
   transform: translateY(-50%);
+  color: #0b40b5;
   font-size: 13px;
-  color: var(--muted);
+  pointer-events: none;
 }
 
 .po-toolbar .search-box input {
   width: 100%;
-  height: 38px;
-  font-size: 13px;
-  border-radius: 9px;
+  height: 40px;
   padding: 0 14px 0 40px;
-  border: 1px solid var(--border);
-  outline: none;
-  color: var(--text);
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
   background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
 }
 
 .po-toolbar .search-box input::placeholder {
-  color: var(--muted);
+  color: #8a98ac;
 }
 
 .po-toolbar .search-box input:focus,
 .po-toolbar select:focus {
-  border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.po-filter-field,
+.po-toolbar .filter-group {
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  margin: 0;
+}
+
+.po-filter-field label,
+.po-toolbar .filter-group label {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .po-toolbar select {
-  height: 38px;
-  min-width: 118px;
-  font-size: 13px;
+  width: 100%;
+  min-width: 150px;
+  height: 40px;
+  padding: 0 34px 0 11px;
+  border: 1px solid #dce5f2;
   border-radius: 9px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
   background: #ffffff;
-  color: var(--text);
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
   outline: none;
+  cursor: pointer;
 }
 
-.po-toolbar .primary-btn {
-  height: 38px;
-  padding: 0 16px;
-  font-size: 13px;
+.po-clear-btn {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid #dce5f2;
   border-radius: 9px;
-  gap: 7px;
-  border: none;
-  background: var(--yellow);
-  color: #061b3a;
-  font-weight: 800;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.po-toolbar .primary-btn:hover {
-  background: var(--yellow-dark);
+.po-clear-btn:hover {
+  border-color: #0b40b5;
+  color: #0b40b5;
+  background: #f5f8ff;
 }
 
-/* ================================
-   TABLE
-================================ */
-.table-wrap {
+.compact-new-po-btn,
+.po-toolbar .primary-btn {
+  min-width: 106px;
+  height: 40px;
+  padding: 0 16px;
+  margin: 0;
+  border: 1px solid #f5a800;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  color: #061f3d;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.22);
+}
+
+.compact-new-po-btn:hover,
+.po-toolbar .primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+/* Table */
+.purchase-order-card .table-wrap {
   width: 100%;
   overflow-x: auto;
+  border-radius: 10px;
 }
 
 .purchase-order-card table {
   width: 100%;
-  min-width: 1050px;
-  border-collapse: collapse;
+  min-width: 1080px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .purchase-order-card thead {
-  background: #f0f5fc;
+  background: #f3f7fc;
 }
 
 .purchase-order-card th {
-  padding: 14px 13px;
+  padding: 13px 14px;
+  border-bottom: 1px solid #dce5f2;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.25;
   text-align: left;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-  white-space: nowrap;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .purchase-order-card td {
-  padding: 14px 13px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--text);
+  padding: 13px 14px;
+  border-bottom: 1px solid #e7edf5;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
   vertical-align: middle;
 }
 
+.purchase-order-card tbody tr {
+  transition: background-color 0.18s ease;
+}
+
 .purchase-order-card tbody tr:hover {
-  background: #f7faff;
+  background: #f8fbff;
 }
 
 .purchase-order-card tbody tr:last-child td {
   border-bottom: none;
 }
 
-.purchase-order-card strong {
-  font-weight: 800;
-  color: var(--text);
-}
-
-/* Qty column */
 .purchase-order-card th:nth-child(6),
-.purchase-order-card td:nth-child(6) {
-  text-align: center;
-}
-
-/* Status column */
+.purchase-order-card td:nth-child(6),
 .purchase-order-card th:nth-child(8),
-.purchase-order-card td:nth-child(8) {
-  text-align: center;
-}
-
-/* Actions column */
+.purchase-order-card td:nth-child(8),
 .purchase-order-card th:nth-child(10),
 .purchase-order-card td:nth-child(10) {
   text-align: center;
 }
 
-/* ================================
-   STATUS DROPDOWN
-================================ */
+.po-number-cell {
+  display: block;
+  min-width: 125px;
+}
+
+.po-document-icon,
+.po-number-cell small,
+.po-secondary-text,
+.po-bus-badge i {
+  display: none;
+}
+
+.po-number-cell strong,
+.po-primary-text,
+.po-reference,
+.po-bus-badge,
+.po-qty,
+.po-amount,
+.purchase-order-card td strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.po-reference,
+.po-bus-badge,
+.po-amount {
+  white-space: nowrap;
+}
+
+.po-bus-badge,
+.po-qty {
+  display: inline;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.po-date {
+  min-width: 100px;
+}
+
+.po-date strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.po-date small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Status */
 .status-update-form {
-  margin: 0;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  margin: 0;
 }
 
 .po-status-select {
-  width: 120px;
-  height: 32px;
-  border: none;
-  outline: none;
-  cursor: pointer;
+  min-width: 110px;
+  min-height: 26px;
+  padding: 0 11px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0 12px;
-  font-size: 12px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   text-align: center;
   text-align-last: center;
-  appearance: auto;
+  outline: none;
+  cursor: pointer;
+}
+
+.po-status-select:focus {
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.po-status-select:disabled,
+.po-status-select.is-final {
+  cursor: not-allowed;
+  opacity: 1;
 }
 
 .po-status-select.draft {
   background: #f1f5f9;
   color: #475569;
+  border-color: #dce5f2;
 }
 
 .po-status-select.ordered {
   background: #ede9fe;
-  color: #7c3aed;
+  color: #6d28d9;
+  border-color: #ddd6fe;
 }
 
 .po-status-select.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
+  background: #fff3cd;
+  color: #9a6700;
+  border-color: #f8dd82;
 }
 
 .po-status-select.for-delivery {
   background: #ffedd5;
-  color: #ea580c;
+  color: #c2410c;
+  border-color: #fed7aa;
 }
 
 .po-status-select.delivered {
   background: #dcfce7;
-  color: #16a34a;
+  color: #15803d;
+  border-color: #b7efca;
 }
 
 .po-status-select.picked-up {
-  background: #ccfbf1;
-  color: #0f766e;
+  background: #dff6ff;
+  color: #0369a1;
+  border-color: #bae6fd;
 }
 
-/* ================================
-   ACTION BUTTONS
-================================ */
-.actions {
+/* Actions */
+.purchase-order-card .actions {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.actions form {
+.purchase-order-card .actions form {
+  display: inline-flex;
   margin: 0;
-  display: inline-flex;
 }
 
-.action-btn {
+.purchase-order-card .action-btn {
   width: 34px;
+  min-width: 34px;
   height: 34px;
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  transition: 0.2s ease;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-}
-
-.action-btn.view {
-  background: #edf3fb;
-  color: #082445;
-}
-
-.action-btn.edit {
   background: #eaf2ff;
-  color: #0057f8;
+  color: #0b40b5;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: none;
 }
 
-.action-btn.delete {
-  background: #fff0f0;
-  color: #dc2626;
-}
-
-.action-btn:hover {
+.purchase-order-card .action-btn:hover {
+  background: #0b40b5;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
-/* ================================
+.purchase-order-card .table-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e7edf5;
+}
+
+.purchase-order-card .table-footer p,
+.purchase-order-card .page-number {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.purchase-order-card .page-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #061f3d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.purchase-order-card .page-btn:not(.disabled):hover {
+  border-color: #0b40b5;
+  color: #0b40b5;
+  background: #f5f8ff;
+}
+
+.purchase-order-card .page-btn.disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================
    MODAL OVERLAY
-================================ */
+===================================================== */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
+  z-index: 9999;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
   background: rgba(15, 23, 42, 0.45);
-  z-index: 9999;
 }
 
 .modal-overlay.show,
@@ -303,18 +482,19 @@
   display: flex;
 }
 
-/* ================================
+/* =====================================================
    PURCHASE ORDER MODAL
-================================ */
+===================================================== */
+
 .po-modal-box {
   width: min(1220px, 96vw) !important;
   max-width: 1220px !important;
   max-height: 90vh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  background: #ffffff;
-  border-radius: 18px;
   padding: 28px 34px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 18px;
+  background: #ffffff;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
 }
 
@@ -323,9 +503,13 @@
 }
 
 .po-modal-box::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
   border-radius: 999px;
+  background: #cbd5e1;
 }
+
+/* =====================================================
+   MODAL HEADER
+===================================================== */
 
 .po-modal-header {
   display: flex;
@@ -337,22 +521,22 @@
 
 .po-modal-header h2 {
   margin: 0;
+  color: #061b3a;
   font-size: 22px;
   font-weight: 900;
-  color: #061b3a;
 }
 
 .po-close-btn {
   width: 38px;
   height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 10px;
   background: #f1f5f9;
   color: #061b3a;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .po-close-btn:hover {
@@ -360,32 +544,37 @@
   color: #dc2626;
 }
 
+/* =====================================================
+   COMPANY TITLE
+===================================================== */
+
 .po-company-title {
-  text-align: center;
-  margin: 8px 0 18px;
   padding-bottom: 16px;
+  margin: 8px 0 18px;
   border-bottom: 1px solid #dce5f2;
+  text-align: center;
 }
 
 .po-company-title h3 {
   margin: 0;
+  color: #061b3a;
   font-size: 20px;
   font-weight: 900;
-  color: #061b3a;
   letter-spacing: 0.5px;
 }
 
 .po-company-title p {
   margin: 4px 0 0;
+  color: #061b3a;
   font-size: 12px;
   font-weight: 900;
-  color: #061b3a;
   letter-spacing: 2px;
 }
 
-/* ================================
-   FORM
-================================ */
+/* =====================================================
+   PO FORM
+===================================================== */
+
 .po-form {
   width: 100%;
 }
@@ -403,10 +592,10 @@
 .po-form-group label,
 .po-total-row label {
   display: block;
+  margin-bottom: 6px;
+  color: #061b3a;
   font-size: 12px;
   font-weight: 900;
-  color: #061b3a;
-  margin-bottom: 6px;
 }
 
 .po-form input,
@@ -417,11 +606,10 @@
   box-sizing: border-box;
   border: 1px solid #dce5f2 !important;
   border-radius: 10px !important;
-  padding: 0 12px;
-  font-size: 13px;
-  font-family: inherit;
-  color: #061b3a;
   background: #ffffff;
+  color: #061b3a;
+  font-family: inherit;
+  font-size: 13px;
   outline: none;
 }
 
@@ -429,11 +617,12 @@
 .po-form select,
 .po-item-row input {
   height: 42px !important;
+  padding: 0 12px;
 }
 
 .po-form textarea {
   min-height: 110px;
-  padding-top: 12px;
+  padding: 12px;
   resize: vertical;
 }
 
@@ -465,9 +654,10 @@
   cursor: not-allowed;
 }
 
-/* ================================
-   REQUEST INFO
-================================ */
+/* =====================================================
+   REQUEST INFORMATION
+===================================================== */
+
 .po-request-info {
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr !important;
@@ -475,9 +665,10 @@
   margin-top: 18px !important;
 }
 
-/* ================================
-   ITEMS
-================================ */
+/* =====================================================
+   ITEMS SECTION
+===================================================== */
+
 .po-items-section {
   width: 100%;
   margin-top: 20px;
@@ -485,25 +676,25 @@
 
 .po-items-title {
   display: block;
+  margin-bottom: 10px;
+  color: #061b3a;
   font-size: 13px;
   font-weight: 900;
-  color: #061b3a;
-  margin-bottom: 10px;
 }
 
 .po-items-header,
 .po-item-row {
   display: grid !important;
   grid-template-columns: 1.8fr 90px 100px 140px 160px 46px !important;
-  gap: 10px !important;
   align-items: center;
+  gap: 10px !important;
 }
 
 .po-items-header {
   margin-bottom: 8px;
+  color: #334155;
   font-size: 11px;
   font-weight: 900;
-  color: #334155;
   text-transform: uppercase;
 }
 
@@ -513,17 +704,21 @@
   gap: 10px;
 }
 
+/* =====================================================
+   ITEM BUTTONS
+===================================================== */
+
 .remove-po-item-btn {
   width: 42px;
   height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 10px;
   background: #fee2e2;
   color: #dc2626;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .remove-po-item-btn:hover {
@@ -531,9 +726,13 @@
 }
 
 .add-po-item-btn {
-  margin-top: 12px;
+  width: fit-content;
   height: 42px;
   padding: 0 16px;
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border: 1px solid #dce5f2;
   border-radius: 10px;
   background: #ffffff;
@@ -541,25 +740,22 @@
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
 }
 
 .add-po-item-btn:hover {
   background: #f8fafc;
 }
 
-/* ================================
-   BOTTOM / TOTALS
-================================ */
+/* =====================================================
+   BOTTOM GRID AND TOTALS
+===================================================== */
+
 .po-bottom-grid {
   display: grid !important;
   grid-template-columns: 1fr 360px !important;
+  align-items: start;
   gap: 24px !important;
   margin-top: 20px !important;
-  align-items: start;
 }
 
 .po-totals-box {
@@ -575,6 +771,10 @@
   gap: 10px;
 }
 
+/* =====================================================
+   MODAL ACTIONS
+===================================================== */
+
 .po-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -585,9 +785,9 @@
 .po-cancel-btn,
 .po-save-btn {
   height: 44px;
+  padding: 0 18px;
   border: none;
   border-radius: 10px;
-  padding: 0 18px;
   font-weight: 900;
   cursor: pointer;
 }
@@ -606,9 +806,18 @@
   background: var(--yellow-dark);
 }
 
-/* ================================
-   PAGINATION FIX
-================================ */
+/* =====================================================
+   HIDDEN ELEMENT
+===================================================== */
+
+.hidden {
+  display: none !important;
+}
+
+/* =====================================================
+   PAGINATION
+===================================================== */
+
 .pagination svg {
   width: 18px !important;
   height: 18px !important;
@@ -618,9 +827,10 @@
   display: none;
 }
 
-/* ================================
+/* =====================================================
    RESPONSIVE
-================================ */
+===================================================== */
+
 @media (max-width: 1200px) {
   .po-toolbar {
     flex-wrap: wrap;
@@ -657,12 +867,66 @@
     align-items: stretch;
   }
 
+  .po-toolbar .search-box,
+  .filter-group,
+  .po-filter-field,
   .po-toolbar select,
-  .po-toolbar .primary-btn {
+  .po-toolbar .primary-btn,
+  .compact-new-po-btn,
+  .po-clear-btn {
     width: 100%;
+    min-width: 0;
+    flex-basis: auto;
   }
 
   .po-modal-box {
     padding: 22px !important;
+  }
+}
+
+
+/* =========================================================
+   PAGE RESPONSIVE OVERRIDES
+========================================================= */
+@media (max-width: 1200px) {
+  .po-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .po-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .compact-new-po-btn,
+  .po-toolbar .primary-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .po-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .po-toolbar .search-box {
+    grid-column: auto;
+  }
+
+  .po-filter-field,
+  .po-toolbar .filter-group,
+  .po-toolbar select,
+  .compact-new-po-btn,
+  .po-toolbar .primary-btn,
+  .po-clear-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .purchase-order-card {
+    padding: 12px;
+  }
+
+  .purchase-order-card table {
+    min-width: 980px;
   }
 }
