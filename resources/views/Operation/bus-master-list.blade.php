@@ -282,6 +282,11 @@
         submit-text="Save Bus"
         close-id="closeBusModal"
         cancel-id="cancelBusModal"
+        :confirm="true"
+        confirm-title="Add Bus?"
+        confirm-message="Are you sure you want to add this bus record?"
+        confirm-button="Yes, Add Bus"
+        confirm-type="create"
     >
         <div class="form-group">
             <label>Bus No.</label>
@@ -389,6 +394,11 @@
                 method="POST"
                 enctype="multipart/form-data"
                 class="job-form"
+                data-confirm-form
+                data-confirm-title="Import Bus Records?"
+                data-confirm-message="Are you sure you want to import this bus CSV file?"
+                data-confirm-button="Yes, Import CSV"
+                data-confirm-type="warning"
             >
                 @csrf
 
@@ -462,6 +472,11 @@
                 action="#"
                 method="POST"
                 class="job-form wide-form"
+                data-confirm-form
+                data-confirm-title="Update Bus?"
+                data-confirm-message="Are you sure you want to update this bus record?"
+                data-confirm-button="Yes, Update Bus"
+                data-confirm-type="update"
             >
                 @csrf
                 @method('PUT')

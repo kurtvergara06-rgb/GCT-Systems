@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmDeleteBus?.addEventListener('click', () => {
         if (selectedDeleteForm) {
-            selectedDeleteForm.submit();
+            selectedDeleteForm.requestSubmit();
         }
     });
 

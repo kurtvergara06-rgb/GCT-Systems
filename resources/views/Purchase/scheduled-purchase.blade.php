@@ -143,7 +143,15 @@
                       </button>
 
                       @if($schedule->status !== 'Completed')
-                        <form method="POST" action="{{ route('scheduled-purchase.toggle-status', $schedule) }}">
+                        <form
+                          method="POST"
+                          action="{{ route('scheduled-purchase.toggle-status', $schedule) }}"
+                          data-confirm-form
+                          data-confirm-title="{{ $schedule->status === 'Paused' ? 'Resume Scheduled Purchase?' : 'Pause Scheduled Purchase?' }}"
+                          data-confirm-message="Are you sure you want to {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }} {{ $schedule->schedule_name }}?"
+                          data-confirm-button="{{ $schedule->status === 'Paused' ? 'Yes, Resume' : 'Yes, Pause' }}"
+                          data-confirm-type="status"
+                        >
                           @csrf
                           @method('PATCH')
                           <button type="submit" class="action-btn {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }}" title="{{ $schedule->status === 'Paused' ? 'Resume' : 'Pause' }}">
@@ -153,7 +161,15 @@
                       @endif
 
                       @if($schedule->status === 'Active' && $schedule->next_purchase_date->lte(today()))
-                        <form method="POST" action="{{ route('scheduled-purchase.create-po', $schedule) }}" onsubmit="return confirm('Create a purchase order from this schedule?')">
+                        <form
+                          method="POST"
+                          action="{{ route('scheduled-purchase.create-po', $schedule) }}"
+                          data-confirm-form
+                          data-confirm-title="Create PO from Schedule?"
+                          data-confirm-message="Are you sure you want to create a purchase order from {{ $schedule->schedule_name }}?"
+                          data-confirm-button="Yes, Create PO"
+                          data-confirm-type="create"
+                        >
                           @csrf
                           <button type="submit" class="action-btn create-po" title="Create PO">
                             <i class="fa-solid fa-cart-plus"></i>
@@ -161,7 +177,15 @@
                         </form>
                       @endif
 
-                      <form method="POST" action="{{ route('scheduled-purchase.destroy', $schedule) }}" onsubmit="return confirm('Delete this schedule?')">
+                      <form
+                        method="POST"
+                        action="{{ route('scheduled-purchase.destroy', $schedule) }}"
+                        data-confirm-form
+                        data-confirm-title="Delete Scheduled Purchase?"
+                        data-confirm-message="Are you sure you want to delete {{ $schedule->schedule_name }}? This action cannot be undone."
+                        data-confirm-button="Yes, Delete"
+                        data-confirm-type="delete"
+                      >
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="action-btn delete" title="Delete">
@@ -195,7 +219,17 @@
         </button>
       </div>
 
-      <form id="scheduleForm" method="POST" action="{{ route('scheduled-purchase.store') }}" data-store-url="{{ route('scheduled-purchase.store') }}">
+      <form
+        id="scheduleForm"
+        method="POST"
+        action="{{ route('scheduled-purchase.store') }}"
+        data-store-url="{{ route('scheduled-purchase.store') }}"
+        data-confirm-form
+        data-confirm-title="Create Scheduled Purchase?"
+        data-confirm-message="Are you sure you want to create this scheduled purchase?"
+        data-confirm-button="Yes, Create Schedule"
+        data-confirm-type="create"
+      >
         @csrf
         <input type="hidden" name="_method" id="scheduleFormMethod" value="POST">
         <input type="hidden" name="status" id="scheduleStatus" value="Active">

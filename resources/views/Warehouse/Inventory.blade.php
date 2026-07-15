@@ -203,7 +203,15 @@
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
 
-                      <form action="{{ route('inventory.destroy', $item->id) }}" method="POST">
+                      <form
+                        action="{{ route('inventory.destroy', $item->id) }}"
+                        method="POST"
+                        data-confirm-form
+                        data-confirm-title="Delete Inventory Item?"
+                        data-confirm-message="Are you sure you want to delete {{ $item->item_name }}? This action cannot be undone."
+                        data-confirm-button="Yes, Delete"
+                        data-confirm-type="delete"
+                      >
                         @csrf
                         @method('DELETE')
 
@@ -211,7 +219,6 @@
                           type="submit"
                           class="action-btn delete"
                           title="Delete Item"
-                          onclick="return confirm('Delete this inventory item?')"
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
@@ -270,7 +277,15 @@
         <button type="button" class="close-btn closeModal">&times;</button>
       </div>
 
-      <form action="{{ route('inventory.store') }}" method="POST">
+      <form
+        action="{{ route('inventory.store') }}"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Add Inventory Item?"
+        data-confirm-message="Are you sure you want to add this inventory item?"
+        data-confirm-button="Yes, Add Item"
+        data-confirm-type="create"
+      >
         @csrf
 
         <div class="form-grid">
@@ -336,7 +351,15 @@
         <button type="button" class="close-btn closeModal">&times;</button>
       </div>
 
-      <form id="editForm" method="POST">
+      <form
+        id="editForm"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Update Inventory Item?"
+        data-confirm-message="Are you sure you want to update this inventory item?"
+        data-confirm-button="Yes, Update Item"
+        data-confirm-type="update"
+      >
         @csrf
         @method('PUT')
 
@@ -473,7 +496,16 @@
         <button type="button" class="close-btn closeModal">&times;</button>
       </div>
 
-      <form action="{{ route('inventory.import') }}" method="POST" enctype="multipart/form-data">
+      <form
+        action="{{ route('inventory.import') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        data-confirm-form
+        data-confirm-title="Import Inventory Data?"
+        data-confirm-message="Are you sure you want to import this inventory data file?"
+        data-confirm-button="Yes, Import Data"
+        data-confirm-type="warning"
+      >
         @csrf
 
         <div class="form-group full-width">

@@ -10,6 +10,11 @@
   'cancelId' => null,
   'closeId' => null,
   'submitClass' => 'primary-btn',
+  'confirm' => false,
+  'confirmTitle' => null,
+  'confirmMessage' => null,
+  'confirmButton' => null,
+  'confirmType' => 'warning',
 ])
 
 <div id="{{ $id }}" class="modal-overlay">
@@ -32,6 +37,11 @@
       action="{{ $action }}"
       method="POST"
       class="job-form wide-form"
+      @if($confirm) data-confirm-form @endif
+      @if($confirmTitle) data-confirm-title="{{ $confirmTitle }}" @endif
+      @if($confirmMessage) data-confirm-message="{{ $confirmMessage }}" @endif
+      @if($confirmButton) data-confirm-button="{{ $confirmButton }}" @endif
+      @if($confirm) data-confirm-type="{{ $confirmType }}" @endif
     >
       @csrf
 

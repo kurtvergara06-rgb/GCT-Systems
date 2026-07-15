@@ -332,6 +332,11 @@
                           action="{{ route('job-orders.create-pr', $jobOrder->id) }}"
                           method="POST"
                           class="create-pr-form"
+                          data-confirm-form
+                          data-confirm-title="Create Purchase Request?"
+                          data-confirm-message="Are you sure you want to create a Purchase Request from job order {{ $jobOrder->job_order_no }}?"
+                          data-confirm-button="Yes, Create PR"
+                          data-confirm-type="create"
                         >
                           @csrf
 
@@ -394,6 +399,11 @@
     submit-text="Save Job Order"
     close-id="closeJobModal"
     cancel-id="cancelJobModal"
+    :confirm="true"
+    confirm-title="Create Job Order?"
+    confirm-message="Are you sure you want to create this Job Order?"
+    confirm-button="Yes, Create Job Order"
+    confirm-type="create"
   >
     <input
       type="hidden"
@@ -522,7 +532,17 @@
         </button>
       </div>
 
-      <form id="editJobForm" method="POST" action="#" class="job-form wide-form">
+      <form
+        id="editJobForm"
+        method="POST"
+        action="#"
+        class="job-form wide-form"
+        data-confirm-form
+        data-confirm-title="Update Job Order?"
+        data-confirm-message="Are you sure you want to update this Job Order?"
+        data-confirm-button="Yes, Update Job Order"
+        data-confirm-type="update"
+      >
         @csrf
         @method('PUT')
 

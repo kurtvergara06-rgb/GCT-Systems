@@ -195,12 +195,6 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($this->isFinalStatus($purchaseOrder->status)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Delivered or picked-up purchase orders can no longer be edited.');
-        }
-
         $validated = $request->validate([
             'po_no' => 'required|string|max:255|unique:purchase_orders,po_no,' . $purchaseOrder->id,
             'po_date' => 'required|date',
@@ -294,12 +288,6 @@ class PurchaseOrderController extends Controller
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($this->isFinalStatus($purchaseOrder->status)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Delivered or picked-up purchase orders can no longer be changed.');
-        }
-
         $validated = $request->validate([
             'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
         ]);
@@ -331,12 +319,6 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
-        if ($this->isFinalStatus($purchaseOrder->status)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Delivered or picked-up purchase orders can no longer be deleted.');
-        }
-
         $purchaseOrderId = $purchaseOrder->id;
 
         DB::transaction(function () use ($purchaseOrder) {
@@ -366,14 +348,9 @@ class PurchaseOrderController extends Controller
             ->with('success', 'Purchase order deleted successfully.');
     }
 
-    private function isFinalStatus(?string $status): bool
-    {
-        return in_array($status, ['Delivered', 'Picked Up'], true);
-    }
-
     private function isInventoryPostingStatus(string $status): bool
     {
-        return $this->isFinalStatus($status);
+        return in_array($status, ['Delivered', 'Picked Up'], true);
     }
 
     private function postPurchaseOrderToInventory(PurchaseOrder $purchaseOrder): void

@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
             saveAllBatchRecordsBtn.innerHTML =
                 '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
-            bulkUpdateRecordsForm.submit();
+            bulkUpdateRecordsForm.requestSubmit();
         });
     }
 

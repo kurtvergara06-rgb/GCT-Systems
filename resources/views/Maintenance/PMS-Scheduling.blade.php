@@ -281,6 +281,11 @@
                                                             class="create-pms-jo-btn"
                                                             title="Create PMS Job Order"
                                                             aria-label="Create PMS Job Order"
+                                                            data-confirm-action
+                                                            data-confirm-title="Create PMS Job Order?"
+                                                            data-confirm-message="Are you sure you want to create a Job Order from this PMS task?"
+                                                            data-confirm-button="Yes, Create Job Order"
+                                                            data-confirm-type="create"
                                                         >
                                                             <i class="fa-solid fa-plus"></i>
                                                         </a>
@@ -314,7 +319,11 @@
                                                     <form
                                                         action="{{ route('pms-schedules.destroy', $task->schedule) }}"
                                                         method="POST"
-                                                        onsubmit="return confirm('Delete this PMS task?');"
+                                                        data-confirm-form
+                                                        data-confirm-title="Delete PMS Task?"
+                                                        data-confirm-message="Are you sure you want to delete this PMS task? This action cannot be undone."
+                                                        data-confirm-button="Yes, Delete"
+                                                        data-confirm-type="delete"
                                                     >
                                                         @csrf
                                                         @method('DELETE')
@@ -365,6 +374,11 @@
                         id="addPmsForm"
                         action="{{ route('pms-schedules.store') }}"
                         method="POST"
+                        data-confirm-form
+                        data-confirm-title="Create PMS Task?"
+                        data-confirm-message="Are you sure you want to create this PMS task?"
+                        data-confirm-button="Yes, Create PMS Task"
+                        data-confirm-type="create"
                     >
                         @csrf
 
@@ -516,7 +530,16 @@
                         </button>
                     </div>
 
-                    <form id="editPmsForm" action="#" method="POST">
+                    <form
+                        id="editPmsForm"
+                        action="#"
+                        method="POST"
+                        data-confirm-form
+                        data-confirm-title="Update PMS Task?"
+                        data-confirm-message="Are you sure you want to update this PMS task?"
+                        data-confirm-button="Yes, Update PMS Task"
+                        data-confirm-type="update"
+                    >
                         @csrf
                         @method('PUT')
 
