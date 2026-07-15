@@ -142,6 +142,11 @@
                     enctype="multipart/form-data"
                     class="upload-card"
                     id="gpsUploadForm"
+                    data-confirm-form
+                    data-confirm-title="Upload GPS File?"
+                    data-confirm-message="Are you sure you want to upload this GPS file for processing?"
+                    data-confirm-button="Yes, Upload File"
+                    data-confirm-type="create"
                 >
                     @csrf
 
@@ -736,6 +741,11 @@
                             action="{{ route('batch-file-processing.records.bulk-update', $selectedBatch) }}"
                             method="POST"
                             id="bulkUpdateRecordsForm"
+                            data-confirm-form
+                            data-confirm-title="Save Edited Extracted Data?"
+                            data-confirm-message="Are you sure you want to save all edited extracted records?"
+                            data-confirm-button="Yes, Save Records"
+                            data-confirm-type="update"
                         >
                             @csrf
                             @method('PUT')
@@ -998,6 +1008,11 @@
                                     method="POST"
                                     id="confirmBatchForm"
                                     class="clean-data-process-form"
+                                    data-confirm-form
+                                    data-confirm-title="Mark Batch as Processed?"
+                                    data-confirm-message="Are you sure you want to mark this batch as processed?"
+                                    data-confirm-button="Yes, Mark Processed"
+                                    data-confirm-type="approve"
                                 >
                                     @csrf
                                     @method('PATCH')
@@ -1095,7 +1110,11 @@
                         All related trip records will also be removed.
                     </p>
 
-                    <form id="batchDeleteForm" method="POST" action="">
+                    <form
+                        id="batchDeleteForm"
+                        method="POST"
+                        action=""
+                    >
                         @csrf
                         @method('DELETE')
 

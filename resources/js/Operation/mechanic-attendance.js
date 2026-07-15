@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (confirmDeleteAttendance) {
     confirmDeleteAttendance.addEventListener('click', () => {
       if (selectedDeleteForm) {
-        selectedDeleteForm.submit();
+        selectedDeleteForm.requestSubmit();
       }
     });
   }

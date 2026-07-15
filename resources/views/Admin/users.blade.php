@@ -370,6 +370,11 @@
                                                 <form
                                                     action="{{ route('admin.users.update-status', $user) }}"
                                                     method="POST"
+                                                    data-confirm-form
+                                                    data-confirm-title="Deactivate User?"
+                                                    data-confirm-message="Are you sure you want to deactivate {{ $user->name }}?"
+                                                    data-confirm-button="Yes, Deactivate"
+                                                    data-confirm-type="status"
                                                 >
                                                     @csrf
                                                     @method('PATCH')
@@ -389,6 +394,11 @@
                                                 <form
                                                     action="{{ route('admin.users.update-status', $user) }}"
                                                     method="POST"
+                                                    data-confirm-form
+                                                    data-confirm-title="Activate User?"
+                                                    data-confirm-message="Are you sure you want to activate {{ $user->name }}?"
+                                                    data-confirm-button="Yes, Activate"
+                                                    data-confirm-type="approve"
                                                 >
                                                     @csrf
                                                     @method('PATCH')
@@ -409,7 +419,11 @@
                                                 <form
                                                     action="{{ route('admin.users.destroy', $user) }}"
                                                     method="POST"
-                                                    onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');"
+                                                    data-confirm-form
+                                                    data-confirm-title="Delete User?"
+                                                    data-confirm-message="Are you sure you want to delete {{ $user->name }}? This action cannot be undone."
+                                                    data-confirm-button="Yes, Delete"
+                                                    data-confirm-type="delete"
                                                 >
                                                     @csrf
                                                     @method('DELETE')
@@ -473,6 +487,11 @@
                 method="POST"
                 action="{{ route('admin.users.store') }}"
                 data-store-url="{{ route('admin.users.store') }}"
+                data-confirm-form
+                data-confirm-title="Create User?"
+                data-confirm-message="Are you sure you want to create this user account?"
+                data-confirm-button="Yes, Create User"
+                data-confirm-type="create"
             >
                 @csrf
 
@@ -645,6 +664,11 @@
                 id="resetPasswordForm"
                 method="POST"
                 action="#"
+                data-confirm-form
+                data-confirm-title="Reset User Password?"
+                data-confirm-message="Are you sure you want to reset this user password?"
+                data-confirm-button="Yes, Reset Password"
+                data-confirm-type="warning"
             >
                 @csrf
                 @method('PATCH')

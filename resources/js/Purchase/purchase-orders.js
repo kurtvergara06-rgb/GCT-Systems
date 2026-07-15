@@ -264,6 +264,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (poForm) {
       poForm.action = poForm.dataset.storeUrl || poForm.action;
       poForm.reset();
+      poForm.dataset.confirmTitle = 'Create Purchase Order?';
+      poForm.dataset.confirmMessage =
+        'Are you sure you want to create this Purchase Order?';
+      poForm.dataset.confirmButton = 'Yes, Create PO';
+      poForm.dataset.confirmType = 'create';
     }
 
     if (method) {
@@ -298,6 +303,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (poForm) {
       poForm.action = poForm.dataset.storeUrl || poForm.action;
+      poForm.dataset.confirmTitle = 'Create Purchase Order?';
+      poForm.dataset.confirmMessage =
+        'Are you sure you want to create this Purchase Order?';
+      poForm.dataset.confirmButton = 'Yes, Create PO';
+      poForm.dataset.confirmType = 'create';
     }
 
     if (method) {
@@ -333,6 +343,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (poForm) {
       poForm.action = button.dataset.updateUrl || '#';
+      poForm.dataset.confirmTitle = 'Save Purchase Order Changes?';
+      poForm.dataset.confirmMessage =
+        'Are you sure you want to save changes to this Purchase Order?';
+      poForm.dataset.confirmButton = 'Yes, Save Changes';
+      poForm.dataset.confirmType = 'update';
     }
 
     if (method) {
@@ -488,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (confirmDeletePo) {
     confirmDeletePo.addEventListener('click', function () {
       if (selectedDeleteForm) {
-        selectedDeleteForm.submit();
+        selectedDeleteForm.requestSubmit();
       }
     });
   }

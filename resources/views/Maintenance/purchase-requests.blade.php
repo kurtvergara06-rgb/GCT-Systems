@@ -150,7 +150,7 @@
               name="status"
               id="prStatusFilter"
               class="pr-status-select"
-              onchange="this.form.submit()"
+              onchange="this.form.requestSubmit()"
             >
               <option
                 value="All Statuses"
@@ -351,6 +351,11 @@
         action="{{ route('purchase-requests.store') }}"
         method="POST"
         class="pr-jo-form"
+        data-confirm-form
+        data-confirm-title="Create Purchase Request?"
+        data-confirm-message="Are you sure you want to create this Purchase Request?"
+        data-confirm-button="Yes, Create PR"
+        data-confirm-type="create"
       >
         @csrf
 
@@ -469,7 +474,17 @@
         </button>
       </div>
 
-      <form id="editPrForm" method="POST" action="#" class="pr-jo-form">
+      <form
+        id="editPrForm"
+        method="POST"
+        action="#"
+        class="pr-jo-form"
+        data-confirm-form
+        data-confirm-title="Save Purchase Request Changes?"
+        data-confirm-message="Are you sure you want to save these Purchase Request changes?"
+        data-confirm-button="Yes, Save Changes"
+        data-confirm-type="update"
+      >
         @csrf
         @method('PUT')
 
@@ -570,11 +585,31 @@
   </div>
 
   {{-- HIDDEN APPROVE / REJECT FORMS --}}
-  <form id="approvePrForm" method="POST" action="#" class="hidden">
+  <form
+    id="approvePrForm"
+    method="POST"
+    action="#"
+    class="hidden"
+    data-confirm-form
+    data-confirm-title="Approve Purchase Request?"
+    data-confirm-message="Are you sure you want to approve this Purchase Request?"
+    data-confirm-button="Yes, Approve"
+    data-confirm-type="approve"
+  >
     @csrf
   </form>
 
-  <form id="rejectPrForm" method="POST" action="#" class="hidden">
+  <form
+    id="rejectPrForm"
+    method="POST"
+    action="#"
+    class="hidden"
+    data-confirm-form
+    data-confirm-title="Reject Purchase Request?"
+    data-confirm-message="Are you sure you want to reject this Purchase Request?"
+    data-confirm-button="Yes, Reject"
+    data-confirm-type="reject"
+  >
     @csrf
     <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
   </form>

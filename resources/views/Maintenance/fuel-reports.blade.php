@@ -236,7 +236,15 @@
         </button>
       </div>
 
-      <form action="{{ route('fuel-reports.store') }}" method="POST">
+      <form
+        action="{{ route('fuel-reports.store') }}"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Add Fuel Record?"
+        data-confirm-message="Are you sure you want to add this fuel record?"
+        data-confirm-button="Yes, Add Fuel Record"
+        data-confirm-type="create"
+      >
         @csrf
 
         <div class="fuel-form-grid">

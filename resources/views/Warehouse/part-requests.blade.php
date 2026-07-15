@@ -99,7 +99,7 @@
               name="status"
               id="warehouseStatusFilter"
               class="warehouse-status-select"
-              onchange="this.form.submit()"
+              onchange="this.form.requestSubmit()"
             >
               <option value="All Statuses" {{ request('status', 'All Statuses') == 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
@@ -227,6 +227,11 @@
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
                           method="POST"
                           class="inline-action-form"
+                          data-confirm-form
+                          data-confirm-title="Send Missing Parts to Purchase?"
+                          data-confirm-message="Are you sure you want to send the missing parts for {{ $partRequest->pr_no }} to Purchase?"
+                          data-confirm-button="Yes, Send to Purchase"
+                          data-confirm-type="warning"
                         >
                           @csrf
 
@@ -261,6 +266,11 @@
                           action="{{ route('part-requests.issue', $partRequest->id) }}"
                           method="POST"
                           class="inline-action-form"
+                          data-confirm-form
+                          data-confirm-title="Issue Parts?"
+                          data-confirm-message="Are you sure you want to release these parts from inventory?"
+                          data-confirm-button="Yes, Issue Parts"
+                          data-confirm-type="issue"
                         >
                           @csrf
 

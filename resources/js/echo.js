@@ -3,15 +3,17 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    wsPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
-    wssPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
+window.Echo =
+    window.Echo ||
+    new Echo({
+        broadcaster: 'reverb',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
+        wsPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
+        wssPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
+        enabledTransports: ['ws', 'wss'],
+    });
 
 window.realtimePageRouteMap = {
     'Warehouse:PurchaseRequest': [
@@ -20,6 +22,7 @@ window.realtimePageRouteMap = {
         '/maintenance-requests',
         '/part-requests',
         '/purchase-orders',
+        '/inventory',
         '/admin/dashboard',
     ],
 
@@ -111,17 +114,29 @@ window.listenForSystemUpdates = function () {
         return;
     }
 
+    if (window.systemUpdatesListenerStarted) {
+        console.log('Realtime listener already started.');
+
+        return;
+    }
+
+    window.systemUpdatesListenerStarted = true;
+
     console.log('Realtime listener starting...');
     console.log('Reverb host:', import.meta.env.VITE_REVERB_HOST);
     console.log('Reverb port:', import.meta.env.VITE_REVERB_PORT);
 
-    window.Echo.connector.pusher.connection.bind('connected', () => {
-        console.log('Realtime connected to Reverb.');
-    });
+    if (!window.systemUpdatesConnectionBindingsStarted) {
+        window.systemUpdatesConnectionBindingsStarted = true;
 
-    window.Echo.connector.pusher.connection.bind('error', (error) => {
-        console.error('Realtime Reverb connection error:', error);
-    });
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Realtime connected to Reverb.');
+        });
+
+        window.Echo.connector.pusher.connection.bind('error', (error) => {
+            console.error('Realtime Reverb connection error:', error);
+        });
+    }
 
     window.Echo.channel('system-updates')
         .listen('.SystemDataUpdated', (payload) => {
@@ -139,24 +154,58 @@ window.listenForSystemUpdates = function () {
 
                 window.showSystemNotification(message);
 
-                const currentPath = window.location.pathname;
+                const normalizePath = (path) => {
+                    const normalized = `/${String(path || '')
+                        .split('?')[0]
+                        .replace(/^\/+/, '')
+                        .replace(/\/+$/, '')}`;
+
+                    return normalized === '/' ? '/' : normalized;
+                };
+
+                const currentPath = normalizePath(window.location.pathname);
                 const routeKey = `${payload.module}:${payload.entity}`;
 
                 const watchRoutes =
                     window.realtimePageRouteMap[routeKey] || [];
+                const normalizedWatchRoutes = watchRoutes.map(normalizePath);
 
                 console.log('Current path:', currentPath);
                 console.log('Route key:', routeKey);
-                console.log('Watch routes:', watchRoutes);
+                console.log('Watch routes:', normalizedWatchRoutes);
 
-                if (watchRoutes.includes(currentPath)) {
+                if (normalizedWatchRoutes.includes(currentPath)) {
+                    const now = Date.now();
+                    const lastReloadAt = Number(
+                        sessionStorage.getItem('systemUpdatesLastReloadAt') || 0
+                    );
+
+                    if (window.systemUpdatesReloadTimer) {
+                        console.log('Realtime reload is already scheduled.');
+
+                        return;
+                    }
+
+                    if (now - lastReloadAt < 3000) {
+                        console.log(
+                            'Realtime reload skipped to prevent a reload loop.'
+                        );
+
+                        return;
+                    }
+
                     console.log(
                         'Reloading page after showing realtime notification.'
                     );
 
-                    setTimeout(() => {
+                    window.systemUpdatesReloadTimer = setTimeout(() => {
+                        sessionStorage.setItem(
+                            'systemUpdatesLastReloadAt',
+                            String(Date.now())
+                        );
+
                         window.location.reload();
-                    }, 8000);
+                    }, 650);
                 }
             } catch (error) {
                 console.warn('System updates listener error:', error);
