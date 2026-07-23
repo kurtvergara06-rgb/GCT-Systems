@@ -32,14 +32,20 @@
   @endphp
 
   @if($errors->any())
-    <div id="validationErrorModal" class="modal-overlay show active">
+    <div
+      id="validationErrorModal"
+      class="modal-overlay show active"
+    >
       <div class="modal-card delete-modal-box">
         <div class="delete-icon">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
 
         <h2>Form Error</h2>
-        <p>Please check the form. Some required information is missing.</p>
+
+        <p>
+          Please check the form. Some required information is missing.
+        </p>
 
         <ul class="form-error-list">
           @foreach($errors->all() as $error)
@@ -48,7 +54,11 @@
         </ul>
 
         <div class="delete-modal-actions">
-          <button type="button" id="closeValidationErrorModal" class="secondary-btn cancel-delete-btn">
+          <button
+            type="button"
+            id="closeValidationErrorModal"
+            class="secondary-btn cancel-delete-btn"
+          >
             Okay
           </button>
         </div>
@@ -73,7 +83,7 @@
       ]"
     />
 
-    <main class="main">
+    <main class="main purchase-page">
 
       <x-layout.topbar
         title="Purchase Requests"
@@ -81,7 +91,8 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      {{-- SUMMARY CARDS --}}
+      <section class="stats-grid purchase-stats-grid">
 
         <x-ui.summary-card
           label="Submitted"
@@ -117,12 +128,17 @@
 
       </section>
 
-      <section class="table-card purchase-card">
+      {{-- PURCHASE REQUEST RECORDS --}}
+      <section class="table-card purchase-request-card">
 
         <div class="section-header">
           <div>
             <h2>Purchase Request Records</h2>
-            <p>Track requested parts, approval status, warehouse issuance, and purchasing progress</p>
+
+            <p>
+              Track requested parts, approval status, warehouse issuance,
+              and purchasing progress
+            </p>
           </div>
         </div>
 
@@ -144,7 +160,9 @@
           </div>
 
           <div class="filter-group">
-            <label for="prStatusFilter">Status</label>
+            <label for="prStatusFilter">
+              Status
+            </label>
 
             <select
               name="status"
@@ -154,7 +172,10 @@
             >
               <option
                 value="All Statuses"
-                {{ request('status', 'All Statuses') === 'All Statuses' ? 'selected' : '' }}
+                {{ request('status', 'All Statuses') === 'All Statuses'
+                  ? 'selected'
+                  : ''
+                }}
               >
                 All Statuses
               </option>
@@ -162,7 +183,10 @@
               @foreach($statuses as $status)
                 <option
                   value="{{ $status }}"
-                  {{ request('status') === $status ? 'selected' : '' }}
+                  {{ request('status') === $status
+                    ? 'selected'
+                    : ''
+                  }}
                 >
                   {{ $status }}
                 </option>
@@ -170,15 +194,19 @@
             </select>
           </div>
 
-          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
+          <button
+            type="button"
+            id="openPrModal"
+            class="primary-btn compact-new-pr-btn"
+          >
             <i class="fa-solid fa-plus"></i>
             New PR
           </button>
 
         </form>
 
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap purchase-table-wrap">
+          <table class="purchase-request-table">
             <thead>
               <tr>
                 <th>PR #</th>
@@ -195,32 +223,55 @@
             <tbody>
               @forelse($purchaseRequests as $pr)
                 @php
-                  $firstRequestedItem = trim(explode(',', $pr->item ?? '')[0] ?? '');
+                  $firstRequestedItem = trim(
+                    explode(',', $pr->item ?? '')[0] ?? ''
+                  );
 
                   if (str_contains($firstRequestedItem, ' - Qty:')) {
                     $firstRequestedItem = trim(
-                      explode(' - Qty:', $firstRequestedItem)[0] ?? $firstRequestedItem
+                      explode(
+                        ' - Qty:',
+                        $firstRequestedItem
+                      )[0] ?? $firstRequestedItem
                     );
                   }
 
-                  $isLockedPr = in_array($pr->status, [
-                    'Approved',
-                    'For Purchase',
-                    'Ordered',
-                    'For Pick-up',
-                    'For Delivery',
-                    'Delivered',
-                    'Picked Up',
-                    'Issued',
-                  ], true);
+                  $isLockedPr = in_array(
+                    $pr->status,
+                    [
+                      'Approved',
+                      'For Purchase',
+                      'Ordered',
+                      'For Pick-up',
+                      'For Delivery',
+                      'Delivered',
+                      'Picked Up',
+                      'Issued',
+                    ],
+                    true
+                  );
                 @endphp
 
                 <tr>
-                  <td>{{ $pr->pr_no }}</td>
-                  <td>{{ $pr->job_order_no }}</td>
-                  <td>{{ $pr->bus_no }}</td>
-                  <td>{{ $firstRequestedItem ?: '—' }}</td>
-                  <td>{{ $pr->quantity }}</td>
+                  <td>
+                    {{ $pr->pr_no }}
+                  </td>
+
+                  <td>
+                    {{ $pr->job_order_no }}
+                  </td>
+
+                  <td>
+                    {{ $pr->bus_no }}
+                  </td>
+
+                  <td>
+                    {{ $firstRequestedItem ?: '—' }}
+                  </td>
+
+                  <td>
+                    {{ $pr->quantity }}
+                  </td>
 
                   <td class="status-col">
                     <x-ui.status-badge
@@ -230,13 +281,16 @@
                   </td>
 
                   <td>
-                    {{ $pr->created_at ? $pr->created_at->format('m/d/y | h:i A') : '—' }}
+                    {{ $pr->created_at
+                      ? $pr->created_at->format('m/d/y | h:i A')
+                      : '—'
+                    }}
                   </td>
 
                   <td>
                     <div class="actions">
 
-                      {{-- VIEW: ALWAYS AVAILABLE --}}
+                      {{-- VIEW --}}
                       <button
                         type="button"
                         class="action-btn view open-view-pr-modal"
@@ -249,15 +303,27 @@
                         data-quantity="{{ $pr->quantity }}"
                         data-status="{{ $pr->status }}"
                         data-remarks="{{ $pr->remarks }}"
-                        data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
-                        data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
-                        data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                        data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
+                        data-update-url="{{ route(
+                          'purchase-requests.update',
+                          $pr->id
+                        ) }}"
+                        data-approve-url="{{ route(
+                          'purchase-requests.approve',
+                          $pr->id
+                        ) }}"
+                        data-reject-url="{{ route(
+                          'purchase-requests.reject',
+                          $pr->id
+                        ) }}"
+                        data-can-approve="{{ $isMaintenanceAdmin
+                          ? '1'
+                          : '0'
+                        }}"
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      {{-- EDIT: ACTIVE ONLY FOR SUBMITTED OR REJECTED --}}
+                      {{-- EDIT --}}
                       @if($isLockedPr)
                         <button
                           type="button"
@@ -280,10 +346,22 @@
                           data-quantity="{{ $pr->quantity }}"
                           data-status="{{ $pr->status }}"
                           data-remarks="{{ $pr->remarks }}"
-                          data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
-                          data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
-                          data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                          data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
+                          data-update-url="{{ route(
+                            'purchase-requests.update',
+                            $pr->id
+                          ) }}"
+                          data-approve-url="{{ route(
+                            'purchase-requests.approve',
+                            $pr->id
+                          ) }}"
+                          data-reject-url="{{ route(
+                            'purchase-requests.reject',
+                            $pr->id
+                          ) }}"
+                          data-can-approve="{{ $isMaintenanceAdmin
+                            ? '1'
+                            : '0'
+                          }}"
                         >
                           <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -292,7 +370,10 @@
                       {{-- DELETE --}}
                       <form
                         id="deletePrForm-{{ $pr->id }}"
-                        action="{{ route('purchase-requests.destroy', $pr->id) }}"
+                        action="{{ route(
+                          'purchase-requests.destroy',
+                          $pr->id
+                        ) }}"
                         method="POST"
                       >
                         @csrf
@@ -327,22 +408,34 @@
       </section>
 
     </main>
+
   </div>
 
-  {{-- NEW PR MODAL --}}
+  {{-- NEW PURCHASE REQUEST MODAL --}}
   <div
     id="prModal"
-    class="modal-overlay {{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
+    class="modal-overlay {{
+      isset($selectedJobOrder) && $selectedJobOrder
+        ? 'show active'
+        : ''
+    }}"
   >
     <div class="modal-box pr-jo-style-modal">
 
       <div class="pr-jo-modal-header">
         <div>
           <h2>New Purchase Request</h2>
-          <p>Create a purchase request from a selected job order.</p>
+
+          <p>
+            Create a purchase request from a selected job order.
+          </p>
         </div>
 
-        <button type="button" id="closePrModal" class="pr-jo-close-btn">
+        <button
+          type="button"
+          id="closePrModal"
+          class="pr-jo-close-btn"
+        >
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -361,11 +454,15 @@
 
         <div class="pr-jo-section-title full-width">
           <h3>Purchase Request Information</h3>
-          <p>Select a job order and review the requested parts.</p>
+
+          <p>
+            Select a job order and review the requested parts.
+          </p>
         </div>
 
         <div class="pr-jo-form-group">
           <label>PR No.</label>
+
           <input
             type="text"
             name="pr_no_display"
@@ -377,15 +474,27 @@
         <div class="pr-jo-form-group">
           <label>JO No.</label>
 
-          <select name="job_order_no" id="jobOrderSelect" required>
-            <option value="">Select Job Order</option>
+          <select
+            name="job_order_no"
+            id="jobOrderSelect"
+            required
+          >
+            <option value="">
+              Select Job Order
+            </option>
 
             @foreach($jobOrders ?? [] as $jobOrder)
               <option
                 value="{{ $jobOrder->job_order_no }}"
                 data-bus="{{ $jobOrder->bus_no }}"
                 data-parts="{{ $jobOrder->part_needed }}"
-                {{ isset($selectedJobOrder) && $selectedJobOrder && $selectedJobOrder->id === $jobOrder->id ? 'selected' : '' }}
+                {{
+                  isset($selectedJobOrder) &&
+                  $selectedJobOrder &&
+                  $selectedJobOrder->id === $jobOrder->id
+                    ? 'selected'
+                    : ''
+                }}
               >
                 {{ $jobOrder->job_order_no }}
               </option>
@@ -395,11 +504,16 @@
 
         <div class="pr-jo-form-group">
           <label>Bus #</label>
+
           <input
             type="text"
             name="bus_no"
             id="busNoInput"
-            value="{{ isset($selectedJobOrder) && $selectedJobOrder ? $selectedJobOrder->bus_no : '' }}"
+            value="{{
+              isset($selectedJobOrder) && $selectedJobOrder
+                ? $selectedJobOrder->bus_no
+                : ''
+            }}"
             placeholder="Auto-filled from Job Order"
             required
           >
@@ -407,7 +521,12 @@
 
         <div class="pr-jo-form-group">
           <label>Status</label>
-          <input type="text" value="Submitted" readonly>
+
+          <input
+            type="text"
+            value="Submitted"
+            readonly
+          >
         </div>
 
         <div class="pr-jo-form-group full-width">
@@ -416,13 +535,21 @@
           <div
             id="newPrPartsContainer"
             class="pr-parts-container"
-            data-initial-parts="{{ isset($selectedJobOrder) && $selectedJobOrder ? $selectedJobOrder->part_needed : '' }}"
+            data-initial-parts="{{
+              isset($selectedJobOrder) && $selectedJobOrder
+                ? $selectedJobOrder->part_needed
+                : ''
+            }}"
           >
           </div>
         </div>
 
         <div class="pr-jo-form-group full-width">
-          <button type="button" id="addNewPrPartBtn" class="add-part-btn">
+          <button
+            type="button"
+            id="addNewPrPartBtn"
+            class="add-part-btn"
+          >
             <i class="fa-solid fa-plus"></i>
             Add another part
           </button>
@@ -430,7 +557,8 @@
 
         <div class="pr-jo-form-group full-width">
           <small>
-            Add each part separately so Warehouse can check inventory correctly.
+            Add each part separately so Warehouse can check
+            inventory correctly.
           </small>
         </div>
 
@@ -440,17 +568,29 @@
           <input
             type="text"
             name="remarks"
-            value="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'Created from Job Order ' . $selectedJobOrder->job_order_no : '' }}"
+            value="{{
+              isset($selectedJobOrder) && $selectedJobOrder
+                ? 'Created from Job Order ' .
+                  $selectedJobOrder->job_order_no
+                : ''
+            }}"
             placeholder="Optional remarks..."
           >
         </div>
 
         <div class="pr-jo-actions full-width">
-          <button type="button" id="cancelPrModal" class="secondary-btn pr-jo-cancel-btn">
+          <button
+            type="button"
+            id="cancelPrModal"
+            class="secondary-btn pr-jo-cancel-btn"
+          >
             Cancel
           </button>
 
-          <button type="submit" class="primary-btn pr-jo-save-btn">
+          <button
+            type="submit"
+            class="primary-btn pr-jo-save-btn"
+          >
             Create PR
           </button>
         </div>
@@ -459,17 +599,27 @@
     </div>
   </div>
 
-  {{-- EDIT / VIEW PR MODAL --}}
-  <div id="editPrModal" class="modal-overlay">
+  {{-- EDIT / VIEW PURCHASE REQUEST MODAL --}}
+  <div
+    id="editPrModal"
+    class="modal-overlay"
+  >
     <div class="modal-box pr-jo-style-modal">
 
       <div class="pr-jo-modal-header">
         <div>
           <h2>Purchase Request Details</h2>
-          <p>Review and update the selected purchase request.</p>
+
+          <p>
+            Review and update the selected purchase request.
+          </p>
         </div>
 
-        <button type="button" id="closeEditPrModal" class="pr-jo-close-btn">
+        <button
+          type="button"
+          id="closeEditPrModal"
+          class="pr-jo-close-btn"
+        >
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -490,6 +640,7 @@
 
         <div class="pr-jo-section-title full-width">
           <h3>Editable PR Information</h3>
+
           <p id="editPrDescription">
             You can edit this purchase request information.
           </p>
@@ -497,33 +648,63 @@
 
         <div class="pr-jo-form-group">
           <label>PR No.</label>
-          <input type="text" name="pr_no" id="edit_pr_no" readonly>
+
+          <input
+            type="text"
+            name="pr_no"
+            id="edit_pr_no"
+            readonly
+          >
         </div>
 
         <div class="pr-jo-form-group">
           <label>JO No.</label>
-          <input type="text" name="job_order_no" id="edit_job_order_no" readonly>
+
+          <input
+            type="text"
+            name="job_order_no"
+            id="edit_job_order_no"
+            readonly
+          >
         </div>
 
         <div class="pr-jo-form-group">
           <label>Bus #</label>
-          <input type="text" name="bus_no" id="edit_bus_no" readonly>
+
+          <input
+            type="text"
+            name="bus_no"
+            id="edit_bus_no"
+            readonly
+          >
         </div>
 
         <div class="pr-jo-form-group">
           <label>Status</label>
-          <input type="text" id="edit_status_display" readonly>
+
+          <input
+            type="text"
+            id="edit_status_display"
+            readonly
+          >
         </div>
 
         <div class="pr-jo-form-group full-width">
           <label>Requested Parts</label>
 
-          <div id="editPrPartsContainer" class="pr-parts-container">
+          <div
+            id="editPrPartsContainer"
+            class="pr-parts-container"
+          >
           </div>
         </div>
 
         <div class="pr-jo-form-group full-width">
-          <button type="button" id="addEditPrPartBtn" class="add-part-btn">
+          <button
+            type="button"
+            id="addEditPrPartBtn"
+            class="add-part-btn"
+          >
             <i class="fa-solid fa-plus"></i>
             Add another part
           </button>
@@ -540,13 +721,24 @@
           >
         </div>
 
-        <div class="pr-modal-footer full-width" id="editPrMainActions">
+        <div
+          class="pr-modal-footer full-width"
+          id="editPrMainActions"
+        >
           <div class="pr-modal-left-actions">
-            <button type="button" id="cancelEditPrModal" class="secondary-btn pr-jo-cancel-btn">
+            <button
+              type="button"
+              id="cancelEditPrModal"
+              class="secondary-btn pr-jo-cancel-btn"
+            >
               Cancel
             </button>
 
-            <button type="submit" class="primary-btn pr-jo-save-btn" id="submitEditBtn">
+            <button
+              type="submit"
+              class="primary-btn pr-jo-save-btn"
+              id="submitEditBtn"
+            >
               Save Changes
             </button>
           </div>
@@ -558,12 +750,20 @@
             style="display: none;"
           >
             @if($isMaintenanceAdmin)
-              <button type="button" id="approvePrBtn" class="approve-action-btn">
+              <button
+                type="button"
+                id="approvePrBtn"
+                class="approve-action-btn"
+              >
                 <i class="fa-solid fa-check"></i>
                 Approve
               </button>
 
-              <button type="button" id="rejectPrBtn" class="reject-action-btn">
+              <button
+                type="button"
+                id="rejectPrBtn"
+                class="reject-action-btn"
+              >
                 <i class="fa-solid fa-xmark"></i>
                 Reject
               </button>
@@ -575,7 +775,11 @@
           class="pr-jo-actions full-width hidden"
           id="viewOnlyActions"
         >
-          <button type="button" id="closeViewOnlyPr" class="secondary-btn pr-jo-cancel-btn">
+          <button
+            type="button"
+            id="closeViewOnlyPr"
+            class="secondary-btn pr-jo-cancel-btn"
+          >
             Close
           </button>
         </div>
@@ -584,7 +788,7 @@
     </div>
   </div>
 
-  {{-- HIDDEN APPROVE / REJECT FORMS --}}
+  {{-- HIDDEN APPROVE FORM --}}
   <form
     id="approvePrForm"
     method="POST"
@@ -599,6 +803,7 @@
     @csrf
   </form>
 
+  {{-- HIDDEN REJECT FORM --}}
   <form
     id="rejectPrForm"
     method="POST"
@@ -611,7 +816,12 @@
     data-confirm-type="reject"
   >
     @csrf
-    <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
+
+    <input
+      type="hidden"
+      name="remarks"
+      value="Rejected by Maintenance Head"
+    >
   </form>
 
   {{-- DELETE MODAL --}}

@@ -8,38 +8,68 @@
   <div class="app">
 
    <x-layout.sidebar
-      department="Operation"
-      subtitle="Department Module"
-      icon="fa-clipboard-check"
-        :items="[
+    department="Operation"
+    subtitle="Operation Module"
+    icon="fa-bus"
+    :items="[
+        [
+            'label' => 'Dashboard',
+            'route' => 'dashboard-operation',
+            'icon' => 'fa-table-cells-large'
+        ],
+
+        [
+            'label' => 'Routes',
+            'route' => 'operation.routes',
+            'icon' => 'fa-route'
+        ],
+
+        [
+            'label' => 'Scheduling',
+            'icon' => 'fa-calendar-days',
+            'children' => [
                 [
-                    'label' => 'Dashboard',
-                    'route' => 'dashboard-operation',
-                    'icon' => 'fa-table-cells-large'
+                    'label' => 'Trip Schedule',
+                    'route' => 'trip-schedule',
+                    'icon' => 'fa-calendar-days'
                 ],
                 [
-                    'label' => 'Bus Master List',
-                    'route' => 'bus-master-list',
-                    'icon' => 'fa-bus'
+                    'label' => 'Driver & Bus Assignment',
+                    'route' => 'driver-bus-assignment',
+                    'icon' => 'fa-user-tie'
                 ],
                 [
-                    'label' => 'Attendance',
-                    'icon' => 'fa-calendar-check',
-                    'children' => [
-                        [
-                            'label' => 'Driver Attendance',
-                            'route' => 'driver-attendance',
-                            'icon' => 'fa-id-card'
-                        ],
-                        [
-                            'label' => 'Mechanic Attendance',
-                            'route' => 'mechanic-attendance',
-                            'icon' => 'fa-users-gear'
-                        ],
-                    ]
+                    'label' => 'Auto Scheduling',
+                    'route' => 'auto-scheduling',
+                    'icon' => 'fa-wand-magic-sparkles'
                 ],
-            ]"
-        />
+            ]
+        ],
+
+        [
+            'label' => 'Attendance',
+            'icon' => 'fa-calendar-check',
+            'children' => [
+                [
+                    'label' => 'Driver Attendance',
+                    'route' => 'driver-attendance',
+                    'icon' => 'fa-id-card'
+                ],
+                [
+                    'label' => 'Mechanic Attendance',
+                    'route' => 'mechanic-attendance',
+                    'icon' => 'fa-users-gear'
+                ],
+            ]
+        ],
+
+        [
+            'label' => 'Bus Master List',
+            'route' => 'bus-master-list',
+            'icon' => 'fa-bus'
+        ],
+    ]"
+/>
 
 
     <main class="main">
