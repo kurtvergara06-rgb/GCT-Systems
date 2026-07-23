@@ -52,6 +52,11 @@
                     'route' => 'batch-file-processing',
                     'icon' => 'fa-file-arrow-up'
                 ],
+                [
+                    'label' => 'Analytics',
+                    'route' => 'analytics',
+                    'icon' => 'fa-chart-line'
+                ],
             ]"
         />
 

@@ -125,6 +125,7 @@
                 ['label' => 'User Management', 'route' => 'admin.users', 'icon' => 'fa-users-gear'],
                 ['label' => 'Permissions', 'route' => 'admin.permissions', 'icon' => 'fa-lock'],
                 ['label' => 'Batch File Processing', 'route' => 'batch-file-processing', 'icon' => 'fa-file-arrow-up'],
+                ['label' => 'Analytics', 'route' => 'analytics', 'icon' => 'fa-chart-line'],
             ]"
         />
 
