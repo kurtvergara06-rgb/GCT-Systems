@@ -72,8 +72,39 @@
 
         [
             'label' => 'Analytics',
-            'route' => 'analytics',
-            'icon' => 'fa-chart-line'
+            'icon' => 'fa-chart-line',
+            'children' => [
+                [
+                    'label' => 'Overview',
+                    'route' => 'analytics.overview',
+                    'icon' => 'fa-chart-pie'
+                ],
+                [
+                    'label' => 'Fleet & Trip',
+                    'route' => 'analytics.fleet-trip',
+                    'icon' => 'fa-route'
+                ],
+                [
+                    'label' => 'Fuel',
+                    'route' => 'analytics.fuel',
+                    'icon' => 'fa-gas-pump'
+                ],
+                [
+                    'label' => 'Bus Health',
+                    'route' => 'analytics.bus-health',
+                    'icon' => 'fa-heart-pulse'
+                ],
+                [
+                    'label' => 'Inventory',
+                    'route' => 'analytics.inventory',
+                    'icon' => 'fa-boxes-stacked'
+                ],
+                [
+                    'label' => 'Recommendations',
+                    'route' => 'analytics.recommendations',
+                    'icon' => 'fa-lightbulb'
+                ],
+            ]
         ],
 
         [

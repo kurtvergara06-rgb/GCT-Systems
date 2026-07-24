@@ -1,7 +1,7 @@
 <x-layout.app
   title="FROMS - Dashboard"
   :assets="[
-    'resources/css/Operation/dashboard.css'
+    'resources/css/Operation/dashboard-operation.css'
   ]"
 >
   <div class="app">

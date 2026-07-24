@@ -3,7 +3,7 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Operation/trip-schedule.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/trip-schedule.js'
     ]"

@@ -3,7 +3,7 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Operation/auto-scheduling.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
         'resources/js/Main-js/sidebar.js'
     ]"
 >

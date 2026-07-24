@@ -1,0 +1,1570 @@
+/* =========================================================
+   MAINTENANCE PURCHASE REQUESTS
+   GCT Shuttle Services UI
+   File: resources/css/Maintenance/purchase-request.css
+========================================================= */
+
+.purchase-page {
+  --pr-primary: #0b40b5;
+  --pr-primary-dark: #082f83;
+  --pr-navy: #061f3d;
+  --pr-yellow: #ffc400;
+  --pr-text: #0f172a;
+  --pr-muted: #64748b;
+  --pr-border: #dbe4f0;
+  --pr-border-strong: #cbd7e6;
+  --pr-bg: #f4f7fb;
+  --pr-soft: #f8fafc;
+  --pr-white: #ffffff;
+  --pr-danger: #dc2626;
+  --pr-danger-soft: #fee2e2;
+  --pr-success: #15803d;
+  --pr-success-soft: #dcfce7;
+  --pr-warning: #b45309;
+  --pr-warning-soft: #fef3c7;
+  --pr-purple: #6d28d9;
+  --pr-purple-soft: #ede9fe;
+  --pr-orange: #ea580c;
+  --pr-orange-soft: #ffedd5;
+  --pr-teal: #0f766e;
+  --pr-teal-soft: #ccfbf1;
+  --pr-shadow: 0 12px 30px rgba(6, 31, 61, 0.07);
+  --pr-shadow-hover: 0 18px 38px rgba(6, 31, 61, 0.11);
+  color: var(--pr-text);
+}
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.purchase-page .purchase-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.purchase-page .purchase-stats-grid > * {
+  min-width: 0;
+}
+
+.purchase-page .summary-card {
+  position: relative;
+  min-height: 118px;
+  padding: 20px;
+  border: 1px solid var(--pr-border);
+  border-radius: 16px;
+  background: var(--pr-white);
+  box-shadow: 0 6px 18px rgba(6, 31, 61, 0.045);
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.purchase-page .summary-card::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -42px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(11, 64, 181, 0.035);
+  pointer-events: none;
+}
+
+.purchase-page .summary-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfd0e7;
+  box-shadow: var(--pr-shadow-hover);
+}
+
+.purchase-page .summary-card .summary-icon,
+.purchase-page .summary-card .card-icon,
+.purchase-page .summary-card .icon-box {
+  border-radius: 12px;
+}
+
+/* =========================================================
+   MAIN RECORD CARD
+========================================================= */
+
+.purchase-page .purchase-request-card {
+  background: var(--pr-white);
+  border: 1px solid var(--pr-border);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 24px;
+  box-shadow: var(--pr-shadow);
+  overflow: hidden;
+}
+
+.purchase-page .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.purchase-page .section-header h2 {
+  margin: 0;
+  color: var(--pr-navy);
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.purchase-page .section-header p {
+  margin: 4px 0 0;
+  color: var(--pr-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.purchase-page .purchase-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--pr-border);
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.purchase-page .search-box {
+  position: relative;
+  width: 100%;
+}
+
+.purchase-page .search-box i {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: var(--pr-primary);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.purchase-page .search-box input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 40px;
+  border: 1px solid var(--pr-border-strong);
+  border-radius: 10px;
+  background: var(--pr-white);
+  color: var(--pr-text);
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.purchase-page .search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.purchase-page .search-box input:focus,
+.purchase-page .pr-status-select:focus {
+  border-color: var(--pr-primary);
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.purchase-page .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.purchase-page .filter-group label {
+  color: var(--pr-muted);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.purchase-page .pr-status-select {
+  min-width: 150px;
+  height: 42px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--pr-border-strong);
+  border-radius: 10px;
+  background: var(--pr-white);
+  color: var(--pr-text);
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+  cursor: pointer;
+}
+
+.purchase-page .compact-new-pr-btn {
+  min-width: 106px;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: var(--pr-yellow) !important;
+  color: var(--pr-navy) !important;
+  box-shadow: 0 7px 16px rgba(255, 196, 0, 0.24);
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.purchase-page .compact-new-pr-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+  box-shadow: 0 10px 20px rgba(255, 196, 0, 0.3);
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.purchase-page .purchase-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--pr-border);
+  border-radius: 13px;
+  background: var(--pr-white);
+}
+
+.purchase-page .purchase-request-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.purchase-page .purchase-request-table thead {
+  background: #edf3fb;
+}
+
+.purchase-page .purchase-request-table th {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--pr-border);
+  color: #41536b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.purchase-page .purchase-request-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e7edf5;
+  color: var(--pr-text);
+  font-size: 12px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.purchase-page .purchase-request-table tbody tr {
+  transition: background 0.18s ease;
+}
+
+.purchase-page .purchase-request-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.purchase-page .purchase-request-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.purchase-page .purchase-request-table td:first-child,
+.purchase-page .purchase-request-table td:nth-child(2),
+.purchase-page .purchase-request-table td:nth-child(3) {
+  font-weight: 800;
+  color: var(--pr-navy);
+}
+
+.purchase-page .purchase-request-table td:nth-child(4) {
+  max-width: 300px;
+  color: #334155;
+}
+
+.purchase-page .purchase-request-table .status-col {
+  text-align: center;
+}
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.purchase-page .badge,
+.purchase-page .status-badge,
+.purchase-page .pr-status-badge {
+  min-width: 96px;
+  min-height: 27px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.purchase-page .submitted {
+  background: var(--pr-warning-soft) !important;
+  color: var(--pr-warning) !important;
+  border-color: #fde68a !important;
+}
+
+.purchase-page .approved {
+  background: var(--pr-purple-soft) !important;
+  color: var(--pr-purple) !important;
+  border-color: #ddd6fe !important;
+}
+
+.purchase-page .rejected {
+  background: var(--pr-danger-soft) !important;
+  color: var(--pr-danger) !important;
+  border-color: #fecaca !important;
+}
+
+.purchase-page .for-purchase {
+  background: #dbeafe !important;
+  color: var(--pr-primary) !important;
+  border-color: #bfdbfe !important;
+}
+
+.purchase-page .ordered {
+  background: #ede9fe !important;
+  color: #7c3aed !important;
+  border-color: #ddd6fe !important;
+}
+
+.purchase-page .for-pick-up {
+  background: var(--pr-warning-soft) !important;
+  color: var(--pr-warning) !important;
+  border-color: #fde68a !important;
+}
+
+.purchase-page .for-delivery {
+  background: var(--pr-orange-soft) !important;
+  color: var(--pr-orange) !important;
+  border-color: #fed7aa !important;
+}
+
+.purchase-page .delivered,
+.purchase-page .picked-up {
+  background: var(--pr-teal-soft) !important;
+  color: var(--pr-teal) !important;
+  border-color: #99f6e4 !important;
+}
+
+.purchase-page .issued {
+  background: var(--pr-success-soft) !important;
+  color: var(--pr-success) !important;
+  border-color: #bbf7d0 !important;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.purchase-page .actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.purchase-page .actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.purchase-page .action-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.purchase-page .action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.purchase-page .action-btn.view {
+  background: #eef4fb;
+  color: var(--pr-navy);
+  border-color: #dbe7f4;
+}
+
+.purchase-page .action-btn.view:hover {
+  background: var(--pr-navy);
+  color: var(--pr-white);
+}
+
+.purchase-page .action-btn.edit {
+  background: #e8f0ff;
+  color: var(--pr-primary);
+  border-color: #cfe0ff;
+}
+
+.purchase-page .action-btn.edit:hover:not(:disabled) {
+  background: var(--pr-primary);
+  color: var(--pr-white);
+}
+
+.purchase-page .action-btn.delete {
+  background: #fff0f0;
+  color: var(--pr-danger);
+  border-color: #ffd7d7;
+}
+
+.purchase-page .action-btn.delete:hover {
+  background: var(--pr-danger);
+  color: var(--pr-white);
+}
+
+.purchase-page .action-btn:disabled,
+.purchase-page .disabled-pr-edit-btn {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: #eef2f6 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   MODAL OVERLAYS
+========================================================= */
+
+.modal-overlay,
+.delete-modal-overlay,
+.success-modal-overlay,
+.error-modal-overlay,
+.feedback-modal-overlay,
+.action-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 31, 61, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+.delete-modal-overlay,
+.success-modal-overlay,
+.error-modal-overlay,
+.feedback-modal-overlay,
+.action-modal-overlay {
+  z-index: 10000;
+}
+
+.modal-overlay.show,
+.modal-overlay.active,
+.delete-modal-overlay.show,
+.delete-modal-overlay.active,
+.success-modal-overlay.show,
+.success-modal-overlay.active,
+.error-modal-overlay.show,
+.error-modal-overlay.active,
+.feedback-modal-overlay.show,
+.feedback-modal-overlay.active,
+.action-modal-overlay.show,
+.action-modal-overlay.active {
+  display: flex;
+}
+
+/* =========================================================
+   PR MODALS
+========================================================= */
+
+.pr-jo-style-modal,
+.fixed-pr-modal,
+.wide-modal {
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  padding: 28px 30px;
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  border-radius: 18px;
+  background: var(--pr-white, #ffffff);
+  box-shadow: 0 28px 80px rgba(6, 31, 61, 0.28);
+  overflow-y: auto;
+}
+
+.pr-jo-style-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pr-jo-style-modal::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.pr-jo-modal-header,
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.pr-jo-modal-header h2,
+.modal-header h2 {
+  margin: 0 0 5px;
+  color: #061f3d;
+  font-size: 23px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.pr-jo-modal-header p,
+.modal-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pr-jo-close-btn,
+.close-btn {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #061f3d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.pr-jo-close-btn:hover,
+.close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pr-jo-form,
+.job-form,
+.wide-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.pr-jo-section-title,
+.form-section-title {
+  margin-bottom: 2px;
+}
+
+.pr-jo-section-title h3,
+.form-section-title h3 {
+  margin: 0 0 4px;
+  color: #061f3d;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.pr-jo-section-title p,
+.form-section-title p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.pr-jo-form-group,
+.form-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pr-jo-form-group.full-width,
+.pr-jo-section-title.full-width,
+.pr-jo-actions.full-width,
+.form-group.full-width,
+.form-section-title.full-width,
+.modal-actions.full-width,
+.pr-modal-footer.full-width {
+  grid-column: 1 / -1;
+}
+
+.pr-jo-form-group label,
+.form-group label {
+  color: #061f3d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pr-jo-form-group input,
+.pr-jo-form-group select,
+.pr-jo-form-group textarea,
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid #d6e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.pr-jo-form-group textarea,
+.form-group textarea {
+  min-height: 90px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.pr-jo-form-group input:focus,
+.pr-jo-form-group select:focus,
+.pr-jo-form-group textarea:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.part-needed-row input:focus,
+.part-needed-row select:focus {
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.11);
+}
+
+.pr-jo-form-group input[readonly],
+.pr-jo-form-group input:disabled,
+.pr-jo-form-group select:disabled,
+.form-group input[readonly],
+.form-group input:disabled,
+.form-group select:disabled,
+.part-needed-row input:disabled,
+.part-needed-row select:disabled {
+  background: #f5f7fa;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.pr-jo-form-group small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   PART ROWS
+========================================================= */
+
+.pr-parts-container,
+.parts-needed-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.part-needed-row,
+.pr-part-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px 112px 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.part-needed-row input,
+.part-needed-row select,
+.pr-part-row input,
+.pr-part-row select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d6e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+}
+
+.remove-part-btn {
+  width: 38px;
+  height: 44px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.remove-part-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.add-part-btn {
+  width: fit-content;
+  min-width: 145px;
+  height: 40px;
+  padding: 0 15px;
+  border: 1px solid #d6e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #061f3d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.add-part-btn:hover {
+  border-color: #b8cae0;
+  background: #f8fafc;
+}
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
+.pr-jo-actions,
+.modal-actions,
+.pr-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.pr-modal-footer {
+  padding-top: 17px;
+  border-top: 1px solid #e5edf7;
+}
+
+.pr-modal-left-actions,
+.pr-approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pr-jo-cancel-btn,
+.pr-jo-save-btn,
+.cancel-btn,
+.save-btn,
+.approve-action-btn,
+.reject-action-btn {
+  min-width: 94px;
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pr-jo-cancel-btn,
+.cancel-btn {
+  background: #eef2f6;
+  color: #061f3d;
+}
+
+.pr-jo-cancel-btn:hover,
+.cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.pr-jo-save-btn,
+.save-btn {
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 7px 16px rgba(255, 196, 0, 0.22);
+}
+
+.pr-jo-save-btn:hover,
+.save-btn:hover {
+  filter: brightness(0.97);
+}
+
+.approve-action-btn {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.approve-action-btn:hover {
+  background: #15803d;
+  color: #ffffff;
+}
+
+.reject-action-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.reject-action-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* =========================================================
+   VALIDATION / FEEDBACK / DELETE MODALS
+========================================================= */
+
+.form-error-list {
+  max-height: 180px;
+  margin: 14px 0;
+  padding: 12px 16px 12px 32px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff7f7;
+  color: #b91c1c;
+  font-size: 12px;
+  overflow-y: auto;
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.purchase-page .pagination svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+.purchase-page .pagination p {
+  display: none;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .purchase-page .purchase-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .purchase-page .purchase-toolbar {
+    grid-template-columns: minmax(240px, 1fr) auto;
+  }
+
+  .purchase-page .compact-new-pr-btn {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 820px) {
+  .purchase-page .purchase-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .purchase-page .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .purchase-page .pr-status-select,
+  .purchase-page .compact-new-pr-btn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .purchase-page .compact-new-pr-btn {
+    grid-column: auto;
+  }
+
+  .pr-jo-form,
+  .job-form,
+  .wide-form {
+    grid-template-columns: 1fr;
+  }
+
+  .pr-jo-form-group.full-width,
+  .pr-jo-section-title.full-width,
+  .pr-jo-actions.full-width,
+  .form-group.full-width,
+  .form-section-title.full-width,
+  .modal-actions.full-width,
+  .pr-modal-footer.full-width {
+    grid-column: auto;
+  }
+
+  .pr-jo-actions,
+  .modal-actions,
+  .pr-modal-footer,
+  .pr-modal-left-actions,
+  .pr-approval-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-jo-cancel-btn,
+  .pr-jo-save-btn,
+  .cancel-btn,
+  .save-btn,
+  .approve-action-btn,
+  .reject-action-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .purchase-page .purchase-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .purchase-page .purchase-request-card {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .purchase-page .section-header h2 {
+    font-size: 16px;
+  }
+
+  .modal-overlay,
+  .delete-modal-overlay,
+  .success-modal-overlay,
+  .error-modal-overlay,
+  .feedback-modal-overlay,
+  .action-modal-overlay {
+    padding: 12px;
+  }
+
+  .pr-jo-style-modal,
+  .fixed-pr-modal,
+  .wide-modal {
+    width: 100%;
+    max-height: 94vh;
+    padding: 22px 18px;
+    border-radius: 15px;
+  }
+
+  .part-needed-row,
+  .pr-part-row {
+    grid-template-columns: minmax(0, 1fr) 74px 94px 36px;
+    gap: 6px;
+  }
+
+  .part-needed-row input,
+  .part-needed-row select,
+  .pr-part-row input,
+  .pr-part-row select {
+    padding: 0 9px;
+    font-size: 12px;
+  }
+
+  .remove-part-btn {
+    width: 36px;
+  }
+}
+
+.disabled-pr-edit-btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+} 
+
+/* =========================================================
+   PURCHASE REQUEST TABLE — MATCH JOB ORDER STYLE
+   Keep this block at the very bottom of the CSS file.
+========================================================= */
+
+/* Stable table layout and column alignment */
+.purchase-page .purchase-request-table {
+  width: 100%;
+  min-width: 1050px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Match Job Order header size */
+.purchase-page .purchase-request-table th {
+  height: 42px;
+  padding: 11px 14px;
+  color: #41536b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-align: left;
+  vertical-align: middle;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Match Job Order row text */
+.purchase-page .purchase-request-table td {
+  height: 53px;
+  padding: 11px 14px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Remove bold from PR #, JO # and Bus # */
+.purchase-page .purchase-request-table td:first-child,
+.purchase-page .purchase-request-table td:nth-child(2),
+.purchase-page .purchase-request-table td:nth-child(3) {
+  color: #0f172a;
+  font-weight: 400;
+}
+
+/* Requested item */
+.purchase-page .purchase-request-table td:nth-child(4) {
+  overflow: hidden;
+  max-width: none;
+  color: #0f172a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Center quantity */
+.purchase-page .purchase-request-table th:nth-child(5),
+.purchase-page .purchase-request-table td:nth-child(5) {
+  text-align: center;
+}
+
+/* Center status */
+.purchase-page .purchase-request-table th:nth-child(6),
+.purchase-page .purchase-request-table td:nth-child(6) {
+  text-align: center;
+}
+
+/* Center created date */
+.purchase-page .purchase-request-table th:nth-child(7),
+.purchase-page .purchase-request-table td:nth-child(7) {
+  text-align: center;
+}
+
+/* Center actions */
+.purchase-page .purchase-request-table th:nth-child(8),
+.purchase-page .purchase-request-table td:nth-child(8) {
+  text-align: center;
+}
+
+/* Column widths */
+.purchase-page .purchase-request-table th:nth-child(1) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(2) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(3) {
+  width: 10%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(4) {
+  width: 20%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(5) {
+  width: 7%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(6) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(7) {
+  width: 17%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(8) {
+  width: 13%;
+}
+
+
+/* =========================================================
+   STATUS BADGE SIZE
+========================================================= */
+
+.purchase-page .purchase-request-table .badge,
+.purchase-page .purchase-request-table .status-badge,
+.purchase-page .purchase-request-table .pr-status-badge {
+  min-width: 88px;
+  min-height: 25px;
+  padding: 5px 10px;
+  margin-inline: auto;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   ACTION BUTTON ALIGNMENT
+========================================================= */
+
+.purchase-page .purchase-request-table .actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  white-space: nowrap;
+}
+
+.purchase-page .purchase-request-table .actions form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.purchase-page .purchase-request-table .action-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  flex: 0 0 34px;
+  padding: 0;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.purchase-page .purchase-request-table .action-btn i {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+
+/* =========================================================
+   MATCH JOB ORDER ACTION COLORS
+========================================================= */
+
+.purchase-page .purchase-request-table .action-btn.view {
+  border-color: #cfe0f8;
+  background: #edf3fb;
+  color: #082445;
+}
+
+.purchase-page .purchase-request-table .action-btn.edit {
+  border-color: #cfe0ff;
+  background: #e8f0ff;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.delete {
+  border-color: #fecaca;
+  background: #fff0f0;
+  color: #dc2626;
+}
+
+.purchase-page .purchase-request-table .action-btn.view:hover:not(:disabled) {
+  border-color: #93c5fd;
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.edit:hover:not(:disabled) {
+  border-color: #93c5fd;
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.delete:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+
+/* Disabled edit button */
+.purchase-page .purchase-request-table .action-btn:disabled,
+.purchase-page .purchase-request-table .disabled-pr-edit-btn {
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+
+/* =========================================================
+   ROW HOVER
+========================================================= */
+
+.purchase-page .purchase-request-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+
+/* Allow horizontal scrolling on smaller screens */
+@media (max-width: 1100px) {
+  .purchase-page .purchase-request-table {
+    table-layout: auto;
+  }
+}
+
+/* =========================================================
+   PURCHASE REQUEST TABLE
+   MATCH JOB ORDERS EXACTLY
+========================================================= */
+
+.purchase-page .purchase-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.purchase-page .purchase-request-table {
+  width: 100%;
+  min-width: 1080px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Table header — same as Job Orders */
+.purchase-page .purchase-request-table thead {
+  background: #f3f7fc;
+}
+
+.purchase-page .purchase-request-table th {
+  padding: 13px 14px;
+  border-bottom: 1px solid #dce5f2;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Table rows — same as Job Orders */
+.purchase-page .purchase-request-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e7edf5;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+/* Remove old bold styling from PR #, JO # and Bus # */
+.purchase-page .purchase-request-table td:first-child,
+.purchase-page .purchase-request-table td:nth-child(2),
+.purchase-page .purchase-request-table td:nth-child(3) {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* First four information columns */
+.purchase-page .purchase-request-table th:nth-child(1),
+.purchase-page .purchase-request-table td:nth-child(1),
+.purchase-page .purchase-request-table th:nth-child(2),
+.purchase-page .purchase-request-table td:nth-child(2),
+.purchase-page .purchase-request-table th:nth-child(3),
+.purchase-page .purchase-request-table td:nth-child(3),
+.purchase-page .purchase-request-table th:nth-child(4),
+.purchase-page .purchase-request-table td:nth-child(4) {
+  text-align: left;
+}
+
+/* Quantity, status, created and actions */
+.purchase-page .purchase-request-table th:nth-child(5),
+.purchase-page .purchase-request-table td:nth-child(5),
+.purchase-page .purchase-request-table th:nth-child(6),
+.purchase-page .purchase-request-table td:nth-child(6),
+.purchase-page .purchase-request-table th:nth-child(7),
+.purchase-page .purchase-request-table td:nth-child(7),
+.purchase-page .purchase-request-table th:nth-child(8),
+.purchase-page .purchase-request-table td:nth-child(8) {
+  text-align: center;
+}
+
+/* Column widths */
+.purchase-page .purchase-request-table th:nth-child(1) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(2) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(3) {
+  width: 10%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(4) {
+  width: 20%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(5) {
+  width: 7%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(6) {
+  width: 11%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(7) {
+  width: 17%;
+}
+
+.purchase-page .purchase-request-table th:nth-child(8) {
+  width: 13%;
+}
+
+/* Item text */
+.purchase-page .purchase-request-table td:nth-child(4) {
+  overflow: hidden;
+  max-width: none;
+  color: #0f172a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Row hover */
+.purchase-page .purchase-request-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.purchase-page .purchase-request-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.purchase-page .purchase-request-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   STATUS BADGES — MATCH JOB ORDERS
+========================================================= */
+
+.purchase-page .purchase-request-table .badge,
+.purchase-page .purchase-request-table .status-badge,
+.purchase-page .purchase-request-table .pr-status-badge {
+  min-width: 96px;
+  min-height: 26px;
+  padding: 0 11px;
+  margin-inline: auto;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS — MATCH JOB ORDERS
+========================================================= */
+
+.purchase-page .purchase-request-table .actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.purchase-page .purchase-request-table .actions form {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+.purchase-page .purchase-request-table .action-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.purchase-page .purchase-request-table .action-btn i {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* View and edit — same soft blue as JO */
+.purchase-page .purchase-request-table .action-btn.view,
+.purchase-page .purchase-request-table .action-btn.edit {
+  border-color: #dbe7f4;
+  background: #edf3fb;
+  color: #082445;
+}
+
+/* Delete — same red as JO */
+.purchase-page .purchase-request-table .action-btn.delete {
+  border-color: #ffd7d7;
+  background: #fff0f0;
+  color: #dc2626;
+}
+
+.purchase-page .purchase-request-table .action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.purchase-page .purchase-request-table .action-btn.view:hover:not(:disabled),
+.purchase-page .purchase-request-table .action-btn.edit:hover:not(:disabled) {
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.delete:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Disabled edit */
+.purchase-page .purchase-request-table .action-btn:disabled,
+.purchase-page .purchase-request-table .disabled-pr-edit-btn {
+  border-color: #e2e8f0 !important;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLE
+========================================================= */
+
+@media (max-width: 1100px) {
+  .purchase-page .purchase-request-table {
+    table-layout: auto;
+  }
+}
+
+/* View button — blue icon like Job Orders */
+.purchase-page .purchase-request-table .action-btn.view {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.view i {
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.view:hover {
+  border-color: #93c5fd;
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.purchase-page .purchase-request-table .action-btn.view:hover i {
+  color: #0b40b5;
+}
+
+/* Remove bold from All Statuses dropdown */
+.purchase-page .pr-status-select {
+  font-weight: 500;
+}
+
+/* Also make the dropdown options normal weight */
+.purchase-page .pr-status-select option {
+  font-weight: 400;
+}

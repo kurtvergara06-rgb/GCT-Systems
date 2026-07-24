@@ -1,0 +1,1606 @@
+/* =========================================================
+   MAINTENANCE FUEL REPORTS
+   GCT Shuttle Services UI
+   File: resources/css/Maintenance/fuel-reports.css
+========================================================= */
+
+.fuel-page {
+  --fuel-primary: #0b40b5;
+  --fuel-primary-dark: #082f83;
+  --fuel-navy: #061f3d;
+  --fuel-yellow: #ffc400;
+  --fuel-text: #0f172a;
+  --fuel-muted: #64748b;
+  --fuel-border: #dbe4f0;
+  --fuel-border-strong: #cbd7e6;
+  --fuel-soft: #f8fafc;
+  --fuel-white: #ffffff;
+  --fuel-green: #15803d;
+  --fuel-green-soft: #dcfce7;
+  --fuel-red: #dc2626;
+  --fuel-red-soft: #fee2e2;
+  --fuel-blue-soft: #dbeafe;
+  --fuel-yellow-soft: #fef3c7;
+  --fuel-shadow: 0 12px 30px rgba(6, 31, 61, 0.07);
+  color: var(--fuel-text);
+}
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.fuel-page .fuel-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.fuel-page .fuel-stats-grid > * {
+  min-width: 0;
+}
+
+.fuel-page .summary-card {
+  min-height: 118px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(6, 31, 61, 0.045);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.fuel-page .summary-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfd0e7;
+  box-shadow: 0 16px 34px rgba(6, 31, 61, 0.1);
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.fuel-page .fuel-card {
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 18px;
+  background: var(--fuel-white);
+  box-shadow: var(--fuel-shadow);
+  overflow: hidden;
+}
+
+.fuel-page .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.fuel-page .section-header h2 {
+  margin: 0;
+  color: var(--fuel-navy);
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.fuel-page .section-header p {
+  margin: 4px 0 0;
+  color: var(--fuel-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.fuel-page .fuel-toolbar {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.fuel-page .fuel-toolbar .search-box {
+  position: relative;
+  width: 100%;
+}
+
+.fuel-page .fuel-toolbar .search-box i {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--fuel-primary);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.fuel-page .fuel-toolbar .search-box input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 40px;
+  border: 1px solid var(--fuel-border-strong);
+  border-radius: 10px;
+  background: var(--fuel-white);
+  color: var(--fuel-text);
+  font-size: 13px;
+  outline: none;
+}
+
+.fuel-page .fuel-toolbar .search-box input:focus,
+.fuel-page .fuel-toolbar select:focus {
+  border-color: var(--fuel-primary);
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.fuel-page .fuel-toolbar .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fuel-page .fuel-toolbar .filter-group label {
+  color: var(--fuel-muted);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-toolbar .filter-group select {
+  min-width: 132px;
+  height: 42px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--fuel-border-strong);
+  border-radius: 10px;
+  background: var(--fuel-white);
+  color: var(--fuel-text);
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+  cursor: pointer;
+}
+
+.fuel-page .fuel-toolbar .primary-btn {
+  min-width: 132px;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: var(--fuel-yellow) !important;
+  color: var(--fuel-navy) !important;
+  box-shadow: 0 7px 16px rgba(255, 196, 0, 0.24);
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+
+.fuel-page .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--fuel-border);
+  border-radius: 13px;
+  background: var(--fuel-white);
+}
+
+.fuel-page .fuel-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.fuel-page .fuel-table thead {
+  background: #edf3fb;
+}
+
+.fuel-page .fuel-table th {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--fuel-border);
+  color: #41536b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e7edf5;
+  color: var(--fuel-text);
+  font-size: 12px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.fuel-page .fuel-table tbody tr {
+  transition: background 0.18s ease;
+}
+
+.fuel-page .fuel-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.fuel-page .fuel-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.fuel-page .fuel-table td:first-child,
+.fuel-page .fuel-table td:nth-child(2) {
+  color: var(--fuel-navy);
+  font-weight: 800;
+}
+
+.fuel-page .danger-row {
+  background: #fff7f7;
+}
+
+.fuel-page .danger-row:hover {
+  background: #fff0f0 !important;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.fuel-page .badge {
+  min-width: 96px;
+  min-height: 27px;
+  padding: 6px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.fuel-page .badge.efficient {
+  background: var(--fuel-green-soft);
+  color: var(--fuel-green);
+  border-color: #bbf7d0;
+}
+
+.fuel-page .badge.normal {
+  background: var(--fuel-blue-soft);
+  color: var(--fuel-primary);
+  border-color: #bfdbfe;
+}
+
+.fuel-page .badge.inefficient {
+  background: var(--fuel-red-soft);
+  color: var(--fuel-red);
+  border-color: #fecaca;
+}
+
+/* =========================================================
+   FUEL MODAL
+========================================================= */
+
+.fuel-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 31, 61, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+.fuel-modal-overlay.show {
+  display: flex;
+}
+
+.fuel-modal {
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  padding: 28px 30px;
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(6, 31, 61, 0.28);
+  overflow-y: auto;
+}
+
+.fuel-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.fuel-modal-header h2 {
+  margin: 0 0 5px;
+  color: var(--fuel-navy);
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.fuel-modal-header p {
+  margin: 0;
+  color: var(--fuel-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fuel-modal-close {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: var(--fuel-navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.fuel-modal-close:hover {
+  background: var(--fuel-red-soft);
+  color: var(--fuel-red);
+}
+
+.fuel-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.fuel-form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+.fuel-form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fuel-form-grid label {
+  color: var(--fuel-navy);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fuel-form-grid input,
+.fuel-form-grid select,
+.fuel-form-grid textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1px solid #d6e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--fuel-text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.fuel-form-grid textarea {
+  min-height: 90px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.fuel-form-grid input:focus,
+.fuel-form-grid select:focus,
+.fuel-form-grid textarea:focus {
+  border-color: var(--fuel-primary);
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.11);
+}
+
+.fuel-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid #e5edf7;
+}
+
+.fuel-cancel-btn,
+.fuel-modal-actions .primary-btn {
+  min-width: 112px;
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.fuel-cancel-btn {
+  background: #eef2f6;
+  color: var(--fuel-navy);
+}
+
+.fuel-modal-actions .primary-btn {
+  background: var(--fuel-yellow);
+  color: var(--fuel-navy);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .fuel-page .fuel-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fuel-page .fuel-toolbar {
+    grid-template-columns: minmax(240px, 1fr) auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .fuel-page .fuel-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .fuel-page .fuel-toolbar .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .fuel-page .fuel-toolbar .filter-group select,
+  .fuel-page .fuel-toolbar .primary-btn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .fuel-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-form-grid .full-width {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .fuel-page .fuel-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-card {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .fuel-modal-overlay {
+    padding: 12px;
+  }
+
+  .fuel-modal {
+    width: 100%;
+    max-height: 94vh;
+    padding: 22px 18px;
+    border-radius: 15px;
+  }
+
+  .fuel-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fuel-cancel-btn,
+  .fuel-modal-actions .primary-btn {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   FUEL REPORT ALERTS
+========================================================= */
+
+.fuel-page .fuel-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fuel-page .fuel-alert.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.fuel-page .fuel-alert.error {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+.fuel-page .fuel-alert i {
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.fuel-page .fuel-alert strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.fuel-page .fuel-alert ul {
+  margin: 5px 0 0 18px;
+  padding: 0;
+}
+
+
+/* =========================================================
+   ANALYTICS HIGHLIGHT CARDS
+========================================================= */
+
+.fuel-page .fuel-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.fuel-page .fuel-highlight-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 105px;
+  padding: 18px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 16px;
+  background: var(--fuel-white);
+  box-shadow: 0 7px 20px rgba(6, 31, 61, 0.055);
+}
+
+.fuel-page .fuel-highlight-icon {
+  display: inline-flex;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  font-size: 19px;
+}
+
+.fuel-page .fuel-highlight-card.best .fuel-highlight-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.fuel-page .fuel-highlight-card.worst .fuel-highlight-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.fuel-page .fuel-highlight-card div:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fuel-page .fuel-highlight-card span {
+  color: var(--fuel-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fuel-page .fuel-highlight-card strong {
+  color: var(--fuel-navy);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.fuel-page .fuel-highlight-card small {
+  color: var(--fuel-muted);
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   SOURCE BADGES
+========================================================= */
+
+.fuel-page .source-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 76px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.fuel-page .source-badge.gps {
+  border-color: #bfdbfe;
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.fuel-page .source-badge.manual {
+  border-color: #fde68a;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+
+/* =========================================================
+   RECORD ACTION BUTTONS
+========================================================= */
+
+.fuel-page .fuel-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fuel-page .fuel-actions form {
+  margin: 0;
+}
+
+.fuel-page .fuel-action-btn {
+  display: inline-flex;
+  width: 33px;
+  height: 33px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.fuel-page .fuel-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.fuel-page .fuel-action-btn.view {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #0b40b5;
+}
+
+.fuel-page .fuel-action-btn.edit {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+}
+
+.fuel-page .fuel-action-btn.delete {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+
+/* =========================================================
+   GPS LOOKUP STATUS
+========================================================= */
+
+.gps-status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 88px;
+  padding: 15px;
+  border: 1px solid #dbe4f0;
+  border-radius: 13px;
+  background: #f8fafc;
+}
+
+.gps-status-card .gps-status-icon {
+  display: inline-flex;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.gps-status-card .gps-status-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.gps-status-card .gps-status-content strong {
+  display: block;
+  color: var(--fuel-navy);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.gps-status-card .gps-status-content p {
+  margin: 4px 0 0;
+  color: var(--fuel-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gps-status-card.idle {
+  border-color: #dbe4f0;
+  background: #f8fafc;
+}
+
+.gps-status-card.loading {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.gps-status-card.loading .gps-status-icon {
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.gps-status-card.loading .gps-status-icon i {
+  animation: fuelPulse 1s ease-in-out infinite;
+}
+
+.gps-status-card.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.gps-status-card.success .gps-status-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.gps-status-card.error {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.gps-status-card.error .gps-status-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.gps-status-card.manual {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.gps-status-card.manual .gps-status-icon {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.gps-status-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 9px;
+}
+
+.gps-status-details span {
+  color: #475569;
+  font-size: 11px;
+}
+
+.gps-status-details strong {
+  display: inline !important;
+  margin-left: 3px;
+  color: var(--fuel-navy) !important;
+  font-size: 11px !important;
+}
+
+@keyframes fuelPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+}
+
+
+/* =========================================================
+   MANUAL DISTANCE
+========================================================= */
+
+.manual-toggle-group {
+  padding: 12px 14px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 11px;
+  background: #fbfdff;
+}
+
+.manual-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.manual-toggle input {
+  width: 16px !important;
+  min-height: auto !important;
+  height: 16px !important;
+  margin: 0;
+  accent-color: var(--fuel-primary);
+}
+
+.manual-toggle span {
+  color: var(--fuel-navy);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.manual-toggle-group small {
+  margin-left: 25px;
+  color: var(--fuel-muted);
+  font-size: 10px;
+}
+
+.manual-distance-fields {
+  padding: 15px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.manual-distance-fields[hidden] {
+  display: none;
+}
+
+.fuel-form-grid.nested-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+
+/* =========================================================
+   INPUT WITH UNIT
+========================================================= */
+
+.fuel-input-with-unit {
+  position: relative;
+}
+
+.fuel-input-with-unit input {
+  padding-right: 48px;
+}
+
+.fuel-input-with-unit span {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transform: translateY(-50%);
+  color: var(--fuel-muted);
+  font-size: 11px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   EFFICIENCY PREVIEW
+========================================================= */
+
+.efficiency-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 78px;
+  padding: 15px 17px;
+  border: 1px solid #dbe4f0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #f8fbff, #ffffff);
+}
+
+.efficiency-preview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.efficiency-preview > div span {
+  color: var(--fuel-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.efficiency-preview > div strong {
+  color: var(--fuel-navy);
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.fuel-page .badge.no-data,
+.fuel-modal .badge.no-data {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+/* =========================================================
+   DISABLED SAVE BUTTON
+========================================================= */
+
+.fuel-modal-actions .primary-btn:disabled {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+
+/* =========================================================
+   VIEW MODAL
+========================================================= */
+
+.fuel-view-modal {
+  width: min(780px, 95vw);
+}
+
+.fuel-view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fuel-view-item {
+  display: flex;
+  min-height: 76px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 13px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.fuel-view-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.fuel-view-item span {
+  color: var(--fuel-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.fuel-view-item strong {
+  color: var(--fuel-navy);
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   TABLE WIDTH
+========================================================= */
+
+.fuel-page .recent-records-table {
+  min-width: 1180px;
+}
+
+
+/* =========================================================
+   RESPONSIVE EXTENSIONS
+========================================================= */
+
+@media (max-width: 820px) {
+  .fuel-page .fuel-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-form-grid.nested-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-view-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-view-item.full-width {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .gps-status-card {
+    flex-direction: column;
+  }
+
+  .efficiency-preview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fuel-page .fuel-highlight-card {
+    align-items: flex-start;
+  }
+}
+
+/* =========================================================
+   REUSABLE FUEL ANALYTICS CHARTS
+========================================================= */
+
+.fuel-page .fuel-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.fuel-page .fuel-chart-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 18px;
+  background: var(--fuel-white);
+  box-shadow: var(--fuel-shadow);
+  overflow: hidden;
+}
+
+.fuel-page .fuel-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.fuel-page .fuel-chart-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.fuel-page .fuel-chart-header h2 {
+  margin: 0;
+  color: var(--fuel-navy);
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 900;
+}
+
+.fuel-page .fuel-chart-header p {
+  margin: 4px 0 0;
+  color: var(--fuel-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.fuel-page .fuel-chart-icon {
+  display: inline-flex;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.fuel-page .fuel-chart-icon.blue {
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.fuel-page .fuel-chart-icon.yellow {
+  background: #fef3c7;
+  color: #ca8a04;
+}
+
+.fuel-page .fuel-chart-icon.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.fuel-page .fuel-chart-icon.red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.fuel-page .fuel-chart-container {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 310px;
+}
+
+.fuel-page .fuel-chart-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* =========================================================
+   REUSABLE ANALYTICS INSIGHTS
+========================================================= */
+
+.fuel-page .fuel-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.fuel-page .fuel-insight-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  min-height: 96px;
+  padding: 16px;
+  border: 1px solid var(--fuel-border);
+  border-radius: 15px;
+  background: var(--fuel-white);
+  box-shadow: 0 7px 20px rgba(6, 31, 61, 0.05);
+}
+
+.fuel-page .fuel-insight-icon {
+  display: inline-flex;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 17px;
+}
+
+.fuel-page .fuel-insight-card.efficient .fuel-insight-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.fuel-page .fuel-insight-card.inefficient .fuel-insight-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.fuel-page .fuel-insight-card.average .fuel-insight-icon {
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.fuel-page .fuel-insight-content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fuel-page .fuel-insight-content span {
+  color: var(--fuel-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fuel-page .fuel-insight-content strong {
+  overflow: hidden;
+  color: var(--fuel-navy);
+  font-size: 18px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-insight-content small {
+  color: var(--fuel-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   ANALYTICS RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .fuel-page .fuel-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-chart-container {
+    height: 290px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .fuel-page .fuel-insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-chart-container {
+    height: 270px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .fuel-page .fuel-chart-card {
+    padding: 14px;
+  }
+
+  .fuel-page .fuel-chart-container {
+    height: 250px !important;
+  }
+}
+
+  /* =========================================================
+   FINAL FUEL TABLE ALIGNMENT AND ACTION ICON FIX
+   Keep this block at the very bottom of the file.
+========================================================= */
+
+/* Make both tables use stable column widths */
+.fuel-page .fuel-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.fuel-page .fuel-table th,
+.fuel-page .fuel-table td {
+  height: 52px;
+  padding: 11px 14px;
+  vertical-align: middle;
+}
+
+
+/* =========================================================
+   EFFICIENCY BY VEHICLE TABLE
+   First fuel table on the page
+========================================================= */
+
+.fuel-page .fuel-efficiency-card .fuel-table {
+  min-width: 900px;
+}
+
+/* Default alignment */
+.fuel-page .fuel-efficiency-card .fuel-table th,
+.fuel-page .fuel-efficiency-card .fuel-table td {
+  text-align: left;
+}
+
+/* Entries and status should be centered */
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(6),
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(6),
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(7),
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(7) {
+  text-align: center;
+}
+
+/* Column widths */
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(1) {
+  width: 13%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(2) {
+  width: 15%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(3) {
+  width: 14%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(4) {
+  width: 18%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(5) {
+  width: 17%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(6) {
+  width: 10%;
+}
+
+.fuel-page .fuel-efficiency-card .fuel-table th:nth-child(7) {
+  width: 13%;
+}
+
+/* Important vehicle values */
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(1),
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(2) {
+  color: var(--fuel-navy);
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   RECENT FUEL RECORDS TABLE
+========================================================= */
+
+.fuel-page .recent-fuel-card .recent-records-table {
+  min-width: 1100px;
+}
+
+/* Text columns */
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(1),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(1),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(2),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(2),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(6) {
+  text-align: left;
+}
+
+/* Numeric, source, status and actions columns */
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(3),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(4),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(4),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(5),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(5),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(7),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(7),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(8),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(8),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(9),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(9) {
+  text-align: center;
+}
+
+/* Column widths */
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(1) {
+  width: 12%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(2) {
+  width: 12%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3) {
+  width: 11%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(4) {
+  width: 9%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(5) {
+  width: 9%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6) {
+  width: 15%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(7) {
+  width: 10%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(8) {
+  width: 10%;
+}
+
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(9) {
+  width: 12%;
+}
+
+/* Important date and bus values */
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(1),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(2) {
+  color: var(--fuel-navy);
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   CENTER BADGES
+========================================================= */
+
+.fuel-page .fuel-table .badge,
+.fuel-page .fuel-table .source-badge {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+
+/* =========================================================
+   ACTION BUTTON ALIGNMENT
+========================================================= */
+
+.fuel-page .fuel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-actions form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* =========================================================
+   ACTION BUTTON SIZE AND ICON CENTERING
+========================================================= */
+
+.fuel-page .fuel-action-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  flex: 0 0 34px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  cursor: pointer;
+  appearance: none;
+}
+
+.fuel-page .fuel-action-btn i {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  transform: none;
+}
+
+
+/* View button */
+.fuel-page .fuel-action-btn.view {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #0b40b5;
+}
+
+.fuel-page .fuel-action-btn.view:hover {
+  border-color: #93c5fd;
+  background: #dbeafe;
+}
+
+
+/* Edit button */
+.fuel-page .fuel-action-btn.edit {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+}
+
+.fuel-page .fuel-action-btn.edit:hover {
+  border-color: #facc15;
+  background: #fef3c7;
+}
+
+
+/* Delete button */
+.fuel-page .fuel-action-btn.delete {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+.fuel-page .fuel-action-btn.delete:hover {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
+
+
+/* Prevent global button rules from changing these buttons */
+.fuel-page .fuel-actions button.fuel-action-btn {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+
+/* =========================================================
+   SMALL SCREEN TABLES
+========================================================= */
+
+@media (max-width: 900px) {
+  .fuel-page .fuel-table {
+    table-layout: auto;
+  }
+}
+
+/* =========================================================
+   REMOVE BOLD FROM SELECTED TABLE VALUES
+========================================================= */
+
+/* Efficiency table: Vehicle and Total KM */
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(1),
+.fuel-page .fuel-efficiency-card .fuel-table td:nth-child(2) {
+  font-weight: 500;
+}
+
+/* Recent records: Date and Vehicle */
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(1),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(2) {
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   CLEANER ACTION ICONS
+========================================================= */
+
+.fuel-page .fuel-action-btn i {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1;
+}

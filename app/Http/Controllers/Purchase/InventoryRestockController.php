@@ -103,7 +103,7 @@ class InventoryRestockController extends Controller
 
         $statuses = array_merge($this->activeStatuses, $this->historyStatuses);
 
-        return view('Purchase.inventory-restock', compact(
+        return view('Purchase.Requested_Purchase.inventory-restock', compact(
             'restockRequests',
             'historyRequests',
             'totalRequests',

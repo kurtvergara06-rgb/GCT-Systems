@@ -3,8 +3,8 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/inventory-restock.css',
-    'resources/js/Purchase/inventory-restock.js'
+    'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
+    'resources/js/Purchase/Requested_Purchase/inventory-restock.js'
   ]"
 >
 

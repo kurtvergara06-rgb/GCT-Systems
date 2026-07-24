@@ -460,7 +460,7 @@ Route::middleware('auth')->group(function () {
 
     Route::view(
         '/operation/routes',
-        'Operation.routes'
+        'Operation.Routes.routes-stops'
     )->name('operation.routes');
 
 
@@ -472,17 +472,17 @@ Route::middleware('auth')->group(function () {
 
     Route::view(
         '/operation/trip-schedule',
-        'Operation.trip-schedule'
+        'Operation.Scheduling_And_Dispatch.trip-schedule'
     )->name('trip-schedule');
 
     Route::view(
         '/operation/driver-bus-assignment',
-        'Operation.driver-bus-assignment'
+        'Operation.Scheduling_And_Dispatch.driver-bus-assignment'
     )->name('driver-bus-assignment');
 
     Route::view(
         '/operation/auto-scheduling',
-        'Operation.auto-scheduling'
+        'Operation.Scheduling_And_Dispatch.auto-dispatch'
     )->name('auto-scheduling');
 
 
@@ -499,7 +499,7 @@ Route::middleware('auth')->group(function () {
 
     Route::view(
         '/driver-attendance',
-        'Operation.driver-attendance'
+        'Operation.Attendance.driver-attendance'
     )->name('driver-attendance');
 
 

@@ -24,42 +24,42 @@ export default defineConfig({
                 'resources/css/Maintenance/job-order.css',
                 'resources/css/Maintenance/mechanic-list.css',
                 'resources/css/Maintenance/pms-scheduling.css',
-                'resources/css/Maintenance/purchase-request.css',
+                'resources/css/Maintenance/purchase-requests.css',
                 'resources/css/Maintenance/fuel-reports.css',
 
                 'resources/js/Maintenance/job-order.js',
                 'resources/js/Maintenance/mechanic-list.js',
                 'resources/js/Maintenance/pms-scheduling.js',
-                'resources/js/Maintenance/purchase-request.js',
+                'resources/js/Maintenance/purchase-requests.js',
                 'resources/js/Maintenance/fuel-reports.js',
 
                 // Purchase
                 'resources/css/Purchase/purchase-orders.css',
-                'resources/css/Purchase/maintenance-requests.css',
-                'resources/css/Purchase/inventory-restock.css',
+                'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
+                'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
                 'resources/css/Purchase/scheduled-purchase.css',
 
                 'resources/js/Purchase/purchase-orders.js',
-                'resources/js/Purchase/maintenance-requests.js',
-                'resources/js/Purchase/inventory-restock.js',
+                'resources/js/Purchase/Requested_Purchase/maintenance-requests.js',
+                'resources/js/Purchase/Requested_Purchase/inventory-restock.js',
                 'resources/js/Purchase/scheduled-purchase.js',
 
                 // Warehouse
                 'resources/css/Warehouse/inventory.css',
-                'resources/css/Warehouse/part-request.css',
+                'resources/css/Warehouse/part-requests.css',
 
                 'resources/js/Warehouse/inventory.js',
-                'resources/js/Warehouse/part-request.js',
+                'resources/js/Warehouse/part-requests.js',
 
                 // Admin
-                'resources/css/Admin/users.css',
+                'resources/css/Admin/User_Management/users.css',
                 'resources/css/Admin/admin-dashboard.css',
-                'resources/css/Admin/permissions.css',
-                'resources/css/Admin/batch-file-processing.css',
+                'resources/css/Admin/User_Management/permissions.css',
+                'resources/css/Admin/Data_Management/batch-file-processing.css',
 
-                'resources/js/Admin/users.js',
+                'resources/js/Admin/User_Management/users.js',
                 'resources/js/Admin/admin-dashboard.js',
-                'resources/js/Admin/permissions.js',
+                'resources/js/Admin/analytics.js',
                 'resources/js/Admin/batch-file-processing.js',
 
                 // Operation
@@ -67,9 +67,8 @@ export default defineConfig({
                 'resources/css/Operation/attendance.css',
                 'resources/css/Operation/available-mechanics.css',
 
-                'resources/js/Operation/dashboard-operation.js',
-                'resources/js/Operation/attendance.js',
-                'resources/js/Operation/available-mechanics.js',
+                'resources/js/Operation/bus-master-list.js',
+                'resources/js/Operation/mechanic-attendance.js',
             ],
 
             refresh: true,
