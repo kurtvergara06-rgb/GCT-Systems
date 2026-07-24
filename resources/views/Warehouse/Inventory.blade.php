@@ -105,7 +105,7 @@
           </div>
 
           <div class="filter-group">
-            <label>Category</label>
+            
             <select name="category" onchange="this.form.submit()">
               <option value="All Categories" {{ request('category') == 'All Categories' ? 'selected' : '' }}>
                 All Categories

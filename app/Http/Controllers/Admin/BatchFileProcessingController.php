@@ -126,7 +126,7 @@ class BatchFileProcessingController extends Controller
 
         $recordsExtracted = GpsTripRecord::count();
 
-        return view('Admin.batch-file-processing', compact(
+        return view('Admin.Data Management.batch-file-processing', compact(
             'batches',
             'records',
             'selectedRecord',

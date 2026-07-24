@@ -80,7 +80,7 @@ class AdminUserController extends Controller
         $roles = $this->roles;
         $statuses = $this->statuses;
 
-        return view('Admin.users', compact(
+        return view('Admin.User_Management.users', compact(
             'users',
             'totalUsers',
             'activeUsers',
