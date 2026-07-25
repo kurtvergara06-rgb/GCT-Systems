@@ -13,7 +13,13 @@
   display: flex;
   flex-direction: column;
   z-index: 1000;
+  box-sizing: border-box;
+
+  transition:
+    width 0.25s ease,
+    padding 0.25s ease;
 }
+
 
 /* =========================================================
    BRAND
@@ -31,13 +37,18 @@
   width: 54px;
   height: 54px;
   flex: 0 0 54px;
+
   background: var(--yellow);
   color: var(--navy);
+
   display: grid;
   place-items: center;
+
   border-radius: 16px;
   font-size: 22px;
-  box-shadow: 0 10px 24px rgba(255, 193, 7, 0.25);
+
+  box-shadow:
+    0 10px 24px rgba(255, 193, 7, 0.25);
 }
 
 .brand h2 {
@@ -53,67 +64,98 @@
   margin-top: 4px;
 }
 
+
 /* =========================================================
    MENU
 ========================================================= */
 
 .menu {
   margin-top: 22px;
+
   display: flex;
   flex-direction: column;
+
   gap: 8px;
 }
 
 .menu-item {
   width: 100%;
   min-height: 50px;
-  padding: 0 16px;
+
+  padding: 0 18px;
+
   border-radius: 10px;
+
   display: flex;
   align-items: center;
-  gap: 14px;
-  color: #e8f1ff;
+
+  gap: 12px;
+
+  color: #cbd5e1;
+
   text-decoration: none;
-  font-size: 15px;
-  font-weight: 500;
-  transition: 0.25s ease;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: 0.2s ease;
+
   background: transparent;
+
   border: none;
   outline: none;
+
   cursor: pointer;
+
   font-family: inherit;
+
   text-align: left;
 }
 
 .menu-item i {
-  width: 20px;
-  min-width: 20px;
+  width: 18px;
+  min-width: 18px;
+
   text-align: center;
-  font-size: 16px;
+
+  font-size: 14px;
+
+  color: inherit;
 }
 
 .menu-item span {
+  flex: 1;
+
   line-height: 1;
+
+  text-align: left;
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.09);
-  transform: translateX(3px);
+  background: rgba(255, 196, 0, 0.12);
+
+  color: #ffffff;
 }
 
 .menu-item.active {
-  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
-  color: #061f3b;
+  background: #ffc400;
+
+  color: #061f3d;
+
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(255, 193, 7, 0.25);
+
+  box-shadow:
+    0 10px 25px rgba(255, 196, 0, 0.18);
 }
 
 .menu-item.active i,
 .menu-item.active span {
-  color: #061f3b;
+  color: #061f3d;
 }
 
+
 /* Remove underline */
+
 .menu a,
 .menu a:hover,
 .menu a:visited,
@@ -126,6 +168,7 @@
   text-decoration: none;
 }
 
+
 /* =========================================================
    DROPDOWN MENU
 ========================================================= */
@@ -136,12 +179,26 @@
 
 .dropdown-toggle {
   position: relative;
+
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  cursor: pointer;
+
+  font-family: inherit;
 }
 
 .dropdown-arrow {
+  width: auto !important;
+
   margin-left: auto;
-  font-size: 12px;
-  transition: transform 0.2s ease;
+
+  font-size: 11px !important;
+
+  transition:
+    transform 0.2s ease;
 }
 
 .menu-dropdown.open .dropdown-arrow {
@@ -149,466 +206,183 @@
 }
 
 .menu-dropdown .dropdown-toggle.active {
-  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
-  color: #061f3b;
+  background: #ffc400;
+
+  color: #061f3d;
+
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(255, 193, 7, 0.25);
+
+  box-shadow:
+    0 10px 25px rgba(255, 196, 0, 0.18);
 }
 
 .menu-dropdown .dropdown-toggle.active i,
 .menu-dropdown .dropdown-toggle.active span {
-  color: #061f3b;
+  color: #061f3d;
 }
 
-/* Submenu */
+
+/* =========================================================
+   SUBMENU
+========================================================= */
+
 .submenu {
-  display: none;
+  display: none !important;
+
   flex-direction: column;
-  gap: 6px;
-  margin: 8px 0 8px 32px;
+
+  gap: 7px;
+
+  margin-top: 8px;
+  margin-left: 28px;
+
+  padding-left: 10px;
+
+  border-left:
+    1px solid rgba(255, 255, 255, 0.14);
 }
 
 .menu-dropdown.open .submenu {
-  display: flex;
+  display: flex !important;
 }
 
 .submenu-item {
+  width: calc(100% - 4px);
+
+  min-height: 38px;
+
+  padding: 0 14px;
+
+  border-radius: 9px;
+
+  color: #cbd5e1;
+
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 700;
+
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  color: #dbeafe;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
+
+  gap: 10px;
+
   transition: 0.2s ease;
 }
 
 .submenu-item i {
   width: 16px;
   min-width: 16px;
+
   text-align: center;
-  font-size: 13px;
+
+  font-size: 12px;
+
+  color: inherit;
+}
+
+.submenu-item span {
+  flex: 1;
 }
 
 .submenu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background:
+    rgba(255, 196, 0, 0.12);
+
+  color: #ffffff;
 }
 
 .submenu-item.active {
-  background: rgba(255, 196, 0, 0.18);
-  color: var(--yellow);
+  background:
+    rgba(255, 196, 0, 0.20);
+
+  color: #ffc400;
 }
 
 .submenu-item.active i,
 .submenu-item.active span {
-  color: var(--yellow);
+  color: #ffc400;
 }
+
+
+/* =========================================================
+   PARENT ACTIVE / OPEN
+========================================================= */
+
+.menu-dropdown.open > .menu-item,
+.menu-dropdown.active > .menu-item {
+  background: #ffc400;
+
+  color: #061f3d;
+}
+
+.menu-dropdown.open > .menu-item i,
+.menu-dropdown.active > .menu-item i {
+  color: #061f3d;
+}
+
+.menu-dropdown.open .submenu-item {
+  color: #cbd5e1;
+}
+
+.menu-dropdown.open .submenu-item.active {
+  color: #ffc400;
+}
+
 
 /* =========================================================
    USER BOX
 ========================================================= */
 
 .user-box {
+  width: 100%;
+
   margin-top: auto;
-  padding: 18px 8px 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 
-.avatar {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  background: #d4d9e2;
-  color: #677389;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-}
-
-.user-box h4 {
-  font-size: 14px;
-  color: #ffffff;
-}
-
-.user-box p {
-  font-size: 12px;
-  color: #d6e4f2;
-}
-
-.user-box .fa-chevron-down {
-  margin-left: auto;
-  font-size: 12px;
-}
-
-/* =========================================================
-   MAIN OFFSET
-========================================================= */
-
-.main {
-  margin-left: 290px;
-  width: calc(100% - 290px);
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 768px) {
-  .sidebar {
-    position: relative;
-    width: 100%;
-    min-height: auto;
-  }
-
-  .main {
-    margin-left: 0;
-    width: 100%;
-  }
-}
-
-/* =========================================================
-   SIDEBAR DROPDOWN FIX
-   Uses your real classes: .menu-item and .submenu-item
-========================================================= */
-
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.menu-dropdown {
-  width: 100%;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.menu-item {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 18px;
-  border-radius: 10px;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  transition: 0.2s ease;
-}
-
-.menu-item i {
-  width: 18px;
-  font-size: 14px;
-  color: inherit;
-}
-
-.menu-item span {
-  flex: 1;
-  text-align: left;
-}
-
-.menu-item:hover {
-  background: rgba(255, 196, 0, 0.12);
-  color: #ffffff;
-}
-
-.menu-item.active {
-  background: #ffc400;
-  color: #061f3d;
-  box-shadow: 0 10px 25px rgba(255, 196, 0, 0.18);
-}
-
-/* Arrow */
-.dropdown-arrow {
-  width: auto !important;
-  font-size: 11px !important;
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.menu-dropdown.open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-/* Submenu */
-.submenu {
-  display: none;
-  flex-direction: column;
-  gap: 7px;
-  margin-top: 8px;
-  margin-left: 28px;
-  padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.menu-dropdown.open .submenu {
-  display: flex !important;
-}
-
-/* Child item */
-.submenu-item {
-  width: calc(100% - 4px);
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 9px;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: 0.2s ease;
-}
-
-.submenu-item i {
-  width: 16px;
-  font-size: 12px;
-  color: inherit;
-}
-
-.submenu-item span {
-  flex: 1;
-}
-
-.submenu-item:hover {
-  background: rgba(255, 196, 0, 0.12);
-  color: #ffffff;
-}
-
-.submenu-item.active {
-  background: rgba(255, 196, 0, 0.20);
-  color: #ffc400;
-}
-
-/* Parent active/open */
-.menu-dropdown.open > .menu-item,
-.menu-dropdown.active > .menu-item {
-  background: #ffc400;
-  color: #061f3d;
-}
-
-.menu-dropdown.open > .menu-item i,
-.menu-dropdown.active > .menu-item i {
-  color: #061f3d;
-}
-
-/* Keep children readable */
-.menu-dropdown.open .submenu-item {
-  color: #cbd5e1;
-}
-
-.menu-dropdown.open .submenu-item.active {
-  color: #ffc400;
-}
-
-@media (max-width: 768px) {
-  .submenu {
-    margin-left: 20px;
-  }
-
-  .menu-item {
-    font-size: 13px;
-    padding: 0 14px;
-  }
-
-  .submenu-item {
-    font-size: 12px;
-  }
-}
-/* =========================================================
-   UNIVERSAL SIDEBAR DROPDOWN FIX
-   Works for Purchase, Operation, Maintenance, Warehouse
-========================================================= */
-
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.menu-dropdown {
-  width: 100%;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.menu-item {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 18px;
-  border-radius: 10px;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  transition: 0.2s ease;
-}
-
-.menu-item i {
-  width: 18px;
-  font-size: 14px;
-  color: inherit;
-}
-
-.menu-item span {
-  flex: 1;
-  text-align: left;
-}
-
-.menu-item:hover {
-  background: rgba(255, 196, 0, 0.12);
-  color: #ffffff;
-}
-
-.menu-item.active {
-  background: #ffc400;
-  color: #061f3d;
-  box-shadow: 0 10px 25px rgba(255, 196, 0, 0.18);
-}
-
-.dropdown-arrow {
-  width: auto !important;
-  font-size: 11px !important;
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.menu-dropdown.open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.submenu {
-  display: none !important;
-  flex-direction: column;
-  gap: 7px;
-  margin-top: 8px;
-  margin-left: 28px;
-  padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.menu-dropdown.open .submenu {
-  display: flex !important;
-}
-
-.submenu-item {
-  width: calc(100% - 4px);
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 9px;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: 0.2s ease;
-}
-
-.submenu-item i {
-  width: 16px;
-  font-size: 12px;
-  color: inherit;
-}
-
-.submenu-item span {
-  flex: 1;
-}
-
-.submenu-item:hover {
-  background: rgba(255, 196, 0, 0.12);
-  color: #ffffff;
-}
-
-.submenu-item.active {
-  background: rgba(255, 196, 0, 0.20);
-  color: #ffc400;
-}
-
-.menu-dropdown.open > .menu-item,
-.menu-dropdown.active > .menu-item {
-  background: #ffc400;
-  color: #061f3d;
-}
-
-.menu-dropdown.open > .menu-item i,
-.menu-dropdown.active > .menu-item i {
-  color: #061f3d;
-}
-
-.menu-dropdown.open .submenu-item {
-  color: #cbd5e1;
-}
-
-.menu-dropdown.open .submenu-item.active {
-  color: #ffc400;
-}
-/* =========================================================
-   SIDEBAR PROFILE POPUP
-========================================================= */
-
-.sidebar-profile-wrap {
-  position: relative;
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.user-box {
-  width: 100%;
   padding: 10px 8px;
+
   border: none;
+
   border-radius: 14px;
+
   background: transparent;
+
   display: flex;
   align-items: center;
+
   gap: 12px;
+
   cursor: pointer;
+
   font-family: inherit;
+
   text-align: left;
+
   transition: 0.2s ease;
 }
 
 .user-box:hover,
 .user-box.active {
-  background: rgba(255, 255, 255, 0.09);
+  background:
+    rgba(255, 255, 255, 0.09);
 }
 
+.avatar,
 .user-box .avatar {
   width: 42px;
   height: 42px;
+
   flex: 0 0 42px;
+
   background: #d4d9e2;
+
   color: #061f3d;
+
   border-radius: 50%;
+
   display: grid;
   place-items: center;
+
   font-size: 13px;
   font-weight: 900;
 }
@@ -619,98 +393,190 @@
 
 .user-box-text {
   min-width: 0;
+
   flex: 1;
 }
 
+.user-box h4,
 .user-box-text h4 {
   font-size: 14px;
+
   color: #ffffff;
+
   font-weight: 900;
+
   margin: 0;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.user-box p,
 .user-box-text p {
   font-size: 12px;
+
   color: #d6e4f2;
+
   margin: 3px 0 0;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.user-box .fa-chevron-down,
 .profile-chevron {
   margin-left: auto;
+
   font-size: 12px;
+
   color: #d6e4f2;
-  transition: transform 0.2s ease;
+
+  transition:
+    transform 0.2s ease;
 }
 
 .user-box.active .profile-chevron {
   transform: rotate(180deg);
 }
 
-/* Popup menu */
+
+/* =========================================================
+   MAIN OFFSET
+========================================================= */
+
+.main {
+  margin-left: 290px;
+
+  width: calc(100% - 290px);
+
+  transition:
+    margin-left 0.25s ease,
+    width 0.25s ease;
+}
+
+
+/* =========================================================
+   SIDEBAR PROFILE
+========================================================= */
+
+.sidebar-profile-wrap {
+  position: relative;
+
+  margin-top: auto;
+
+  padding-top: 18px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.16);
+}
+
+
+/* =========================================================
+   PROFILE POPUP
+========================================================= */
+
 .sidebar-profile-menu {
   position: absolute;
+
   left: 8px;
   right: 8px;
+
   bottom: calc(100% + 12px);
+
+  min-width: 260px;
+
   background: #ffffff;
+
   color: #0f172a;
-  border: 1px solid #dce5f2;
+
+  border:
+    1px solid #dce5f2;
+
   border-radius: 16px;
+
   padding: 10px;
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+
+  box-shadow:
+    0 22px 60px rgba(15, 23, 42, 0.28);
+
   display: none;
+
   z-index: 9999;
 }
 
 .sidebar-profile-menu.show {
   display: block;
-  animation: profilePopupIn 0.16s ease;
+
+  animation:
+    profilePopupIn 0.16s ease;
 }
 
 @keyframes profilePopupIn {
+
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+
+    transform:
+      translateY(8px)
+      scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+
+    transform:
+      translateY(0)
+      scale(1);
   }
+
 }
+
+
+/* =========================================================
+   PROFILE MENU HEADER
+========================================================= */
 
 .profile-menu-header {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
+
   padding: 10px;
 }
 
 .profile-menu-avatar {
   width: 42px;
   height: 42px;
+
   flex: 0 0 42px;
+
   border-radius: 50%;
+
   background: #e2e8f0;
+
   color: #0b2344;
+
   display: grid;
   place-items: center;
+
   font-size: 13px;
   font-weight: 900;
 }
 
 .profile-menu-header h4 {
   margin: 0;
+
   font-size: 14px;
   font-weight: 900;
+
   color: #0b2344;
+
   max-width: 155px;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -718,42 +584,73 @@
 
 .profile-menu-header p {
   margin: 3px 0 0;
+
   font-size: 12px;
+
   color: #64748b;
+
   max-width: 155px;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+
+/* =========================================================
+   PROFILE DIVIDER
+========================================================= */
+
 .profile-menu-divider {
   height: 1px;
+
   background: #e5edf7;
+
   margin: 8px 0;
 }
 
+
+/* =========================================================
+   PROFILE MENU ITEM
+========================================================= */
+
 .profile-menu-item {
   width: 100%;
+
   min-height: 42px;
+
   border: none;
+
   border-radius: 10px;
+
   padding: 0 12px;
+
   background: transparent;
+
   color: #0b2344;
+
   display: flex;
   align-items: center;
+
   gap: 12px;
+
   font-size: 13px;
   font-weight: 800;
+
   text-decoration: none;
+
   cursor: pointer;
+
   font-family: inherit;
+
   transition: 0.2s ease;
 }
 
 .profile-menu-item i {
   width: 18px;
+
   text-align: center;
+
   color: inherit;
 }
 
@@ -771,6 +668,7 @@
 
 .profile-menu-item:disabled {
   opacity: 0.55;
+
   cursor: not-allowed;
 }
 
@@ -782,306 +680,612 @@
   margin: 0;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .sidebar-profile-menu {
-    position: static;
-    margin-top: 12px;
-  }
-}
 
 /* =========================================================
-   COLLAPSIBLE SIDEBAR - ARROW STYLE
+   COLLAPSE BUTTON
 ========================================================= */
 
-.sidebar,
-.main,
-.brand-text,
-.menu-item span,
-.submenu-item span,
-.user-box-text,
-.dropdown-arrow,
-.profile-chevron,
-.sidebar-profile-menu {
-  transition: all 0.25s ease;
-}
-
-/* Small arrow button outside sidebar */
 .sidebar-collapse-btn {
   position: absolute;
-  top: 28px;
-  right: -14px;
-  width: 28px;
-  height: 28px;
+
+  top: 46px;
+  right: -13px;
+
+  width: 27px;
+  height: 27px;
+
+  padding: 0;
+
   border: none;
+
   border-radius: 50%;
+
   background: #ffffff;
+
   color: #073763;
+
   cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.25);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.22);
+
   z-index: 1200;
-  transition: 0.2s ease;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .sidebar-collapse-btn:hover {
   background: #ffc400;
+
   color: #061f3d;
 }
 
 .sidebar-collapse-btn i {
-  transition: transform 0.25s ease;
+  display: block;
+
+  margin: 0;
+
+  padding: 0;
+
+  transition:
+    transform 0.25s ease;
 }
 
-/* Collapsed sidebar size */
-.sidebar.collapsed {
-  width: 86px;
-  padding-left: 14px;
-  padding-right: 14px;
-}
 
-/* Adjust main content */
-body.sidebar-collapsed .main {
-  margin-left: 86px;
-  width: calc(100% - 86px);
-}
-
-/* Rotate arrow when collapsed */
-.sidebar.collapsed .sidebar-collapse-btn i {
-  transform: rotate(180deg);
-}
-
-/* Brand collapsed */
-.sidebar.collapsed .brand {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.sidebar.collapsed .brand-icon {
-  margin: 0 auto;
-}
-
-.sidebar.collapsed .brand-text {
-  opacity: 0;
-  width: 0;
-  max-width: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* Menu collapsed */
-.sidebar.collapsed .menu-item {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-  gap: 0;
-}
-
-.sidebar.collapsed .menu-item span,
-.sidebar.collapsed .submenu-item span,
-.sidebar.collapsed .dropdown-arrow {
-  opacity: 0;
-  width: 0;
-  max-width: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.sidebar.collapsed .menu-item i {
-  width: auto;
-  min-width: auto;
-  font-size: 16px;
-}
-
-.sidebar.collapsed .submenu {
-  display: none !important;
-}
-
-.sidebar.collapsed .menu-dropdown.open > .menu-item,
-.sidebar.collapsed .menu-dropdown.active > .menu-item {
-  background: #ffc400;
-  color: #061f3d;
-}
-
-/* Profile collapsed */
-.sidebar.collapsed .sidebar-profile-wrap {
-  padding-top: 14px;
-}
-
-.sidebar.collapsed .user-box {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.sidebar.collapsed .user-box-text,
-.sidebar.collapsed .profile-chevron {
-  opacity: 0;
-  width: 0;
-  max-width: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.sidebar.collapsed .sidebar-profile-menu {
-  left: 74px;
-  right: auto;
-  bottom: 0;
-  width: 240px;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .sidebar-collapse-btn {
-    display: none;
-  }
-
-  .sidebar.collapsed {
-    width: 100%;
-  }
-
-  body.sidebar-collapsed .main {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .sidebar.collapsed .brand-text,
-  .sidebar.collapsed .menu-item span,
-  .sidebar.collapsed .submenu-item span,
-  .sidebar.collapsed .dropdown-arrow,
-  .sidebar.collapsed .user-box-text,
-  .sidebar.collapsed .profile-chevron {
-    opacity: 1;
-    width: auto;
-    max-width: none;
-    overflow: visible;
-    pointer-events: auto;
-  }
-
-  .sidebar.collapsed .menu-item {
-    justify-content: flex-start;
-    padding: 0 14px;
-    gap: 12px;
-  }
-}
-
-/* Better collapsed sidebar arrow + icon spacing */
-.sidebar-collapse-btn {
-  top: 45px;
-  right: -12px;
-  width: 26px;
-  height: 26px;
-}
+/* =========================================================
+   COLLAPSED SIDEBAR
+========================================================= */
 
 .sidebar.collapsed {
   width: 88px;
+
   padding-left: 12px;
   padding-right: 12px;
 }
 
+
+/* =========================================================
+   MAIN CONTENT COLLAPSED
+========================================================= */
+
 body.sidebar-collapsed .main {
   margin-left: 88px;
+
   width: calc(100% - 88px);
 }
 
-.sidebar.collapsed .menu-item {
-  width: 54px;
-  height: 54px;
-  min-height: 54px;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 14px;
+
+/* =========================================================
+   COLLAPSE ARROW ROTATION
+========================================================= */
+
+.sidebar.collapsed .sidebar-collapse-btn i {
+  transform: rotate(180deg);
 }
 
+
+/* =========================================================
+   BRAND COLLAPSED
+========================================================= */
+
 .sidebar.collapsed .brand {
-  padding-top: 22px;
+  justify-content: center;
+
+  gap: 0;
+
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .sidebar.collapsed .brand-icon {
   width: 52px;
   height: 52px;
+
   flex: 0 0 52px;
+
+  margin: 0 auto;
 }
 
-.sidebar.collapsed .sidebar-profile-wrap {
-  display: flex;
-  justify-content: center;
-}
+.sidebar.collapsed .brand-text {
+  position: absolute;
 
-.sidebar.collapsed .user-box {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-}
-
-html.sidebar-start-collapsed .sidebar {
-  width: 88px;
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
-html.sidebar-start-collapsed .main {
-  margin-left: 88px;
-  width: calc(100% - 88px);
-}
-
-html.sidebar-start-collapsed .brand-text,
-html.sidebar-start-collapsed .menu-item span,
-html.sidebar-start-collapsed .submenu-item span,
-html.sidebar-start-collapsed .dropdown-arrow,
-html.sidebar-start-collapsed .user-box-text,
-html.sidebar-start-collapsed .profile-chevron {
   opacity: 0;
+
+  visibility: hidden;
+
   width: 0;
   max-width: 0;
+
   overflow: hidden;
+
   pointer-events: none;
 }
 
-html.sidebar-start-collapsed .menu-item {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-  gap: 0;
-}
 
-/* Fix profile popup position when sidebar is collapsed */
-.sidebar.collapsed .sidebar-profile-menu {
-  left: 72px;
-  right: auto;
-  bottom: 0;
-  width: 260px;
-  transform: translateY(-8px);
-}
+/* =========================================================
+   COLLAPSED MENU
+========================================================= */
 
-/* Center avatar/profile button when collapsed */
-.sidebar.collapsed .sidebar-profile-wrap {
-  display: flex;
-  justify-content: center;
+.sidebar.collapsed .menu {
+  width: 100%;
+
   align-items: center;
 }
+
+.sidebar.collapsed .menu-dropdown {
+  width: 54px;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sidebar.collapsed .menu-item {
+  width: 54px;
+  height: 54px;
+
+  min-height: 54px;
+
+  padding: 0;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0;
+
+  border-radius: 14px;
+
+  transform: none;
+}
+
+.sidebar.collapsed .menu-item:hover {
+  transform: none;
+}
+
+
+/* =========================================================
+   HIDE COLLAPSED MENU TEXT
+========================================================= */
+
+.sidebar.collapsed .menu-item span,
+.sidebar.collapsed .dropdown-arrow {
+  position: absolute;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  width: 0;
+  max-width: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   CENTER COLLAPSED ICONS
+========================================================= */
+
+.sidebar.collapsed
+.menu-item > i:not(.dropdown-arrow) {
+  width: 20px;
+
+  min-width: 20px;
+
+  margin: 0;
+
+  padding: 0;
+
+  text-align: center;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   HIDE SUBMENU WHILE COLLAPSED
+========================================================= */
+
+.sidebar.collapsed .submenu {
+  display: none !important;
+}
+
+
+/* =========================================================
+   ACTIVE MENU WHILE COLLAPSED
+========================================================= */
+
+.sidebar.collapsed .menu-item.active,
+.sidebar.collapsed
+.menu-dropdown.active > .menu-item,
+.sidebar.collapsed
+.menu-dropdown.open > .menu-item {
+
+  background: #ffc400;
+
+  color: #061f3d;
+}
+
+.sidebar.collapsed
+.menu-item.active i,
+
+.sidebar.collapsed
+.menu-dropdown.active > .menu-item i,
+
+.sidebar.collapsed
+.menu-dropdown.open > .menu-item i {
+
+  color: #061f3d;
+}
+
+
+/* =========================================================
+   COLLAPSED PROFILE WRAPPER
+========================================================= */
+
+.sidebar.collapsed
+.sidebar-profile-wrap {
+
+  width: 100%;
+
+  padding-top: 14px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+
+/* =========================================================
+   COLLAPSED PROFILE BUTTON
+========================================================= */
 
 .sidebar.collapsed .user-box {
   width: 54px;
   height: 54px;
+
+  min-width: 54px;
+
   padding: 0;
+
+  margin: 0;
+
   display: flex;
-  justify-content: center;
+
   align-items: center;
+
+  justify-content: center;
+
+  gap: 0;
+
+  border-radius: 16px;
 }
 
-.sidebar.collapsed .avatar {
+
+/* =========================================================
+   COLLAPSED AVATAR
+========================================================= */
+
+.sidebar.collapsed
+.user-box .avatar {
+
+  width: 42px;
+
+  height: 42px;
+
+  flex: 0 0 42px;
+
   margin: 0;
 }
 
-/* Make popup look centered and clean */
-.sidebar-profile-menu {
-  min-width: 260px;
+
+/* =========================================================
+   HIDE COLLAPSED PROFILE TEXT
+========================================================= */
+
+.sidebar.collapsed .user-box-text,
+.sidebar.collapsed .profile-chevron {
+
+  position: absolute;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  width: 0;
+
+  max-width: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
 }
 
-.profile-menu-header {
-  align-items: center;
+
+/* =========================================================
+   PROFILE POPUP COLLAPSED
+========================================================= */
+
+.sidebar.collapsed
+.sidebar-profile-menu {
+
+  left: calc(100% + 14px);
+
+  right: auto;
+
+  bottom: 0;
+
+  width: 260px;
+
+  min-width: 260px;
+
+  transform: none;
+}
+
+.sidebar.collapsed
+.sidebar-profile-menu.show {
+
+  display: block;
+}
+
+
+/* =========================================================
+   RESPONSIVE / MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .sidebar {
+    position: relative;
+
+    width: 100%;
+
+    min-height: auto;
+  }
+
+
+  .main {
+    margin-left: 0;
+
+    width: 100%;
+  }
+
+
+  .submenu {
+    margin-left: 20px;
+  }
+
+
+  .menu-item {
+    font-size: 13px;
+
+    padding: 0 14px;
+  }
+
+
+  .submenu-item {
+    font-size: 12px;
+  }
+
+
+  .sidebar-profile-menu {
+    position: static;
+
+    margin-top: 12px;
+
+    width: 100%;
+
+    min-width: 0;
+  }
+
+
+  /* -----------------------------------------
+     Hide desktop collapse button
+  ----------------------------------------- */
+
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
+
+  /* -----------------------------------------
+     Prevent collapsed desktop layout on mobile
+  ----------------------------------------- */
+
+  .sidebar.collapsed {
+    width: 100%;
+
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+
+  body.sidebar-collapsed .main {
+    margin-left: 0;
+
+    width: 100%;
+  }
+
+
+  /* -----------------------------------------
+     Restore brand
+  ----------------------------------------- */
+
+  .sidebar.collapsed .brand {
+    justify-content: flex-start;
+
+    gap: 14px;
+  }
+
+
+  .sidebar.collapsed .brand-text {
+    position: static;
+
+    opacity: 1;
+
+    visibility: visible;
+
+    width: auto;
+
+    max-width: none;
+
+    overflow: visible;
+
+    pointer-events: auto;
+  }
+
+
+  /* -----------------------------------------
+     Restore menu
+  ----------------------------------------- */
+
+  .sidebar.collapsed .menu {
+    align-items: stretch;
+  }
+
+
+  .sidebar.collapsed
+  .menu-dropdown {
+
+    width: 100%;
+  }
+
+
+  .sidebar.collapsed .menu-item {
+    width: 100%;
+
+    height: auto;
+
+    min-height: 50px;
+
+    padding: 0 14px;
+
+    justify-content: flex-start;
+
+    gap: 12px;
+
+    border-radius: 10px;
+  }
+
+
+  .sidebar.collapsed
+  .menu-item span,
+
+  .sidebar.collapsed
+  .dropdown-arrow {
+
+    position: static;
+
+    opacity: 1;
+
+    visibility: visible;
+
+    width: auto;
+
+    max-width: none;
+
+    overflow: visible;
+
+    pointer-events: auto;
+  }
+
+
+  .sidebar.collapsed
+  .menu-item >
+  i:not(.dropdown-arrow) {
+
+    width: 18px;
+
+    min-width: 18px;
+
+    font-size: 14px;
+  }
+
+
+  /* -----------------------------------------
+     Restore profile
+  ----------------------------------------- */
+
+  .sidebar.collapsed
+  .sidebar-profile-wrap {
+
+    display: block;
+
+    width: 100%;
+  }
+
+
+  .sidebar.collapsed
+  .user-box {
+
+    width: 100%;
+
+    height: auto;
+
+    min-height: 54px;
+
+    padding: 10px 8px;
+
+    justify-content: flex-start;
+
+    gap: 12px;
+  }
+
+
+  .sidebar.collapsed
+  .user-box-text,
+
+  .sidebar.collapsed
+  .profile-chevron {
+
+    position: static;
+
+    opacity: 1;
+
+    visibility: visible;
+
+    width: auto;
+
+    max-width: none;
+
+    overflow: visible;
+
+    pointer-events: auto;
+  }
+
+
+  /* -----------------------------------------
+     Restore profile popup
+  ----------------------------------------- */
+
+  .sidebar.collapsed
+  .sidebar-profile-menu {
+
+    position: static;
+
+    width: 100%;
+
+    min-width: 0;
+
+    margin-top: 12px;
+
+    transform: none;
+  }
+
 }

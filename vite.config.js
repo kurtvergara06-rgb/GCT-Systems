@@ -64,11 +64,10 @@ export default defineConfig({
 
                 // Operation
                 'resources/css/Operation/dashboard-operation.css',
-                'resources/css/Operation/attendance.css',
-                'resources/css/Operation/available-mechanics.css',
+                'resources/css/Operation/Attendance/driver-attendance.css',
+                'resources/css/Operation/Attendance/available-mechanics.css',
 
-                'resources/js/Operation/bus-master-list.js',
-                'resources/js/Operation/mechanic-attendance.js',
+                'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
             ],
 
             refresh: true,

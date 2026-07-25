@@ -13,6 +13,7 @@ use App\Http\Controllers\Maintenance\PurchaseRequestController;
 
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
+use App\Http\Controllers\Operation\DriverAttendanceController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
@@ -253,81 +254,105 @@ Route::middleware('auth')->group(function () {
     )->name('settings');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | WAREHOUSE DEPARTMENT
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Warehouse Dashboard
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/warehouse/dashboard',
-        'Warehouse.dashboard-warehouse'
-    )->name('dashboard-warehouse');
+  /*
+|--------------------------------------------------------------------------
+| WAREHOUSE DEPARTMENT
+|--------------------------------------------------------------------------
+*/
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Inventory
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| Warehouse Dashboard
+|--------------------------------------------------------------------------
+*/
 
-    Route::controller(InventoryController::class)
-        ->prefix('inventory')
-        ->group(function () {
-
-            Route::get('/', 'index')
-                ->name('inventory');
-
-            Route::post('/', 'store')
-                ->name('inventory.store');
-
-            Route::put(
-                '/{inventoryItem}',
-                'update'
-            )->name('inventory.update');
-
-            Route::delete(
-                '/{inventoryItem}',
-                'destroy'
-            )->name('inventory.destroy');
-
-            Route::post(
-                '/import',
-                'import'
-            )->name('inventory.import');
-        });
+Route::view(
+    '/warehouse/dashboard',
+    'Warehouse.dashboard-warehouse'
+)->name('dashboard-warehouse');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Warehouse Part Requests
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| Inventory
+|--------------------------------------------------------------------------
+*/
 
-    Route::controller(WarehousePartRequestController::class)
-        ->prefix('part-requests')
-        ->group(function () {
+Route::controller(InventoryController::class)
+    ->prefix('inventory')
+    ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('part-requests');
+        Route::get('/', 'index')
+            ->name('inventory');
 
-            Route::post(
-                '/{purchaseRequest}/issue',
-                'issue'
-            )->name('part-requests.issue');
+        Route::post('/', 'store')
+            ->name('inventory.store');
 
-            Route::post(
-                '/{purchaseRequest}/send-to-purchase',
-                'sendToPurchase'
-            )->name('part-requests.send-to-purchase');
-        });
+        Route::put(
+            '/{inventoryItem}',
+            'update'
+        )->name('inventory.update');
 
+        Route::delete(
+            '/{inventoryItem}',
+            'destroy'
+        )->name('inventory.destroy');
+
+        Route::post(
+            '/import',
+            'import'
+        )->name('inventory.import');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Warehouse Part Requests
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(WarehousePartRequestController::class)
+    ->prefix('part-requests')
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->name('part-requests');
+
+        Route::post(
+            '/{purchaseRequest}/issue',
+            'issue'
+        )->name('part-requests.issue');
+
+        Route::post(
+            '/{purchaseRequest}/send-to-purchase',
+            'sendToPurchase'
+        )->name('part-requests.send-to-purchase');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Incoming Deliveries
+|--------------------------------------------------------------------------
+*/
+
+Route::view(
+    '/warehouse/incoming-deliveries',
+    'Warehouse.incoming-deliveries'
+)->name('incoming-deliveries');
+
+
+/*
+|--------------------------------------------------------------------------
+| Stock Movements
+|--------------------------------------------------------------------------
+*/
+
+Route::view(
+    '/warehouse/stock-movements',
+    'Warehouse.stock-movements'
+)->name('stock-movements');
 
     /*
     |--------------------------------------------------------------------------
@@ -546,20 +571,43 @@ Route::middleware('auth')->group(function () {
 
 
     /*
-    |--------------------------------------------------------------------------
-    | Driver Attendance
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| Driver Attendance
+|--------------------------------------------------------------------------
+*/
 
-    Route::redirect(
-        '/attendance',
-        '/driver-attendance'
-    )->name('attendance');
+Route::redirect(
+    '/attendance',
+    '/driver-attendance'
+)->name('attendance');
 
-    Route::view(
-        '/driver-attendance',
-        'Operation.Attendance.driver-attendance'
-    )->name('driver-attendance');
+
+Route::controller(DriverAttendanceController::class)
+    ->prefix('driver-attendance')
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->name('driver-attendance');
+
+        Route::post('/', 'store')
+            ->name('driver-attendance.store');
+
+        Route::post(
+            '/import',
+            'import'
+        )->name('driver-attendance.import');
+
+        Route::put(
+            '/{driverAttendance}',
+            'update'
+        )->name('driver-attendance.update');
+
+        Route::delete(
+            '/{driverAttendance}',
+            'destroy'
+        )->name('driver-attendance.destroy');
+
+    });
 
 
     /*

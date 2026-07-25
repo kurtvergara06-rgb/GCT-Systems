@@ -10,18 +10,38 @@
 
   <div class="app">
 
-    <x-layout.sidebar
-      department="Warehouse"
-      subtitle="Department Module"
-      icon="fa-warehouse"
-      user-name="W. Admin"
-      user-role="Warehouse Admin"
-      :items="[
-        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-      ]"
-    />
-
+  <x-layout.sidebar
+    department="Warehouse"
+    subtitle="Warehouse Module"
+    icon="fa-warehouse"
+    :items="[
+        [
+            'label' => 'Dashboard',
+            'route' => 'dashboard-warehouse',
+            'icon' => 'fa-table-cells-large'
+        ],
+        [
+            'label' => 'Inventory',
+            'route' => 'inventory',
+            'icon' => 'fa-boxes-stacked'
+        ],
+        [
+            'label' => 'Part Requests',
+            'route' => 'part-requests',
+            'icon' => 'fa-clipboard-list'
+        ],
+        [
+            'label' => 'Incoming Deliveries',
+            'route' => 'incoming-deliveries',
+            'icon' => 'fa-truck-ramp-box'
+        ],
+        [
+            'label' => 'Stock Movements',
+            'route' => 'stock-movements',
+            'icon' => 'fa-right-left'
+        ],
+    ]"
+/>
     <main class="main">
 
       <x-layout.topbar

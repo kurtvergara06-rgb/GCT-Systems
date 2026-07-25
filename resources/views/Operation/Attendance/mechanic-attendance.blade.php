@@ -5,7 +5,7 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/Attendance/available-mechanics.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Operation/mechanic-attendance.js'
+    'resources/js/Operation/Attendance/mechanic-attendance.js'
   ]"
 >
 
