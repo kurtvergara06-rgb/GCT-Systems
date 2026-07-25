@@ -1,0 +1,773 @@
+/* =========================================================
+   ACCOUNT REQUESTS PAGE ONLY
+   Shared layout / sidebar / general components come from:
+   - Main-styles/main.css
+   - Main-styles/sidebar.css
+========================================================= */
+
+.account-requests-page {
+    --ar-blue: #0b40b5;
+    --ar-blue-dark: #07338f;
+    --ar-navy: #061f3d;
+    --ar-yellow: #ffc400;
+    --ar-page-bg: #f4f7fb;
+    --ar-card: #ffffff;
+    --ar-text: #0f172a;
+    --ar-muted: #64748b;
+    --ar-border: #dce5f2;
+    --ar-table-head: #f3f7fc;
+    --ar-green: #15803d;
+    --ar-red: #dc2626;
+
+    --ar-soft-shadow:
+        0 4px 16px rgba(6, 31, 61, 0.07);
+
+    --ar-hover-shadow:
+        0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.account-requests-page .topbar {
+    margin-bottom: 20px;
+}
+
+.account-requests-page .topbar h1 {
+    color: var(--ar-navy);
+    letter-spacing: -0.02em;
+}
+
+.account-requests-page .topbar p {
+    color: var(--ar-muted);
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.account-requests-page .account-stats-grid {
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.account-requests-page .account-stats-grid .stat-card,
+.account-requests-page .account-stats-grid .stat-card-link {
+    min-height: 112px;
+    padding: 18px 20px;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 16px;
+
+    background: var(--ar-card);
+
+    box-shadow: var(--ar-soft-shadow);
+
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+}
+
+.account-requests-page .account-stats-grid .stat-card:hover,
+.account-requests-page .account-stats-grid .stat-card-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ar-hover-shadow);
+}
+
+.account-requests-page .account-stats-grid .stat-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+
+    border-radius: 14px;
+
+    font-size: 18px;
+}
+
+.account-requests-page .account-stats-grid .stat-card p,
+.account-requests-page .account-stats-grid .stat-card-link p {
+    margin: 0;
+
+    color: var(--ar-muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.account-requests-page .account-stats-grid .stat-card h2,
+.account-requests-page .account-stats-grid .stat-card-link h2 {
+    margin: 3px 0 2px;
+
+    color: var(--ar-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.account-requests-page .account-stats-grid .stat-card small,
+.account-requests-page .account-stats-grid .stat-card-link small {
+    color: var(--ar-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.account-requests-page .account-table-card {
+    padding: 16px;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 16px;
+
+    background: var(--ar-card);
+
+    box-shadow: var(--ar-soft-shadow);
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.account-requests-page .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin-bottom: 12px;
+}
+
+.account-requests-page .section-header h2 {
+    margin: 0;
+
+    color: var(--ar-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    letter-spacing: -0.01em;
+}
+
+.account-requests-page .section-header p {
+    margin: 3px 0 0;
+
+    color: var(--ar-muted);
+
+    font-size: 12px;
+}
+
+.request-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 28px;
+
+    padding: 0 11px;
+
+    border: 1px solid #f8dd82;
+    border-radius: 999px;
+
+    background: #fff3cd;
+
+    color: #9a6700;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.account-requests-page .account-toolbar {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(300px, 1fr)
+        150px
+        130px
+        130px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 14px;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 12px;
+
+    background: #ffffff;
+}
+
+.account-requests-page .search-box {
+    position: relative;
+
+    min-width: 0;
+}
+
+.account-requests-page .search-box i {
+    position: absolute;
+
+    left: 14px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: var(--ar-blue);
+
+    font-size: 13px;
+}
+
+.account-requests-page .search-box input {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 14px 0 40px;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--ar-text);
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.account-requests-page .search-box input::placeholder {
+    color: #8a98ac;
+}
+
+.account-requests-page .search-box input:focus {
+    border-color: var(--ar-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.account-requests-page .filter-group {
+    min-width: 0;
+}
+
+.account-requests-page .filter-group select {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 34px 0 11px;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 9px;
+
+    background-color: #ffffff;
+
+    color: var(--ar-text);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    outline: none;
+}
+
+.account-requests-page .filter-group select:focus {
+    border-color: var(--ar-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.account-requests-page .table-wrap {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.account-requests-page .account-requests-table {
+    width: 100%;
+    min-width: 1000px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.account-requests-page .account-requests-table thead {
+    background: var(--ar-table-head);
+}
+
+.account-requests-page .account-requests-table th {
+    padding: 13px 14px;
+
+    border-bottom: 1px solid var(--ar-border);
+
+    color: #475569;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 0.055em;
+
+    line-height: 1.25;
+
+    text-transform: uppercase;
+
+    white-space: nowrap;
+
+    text-align: left;
+}
+
+.account-requests-page .account-requests-table th:nth-child(5),
+.account-requests-page .account-requests-table th:nth-child(6) {
+    text-align: center;
+}
+
+.account-requests-page .account-requests-table td {
+    padding: 13px 14px;
+
+    border-bottom: 1px solid #e7edf5;
+
+    color: var(--ar-text);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    vertical-align: middle;
+}
+
+.account-requests-page .account-requests-table td:nth-child(5),
+.account-requests-page .account-requests-table td:nth-child(6) {
+    text-align: center;
+}
+
+.account-requests-page .account-requests-table tbody tr {
+    transition: background-color 0.18s ease;
+}
+
+.account-requests-page .account-requests-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.account-requests-page .account-requests-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   REQUESTER
+========================================================= */
+
+.requester-cell {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+}
+
+.requester-avatar {
+    width: 38px;
+    height: 38px;
+
+    flex: 0 0 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eaf2ff;
+
+    color: var(--ar-blue);
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.requester-cell strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--ar-text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.requester-cell span {
+    display: block;
+
+    color: var(--ar-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   DEPARTMENT BADGES
+========================================================= */
+
+.department-badge,
+.role-badge,
+.status-badge {
+    min-height: 26px;
+
+    padding: 0 11px;
+
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+.department-badge.maintenance {
+    background: #e0ecff;
+    color: var(--ar-blue);
+
+    border: 1px solid #bfd4ff;
+}
+
+.department-badge.warehouse {
+    background: #dcfce7;
+    color: #15803d;
+
+    border: 1px solid #b7efca;
+}
+
+.department-badge.purchase {
+    background: #ffedd5;
+    color: #c2410c;
+
+    border: 1px solid #fed7aa;
+}
+
+.department-badge.operation {
+    background: #ede9fe;
+    color: #6d28d9;
+
+    border: 1px solid #ddd6fe;
+}
+
+
+/* =========================================================
+   ROLE BADGES
+========================================================= */
+
+.role-badge.head {
+    background: #e0ecff;
+    color: var(--ar-blue);
+
+    border: 1px solid #bfd4ff;
+}
+
+.role-badge.staff {
+    background: #f1f5f9;
+    color: #475569;
+
+    border: 1px solid #dce5f2;
+}
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
+.status-badge.pending {
+    background: #fff3cd;
+    color: #9a6700;
+
+    border: 1px solid #f8dd82;
+}
+
+
+/* =========================================================
+   DATE / TIME
+========================================================= */
+
+.date-time-cell .date-value,
+.date-time-cell .time-value {
+    display: block;
+
+    white-space: nowrap;
+}
+
+.date-time-cell .date-value {
+    color: var(--ar-text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.date-time-cell .time-value {
+    margin-top: 3px;
+
+    color: var(--ar-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.account-requests-page .actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    white-space: nowrap;
+}
+
+.account-requests-page .action-btn {
+    width: 34px;
+    min-width: 34px;
+
+    height: 34px;
+    min-height: 34px;
+
+    padding: 0;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: none;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    transition:
+        background-color 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.account-requests-page .action-btn.view {
+    background: #eaf2ff;
+    color: var(--ar-blue);
+    border-color: #d4e3ff;
+}
+
+.account-requests-page .action-btn.view:hover {
+    background: var(--ar-blue);
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+.account-requests-page .action-btn.approve {
+    background: #dcfce7;
+    color: #15803d;
+
+    border-color: #b7efca;
+}
+
+.account-requests-page .action-btn.approve:hover {
+    background: #15803d;
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+.account-requests-page .action-btn.reject {
+    background: #fff0f0;
+    color: #dc2626;
+
+    border-color: #fee2e2;
+}
+
+.account-requests-page .action-btn.reject:hover {
+    background: #dc2626;
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   FOOTER / PAGINATION
+========================================================= */
+
+.account-requests-page .table-footer {
+    margin-top: 14px;
+
+    padding-top: 14px;
+
+    border-top: 1px solid #e7edf5;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+}
+
+.account-requests-page .table-footer p,
+.account-requests-page .page-number {
+    margin: 0;
+
+    color: var(--ar-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.account-requests-page .pagination {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+}
+
+.account-requests-page .page-number {
+    min-width: 34px;
+    height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: var(--ar-blue);
+
+    color: #ffffff;
+
+    font-weight: 700;
+}
+
+.account-requests-page .page-btn {
+    width: 34px;
+    height: 34px;
+
+    padding: 0;
+
+    border: 1px solid var(--ar-border);
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: var(--ar-navy);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.account-requests-page .page-btn:not(.disabled):hover {
+    border-color: var(--ar-blue);
+
+    color: var(--ar-blue);
+
+    background: #f5f8ff;
+}
+
+.account-requests-page .page-btn.disabled {
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .account-requests-page .account-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .account-requests-page .search-box {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+@media (max-width: 768px) {
+
+    .account-requests-page .account-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-requests-page .account-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .account-requests-page .search-box {
+        grid-column: auto;
+    }
+
+    .account-requests-page .account-table-card {
+        padding: 12px;
+    }
+
+    .account-requests-page .section-header {
+        flex-direction: column;
+    }
+
+    .account-requests-page .account-requests-table {
+        min-width: 900px;
+    }
+
+}

@@ -248,7 +248,7 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::view(
-        '/settings',
+        '/maintenance/settings',
         'Maintenance.settings'
     )->name('settings');
 
@@ -258,6 +258,18 @@ Route::middleware('auth')->group(function () {
     | WAREHOUSE DEPARTMENT
     |--------------------------------------------------------------------------
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Warehouse Dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/warehouse/dashboard',
+        'Warehouse.dashboard-warehouse'
+    )->name('dashboard-warehouse');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -319,9 +331,80 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Stock Movements
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/warehouse/stock-movements',
+        'Warehouse.stock-movements'
+    )->name('stock-movements');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Incoming Deliveries
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/warehouse/incoming-deliveries',
+        'Warehouse.incoming-deliveries'
+    )->name('incoming-deliveries');
+
+
+    /*
+    |--------------------------------------------------------------------------
     | PURCHASE DEPARTMENT
     |--------------------------------------------------------------------------
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Purchase Dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/purchase/dashboard',
+        'Purchase.dashboard-purchase'
+    )->name('dashboard-purchase');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Requested Purchase - Maintenance Requests
+    |--------------------------------------------------------------------------
+    */
+
+    Route::controller(MaintenanceRequestController::class)
+        ->prefix('maintenance-requests')
+        ->group(function () {
+
+            Route::get('/', 'index')
+                ->name('maintenance-requests');
+
+            Route::post(
+                '/{maintenanceRequest}/create-po',
+                'createPo'
+            )->name('maintenance-requests.create-po');
+        });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Requested Purchase - Inventory Restock
+    |--------------------------------------------------------------------------
+    */
+
+    Route::controller(InventoryRestockController::class)
+        ->prefix('inventory-restock')
+        ->group(function () {
+
+            Route::get('/', 'index')
+                ->name('inventory-restock');
+        });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -353,41 +436,6 @@ Route::middleware('auth')->group(function () {
                 '/{purchaseOrder}',
                 'destroy'
             )->name('purchase-orders.destroy');
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Maintenance Requests
-    |--------------------------------------------------------------------------
-    */
-
-    Route::controller(MaintenanceRequestController::class)
-        ->prefix('maintenance-requests')
-        ->group(function () {
-
-            Route::get('/', 'index')
-                ->name('maintenance-requests');
-
-            Route::post(
-                '/{maintenanceRequest}/create-po',
-                'createPo'
-            )->name('maintenance-requests.create-po');
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Inventory Restock
-    |--------------------------------------------------------------------------
-    */
-
-    Route::controller(InventoryRestockController::class)
-        ->prefix('inventory-restock')
-        ->group(function () {
-
-            Route::get('/', 'index')
-                ->name('inventory-restock');
         });
 
 
@@ -447,43 +495,66 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::view(
-        '/dashboard-operation',
+        '/operation/dashboard',
         'Operation.dashboard-operation'
     )->name('dashboard-operation');
 
 
     /*
     |--------------------------------------------------------------------------
-    | Routes
+    | Shuttle Bus Management - Bus Master List
     |--------------------------------------------------------------------------
     */
 
-    Route::view(
-        '/operation/routes',
-        'Operation.Routes.routes-stops'
-    )->name('operation.routes');
+    Route::controller(BusController::class)
+        ->prefix('bus-master-list')
+        ->group(function () {
+
+            Route::get('/', 'index')
+                ->name('bus-master-list');
+
+            Route::post('/', 'store')
+                ->name('bus-master-list.store');
+
+            Route::post(
+                '/import',
+                'import'
+            )->name('bus-master-list.import');
+
+            Route::put(
+                '/{bus}',
+                'update'
+            )->name('bus-master-list.update');
+
+            Route::delete(
+                '/{bus}',
+                'destroy'
+            )->name('bus-master-list.destroy');
+        });
 
 
     /*
     |--------------------------------------------------------------------------
-    | Scheduling
+    | Shuttle Bus Management - Bus Assignment
     |--------------------------------------------------------------------------
     */
 
     Route::view(
-        '/operation/trip-schedule',
-        'Operation.Scheduling_And_Dispatch.trip-schedule'
-    )->name('trip-schedule');
+        '/operation/bus-assignment',
+        'Operation.Shuttle_Bus_Management.bus-assignment'
+    )->name('bus-assignment');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Driver Management - Driver List
+    |--------------------------------------------------------------------------
+    */
 
     Route::view(
-        '/operation/driver-bus-assignment',
-        'Operation.Scheduling_And_Dispatch.driver-bus-assignment'
-    )->name('driver-bus-assignment');
-
-    Route::view(
-        '/operation/auto-scheduling',
-        'Operation.Scheduling_And_Dispatch.auto-dispatch'
-    )->name('auto-scheduling');
+        '/operation/driver-list',
+        'Operation.Driver_Management.driver-list'
+    )->name('driver-list');
 
 
     /*
@@ -535,6 +606,7 @@ Route::middleware('auth')->group(function () {
             )->name('mechanic-attendance.import');
         });
 
+
     Route::redirect(
         '/available-mechanics',
         '/mechanic-attendance'
@@ -543,47 +615,74 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Bus Master List
-    |--------------------------------------------------------------------------
-    */
-
-    Route::controller(BusController::class)
-        ->prefix('bus-master-list')
-        ->group(function () {
-
-            Route::get('/', 'index')
-                ->name('bus-master-list');
-
-            Route::post('/', 'store')
-                ->name('bus-master-list.store');
-
-            Route::post(
-                '/import',
-                'import'
-            )->name('bus-master-list.import');
-
-            Route::put(
-                '/{bus}',
-                'update'
-            )->name('bus-master-list.update');
-
-            Route::delete(
-                '/{bus}',
-                'destroy'
-            )->name('bus-master-list.destroy');
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Operation Settings
+    | Routes & Stops
     |--------------------------------------------------------------------------
     */
 
     Route::view(
-        '/operation/settings',
-        'Operation.settings'
-    )->name('operation.settings');
+        '/operation/routes',
+        'Operation.Routes.routes-stops'
+    )->name('operation.routes');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduling & Dispatch - Trip Schedule
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/operation/trip-schedule',
+        'Operation.Scheduling_And_Dispatch.trip-schedule'
+    )->name('trip-schedule');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduling & Dispatch - Driver & Bus Assignment
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/operation/driver-bus-assignment',
+        'Operation.Scheduling_And_Dispatch.driver-bus-assignment'
+    )->name('driver-bus-assignment');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduling & Dispatch - Auto Dispatch
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/operation/auto-dispatch',
+        'Operation.Scheduling_And_Dispatch.auto-dispatch'
+    )->name('auto-dispatch');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Backward Compatibility - Old Auto Scheduling URL
+    |--------------------------------------------------------------------------
+    */
+
+    Route::redirect(
+        '/operation/auto-scheduling',
+        '/operation/auto-dispatch'
+    )->name('auto-scheduling');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Trip Records
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/operation/trip-records',
+        'Operation.Trip_Records.trip-records'
+    )->name('trip-records');
 
 
     /*
@@ -606,13 +705,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | USER MANAGEMENT
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Users
+    | USER MANAGEMENT - Users
     |--------------------------------------------------------------------------
     */
 
@@ -650,7 +743,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Roles & Permissions
+    | USER MANAGEMENT - Roles & Permissions
     |--------------------------------------------------------------------------
     */
 
@@ -662,7 +755,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Account Requests
+    | USER MANAGEMENT - Account Requests
     |--------------------------------------------------------------------------
     */
 
@@ -674,13 +767,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | SYSTEM MONITORING
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Activity Logs
+    | SYSTEM MONITORING - Activity Logs
     |--------------------------------------------------------------------------
     */
 
@@ -692,7 +779,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Notifications
+    | SYSTEM MONITORING - Notifications
     |--------------------------------------------------------------------------
     */
 
@@ -704,13 +791,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | DATA MANAGEMENT
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Batch File Processing
+    | DATA MANAGEMENT - Batch File Processing
     |--------------------------------------------------------------------------
     */
 
@@ -755,7 +836,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Batch File Processing
+    | Admin Batch File Processing Shortcut
     |--------------------------------------------------------------------------
     */
 
@@ -767,7 +848,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Import / Export
+    | DATA MANAGEMENT - Import / Export
     |--------------------------------------------------------------------------
     */
 
@@ -779,7 +860,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Data History
+    | DATA MANAGEMENT - Data History
     |--------------------------------------------------------------------------
     */
 
@@ -795,21 +876,51 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::view(
+    Route::redirect(
         '/analytics',
-        'Admin.Analytics.analytics'
+        '/analytics/overview'
     )->name('analytics');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN SETTINGS
-    |--------------------------------------------------------------------------
-    */
+    Route::view(
+        '/analytics/overview',
+        'Admin.Analytics.overview'
+    )->name('analytics.overview');
+
+
+    Route::view(
+        '/analytics/fleet-trip',
+        'Admin.Analytics.fleet-trip'
+    )->name('analytics.fleet-trip');
+
+
+    Route::view(
+        '/analytics/fuel',
+        'Admin.Analytics.fuel'
+    )->name('analytics.fuel');
+
+
+    Route::view(
+        '/analytics/bus-health',
+        'Admin.Analytics.bus-health'
+    )->name('analytics.bus-health');
+
+
+    Route::view(
+        '/analytics/inventory',
+        'Admin.Analytics.inventory'
+    )->name('analytics.inventory');
+
+
+    Route::view(
+        '/analytics/recommendations',
+        'Admin.Analytics.recommendations'
+    )->name('analytics.recommendations');
+
 
     /*
     |--------------------------------------------------------------------------
-    | General Settings
+    | ADMIN SETTINGS - General
     |--------------------------------------------------------------------------
     */
 
@@ -821,7 +932,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Notification Settings
+    | ADMIN SETTINGS - Notifications
     |--------------------------------------------------------------------------
     */
 
@@ -833,7 +944,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Security Settings
+    | ADMIN SETTINGS - Security
     |--------------------------------------------------------------------------
     */
 

@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - Driver Attendance"
   :assets="[
-    'resources/css/Operation/Attendance/driver-attendance.css'
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
+    'resources/css/Operation/Attendance/driver-attendance.css',
+    'resources/js/Main-js/sidebar.js',
   ]"
 >
 

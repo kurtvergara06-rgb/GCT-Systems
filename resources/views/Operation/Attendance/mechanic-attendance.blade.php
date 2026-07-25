@@ -3,7 +3,7 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Operation/Attendance/driver-attendance.css',
+    'resources/css/Operation/Attendance/mechanic-attendance.css',
     'resources/js/Operation/mechanic-attendance.js'
   ]"
 >

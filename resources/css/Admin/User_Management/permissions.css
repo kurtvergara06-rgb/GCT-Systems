@@ -7,7 +7,7 @@
   background: #ffffff;
   border: 1px solid #dce5f2;
   border-radius: 18px;
-  padding: 18px;
+  padding: 24px;
   margin-top: 18px;
   box-shadow: 0 14px 34px rgba(12, 35, 68, 0.08);
 }
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 18px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .permission-card-header h2 {
@@ -31,9 +31,13 @@
 .permission-card-header p {
   margin: 5px 0 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
+
+/* =========================================================
+   LEGEND
+========================================================= */
 
 .permission-legend {
   display: flex;
@@ -64,19 +68,24 @@
   color: #64748b;
 }
 
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
 .permission-table-wrap {
   width: 100%;
   overflow-x: auto;
+  padding: 10px;
   border: 1px solid #dce5f2;
-  border-radius: 12px;
+  border-radius: 16px;
+  background: #ffffff;
 }
 
 .permission-table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 1220px;
   border-collapse: collapse;
   table-layout: fixed;
-  overflow: hidden;
   background: #ffffff;
 }
 
@@ -98,28 +107,36 @@
 }
 
 .permission-table th {
-  height: 42px;
-  padding: 8px;
+  height: 50px;
+  padding: 12px 14px;
+  color: #0b2344;
+  background: #ffffff;
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
-  color: #0b2344;
-  background: #ffffff;
 }
 
 .permission-table td {
-  height: 44px;
-  padding: 8px;
+  height: 52px;
+  padding: 12px 14px;
   color: #0f172a;
   font-size: 12px;
+}
+
+.permission-table tbody tr {
+  transition: background-color 0.18s ease;
 }
 
 .permission-table tbody tr:hover {
   background: #f8fbff;
 }
 
+/* =========================================================
+   ROLE COLUMN
+========================================================= */
+
 .role-header {
-  width: 150px;
+  width: 165px;
   text-align: left !important;
   padding-left: 18px !important;
   background: #ffffff !important;
@@ -127,15 +144,23 @@
 
 .role-cell {
   text-align: left !important;
-  padding-left: 14px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
   background: #ffffff;
 }
 
+/* =========================================================
+   MODULE HEADERS
+========================================================= */
+
 .module-header {
-  height: 44px !important;
-  font-size: 12px !important;
-  letter-spacing: 0.02em;
+  height: 50px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
   color: #0b2344 !important;
+  font-size: 12px !important;
+  font-weight: 900;
+  letter-spacing: 0.02em;
 }
 
 .module-header.shuttle {
@@ -159,16 +184,23 @@
 }
 
 .permission-action-row th {
-  height: 38px;
+  height: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   color: #0b2344;
-  font-size: 10px;
   background: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
 }
 
+/* =========================================================
+   ROLE BADGES
+========================================================= */
+
 .role-badge {
-  min-width: 122px;
-  height: 28px;
-  padding: 0 12px;
+  min-width: 136px;
+  height: 32px;
+  padding: 0 14px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
@@ -199,6 +231,23 @@
   background: #dcfce7;
 }
 
+.role-badge.purchase-head {
+  background: #dbeafe;
+}
+
+.role-badge.purchase-staff {
+  background: #e0e7ff;
+}
+
+.role-badge.warehouse-head {
+  background: #fbcfe8;
+}
+
+.role-badge.warehouse-staff {
+  background: #fae8ff;
+}
+
+/* Backward compatibility if your Blade still uses purchasing-* temporarily */
 .role-badge.purchasing-head {
   background: #dbeafe;
 }
@@ -207,23 +256,19 @@
   background: #e0e7ff;
 }
 
-.role-badge.warehouse-head {
-  background: #fce7f3;
-}
-
-.role-badge.warehouse-staff {
-  background: #fae8ff;
-}
+/* =========================================================
+   PERMISSION ICONS
+========================================================= */
 
 .permission-check,
 .permission-deny {
-  width: 18px;
-  height: 18px;
+  width: 21px;
+  height: 21px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -239,8 +284,48 @@
   color: #64748b;
 }
 
+.permission-table th:not(.role-header),
+.permission-table td:not(.role-cell) {
+  min-width: 74px;
+}
+
+/* =========================================================
+   RBAC NOTE
+========================================================= */
+
+.permission-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.permission-note-title {
+  margin: 0 0 8px;
+  color: #0b40b5;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.permission-note-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.permission-note-list strong {
+  color: #0f172a;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
 .admin-footer {
-  margin-top: 40px;
+  margin-top: 48px;
   padding: 16px 0;
   text-align: center;
   color: #64748b;
@@ -248,119 +333,9 @@
   border-top: 1px solid #dce5f2;
 }
 
-@media (max-width: 1100px) {
-  .permission-card-header {
-    flex-direction: column;
-  }
-
-  .permission-legend {
-    flex-wrap: wrap;
-  }
-}
-
-/* Final polish for Permissions page */
-
-.permission-card {
-  padding: 20px;
-}
-
-.permission-table td {
-  height: 48px;
-}
-
-.permission-table th {
-  height: 44px;
-}
-
-.permission-check,
-.permission-deny {
-  width: 19px;
-  height: 19px;
-}
-
-.role-badge {
-  height: 30px;
-}
-
-.permission-table-wrap {
-  border-radius: 14px;
-}
-
-.permission-card-header {
-  margin-bottom: 20px;
-}
-
-.admin-footer {
-  margin-top: 34px;
-}
-
 /* =========================================================
-   PERMISSIONS TABLE SPACING FIX
-   Makes the matrix less compressed / less dikit-dikit
+   SCROLLBAR
 ========================================================= */
-
-.permission-card {
-  padding: 24px;
-}
-
-.permission-card-header {
-  margin-bottom: 24px;
-}
-
-.permission-table-wrap {
-  padding: 10px;
-  background: #ffffff;
-  border-radius: 16px;
-}
-
-.permission-table {
-  border-spacing: 0;
-}
-
-.permission-table th {
-  height: 50px;
-  padding: 12px 14px;
-}
-
-.permission-table td {
-  height: 52px;
-  padding: 12px 14px;
-}
-
-.module-header {
-  height: 50px !important;
-  padding-top: 14px !important;
-  padding-bottom: 14px !important;
-}
-
-.permission-action-row th {
-  height: 44px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.role-cell {
-  padding-left: 18px !important;
-  padding-right: 18px !important;
-}
-
-.role-badge {
-  min-width: 136px;
-  height: 32px;
-  padding: 0 14px;
-}
-
-.permission-check,
-.permission-deny {
-  width: 21px;
-  height: 21px;
-  font-size: 11px;
-}
-
-.permission-table th:not(.role-header),
-.permission-table td:not(.role-cell) {
-  min-width: 74px;
-}
 
 .permission-table-wrap::-webkit-scrollbar {
   height: 8px;
@@ -376,6 +351,42 @@
   border-radius: 999px;
 }
 
-.admin-footer {
-  margin-top: 48px;
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+  .permission-card-header {
+    flex-direction: column;
+  }
+
+  .permission-legend {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .permission-card {
+    padding: 14px;
+  }
+
+  .permission-card-header {
+    margin-bottom: 16px;
+  }
+
+  .permission-table-wrap {
+    padding: 6px;
+  }
+
+  .permission-note {
+    padding: 12px;
+  }
+}
+
+.permission-note-title {
+    font-size: 12px;
+}
+
+.permission-note-list {
+    font-size: 12px;
 }

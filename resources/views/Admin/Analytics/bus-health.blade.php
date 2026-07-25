@@ -1,972 +1,872 @@
-<x-layout.app :assets="[
-    'resources/css/Admin/Analytics/bus-health.css',
-]">
+<x-layout.app
+    title="FROMS - Bus Health Analytics"
+    :assets="[
+        'resources/css/Main-styles/main.css',
+        'resources/css/Main-styles/sidebar.css',
+        'resources/css/Admin/Analytics/bus-health.css',
+        'resources/js/Main-js/sidebar.js'
+    ]"
+>
+    <div class="app">
 
-    {{-- =====================================================
-        ADMIN SIDEBAR
-    ====================================================== --}}
-    <x-layout.sidebar
-        department="Admin"
-        subtitle="Administration Module"
-        icon="fa-user-shield"
-        :items="[
-            [
-                'label' => 'Dashboard',
-                'route' => 'admin.dashboard',
-                'icon' => 'fa-table-cells-large'
-            ],
+        <x-layout.sidebar
+            department="Admin"
+            subtitle="Administration Module"
+            icon="fa-user-shield"
+            :items="[
+                [
+                    'label' => 'Dashboard',
+                    'route' => 'admin.dashboard',
+                    'icon' => 'fa-table-cells-large'
+                ],
 
-            [
-                'label' => 'User Management',
-                'icon' => 'fa-users',
-                'children' => [
-                    [
-                        'label' => 'Users',
-                        'route' => 'admin.users',
-                        'icon' => 'fa-user'
-                    ],
-                    [
-                        'label' => 'Roles & Permissions',
-                        'route' => 'admin.roles-permissions',
-                        'icon' => 'fa-user-lock'
-                    ],
-                    [
-                        'label' => 'Account Requests',
-                        'route' => 'admin.account-requests',
-                        'icon' => 'fa-user-clock'
-                    ],
-                ]
-            ],
+                [
+                    'label' => 'User Management',
+                    'icon' => 'fa-users',
+                    'children' => [
+                        [
+                            'label' => 'Users',
+                            'route' => 'admin.users',
+                            'icon' => 'fa-user'
+                        ],
+                        [
+                            'label' => 'Roles & Permissions',
+                            'route' => 'admin.roles-permissions',
+                            'icon' => 'fa-user-lock'
+                        ],
+                        [
+                            'label' => 'Account Requests',
+                            'route' => 'admin.account-requests',
+                            'icon' => 'fa-user-clock'
+                        ],
+                    ]
+                ],
 
-            [
-                'label' => 'System Monitoring',
-                'icon' => 'fa-desktop',
-                'children' => [
-                    [
-                        'label' => 'Activity Logs',
-                        'route' => 'admin.activity-logs',
-                        'icon' => 'fa-clock-rotate-left'
-                    ],
-                    [
-                        'label' => 'Notifications',
-                        'route' => 'admin.notifications',
-                        'icon' => 'fa-bell'
-                    ],
-                ]
-            ],
+                [
+                    'label' => 'System Monitoring',
+                    'icon' => 'fa-desktop',
+                    'children' => [
+                        [
+                            'label' => 'Activity Logs',
+                            'route' => 'admin.activity-logs',
+                            'icon' => 'fa-clock-rotate-left'
+                        ],
+                        [
+                            'label' => 'Notifications',
+                            'route' => 'admin.notifications',
+                            'icon' => 'fa-bell'
+                        ],
+                    ]
+                ],
 
-            [
-                'label' => 'Data Management',
-                'icon' => 'fa-database',
-                'children' => [
-                    [
-                        'label' => 'Batch File Processing',
-                        'route' => 'admin.batch-file-processing',
-                        'icon' => 'fa-file-import'
-                    ],
-                    [
-                        'label' => 'Import / Export',
-                        'route' => 'admin.import-export',
-                        'icon' => 'fa-right-left'
-                    ],
-                    [
-                        'label' => 'Data History',
-                        'route' => 'admin.data-history',
-                        'icon' => 'fa-clock-rotate-left'
-                    ],
-                ]
-            ],
+                [
+                    'label' => 'Data Management',
+                    'icon' => 'fa-database',
+                    'children' => [
+                        [
+                            'label' => 'Batch File Processing',
+                            'route' => 'admin.batch-file-processing',
+                            'icon' => 'fa-file-import'
+                        ],
+                        [
+                            'label' => 'Import / Export',
+                            'route' => 'admin.import-export',
+                            'icon' => 'fa-right-left'
+                        ],
+                        [
+                            'label' => 'Data History',
+                            'route' => 'admin.data-history',
+                            'icon' => 'fa-clock-rotate-left'
+                        ],
+                    ]
+                ],
 
-            [
-                'label' => 'Analytics',
-                'icon' => 'fa-chart-line',
-                'children' => [
-                    [
-                        'label' => 'Overview',
-                        'route' => 'analytics.overview',
-                        'icon' => 'fa-chart-pie'
-                    ],
-                    [
-                        'label' => 'Fleet & Trip',
-                        'route' => 'analytics.fleet-trip',
-                        'icon' => 'fa-route'
-                    ],
-                    [
-                        'label' => 'Fuel',
-                        'route' => 'analytics.fuel',
-                        'icon' => 'fa-gas-pump'
-                    ],
-                    [
-                        'label' => 'Bus Health',
-                        'route' => 'analytics.bus-health',
-                        'icon' => 'fa-heart-pulse'
-                    ],
-                    [
-                        'label' => 'Inventory',
-                        'route' => 'analytics.inventory',
-                        'icon' => 'fa-boxes-stacked'
-                    ],
-                    [
-                        'label' => 'Recommendations',
-                        'route' => 'analytics.recommendations',
-                        'icon' => 'fa-lightbulb'
-                    ],
-                ]
-            ],
+                [
+                    'label' => 'Analytics',
+                    'icon' => 'fa-chart-line',
+                    'children' => [
+                        [
+                            'label' => 'Overview',
+                            'route' => 'analytics.overview',
+                            'icon' => 'fa-chart-pie'
+                        ],
+                        [
+                            'label' => 'Fleet & Trip',
+                            'route' => 'analytics.fleet-trip',
+                            'icon' => 'fa-route'
+                        ],
+                        [
+                            'label' => 'Fuel',
+                            'route' => 'analytics.fuel',
+                            'icon' => 'fa-gas-pump'
+                        ],
+                        [
+                            'label' => 'Bus Health',
+                            'route' => 'analytics.bus-health',
+                            'icon' => 'fa-heart-pulse'
+                        ],
+                        [
+                            'label' => 'Inventory',
+                            'route' => 'analytics.inventory',
+                            'icon' => 'fa-boxes-stacked'
+                        ],
+                        [
+                            'label' => 'Recommendations',
+                            'route' => 'analytics.recommendations',
+                            'icon' => 'fa-lightbulb'
+                        ],
+                    ]
+                ],
 
-            [
-                'label' => 'Settings',
-                'icon' => 'fa-gear',
-                'children' => [
-                    [
-                        'label' => 'General Settings',
-                        'route' => 'admin.settings.general',
-                        'icon' => 'fa-sliders'
-                    ],
-                    [
-                        'label' => 'Notification Settings',
-                        'route' => 'admin.settings.notifications',
-                        'icon' => 'fa-bell'
-                    ],
-                    [
-                        'label' => 'Security Settings',
-                        'route' => 'admin.settings.security',
-                        'icon' => 'fa-shield-halved'
-                    ],
-                ]
-            ],
-        ]"
-    />
+                [
+                    'label' => 'Settings',
+                    'icon' => 'fa-gear',
+                    'children' => [
+                        [
+                            'label' => 'General Settings',
+                            'route' => 'admin.settings.general',
+                            'icon' => 'fa-sliders'
+                        ],
+                        [
+                            'label' => 'Notification Settings',
+                            'route' => 'admin.settings.notifications',
+                            'icon' => 'fa-bell'
+                        ],
+                        [
+                            'label' => 'Security Settings',
+                            'route' => 'admin.settings.security',
+                            'icon' => 'fa-shield-halved'
+                        ],
+                    ]
+                ],
+            ]"
+        />
 
-    {{-- =====================================================
-        PAGE CONTENT
-    ====================================================== --}}
-    <main class="bus-health-page">
+        <main class="main bus-health-page">
 
-        {{-- Header --}}
-        <div class="page-header">
-            <div>
-                <div class="page-title-row">
-                    <div class="page-title-icon">
+            <x-layout.topbar
+                title="Bus Health Analytics"
+                subtitle="Monitor PMS mileage, maintenance pressure, recurring issues, and shuttle health priorities"
+                notification-count="6"
+            />
+
+
+            {{-- =====================================================
+                MAINTENANCE READINESS HERO
+            ====================================================== --}}
+            <section class="health-hero">
+
+                <div class="health-hero-copy">
+
+                    <span class="health-hero-eyebrow">
                         <i class="fa-solid fa-heart-pulse"></i>
-                    </div>
+                        Maintenance Readiness
+                    </span>
 
-                    <div>
-                        <h1>Bus Health Analytics</h1>
-                        <p>
-                            Monitor fleet condition, accumulated mileage,
-                            preventive maintenance schedules, and maintenance alerts.
-                        </p>
-                    </div>
-                </div>
-            </div>
+                    <h2>
+                        One bus has crossed its PMS threshold while several units are approaching service range.
+                    </h2>
 
-            <div class="header-actions">
-                <select class="period-filter">
-                    <option>Current Fleet Status</option>
-                    <option>Last 7 Days</option>
-                    <option>Last 30 Days</option>
-                    <option>This Year</option>
-                </select>
-
-                <button type="button" class="export-btn">
-                    <i class="fa-solid fa-download"></i>
-                    Export Report
-                </button>
-            </div>
-        </div>
-
-
-        {{-- =================================================
-            SUMMARY CARDS
-        ================================================== --}}
-        <section class="summary-grid">
-
-            <div class="summary-card">
-                <div class="summary-icon blue">
-                    <i class="fa-solid fa-bus"></i>
-                </div>
-
-                <div class="summary-content">
-                    <span>Total Shuttle Buses</span>
-                    <h2>18</h2>
-                    <small>Registered fleet units</small>
-                </div>
-            </div>
-
-
-            <div class="summary-card">
-                <div class="summary-icon green">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-
-                <div class="summary-content">
-                    <span>Operational</span>
-                    <h2>14</h2>
-                    <small>Currently available</small>
-                </div>
-            </div>
-
-
-            <div class="summary-card">
-                <div class="summary-icon orange">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
-                </div>
-
-                <div class="summary-content">
-                    <span>Approaching PMS</span>
-                    <h2>3</h2>
-                    <small>Maintenance due soon</small>
-                </div>
-            </div>
-
-
-            <div class="summary-card">
-                <div class="summary-icon red">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-
-                <div class="summary-content">
-                    <span>Maintenance Alerts</span>
-                    <h2>2</h2>
-                    <small>Require attention</small>
-                </div>
-            </div>
-
-        </section>
-
-
-        {{-- =================================================
-            FLEET CONDITION
-        ================================================== --}}
-        <section class="content-card">
-
-            <div class="section-header">
-                <div>
-                    <h2>Fleet Health Overview</h2>
                     <p>
-                        Current condition and preventive maintenance status
-                        of each shuttle bus.
+                        Mileage-based monitoring identifies BUS-015 as the immediate priority.
+                        BUS-012 and BUS-007 should be considered when planning upcoming preventive
+                        maintenance activities.
                     </p>
-                </div>
 
-                <div class="legend">
-                    <span>
-                        <i class="legend-dot operational"></i>
-                        Operational
-                    </span>
+                    <div class="hero-alert-row">
 
-                    <span>
-                        <i class="legend-dot warning"></i>
-                        PMS Soon
-                    </span>
-
-                    <span>
-                        <i class="legend-dot critical"></i>
-                        Attention
-                    </span>
-                </div>
-            </div>
-
-
-            <div class="toolbar">
-
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input
-                        type="text"
-                        placeholder="Search bus number or plate number..."
-                    >
-                </div>
-
-                <select>
-                    <option>All Statuses</option>
-                    <option>Operational</option>
-                    <option>Under Maintenance</option>
-                    <option>For Inspection</option>
-                    <option>Inactive</option>
-                </select>
-
-                <select>
-                    <option>All PMS Status</option>
-                    <option>Normal</option>
-                    <option>Due Soon</option>
-                    <option>Overdue</option>
-                </select>
-
-            </div>
-
-
-            <div class="table-wrapper">
-                <table class="health-table">
-
-                    <thead>
-                        <tr>
-                            <th>BUS</th>
-                            <th>OPERATIONAL STATUS</th>
-                            <th>CURRENT MILEAGE</th>
-                            <th>NEXT PMS</th>
-                            <th>REMAINING</th>
-                            <th>PMS FORECAST</th>
-                            <th>HEALTH STATUS</th>
-                            <th>ACTION</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {{-- Bus 1 --}}
-                        <tr>
-                            <td>
-                                <div class="bus-cell">
-                                    <div class="bus-icon">
-                                        <i class="fa-solid fa-bus-simple"></i>
-                                    </div>
-
-                                    <div>
-                                        <strong>ABC-1234</strong>
-                                        <span>Toyota Coaster</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="status-badge operational">
-                                    Operational
-                                </span>
-                            </td>
-
-                            <td>
-                                <strong>24,350 km</strong>
-                            </td>
-
-                            <td>
-                                <strong>25,000 km</strong>
-                            </td>
-
-                            <td>
-                                <span class="remaining warning-text">
-                                    650 km
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="forecast-cell">
-                                    <strong>~7 days</strong>
-                                    <span>Based on recent mileage</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="health-badge warning">
-                                    <i class="fa-solid fa-triangle-exclamation"></i>
-                                    PMS Soon
-                                </span>
-                            </td>
-
-                            <td>
-                                <button type="button" class="table-action">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        {{-- Bus 2 --}}
-                        <tr>
-                            <td>
-                                <div class="bus-cell">
-                                    <div class="bus-icon">
-                                        <i class="fa-solid fa-bus-simple"></i>
-                                    </div>
-
-                                    <div>
-                                        <strong>DEF-5678</strong>
-                                        <span>Mitsubishi Rosa</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="status-badge operational">
-                                    Operational
-                                </span>
-                            </td>
-
-                            <td>
-                                <strong>17,220 km</strong>
-                            </td>
-
-                            <td>
-                                <strong>20,000 km</strong>
-                            </td>
-
-                            <td>
-                                <span class="remaining">
-                                    2,780 km
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="forecast-cell">
-                                    <strong>~31 days</strong>
-                                    <span>Within normal range</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="health-badge good">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                    Healthy
-                                </span>
-                            </td>
-
-                            <td>
-                                <button type="button" class="table-action">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        {{-- Bus 3 --}}
-                        <tr>
-                            <td>
-                                <div class="bus-cell">
-                                    <div class="bus-icon">
-                                        <i class="fa-solid fa-bus-simple"></i>
-                                    </div>
-
-                                    <div>
-                                        <strong>GHI-9012</strong>
-                                        <span>Isuzu Journey</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="status-badge maintenance">
-                                    Under Maintenance
-                                </span>
-                            </td>
-
-                            <td>
-                                <strong>30,420 km</strong>
-                            </td>
-
-                            <td>
-                                <strong>30,000 km</strong>
-                            </td>
-
-                            <td>
-                                <span class="remaining danger-text">
-                                    420 km overdue
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="forecast-cell">
-                                    <strong>Overdue</strong>
-                                    <span>PMS threshold exceeded</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="health-badge critical">
-                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                    Critical
-                                </span>
-                            </td>
-
-                            <td>
-                                <button type="button" class="table-action">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        {{-- Bus 4 --}}
-                        <tr>
-                            <td>
-                                <div class="bus-cell">
-                                    <div class="bus-icon">
-                                        <i class="fa-solid fa-bus-simple"></i>
-                                    </div>
-
-                                    <div>
-                                        <strong>MNO-7890</strong>
-                                        <span>Toyota Coaster</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="status-badge operational">
-                                    Operational
-                                </span>
-                            </td>
-
-                            <td>
-                                <strong>38,720 km</strong>
-                            </td>
-
-                            <td>
-                                <strong>40,000 km</strong>
-                            </td>
-
-                            <td>
-                                <span class="remaining warning-text">
-                                    1,280 km
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="forecast-cell">
-                                    <strong>~14 days</strong>
-                                    <span>Approaching threshold</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="health-badge warning">
-                                    <i class="fa-solid fa-clock"></i>
-                                    Monitor
-                                </span>
-                            </td>
-
-                            <td>
-                                <button type="button" class="table-action">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        {{-- Bus 5 --}}
-                        <tr>
-                            <td>
-                                <div class="bus-cell">
-                                    <div class="bus-icon">
-                                        <i class="fa-solid fa-bus-simple"></i>
-                                    </div>
-
-                                    <div>
-                                        <strong>JKL-3456</strong>
-                                        <span>Mitsubishi Rosa</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="status-badge inspection">
-                                    For Inspection
-                                </span>
-                            </td>
-
-                            <td>
-                                <strong>21,840 km</strong>
-                            </td>
-
-                            <td>
-                                <strong>25,000 km</strong>
-                            </td>
-
-                            <td>
-                                <span class="remaining">
-                                    3,160 km
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="forecast-cell">
-                                    <strong>~40 days</strong>
-                                    <span>PMS not yet due</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="health-badge inspection">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                    Inspection
-                                </span>
-                            </td>
-
-                            <td>
-                                <button type="button" class="table-action">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-            </div>
-
-        </section>
-
-
-        {{-- =================================================
-            ANALYTICS GRID
-        ================================================== --}}
-        <section class="analytics-grid">
-
-            {{-- Mileage / PMS --}}
-            <div class="analytics-card">
-
-                <div class="card-header">
-                    <div>
-                        <h2>PMS Mileage Monitoring</h2>
-                        <p>
-                            Distance remaining before the next preventive maintenance threshold.
-                        </p>
-                    </div>
-
-                    <div class="card-icon blue">
-                        <i class="fa-solid fa-gauge-high"></i>
-                    </div>
-                </div>
-
-
-                <div class="mileage-list">
-
-                    <div class="mileage-item">
-                        <div class="mileage-top">
-                            <div>
-                                <strong>ABC-1234</strong>
-                                <span>24,350 / 25,000 km</span>
-                            </div>
-
-                            <strong class="warning-text">97%</strong>
-                        </div>
-
-                        <div class="progress">
-                            <div
-                                class="progress-bar warning"
-                                style="width: 97%;"
-                            ></div>
-                        </div>
-                    </div>
-
-
-                    <div class="mileage-item">
-                        <div class="mileage-top">
-                            <div>
-                                <strong>MNO-7890</strong>
-                                <span>38,720 / 40,000 km</span>
-                            </div>
-
-                            <strong class="warning-text">97%</strong>
-                        </div>
-
-                        <div class="progress">
-                            <div
-                                class="progress-bar warning"
-                                style="width: 97%;"
-                            ></div>
-                        </div>
-                    </div>
-
-
-                    <div class="mileage-item">
-                        <div class="mileage-top">
-                            <div>
-                                <strong>DEF-5678</strong>
-                                <span>17,220 / 20,000 km</span>
-                            </div>
-
-                            <strong>86%</strong>
-                        </div>
-
-                        <div class="progress">
-                            <div
-                                class="progress-bar normal"
-                                style="width: 86%;"
-                            ></div>
-                        </div>
-                    </div>
-
-
-                    <div class="mileage-item">
-                        <div class="mileage-top">
-                            <div>
-                                <strong>GHI-9012</strong>
-                                <span>30,420 / 30,000 km</span>
-                            </div>
-
-                            <strong class="danger-text">Overdue</strong>
-                        </div>
-
-                        <div class="progress">
-                            <div
-                                class="progress-bar critical"
-                                style="width: 100%;"
-                            ></div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            {{-- Maintenance indicators --}}
-            <div class="analytics-card">
-
-                <div class="card-header">
-                    <div>
-                        <h2>Maintenance Indicators</h2>
-                        <p>
-                            Buses that require closer monitoring based on
-                            maintenance records and current condition.
-                        </p>
-                    </div>
-
-                    <div class="card-icon orange">
-                        <i class="fa-solid fa-screwdriver-wrench"></i>
-                    </div>
-                </div>
-
-
-                <div class="risk-list">
-
-                    <div class="risk-item critical">
-                        <div class="risk-icon">
+                        <div class="hero-alert critical">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
 
-                        <div class="risk-content">
-                            <div class="risk-title">
-                                <strong>GHI-9012</strong>
-                                <span class="risk-level critical">Critical</span>
+                            <div>
+                                <span>Immediate Review</span>
+                                <strong>BUS-015</strong>
                             </div>
-
-                            <p>
-                                PMS threshold exceeded by 420 km and vehicle is
-                                currently under maintenance.
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <div class="risk-item warning">
-                        <div class="risk-icon">
-                            <i class="fa-solid fa-clock"></i>
                         </div>
 
-                        <div class="risk-content">
-                            <div class="risk-title">
-                                <strong>ABC-1234</strong>
-                                <span class="risk-level warning">High</span>
+                        <div class="hero-alert warning">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+
+                            <div>
+                                <span>PMS Approaching</span>
+                                <strong>4 Buses</strong>
                             </div>
-
-                            <p>
-                                Only 650 km remaining before the next scheduled
-                                preventive maintenance threshold.
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <div class="risk-item warning">
-                        <div class="risk-icon">
-                            <i class="fa-solid fa-gauge-high"></i>
                         </div>
 
-                        <div class="risk-content">
-                            <div class="risk-title">
-                                <strong>MNO-7890</strong>
-                                <span class="risk-level warning">Monitor</span>
+                        <div class="hero-alert good">
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <div>
+                                <span>Operational</span>
+                                <strong>18 Buses</strong>
                             </div>
-
-                            <p>
-                                Projected to reach its next PMS threshold within
-                                approximately two weeks.
-                            </p>
                         </div>
+
                     </div>
 
                 </div>
 
-            </div>
 
-        </section>
+                <div class="health-hero-status">
+
+                    <div class="readiness-gauge">
+
+                        <div class="readiness-inner">
+                            <strong>82%</strong>
+                            <span>Fleet Maintenance Readiness</span>
+                        </div>
+
+                    </div>
+
+                    <div class="readiness-caption">
+
+                        <span class="readiness-state">
+                            <i class="fa-solid fa-circle"></i>
+                            Attention Required
+                        </span>
+
+                        <p>
+                            Based on PMS thresholds and current maintenance status.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
 
 
-        {{-- =================================================
-            MAINTENANCE ALERTS
-        ================================================== --}}
-        <section class="content-card alerts-section">
+            {{-- =====================================================
+                HEALTH KPIs
+            ====================================================== --}}
+            <section class="stats-grid health-summary-grid">
 
-            <div class="section-header">
+                <x-ui.summary-card
+                    label="Operational Buses"
+                    value="18"
+                    small="Currently available for operation"
+                    icon="fa-bus"
+                    color="green"
+                />
+
+                <x-ui.summary-card
+                    label="PMS Attention"
+                    value="4"
+                    small="Buses nearing service threshold"
+                    icon="fa-screwdriver-wrench"
+                    color="yellow"
+                />
+
+                <x-ui.summary-card
+                    label="Threshold Reached"
+                    value="1"
+                    small="Requires immediate review"
+                    icon="fa-triangle-exclamation"
+                    color="red"
+                />
+
+                <x-ui.summary-card
+                    label="Under Maintenance"
+                    value="3"
+                    small="Currently unavailable units"
+                    icon="fa-wrench"
+                    color="blue"
+                />
+
+            </section>
+
+
+            {{-- =====================================================
+                FILTER
+            ====================================================== --}}
+            <section class="health-filter-bar">
+
                 <div>
-                    <h2>Maintenance Alerts & Recommendations</h2>
+                    <span class="section-kicker">
+                        Maintenance Monitoring
+                    </span>
+
+                    <h2>Fleet Health Monitor</h2>
+
                     <p>
-                        Prescriptive actions generated from mileage thresholds
-                        and fleet maintenance conditions.
+                        Evaluate shuttle condition using accumulated mileage and maintenance records.
                     </p>
                 </div>
 
-                <span class="alerts-count">
-                    3 Active Alerts
-                </span>
-            </div>
+                <div class="health-filters">
+
+                    <select>
+                        <option>All Health Status</option>
+                        <option>Healthy</option>
+                        <option>PMS Soon</option>
+                        <option>Threshold Reached</option>
+                        <option>Under Maintenance</option>
+                    </select>
+
+                    <select>
+                        <option>All Buses</option>
+                        <option>BUS-003</option>
+                        <option>BUS-007</option>
+                        <option>BUS-012</option>
+                        <option>BUS-015</option>
+                        <option>BUS-018</option>
+                    </select>
+
+                </div>
+
+            </section>
 
 
-            <div class="recommendations-grid">
+            {{-- =====================================================
+                PMS MILEAGE RUNWAY
+            ====================================================== --}}
+            @php
+                $pmsBuses = [
+                    [
+                        'bus' => 'BUS-015',
+                        'mileage' => 50240,
+                        'threshold' => 50000,
+                        'remaining' => '240 km over',
+                        'progress' => 100,
+                        'status' => 'Threshold Reached',
+                        'class' => 'critical',
+                    ],
+                    [
+                        'bus' => 'BUS-012',
+                        'mileage' => 48420,
+                        'threshold' => 50000,
+                        'remaining' => '1,580 km left',
+                        'progress' => 96.84,
+                        'status' => 'PMS Soon',
+                        'class' => 'warning',
+                    ],
+                    [
+                        'bus' => 'BUS-007',
+                        'mileage' => 47980,
+                        'threshold' => 50000,
+                        'remaining' => '2,020 km left',
+                        'progress' => 95.96,
+                        'status' => 'PMS Soon',
+                        'class' => 'warning',
+                    ],
+                    [
+                        'bus' => 'BUS-018',
+                        'mileage' => 44510,
+                        'threshold' => 50000,
+                        'remaining' => '5,490 km left',
+                        'progress' => 89.02,
+                        'status' => 'Healthy',
+                        'class' => 'healthy',
+                    ],
+                    [
+                        'bus' => 'BUS-003',
+                        'mileage' => 41280,
+                        'threshold' => 50000,
+                        'remaining' => '8,720 km left',
+                        'progress' => 82.56,
+                        'status' => 'Healthy',
+                        'class' => 'healthy',
+                    ],
+                ];
+            @endphp
 
-                <article class="recommendation-card critical">
+            <section class="pms-runway-panel">
 
-                    <div class="recommendation-icon">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
+                <div class="panel-heading">
 
-                    <div class="recommendation-content">
-                        <div class="recommendation-header">
-                            <div>
-                                <span class="recommendation-type">
-                                    Immediate Maintenance
-                                </span>
+                    <div>
+                        <span class="section-kicker">
+                            Predictive Analytics
+                        </span>
 
-                                <h3>GHI-9012 exceeded its PMS threshold</h3>
-                            </div>
-
-                            <span class="priority critical">
-                                Critical
-                            </span>
-                        </div>
+                        <h2>PMS Mileage Runway</h2>
 
                         <p>
-                            Current mileage is 30,420 km while the scheduled PMS
-                            threshold is 30,000 km.
+                            See how close priority shuttle units are to their configured
+                            50,000 km preventive maintenance threshold.
                         </p>
+                    </div>
 
-                        <div class="recommended-action">
-                            <i class="fa-solid fa-lightbulb"></i>
+                    <div class="threshold-key">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                        PMS Threshold: 50,000 km
+                    </div>
 
-                            <div>
-                                <span>Recommended Action</span>
-                                <strong>
-                                    Keep the bus unavailable for dispatch until
-                                    preventive maintenance is completed.
-                                </strong>
+                </div>
+
+
+                <div class="pms-runway-list">
+
+                    @foreach($pmsBuses as $bus)
+
+                        <div class="runway-row {{ $bus['class'] }}">
+
+                            <div class="runway-bus">
+
+                                <div class="runway-bus-icon">
+                                    <i class="fa-solid fa-bus"></i>
+                                </div>
+
+                                <div>
+                                    <strong>{{ $bus['bus'] }}</strong>
+                                    <span>{{ number_format($bus['mileage']) }} km</span>
+                                </div>
+
                             </div>
+
+
+                            <div class="runway-track-wrap">
+
+                                <div class="runway-labels">
+                                    <span>Current Mileage</span>
+                                    <strong>
+                                        {{ number_format($bus['threshold']) }} km
+                                    </strong>
+                                </div>
+
+                                <div class="runway-track">
+
+                                    <span
+                                        class="runway-fill {{ $bus['class'] }}"
+                                        style="width: {{ $bus['progress'] }}%;"
+                                    ></span>
+
+                                    <span class="threshold-marker"></span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="runway-remaining">
+
+                                <strong>
+                                    {{ $bus['remaining'] }}
+                                </strong>
+
+                                <span class="runway-status {{ $bus['class'] }}">
+                                    {{ $bus['status'] }}
+                                </span>
+
+                            </div>
+
                         </div>
+
+                    @endforeach
+
+                </div>
+
+            </section>
+
+
+            {{-- =====================================================
+                MAINTENANCE INTELLIGENCE
+            ====================================================== --}}
+            <section class="maintenance-intelligence-grid">
+
+                {{-- ATTENTION QUEUE --}}
+                <article class="maintenance-panel attention-panel">
+
+                    <div class="panel-heading compact">
+
+                        <div>
+                            <span class="section-kicker">
+                                Priority Queue
+                            </span>
+
+                            <h2>Needs Attention</h2>
+
+                            <p>
+                                Buses that should be considered first during maintenance planning.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="attention-timeline">
+
+                        <div class="attention-item critical">
+
+                            <div class="attention-marker">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+
+                            <div class="attention-content">
+
+                                <div class="attention-meta">
+                                    <span>Immediate</span>
+                                    <strong>BUS-015</strong>
+                                </div>
+
+                                <h3>PMS threshold exceeded</h3>
+
+                                <p>
+                                    Current mileage is 50,240 km. Review maintenance status
+                                    before assigning additional trips.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="attention-item warning">
+
+                            <div class="attention-marker">
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                            </div>
+
+                            <div class="attention-content">
+
+                                <div class="attention-meta">
+                                    <span>Upcoming</span>
+                                    <strong>BUS-012</strong>
+                                </div>
+
+                                <h3>1,580 km before PMS threshold</h3>
+
+                                <p>
+                                    Coordinate upcoming service with fleet and mechanic availability.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="attention-item warning">
+
+                            <div class="attention-marker">
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                            </div>
+
+                            <div class="attention-content">
+
+                                <div class="attention-meta">
+                                    <span>Upcoming</span>
+                                    <strong>BUS-007</strong>
+                                </div>
+
+                                <h3>2,020 km before PMS threshold</h3>
+
+                                <p>
+                                    Continue monitoring accumulated mileage and trip assignments.
+                                </p>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </article>
 
 
-                <article class="recommendation-card warning">
+                {{-- MAINTENANCE PATTERN --}}
+                <article class="maintenance-panel pattern-panel">
 
-                    <div class="recommendation-icon">
-                        <i class="fa-solid fa-calendar-check"></i>
+                    <div class="panel-heading compact">
+
+                        <div>
+                            <span class="section-kicker">
+                                Diagnostic Analytics
+                            </span>
+
+                            <h2>Recurring Maintenance Issues</h2>
+
+                            <p>
+                                Most frequently recorded categories in maintenance history.
+                            </p>
+                        </div>
+
                     </div>
 
-                    <div class="recommendation-content">
-                        <div class="recommendation-header">
-                            <div>
-                                <span class="recommendation-type">
-                                    PMS Scheduling
-                                </span>
 
-                                <h3>ABC-1234 is approaching PMS</h3>
+                    <div class="pattern-ranking">
+
+                        <div class="pattern-row">
+
+                            <div class="pattern-rank">01</div>
+
+                            <div class="pattern-content">
+
+                                <div class="pattern-title">
+                                    <strong>Brake System</strong>
+                                    <span>8 cases · 31%</span>
+                                </div>
+
+                                <div class="pattern-bar">
+                                    <span style="width: 100%;"></span>
+                                </div>
+
                             </div>
 
-                            <span class="priority warning">
-                                High
-                            </span>
+                        </div>
+
+
+                        <div class="pattern-row">
+
+                            <div class="pattern-rank">02</div>
+
+                            <div class="pattern-content">
+
+                                <div class="pattern-title">
+                                    <strong>Engine / Oil Service</strong>
+                                    <span>6 cases · 23%</span>
+                                </div>
+
+                                <div class="pattern-bar">
+                                    <span style="width: 74%;"></span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="pattern-row">
+
+                            <div class="pattern-rank">03</div>
+
+                            <div class="pattern-content">
+
+                                <div class="pattern-title">
+                                    <strong>Cooling System</strong>
+                                    <span>5 cases · 19%</span>
+                                </div>
+
+                                <div class="pattern-bar">
+                                    <span style="width: 61%;"></span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="pattern-row">
+
+                            <div class="pattern-rank">04</div>
+
+                            <div class="pattern-content">
+
+                                <div class="pattern-title">
+                                    <strong>Electrical</strong>
+                                    <span>4 cases · 15%</span>
+                                </div>
+
+                                <div class="pattern-bar">
+                                    <span style="width: 48%;"></span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="pattern-insight">
+
+                        <div>
+                            <i class="fa-solid fa-chart-line"></i>
                         </div>
 
                         <p>
-                            The bus has approximately 650 km remaining before
-                            reaching its 25,000 km maintenance threshold.
+                            Brake-system work currently appears most often in recorded
+                            maintenance activities and should continue to be monitored.
                         </p>
 
-                        <div class="recommended-action">
-                            <i class="fa-solid fa-lightbulb"></i>
-
-                            <div>
-                                <span>Recommended Action</span>
-                                <strong>
-                                    Schedule PMS within approximately 7 days
-                                    based on recent vehicle usage.
-                                </strong>
-                            </div>
-                        </div>
                     </div>
 
                 </article>
 
+            </section>
 
-                <article class="recommendation-card info">
 
-                    <div class="recommendation-icon">
-                        <i class="fa-solid fa-eye"></i>
-                    </div>
+            {{-- =====================================================
+                FLEET HEALTH BOARD
+            ====================================================== --}}
+            @php
+                $healthCards = [
+                    [
+                        'bus' => 'BUS-003',
+                        'mileage' => '41,280 km',
+                        'lastService' => 'Jun 28, 2026',
+                        'records' => 2,
+                        'status' => 'Healthy',
+                        'class' => 'healthy',
+                        'score' => 88,
+                    ],
+                    [
+                        'bus' => 'BUS-018',
+                        'mileage' => '44,510 km',
+                        'lastService' => 'Jun 18, 2026',
+                        'records' => 3,
+                        'status' => 'Healthy',
+                        'class' => 'healthy',
+                        'score' => 81,
+                    ],
+                    [
+                        'bus' => 'BUS-007',
+                        'mileage' => '47,980 km',
+                        'lastService' => 'May 30, 2026',
+                        'records' => 4,
+                        'status' => 'PMS Soon',
+                        'class' => 'warning',
+                        'score' => 67,
+                    ],
+                    [
+                        'bus' => 'BUS-012',
+                        'mileage' => '48,420 km',
+                        'lastService' => 'May 22, 2026',
+                        'records' => 5,
+                        'status' => 'PMS Soon',
+                        'class' => 'warning',
+                        'score' => 61,
+                    ],
+                    [
+                        'bus' => 'BUS-015',
+                        'mileage' => '50,240 km',
+                        'lastService' => 'Apr 19, 2026',
+                        'records' => 6,
+                        'status' => 'Threshold Reached',
+                        'class' => 'critical',
+                        'score' => 39,
+                    ],
+                ];
+            @endphp
 
-                    <div class="recommendation-content">
-                        <div class="recommendation-header">
-                            <div>
-                                <span class="recommendation-type">
-                                    Fleet Monitoring
-                                </span>
+            <section class="fleet-health-board">
 
-                                <h3>MNO-7890 requires closer mileage monitoring</h3>
-                            </div>
+                <div class="board-heading">
 
-                            <span class="priority info">
-                                Monitor
-                            </span>
-                        </div>
+                    <div>
+                        <span class="section-kicker">
+                            Fleet Comparison
+                        </span>
+
+                        <h2>Bus Health Board</h2>
 
                         <p>
-                            The bus has reached approximately 97% of its next
-                            scheduled PMS mileage threshold.
+                            Quick comparison of mileage, service history, and current health status.
                         </p>
-
-                        <div class="recommended-action">
-                            <i class="fa-solid fa-lightbulb"></i>
-
-                            <div>
-                                <span>Recommended Action</span>
-                                <strong>
-                                    Prepare a maintenance slot and continue
-                                    monitoring accumulated mileage.
-                                </strong>
-                            </div>
-                        </div>
                     </div>
 
-                </article>
+                    <span class="board-count">
+                        5 Priority Units
+                    </span>
 
-            </div>
-
-        </section>
+                </div>
 
 
-        {{-- =================================================
-            METHODOLOGY NOTE
-        ================================================== --}}
-        <section class="analytics-note">
-            <div class="note-icon">
-                <i class="fa-solid fa-circle-info"></i>
-            </div>
+                <div class="health-card-strip">
 
-            <div>
-                <strong>Bus Health Analytics</strong>
+                    @foreach($healthCards as $record)
 
-                <p>
-                    PMS forecasts shown on this static page represent projected
-                    maintenance timing based on accumulated mileage and recent
-                    vehicle usage. These forecasts indicate when preventive
-                    maintenance may be required and should not be interpreted as
-                    an exact prediction of vehicle breakdown.
-                </p>
-            </div>
-        </section>
+                        <article class="bus-health-card {{ $record['class'] }}">
 
-    </main>
+                            <div class="bus-health-card-top">
+
+                                <div class="health-bus-identity">
+
+                                    <div class="health-bus-icon">
+                                        <i class="fa-solid fa-bus"></i>
+                                    </div>
+
+                                    <div>
+                                        <strong>{{ $record['bus'] }}</strong>
+                                        <span>{{ $record['mileage'] }}</span>
+                                    </div>
+
+                                </div>
+
+                                <span class="health-status {{ $record['class'] }}">
+                                    {{ $record['status'] }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="health-score-block">
+
+                                <div class="health-score-number">
+                                    <strong>{{ $record['score'] }}</strong>
+                                    <span>Health Index</span>
+                                </div>
+
+                                <div class="health-score-track">
+                                    <span
+                                        class="{{ $record['class'] }}"
+                                        style="width: {{ $record['score'] }}%;"
+                                    ></span>
+                                </div>
+
+                            </div>
+
+
+                            <div class="health-card-details">
+
+                                <div>
+                                    <span>Last Service</span>
+                                    <strong>{{ $record['lastService'] }}</strong>
+                                </div>
+
+                                <div>
+                                    <span>Maintenance Records</span>
+                                    <strong>{{ $record['records'] }}</strong>
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    @endforeach
+
+                </div>
+
+            </section>
+
+
+            {{-- =====================================================
+                RECOMMENDATION
+            ====================================================== --}}
+            <section class="maintenance-recommendation">
+
+                <div class="recommendation-symbol">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+
+                <div class="recommendation-copy">
+
+                    <span>
+                        Maintenance Recommendation
+                    </span>
+
+                    <h2>
+                        Prioritize BUS-015, then prepare PMS capacity for BUS-012 and BUS-007.
+                    </h2>
+
+                    <p>
+                        Maintenance planning should consider active job orders, available mechanics,
+                        required inventory parts, and fleet availability before assigning service dates.
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ route('analytics.recommendations') }}"
+                    class="recommendation-button"
+                >
+                    View Recommendations
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+
+            </section>
+
+        </main>
+
+    </div>
 
 </x-layout.app>
