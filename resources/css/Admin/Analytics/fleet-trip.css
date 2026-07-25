@@ -1,0 +1,1560 @@
+/* =========================================================
+   ADMIN - FLEET & TRIP ANALYTICS
+========================================================= */
+
+.fleet-trip-page {
+    --ft-blue: #0b40b5;
+    --ft-blue-dark: #07338f;
+    --ft-navy: #061f3d;
+
+    --ft-text: #0f172a;
+    --ft-muted: #64748b;
+    --ft-border: #dce5f2;
+
+    --ft-green: #16a34a;
+    --ft-yellow: #f59e0b;
+    --ft-red: #dc2626;
+    --ft-purple: #7c3aed;
+
+    --ft-shadow:
+        0 4px 16px rgba(6, 31, 61, 0.07);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.fleet-trip-page .topbar {
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   TRIP HERO
+========================================================= */
+
+.trip-hero {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.45fr)
+        minmax(320px, 0.75fr);
+
+    align-items: center;
+
+    gap: 28px;
+
+    margin-bottom: 18px;
+
+    padding: 24px 26px;
+
+    border: 1px solid #c9dafc;
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            120deg,
+            #ffffff 0%,
+            #f7faff 55%,
+            #eef4ff 100%
+        );
+
+    box-shadow: var(--ft-shadow);
+}
+
+.trip-hero-label {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    margin-bottom: 9px;
+
+    color: var(--ft-blue);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 0.07em;
+
+    text-transform: uppercase;
+}
+
+.trip-hero-content h2 {
+    max-width: 760px;
+
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 24px;
+    font-weight: 800;
+
+    line-height: 1.35;
+}
+
+.trip-hero-content > p {
+    max-width: 760px;
+
+    margin: 8px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+.trip-hero-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+.trip-hero-stats > div {
+    min-width: 145px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #dbe5f2;
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.trip-hero-stats span {
+    display: block;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+.trip-hero-stats strong {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.trip-hero-stats strong.positive {
+    color: var(--ft-green);
+}
+
+
+/* =========================================================
+   HERO ROUTE
+========================================================= */
+
+.trip-hero-visual {
+    padding: 20px;
+
+    border: 1px solid #d6e2f5;
+    border-radius: 14px;
+
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.trip-route-line {
+    display: grid;
+
+    grid-template-columns:
+        34px
+        minmax(0, 1fr)
+        34px;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.route-node {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 13px;
+}
+
+.route-node.start {
+    background: #dcfce7;
+    color: var(--ft-green);
+}
+
+.route-node.finish {
+    background: #fee2e2;
+    color: var(--ft-red);
+}
+
+.route-track {
+    position: relative;
+
+    height: 6px;
+
+    border-radius: 999px;
+
+    background: #dbe5f2;
+}
+
+.route-progress {
+    position: absolute;
+
+    inset: 0 auto 0 0;
+
+    width: 72%;
+
+    border-radius: inherit;
+
+    background: var(--ft-blue);
+}
+
+.bus-marker {
+    position: absolute;
+
+    left: 66%;
+    top: 50%;
+
+    width: 34px;
+    height: 34px;
+
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+
+    background: var(--ft-blue);
+
+    color: #ffffff;
+
+    font-size: 12px;
+
+    box-shadow:
+        0 4px 10px rgba(11, 64, 181, 0.22);
+}
+
+.trip-route-meta {
+    margin-top: 22px;
+
+    text-align: center;
+}
+
+.trip-route-meta span {
+    display: block;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+.trip-route-meta strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+}
+
+.trip-route-meta small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.fleet-summary-grid {
+    gap: 14px;
+
+    margin-bottom: 18px;
+}
+
+.fleet-summary-grid .stat-card,
+.fleet-summary-grid .stat-card-link {
+    min-height: 110px;
+
+    padding: 18px 20px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 14px;
+
+    background: #ffffff;
+
+    box-shadow: var(--ft-shadow);
+
+    display: grid;
+
+    grid-template-columns:
+        46px
+        minmax(0, 1fr);
+
+    align-items: center;
+
+    gap: 13px;
+}
+
+.fleet-summary-grid .stat-icon {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 12px;
+
+    font-size: 17px;
+}
+
+.fleet-summary-grid .stat-card p,
+.fleet-summary-grid .stat-card-link p {
+    margin: 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.fleet-summary-grid .stat-card h2,
+.fleet-summary-grid .stat-card-link h2 {
+    margin: 3px 0 2px;
+
+    color: var(--ft-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+.fleet-summary-grid .stat-card small,
+.fleet-summary-grid .stat-card-link small {
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   SECTION TEXT
+========================================================= */
+
+.section-kicker {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--ft-blue);
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 0.07em;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+.fleet-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 16px;
+
+    padding: 14px 16px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 14px;
+
+    background: #ffffff;
+
+    box-shadow: var(--ft-shadow);
+}
+
+.fleet-filter-bar h2 {
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.fleet-filter-bar p {
+    margin: 3px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+}
+
+.fleet-filters {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+}
+
+.fleet-filters select {
+    min-width: 155px;
+    height: 40px;
+
+    padding: 0 34px 0 11px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--ft-text);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    outline: none;
+}
+
+.fleet-filters select:focus {
+    border-color: var(--ft-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   GENERIC PANEL
+========================================================= */
+
+.trip-panel {
+    padding: 18px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 16px;
+
+    background: #ffffff;
+
+    box-shadow: var(--ft-shadow);
+}
+
+.trip-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    margin-bottom: 16px;
+}
+
+.trip-panel-header h2 {
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.trip-panel-header p {
+    margin: 3px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   PRIMARY GRID
+========================================================= */
+
+.trip-primary-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.55fr)
+        minmax(330px, 0.75fr);
+
+    gap: 16px;
+
+    margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   TREND BADGE
+========================================================= */
+
+.trend-badge {
+    min-height: 27px;
+
+    padding: 0 9px;
+
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.trend-badge.positive {
+    background: #dcfce7;
+    color: var(--ft-green);
+}
+
+
+/* =========================================================
+   TRIP CHART
+========================================================= */
+
+.trip-chart-area {
+    height: 260px;
+
+    display: grid;
+
+    grid-template-columns:
+        34px
+        minmax(0, 1fr);
+
+    gap: 10px;
+}
+
+.chart-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    padding-bottom: 30px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+    text-align: right;
+}
+
+.trip-bars {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    align-items: end;
+
+    gap: 28px;
+
+    padding: 10px 22px 0;
+
+    border-left: 1px solid #dce5ef;
+    border-bottom: 1px solid #dce5ef;
+}
+
+.chart-grid-line {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    height: 1px;
+
+    background: #edf2f7;
+}
+
+.chart-grid-line.grid-1 {
+    top: 20%;
+}
+
+.chart-grid-line.grid-2 {
+    top: 40%;
+}
+
+.chart-grid-line.grid-3 {
+    top: 60%;
+}
+
+.chart-grid-line.grid-4 {
+    top: 80%;
+}
+
+.trip-bar-column {
+    position: relative;
+
+    z-index: 2;
+
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 6px;
+}
+
+.bar-value {
+    color: var(--ft-navy);
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.trip-bar {
+    width: min(46px, 80%);
+
+    min-height: 20px;
+
+    border-radius: 7px 7px 3px 3px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #3b75e6,
+            #0b40b5
+        );
+
+    box-shadow:
+        0 7px 15px rgba(11, 64, 181, 0.18);
+}
+
+.trip-bar-column small {
+    height: 20px;
+
+    color: var(--ft-muted);
+
+    font-size: 10px;
+}
+
+.trip-chart-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-top: 13px;
+    padding-top: 12px;
+
+    border-top: 1px solid #e7edf5;
+}
+
+.trip-chart-footer > div {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+.chart-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: var(--ft-blue);
+}
+
+.trip-chart-footer strong {
+    color: var(--ft-navy);
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   AVAILABILITY
+========================================================= */
+
+.availability-score {
+    display: flex;
+    justify-content: center;
+
+    margin: 10px 0 18px;
+}
+
+.availability-ring {
+    position: relative;
+
+    width: 160px;
+    height: 160px;
+
+    border-radius: 50%;
+
+    background:
+        conic-gradient(
+            #16a34a 0deg 295deg,
+            #e5ebf3 295deg 360deg
+        );
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.availability-ring::before {
+    content: "";
+
+    position: absolute;
+
+    width: 108px;
+    height: 108px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+}
+
+.availability-ring-center {
+    position: relative;
+
+    z-index: 2;
+
+    text-align: center;
+}
+
+.availability-ring-center strong {
+    display: block;
+
+    color: var(--ft-navy);
+
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.availability-ring-center span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+.availability-breakdown {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.availability-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+
+    background: #f8fafc;
+}
+
+.availability-row > div {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: #334155;
+
+    font-size: 12px;
+}
+
+.availability-row strong {
+    color: var(--ft-navy);
+
+    font-size: 13px;
+}
+
+.availability-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+}
+
+.availability-dot.operational {
+    background: var(--ft-green);
+}
+
+.availability-dot.maintenance {
+    background: var(--ft-yellow);
+}
+
+.availability-dot.inactive {
+    background: #94a3b8;
+}
+
+
+/* =========================================================
+   ROUTE LEADERBOARD
+========================================================= */
+
+.route-leaderboard-panel {
+    margin-bottom: 18px;
+}
+
+.period-pill,
+.diagnostic-pill {
+    min-height: 27px;
+
+    padding: 0 9px;
+
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.period-pill {
+    background: #eef4ff;
+    color: var(--ft-blue);
+}
+
+.diagnostic-pill {
+    background: #ede9fe;
+    color: var(--ft-purple);
+}
+
+.route-leaderboard {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.route-ranking {
+    display: grid;
+
+    grid-template-columns:
+        34px
+        42px
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 13px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+
+    background: #f8fafc;
+}
+
+.route-ranking.first {
+    border-color: #bdd1fb;
+
+    background: #f8fbff;
+}
+
+.ranking-number {
+    color: #94a3b8;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.route-ranking-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eaf2ff;
+
+    color: var(--ft-blue);
+
+    font-size: 14px;
+}
+
+.route-ranking-content strong {
+    display: block;
+
+    color: var(--ft-navy);
+
+    font-size: 13px;
+}
+
+.route-ranking-content > span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+}
+
+.route-ranking-progress {
+    width: 100%;
+    height: 5px;
+
+    margin-top: 7px;
+
+    border-radius: 999px;
+
+    overflow: hidden;
+
+    background: #e3eaf4;
+}
+
+.route-ranking-progress span {
+    display: block;
+
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: var(--ft-blue);
+}
+
+.route-ranking-value {
+    text-align: right;
+}
+
+.route-ranking-value strong {
+    display: block;
+
+    color: var(--ft-navy);
+
+    font-size: 13px;
+}
+
+.route-ranking-value span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-muted);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   BUS UTILIZATION
+========================================================= */
+
+.trip-utilization-section {
+    margin-bottom: 18px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 10px;
+}
+
+.section-heading h2 {
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.section-heading p {
+    margin: 3px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+}
+
+.utilization-card-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.bus-utilization-card {
+    padding: 14px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    box-shadow: var(--ft-shadow);
+}
+
+.bus-utilization-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 8px;
+}
+
+.bus-identity {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.bus-icon {
+    width: 36px;
+    height: 36px;
+
+    flex: 0 0 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background: #eaf2ff;
+
+    color: var(--ft-blue);
+
+    font-size: 13px;
+}
+
+.bus-identity strong {
+    display: block;
+
+    color: var(--ft-navy);
+
+    font-size: 12px;
+}
+
+.bus-identity span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-muted);
+
+    font-size: 9px;
+}
+
+.usage-badge {
+    min-height: 23px;
+
+    padding: 0 7px;
+
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.usage-badge.high {
+    background: #fff3cd;
+    color: #9a6700;
+}
+
+.usage-badge.normal {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.usage-badge.maintenance {
+    background: #fee2e2;
+    color: var(--ft-red);
+}
+
+.bus-utilization-score {
+    margin-top: 16px;
+}
+
+.bus-utilization-score strong {
+    display: block;
+
+    color: var(--ft-navy);
+
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.bus-utilization-score span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-muted);
+
+    font-size: 10px;
+}
+
+.bus-utilization-progress {
+    width: 100%;
+    height: 6px;
+
+    margin-top: 9px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background: #e4ebf4;
+}
+
+.bus-utilization-progress span {
+    display: block;
+
+    height: 100%;
+
+    border-radius: inherit;
+}
+
+.bus-utilization-progress span.high {
+    background: var(--ft-yellow);
+}
+
+.bus-utilization-progress span.normal {
+    background: var(--ft-blue);
+}
+
+.bus-utilization-progress span.maintenance {
+    background: var(--ft-red);
+}
+
+.bus-utilization-details {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 7px;
+
+    margin-top: 12px;
+}
+
+.bus-utilization-details > div {
+    padding: 8px;
+
+    border-radius: 8px;
+
+    background: #f8fafc;
+}
+
+.bus-utilization-details span {
+    display: block;
+
+    color: var(--ft-muted);
+
+    font-size: 9px;
+}
+
+.bus-utilization-details strong {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--ft-navy);
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   FINDINGS
+========================================================= */
+
+.trip-findings-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(260px, 0.55fr)
+        minmax(0, 1.45fr);
+
+    gap: 16px;
+
+    margin-bottom: 18px;
+}
+
+.trip-findings-heading {
+    padding: 18px;
+
+    border: 1px solid #c9dafc;
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #f8fbff,
+            #eef4ff
+        );
+}
+
+.trip-findings-heading h2 {
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.trip-findings-heading p {
+    margin: 5px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+.trip-findings-list {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.trip-finding {
+    padding: 14px;
+
+    border: 1px solid var(--ft-border);
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    box-shadow: var(--ft-shadow);
+}
+
+.finding-icon {
+    width: 40px;
+    height: 40px;
+
+    margin-bottom: 11px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+}
+
+.trip-finding.good .finding-icon {
+    background: #dcfce7;
+    color: var(--ft-green);
+}
+
+.trip-finding.warning .finding-icon {
+    background: #fff3cd;
+    color: #9a6700;
+}
+
+.trip-finding.info .finding-icon {
+    background: #eaf2ff;
+    color: var(--ft-blue);
+}
+
+.trip-finding span {
+    display: block;
+
+    color: var(--ft-blue);
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+}
+
+.trip-finding strong {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--ft-navy);
+
+    font-size: 13px;
+
+    line-height: 1.4;
+}
+
+.trip-finding p {
+    margin: 5px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RECOMMENDATION
+========================================================= */
+
+.fleet-recommendation {
+    display: grid;
+
+    grid-template-columns:
+        46px
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 20px;
+
+    padding: 17px 18px;
+
+    border: 1px solid #bfd4ff;
+    border-radius: 14px;
+
+    background: #f8fbff;
+}
+
+.recommendation-icon {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: #eaf2ff;
+
+    color: var(--ft-blue);
+
+    font-size: 16px;
+}
+
+.recommendation-content > span {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--ft-blue);
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+}
+
+.recommendation-content h2 {
+    margin: 0;
+
+    color: var(--ft-navy);
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.recommendation-content p {
+    margin: 5px 0 0;
+
+    color: var(--ft-muted);
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+.recommendation-link {
+    min-height: 38px;
+
+    padding: 0 13px;
+
+    border: 1px solid #bfd4ff;
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--ft-blue);
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    text-decoration: none;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.recommendation-link:hover {
+    background: #eaf2ff;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1250px) {
+
+    .utilization-card-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 1100px) {
+
+    .trip-hero,
+    .trip-primary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .route-leaderboard {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-findings-layout {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 900px) {
+
+    .utilization-card-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .trip-findings-list {
+        grid-template-columns: 1fr;
+    }
+
+    .fleet-filter-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .fleet-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fleet-filters {
+        width: 100%;
+
+        flex-direction: column;
+    }
+
+    .fleet-filters select {
+        width: 100%;
+    }
+
+    .utilization-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-heading,
+    .trip-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .route-ranking {
+        grid-template-columns:
+            32px
+            40px
+            minmax(0, 1fr);
+    }
+
+    .route-ranking-value {
+        grid-column: 3;
+
+        text-align: left;
+    }
+
+    .fleet-recommendation {
+        grid-template-columns: 1fr;
+    }
+
+}

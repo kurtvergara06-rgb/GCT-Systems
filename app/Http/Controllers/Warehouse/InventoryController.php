@@ -71,7 +71,7 @@ class InventoryController extends Controller
 
         $itemsAtRisk = $forecastedStockouts;
 
-        return view('Warehouse.Inventory', compact(
+        return view('Warehouse.inventory', compact(
             'inventoryItems',
             'categories',
             'totalItemsInStock',

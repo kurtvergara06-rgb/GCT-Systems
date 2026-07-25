@@ -3,8 +3,8 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Admin/batch-file-processing.css',
-        'resources/js/Admin/batch-file-processing.js'
+        'resources/css/Admin/Data_Management/batch-file-processing.css',
+        'resources/js/Admin/Data_Management/batch-file-processing.js'
     ]"
 >
     @php
@@ -113,8 +113,7 @@
             : 'Select a processed uploaded file to view its structured trip records.';
     @endphp
 
-    <div class="app">
-        <x-layout.sidebar
+   <x-layout.sidebar
     department="Admin"
     subtitle="Administration Module"
     icon="fa-user-shield"
@@ -188,8 +187,39 @@
 
         [
             'label' => 'Analytics',
-            'route' => 'analytics',
-            'icon' => 'fa-chart-line'
+            'icon' => 'fa-chart-line',
+            'children' => [
+                [
+                    'label' => 'Overview',
+                    'route' => 'analytics.overview',
+                    'icon' => 'fa-chart-pie'
+                ],
+                [
+                    'label' => 'Fleet & Trip',
+                    'route' => 'analytics.fleet-trip',
+                    'icon' => 'fa-route'
+                ],
+                [
+                    'label' => 'Fuel',
+                    'route' => 'analytics.fuel',
+                    'icon' => 'fa-gas-pump'
+                ],
+                [
+                    'label' => 'Bus Health',
+                    'route' => 'analytics.bus-health',
+                    'icon' => 'fa-heart-pulse'
+                ],
+                [
+                    'label' => 'Inventory',
+                    'route' => 'analytics.inventory',
+                    'icon' => 'fa-boxes-stacked'
+                ],
+                [
+                    'label' => 'Recommendations',
+                    'route' => 'analytics.recommendations',
+                    'icon' => 'fa-lightbulb'
+                ],
+            ]
         ],
 
         [

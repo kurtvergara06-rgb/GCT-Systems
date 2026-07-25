@@ -3,8 +3,8 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/maintenance-requests.css',
-    'resources/js/Purchase/maintenance-requests.js'
+    'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
+    'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
 

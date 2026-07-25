@@ -151,7 +151,7 @@ class MaintenanceRequestController extends Controller
 
         $statuses = $this->purchaseStatuses;
 
-        return view('Purchase.maintenance-requests', compact(
+        return view('Purchase.Requested_Purchase.maintenance-requests', compact(
             'purchaseRequests',
             'issuedRequests',
             'totalRequests',
