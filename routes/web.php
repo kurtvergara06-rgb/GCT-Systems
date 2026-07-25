@@ -14,11 +14,13 @@ use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
+use App\Http\Controllers\Operation\RouteController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\ScheduledPurchaseController;
+
 
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
@@ -649,16 +651,32 @@ Route::controller(DriverAttendanceController::class)
     )->name('available-mechanics');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Routes & Stops
-    |--------------------------------------------------------------------------
-    */
+   /*
+|--------------------------------------------------------------------------
+| Routes & Stops
+|--------------------------------------------------------------------------
+*/
 
-    Route::view(
-        '/operation/routes',
-        'Operation.Routes.routes-stops'
-    )->name('operation.routes');
+Route::controller(RouteController::class)
+    ->prefix('operation/routes')
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->name('operation.routes');
+
+        Route::post('/', 'store')
+            ->name('operation.routes.store');
+
+        Route::put(
+            '/{shuttleRoute}',
+            'update'
+        )->name('operation.routes.update');
+
+        Route::delete(
+            '/{shuttleRoute}',
+            'destroy'
+        )->name('operation.routes.destroy');
+    });
 
 
     /*
