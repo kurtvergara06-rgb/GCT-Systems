@@ -1,324 +1,477 @@
 @props([
-  'department' => 'Department',
-  'subtitle' => 'Department Module',
-  'icon' => 'fa-table-cells-large',
-  'userName' => null,
-  'userRole' => null,
-  'items' => []
+    'department' => 'Department',
+    'subtitle' => 'Department Module',
+    'icon' => 'fa-table-cells-large',
+    'userName' => null,
+    'userRole' => null,
+    'items' => []
 ])
 
 @php
-  $authUser = auth()->user();
+    $authUser = auth()->user();
 
-  /*
-   * Always prioritize the authenticated account.
-   * The values passed by individual pages are only fallbacks.
-   */
-  $displayName = trim(
-    $authUser?->name
-    ?? $userName
-    ?? 'Guest User'
-  );
+    /*
+    |--------------------------------------------------------------------------
+    | DISPLAY NAME
+    |--------------------------------------------------------------------------
+    */
 
-  $departmentRaw = trim(
-    $authUser?->department
-    ?? $department
-    ?? 'Department'
-  );
-
-  $roleRaw = strtolower(trim(
-    $authUser?->role
-    ?? ''
-  ));
-
-  $normalizedDepartment = strtolower(
-    str_replace(['_', '-'], ' ', $departmentRaw)
-  );
-
-  $normalizedRole = strtolower(
-    str_replace(['_', '-'], ' ', $roleRaw)
-  );
-
-  /*
-   * Build the role label from the authenticated account.
-   */
-  if ($authUser) {
-    if (
-      $normalizedDepartment === 'admin'
-      && $normalizedRole === 'head'
-    ) {
-      $displayRole = 'System Admin';
-    } elseif ($normalizedRole === 'head') {
-      $displayRole = ucfirst($normalizedDepartment) . ' Head';
-    } elseif ($normalizedRole === 'staff') {
-      $displayRole = ucfirst($normalizedDepartment) . ' Staff';
-    } else {
-      $displayRole = ucfirst($normalizedDepartment) . ' User';
-    }
-  } else {
-    $displayRole = $userRole
-      ?? ucfirst($normalizedDepartment) . ' User';
-  }
-
-  /*
-   * Create initials from the first two name parts.
-   */
-  $nameParts = collect(
-    preg_split('/\s+/', $displayName)
-  )
-    ->filter()
-    ->values();
-
-  $initials = strtoupper(
-    substr($nameParts->get(0, ''), 0, 1)
-    . substr($nameParts->get(1, ''), 0, 1)
-  );
-
-  $initials = $initials ?: 'U';
-
-  /*
-   * The current Settings route belongs to Maintenance.
-   * Only Maintenance users and the System Admin should see it.
-   */
-  $canOpenMaintenanceSettings =
-    $normalizedDepartment === 'maintenance'
-    || (
-      $normalizedDepartment === 'admin'
-      && $normalizedRole === 'head'
+    $displayName = trim(
+        $authUser?->name
+        ?? $userName
+        ?? 'Guest User'
     );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEPARTMENT
+    |--------------------------------------------------------------------------
+    */
+
+    $departmentRaw = trim(
+        $authUser?->department
+        ?? $department
+        ?? 'Department'
+    );
+
+    $roleRaw = strtolower(trim(
+        $authUser?->role
+        ?? ''
+    ));
+
+    $normalizedDepartment = strtolower(
+        str_replace(['_', '-'], ' ', $departmentRaw)
+    );
+
+    $normalizedRole = strtolower(
+        str_replace(['_', '-'], ' ', $roleRaw)
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ROLE LABEL
+    |--------------------------------------------------------------------------
+    */
+
+    if ($authUser) {
+
+        if (
+            $normalizedDepartment === 'admin'
+            && $normalizedRole === 'head'
+        ) {
+            $displayRole = 'System Admin';
+
+        } elseif ($normalizedRole === 'head') {
+
+            $displayRole =
+                ucfirst($normalizedDepartment) . ' Head';
+
+        } elseif ($normalizedRole === 'staff') {
+
+            $displayRole =
+                ucfirst($normalizedDepartment) . ' Staff';
+
+        } else {
+
+            $displayRole =
+                ucfirst($normalizedDepartment) . ' User';
+        }
+
+    } else {
+
+        $displayRole =
+            $userRole
+            ?? ucfirst($normalizedDepartment) . ' User';
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | INITIALS
+    |--------------------------------------------------------------------------
+    */
+
+    $nameParts = collect(
+        preg_split('/\s+/', $displayName)
+    )
+        ->filter()
+        ->values();
+
+    $initials = strtoupper(
+        substr($nameParts->get(0, ''), 0, 1)
+        . substr($nameParts->get(1, ''), 0, 1)
+    );
+
+    $initials = $initials ?: 'U';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MAINTENANCE SETTINGS ACCESS
+    |--------------------------------------------------------------------------
+    */
+
+    $canOpenMaintenanceSettings =
+        $normalizedDepartment === 'maintenance'
+        || (
+            $normalizedDepartment === 'admin'
+            && $normalizedRole === 'head'
+        );
 @endphp
 
-<script>
-  if (localStorage.getItem('gctSidebarCollapsed') === '1') {
-    document.documentElement.classList.add(
-      'sidebar-start-collapsed'
-    );
-  }
-</script>
+<aside
+    class="sidebar"
+    id="appSidebar"
+>
 
-<aside class="sidebar" id="appSidebar">
-
-  {{-- COLLAPSE ARROW --}}
-  <button
-    type="button"
-    class="sidebar-collapse-btn"
-    id="sidebarCollapseBtn"
-    aria-label="Toggle sidebar"
-    title="Toggle sidebar"
-  >
-    <i class="fa-solid fa-chevron-left"></i>
-  </button>
-
-  {{-- BRAND --}}
-  <div class="brand">
-    <div class="brand-icon">
-      <i class="fa-solid {{ $icon }}"></i>
-    </div>
-
-    <div class="brand-text">
-      <h2>{{ $department }}</h2>
-      <p>{{ $subtitle }}</p>
-    </div>
-  </div>
-
-  {{-- MENU --}}
-  <nav class="menu">
-    @foreach($items as $item)
-
-      @php
-        $hasChildren =
-          isset($item['children'])
-          && is_array($item['children'])
-          && count($item['children']) > 0;
-
-        $itemRoute = $item['route'] ?? null;
-        $isParentActive = false;
-
-        if ($hasChildren) {
-          foreach ($item['children'] as $child) {
-            if (
-              isset($child['route'])
-              && request()->routeIs($child['route'])
-            ) {
-              $isParentActive = true;
-              break;
-            }
-          }
-        } else {
-          $isParentActive = $itemRoute
-            ? request()->routeIs($itemRoute)
-            : false;
-        }
-      @endphp
-
-      @if($hasChildren)
-
-        <div
-          class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}"
-        >
-          <button
-            type="button"
-            class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
-            aria-expanded="{{ $isParentActive ? 'true' : 'false' }}"
-            title="{{ $item['label'] ?? 'Menu' }}"
-          >
-            <i
-              class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
-            ></i>
-
-            <span>{{ $item['label'] ?? 'Menu' }}</span>
-
-            <i
-              class="fa-solid fa-chevron-down dropdown-arrow"
-            ></i>
-          </button>
-
-          <div class="submenu">
-            @foreach($item['children'] as $child)
-              @if(isset($child['route']))
-                <a
-                  href="{{ route($child['route']) }}"
-                  class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
-                  title="{{ $child['label'] ?? 'Submenu' }}"
-                >
-                  <i
-                    class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"
-                  ></i>
-
-                  <span>
-                    {{ $child['label'] ?? 'Submenu' }}
-                  </span>
-                </a>
-              @endif
-            @endforeach
-          </div>
-        </div>
-
-      @else
-
-        @if($itemRoute)
-          <a
-            href="{{ route($itemRoute) }}"
-            class="menu-item {{ request()->routeIs($itemRoute) ? 'active' : '' }}"
-            title="{{ $item['label'] ?? 'Menu' }}"
-          >
-            <i
-              class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
-            ></i>
-
-            <span>{{ $item['label'] ?? 'Menu' }}</span>
-          </a>
-        @endif
-
-      @endif
-
-    @endforeach
-  </nav>
-
-  {{-- USER PROFILE --}}
-  <div class="sidebar-profile-wrap">
-
+    {{-- =====================================================
+        COLLAPSE BUTTON
+    ====================================================== --}}
     <button
-      type="button"
-      class="user-box sidebar-profile-toggle"
-      id="sidebarProfileToggle"
-      aria-expanded="false"
-      title="{{ $displayName }}"
+        type="button"
+        class="sidebar-collapse-btn"
+        id="sidebarCollapseBtn"
+        aria-label="Toggle sidebar"
+        aria-expanded="true"
+        title="Collapse sidebar"
     >
-      <div class="avatar">
-        <span>{{ $initials }}</span>
-      </div>
-
-      <div class="user-box-text">
-        <h4>{{ $displayName }}</h4>
-        <p>{{ $displayRole }}</p>
-      </div>
-
-      <i
-        class="fa-solid fa-chevron-down profile-chevron"
-      ></i>
+        <i class="fa-solid fa-chevron-left"></i>
     </button>
 
-    <div
-      class="sidebar-profile-menu"
-      id="sidebarProfileMenu"
-    >
 
-      <div class="profile-menu-header">
-        <div class="profile-menu-avatar">
-          {{ $initials }}
+    {{-- =====================================================
+        BRAND
+    ====================================================== --}}
+    <div class="brand">
+
+        <div class="brand-icon">
+            <i class="fa-solid {{ $icon }}"></i>
         </div>
 
-        <div>
-          <h4>{{ $displayName }}</h4>
-          <p>{{ $displayRole }}</p>
+        <div class="brand-text">
+
+            <h2>
+                {{ $department }}
+            </h2>
+
+            <p>
+                {{ $subtitle }}
+            </p>
+
         </div>
-      </div>
-
-      <div class="profile-menu-divider"></div>
-
-      <button
-        type="button"
-        class="profile-menu-item"
-        disabled
-      >
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-      </button>
-
-      @if(
-        $canOpenMaintenanceSettings
-        && \Illuminate\Support\Facades\Route::has('settings')
-      )
-        <a
-          href="{{ route('settings') }}"
-          class="profile-menu-item"
-        >
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </a>
-      @else
-        <button
-          type="button"
-          class="profile-menu-item"
-          disabled
-        >
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </button>
-      @endif
-
-      <div class="profile-menu-divider"></div>
-
-      @if(
-        \Illuminate\Support\Facades\Route::has('logout')
-      )
-        <form
-          action="{{ route('logout') }}"
-          method="POST"
-          class="profile-logout-form"
-        >
-          @csrf
-
-          <button
-            type="submit"
-            class="profile-menu-item logout"
-          >
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Log out</span>
-          </button>
-        </form>
-      @else
-        <button
-          type="button"
-          class="profile-menu-item logout"
-          disabled
-        >
-          <i class="fa-solid fa-right-from-bracket"></i>
-          <span>Log out</span>
-        </button>
-      @endif
 
     </div>
-  </div>
+
+
+    {{-- =====================================================
+        NAVIGATION
+    ====================================================== --}}
+    <nav class="menu">
+
+        @foreach($items as $item)
+
+            @php
+                $hasChildren =
+                    isset($item['children'])
+                    && is_array($item['children'])
+                    && count($item['children']) > 0;
+
+                $itemRoute =
+                    $item['route'] ?? null;
+
+                $isParentActive = false;
+
+
+                if ($hasChildren) {
+
+                    foreach ($item['children'] as $child) {
+
+                        if (
+                            isset($child['route'])
+                            && request()->routeIs($child['route'])
+                        ) {
+                            $isParentActive = true;
+                            break;
+                        }
+                    }
+
+                } else {
+
+                    $isParentActive =
+                        $itemRoute
+                        ? request()->routeIs($itemRoute)
+                        : false;
+                }
+            @endphp
+
+
+            {{-- =================================================
+                DROPDOWN ITEM
+            ================================================== --}}
+            @if($hasChildren)
+
+                <div
+                    class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}"
+                >
+
+                    <button
+                        type="button"
+                        class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
+                        aria-expanded="{{ $isParentActive ? 'true' : 'false' }}"
+                        title="{{ $item['label'] ?? 'Menu' }}"
+                    >
+
+                        <i
+                            class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
+                        ></i>
+
+                        <span>
+                            {{ $item['label'] ?? 'Menu' }}
+                        </span>
+
+                        <i
+                            class="fa-solid fa-chevron-down dropdown-arrow"
+                        ></i>
+
+                    </button>
+
+
+                    <div class="submenu">
+
+                        @foreach($item['children'] as $child)
+
+                            @if(isset($child['route']))
+
+                                <a
+                                    href="{{ route($child['route']) }}"
+                                    class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
+                                    title="{{ $child['label'] ?? 'Submenu' }}"
+                                >
+
+                                    <i
+                                        class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"
+                                    ></i>
+
+                                    <span>
+                                        {{ $child['label'] ?? 'Submenu' }}
+                                    </span>
+
+                                </a>
+
+                            @endif
+
+                        @endforeach
+
+                    </div>
+
+                </div>
+
+
+            {{-- =================================================
+                NORMAL MENU ITEM
+            ================================================== --}}
+            @else
+
+                @if($itemRoute)
+
+                    <a
+                        href="{{ route($itemRoute) }}"
+                        class="menu-item {{ $isParentActive ? 'active' : '' }}"
+                        title="{{ $item['label'] ?? 'Menu' }}"
+                    >
+
+                        <i
+                            class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
+                        ></i>
+
+                        <span>
+                            {{ $item['label'] ?? 'Menu' }}
+                        </span>
+
+                    </a>
+
+                @endif
+
+            @endif
+
+        @endforeach
+
+    </nav>
+
+
+    {{-- =====================================================
+        PROFILE
+    ====================================================== --}}
+    <div class="sidebar-profile-wrap">
+
+        <button
+            type="button"
+            class="user-box sidebar-profile-toggle"
+            id="sidebarProfileToggle"
+            aria-expanded="false"
+            title="{{ $displayName }}"
+        >
+
+            <div class="avatar">
+                <span>{{ $initials }}</span>
+            </div>
+
+
+            <div class="user-box-text">
+
+                <h4>
+                    {{ $displayName }}
+                </h4>
+
+                <p>
+                    {{ $displayRole }}
+                </p>
+
+            </div>
+
+
+            <i
+                class="fa-solid fa-chevron-down profile-chevron"
+            ></i>
+
+        </button>
+
+
+        {{-- =================================================
+            PROFILE POPUP
+        ================================================== --}}
+        <div
+            class="sidebar-profile-menu"
+            id="sidebarProfileMenu"
+        >
+
+            <div class="profile-menu-header">
+
+                <div class="profile-menu-avatar">
+                    {{ $initials }}
+                </div>
+
+                <div>
+
+                    <h4>
+                        {{ $displayName }}
+                    </h4>
+
+                    <p>
+                        {{ $displayRole }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="profile-menu-divider"></div>
+
+
+            <button
+                type="button"
+                class="profile-menu-item"
+                disabled
+            >
+
+                <i class="fa-solid fa-user"></i>
+
+                <span>
+                    Profile
+                </span>
+
+            </button>
+
+
+            @if(
+                $canOpenMaintenanceSettings
+                && \Illuminate\Support\Facades\Route::has('settings')
+            )
+
+                <a
+                    href="{{ route('settings') }}"
+                    class="profile-menu-item"
+                >
+
+                    <i class="fa-solid fa-gear"></i>
+
+                    <span>
+                        Settings
+                    </span>
+
+                </a>
+
+            @else
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    disabled
+                >
+
+                    <i class="fa-solid fa-gear"></i>
+
+                    <span>
+                        Settings
+                    </span>
+
+                </button>
+
+            @endif
+
+
+            <div class="profile-menu-divider"></div>
+
+
+            @if(
+                \Illuminate\Support\Facades\Route::has('logout')
+            )
+
+                <form
+                    action="{{ route('logout') }}"
+                    method="POST"
+                    class="profile-logout-form"
+                >
+                    @csrf
+
+                    <button
+                        type="submit"
+                        class="profile-menu-item logout"
+                    >
+
+                        <i class="fa-solid fa-right-from-bracket"></i>
+
+                        <span>
+                            Log out
+                        </span>
+
+                    </button>
+
+                </form>
+
+            @else
+
+                <button
+                    type="button"
+                    class="profile-menu-item logout"
+                    disabled
+                >
+
+                    <i class="fa-solid fa-right-from-bracket"></i>
+
+                    <span>
+                        Log out
+                    </span>
+
+                </button>
+
+            @endif
+
+        </div>
+
+    </div>
+
 </aside>

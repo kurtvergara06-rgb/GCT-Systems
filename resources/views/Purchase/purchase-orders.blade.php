@@ -91,40 +91,45 @@
   <div class="app">
 
     <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-cart-shopping"
-      user-name="P. Admin"
-      user-role="Purchase Admin"
-      :items="[
+    department="Purchase"
+    subtitle="Department Module"
+    icon="fa-cart-shopping"
+    user-name="P. Admin"
+    user-role="Purchase Admin"
+    :items="[
         [
-          'label' => 'Purchase Orders',
-          'route' => 'purchase-orders',
-          'icon' => 'fa-file-invoice'
+            'label' => 'Dashboard',
+            'route' => 'dashboard-purchase',
+            'icon' => 'fa-table-cells-large'
         ],
         [
-          'label' => 'Requested Purchase',
-          'icon' => 'fa-clipboard-list',
-          'children' => [
-            [
-              'label' => 'Maintenance Requests',
-              'route' => 'maintenance-requests',
-              'icon' => 'fa-screwdriver-wrench'
+            'label' => 'Purchase Orders',
+            'route' => 'purchase-orders',
+            'icon' => 'fa-file-invoice'
+        ],
+        [
+            'label' => 'Requested Purchase',
+            'icon' => 'fa-clipboard-list',
+            'children' => [
+                [
+                    'label' => 'Maintenance Requests',
+                    'route' => 'maintenance-requests',
+                    'icon' => 'fa-screwdriver-wrench'
+                ],
+                [
+                    'label' => 'Inventory Restock',
+                    'route' => 'inventory-restock',
+                    'icon' => 'fa-boxes-stacked'
+                ],
             ],
-            [
-              'label' => 'Inventory Restock',
-              'route' => 'inventory-restock',
-              'icon' => 'fa-boxes-stacked'
-            ],
-          ],
         ],
         [
-          'label' => 'Scheduled Purchase',
-          'route' => 'scheduled-purchase',
-          'icon' => 'fa-calendar-check'
+            'label' => 'Scheduled Purchase',
+            'route' => 'scheduled-purchase',
+            'icon' => 'fa-calendar-check'
         ],
-      ]"
-    />
+    ]"
+/>
 
     <main class="main">
 

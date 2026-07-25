@@ -1,0 +1,864 @@
+/* =========================================================
+   WAREHOUSE DASHBOARD
+   Consistent with FROMS / Job Order styling
+========================================================= */
+
+.warehouse-dashboard-page {
+  --wh-blue: #0b40b5;
+  --wh-navy: #061f3d;
+  --wh-yellow: #ffc400;
+  --wh-yellow-dark: #f5a800;
+
+  --wh-text: #0f172a;
+  --wh-muted: #64748b;
+  --wh-border: #dce5f2;
+  --wh-card: #ffffff;
+
+  --wh-shadow:
+    0 4px 16px rgba(6, 31, 61, 0.07);
+
+  --wh-shadow-hover:
+    0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.warehouse-dashboard-main .topbar {
+  margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.warehouse-stats-grid {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.warehouse-stats-grid .stat-card,
+.warehouse-stats-grid .stat-card-link {
+  min-height: 112px;
+  padding: 18px 20px;
+
+  border: 1px solid var(--wh-border);
+  border-radius: 16px;
+
+  background: #ffffff;
+  box-shadow: var(--wh-shadow);
+
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.warehouse-stats-grid .stat-card:hover,
+.warehouse-stats-grid .stat-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--wh-shadow-hover);
+}
+
+.warehouse-stats-grid .stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+
+  border-radius: 14px;
+  font-size: 18px;
+}
+
+
+/* =========================================================
+   MAIN GRID
+========================================================= */
+
+.warehouse-dashboard-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   SECOND ROW
+========================================================= */
+
+.warehouse-bottom-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(280px, 0.8fr)
+    minmax(280px, 0.8fr);
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   DASHBOARD CARD
+========================================================= */
+
+.warehouse-dashboard-card {
+  min-width: 0;
+
+  padding: 18px;
+
+  border: 1px solid var(--wh-border);
+  border-radius: 16px;
+
+  background: var(--wh-card);
+
+  box-shadow: var(--wh-shadow);
+}
+
+
+/* =========================================================
+   CARD HEADER
+========================================================= */
+
+.dashboard-card-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+.dashboard-eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--wh-blue);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-card-header h2 {
+  margin: 0;
+
+  color: var(--wh-navy);
+
+  font-size: 18px;
+  font-weight: 800;
+
+  letter-spacing: -0.01em;
+}
+
+.dashboard-card-header p {
+  margin: 4px 0 0;
+
+  color: var(--wh-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   VIEW LINK
+========================================================= */
+
+.dashboard-view-link {
+  flex-shrink: 0;
+
+  min-height: 34px;
+
+  padding: 0 11px;
+
+  border: 1px solid var(--wh-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--wh-blue);
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.dashboard-view-link:hover {
+  background: #f5f8ff;
+
+  border-color: var(--wh-blue);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   WAREHOUSE STATUS LIST
+========================================================= */
+
+.warehouse-status-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.warehouse-status-row {
+  min-height: 74px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid #e7edf5;
+}
+
+.warehouse-status-row:first-child {
+  padding-top: 3px;
+}
+
+.warehouse-status-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.warehouse-status-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.warehouse-status-icon {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  border-radius: 12px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+}
+
+.warehouse-status-icon.available {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.warehouse-status-icon.low {
+  background: #fff3cd;
+  color: #9a6700;
+}
+
+.warehouse-status-icon.out {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-status-info h3 {
+  margin: 0;
+
+  color: var(--wh-navy);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.warehouse-status-info p {
+  margin: 3px 0 0;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+.warehouse-status-row > strong {
+  color: var(--wh-navy);
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   MINI GRID
+========================================================= */
+
+.dashboard-mini-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.dashboard-mini-card {
+  min-height: 90px;
+
+  padding: 12px;
+
+  border: 1px solid var(--wh-border);
+  border-radius: 12px;
+
+  background: #f8fbff;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+.dashboard-mini-icon {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  border-radius: 11px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+}
+
+.dashboard-mini-icon.yellow {
+  background: #fff3cd;
+  color: #9a6700;
+}
+
+.dashboard-mini-icon.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.dashboard-mini-card span {
+  display: block;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dashboard-mini-card strong {
+  display: block;
+
+  margin: 2px 0;
+
+  color: var(--wh-navy);
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dashboard-mini-card p {
+  margin: 0;
+
+  color: var(--wh-muted);
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   RECENT INVENTORY LIST
+========================================================= */
+
+.recent-warehouse-list {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.recent-warehouse-item {
+  display: grid;
+
+  grid-template-columns:
+    44px minmax(0, 1fr);
+
+  gap: 12px;
+
+  padding: 14px 0;
+
+  border-bottom: 1px solid #e7edf5;
+}
+
+.recent-warehouse-item:first-child {
+  padding-top: 3px;
+}
+
+.recent-warehouse-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.recent-warehouse-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 12px;
+
+  background: #e0ecff;
+  color: var(--wh-blue);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+}
+
+.recent-warehouse-content {
+  min-width: 0;
+}
+
+.recent-warehouse-heading {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.recent-warehouse-heading h3 {
+  margin: 0;
+
+  color: var(--wh-navy);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.recent-warehouse-heading p {
+  margin: 3px 0 0;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+.recent-warehouse-meta {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 14px;
+
+  margin-top: 8px;
+}
+
+.recent-warehouse-meta span {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+.recent-warehouse-meta i {
+  color: var(--wh-blue);
+}
+
+
+/* =========================================================
+   INVENTORY STATUS
+========================================================= */
+
+.inventory-status {
+  min-width: 88px;
+  min-height: 25px;
+
+  padding: 0 10px;
+
+  border-radius: 999px;
+  border: 1px solid transparent;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.inventory-status.available {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #b7efca;
+}
+
+.inventory-status.low {
+  background: #fff3cd;
+  color: #9a6700;
+  border-color: #f8dd82;
+}
+
+.inventory-status.out {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+
+/* =========================================================
+   DELIVERY OVERVIEW
+========================================================= */
+
+.delivery-overview {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.delivery-main {
+  min-height: 98px;
+
+  padding: 14px;
+
+  border: 1px solid var(--wh-border);
+  border-radius: 12px;
+
+  background: #f8fbff;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+.delivery-main-icon {
+  width: 50px;
+  height: 50px;
+
+  flex: 0 0 50px;
+
+  border-radius: 14px;
+
+  background: #dcfce7;
+  color: #15803d;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+}
+
+.delivery-main span {
+  display: block;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.delivery-main strong {
+  display: block;
+
+  margin: 2px 0;
+
+  color: var(--wh-navy);
+
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.delivery-main p {
+  margin: 0;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+.delivery-action {
+  min-height: 44px;
+
+  padding: 0 4px;
+
+  border-bottom: 1px solid #e7edf5;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  color: var(--wh-text);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.delivery-action:hover {
+  color: var(--wh-blue);
+}
+
+.delivery-action i {
+  color: #94a3b8;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   QUICK ACTIONS
+========================================================= */
+
+.warehouse-quick-actions {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.warehouse-quick-item {
+  min-height: 64px;
+
+  display: grid;
+
+  grid-template-columns:
+    40px minmax(0, 1fr) 14px;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 10px 4px;
+
+  border-bottom: 1px solid #e7edf5;
+
+  color: var(--wh-text);
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    padding 0.2s ease;
+}
+
+.warehouse-quick-item:last-child {
+  border-bottom: none;
+}
+
+.warehouse-quick-item:hover {
+  padding-left: 8px;
+
+  background: #f8fbff;
+}
+
+.warehouse-quick-icon {
+  width: 40px;
+  height: 40px;
+
+  border-radius: 11px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+}
+
+.warehouse-quick-icon.blue {
+  background: #e0ecff;
+  color: var(--wh-blue);
+}
+
+.warehouse-quick-icon.yellow {
+  background: #fff3cd;
+  color: #9a6700;
+}
+
+.warehouse-quick-icon.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.warehouse-quick-item h3 {
+  margin: 0;
+
+  color: var(--wh-navy);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.warehouse-quick-item p {
+  margin: 3px 0 0;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+.warehouse-quick-item > i {
+  color: #94a3b8;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.dashboard-empty-state {
+  padding: 34px 20px;
+
+  text-align: center;
+}
+
+.dashboard-empty-icon {
+  width: 48px;
+  height: 48px;
+
+  margin: 0 auto 12px;
+
+  border-radius: 14px;
+
+  background: #e0ecff;
+  color: var(--wh-blue);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;
+}
+
+.dashboard-empty-state h3 {
+  margin: 0;
+
+  color: var(--wh-navy);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dashboard-empty-state p {
+  margin: 5px 0 0;
+
+  color: var(--wh-muted);
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .warehouse-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-bottom-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .recent-inventory-card {
+    grid-column: 1 / -1;
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .warehouse-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-inventory-card {
+    grid-column: auto;
+  }
+
+  .dashboard-card-header {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .dashboard-view-link {
+    width: fit-content;
+  }
+
+  .dashboard-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-warehouse-heading {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+}
