@@ -547,18 +547,6 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Driver Management - Driver List
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/operation/driver-list',
-        'Operation.Driver_Management.driver-list'
-    )->name('driver-list');
-
-
-    /*
-    |--------------------------------------------------------------------------
     | Driver Attendance
     |--------------------------------------------------------------------------
     */
@@ -656,21 +644,14 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::view(
+        '/operation/auto-scheduling',
+        'Operation.Scheduling_And_Dispatch.auto-dispatch'
+    )->name('auto-scheduling');
+
+    Route::view(
         '/operation/auto-dispatch',
         'Operation.Scheduling_And_Dispatch.auto-dispatch'
     )->name('auto-dispatch');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Backward Compatibility - Old Auto Scheduling URL
-    |--------------------------------------------------------------------------
-    */
-
-    Route::redirect(
-        '/operation/auto-scheduling',
-        '/operation/auto-dispatch'
-    )->name('auto-scheduling');
 
 
     /*

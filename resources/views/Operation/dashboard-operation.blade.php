@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - Dashboard"
   :assets="[
-    'resources/css/Operation/dashboard-operation.css'
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
+    'resources/css/Operation/dashboard-operation.css',
+    'resources/js/Main-js/sidebar.js',
   ]"
 >
   <div class="app">
