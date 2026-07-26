@@ -47,12 +47,10 @@
                 ],
                 [
                     'label' => 'Roles & Permissions',
-                    'route' => 'admin.roles-permissions',
                     'icon' => 'fa-user-lock'
                 ],
                 [
                     'label' => 'Account Requests',
-                    'route' => 'admin.account-requests',
                     'icon' => 'fa-user-clock'
                 ],
             ]
@@ -64,12 +62,10 @@
             'children' => [
                 [
                     'label' => 'Activity Logs',
-                    'route' => 'admin.activity-logs',
                     'icon' => 'fa-clock-rotate-left'
                 ],
                 [
                     'label' => 'Notifications',
-                    'route' => 'admin.notifications',
                     'icon' => 'fa-bell'
                 ],
             ]
