@@ -3,6 +3,7 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Routes/routes-stops.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Routes/routes-stops.js'
@@ -13,29 +14,40 @@
         VALIDATION ERROR
     ====================================================== --}}
     @if($errors->any())
+
         <div
             id="routeValidationModal"
             class="modal-overlay delete-modal-overlay show active"
         >
+
             <div class="modal-card delete-modal-box">
 
                 <div class="delete-icon">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
 
-                <h2>Form Error</h2>
+                <h2>
+                    Form Error
+                </h2>
 
                 <p>
                     Please check the route information.
                 </p>
 
                 <ul class="form-error-list">
+
                     @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+
+                        <li>
+                            {{ $error }}
+                        </li>
+
                     @endforeach
+
                 </ul>
 
                 <div class="delete-modal-actions">
+
                     <button
                         type="button"
                         id="closeRouteValidationModal"
@@ -43,10 +55,13 @@
                     >
                         Okay
                     </button>
+
                 </div>
 
             </div>
+
         </div>
+
     @endif
 
 
@@ -180,19 +195,23 @@
                 <div class="section-header">
 
                     <div>
-                        <h2>Route Records</h2>
+
+                        <h2>
+                            Route Records
+                        </h2>
 
                         <p>
                             Routes defined here will be available for trip,
                             bus, and driver scheduling.
                         </p>
+
                     </div>
 
                 </div>
 
 
                 {{-- =================================================
-                    SEARCH / FILTER / NEW ROUTE
+                    TOOLBAR
                 ================================================== --}}
                 <form
                     method="GET"
@@ -217,8 +236,11 @@
 
                     <div class="filter-group">
 
-                        <label for="routeStatusFilter">
-
+                        <label
+                            for="routeStatusFilter"
+                            class="visually-hidden"
+                        >
+                            Status
                         </label>
 
                         <select
@@ -274,6 +296,7 @@
                     <table class="routes-table">
 
                         <thead>
+
                             <tr>
                                 <th>Route ID</th>
                                 <th>Route Name</th>
@@ -285,19 +308,25 @@
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
+
                         </thead>
 
 
                         <tbody>
 
-                        @forelse($routes as $route)
+                            @forelse($routes as $route)
 
-                            @php
-                                $stopsJson = $route->stops
-                                    ->pluck('stop_name')
-                                    ->values()
-                                    ->toJson();
-                            @endphp
+                                @php
+                                    $stopsJson = $route
+                                        ->stops
+                                        ->pluck('stop_name')
+                                        ->values()
+                                        ->toJson();
+
+                                    $statusClass =
+                                        strtolower($route->status);
+                                @endphp
+
 
                                 <tr>
 
@@ -343,6 +372,7 @@
                                             data-stops="{{ $stopsJson }}"
                                         >
                                             {{ $route->stops->count() }}
+
                                             {{ $route->stops->count() === 1 ? 'Stop' : 'Stops' }}
                                         </button>
 
@@ -383,10 +413,6 @@
 
                                     {{-- STATUS --}}
                                     <td>
-
-                                        @php
-                                            $statusClass = strtolower($route->status);
-                                        @endphp
 
                                         <span class="route-status {{ $statusClass }}">
                                             {{ $route->status }}
@@ -499,7 +525,10 @@
                 {{-- =================================================
                     PAGINATION
                 ================================================== --}}
-                @if($routes instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                @if(
+                    $routes instanceof
+                    \Illuminate\Pagination\LengthAwarePaginator
+                )
 
                     <x-ui.table-footer
                         :items="$routes"
@@ -515,356 +544,268 @@
 
 
     {{-- =========================================================
-        ADD / EDIT ROUTE MODAL
+        ADD / EDIT ROUTE
+        GLOBAL FORM COMPONENT
     ========================================================== --}}
-    <div
-        class="route-modal-overlay"
+    <x-ui.form-modal
         id="routeModal"
+
+        title="New Route"
+        title-id="routeModalTitle"
+
+        description="Enter the route information and shuttle stops."
+
+        icon="fa-map-location-dot"
+        size="large"
+
+        form-id="routeForm"
+
+        :action="route('operation.routes.store')"
+
+        submit-text="Save Route"
+        submit-text-id="saveRouteText"
+        submit-id="saveRouteBtn"
+        submit-icon="fa-floppy-disk"
+
+        cancel-text="Cancel"
+        cancel-id="cancelRouteModal"
+        close-id="closeRouteModal"
+
+        close-data-attribute="data-close-route-modal"
     >
 
-        <div class="route-modal">
+        {{-- =====================================================
+            PUT METHOD USED WHEN EDITING
+        ====================================================== --}}
+        <input
+            type="hidden"
+            name="_method"
+            id="routeFormMethod"
+            value="POST"
+            disabled
+        >
 
-            <div class="route-modal-header">
 
-                <div>
+        {{-- =====================================================
+            ROUTE FIELDS
+        ====================================================== --}}
+        <div class="ui-form-grid">
 
-                    <h2 id="routeModalTitle">
-                        New Route
-                    </h2>
+            {{-- ROUTE ID --}}
+            <x-ui.form-field
+                label="Route ID"
+                name="display_route_code"
+                id="routeCode"
 
-                    <p id="routeModalDescription">
-                        Enter the route information and shuttle stops.
-                    </p>
+                :value="$nextRouteCode ?? 'R-01'"
 
-                </div>
+                icon="fa-hashtag"
 
+                readonly
+                full
+            />
+
+
+            {{-- ROUTE NAME --}}
+            <x-ui.form-field
+                label="Route Name"
+                name="route_name"
+                id="routeName"
+
+                placeholder="Example: Route E - Lipa"
+
+                icon="fa-route"
+
+                required
+                full
+            />
+
+
+            {{-- ORIGIN --}}
+            <x-ui.form-field
+                label="Origin"
+                name="origin"
+                id="routeOrigin"
+
+                placeholder="Enter origin"
+
+                icon="fa-location-dot"
+
+                required
+            />
+
+
+            {{-- DESTINATION --}}
+            <x-ui.form-field
+                label="Destination"
+                name="destination"
+                id="routeDestination"
+
+                placeholder="Enter destination"
+
+                icon="fa-location-crosshairs"
+
+                required
+            />
+
+
+            {{-- DISTANCE --}}
+            <x-ui.form-field
+                label="Distance"
+                name="distance_km"
+                id="routeDistance"
+
+                type="number"
+
+                placeholder="0"
+
+                icon="fa-ruler-combined"
+                unit="KM"
+
+                min="0"
+                step="0.1"
+            />
+
+
+            {{-- ESTIMATED TIME --}}
+            <x-ui.form-field
+                label="Estimated Travel Time"
+                name="estimated_time_minutes"
+                id="routeTime"
+
+                type="number"
+
+                placeholder="0"
+
+                icon="fa-clock"
+                unit="min"
+
+                min="1"
+            />
+
+
+            {{-- STATUS --}}
+            <x-ui.form-select
+                label="Status"
+                name="status"
+                id="routeStatus"
+
+                icon="fa-circle-check"
+
+                :options="[
+                    'Active' => 'Active',
+                    'Inactive' => 'Inactive',
+                ]"
+
+                selected="Active"
+
+                required
+                full
+            />
+
+        </div>
+
+
+        {{-- =====================================================
+            SHUTTLE STOPS
+        ====================================================== --}}
+        <x-ui.form-section
+            title="Shuttle Stops"
+            subtitle="Add intermediate stops between the origin and destination."
+            icon="fa-bus-simple"
+        >
+
+            <x-slot:action>
 
                 <button
                     type="button"
-                    class="route-modal-close"
-                    data-close-route-modal
+                    class="ui-btn-small"
+                    id="addRouteStop"
                 >
-                    <i class="fa-solid fa-xmark"></i>
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Stop
                 </button>
 
-            </div>
+            </x-slot:action>
 
 
-            <form
-                id="routeForm"
-                action="{{ route('operation.routes.store') }}"
-                method="POST"
-                class="route-form"
+            <div
+                class="ui-form-repeater"
+                id="routeStopList"
             >
 
-                @csrf
+                @if(old('stops'))
 
-                {{-- Changes between POST and PUT through JS --}}
-                <input
-                    type="hidden"
-                    name="_method"
-                    id="routeFormMethod"
-                    value="POST"
-                    disabled
-                >
+                    @foreach(old('stops') as $index => $stop)
 
+                        <div class="ui-form-repeater-row route-stop-item">
 
-                <div class="route-form-grid">
+                            <div class="ui-form-repeater-number route-stop-number">
+                                {{ $index + 1 }}
+                            </div>
 
-                    {{-- ROUTE CODE --}}
-                    <div
-                        class="route-form-group full"
-                        id="routeCodeGroup"
-                    >
-
-                        <label for="routeCode">
-                            Route ID
-                        </label>
-
-                        <input
-                            type="text"
-                            id="routeCode"
-                            value="{{ $nextRouteCode ?? 'R-01' }}"
-                            readonly
-                        >
-
-                    </div>
-
-
-                    {{-- ROUTE NAME --}}
-                    <div class="route-form-group full">
-
-                        <label for="routeName">
-                            Route Name
-                        </label>
-
-                        <input
-                            type="text"
-                            name="route_name"
-                            id="routeName"
-                            value="{{ old('route_name') }}"
-                            placeholder="Example: Route E - Lipa"
-                            required
-                        >
-
-                    </div>
-
-
-                    {{-- ORIGIN --}}
-                    <div class="route-form-group">
-
-                        <label for="routeOrigin">
-                            Origin
-                        </label>
-
-                        <input
-                            type="text"
-                            name="origin"
-                            id="routeOrigin"
-                            value="{{ old('origin') }}"
-                            placeholder="Enter origin"
-                            required
-                        >
-
-                    </div>
-
-
-                    {{-- DESTINATION --}}
-                    <div class="route-form-group">
-
-                        <label for="routeDestination">
-                            Destination
-                        </label>
-
-                        <input
-                            type="text"
-                            name="destination"
-                            id="routeDestination"
-                            value="{{ old('destination') }}"
-                            placeholder="Enter destination"
-                            required
-                        >
-
-                    </div>
-
-
-                    {{-- DISTANCE --}}
-                    <div class="route-form-group">
-
-                        <label for="routeDistance">
-                            Distance
-                        </label>
-
-                        <div class="route-input-unit">
 
                             <input
-                                type="number"
-                                name="distance_km"
-                                id="routeDistance"
-                                value="{{ old('distance_km') }}"
-                                step="0.1"
-                                min="0"
-                                placeholder="0"
+                                type="text"
+                                name="stops[]"
+                                value="{{ $stop }}"
+                                placeholder="Enter stop name"
                             >
 
-                            <span>KM</span>
+
+                            <button
+                                type="button"
+                                class="
+                                    ui-form-repeater-remove
+                                    remove-route-stop
+                                "
+                                title="Remove Stop"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
 
                         </div>
 
-                    </div>
+                    @endforeach
 
 
-                    {{-- ESTIMATED TIME --}}
-                    <div class="route-form-group">
+                @else
 
-                        <label for="routeTime">
-                            Estimated Travel Time
-                        </label>
+                    <div class="ui-form-repeater-row route-stop-item">
 
-                        <div class="route-input-unit">
-
-                            <input
-                                type="number"
-                                name="estimated_time_minutes"
-                                id="routeTime"
-                                value="{{ old('estimated_time_minutes') }}"
-                                min="1"
-                                placeholder="0"
-                            >
-
-                            <span>min</span>
-
+                        <div class="ui-form-repeater-number route-stop-number">
+                            1
                         </div>
 
-                    </div>
 
-
-                    {{-- STATUS --}}
-                    <div class="route-form-group full">
-
-                        <label for="routeStatus">
-                            Status
-                        </label>
-
-                        <select
-                            name="status"
-                            id="routeStatus"
-                            required
+                        <input
+                            type="text"
+                            name="stops[]"
+                            placeholder="Enter stop name"
                         >
-
-                            <option
-                                value="Active"
-                                {{ old('status', 'Active') === 'Active' ? 'selected' : '' }}
-                            >
-                                Active
-                            </option>
-
-                            <option
-                                value="Inactive"
-                                {{ old('status') === 'Inactive' ? 'selected' : '' }}
-                            >
-                                Inactive
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-
-                {{-- =================================================
-                    STOPS
-                ================================================== --}}
-                <div class="route-stops-section">
-
-                    <div class="route-stops-header">
-
-                        <div>
-
-                            <h3>
-                                Shuttle Stops
-                            </h3>
-
-                            <p>
-                                Add intermediate stops between the origin
-                                and destination.
-                            </p>
-
-                        </div>
 
 
                         <button
                             type="button"
-                            class="add-stop-btn"
-                            id="addRouteStop"
+                            class="
+                                ui-form-repeater-remove
+                                remove-route-stop
+                            "
+                            title="Remove Stop"
                         >
-                            <i class="fa-solid fa-plus"></i>
-
-                            Add Stop
+                            <i class="fa-solid fa-trash"></i>
                         </button>
 
                     </div>
 
+                @endif
 
-                    <div
-                        class="route-stop-list"
-                        id="routeStopList"
-                    >
+            </div>
 
-                        @if(old('stops'))
+        </x-ui.form-section>
 
-                            @foreach(old('stops') as $index => $stop)
-
-                                <div class="route-stop-item">
-
-                                    <div class="route-stop-number">
-                                        {{ $index + 1 }}
-                                    </div>
-
-                                    <input
-                                        type="text"
-                                        name="stops[]"
-                                        value="{{ $stop }}"
-                                        placeholder="Enter stop name"
-                                    >
-
-                                    <button
-                                        type="button"
-                                        class="remove-route-stop"
-                                        title="Remove Stop"
-                                    >
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-
-                                </div>
-
-                            @endforeach
-
-                        @else
-
-                            <div class="route-stop-item">
-
-                                <div class="route-stop-number">
-                                    1
-                                </div>
-
-                                <input
-                                    type="text"
-                                    name="stops[]"
-                                    placeholder="Enter stop name"
-                                >
-
-                                <button
-                                    type="button"
-                                    class="remove-route-stop"
-                                    title="Remove Stop"
-                                >
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-
-                            </div>
-
-                        @endif
-
-                    </div>
-
-                </div>
-
-
-                {{-- =================================================
-                    MODAL ACTIONS
-                ================================================== --}}
-                <div class="route-modal-actions">
-
-                    <button
-                        type="button"
-                        class="route-secondary-btn"
-                        data-close-route-modal
-                    >
-                        Cancel
-                    </button>
-
-
-                    <button
-                        type="submit"
-                        class="route-primary-btn"
-                        id="saveRouteBtn"
-                    >
-                        <i class="fa-solid fa-floppy-disk"></i>
-
-                        <span id="saveRouteText">
-                            Save Route
-                        </span>
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
+    </x-ui.form-modal>
 
 
     {{-- =========================================================
@@ -908,26 +849,36 @@
                 <section class="route-details-grid">
 
                     <div>
-                        <span>Route ID</span>
+
+                        <span>
+                            Route ID
+                        </span>
 
                         <strong id="viewRouteCode">
                             —
                         </strong>
+
                     </div>
 
 
                     <div>
-                        <span>Status</span>
+
+                        <span>
+                            Status
+                        </span>
 
                         <div id="viewRouteStatus">
                             —
                         </div>
+
                     </div>
 
 
                     <div class="full">
 
-                        <span>Route Name</span>
+                        <span>
+                            Route Name
+                        </span>
 
                         <strong id="viewRouteName">
                             —
@@ -938,7 +889,9 @@
 
                     <div>
 
-                        <span>Origin</span>
+                        <span>
+                            Origin
+                        </span>
 
                         <strong id="viewRouteOrigin">
                             —
@@ -949,7 +902,9 @@
 
                     <div>
 
-                        <span>Destination</span>
+                        <span>
+                            Destination
+                        </span>
 
                         <strong id="viewRouteDestination">
                             —
@@ -960,7 +915,9 @@
 
                     <div>
 
-                        <span>Distance</span>
+                        <span>
+                            Distance
+                        </span>
 
                         <strong id="viewRouteDistance">
                             —
@@ -971,7 +928,9 @@
 
                     <div>
 
-                        <span>Estimated Time</span>
+                        <span>
+                            Estimated Time
+                        </span>
 
                         <strong id="viewRouteTime">
                             —
@@ -989,6 +948,7 @@
                         Route Path
                     </h3>
 
+
                     <div
                         class="route-path-list"
                         id="viewRoutePath"
@@ -1005,15 +965,17 @@
 
 
     {{-- =========================================================
-        DELETE CONFIRMATION
-        USING YOUR REUSABLE COMPONENT
+        DELETE MODAL
     ========================================================== --}}
     <x-ui.action-buttom-modal
         mode="delete"
         id="deleteRouteModal"
+
         delete-title="Delete Route?"
         delete-message="Are you sure you want to delete"
+
         name-id="deleteRouteName"
+
         cancel-id="cancelDeleteRoute"
         confirm-id="confirmDeleteRoute"
     />
@@ -1026,8 +988,11 @@
 
         <x-ui.action-buttom-modal
             mode="feedback"
+
             feedback-type="success"
+
             :message="session('success')"
+
             button-text="Okay"
         />
 

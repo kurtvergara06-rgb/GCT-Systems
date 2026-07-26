@@ -12,15 +12,13 @@ use App\Http\Controllers\Maintenance\PmsSchedulingController;
 use App\Http\Controllers\Maintenance\PurchaseRequestController;
 
 use App\Http\Controllers\Operation\BusController;
-use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
-use App\Http\Controllers\Operation\RouteController;
+use App\Http\Controllers\Operation\MechanicAttendanceController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\ScheduledPurchaseController;
-
 
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
@@ -34,13 +32,17 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::view('/', 'Login.login')
-    ->name('login');
+Route::view(
+    '/',
+    'Login.login'
+)->name('login');
+
 
 Route::post(
     '/login',
     [LoginController::class, 'login']
 )->name('login.submit');
+
 
 Route::post(
     '/logout',
@@ -92,26 +94,37 @@ Route::middleware('auth')->group(function () {
         ->prefix('pms-scheduling')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('PMS-Scheduling');
+            Route::get(
+                '/',
+                'index'
+            )->name('PMS-Scheduling');
 
-            Route::post('/', 'store')
-                ->name('pms-schedules.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name('pms-schedules.store');
+
 
             Route::put(
                 '/{pmsSchedule}',
                 'update'
             )->name('pms-schedules.update');
 
+
             Route::delete(
                 '/{pmsSchedule}',
                 'destroy'
             )->name('pms-schedules.destroy');
 
+
             Route::get(
                 '/{pmsSchedule}/create-job-order',
                 'createJobOrder'
-            )->name('pms-schedules.create-job-order');
+            )->name(
+                'pms-schedules.create-job-order'
+            );
+
         });
 
 
@@ -125,26 +138,43 @@ Route::middleware('auth')->group(function () {
         ->prefix('fuel-reports')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('fuel-reports');
+            Route::get(
+                '/',
+                'index'
+            )->name('fuel-reports');
+
 
             Route::get(
                 '/gps-distance',
                 'gpsDistance'
-            )->name('fuel-reports.gps-distance');
+            )->name(
+                'fuel-reports.gps-distance'
+            );
 
-            Route::post('/', 'store')
-                ->name('fuel-reports.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'fuel-reports.store'
+            );
+
 
             Route::put(
                 '/{fuelReport}',
                 'update'
-            )->name('fuel-reports.update');
+            )->name(
+                'fuel-reports.update'
+            );
+
 
             Route::delete(
                 '/{fuelReport}',
                 'destroy'
-            )->name('fuel-reports.destroy');
+            )->name(
+                'fuel-reports.destroy'
+            );
+
         });
 
 
@@ -158,36 +188,59 @@ Route::middleware('auth')->group(function () {
         ->prefix('job-orders')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('job-orders');
+            Route::get(
+                '/',
+                'index'
+            )->name('job-orders');
+
 
             Route::get(
                 '/available-mechanics',
                 'availableMechanics'
-            )->name('job-orders.available-mechanics');
+            )->name(
+                'job-orders.available-mechanics'
+            );
 
-            Route::post('/', 'store')
-                ->name('job-orders.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'job-orders.store'
+            );
+
 
             Route::put(
                 '/{jobOrder}',
                 'update'
-            )->name('job-orders.update');
+            )->name(
+                'job-orders.update'
+            );
+
 
             Route::post(
                 '/{jobOrder}/finish',
                 'finish'
-            )->name('job-orders.finish');
+            )->name(
+                'job-orders.finish'
+            );
+
 
             Route::post(
                 '/{jobOrder}/create-pr',
                 'createPurchaseRequest'
-            )->name('job-orders.create-pr');
+            )->name(
+                'job-orders.create-pr'
+            );
+
 
             Route::delete(
                 '/{jobOrder}',
                 'destroy'
-            )->name('job-orders.destroy');
+            )->name(
+                'job-orders.destroy'
+            );
+
         });
 
 
@@ -201,46 +254,150 @@ Route::middleware('auth')->group(function () {
         ->prefix('purchase-requests')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('purchase-requests');
+            /*
+            |--------------------------------------------------------------------------
+            | LIST
+            |--------------------------------------------------------------------------
+            */
 
-            Route::post('/', 'store')
-                ->name('purchase-requests.store');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'purchase-requests'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CREATE
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'purchase-requests.store'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | NORMAL EDIT
+            |
+            | Only Submitted PRs use this.
+            |--------------------------------------------------------------------------
+            */
 
             Route::put(
                 '/{purchaseRequest}',
                 'update'
-            )->name('purchase-requests.update');
+            )->name(
+                'purchase-requests.update'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | REVISE + RESUBMIT
+            |
+            | Only Rejected PRs use this.
+            | Same PR record and same PR number.
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post(
+                '/{purchaseRequest}/resubmit',
+                'resubmit'
+            )->name(
+                'purchase-requests.resubmit'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | DELETE
+            |--------------------------------------------------------------------------
+            */
 
             Route::delete(
                 '/{purchaseRequest}',
                 'destroy'
-            )->name('purchase-requests.destroy');
+            )->name(
+                'purchase-requests.destroy'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | APPROVE
+            |--------------------------------------------------------------------------
+            */
 
             Route::post(
                 '/{purchaseRequest}/approve',
                 'approve'
-            )->name('purchase-requests.approve');
+            )->name(
+                'purchase-requests.approve'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | REJECT
+            |--------------------------------------------------------------------------
+            */
 
             Route::post(
                 '/{purchaseRequest}/reject',
                 'reject'
-            )->name('purchase-requests.reject');
+            )->name(
+                'purchase-requests.reject'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FOR PURCHASE
+            |--------------------------------------------------------------------------
+            */
 
             Route::post(
                 '/{purchaseRequest}/for-purchase',
                 'markForPurchase'
-            )->name('purchase-requests.for-purchase');
+            )->name(
+                'purchase-requests.for-purchase'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | DELIVERED
+            |--------------------------------------------------------------------------
+            */
 
             Route::post(
                 '/{purchaseRequest}/delivered',
                 'markDelivered'
-            )->name('purchase-requests.delivered');
+            )->name(
+                'purchase-requests.delivered'
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ISSUED
+            |--------------------------------------------------------------------------
+            */
 
             Route::post(
                 '/{purchaseRequest}/issue',
                 'issue'
-            )->name('purchase-requests.issue');
+            )->name(
+                'purchase-requests.issue'
+            );
+
         });
 
 
@@ -256,105 +413,116 @@ Route::middleware('auth')->group(function () {
     )->name('settings');
 
 
-  /*
-|--------------------------------------------------------------------------
-| WAREHOUSE DEPARTMENT
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | WAREHOUSE DEPARTMENT
+    |--------------------------------------------------------------------------
+    */
 
 
-/*
-|--------------------------------------------------------------------------
-| Warehouse Dashboard
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Warehouse Dashboard
+    |--------------------------------------------------------------------------
+    */
 
-Route::view(
-    '/warehouse/dashboard',
-    'Warehouse.dashboard-warehouse'
-)->name('dashboard-warehouse');
-
-
-/*
-|--------------------------------------------------------------------------
-| Inventory
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(InventoryController::class)
-    ->prefix('inventory')
-    ->group(function () {
-
-        Route::get('/', 'index')
-            ->name('inventory');
-
-        Route::post('/', 'store')
-            ->name('inventory.store');
-
-        Route::put(
-            '/{inventoryItem}',
-            'update'
-        )->name('inventory.update');
-
-        Route::delete(
-            '/{inventoryItem}',
-            'destroy'
-        )->name('inventory.destroy');
-
-        Route::post(
-            '/import',
-            'import'
-        )->name('inventory.import');
-    });
+    Route::view(
+        '/warehouse/dashboard',
+        'Warehouse.dashboard-warehouse'
+    )->name(
+        'dashboard-warehouse'
+    );
 
 
-/*
-|--------------------------------------------------------------------------
-| Warehouse Part Requests
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Inventory
+    |--------------------------------------------------------------------------
+    */
 
-Route::controller(WarehousePartRequestController::class)
-    ->prefix('part-requests')
-    ->group(function () {
+    Route::controller(InventoryController::class)
+        ->prefix('inventory')
+        ->group(function () {
 
-        Route::get('/', 'index')
-            ->name('part-requests');
-
-        Route::post(
-            '/{purchaseRequest}/issue',
-            'issue'
-        )->name('part-requests.issue');
-
-        Route::post(
-            '/{purchaseRequest}/send-to-purchase',
-            'sendToPurchase'
-        )->name('part-requests.send-to-purchase');
-    });
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'inventory'
+            );
 
 
-/*
-|--------------------------------------------------------------------------
-| Incoming Deliveries
-|--------------------------------------------------------------------------
-*/
-
-Route::view(
-    '/warehouse/incoming-deliveries',
-    'Warehouse.incoming-deliveries'
-)->name('incoming-deliveries');
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'inventory.store'
+            );
 
 
-/*
-|--------------------------------------------------------------------------
-| Stock Movements
-|--------------------------------------------------------------------------
-*/
+            Route::put(
+                '/{inventoryItem}',
+                'update'
+            )->name(
+                'inventory.update'
+            );
 
-Route::view(
-    '/warehouse/stock-movements',
-    'Warehouse.stock-movements'
-)->name('stock-movements');
+
+            Route::delete(
+                '/{inventoryItem}',
+                'destroy'
+            )->name(
+                'inventory.destroy'
+            );
+
+
+            Route::post(
+                '/import',
+                'import'
+            )->name(
+                'inventory.import'
+            );
+
+        });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Warehouse Part Requests
+    |--------------------------------------------------------------------------
+    */
+
+    Route::controller(
+        WarehousePartRequestController::class
+    )
+        ->prefix('part-requests')
+        ->group(function () {
+
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'part-requests'
+            );
+
+
+            Route::post(
+                '/{purchaseRequest}/issue',
+                'issue'
+            )->name(
+                'part-requests.issue'
+            );
+
+
+            Route::post(
+                '/{purchaseRequest}/send-to-purchase',
+                'sendToPurchase'
+            )->name(
+                'part-requests.send-to-purchase'
+            );
+
+        });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -365,7 +533,9 @@ Route::view(
     Route::view(
         '/warehouse/stock-movements',
         'Warehouse.stock-movements'
-    )->name('stock-movements');
+    )->name(
+        'stock-movements'
+    );
 
 
     /*
@@ -377,7 +547,9 @@ Route::view(
     Route::view(
         '/warehouse/incoming-deliveries',
         'Warehouse.incoming-deliveries'
-    )->name('incoming-deliveries');
+    )->name(
+        'incoming-deliveries'
+    );
 
 
     /*
@@ -385,6 +557,7 @@ Route::view(
     | PURCHASE DEPARTMENT
     |--------------------------------------------------------------------------
     */
+
 
     /*
     |--------------------------------------------------------------------------
@@ -395,7 +568,9 @@ Route::view(
     Route::view(
         '/purchase/dashboard',
         'Purchase.dashboard-purchase'
-    )->name('dashboard-purchase');
+    )->name(
+        'dashboard-purchase'
+    );
 
 
     /*
@@ -404,17 +579,27 @@ Route::view(
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(MaintenanceRequestController::class)
+    Route::controller(
+        MaintenanceRequestController::class
+    )
         ->prefix('maintenance-requests')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('maintenance-requests');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'maintenance-requests'
+            );
+
 
             Route::post(
                 '/{maintenanceRequest}/create-po',
                 'createPo'
-            )->name('maintenance-requests.create-po');
+            )->name(
+                'maintenance-requests.create-po'
+            );
+
         });
 
 
@@ -424,12 +609,19 @@ Route::view(
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(InventoryRestockController::class)
+    Route::controller(
+        InventoryRestockController::class
+    )
         ->prefix('inventory-restock')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('inventory-restock');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'inventory-restock'
+            );
+
         });
 
 
@@ -439,30 +631,51 @@ Route::view(
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(PurchaseOrderController::class)
+    Route::controller(
+        PurchaseOrderController::class
+    )
         ->prefix('purchase-orders')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('purchase-orders');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'purchase-orders'
+            );
 
-            Route::post('/', 'store')
-                ->name('purchase-orders.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'purchase-orders.store'
+            );
+
 
             Route::put(
                 '/{purchaseOrder}',
                 'update'
-            )->name('purchase-orders.update');
+            )->name(
+                'purchase-orders.update'
+            );
+
 
             Route::patch(
                 '/{purchaseOrder}/status',
                 'updateStatus'
-            )->name('purchase-orders.update-status');
+            )->name(
+                'purchase-orders.update-status'
+            );
+
 
             Route::delete(
                 '/{purchaseOrder}',
                 'destroy'
-            )->name('purchase-orders.destroy');
+            )->name(
+                'purchase-orders.destroy'
+            );
+
         });
 
 
@@ -472,40 +685,67 @@ Route::view(
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(ScheduledPurchaseController::class)
+    Route::controller(
+        ScheduledPurchaseController::class
+    )
         ->prefix('scheduled-purchase')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('scheduled-purchase');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'scheduled-purchase'
+            );
 
-            Route::post('/', 'store')
-                ->name('scheduled-purchase.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'scheduled-purchase.store'
+            );
+
 
             Route::put(
                 '/{scheduledPurchase}',
                 'update'
-            )->name('scheduled-purchase.update');
+            )->name(
+                'scheduled-purchase.update'
+            );
+
 
             Route::patch(
                 '/{scheduledPurchase}/toggle-status',
                 'toggleStatus'
-            )->name('scheduled-purchase.toggle-status');
+            )->name(
+                'scheduled-purchase.toggle-status'
+            );
+
 
             Route::patch(
                 '/{scheduledPurchase}/complete',
                 'complete'
-            )->name('scheduled-purchase.complete');
+            )->name(
+                'scheduled-purchase.complete'
+            );
+
 
             Route::post(
                 '/{scheduledPurchase}/create-po',
                 'createPo'
-            )->name('scheduled-purchase.create-po');
+            )->name(
+                'scheduled-purchase.create-po'
+            );
+
 
             Route::delete(
                 '/{scheduledPurchase}',
                 'destroy'
-            )->name('scheduled-purchase.destroy');
+            )->name(
+                'scheduled-purchase.destroy'
+            );
+
         });
 
 
@@ -514,6 +754,7 @@ Route::view(
     | OPERATION DEPARTMENT
     |--------------------------------------------------------------------------
     */
+
 
     /*
     |--------------------------------------------------------------------------
@@ -524,12 +765,14 @@ Route::view(
     Route::view(
         '/operation/dashboard',
         'Operation.dashboard-operation'
-    )->name('dashboard-operation');
+    )->name(
+        'dashboard-operation'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | Shuttle Bus Management - Bus Master List
+    | Bus Master List
     |--------------------------------------------------------------------------
     */
 
@@ -537,79 +780,122 @@ Route::view(
         ->prefix('bus-master-list')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('bus-master-list');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'bus-master-list'
+            );
 
-            Route::post('/', 'store')
-                ->name('bus-master-list.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'bus-master-list.store'
+            );
+
 
             Route::post(
                 '/import',
                 'import'
-            )->name('bus-master-list.import');
+            )->name(
+                'bus-master-list.import'
+            );
+
 
             Route::put(
                 '/{bus}',
                 'update'
-            )->name('bus-master-list.update');
+            )->name(
+                'bus-master-list.update'
+            );
+
 
             Route::delete(
                 '/{bus}',
                 'destroy'
-            )->name('bus-master-list.destroy');
+            )->name(
+                'bus-master-list.destroy'
+            );
+
         });
 
 
     /*
     |--------------------------------------------------------------------------
-    | Shuttle Bus Management - Bus Assignment
+    | Bus Assignment
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/operation/bus-assignment',
         'Operation.Shuttle_Bus_Management.bus-assignment'
-    )->name('bus-assignment');
+    )->name(
+        'bus-assignment'
+    );
 
 
     /*
-|--------------------------------------------------------------------------
-| Driver Attendance
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Driver Attendance
+    |--------------------------------------------------------------------------
+    */
 
-Route::redirect(
-    '/attendance',
-    '/driver-attendance'
-)->name('attendance');
+    Route::controller(
+        DriverAttendanceController::class
+    )
+        ->prefix('driver-attendance')
+        ->group(function () {
+
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'driver-attendance'
+            );
 
 
-Route::controller(DriverAttendanceController::class)
-    ->prefix('driver-attendance')
-    ->group(function () {
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'driver-attendance.store'
+            );
 
-        Route::get('/', 'index')
-            ->name('driver-attendance');
 
-        Route::post('/', 'store')
-            ->name('driver-attendance.store');
+            Route::post(
+                '/import',
+                'import'
+            )->name(
+                'driver-attendance.import'
+            );
 
-        Route::post(
-            '/import',
-            'import'
-        )->name('driver-attendance.import');
 
-        Route::put(
-            '/{driverAttendance}',
-            'update'
-        )->name('driver-attendance.update');
+            Route::put(
+                '/{driverAttendance}',
+                'update'
+            )->name(
+                'driver-attendance.update'
+            );
 
-        Route::delete(
-            '/{driverAttendance}',
-            'destroy'
-        )->name('driver-attendance.destroy');
 
-    });
+            Route::delete(
+                '/{driverAttendance}',
+                'destroy'
+            )->name(
+                'driver-attendance.destroy'
+            );
+
+        });
+
+
+    Route::redirect(
+        '/attendance',
+        '/driver-attendance'
+    )->name(
+        'attendance'
+    );
 
 
     /*
@@ -618,106 +904,124 @@ Route::controller(DriverAttendanceController::class)
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(MechanicAttendanceController::class)
+    Route::controller(
+        MechanicAttendanceController::class
+    )
         ->prefix('mechanic-attendance')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('mechanic-attendance');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'mechanic-attendance'
+            );
 
-            Route::post('/', 'store')
-                ->name('mechanic-attendance.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'mechanic-attendance.store'
+            );
+
 
             Route::put(
                 '/{mechanicAttendance}',
                 'update'
-            )->name('mechanic-attendance.update');
+            )->name(
+                'mechanic-attendance.update'
+            );
+
 
             Route::delete(
                 '/{mechanicAttendance}',
                 'destroy'
-            )->name('mechanic-attendance.destroy');
+            )->name(
+                'mechanic-attendance.destroy'
+            );
+
 
             Route::post(
                 '/import',
                 'import'
-            )->name('mechanic-attendance.import');
+            )->name(
+                'mechanic-attendance.import'
+            );
+
         });
 
 
     Route::redirect(
         '/available-mechanics',
         '/mechanic-attendance'
-    )->name('available-mechanics');
-
-
-   /*
-|--------------------------------------------------------------------------
-| Routes & Stops
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(RouteController::class)
-    ->prefix('operation/routes')
-    ->group(function () {
-
-        Route::get('/', 'index')
-            ->name('operation.routes');
-
-        Route::post('/', 'store')
-            ->name('operation.routes.store');
-
-        Route::put(
-            '/{shuttleRoute}',
-            'update'
-        )->name('operation.routes.update');
-
-        Route::delete(
-            '/{shuttleRoute}',
-            'destroy'
-        )->name('operation.routes.destroy');
-    });
+    )->name(
+        'available-mechanics'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | Scheduling & Dispatch - Trip Schedule
+    | Routes & Stops
+    |--------------------------------------------------------------------------
+    */
+
+    Route::view(
+        '/operation/routes',
+        'Operation.Routes.routes-stops'
+    )->name(
+        'operation.routes'
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Trip Schedule
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/operation/trip-schedule',
         'Operation.Scheduling_And_Dispatch.trip-schedule'
-    )->name('trip-schedule');
+    )->name(
+        'trip-schedule'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | Scheduling & Dispatch - Driver & Bus Assignment
+    | Driver & Bus Assignment
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/operation/driver-bus-assignment',
         'Operation.Scheduling_And_Dispatch.driver-bus-assignment'
-    )->name('driver-bus-assignment');
+    )->name(
+        'driver-bus-assignment'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | Scheduling & Dispatch - Auto Dispatch
+    | Auto Scheduling
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/operation/auto-scheduling',
         'Operation.Scheduling_And_Dispatch.auto-dispatch'
-    )->name('auto-scheduling');
+    )->name(
+        'auto-scheduling'
+    );
+
 
     Route::view(
         '/operation/auto-dispatch',
         'Operation.Scheduling_And_Dispatch.auto-dispatch'
-    )->name('auto-dispatch');
+    )->name(
+        'auto-dispatch'
+    );
 
 
     /*
@@ -729,7 +1033,9 @@ Route::controller(RouteController::class)
     Route::view(
         '/operation/trip-records',
         'Operation.Trip_Records.trip-records'
-    )->name('trip-records');
+    )->name(
+        'trip-records'
+    );
 
 
     /*
@@ -737,6 +1043,7 @@ Route::controller(RouteController::class)
     | ADMIN DEPARTMENT
     |--------------------------------------------------------------------------
     */
+
 
     /*
     |--------------------------------------------------------------------------
@@ -747,137 +1054,140 @@ Route::controller(RouteController::class)
     Route::view(
         '/admin/dashboard',
         'Admin.admin-dashboard'
-    )->name('admin.dashboard');
+    )->name(
+        'admin.dashboard'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | USER MANAGEMENT - Users
+    | User Management
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(AdminUserController::class)
+    Route::controller(
+        AdminUserController::class
+    )
         ->prefix('admin/users')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('admin.users');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'admin.users'
+            );
 
-            Route::post('/', 'store')
-                ->name('admin.users.store');
+
+            Route::post(
+                '/',
+                'store'
+            )->name(
+                'admin.users.store'
+            );
+
 
             Route::put(
                 '/{user}',
                 'update'
-            )->name('admin.users.update');
+            )->name(
+                'admin.users.update'
+            );
+
 
             Route::patch(
                 '/{user}/status',
                 'updateStatus'
-            )->name('admin.users.update-status');
+            )->name(
+                'admin.users.update-status'
+            );
+
 
             Route::patch(
                 '/{user}/reset-password',
                 'resetPassword'
-            )->name('admin.users.reset-password');
+            )->name(
+                'admin.users.reset-password'
+            );
+
 
             Route::delete(
                 '/{user}',
                 'destroy'
-            )->name('admin.users.destroy');
+            )->name(
+                'admin.users.destroy'
+            );
+
         });
 
 
     /*
     |--------------------------------------------------------------------------
-    | USER MANAGEMENT - Roles & Permissions
+    | Batch File Processing
     |--------------------------------------------------------------------------
     */
 
-    Route::view(
-        '/admin/roles-permissions',
-        'Admin.User_Management.permissions'
-    )->name('admin.roles-permissions');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | USER MANAGEMENT - Account Requests
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/admin/account-requests',
-        'Admin.User_Management.account-requests'
-    )->name('admin.account-requests');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | SYSTEM MONITORING - Activity Logs
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/admin/activity-logs',
-        'Admin.System_Monitoring.activity-logs'
-    )->name('admin.activity-logs');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | SYSTEM MONITORING - Notifications
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/admin/notifications',
-        'Admin.System_Monitoring.notifications'
-    )->name('admin.notifications');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MANAGEMENT - Batch File Processing
-    |--------------------------------------------------------------------------
-    */
-
-    Route::controller(BatchFileProcessingController::class)
+    Route::controller(
+        BatchFileProcessingController::class
+    )
         ->prefix('batch-file-processing')
         ->group(function () {
 
-            Route::get('/', 'index')
-                ->name('batch-file-processing');
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'batch-file-processing'
+            );
+
 
             Route::post(
                 '/upload',
                 'upload'
-            )->name('batch-file-processing.upload');
+            )->name(
+                'batch-file-processing.upload'
+            );
+
 
             Route::get(
                 '/export',
                 'export'
-            )->name('batch-file-processing.export');
+            )->name(
+                'batch-file-processing.export'
+            );
+
 
             Route::delete(
                 '/{batchUpload}',
                 'destroy'
-            )->name('batch-file-processing.destroy');
+            )->name(
+                'batch-file-processing.destroy'
+            );
+
 
             Route::patch(
                 '/{batchUpload}/confirm',
                 'confirm'
-            )->name('batch-file-processing.confirm');
+            )->name(
+                'batch-file-processing.confirm'
+            );
+
 
             Route::put(
                 '/records/{gpsTripRecord}',
                 'updateRecord'
-            )->name('batch-file-processing.records.update');
+            )->name(
+                'batch-file-processing.records.update'
+            );
+
 
             Route::put(
                 '/{batchUpload}/records/bulk-update',
                 'bulkUpdateRecords'
-            )->name('batch-file-processing.records.bulk-update');
+            )->name(
+                'batch-file-processing.records.bulk-update'
+            );
+
         });
 
 
@@ -890,114 +1200,128 @@ Route::controller(RouteController::class)
     Route::get(
         '/admin/batch-file-processing',
         [BatchFileProcessingController::class, 'index']
-    )->name('admin.batch-file-processing');
+    )->name(
+        'admin.batch-file-processing'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | DATA MANAGEMENT - Import / Export
+    | Data Management - Import / Export
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/admin/import-export',
         'Admin.Data_Management.uploading-data'
-    )->name('admin.import-export');
+    )->name(
+        'admin.import-export'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | DATA MANAGEMENT - Data History
+    | Data Management - History
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/admin/data-history',
         'Admin.Data_Management.data-history'
-    )->name('admin.data-history');
+    )->name(
+        'admin.data-history'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | ANALYTICS
+    | Analytics
     |--------------------------------------------------------------------------
     */
 
     Route::redirect(
         '/analytics',
         '/analytics/overview'
-    )->name('analytics');
+    )->name(
+        'analytics'
+    );
 
 
     Route::view(
         '/analytics/overview',
         'Admin.Analytics.overview'
-    )->name('analytics.overview');
+    )->name(
+        'analytics.overview'
+    );
 
 
     Route::view(
         '/analytics/fleet-trip',
         'Admin.Analytics.fleet-trip'
-    )->name('analytics.fleet-trip');
+    )->name(
+        'analytics.fleet-trip'
+    );
 
 
     Route::view(
         '/analytics/fuel',
         'Admin.Analytics.fuel'
-    )->name('analytics.fuel');
+    )->name(
+        'analytics.fuel'
+    );
 
 
     Route::view(
         '/analytics/bus-health',
         'Admin.Analytics.bus-health'
-    )->name('analytics.bus-health');
+    )->name(
+        'analytics.bus-health'
+    );
 
 
     Route::view(
         '/analytics/inventory',
         'Admin.Analytics.inventory'
-    )->name('analytics.inventory');
+    )->name(
+        'analytics.inventory'
+    );
 
 
     Route::view(
         '/analytics/recommendations',
         'Admin.Analytics.recommendations'
-    )->name('analytics.recommendations');
+    )->name(
+        'analytics.recommendations'
+    );
 
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN SETTINGS - General
+    | Admin Settings
     |--------------------------------------------------------------------------
     */
 
     Route::view(
         '/admin/settings/general',
         'Admin.Settings.general-settings'
-    )->name('admin.settings.general');
+    )->name(
+        'admin.settings.general'
+    );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN SETTINGS - Notifications
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/admin/settings/notifications',
         'Admin.Settings.notification-settings'
-    )->name('admin.settings.notifications');
+    )->name(
+        'admin.settings.notifications'
+    );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN SETTINGS - Security
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/admin/settings/security',
         'Admin.Settings.security-settings'
-    )->name('admin.settings.security');
+    )->name(
+        'admin.settings.security'
+    );
 
 });

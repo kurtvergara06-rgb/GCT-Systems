@@ -1335,3 +1335,69 @@ textarea[readonly] {
   .jo-page .jo-table-card { padding: 12px; }
   .jo-page .job-orders-table { min-width: 980px; }
 }
+
+/* =========================================================
+   REQUESTED PARTS LOCK STATE
+========================================================= */
+
+.jo-parts-section.is-locked .jo-parts-repeater {
+    display: none;
+}
+
+.jo-parts-section.is-locked .ui-btn-small {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #dce5f2 !important;
+
+    cursor: not-allowed;
+
+    opacity: 1;
+}
+
+.jo-parts-locked-notice {
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    padding: 14px 16px;
+
+    background: #f8fafc;
+
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+
+    color: #475569;
+}
+
+.jo-parts-locked-notice > i {
+    margin-top: 2px;
+
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+.jo-parts-locked-notice > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.jo-parts-locked-notice strong {
+    color: #0f172a;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.jo-parts-locked-notice span {
+    color: #64748b;
+
+    font-size: 12px;
+
+    line-height: 1.45;
+}

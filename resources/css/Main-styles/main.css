@@ -24,6 +24,7 @@
   --shadow-hover: 0 12px 26px rgba(12, 35, 68, 0.10);
 }
 
+
 /* =========================================================
    GLOBAL RESET
 ========================================================= */
@@ -70,6 +71,7 @@ a {
   overflow-x: hidden;
 }
 
+
 /* =========================================================
    TOP BAR
 ========================================================= */
@@ -101,14 +103,20 @@ a {
 .icon-btn {
   width: 46px;
   height: 46px;
+
   border: 1px solid var(--border);
   border-radius: 12px;
+
   background: var(--card);
   color: var(--text);
+
   position: relative;
+
   display: grid;
   place-items: center;
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
   transition: 0.25s ease;
 }
 
@@ -119,28 +127,36 @@ a {
 
 .notification span {
   position: absolute;
+
   top: -6px;
   right: -4px;
+
   width: 20px;
   height: 20px;
+
   background: var(--red);
   color: #ffffff;
+
   border-radius: 50%;
+
   display: grid;
   place-items: center;
+
   font-size: 11px;
   font-weight: 700;
 }
 
+
 /* =========================================================
    SUMMARY CARDS
-   Shared design for the whole system
 ========================================================= */
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+
   gap: 16px;
+
   margin-bottom: 20px;
 }
 
@@ -148,16 +164,25 @@ a {
 .stat-card-link {
   min-width: 0;
   min-height: 96px;
+
   padding: 16px 18px;
+
   border: 1px solid var(--border);
   border-radius: 16px;
+
   background: var(--card);
+
   box-shadow: 0 6px 18px rgba(12, 35, 68, 0.05);
+
   color: inherit;
+
   display: flex;
   align-items: center;
+
   gap: 14px;
+
   overflow: hidden;
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -167,8 +192,11 @@ a {
 .stat-card:hover,
 .stat-card-link:hover {
   transform: translateY(-2px);
+
   border-color: #bfd0e7;
-  box-shadow: 0 12px 26px rgba(12, 35, 68, 0.10);
+
+  box-shadow:
+    0 12px 26px rgba(12, 35, 68, 0.10);
 }
 
 .stat-card-content {
@@ -178,10 +206,14 @@ a {
 .stat-icon {
   width: 42px;
   height: 42px;
+
   flex: 0 0 42px;
+
   border-radius: 11px;
+
   display: grid;
   place-items: center;
+
   font-size: 16px;
 }
 
@@ -218,7 +250,9 @@ a {
 .stat-card p,
 .stat-card-link p {
   margin: 0 0 3px;
+
   color: var(--muted);
+
   font-size: 11px;
   line-height: 1.25;
   font-weight: 500;
@@ -227,18 +261,24 @@ a {
 .stat-card h2,
 .stat-card-link h2 {
   margin: 0;
+
   color: var(--text);
+
   font-size: 21px;
   line-height: 1.15;
   font-weight: 800;
+
   white-space: nowrap;
 }
 
 .stat-card small,
 .stat-card-link small {
   display: block;
+
   margin-top: 5px;
+
   color: var(--muted);
+
   font-size: 10px;
   line-height: 1.3;
 }
@@ -247,6 +287,7 @@ a {
 .stat-card-link .arrow {
   display: none;
 }
+
 
 /* =========================================================
    SECTION HEADER
@@ -257,6 +298,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 14px;
 }
 
@@ -269,9 +311,12 @@ a {
 
 .section-header p {
   color: var(--muted);
+
   font-size: 12px;
+
   margin-top: 3px;
 }
+
 
 /* =========================================================
    TOOLBAR
@@ -279,13 +324,20 @@ a {
 
 .toolbar {
   background: var(--card);
+
   border: 1px solid var(--border);
   border-radius: 16px;
+
   padding: 18px;
+
   margin-bottom: 20px;
-  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.05);
+
+  box-shadow:
+    0 8px 22px rgba(12, 35, 68, 0.05);
+
   display: flex;
   align-items: center;
+
   gap: 18px;
 }
 
@@ -301,8 +353,11 @@ a {
 .search-box i,
 .mini-search i {
   position: absolute;
+
   top: 50%;
+
   transform: translateY(-50%);
+
   color: var(--muted);
 }
 
@@ -312,6 +367,7 @@ a {
 
 .mini-search i {
   left: 12px;
+
   font-size: 12px;
 }
 
@@ -320,24 +376,33 @@ a {
 .filter-group select,
 .table-actions select {
   border: 1px solid var(--border);
+
   background: #ffffff;
+
   color: var(--text);
+
   outline: none;
 }
 
 .search-box input {
   width: 100%;
   height: 46px;
+
   border-radius: 10px;
+
   padding: 0 16px 0 44px;
+
   font-size: 14px;
 }
 
 .mini-search input {
   width: 220px;
   height: 34px;
+
   border-radius: 8px;
+
   padding: 0 12px 0 34px;
+
   font-size: 12px;
 }
 
@@ -346,47 +411,70 @@ a {
 .filter-group select:focus,
 .table-actions select:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+
+  box-shadow:
+    0 0 0 3px rgba(0, 87, 248, 0.12);
 }
 
 .filter-group {
   display: flex;
   align-items: center;
+
   gap: 10px;
 }
 
 .filter-group label {
   color: var(--muted);
+
   font-size: 13px;
+
   white-space: nowrap;
 }
 
 .filter-group select {
   height: 46px;
   min-width: 145px;
+
   border-radius: 10px;
+
   padding: 0 12px;
 }
 
 .primary-btn {
   height: 46px;
+
   border: none;
   border-radius: 10px;
+
   padding: 0 18px;
-  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--yellow),
+      var(--yellow-dark)
+    );
+
   color: #061f3b;
+
   font-weight: 800;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 8px;
+
   transition: 0.25s ease;
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.22);
+
+  box-shadow:
+    0 8px 18px rgba(255, 196, 0, 0.22);
 }
+
 
 /* =========================================================
    TABLE
@@ -394,22 +482,29 @@ a {
 
 .table-card {
   background: var(--card);
+
   border: 1px solid var(--border);
   border-radius: 16px;
+
   padding: 18px;
+
   box-shadow: var(--shadow);
+
   overflow-x: auto;
+
   margin-bottom: 20px;
 }
 
 .table-wrap {
   width: 100%;
+
   overflow-x: auto;
 }
 
 table {
   width: 100%;
   min-width: 980px;
+
   border-collapse: collapse;
 }
 
@@ -419,19 +514,28 @@ thead {
 
 th {
   padding: 15px;
+
   text-align: left;
+
   font-size: 13px;
   font-weight: 800;
+
   text-transform: uppercase;
+
   color: var(--text);
+
   white-space: nowrap;
 }
 
 td {
   padding: 15px;
+
   border-bottom: 1px solid var(--border);
+
   font-size: 14px;
+
   color: var(--text);
+
   vertical-align: middle;
 }
 
@@ -449,35 +553,47 @@ tbody tr:last-child td {
 
 .sub-text {
   display: block;
+
   font-size: 11px;
+
   color: var(--muted);
+
   margin-top: 3px;
 }
 
 .empty {
   font-weight: 800;
+
   color: #17233f;
 }
 
 .empty-row {
   text-align: center;
+
   padding: 30px;
+
   color: var(--muted);
+
   font-weight: 700;
 }
 
 .table-actions {
   display: flex;
   align-items: center;
+
   gap: 10px;
 }
 
 .table-actions select {
   height: 34px;
+
   border-radius: 8px;
+
   padding: 0 10px;
+
   font-size: 12px;
 }
+
 
 /* =========================================================
    BADGES
@@ -485,13 +601,18 @@ tbody tr:last-child td {
 
 .badge {
   min-width: 86px;
+
   padding: 7px 12px;
+
   border-radius: 999px;
+
   font-size: 12px;
   font-weight: 700;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   line-height: 1;
 }
 
@@ -502,6 +623,7 @@ tbody tr:last-child td {
 .badge.high,
 .badge.progress {
   background: #fff3cd;
+
   color: #b77900;
 }
 
@@ -511,6 +633,7 @@ tbody tr:last-child td {
 .badge.issued,
 .badge.for-purchase {
   background: #e7f0ff;
+
   color: #0057f8;
 }
 
@@ -521,11 +644,13 @@ tbody tr:last-child td {
 .badge.delivered,
 .badge.in-stock {
   background: #ddf8e7;
+
   color: #16a34a;
 }
 
 .badge.draft {
   background: #eef1f6;
+
   color: #64748b;
 }
 
@@ -534,23 +659,28 @@ tbody tr:last-child td {
 .badge.rejected,
 .badge.urgent {
   background: #ffe2e2;
+
   color: #dc2626;
 }
 
 .badge.delivering {
   background: #ede9fe;
+
   color: #6d28d9;
 }
 
 .badge.low-stock {
   background: #fff3cd;
+
   color: #b77900;
 }
 
 .no-action {
   color: var(--muted);
+
   font-size: 13px;
 }
+
 
 /* =========================================================
    ACTION BUTTONS
@@ -559,6 +689,7 @@ tbody tr:last-child td {
 .actions {
   display: flex;
   align-items: center;
+
   gap: 10px;
 }
 
@@ -575,7 +706,9 @@ tbody tr:last-child td {
 .small-btn {
   border: none;
   border-radius: 8px;
+
   font-weight: 700;
+
   transition: 0.2s ease;
 }
 
@@ -585,6 +718,7 @@ tbody tr:last-child td {
 .view-btn {
   width: 34px;
   height: 34px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -593,17 +727,20 @@ tbody tr:last-child td {
 .actions .edit,
 .view-btn {
   background: #edf3fb;
+
   color: #082445;
 }
 
 .actions .delete,
 .reject-btn {
   background: #fff0f0;
+
   color: var(--red);
 }
 
 .approve-btn {
   background: #ddf8e7;
+
   color: var(--green);
 }
 
@@ -611,7 +748,9 @@ tbody tr:last-child td {
 .details-btn,
 .small-btn {
   padding: 8px 12px;
+
   background: #edf1f7;
+
   color: var(--text);
 }
 
@@ -625,6 +764,7 @@ tbody tr:last-child td {
   transform: translateY(-2px);
 }
 
+
 /* =========================================================
    TABLE FOOTER / PAGINATION
 ========================================================= */
@@ -633,15 +773,21 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 16px;
+
   margin-top: 16px;
+
   padding-top: 10px;
+
   color: var(--muted);
+
   font-size: 13px;
 }
 
 .table-footer p {
   color: var(--muted);
+
   font-size: 13px;
 }
 
@@ -649,6 +795,7 @@ tbody tr:last-child td {
 .pagination {
   display: flex;
   align-items: center;
+
   gap: 10px;
 }
 
@@ -656,14 +803,21 @@ tbody tr:last-child td {
 .pagination button {
   min-width: 38px;
   height: 38px;
+
   padding: 0 14px;
+
   border: 1px solid var(--border);
   border-radius: 9px;
+
   background: #ffffff;
+
   color: var(--text);
+
   font-size: 13px;
   font-weight: 700;
+
   text-decoration: none;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -676,20 +830,25 @@ tbody tr:last-child td {
 
 .page-btn.disabled {
   color: #94a3b8;
+
   background: #f8fafc;
+
   cursor: not-allowed;
 }
 
 .page-number {
   font-size: 13px;
   font-weight: 700;
+
   color: var(--muted);
 }
 
 .pagination .active-page {
   background: var(--navy);
+
   color: #ffffff;
 }
+
 
 /* =========================================================
    TEXT HELPERS
@@ -704,6 +863,7 @@ tbody tr:last-child td {
   color: var(--orange);
 }
 
+
 /* =========================================================
    MODALS
 ========================================================= */
@@ -712,12 +872,18 @@ tbody tr:last-child td {
 .delete-modal-overlay,
 .success-modal-overlay {
   position: fixed;
+
   inset: 0;
+
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+
+  background:
+    rgba(0, 0, 0, 0.45);
+
   z-index: 99999;
+
   padding: 20px;
 }
 
@@ -732,36 +898,48 @@ tbody tr:last-child td {
 
 .modal-box,
 .wide-modal {
-  background: #ffffff;
   width: 760px;
   max-width: 95vw;
   max-height: 90vh;
+
   overflow-y: auto;
+
+  background: #ffffff;
+
   border-radius: 18px;
+
   padding: 28px 32px 24px;
-  box-shadow: 0 18px 45px rgba(12, 35, 68, 0.22);
+
+  box-shadow:
+    0 18px 45px rgba(12, 35, 68, 0.22);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 18px;
 }
 
 .modal-header h2 {
   font-size: 22px;
   font-weight: 800;
+
   color: var(--text);
 }
 
 .close-btn {
   width: 38px;
   height: 38px;
+
   border: none;
   border-radius: 10px;
+
   background: #f1f5f9;
+
   color: var(--text);
+
   font-size: 22px;
   font-weight: 700;
 }
@@ -770,6 +948,7 @@ tbody tr:last-child td {
   background: #e2e8f0;
 }
 
+
 /* =========================================================
    FORMS
 ========================================================= */
@@ -777,7 +956,9 @@ tbody tr:last-child td {
 .job-form,
 .wide-form {
   display: grid;
+
   grid-template-columns: 1fr 1fr;
+
   gap: 14px 18px;
 }
 
@@ -792,24 +973,29 @@ tbody tr:last-child td {
 .form-section-title h3 {
   font-size: 18px;
   font-weight: 800;
+
   color: var(--text);
 }
 
 .form-section-title p {
   font-size: 13px;
+
   color: var(--muted);
+
   margin-top: 3px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+
   gap: 7px;
 }
 
 .form-group label {
   font-size: 13px;
   font-weight: 700;
+
   color: var(--text);
 }
 
@@ -818,19 +1004,27 @@ tbody tr:last-child td {
 .form-group textarea {
   width: 100%;
   height: 46px;
+
   border: 1px solid var(--border);
   border-radius: 10px;
+
   padding: 0 13px;
+
   font-size: 13px;
+
   color: var(--text);
+
   background: #ffffff;
+
   outline: none;
 }
 
 .form-group textarea {
   height: auto;
   min-height: 86px;
+
   padding: 13px;
+
   resize: vertical;
 }
 
@@ -838,54 +1032,74 @@ tbody tr:last-child td {
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.18);
+
+  box-shadow:
+    0 0 0 3px rgba(255, 196, 0, 0.18);
 }
 
 .form-section-divider {
   display: flex;
   align-items: center;
+
   gap: 14px;
+
   margin-top: 4px;
 }
 
 .form-section-divider::before,
 .form-section-divider::after {
   content: "";
+
   flex: 1;
+
   height: 1px;
+
   background: var(--border);
 }
 
 .form-section-divider span {
   font-size: 12px;
   font-weight: 800;
+
   color: var(--muted);
+
   text-transform: uppercase;
+
   letter-spacing: 0.8px;
 }
 
 .form-row.time-section {
   display: grid;
+
   grid-template-columns: 1fr 1fr;
+
   gap: 18px;
+
   background: #f8fafc;
+
   border: 1px solid var(--border);
   border-radius: 14px;
+
   padding: 14px;
 }
 
 input[readonly],
 textarea[readonly] {
   background: #f8fafc;
+
   color: #64748b;
+
   cursor: not-allowed;
 }
 
 .form-group small {
   color: #64748b;
+
   font-size: 12px;
+
   margin-top: 5px;
 }
+
 
 /* =========================================================
    MODAL BUTTONS
@@ -894,7 +1108,9 @@ textarea[readonly] {
 .modal-actions,
 .delete-modal-actions {
   display: flex;
+
   justify-content: flex-end;
+
   gap: 10px;
 }
 
@@ -911,14 +1127,18 @@ textarea[readonly] {
 .danger-btn {
   border: none;
   border-radius: 10px;
+
   padding: 12px 18px;
+
   font-size: 14px;
   font-weight: 800;
+
   cursor: pointer;
 }
 
 .cancel-btn {
   background: #f1f5f9;
+
   color: var(--text);
 }
 
@@ -928,6 +1148,7 @@ textarea[readonly] {
 
 .save-btn {
   background: var(--yellow);
+
   color: #061f3d;
 }
 
@@ -937,12 +1158,14 @@ textarea[readonly] {
 
 .danger-btn {
   background: var(--red);
+
   color: #ffffff;
 }
 
 .danger-btn:hover {
   background: #b91c1c;
 }
+
 
 /* =========================================================
    SUCCESS / DELETE POPUPS
@@ -952,11 +1175,18 @@ textarea[readonly] {
 .delete-modal-box {
   width: 430px;
   max-width: 92vw;
+
   background: #ffffff;
+
   border-radius: 18px;
+
   padding: 30px 28px;
+
   text-align: center;
-  box-shadow: 0 20px 60px rgba(12, 35, 68, 0.25);
+
+  box-shadow:
+    0 20px 60px rgba(12, 35, 68, 0.25);
+
   position: relative;
 }
 
@@ -964,51 +1194,509 @@ textarea[readonly] {
 .delete-icon {
   width: 62px;
   height: 62px;
+
   border-radius: 18px;
+
   margin: 0 auto 16px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 24px;
 }
 
 .success-icon {
   background: #ddf8e7;
+
   color: var(--green);
 }
 
 .delete-icon {
   background: #fee2e2;
+
   color: var(--red);
 }
 
 .success-modal-box h2,
 .delete-modal-box h2 {
+  margin-bottom: 8px;
+
   font-size: 22px;
   font-weight: 800;
+
   color: var(--text);
-  margin-bottom: 8px;
 }
 
 .success-modal-box p,
 .delete-modal-box p {
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.5;
   margin-bottom: 22px;
+
+  font-size: 14px;
+
+  color: var(--muted);
+
+  line-height: 1.5;
 }
 
 .success-modal-box .save-btn {
   min-width: 100px;
 }
 
+
 /* =========================================================
-   RESPONSIVE
+   GLOBAL ACTION CONFIRMATION MODAL
+
+   IMPORTANT:
+   This uses the SAME box dimensions and spacing
+   as .delete-modal-box.
+========================================================= */
+
+.global-confirmation-overlay {
+  z-index: 99999;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION CARD
+========================================================= */
+
+.global-confirmation-box {
+  width: 430px;
+  max-width: 92vw;
+
+  padding: 30px 28px;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  text-align: center;
+
+  box-shadow:
+    0 20px 60px rgba(12, 35, 68, 0.25);
+
+  position: relative;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION ICON
+========================================================= */
+
+.global-confirmation-icon {
+  width: 62px;
+  height: 62px;
+
+  margin: 0 auto 16px;
+
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;
+
+  line-height: 1;
+}
+
+
+/* DEFAULT / WARNING */
+
+.global-confirmation-icon.warning {
+  background: #fff3cd;
+
+  color: #b77900;
+}
+
+
+/* DELETE / DANGER */
+
+.global-confirmation-icon.danger {
+  background: #fee2e2;
+
+  color: var(--red);
+}
+
+.global-confirmation-icon.danger i {
+  color: var(--red);
+}
+
+
+/* APPROVE */
+
+.global-confirmation-icon.approve {
+  background: #ddf8e7;
+
+  color: var(--green);
+}
+
+.global-confirmation-icon.approve i {
+  color: var(--green);
+}
+
+
+/* REJECT */
+
+.global-confirmation-icon.reject {
+  background: #fee2e2;
+
+  color: var(--red);
+}
+
+.global-confirmation-icon.reject i {
+  color: var(--red);
+}
+
+
+/* SUCCESS */
+
+.global-confirmation-icon.success {
+  background: #ddf8e7;
+
+  color: var(--green);
+}
+
+
+/* CREATE */
+
+.global-confirmation-icon.create {
+  background: #e7f0ff;
+
+  color: var(--blue);
+}
+
+
+/* UPDATE */
+
+.global-confirmation-icon.update {
+  background: #ede9fe;
+
+  color: #6d28d9;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION TITLE
+========================================================= */
+
+.global-confirmation-box h2 {
+  margin: 0 0 8px;
+
+  color: var(--text);
+
+  font-size: 22px;
+  font-weight: 800;
+
+  line-height: 1.3;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION MESSAGE
+========================================================= */
+
+.global-confirmation-box p {
+  max-width: 340px;
+
+  margin: 0 auto 22px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+.global-confirmation-box p strong {
+  color: var(--text);
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION ACTIONS
+========================================================= */
+
+.global-confirmation-box
+.delete-modal-actions {
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   GLOBAL CANCEL BUTTON
+   SAME STYLE AS DELETE CANCEL
+========================================================= */
+
+.global-confirmation-box
+.cancel-btn {
+  min-width: 100px;
+  height: 44px;
+
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #f1f5f9;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 800;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.global-confirmation-box
+.cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRM BUTTON
+========================================================= */
+
+.global-confirm-btn {
+  min-width: 120px;
+  height: 44px;
+
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+/* =========================================================
+   APPROVE CONFIRM BUTTON
+========================================================= */
+
+.approve-confirm-btn {
+  background: var(--green) !important;
+
+  border: none !important;
+
+  color: #ffffff !important;
+}
+
+.approve-confirm-btn:hover {
+  background: #15803d !important;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 14px rgba(22, 163, 74, 0.20);
+}
+
+.approve-confirm-btn i {
+  color: #ffffff !important;
+}
+
+
+/* =========================================================
+   REJECT / DELETE CONFIRM BUTTON
+========================================================= */
+
+.global-confirmation-box
+.danger-btn {
+  min-width: 120px;
+  height: 44px;
+
+  padding: 0 18px;
+
+  border: none !important;
+  border-radius: 10px;
+
+  background: var(--red) !important;
+
+  color: #ffffff !important;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  cursor: pointer;
+}
+
+.global-confirmation-box
+.danger-btn:hover {
+  background: #b91c1c !important;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 14px rgba(220, 38, 38, 0.20);
+}
+
+.global-confirmation-box
+.danger-btn i {
+  color: #ffffff !important;
+}
+
+
+/* =========================================================
+   PRIMARY GLOBAL CONFIRM
+   Used for create/update/default confirmations
+========================================================= */
+
+.global-confirmation-box
+.primary-btn {
+  min-width: 120px;
+  height: 44px;
+
+  padding: 0 18px;
+}
+
+
+/* =========================================================
+   GLOBAL CONFIRMATION LOADING
+========================================================= */
+
+.global-confirmation-box
+.global-confirm-btn:disabled,
+
+.global-confirmation-box
+.primary-btn:disabled,
+
+.global-confirmation-box
+.danger-btn:disabled {
+  opacity: 0.72;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   SHARED SECTION HEADER COMPONENT
+========================================================= */
+
+.section-header {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 14px;
+}
+
+.section-header-content {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+}
+
+.section-header-icon {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #fff3cd;
+
+  color: #b77900;
+
+  font-size: 16px;
+}
+
+.section-header-text {
+  min-width: 0;
+}
+
+.section-header-text h2,
+.section-header-content h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 18px;
+  font-weight: 800;
+
+  line-height: 1.3;
+}
+
+.section-header-text p,
+.section-header-content p {
+  margin: 4px 0 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+}
+
+.section-header-actions {
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   RESPONSIVE - 1200px
 ========================================================= */
 
 @media (max-width: 1200px) {
+
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .toolbar,
@@ -1020,65 +1708,93 @@ textarea[readonly] {
   .section-header {
     flex-direction: column;
     align-items: flex-start;
+
     gap: 12px;
   }
+
 }
 
+
+/* =========================================================
+   RESPONSIVE - 768px
+========================================================= */
+
 @media (max-width: 768px) {
+
   .app {
     flex-direction: column;
   }
 
+
   .main {
     margin-left: 0;
+
     width: 100%;
+
     padding: 20px;
   }
+
 
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
+
   .topbar {
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: 16px;
   }
 
+
   .toolbar {
     flex-direction: column;
+
     align-items: stretch;
   }
 
+
   .filter-group {
     width: 100%;
+
     justify-content: space-between;
   }
+
 
   .filter-group select {
     flex: 1;
   }
 
+
   .primary-btn {
     width: 100%;
   }
 
+
   .table-footer {
     flex-direction: column;
+
     align-items: flex-start;
   }
+
 
   .custom-pagination,
   .pagination {
     width: 100%;
+
     justify-content: space-between;
   }
+
 
   .modal-box,
   .wide-modal {
     width: 95vw;
+
     padding: 24px;
   }
+
 
   .job-form,
   .wide-form,
@@ -1086,189 +1802,64 @@ textarea[readonly] {
     grid-template-columns: 1fr;
   }
 
+
   .modal-actions,
   .delete-modal-actions {
     flex-direction: column;
   }
+
 
   .cancel-btn,
   .save-btn,
   .danger-btn {
     width: 100%;
   }
-}
 
-/* =========================================================
-   SHARED SECTION HEADER COMPONENT
-========================================================= */
 
-.section-header {
+  .section-header {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+
+  .section-header-actions {
     width: 100%;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 14px;
+
+    justify-content: flex-start;
+  }
+
+
+  .section-header-actions > button,
+  .section-header-actions > a {
+    width: 100%;
+  }
+
 }
 
-.section-header-content {
-    min-width: 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.section-header-icon {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: #fff3cd;
-    color: #b77900;
-    font-size: 16px;
-}
-
-.section-header-text {
-    min-width: 0;
-}
-
-.section-header-text h2,
-.section-header-content h2 {
-    margin: 0;
-    color: var(--text);
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 1.3;
-}
-
-.section-header-text p,
-.section-header-content p {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.section-header-actions {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-@media (max-width: 768px) {
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .section-header-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .section-header-actions > button,
-    .section-header-actions > a {
-        width: 100%;
-    }
-}
 
 /* =========================================================
-   GLOBAL ACTION CONFIRMATION MODAL
+   GLOBAL CONFIRMATION MOBILE
 ========================================================= */
-
-.global-confirmation-overlay {
-  z-index: 99999;
-}
-
-.global-confirmation-box {
-  width: min(430px, calc(100% - 32px));
-  padding: 30px;
-  text-align: center;
-}
-
-.global-confirmation-box .primary-btn:disabled,
-.global-confirmation-box .danger-btn:disabled {
-  opacity: 0.72;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.global-confirmation-box h2 {
-  margin: 16px 0 8px;
-  color: var(--text, #0f172a);
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.global-confirmation-box p {
-  margin: 0 auto 24px;
-  max-width: 340px;
-  color: var(--muted, #64748b);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.global-confirmation-icon {
-  width: 62px;
-  height: 62px;
-  margin: 0 auto;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.global-confirmation-icon.warning {
-  color: #b77900;
-  background: #fff3cd;
-}
-
-.global-confirmation-icon.danger {
-  color: #dc2626;
-  background: #fee2e2;
-}
-
-.global-confirmation-icon.success {
-  color: #16a34a;
-  background: #dcfce7;
-}
-
-.global-confirmation-icon.create {
-  color: #0b40b5;
-  background: #dbeafe;
-}
-
-.global-confirmation-icon.update {
-  color: #6d28d9;
-  background: #ede9fe;
-}
-
-.global-confirmation-box .delete-modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
-.global-confirmation-box .delete-modal-actions button {
-  min-width: 130px;
-}
 
 @media (max-width: 520px) {
+
   .global-confirmation-box {
-    padding: 24px 20px;
+    width: 100%;
+
+    padding: 30px 28px;
   }
 
-  .global-confirmation-box .delete-modal-actions {
-    flex-direction: column-reverse;
+
+  .global-confirmation-box
+  .delete-modal-actions {
+    flex-direction: column;
   }
 
-  .global-confirmation-box .delete-modal-actions button {
+
+  .global-confirmation-box
+  .delete-modal-actions button {
     width: 100%;
   }
+
 }
