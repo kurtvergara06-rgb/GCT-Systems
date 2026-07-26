@@ -1,837 +1,1502 @@
 <x-layout.app
-  title="FROMS - Purchase Requests"
-  :assets="[
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
-    'resources/css/Maintenance/purchase-requests.css',
-    'resources/js/Main-js/sidebar.js',
-    'resources/js/Maintenance/purchase-requests.js'
-  ]"
+    title="FROMS - Purchase Requests"
+
+    :assets="[
+        'resources/css/Main-styles/main.css',
+        'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/form-components.css',
+        'resources/css/Maintenance/purchase-requests.css',
+        'resources/js/Main-js/sidebar.js',
+        'resources/js/Maintenance/purchase-requests.js'
+    ]"
 >
 
-  @php
-    $statuses = $statuses ?? [
-      'Submitted',
-      'Approved',
-      'Rejected',
-      'For Purchase',
-      'Ordered',
-      'For Pick-up',
-      'For Delivery',
-      'Delivered',
-      'Picked Up',
-      'Issued',
-    ];
+    @php
 
-    $submitted = $submitted ?? 0;
-    $rejected = $rejected ?? 0;
-    $approved = $approved ?? 0;
-    $issued = $issued ?? 0;
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS ORDER
+        |--------------------------------------------------------------------------
+        |
+        | Rejected is a branch:
+        |
+        | Submitted → Rejected → Revise → Submitted
+        | Submitted → Approved → For Purchase → Ordered
+        | → Pick-up / Delivery → Issued
+        |
+        */
 
-    $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
-  @endphp
+        $statuses = [
+            'Submitted',
+            'Rejected',
+            'Approved',
+            'For Purchase',
+            'Ordered',
+            'For Pick-up',
+            'Picked Up',
+            'For Delivery',
+            'Delivered',
+            'Issued',
+        ];
 
-  @if($errors->any())
-    <div
-      id="validationErrorModal"
-      class="modal-overlay show active"
-    >
-      <div class="modal-card delete-modal-box">
-        <div class="delete-icon">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
 
-        <h2>Form Error</h2>
+        $submitted =
+            $submitted ?? 0;
 
-        <p>
-          Please check the form. Some required information is missing.
-        </p>
+        $rejected =
+            $rejected ?? 0;
 
-        <ul class="form-error-list">
-          @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
+        $approved =
+            $approved ?? 0;
 
-        <div class="delete-modal-actions">
-          <button
-            type="button"
-            id="closeValidationErrorModal"
-            class="secondary-btn cancel-delete-btn"
-          >
-            Okay
-          </button>
-        </div>
-      </div>
-    </div>
-  @endif
+        $forPurchase =
+            $forPurchase ?? 0;
 
-  <div class="app">
+        $isMaintenanceAdmin =
+            $isMaintenanceAdmin ?? false;
 
-    <x-layout.sidebar
-      department="Maintenance"
-      subtitle="Department Module"
-      icon="fa-truck"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
-        ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
-        ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
-        ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-      ]"
-    />
 
-    <main class="main purchase-page">
+        /*
+        |--------------------------------------------------------------------------
+        | AVAILABLE JOB ORDERS FOR NEW PR
+        |--------------------------------------------------------------------------
+        |
+        | Controller still protects this on backend.
+        | This also keeps existing PR JOs out of the dropdown.
+        |
+        */
 
-      <x-layout.topbar
-        title="Purchase Requests"
-        subtitle="Manage requested parts and maintenance purchasing records"
-        notification-count="6"
-      />
+        $availablePrJobOrders =
+            $jobOrders->filter(function ($jobOrder) {
 
-      {{-- SUMMARY CARDS --}}
-      <section class="stats-grid purchase-stats-grid">
+                if (
+                    empty($jobOrder->assigned_mechanic) ||
+                    empty($jobOrder->part_needed) ||
+                    $jobOrder->status === 'Completed'
+                ) {
+                    return false;
+                }
 
-        <x-ui.summary-card
-          label="Submitted"
-          value="{{ $submitted }}"
-          small="Waiting approval"
-          icon="fa-paper-plane"
-          color="blue"
-        />
 
-        <x-ui.summary-card
-          label="Rejected"
-          value="{{ $rejected }}"
-          small="Rejected requests"
-          icon="fa-xmark"
-          color="red"
-        />
+                return !\App\Models\Maintenance\PurchaseRequest::query()
+                    ->where(
+                        'job_order_no',
+                        $jobOrder->job_order_no
+                    )
+                    ->where(
+                        'pr_no',
+                        'not like',
+                        '%-P'
+                    )
+                    ->where(function ($query) {
 
-        <x-ui.summary-card
-          label="Approved"
-          value="{{ $approved }}"
-          small="Approved requests"
-          icon="fa-check"
-          color="purple"
-        />
+                        $query
+                            ->whereNull(
+                                'source_type'
+                            )
+                            ->orWhere(
+                                'source_type',
+                                'Maintenance Request'
+                            );
 
-        <x-ui.summary-card
-          label="For Purchase"
-          value="{{ $forPurchase ?? 0 }}"
-          small="Ready to purchase"
-          icon="fa-cart-shopping"
-          color="blue"
-        />
+                    })
+                    ->exists();
 
-      </section>
+            })
+            ->values();
 
-      {{-- PURCHASE REQUEST RECORDS --}}
-      <section class="table-card purchase-request-card">
+    @endphp
 
-        <div class="section-header">
-          <div>
-            <h2>Purchase Request Records</h2>
 
-            <p>
-              Track requested parts, approval status, warehouse issuance,
-              and purchasing progress
-            </p>
-          </div>
-        </div>
+    {{-- =========================================================
+        VALIDATION ERROR
+    ========================================================== --}}
+    @if($errors->any())
 
-        <form
-          action="{{ route('purchase-requests') }}"
-          method="GET"
-          class="toolbar purchase-toolbar fixed-purchase-toolbar"
+        <div
+            id="validationErrorModal"
+            class="modal-overlay show active"
         >
 
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
+            <div class="modal-card delete-modal-box">
 
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus no., item..."
-            >
-          </div>
+                <div class="delete-icon">
 
-          <div class="filter-group">
-            <label for="prStatusFilter">
-              Status
-            </label>
+                    <i class="fa-solid fa-triangle-exclamation"></i>
 
-            <select
-              name="status"
-              id="prStatusFilter"
-              class="pr-status-select"
-              onchange="this.form.requestSubmit()"
-            >
-              <option
-                value="All Statuses"
-                {{ request('status', 'All Statuses') === 'All Statuses'
-                  ? 'selected'
-                  : ''
-                }}
-              >
-                All Statuses
-              </option>
+                </div>
 
-              @foreach($statuses as $status)
-                <option
-                  value="{{ $status }}"
-                  {{ request('status') === $status
-                    ? 'selected'
-                    : ''
-                  }}
-                >
-                  {{ $status }}
-                </option>
-              @endforeach
-            </select>
-          </div>
 
-          <button
-            type="button"
-            id="openPrModal"
-            class="primary-btn compact-new-pr-btn"
-          >
-            <i class="fa-solid fa-plus"></i>
-            New PR
-          </button>
+                <h2>
+                    Form Error
+                </h2>
 
-        </form>
 
-        <div class="table-wrap purchase-table-wrap">
-          <table class="purchase-request-table">
-            <thead>
-              <tr>
-                <th>PR #</th>
-                <th>JO #</th>
-                <th>Bus #</th>
-                <th>Requested Item / Part</th>
-                <th>Qty</th>
-                <th class="status-col">Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+                <p>
+                    Please check the form. Some required information is missing.
+                </p>
 
-            <tbody>
-              @forelse($purchaseRequests as $pr)
-                @php
-                  $firstRequestedItem = trim(
-                    explode(',', $pr->item ?? '')[0] ?? ''
-                  );
 
-                  if (str_contains($firstRequestedItem, ' - Qty:')) {
-                    $firstRequestedItem = trim(
-                      explode(
-                        ' - Qty:',
-                        $firstRequestedItem
-                      )[0] ?? $firstRequestedItem
-                    );
-                  }
+                <ul class="form-error-list">
 
-                  $isLockedPr = in_array(
-                    $pr->status,
-                    [
-                      'Approved',
-                      'For Purchase',
-                      'Ordered',
-                      'For Pick-up',
-                      'For Delivery',
-                      'Delivered',
-                      'Picked Up',
-                      'Issued',
-                    ],
-                    true
-                  );
-                @endphp
+                    @foreach($errors->all() as $error)
 
-                <tr>
-                  <td>
-                    {{ $pr->pr_no }}
-                  </td>
+                        <li>
+                            {{ $error }}
+                        </li>
 
-                  <td>
-                    {{ $pr->job_order_no }}
-                  </td>
+                    @endforeach
 
-                  <td>
-                    {{ $pr->bus_no }}
-                  </td>
+                </ul>
 
-                  <td>
-                    {{ $firstRequestedItem ?: '—' }}
-                  </td>
 
-                  <td>
-                    {{ $pr->quantity }}
-                  </td>
+                <div class="delete-modal-actions">
 
-                  <td class="status-col">
-                    <x-ui.status-badge
-                      :status="$pr->status"
-                      type="purchase"
-                    />
-                  </td>
-
-                  <td>
-                    {{ $pr->created_at
-                      ? $pr->created_at->format('m/d/y | h:i A')
-                      : '—'
-                    }}
-                  </td>
-
-                  <td>
-                    <div class="actions">
-
-                      {{-- VIEW --}}
-                      <button
+                    <button
                         type="button"
-                        class="action-btn view open-view-pr-modal"
-                        title="View"
-                        data-id="{{ $pr->id }}"
-                        data-pr-no="{{ $pr->pr_no }}"
-                        data-job-order-no="{{ $pr->job_order_no }}"
-                        data-bus-no="{{ $pr->bus_no }}"
-                        data-item="{{ $pr->item }}"
-                        data-quantity="{{ $pr->quantity }}"
-                        data-status="{{ $pr->status }}"
-                        data-remarks="{{ $pr->remarks }}"
-                        data-update-url="{{ route(
-                          'purchase-requests.update',
-                          $pr->id
-                        ) }}"
-                        data-approve-url="{{ route(
-                          'purchase-requests.approve',
-                          $pr->id
-                        ) }}"
-                        data-reject-url="{{ route(
-                          'purchase-requests.reject',
-                          $pr->id
-                        ) }}"
-                        data-can-approve="{{ $isMaintenanceAdmin
-                          ? '1'
-                          : '0'
-                        }}"
-                      >
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
+                        id="closeValidationErrorModal"
+                        class="secondary-btn cancel-delete-btn"
+                    >
+                        Okay
+                    </button>
 
-                      {{-- EDIT --}}
-                      @if($isLockedPr)
-                        <button
-                          type="button"
-                          class="action-btn edit disabled-pr-edit-btn"
-                          title="Cannot edit. This Purchase Request is already approved or being processed."
-                          disabled
-                        >
-                          <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                      @else
-                        <button
-                          type="button"
-                          class="action-btn edit open-edit-pr-modal"
-                          title="Edit"
-                          data-id="{{ $pr->id }}"
-                          data-pr-no="{{ $pr->pr_no }}"
-                          data-job-order-no="{{ $pr->job_order_no }}"
-                          data-bus-no="{{ $pr->bus_no }}"
-                          data-item="{{ $pr->item }}"
-                          data-quantity="{{ $pr->quantity }}"
-                          data-status="{{ $pr->status }}"
-                          data-remarks="{{ $pr->remarks }}"
-                          data-update-url="{{ route(
-                            'purchase-requests.update',
-                            $pr->id
-                          ) }}"
-                          data-approve-url="{{ route(
-                            'purchase-requests.approve',
-                            $pr->id
-                          ) }}"
-                          data-reject-url="{{ route(
-                            'purchase-requests.reject',
-                            $pr->id
-                          ) }}"
-                          data-can-approve="{{ $isMaintenanceAdmin
-                            ? '1'
-                            : '0'
-                          }}"
-                        >
-                          <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                      @endif
+                </div>
 
-                      {{-- DELETE --}}
-                      <form
-                        id="deletePrForm-{{ $pr->id }}"
-                        action="{{ route(
-                          'purchase-requests.destroy',
-                          $pr->id
-                        ) }}"
-                        method="POST"
-                      >
-                        @csrf
-                        @method('DELETE')
+            </div>
 
-                        <button
-                          type="button"
-                          class="action-btn delete open-delete-pr-modal"
-                          title="Delete"
-                          data-id="{{ $pr->id }}"
-                          data-pr-no="{{ $pr->pr_no }}"
-                        >
-                          <i class="fa-solid fa-trash"></i>
-                        </button>
-                      </form>
+        </div>
+
+    @endif
+
+
+    <div class="app">
+
+        {{-- =====================================================
+            SIDEBAR
+        ====================================================== --}}
+        <x-layout.sidebar
+            department="Maintenance"
+
+            subtitle="Department Module"
+
+            icon="fa-truck"
+
+            :items="[
+                [
+                    'label' => 'Dashboard',
+                    'route' => 'maintenance-dashboard',
+                    'icon' => 'fa-table-cells-large'
+                ],
+                [
+                    'label' => 'Job Orders',
+                    'route' => 'job-orders',
+                    'icon' => 'fa-clipboard-list'
+                ],
+                [
+                    'label' => 'Mechanic List',
+                    'route' => 'mechanic-list',
+                    'icon' => 'fa-bus'
+                ],
+                [
+                    'label' => 'PMS Scheduling',
+                    'route' => 'PMS-Scheduling',
+                    'icon' => 'fa-calendar-check'
+                ],
+                [
+                    'label' => 'Purchase Requests',
+                    'route' => 'purchase-requests',
+                    'icon' => 'fa-file-invoice'
+                ],
+                [
+                    'label' => 'Fuel Reports',
+                    'route' => 'fuel-reports',
+                    'icon' => 'fa-gas-pump'
+                ],
+            ]"
+        />
+
+
+        <main class="main purchase-page">
+
+            {{-- =====================================================
+                TOPBAR
+            ====================================================== --}}
+            <x-layout.topbar
+                title="Purchase Requests"
+
+                subtitle="Manage requested parts and maintenance purchasing records"
+
+                notification-count="6"
+            />
+
+
+            {{-- =====================================================
+                SUMMARY
+            ====================================================== --}}
+            <section class="stats-grid purchase-stats-grid">
+
+                <x-ui.summary-card
+                    label="Submitted"
+
+                    value="{{ $submitted }}"
+
+                    small="Waiting approval"
+
+                    icon="fa-paper-plane"
+
+                    color="blue"
+                />
+
+
+                <x-ui.summary-card
+                    label="Rejected"
+
+                    value="{{ $rejected }}"
+
+                    small="Needs revision"
+
+                    icon="fa-xmark"
+
+                    color="red"
+                />
+
+
+                <x-ui.summary-card
+                    label="Approved"
+
+                    value="{{ $approved }}"
+
+                    small="Approved requests"
+
+                    icon="fa-check"
+
+                    color="purple"
+                />
+
+
+                <x-ui.summary-card
+                    label="For Purchase"
+
+                    value="{{ $forPurchase }}"
+
+                    small="Ready to purchase"
+
+                    icon="fa-cart-shopping"
+
+                    color="blue"
+                />
+
+            </section>
+
+
+            {{-- =====================================================
+                TABLE CARD
+            ====================================================== --}}
+            <section class="table-card purchase-request-card">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Purchase Request Records
+                        </h2>
+
+
+                        <p>
+                            Track requested parts, approval status,
+                            warehouse issuance, and purchasing progress
+                        </p>
 
                     </div>
-                  </td>
-                </tr>
-              @empty
-                <x-ui.empty-row
-                  colspan="8"
-                  message="No purchase requests found."
+
+                </div>
+
+
+                {{-- =================================================
+                    TOOLBAR
+                ================================================== --}}
+                <form
+                    action="{{ route('purchase-requests') }}"
+
+                    method="GET"
+
+                    class="toolbar purchase-toolbar"
+                >
+
+                    {{-- SEARCH --}}
+                    <div class="search-box">
+
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+
+                        <input
+                            type="text"
+
+                            name="search"
+
+                            value="{{ request('search') }}"
+
+                            placeholder="Search PR no., JO no., bus no., item..."
+                        >
+
+                    </div>
+
+
+                    {{-- STATUS --}}
+                    <div class="filter-group">
+
+                        <label for="prStatusFilter">
+                            Status
+                        </label>
+
+
+                        <select
+                            name="status"
+
+                            id="prStatusFilter"
+
+                            class="pr-status-select"
+
+                            onchange="this.form.requestSubmit()"
+                        >
+
+                            <option
+                                value="All Statuses"
+
+                                @selected(
+                                    request(
+                                        'status',
+                                        'All Statuses'
+                                    ) === 'All Statuses'
+                                )
+                            >
+                                All Statuses
+                            </option>
+
+
+                            @foreach($statuses as $status)
+
+                                <option
+                                    value="{{ $status }}"
+
+                                    @selected(
+                                        request('status')
+                                        === $status
+                                    )
+                                >
+                                    {{ $status }}
+                                </option>
+
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
+
+                    {{-- NEW PR --}}
+                    <button
+                        type="button"
+
+                        id="openPrModal"
+
+                        class="primary-btn compact-new-pr-btn"
+                    >
+
+                        <i class="fa-solid fa-plus"></i>
+
+                        New PR
+
+                    </button>
+
+                </form>
+
+
+                {{-- =================================================
+                    TABLE
+                ================================================== --}}
+                <div class="table-wrap purchase-table-wrap">
+
+                    <table class="purchase-request-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    PR #
+                                </th>
+
+                                <th>
+                                    Bus #
+                                </th>
+
+                                <th>
+                                    Requested Item / Part
+                                </th>
+
+                                <th>
+                                    Qty
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Created
+                                </th>
+
+                                <th>
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @forelse($purchaseRequests as $pr)
+
+                                @php
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | FIRST ITEM FOR TABLE
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    $firstRequestedItem =
+                                        trim(
+                                            explode(
+                                                ',',
+                                                $pr->item ?? ''
+                                            )[0] ?? ''
+                                        );
+
+
+                                    if (
+                                        str_contains(
+                                            $firstRequestedItem,
+                                            ' - Qty:'
+                                        )
+                                    ) {
+
+                                        $firstRequestedItem =
+                                            trim(
+                                                explode(
+                                                    ' - Qty:',
+                                                    $firstRequestedItem
+                                                )[0]
+                                                ?? $firstRequestedItem
+                                            );
+
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | PR STATE
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    $isSubmitted =
+                                        $pr->status === 'Submitted';
+
+
+                                    $isRejected =
+                                        $pr->status === 'Rejected';
+
+
+                                    $isProcessed =
+                                        in_array(
+                                            $pr->status,
+                                            [
+                                                'Approved',
+                                                'For Purchase',
+                                                'Ordered',
+                                                'For Pick-up',
+                                                'Picked Up',
+                                                'For Delivery',
+                                                'Delivered',
+                                                'Issued',
+                                            ],
+                                            true
+                                        );
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | EDIT
+                                    |--------------------------------------------------------------------------
+                                    |
+                                    | Submitted = normal Edit
+                                    | Rejected  = Revise & Resubmit
+                                    | Processed = locked
+                                    |
+                                    */
+
+                                    $canEdit =
+                                        $isSubmitted ||
+                                        $isRejected;
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | APPROVE / REJECT
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    $canApproveOrReject =
+                                        $isMaintenanceAdmin &&
+                                        $isSubmitted;
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | DELETE
+                                    |--------------------------------------------------------------------------
+                                    |
+                                    | Only Submitted may be deleted.
+                                    |
+                                    | Rejected must remain for history
+                                    | and be revised/resubmitted.
+                                    |
+                                    */
+
+                                    $canDelete =
+                                        $isSubmitted;
+
+                                @endphp
+
+
+                                <tr>
+
+                                    {{-- PR --}}
+                                    <td>
+                                        {{ $pr->pr_no }}
+                                    </td>
+
+
+                                    {{-- BUS --}}
+                                    <td>
+                                        {{ $pr->bus_no }}
+                                    </td>
+
+
+                                    {{-- ITEM --}}
+                                    <td class="requested-part-cell">
+
+                                        {{
+                                            $firstRequestedItem
+                                                ?: '—'
+                                        }}
+
+                                    </td>
+
+
+                                    {{-- QTY --}}
+                                    <td>
+                                        {{ $pr->quantity }}
+                                    </td>
+
+
+                                    {{-- STATUS --}}
+                                    <td class="status-col">
+
+                                        <x-ui.status-badge
+                                            :status="$pr->status"
+
+                                            type="purchase"
+                                        />
+
+                                    </td>
+
+
+                                    {{-- CREATED --}}
+                                    <td class="created-cell">
+
+                                        {{
+                                            $pr->created_at
+                                                ? $pr->created_at
+                                                    ->format(
+                                                        'm/d/y | h:i A'
+                                                    )
+                                                : '—'
+                                        }}
+
+                                    </td>
+
+
+                                    {{-- ACTIONS --}}
+                                    <td>
+
+                                        <div class="actions">
+
+                                            {{-- =================================
+                                                VIEW
+                                            ================================== --}}
+                                            <x-ui.action-button
+                                                type="view"
+
+                                                title="View Purchase Request"
+
+                                                class="open-view-pr-modal"
+
+                                                data-id="{{
+                                                    $pr->id
+                                                }}"
+
+                                                data-pr-no="{{
+                                                    $pr->pr_no
+                                                }}"
+
+                                                data-job-order-no="{{
+                                                    $pr->job_order_no
+                                                }}"
+
+                                                data-bus-no="{{
+                                                    $pr->bus_no
+                                                }}"
+
+                                                data-item="{{
+                                                    $pr->item
+                                                }}"
+
+                                                data-quantity="{{
+                                                    $pr->quantity
+                                                }}"
+
+                                                data-status="{{
+                                                    $pr->status
+                                                }}"
+
+                                                data-remarks="{{
+                                                    $pr->remarks
+                                                }}"
+
+                                                data-update-url="{{
+                                                    route(
+                                                        'purchase-requests.update',
+                                                        $pr->id
+                                                    )
+                                                }}"
+
+                                                data-resubmit-url="{{
+                                                    route(
+                                                        'purchase-requests.resubmit',
+                                                        $pr->id
+                                                    )
+                                                }}"
+                                            />
+
+
+                                            {{-- =================================
+                                                EDIT / REVISE
+                                            ================================== --}}
+                                            @if($canEdit)
+
+                                                <x-ui.action-button
+                                                    type="edit"
+
+                                                    title="{{
+                                                        $isRejected
+                                                            ? 'Revise and Resubmit Purchase Request'
+                                                            : 'Edit Purchase Request'
+                                                    }}"
+
+                                                    class="
+                                                        open-edit-pr-modal
+                                                        {{
+                                                            $isRejected
+                                                                ? 'revise-pr-action'
+                                                                : ''
+                                                        }}
+                                                    "
+
+                                                    data-id="{{
+                                                        $pr->id
+                                                    }}"
+
+                                                    data-pr-no="{{
+                                                        $pr->pr_no
+                                                    }}"
+
+                                                    data-job-order-no="{{
+                                                        $pr->job_order_no
+                                                    }}"
+
+                                                    data-bus-no="{{
+                                                        $pr->bus_no
+                                                    }}"
+
+                                                    data-item="{{
+                                                        $pr->item
+                                                    }}"
+
+                                                    data-quantity="{{
+                                                        $pr->quantity
+                                                    }}"
+
+                                                    data-status="{{
+                                                        $pr->status
+                                                    }}"
+
+                                                    data-remarks="{{
+                                                        $pr->remarks
+                                                    }}"
+
+                                                    data-update-url="{{
+                                                        route(
+                                                            'purchase-requests.update',
+                                                            $pr->id
+                                                        )
+                                                    }}"
+
+                                                    data-resubmit-url="{{
+                                                        route(
+                                                            'purchase-requests.resubmit',
+                                                            $pr->id
+                                                        )
+                                                    }}"
+                                                />
+
+                                            @else
+
+                                                <x-ui.action-button
+                                                    type="edit"
+
+                                                    title="This Purchase Request can no longer be edited."
+
+                                                    class="disabled-pr-edit-btn"
+
+                                                    :disabled="true"
+                                                />
+
+                                            @endif
+
+
+                                            {{-- =================================
+                                                APPROVE / REJECT
+                                            ================================== --}}
+                                            @if($canApproveOrReject)
+
+                                                <x-ui.action-button
+                                                    type="approve"
+
+                                                    title="Approve Purchase Request"
+
+                                                    class="open-pr-confirmation"
+
+                                                    data-action="approve"
+
+                                                    data-pr-no="{{
+                                                        $pr->pr_no
+                                                    }}"
+
+                                                    data-action-url="{{
+                                                        route(
+                                                            'purchase-requests.approve',
+                                                            $pr->id
+                                                        )
+                                                    }}"
+                                                />
+
+
+                                                <x-ui.action-button
+                                                    type="reject"
+
+                                                    title="Reject Purchase Request"
+
+                                                    class="open-pr-confirmation"
+
+                                                    data-action="reject"
+
+                                                    data-pr-no="{{
+                                                        $pr->pr_no
+                                                    }}"
+
+                                                    data-action-url="{{
+                                                        route(
+                                                            'purchase-requests.reject',
+                                                            $pr->id
+                                                        )
+                                                    }}"
+                                                />
+
+                                            @endif
+
+
+                                            {{-- =================================
+                                                DELETE
+                                            ================================== --}}
+                                            <form
+                                                id="deletePrForm-{{ $pr->id }}"
+
+                                                action="{{
+                                                    route(
+                                                        'purchase-requests.destroy',
+                                                        $pr->id
+                                                    )
+                                                }}"
+
+                                                method="POST"
+                                            >
+
+                                                @csrf
+                                                @method('DELETE')
+
+
+                                                @if($canDelete)
+
+                                                    <x-ui.action-button
+                                                        type="delete"
+
+                                                        title="Delete Purchase Request"
+
+                                                        class="open-delete-pr-modal"
+
+                                                        data-id="{{
+                                                            $pr->id
+                                                        }}"
+
+                                                        data-pr-no="{{
+                                                            $pr->pr_no
+                                                        }}"
+                                                    />
+
+                                                @else
+
+                                                    <x-ui.action-button
+                                                        type="delete"
+
+                                                        title="{{
+                                                            $isRejected
+                                                                ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
+                                                                : 'This PR can no longer be deleted because it is already being processed.'
+                                                        }}"
+
+                                                        :disabled="true"
+                                                    />
+
+                                                @endif
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+
+                            @empty
+
+                                <x-ui.empty-row
+                                    colspan="7"
+
+                                    message="No purchase requests found."
+                                />
+
+                            @endforelse
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <x-ui.table-footer
+                    :items="$purchaseRequests"
                 />
-              @endforelse
-            </tbody>
-          </table>
-        </div>
 
-        <x-ui.table-footer :items="$purchaseRequests" />
+            </section>
 
-      </section>
+        </main>
 
-    </main>
+    </div>
 
-  </div>
 
-  {{-- NEW PURCHASE REQUEST MODAL --}}
-  <div
-    id="prModal"
-    class="modal-overlay {{
-      isset($selectedJobOrder) && $selectedJobOrder
-        ? 'show active'
-        : ''
-    }}"
-  >
-    <div class="modal-box pr-jo-style-modal">
+    {{-- =============================================================
+        NEW PURCHASE REQUEST
+    ============================================================== --}}
+    <x-ui.form-modal
+        id="prModal"
 
-      <div class="pr-jo-modal-header">
-        <div>
-          <h2>New Purchase Request</h2>
+        title="New Purchase Request"
 
-          <p>
-            Create a purchase request from a selected job order.
-          </p>
-        </div>
+        description="Create a purchase request from an inspected Job Order."
 
-        <button
-          type="button"
-          id="closePrModal"
-          class="pr-jo-close-btn"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
+        icon="fa-file-circle-plus"
 
-      <form
-        action="{{ route('purchase-requests.store') }}"
+        size="large"
+
+        form-id="newPrForm"
+
+        :action="route(
+            'purchase-requests.store'
+        )"
+
         method="POST"
-        class="pr-jo-form"
-        data-confirm-form
-        data-confirm-title="Create Purchase Request?"
-        data-confirm-message="Are you sure you want to create this Purchase Request?"
-        data-confirm-button="Yes, Create PR"
-        data-confirm-type="create"
-      >
-        @csrf
 
-        <div class="pr-jo-section-title full-width">
-          <h3>Purchase Request Information</h3>
+        submit-text="Create PR"
 
-          <p>
-            Select a job order and review the requested parts.
-          </p>
-        </div>
+        submit-id="createPrBtn"
 
-        <div class="pr-jo-form-group">
-          <label>PR No.</label>
+        submit-icon="fa-file-circle-plus"
 
-          <input
-            type="text"
-            name="pr_no_display"
-            value="{{ $nextPrNo ?? '' }}"
-            readonly
-          >
-        </div>
+        close-id="closePrModal"
 
-        <div class="pr-jo-form-group">
-          <label>JO No.</label>
+        cancel-id="cancelPrModal"
 
-          <select
+        :confirm="true"
+
+        confirm-title="Create Purchase Request?"
+
+        confirm-message="Are you sure you want to create this Purchase Request?"
+
+        confirm-button="Yes, Create PR"
+
+        confirm-type="create"
+
+        class="{{
+            isset($selectedJobOrder) &&
+            $selectedJobOrder
+                ? 'show active'
+                : ''
+        }}"
+    >
+
+        {{-- =====================================================
+            PR INFORMATION
+        ====================================================== --}}
+        <x-ui.form-section
+            title="Purchase Request Information"
+
+            subtitle="Only Job Orders with an assigned mechanic and requested parts can create a PR."
+
+            icon="fa-file-invoice"
+        >
+
+            <div class="ui-form-grid">
+
+                {{-- PR NO --}}
+                <x-ui.form-field
+                    label="PR No."
+
+                    name="display_pr_no"
+
+                    id="newPrNo"
+
+                    :value="$nextPrNo"
+
+                    icon="fa-hashtag"
+
+                    readonly
+                />
+
+
+                <div class="ui-form-group">
+
+    <label for="jobOrderSelect">
+        Job Order
+
+        <span class="ui-required">
+            *
+        </span>
+    </label>
+
+    <div class="pr-select-control">
+
+        <i class="fa-solid fa-clipboard-list"></i>
+
+        <select
             name="job_order_no"
             id="jobOrderSelect"
             required
-          >
+        >
             <option value="">
-              Select Job Order
+                Select Job Order
             </option>
 
-            @foreach($jobOrders ?? [] as $jobOrder)
-              <option
-                value="{{ $jobOrder->job_order_no }}"
-                data-bus="{{ $jobOrder->bus_no }}"
-                data-parts="{{ $jobOrder->part_needed }}"
-                {{
-                  isset($selectedJobOrder) &&
-                  $selectedJobOrder &&
-                  $selectedJobOrder->id === $jobOrder->id
-                    ? 'selected'
-                    : ''
-                }}
-              >
-                {{ $jobOrder->job_order_no }}
-              </option>
+            @foreach($availablePrJobOrders as $jobOrder)
+
+                <option
+                    value="{{ $jobOrder->job_order_no }}"
+
+                    data-bus="{{ $jobOrder->bus_no }}"
+
+                    data-parts="{{ $jobOrder->part_needed }}"
+
+                    @selected(
+                        old(
+                            'job_order_no',
+                            $selectedJobOrder?->job_order_no
+                        ) === $jobOrder->job_order_no
+                    )
+                >
+                    {{ $jobOrder->job_order_no }}
+                    - {{ $jobOrder->bus_no }}
+                </option>
+
             @endforeach
-          </select>
-        </div>
 
-        <div class="pr-jo-form-group">
-          <label>Bus #</label>
+        </select>
 
-          <input
-            type="text"
-            name="bus_no"
-            id="busNoInput"
-            value="{{
-              isset($selectedJobOrder) && $selectedJobOrder
-                ? $selectedJobOrder->bus_no
-                : ''
-            }}"
-            placeholder="Auto-filled from Job Order"
-            required
-          >
-        </div>
-
-        <div class="pr-jo-form-group">
-          <label>Status</label>
-
-          <input
-            type="text"
-            value="Submitted"
-            readonly
-          >
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <label>Requested Parts</label>
-
-          <div
-            id="newPrPartsContainer"
-            class="pr-parts-container"
-            data-initial-parts="{{
-              isset($selectedJobOrder) && $selectedJobOrder
-                ? $selectedJobOrder->part_needed
-                : ''
-            }}"
-          >
-          </div>
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <button
-            type="button"
-            id="addNewPrPartBtn"
-            class="add-part-btn"
-          >
-            <i class="fa-solid fa-plus"></i>
-            Add another part
-          </button>
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <small>
-            Add each part separately so Warehouse can check
-            inventory correctly.
-          </small>
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <label>Remarks</label>
-
-          <input
-            type="text"
-            name="remarks"
-            value="{{
-              isset($selectedJobOrder) && $selectedJobOrder
-                ? 'Created from Job Order ' .
-                  $selectedJobOrder->job_order_no
-                : ''
-            }}"
-            placeholder="Optional remarks..."
-          >
-        </div>
-
-        <div class="pr-jo-actions full-width">
-          <button
-            type="button"
-            id="cancelPrModal"
-            class="secondary-btn pr-jo-cancel-btn"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            class="primary-btn pr-jo-save-btn"
-          >
-            Create PR
-          </button>
-        </div>
-
-      </form>
     </div>
-  </div>
 
-  {{-- EDIT / VIEW PURCHASE REQUEST MODAL --}}
-  <div
-    id="editPrModal"
-    class="modal-overlay"
-  >
-    <div class="modal-box pr-jo-style-modal">
+</div>
 
-      <div class="pr-jo-modal-header">
-        <div>
-          <h2>Purchase Request Details</h2>
 
-          <p>
-            Review and update the selected purchase request.
-          </p>
+                {{-- BUS --}}
+                <x-ui.form-field
+                    label="Bus #"
+
+                    name="bus_no"
+
+                    id="busNoInput"
+
+                    value="{{
+                        old(
+                            'bus_no',
+                            $selectedJobOrder
+                                ?->bus_no
+                        )
+                    }}"
+
+                    icon="fa-bus"
+
+                    readonly
+
+                    required
+                />
+
+            </div>
+
+        </x-ui.form-section>
+
+
+        {{-- =====================================================
+            REQUESTED PARTS
+        ====================================================== --}}
+        <x-ui.form-section
+            title="Requested Parts"
+
+            subtitle="Review the parts identified during the mechanic inspection."
+
+            icon="fa-gears"
+        >
+
+            <x-slot:action>
+
+                <button
+                    type="button"
+
+                    id="addNewPrPartBtn"
+
+                    class="ui-btn-small"
+                >
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Part
+
+                </button>
+
+            </x-slot:action>
+
+
+            <div
+                id="newPrPartsContainer"
+
+                class="pr-parts-container"
+
+                data-initial-parts="{{
+                    old(
+                        'job_order_no'
+                    )
+                        ? (
+                            optional(
+                                $jobOrders->firstWhere(
+                                    'job_order_no',
+                                    old('job_order_no')
+                                )
+                            )->part_needed
+                            ?? ''
+                        )
+                        : (
+                            $selectedJobOrder
+                                ?->part_needed
+                            ?? ''
+                        )
+                }}"
+            >
+            </div>
+
+        </x-ui.form-section>
+
+
+        {{-- =====================================================
+            REMARKS
+        ====================================================== --}}
+        <div class="ui-form-group ui-form-full">
+
+            <label for="newPrRemarks">
+                Remarks
+            </label>
+
+
+            <textarea
+                name="remarks"
+
+                id="newPrRemarks"
+
+                placeholder="Optional remarks..."
+            >{{ old('remarks') }}</textarea>
+
         </div>
 
-        <button
-          type="button"
-          id="closeEditPrModal"
-          class="pr-jo-close-btn"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
+    </x-ui.form-modal>
 
-      <form
-        id="editPrForm"
-        method="POST"
+
+    {{-- =============================================================
+        EDIT / VIEW / REVISE PR
+    ============================================================== --}}
+    <x-ui.form-modal
+        id="editPrModal"
+
+        title="Purchase Request Details"
+
+        title-id="editPrModalTitle"
+
+        description="Review the selected purchase request."
+
+        icon="fa-file-invoice"
+
+        size="large"
+
+        form-id="editPrForm"
+
         action="#"
-        class="pr-jo-form"
-        data-confirm-form
-        data-confirm-title="Save Purchase Request Changes?"
-        data-confirm-message="Are you sure you want to save these Purchase Request changes?"
-        data-confirm-button="Yes, Save Changes"
-        data-confirm-type="update"
-      >
-        @csrf
-        @method('PUT')
 
-        <div class="pr-jo-section-title full-width">
-          <h3>Editable PR Information</h3>
+        method="PUT"
 
-          <p id="editPrDescription">
-            You can edit this purchase request information.
-          </p>
-        </div>
+        close-id="closeEditPrModal"
 
-        <div class="pr-jo-form-group">
-          <label>PR No.</label>
+        :show-actions="false"
 
-          <input
-            type="text"
-            name="pr_no"
-            id="edit_pr_no"
-            readonly
-          >
-        </div>
+        :confirm="true"
 
-        <div class="pr-jo-form-group">
-          <label>JO No.</label>
+        confirm-title="Save Purchase Request Changes?"
 
-          <input
-            type="text"
-            name="job_order_no"
-            id="edit_job_order_no"
-            readonly
-          >
-        </div>
+        confirm-message="Are you sure you want to save these Purchase Request changes?"
 
-        <div class="pr-jo-form-group">
-          <label>Bus #</label>
+        confirm-button="Yes, Save Changes"
 
-          <input
-            type="text"
-            name="bus_no"
-            id="edit_bus_no"
-            readonly
-          >
-        </div>
-
-        <div class="pr-jo-form-group">
-          <label>Status</label>
-
-          <input
-            type="text"
-            id="edit_status_display"
-            readonly
-          >
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <label>Requested Parts</label>
-
-          <div
-            id="editPrPartsContainer"
-            class="pr-parts-container"
-          >
-          </div>
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <button
-            type="button"
-            id="addEditPrPartBtn"
-            class="add-part-btn"
-          >
-            <i class="fa-solid fa-plus"></i>
-            Add another part
-          </button>
-        </div>
-
-        <div class="pr-jo-form-group full-width">
-          <label>Remarks</label>
-
-          <input
-            type="text"
-            name="remarks"
-            id="edit_remarks"
-            placeholder="Optional remarks..."
-          >
-        </div>
-
-        <div
-          class="pr-modal-footer full-width"
-          id="editPrMainActions"
-        >
-          <div class="pr-modal-left-actions">
-            <button
-              type="button"
-              id="cancelEditPrModal"
-              class="secondary-btn pr-jo-cancel-btn"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              class="primary-btn pr-jo-save-btn"
-              id="submitEditBtn"
-            >
-              Save Changes
-            </button>
-          </div>
-
-          <div
-            class="pr-approval-actions"
-            id="prApprovalActions"
-            data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
-            style="display: none;"
-          >
-            @if($isMaintenanceAdmin)
-              <button
-                type="button"
-                id="approvePrBtn"
-                class="approve-action-btn"
-              >
-                <i class="fa-solid fa-check"></i>
-                Approve
-              </button>
-
-              <button
-                type="button"
-                id="rejectPrBtn"
-                class="reject-action-btn"
-              >
-                <i class="fa-solid fa-xmark"></i>
-                Reject
-              </button>
-            @endif
-          </div>
-        </div>
-
-        <div
-          class="pr-jo-actions full-width hidden"
-          id="viewOnlyActions"
-        >
-          <button
-            type="button"
-            id="closeViewOnlyPr"
-            class="secondary-btn pr-jo-cancel-btn"
-          >
-            Close
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  {{-- HIDDEN APPROVE FORM --}}
-  <form
-    id="approvePrForm"
-    method="POST"
-    action="#"
-    class="hidden"
-    data-confirm-form
-    data-confirm-title="Approve Purchase Request?"
-    data-confirm-message="Are you sure you want to approve this Purchase Request?"
-    data-confirm-button="Yes, Approve"
-    data-confirm-type="approve"
-  >
-    @csrf
-  </form>
-
-  {{-- HIDDEN REJECT FORM --}}
-  <form
-    id="rejectPrForm"
-    method="POST"
-    action="#"
-    class="hidden"
-    data-confirm-form
-    data-confirm-title="Reject Purchase Request?"
-    data-confirm-message="Are you sure you want to reject this Purchase Request?"
-    data-confirm-button="Yes, Reject"
-    data-confirm-type="reject"
-  >
-    @csrf
-
-    <input
-      type="hidden"
-      name="remarks"
-      value="Rejected by Maintenance Head"
+        confirm-type="update"
     >
-  </form>
 
-  {{-- DELETE MODAL --}}
-  <x-ui.action-buttom-modal
-    mode="delete"
-    id="deletePrModal"
-    delete-title="Delete Purchase Request?"
-    delete-message="Are you sure you want to delete"
-    name-id="deletePrNo"
-    cancel-id="cancelDeletePr"
-    confirm-id="confirmDeletePr"
-  />
+        {{-- =====================================================
+            INFORMATION
+        ====================================================== --}}
+        <x-ui.form-section
+            title="Purchase Request Information"
+
+            subtitle="Review the source Job Order and PR status."
+
+            icon="fa-file-lines"
+        >
+
+            <div class="ui-form-grid">
+
+                {{-- PR --}}
+                <x-ui.form-field
+                    label="PR No."
+
+                    name="pr_no"
+
+                    id="edit_pr_no"
+
+                    icon="fa-hashtag"
+
+                    readonly
+                />
+
+
+                {{-- JO --}}
+                <x-ui.form-field
+                    label="JO No."
+
+                    name="job_order_no"
+
+                    id="edit_job_order_no"
+
+                    icon="fa-clipboard-list"
+
+                    readonly
+
+                    required
+                />
+
+
+                {{-- BUS --}}
+                <x-ui.form-field
+                    label="Bus #"
+
+                    name="bus_no"
+
+                    id="edit_bus_no"
+
+                    icon="fa-bus"
+
+                    readonly
+
+                    required
+                />
+
+
+                {{-- STATUS --}}
+                <x-ui.form-field
+                    label="Status"
+
+                    name="status_display"
+
+                    id="edit_status_display"
+
+                    icon="fa-circle-info"
+
+                    readonly
+                />
+
+            </div>
+
+        </x-ui.form-section>
+
+
+        {{-- =====================================================
+            PARTS
+        ====================================================== --}}
+        <x-ui.form-section
+            title="Requested Parts"
+
+            subtitle="Revise the requested parts before resubmitting a rejected PR."
+
+            icon="fa-gears"
+        >
+
+            <x-slot:action>
+
+                <button
+                    type="button"
+
+                    id="addEditPrPartBtn"
+
+                    class="ui-btn-small"
+                >
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Part
+
+                </button>
+
+            </x-slot:action>
+
+
+            <p
+                id="editPrDescription"
+
+                class="pr-edit-description"
+            >
+                Review the purchase request information.
+            </p>
+
+
+            <div
+                id="editPrPartsContainer"
+
+                class="pr-parts-container"
+            >
+            </div>
+
+        </x-ui.form-section>
+
+
+        {{-- =====================================================
+            REMARKS
+        ====================================================== --}}
+        <div class="ui-form-group ui-form-full">
+
+            <label for="edit_remarks">
+                Remarks
+            </label>
+
+
+            <textarea
+                name="remarks"
+
+                id="edit_remarks"
+
+                placeholder="Optional remarks..."
+            ></textarea>
+
+        </div>
+
+
+        {{-- =====================================================
+            EDIT / RESUBMIT ACTIONS
+        ====================================================== --}}
+        <div
+            class="ui-form-actions"
+
+            id="editPrMainActions"
+        >
+
+            <button
+                type="button"
+
+                id="cancelEditPrModal"
+
+                class="
+                    ui-form-btn
+                    ui-form-btn-cancel
+                "
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="submit"
+
+                id="submitEditPrBtn"
+
+                class="
+                    ui-form-btn
+                    ui-form-btn-primary
+                "
+            >
+
+                <i
+                    id="submitEditPrIcon"
+
+                    class="fa-solid fa-floppy-disk"
+                ></i>
+
+
+                <span id="submitEditPrText">
+                    Save Changes
+                </span>
+
+            </button>
+
+        </div>
+
+
+        {{-- =====================================================
+            VIEW ONLY
+        ====================================================== --}}
+        <div
+            class="ui-form-actions"
+
+            id="viewOnlyActions"
+
+            style="display: none;"
+        >
+
+            <button
+                type="button"
+
+                id="closeViewOnlyPr"
+
+                class="
+                    ui-form-btn
+                    ui-form-btn-cancel
+                "
+            >
+                Close
+            </button>
+
+        </div>
+
+    </x-ui.form-modal>
+
+
+    {{-- =============================================================
+        APPROVE
+    ============================================================== --}}
+    <form
+        id="approvePrForm"
+
+        action="#"
+
+        method="POST"
+
+        class="hidden"
+    >
+
+        @csrf
+
+    </form>
+
+
+    {{-- =============================================================
+        REJECT
+    ============================================================== --}}
+    <form
+        id="rejectPrForm"
+
+        action="#"
+
+        method="POST"
+
+        class="hidden"
+    >
+
+        @csrf
+
+
+        <input
+            type="hidden"
+
+            name="remarks"
+
+            value="Rejected by Maintenance Head"
+        >
+
+    </form>
+
+
+    {{-- =============================================================
+        GLOBAL APPROVE / REJECT CONFIRMATION
+    ============================================================== --}}
+    <x-ui.action-buttom-modal
+        mode="global-confirmation"
+    />
+
+
+    {{-- =============================================================
+        DELETE
+    ============================================================== --}}
+    <x-ui.action-buttom-modal
+        mode="delete"
+
+        id="deletePrModal"
+
+        delete-title="Delete Purchase Request?"
+
+        delete-message="Are you sure you want to delete"
+
+        name-id="deletePrNo"
+
+        cancel-id="cancelDeletePr"
+
+        confirm-id="confirmDeletePr"
+    />
+
 
 </x-layout.app>

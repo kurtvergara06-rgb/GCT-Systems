@@ -1,18 +1,33 @@
 /* =========================================================
    PURCHASE REQUESTS
-   Based on Job Order styling
+   JO-STYLE VISUAL REFERENCE
+
+   Global Add/Edit form styles:
+   resources/css/Main-styles/form-components.css
 ========================================================= */
 
 .purchase-page {
-  --pr-blue: #0b40b5;
-  --pr-navy: #061f3d;
-  --pr-yellow: #ffc400;
-  --pr-yellow-dark: #f5a800;
-  --pr-text: #0f172a;
-  --pr-muted: #64748b;
-  --pr-border: #dce5f2;
-  --pr-head: #f3f7fc;
-  --pr-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+    --pr-blue: #0b40b5;
+    --pr-blue-dark: #07338f;
+
+    --pr-navy: #061f3d;
+
+    --pr-yellow: #ffc400;
+    --pr-yellow-dark: #f5a800;
+
+    --pr-text: #0f172a;
+    --pr-muted: #64748b;
+
+    --pr-border: #dce5f2;
+    --pr-soft-border: #e7edf5;
+
+    --pr-head: #f3f7fc;
+
+    --pr-shadow:
+        0 4px 16px rgba(6, 31, 61, 0.07);
+
+    --pr-shadow-hover:
+        0 10px 24px rgba(6, 31, 61, 0.11);
 }
 
 
@@ -21,76 +36,95 @@
 ========================================================= */
 
 .purchase-page .topbar {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .purchase-page .topbar h1 {
-  color: var(--pr-navy);
-  letter-spacing: -0.02em;
+    color: var(--pr-navy);
+    letter-spacing: -0.02em;
 }
 
 .purchase-page .topbar p {
-  color: var(--pr-muted);
+    color: var(--pr-muted);
 }
 
 
 /* =========================================================
    SUMMARY CARDS
+   MATCH JO
 ========================================================= */
 
 .purchase-page .purchase-stats-grid {
-  gap: 16px;
-  margin-bottom: 20px;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .purchase-page .purchase-stats-grid .stat-card,
 .purchase-page .purchase-stats-grid .stat-card-link {
-  min-height: 112px;
-  padding: 18px 20px;
-  border: 1px solid var(--pr-border);
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: var(--pr-shadow);
+    min-height: 112px;
+    padding: 18px 20px;
 
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pr-border);
+    border-radius: 16px;
+
+    box-shadow: var(--pr-shadow);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .purchase-page .purchase-stats-grid .stat-card:hover,
 .purchase-page .purchase-stats-grid .stat-card-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(6, 31, 61, 0.11);
+    transform: translateY(-2px);
+    box-shadow: var(--pr-shadow-hover);
 }
 
 .purchase-page .purchase-stats-grid .stat-icon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  border-radius: 14px;
-  font-size: 18px;
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    border-radius: 14px;
+
+    font-size: 18px;
 }
 
-.purchase-page .purchase-stats-grid p {
-  margin: 0;
-  color: var(--pr-muted);
-  font-size: 12px;
-  font-weight: 600;
+.purchase-page .purchase-stats-grid .stat-card p,
+.purchase-page .purchase-stats-grid .stat-card-link p {
+    margin: 0;
+
+    color: var(--pr-muted);
+
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.purchase-page .purchase-stats-grid h2 {
-  margin: 3px 0 2px;
-  color: var(--pr-navy);
-  font-size: 25px;
-  font-weight: 800;
-  line-height: 1;
+.purchase-page .purchase-stats-grid .stat-card h2,
+.purchase-page .purchase-stats-grid .stat-card-link h2 {
+    margin: 3px 0 2px;
+
+    color: var(--pr-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1;
 }
 
-.purchase-page .purchase-stats-grid small {
-  color: var(--pr-muted);
-  font-size: 11px;
-  font-weight: 500;
+.purchase-page .purchase-stats-grid .stat-card small,
+.purchase-page .purchase-stats-grid .stat-card-link small {
+    color: var(--pr-muted);
+
+    font-size: 11px;
+    font-weight: 500;
 }
 
 
@@ -99,31 +133,44 @@
 ========================================================= */
 
 .purchase-page .purchase-request-card {
-  padding: 16px;
-  margin-bottom: 24px;
-  border: 1px solid var(--pr-border);
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: var(--pr-shadow);
-  overflow: hidden;
+    margin-bottom: 24px;
+    padding: 16px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pr-border);
+    border-radius: 16px;
+
+    box-shadow: var(--pr-shadow);
+
+    overflow: hidden;
 }
 
-.purchase-page .section-header {
-  margin-bottom: 12px;
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.purchase-page .purchase-request-card .section-header {
+    margin-bottom: 12px;
 }
 
-.purchase-page .section-header h2 {
-  margin: 0;
-  color: var(--pr-navy);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.purchase-page .purchase-request-card .section-header h2 {
+    margin: 0;
+
+    color: var(--pr-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
-.purchase-page .section-header p {
-  margin: 3px 0 0;
-  color: var(--pr-muted);
-  font-size: 12px;
+.purchase-page .purchase-request-card .section-header p {
+    margin: 3px 0 0;
+
+    color: var(--pr-muted);
+
+    font-size: 12px;
 }
 
 
@@ -132,102 +179,139 @@
 ========================================================= */
 
 .purchase-page .purchase-toolbar {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px auto;
-  align-items: end;
-  gap: 10px;
+    width: 100%;
 
-  margin-bottom: 14px;
-  padding: 10px 12px;
+    margin-bottom: 14px;
+    padding: 10px 12px;
 
-  border: 1px solid var(--pr-border);
-  border-radius: 12px;
-  background: #ffffff;
+    display: grid;
+    grid-template-columns:
+        minmax(280px, 1fr)
+        150px
+        auto;
+
+    align-items: end;
+    gap: 10px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pr-border);
+    border-radius: 12px;
+
+    box-shadow: none;
 }
 
-.purchase-page .search-box {
-  position: relative;
-  min-width: 0;
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.purchase-page .purchase-toolbar .search-box {
+    position: relative;
+    min-width: 0;
 }
 
-.purchase-page .search-box i {
-  position: absolute;
-  top: 50%;
-  left: 14px;
-  transform: translateY(-50%);
-  color: var(--pr-blue);
-  font-size: 13px;
-  pointer-events: none;
+.purchase-page .purchase-toolbar .search-box i {
+    position: absolute;
+
+    top: 50%;
+    left: 14px;
+
+    transform: translateY(-50%);
+
+    color: var(--pr-blue);
+
+    font-size: 13px;
+
+    pointer-events: none;
 }
 
-.purchase-page .search-box input {
-  width: 100%;
-  height: 40px;
-  padding: 0 14px 0 40px;
+.purchase-page .purchase-toolbar .search-box input {
+    box-sizing: border-box;
 
-  border: 1px solid var(--pr-border);
-  border-radius: 9px;
+    width: 100%;
+    height: 40px;
 
-  background: #ffffff;
-  color: var(--pr-text);
+    padding: 0 14px 0 40px;
 
-  font-size: 13px;
-  outline: none;
+    background: #ffffff;
+
+    border: 1px solid var(--pr-border);
+    border-radius: 9px;
+
+    color: var(--pr-text);
+
+    font-size: 13px;
+
+    outline: none;
 }
 
-.purchase-page .search-box input::placeholder {
-  color: #8a98ac;
+.purchase-page .purchase-toolbar .search-box input::placeholder {
+    color: #8a98ac;
 }
 
-.purchase-page .search-box input:focus,
-.purchase-page .pr-status-select:focus {
-  border-color: var(--pr-blue) !important;
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12) !important;
+.purchase-page .purchase-toolbar .search-box input:focus {
+    border-color: var(--pr-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
 }
 
 
 /* =========================================================
    STATUS FILTER
-   ALWAYS WHITE
 ========================================================= */
 
-.purchase-page .filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.purchase-page .purchase-toolbar .filter-group {
+    min-width: 150px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 5px;
 }
 
-.purchase-page .filter-group label {
-  color: var(--pr-muted);
-  font-size: 11px;
-  font-weight: 600;
+.purchase-page .purchase-toolbar .filter-group label {
+    color: var(--pr-muted);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    white-space: nowrap;
 }
 
-.purchase-page .pr-status-select {
-  width: 100%;
-  min-width: 150px;
-  height: 40px;
-  padding: 0 34px 0 11px;
+.purchase-page .purchase-toolbar .pr-status-select {
+    box-sizing: border-box;
 
-  border: 1px solid var(--pr-border) !important;
-  border-radius: 9px;
+    width: 100%;
+    min-width: 150px;
+    height: 40px;
 
-  background: #ffffff !important;
-  color: var(--pr-text) !important;
+    padding: 0 34px 0 11px;
 
-  font-size: 12px;
-  font-weight: 500;
+    background: #ffffff !important;
 
-  outline: none;
-  box-shadow: none !important;
-  cursor: pointer;
+    border: 1px solid var(--pr-border) !important;
+    border-radius: 9px;
+
+    color: var(--pr-text) !important;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    outline: none;
+
+    cursor: pointer;
+
+    box-shadow: none !important;
 }
 
-.purchase-page .pr-status-select option {
-  background: #ffffff;
-  color: var(--pr-text);
-  font-weight: 400;
+.purchase-page .purchase-toolbar .pr-status-select:focus {
+    border-color: var(--pr-blue) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12) !important;
 }
 
 
@@ -236,37 +320,63 @@
 ========================================================= */
 
 .purchase-page .compact-new-pr-btn {
-  height: 40px !important;
-  padding: 0 16px !important;
+    height: 40px !important;
 
-  border: 1px solid var(--pr-yellow-dark) !important;
-  border-radius: 9px !important;
+    padding: 0 16px !important;
 
-  background: linear-gradient(
-    135deg,
-    var(--pr-yellow),
-    var(--pr-yellow-dark)
-  ) !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-  color: var(--pr-navy) !important;
+    gap: 7px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--pr-yellow),
+            var(--pr-yellow-dark)
+        ) !important;
 
-  font-size: 13px !important;
-  font-weight: 800 !important;
+    border:
+        1px solid var(--pr-yellow-dark) !important;
 
-  white-space: nowrap;
-  cursor: pointer;
+    border-radius: 9px !important;
 
-  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.22);
+    color: var(--pr-navy) !important;
+
+    font-size: 13px !important;
+    font-weight: 800 !important;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 12px rgba(255, 196, 0, 0.22);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .purchase-page .compact-new-pr-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.purchase-page .purchase-table-wrap {
+    width: 100%;
+
+    overflow-x: visible;
+
+    border-radius: 10px;
 }
 
 
@@ -274,77 +384,63 @@
    TABLE
 ========================================================= */
 
-.purchase-page .purchase-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 10px;
-}
-
 .purchase-page .purchase-request-table {
-  width: 100%;
-  min-width: 1080px;
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0;
+    width: 100%;
+
+    min-width: 0;
+
+    table-layout: fixed;
+
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .purchase-page .purchase-request-table thead {
-  background: var(--pr-head);
+    background: var(--pr-head);
 }
 
 .purchase-page .purchase-request-table th {
-  padding: 13px 14px;
-  border-bottom: 1px solid var(--pr-border);
+    padding: 13px 10px;
 
-  color: #475569;
+    color: #475569;
 
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.055em;
-  line-height: 1.25;
+    font-size: 11px;
+    font-weight: 700;
 
-  text-transform: uppercase;
-  white-space: nowrap;
+    letter-spacing: 0.055em;
+
+    line-height: 1.25;
+
+    text-transform: uppercase;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid var(--pr-border);
 }
 
 .purchase-page .purchase-request-table td {
-  padding: 13px 14px;
-  border-bottom: 1px solid #e7edf5;
+    padding: 13px 10px;
 
-  color: var(--pr-text);
+    color: var(--pr-text);
 
-  font-size: 13px;
-  font-weight: 500;
-  vertical-align: middle;
+    font-size: 13px;
+    font-weight: 500;
+
+    vertical-align: middle;
+
+    border-bottom: 1px solid var(--pr-soft-border);
+}
+
+.purchase-page .purchase-request-table tbody tr {
+    transition: background-color 0.18s ease;
 }
 
 .purchase-page .purchase-request-table tbody tr:hover {
-  background: #f8fbff;
+    background: #f8fbff;
 }
 
 .purchase-page .purchase-request-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-
-/* =========================================================
-   ALIGNMENT
-========================================================= */
-
-.purchase-page .purchase-request-table th:nth-child(-n+4),
-.purchase-page .purchase-request-table td:nth-child(-n+4) {
-  text-align: left;
-}
-
-.purchase-page .purchase-request-table th:nth-child(n+5),
-.purchase-page .purchase-request-table td:nth-child(n+5) {
-  text-align: center;
-}
-
-.purchase-page .purchase-request-table td:nth-child(4) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    border-bottom: none;
 }
 
 
@@ -352,137 +448,245 @@
    COLUMN WIDTHS
 ========================================================= */
 
-.purchase-page .purchase-request-table th:nth-child(1) {
-  width: 11%;
+/* PR # */
+.purchase-page .purchase-request-table th:nth-child(1),
+.purchase-page .purchase-request-table td:nth-child(1) {
+    width: 12%;
+    text-align: left;
 }
 
-.purchase-page .purchase-request-table th:nth-child(2) {
-  width: 11%;
+
+/* BUS # */
+.purchase-page .purchase-request-table th:nth-child(2),
+.purchase-page .purchase-request-table td:nth-child(2) {
+    width: 11%;
+    text-align: left;
 }
 
-.purchase-page .purchase-request-table th:nth-child(3) {
-  width: 10%;
+
+/* REQUESTED ITEM */
+.purchase-page .purchase-request-table th:nth-child(3),
+.purchase-page .purchase-request-table td:nth-child(3) {
+    width: 25%;
+    text-align: left;
 }
 
-.purchase-page .purchase-request-table th:nth-child(4) {
-  width: 20%;
+
+/* QTY */
+.purchase-page .purchase-request-table th:nth-child(4),
+.purchase-page .purchase-request-table td:nth-child(4) {
+    width: 7%;
+    text-align: center;
 }
 
-.purchase-page .purchase-request-table th:nth-child(5) {
-  width: 7%;
+
+/* STATUS */
+.purchase-page .purchase-request-table th:nth-child(5),
+.purchase-page .purchase-request-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
 }
 
-.purchase-page .purchase-request-table th:nth-child(6) {
-  width: 11%;
+
+/* CREATED */
+.purchase-page .purchase-request-table th:nth-child(6),
+.purchase-page .purchase-request-table td:nth-child(6) {
+    width: 17%;
+    text-align: center;
 }
 
-.purchase-page .purchase-request-table th:nth-child(7) {
-  width: 17%;
+
+/* ACTIONS */
+.purchase-page .purchase-request-table th:nth-child(7),
+.purchase-page .purchase-request-table td:nth-child(7) {
+    width: 16%;
+    text-align: center;
 }
 
-.purchase-page .purchase-request-table th:nth-child(8) {
-  width: 13%;
+
+/* =========================================================
+   REQUESTED PART CELL
+========================================================= */
+
+.purchase-page .requested-part-cell {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   CREATED DATE
+========================================================= */
+
+.purchase-page .created-cell {
+    color: var(--pr-text);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    white-space: nowrap;
 }
 
 
 /* =========================================================
    STATUS BADGES
+   JO-STYLE WITH BORDER
 ========================================================= */
 
 .purchase-page .purchase-request-table .badge,
 .purchase-page .purchase-request-table .status-badge,
 .purchase-page .purchase-request-table .pr-status-badge {
-  min-width: 96px;
-  min-height: 26px;
-  padding: 0 11px;
+    min-width: 84px;
+    min-height: 26px;
 
-  border-radius: 999px;
-  border: 1px solid transparent;
+    padding: 0 10px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+    border: 1px solid transparent;
+    border-radius: 999px;
 
-  white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    white-space: nowrap;
 }
+
+
+/* SUBMITTED */
 
 .purchase-page .badge.submitted,
 .purchase-page .status-badge.submitted,
 .purchase-page .pr-status-badge.submitted {
-  background: #fff3cd !important;
-  color: #9a6700 !important;
-  border-color: #f8dd82 !important;
+    background: #fff3cd !important;
+
+    color: #9a6700 !important;
+
+    border-color: #f8dd82 !important;
 }
 
-.purchase-page .badge.approved,
-.purchase-page .status-badge.approved,
-.purchase-page .pr-status-badge.approved {
-  background: #e8e7ff !important;
-  color: #4338ca !important;
-  border-color: #cfccff !important;
-}
+
+/* REJECTED */
 
 .purchase-page .badge.rejected,
 .purchase-page .status-badge.rejected,
 .purchase-page .pr-status-badge.rejected {
-  background: #fee2e2 !important;
-  color: #dc2626 !important;
-  border-color: #fecaca !important;
+    background: #fee2e2 !important;
+
+    color: #c62828 !important;
+
+    border-color: #fecaca !important;
 }
+
+
+/* APPROVED */
+
+.purchase-page .badge.approved,
+.purchase-page .status-badge.approved,
+.purchase-page .pr-status-badge.approved {
+    background: #e8e7ff !important;
+
+    color: #4338ca !important;
+
+    border-color: #cfccff !important;
+}
+
+
+/* FOR PURCHASE */
 
 .purchase-page .badge.for-purchase,
 .purchase-page .status-badge.for-purchase,
 .purchase-page .pr-status-badge.for-purchase {
-  background: #e0ecff !important;
-  color: #0b40b5 !important;
-  border-color: #bfd4ff !important;
+    background: #e0ecff !important;
+
+    color: #0b40b5 !important;
+
+    border-color: #bfd4ff !important;
 }
+
+
+/* ORDERED */
 
 .purchase-page .badge.ordered,
 .purchase-page .status-badge.ordered,
 .purchase-page .pr-status-badge.ordered {
-  background: #ede9fe !important;
-  color: #6d28d9 !important;
-  border-color: #ddd6fe !important;
+    background: #ede9fe !important;
+
+    color: #6d28d9 !important;
+
+    border-color: #ddd6fe !important;
 }
+
+
+/* FOR PICK-UP */
 
 .purchase-page .badge.for-pick-up,
 .purchase-page .status-badge.for-pick-up,
 .purchase-page .pr-status-badge.for-pick-up {
-  background: #fff3cd !important;
-  color: #9a6700 !important;
-  border-color: #f8dd82 !important;
+    background: #fff3cd !important;
+
+    color: #9a6700 !important;
+
+    border-color: #f8dd82 !important;
 }
 
-.purchase-page .badge.for-delivery,
-.purchase-page .status-badge.for-delivery,
-.purchase-page .pr-status-badge.for-delivery {
-  background: #ffedd5 !important;
-  color: #c2410c !important;
-  border-color: #fed7aa !important;
-}
 
-.purchase-page .badge.delivered,
-.purchase-page .status-badge.delivered,
-.purchase-page .pr-status-badge.delivered,
-.purchase-page .badge.issued,
-.purchase-page .status-badge.issued,
-.purchase-page .pr-status-badge.issued {
-  background: #dcfce7 !important;
-  color: #15803d !important;
-  border-color: #b7efca !important;
-}
+/* PICKED UP */
 
 .purchase-page .badge.picked-up,
 .purchase-page .status-badge.picked-up,
 .purchase-page .pr-status-badge.picked-up {
-  background: #e0f2fe !important;
-  color: #0369a1 !important;
-  border-color: #bae6fd !important;
+    background: #dff6ff !important;
+
+    color: #0369a1 !important;
+
+    border-color: #bae6fd !important;
+}
+
+
+/* FOR DELIVERY */
+
+.purchase-page .badge.for-delivery,
+.purchase-page .status-badge.for-delivery,
+.purchase-page .pr-status-badge.for-delivery {
+    background: #ffedd5 !important;
+
+    color: #c2410c !important;
+
+    border-color: #fed7aa !important;
+}
+
+
+/* DELIVERED */
+
+.purchase-page .badge.delivered,
+.purchase-page .status-badge.delivered,
+.purchase-page .pr-status-badge.delivered {
+    background: #dcfce7 !important;
+
+    color: #15803d !important;
+
+    border-color: #b7efca !important;
+}
+
+
+/* ISSUED */
+
+.purchase-page .badge.issued,
+.purchase-page .status-badge.issued,
+.purchase-page .pr-status-badge.issued {
+    background: #dcfce7 !important;
+
+    color: #15803d !important;
+
+    border-color: #b7efca !important;
 }
 
 
@@ -490,67 +694,324 @@
    ACTIONS
 ========================================================= */
 
-.purchase-page .actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+.purchase-page .purchase-request-table .actions {
+    width: 100%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    white-space: nowrap;
 }
 
-.purchase-page .actions form {
-  display: inline-flex;
-  margin: 0;
+.purchase-page .purchase-request-table .actions form {
+    display: inline-flex;
+
+    margin: 0;
 }
 
-.purchase-page .action-btn {
-  width: 34px;
-  height: 34px;
-  padding: 0;
+.purchase-page .purchase-request-table .action-btn {
+    box-sizing: border-box;
 
-  border: 1px solid transparent;
-  border-radius: 8px;
+    width: 34px;
+    min-width: 34px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+    height: 34px;
+    min-height: 34px;
 
-  font-size: 13px;
-  cursor: pointer;
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    box-shadow: none;
+
+    font-size: 13px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
 }
 
-.purchase-page .action-btn.view,
-.purchase-page .action-btn.edit {
-  background: #eaf2ff;
-  color: var(--pr-blue);
-  border-color: #d4e3ff;
+.purchase-page .purchase-request-table .action-btn i {
+    margin: 0;
+
+    color: inherit;
+
+    font-size: 13px;
+
+    line-height: 1;
+
+    pointer-events: none;
 }
 
-.purchase-page .action-btn.view:hover,
-.purchase-page .action-btn.edit:hover:not(:disabled) {
-  background: var(--pr-blue);
-  color: #ffffff;
+
+/* VIEW */
+
+.purchase-page .purchase-request-table .action-btn.view {
+    background: #eaf2ff;
+
+    border-color: #d4e3ff;
+
+    color: var(--pr-blue);
 }
 
-.purchase-page .action-btn.delete {
-  background: #fff0f0;
-  color: #dc2626;
-  border-color: #fee2e2;
+.purchase-page .purchase-request-table .action-btn.view:hover {
+    background: var(--pr-blue);
+
+    border-color: var(--pr-blue);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
 }
 
-.purchase-page .action-btn.delete:hover {
-  background: #dc2626;
-  color: #ffffff;
+
+/* EDIT */
+
+.purchase-page .purchase-request-table .action-btn.edit {
+    background: #eaf2ff;
+
+    border-color: #d4e3ff;
+
+    color: var(--pr-blue);
 }
 
-.purchase-page .action-btn:disabled,
-.purchase-page .disabled-pr-edit-btn {
-  background: #eef2f7 !important;
-  color: #94a3b8 !important;
-  border-color: var(--pr-border) !important;
+.purchase-page .purchase-request-table .action-btn.edit:hover:not(:disabled) {
+    background: var(--pr-blue);
 
-  opacity: 1;
-  cursor: not-allowed;
-  pointer-events: none;
+    border-color: var(--pr-blue);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* APPROVE */
+
+.purchase-page .purchase-request-table .action-btn.approve {
+    background: #ecfdf3;
+
+    border-color: #b7efca;
+
+    color: #16a34a;
+}
+
+.purchase-page .purchase-request-table .action-btn.approve:hover {
+    background: #16a34a;
+
+    border-color: #16a34a;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* REJECT */
+
+.purchase-page .purchase-request-table .action-btn.reject {
+    background: #fff1f2;
+
+    border-color: #fecdd3;
+
+    color: #e11d48;
+}
+
+.purchase-page .purchase-request-table .action-btn.reject:hover {
+    background: #e11d48;
+
+    border-color: #e11d48;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* DELETE */
+
+.purchase-page .purchase-request-table .action-btn.delete {
+    background: #fff0f0;
+
+    border-color: #fee2e2;
+
+    color: #dc2626;
+}
+
+.purchase-page .purchase-request-table .action-btn.delete:hover {
+    background: #dc2626;
+
+    border-color: #dc2626;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   DISABLED ACTIONS
+========================================================= */
+
+.purchase-page .purchase-request-table .action-btn:disabled,
+.purchase-page .purchase-request-table .disabled-pr-edit-btn {
+    background: #eef2f7 !important;
+
+    border-color: #dce5f2 !important;
+
+    color: #94a3b8 !important;
+
+    cursor: not-allowed;
+
+    opacity: 1;
+
+    pointer-events: none;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   REQUESTED PARTS FORM
+========================================================= */
+
+.purchase-page .pr-parts-container {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.purchase-page .pr-part-row {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        95px
+        120px
+        38px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid var(--pr-border);
+    border-radius: 11px;
+}
+
+.purchase-page .pr-part-row input,
+.purchase-page .pr-part-row select {
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 44px;
+
+    min-width: 0;
+
+    margin: 0;
+
+    padding: 0 13px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: var(--pr-text);
+
+    font-size: 12px;
+
+    outline: none;
+}
+
+.purchase-page .pr-part-row input:focus,
+.purchase-page .pr-part-row select:focus {
+    border-color: var(--pr-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.10);
+}
+
+.purchase-page .pr-part-row .remove-part-btn {
+    width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #fff1f2;
+
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+
+    color: #dc2626;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.purchase-page .pr-part-row .remove-part-btn:hover:not(:disabled) {
+    background: #dc2626;
+
+    border-color: #dc2626;
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   VIEW / EDIT DESCRIPTION
+========================================================= */
+
+.purchase-page .pr-edit-description {
+    margin: 0 0 16px;
+
+    color: var(--pr-muted);
+
+    font-size: 11px;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   REMARKS
+========================================================= */
+
+.purchase-page .pr-remarks-grid {
+    margin-top: 22px;
 }
 
 
@@ -559,444 +1020,939 @@
 ========================================================= */
 
 .purchase-page .table-footer {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #e7edf5;
+    margin-top: 14px;
+
+    padding-top: 14px;
+
+    border-top: 1px solid var(--pr-soft-border);
 }
 
 .purchase-page .table-footer p,
 .purchase-page .page-number {
-  color: var(--pr-muted);
-  font-size: 12px;
-  font-weight: 500;
+    color: var(--pr-muted);
+
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .purchase-page .page-btn {
-  min-height: 34px;
-  padding: 0 12px;
+    min-height: 34px;
 
-  border: 1px solid var(--pr-border);
-  border-radius: 8px;
+    padding: 0 12px;
 
-  background: #ffffff;
-  color: var(--pr-navy);
+    background: #ffffff;
 
-  font-size: 12px;
-  font-weight: 600;
+    border: 1px solid var(--pr-border);
+    border-radius: 8px;
+
+    color: var(--pr-navy);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    box-shadow: none;
 }
 
 .purchase-page .page-btn:not(.disabled):hover {
-  border-color: var(--pr-blue);
-  color: var(--pr-blue);
-  background: #f5f8ff;
+    background: #f5f8ff;
+
+    border-color: var(--pr-blue);
+
+    color: var(--pr-blue);
+}
+
+.purchase-page .page-btn.disabled {
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
 }
 
 
 /* =========================================================
-   MODALS
+   PAGINATION FIX
 ========================================================= */
 
-.modal-overlay,
-.delete-modal-overlay,
-.success-modal-overlay,
-.error-modal-overlay,
-.feedback-modal-overlay,
-.action-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-
-  display: none;
-  align-items: center;
-  justify-content: center;
-
-  padding: 24px;
-
-  background: rgba(6, 31, 61, 0.56);
-  backdrop-filter: blur(3px);
+.purchase-page .pagination svg {
+    width: 18px !important;
+    height: 18px !important;
 }
 
-.modal-overlay.show,
-.modal-overlay.active,
-.delete-modal-overlay.show,
-.delete-modal-overlay.active,
-.success-modal-overlay.show,
-.success-modal-overlay.active,
-.error-modal-overlay.show,
-.error-modal-overlay.active,
-.feedback-modal-overlay.show,
-.feedback-modal-overlay.active,
-.action-modal-overlay.show,
-.action-modal-overlay.active {
-  display: flex;
-}
-
-.pr-jo-style-modal {
-  width: min(760px, 95vw);
-  max-height: 90vh;
-
-  padding: 28px 30px;
-
-  border: 1px solid var(--pr-border);
-  border-radius: 18px;
-
-  background: #ffffff;
-
-  box-shadow: 0 28px 80px rgba(6, 31, 61, 0.28);
-
-  overflow-y: auto;
+.purchase-page .pagination p {
+    display: none;
 }
 
 
 /* =========================================================
-   MODAL HEADER
+   UTILITY
 ========================================================= */
 
-.pr-jo-modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-
-  gap: 18px;
-
-  margin-bottom: 22px;
-}
-
-.pr-jo-modal-header h2 {
-  margin: 0 0 5px;
-
-  color: var(--pr-navy);
-
-  font-size: 23px;
-  font-weight: 900;
-}
-
-.pr-jo-modal-header p {
-  margin: 0;
-
-  color: var(--pr-muted);
-
-  font-size: 12px;
-}
-
-.pr-jo-close-btn {
-  width: 38px;
-  height: 38px;
-
-  border: none;
-  border-radius: 10px;
-
-  background: #f1f5f9;
-  color: var(--pr-navy);
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-}
-
-.pr-jo-close-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
+.purchase-page .hidden {
+    display: none !important;
 }
 
 
 /* =========================================================
-   FORM
-========================================================= */
-
-.pr-jo-form {
-  display: grid;
-
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
-  gap: 14px 18px;
-}
-
-.pr-jo-form-group {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 7px;
-}
-
-.pr-jo-form-group.full-width,
-.pr-jo-section-title.full-width,
-.pr-jo-actions.full-width,
-.pr-modal-footer.full-width {
-  grid-column: 1 / -1;
-}
-
-.pr-jo-section-title h3 {
-  margin: 0 0 4px;
-
-  color: var(--pr-navy);
-
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.pr-jo-section-title p {
-  margin: 0;
-
-  color: var(--pr-muted);
-
-  font-size: 12px;
-}
-
-.pr-jo-form-group label {
-  color: var(--pr-navy);
-
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.pr-jo-form-group input,
-.pr-jo-form-group select,
-.pr-jo-form-group textarea {
-  width: 100%;
-  height: 44px;
-
-  padding: 0 13px;
-
-  border: 1px solid #d6e0ed;
-  border-radius: 10px;
-
-  background: #ffffff;
-  color: var(--pr-text);
-
-  font-size: 13px;
-
-  outline: none;
-}
-
-.pr-jo-form-group textarea {
-  min-height: 90px;
-  padding-top: 12px;
-}
-
-.pr-jo-form-group input:focus,
-.pr-jo-form-group select:focus,
-.pr-jo-form-group textarea:focus {
-  border-color: var(--pr-blue);
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.11);
-}
-
-.pr-jo-form-group input[readonly] {
-  background: #f5f7fa;
-  color: var(--pr-muted);
-}
-
-
-/* =========================================================
-   PARTS
-========================================================= */
-
-.pr-parts-container {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 9px;
-}
-
-.pr-part-row,
-.part-needed-row {
-  width: 100%;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    92px
-    112px
-    38px;
-
-  gap: 8px;
-}
-
-.pr-part-row input,
-.pr-part-row select,
-.part-needed-row input,
-.part-needed-row select {
-  width: 100%;
-  height: 44px;
-
-  border: 1px solid #d6e0ed;
-  border-radius: 10px;
-
-  padding: 0 12px;
-
-  font-size: 13px;
-}
-
-.remove-part-btn {
-  width: 38px;
-  height: 44px;
-
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-
-  background: #fee2e2;
-  color: #dc2626;
-
-  cursor: pointer;
-}
-
-.add-part-btn {
-  width: fit-content;
-  height: 40px;
-
-  padding: 0 15px;
-
-  border: 1px solid #d6e0ed;
-  border-radius: 10px;
-
-  background: #ffffff;
-  color: var(--pr-navy);
-
-  font-size: 12px;
-  font-weight: 800;
-
-  cursor: pointer;
-}
-
-
-/* =========================================================
-   MODAL ACTIONS
-========================================================= */
-
-.pr-jo-actions,
-.pr-modal-footer,
-.pr-modal-left-actions,
-.pr-approval-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  gap: 10px;
-}
-
-.pr-modal-footer {
-  margin-top: 15px;
-  padding-top: 17px;
-
-  border-top: 1px solid #e5edf7;
-}
-
-.pr-jo-cancel-btn,
-.pr-jo-save-btn,
-.approve-action-btn,
-.reject-action-btn {
-  min-width: 94px;
-  height: 42px;
-
-  padding: 0 16px;
-
-  border: none;
-  border-radius: 10px;
-
-  font-size: 12px;
-  font-weight: 900;
-
-  cursor: pointer;
-}
-
-.pr-jo-cancel-btn {
-  background: #eef2f6;
-  color: var(--pr-navy);
-}
-
-.pr-jo-save-btn {
-  background: var(--pr-yellow);
-  color: var(--pr-navy);
-}
-
-.approve-action-btn {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.reject-action-btn {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.hidden {
-  display: none !important;
-}
-
-
-/* =========================================================
-   RESPONSIVE
+   TABLET
 ========================================================= */
 
 @media (max-width: 1200px) {
-  .purchase-page .purchase-stats-grid {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
 
-  .purchase-page .purchase-toolbar {
-    grid-template-columns:
-      1fr 1fr;
-  }
+    .purchase-page .purchase-toolbar {
+        grid-template-columns:
+            1fr 1fr;
+    }
 
-  .purchase-page .search-box {
-    grid-column: 1 / -1;
-  }
+    .purchase-page .purchase-toolbar .search-box {
+        grid-column: 1 / -1;
+
+        min-width: 100%;
+    }
+
+    .purchase-page .compact-new-pr-btn {
+        width: 100%;
+    }
+
 }
 
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .purchase-page .purchase-table-wrap {
+        overflow-x: auto;
+    }
+
+    .purchase-page .purchase-request-table {
+        min-width: 900px;
+
+        table-layout: auto;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 768px) {
-  .purchase-page .purchase-stats-grid {
-    grid-template-columns: 1fr;
-  }
 
-  .purchase-page .purchase-toolbar {
-    grid-template-columns: 1fr;
-  }
+    .purchase-page .purchase-stats-grid {
+        grid-template-columns: 1fr;
+    }
 
-  .purchase-page .search-box {
-    grid-column: auto;
-  }
 
-  .purchase-page .compact-new-pr-btn,
-  .purchase-page .pr-status-select {
+    .purchase-page .purchase-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+
+    .purchase-page .purchase-toolbar .search-box {
+        grid-column: auto;
+    }
+
+
+    .purchase-page .purchase-toolbar .filter-group,
+    .purchase-page .purchase-toolbar .pr-status-select {
+        width: 100%;
+
+        max-width: none;
+    }
+
+
+    .purchase-page .compact-new-pr-btn {
+        width: 100%;
+    }
+
+
+    .purchase-page .purchase-request-card {
+        padding: 12px;
+    }
+
+
+    .purchase-page .pr-part-row {
+        grid-template-columns: 1fr;
+    }
+
+
+    .purchase-page .pr-part-row .remove-part-btn {
+        width: 100%;
+    }
+
+}
+
+/* =========================================================
+   NEW PURCHASE REQUEST MODAL
+   MATCH JOB ORDER MODAL
+========================================================= */
+
+/* Keep the PR modal compact */
+.purchase-page #prModal .ui-form-modal {
+    max-width: 680px;
+}
+
+
+/* =========================================================
+   NEW PURCHASE REQUEST MODAL
+   MATCH JOB ORDER MODAL
+========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| IMPORTANT
+|--------------------------------------------------------------------------
+| #prModal is rendered outside .purchase-page in the Blade,
+| so these selectors must begin directly with #prModal.
+|--------------------------------------------------------------------------
+*/
+
+
+/* =========================================================
+   MODAL SIZE
+========================================================= */
+
+#prModal .ui-form-modal {
+    width: min(680px, calc(100vw - 32px));
+    max-width: 680px;
+}
+
+
+/* =========================================================
+   CONTENT SPACING
+========================================================= */
+
+#prModal .ui-form-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+
+/* Remove the large empty space below the modal header */
+#prModal .ui-form-body {
+    padding-top: 0;
+}
+
+
+/* =========================================================
+   FORM SECTIONS
+========================================================= */
+
+#prModal .ui-form-section {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+
+/* Remove unnecessary top spacing from first section */
+#prModal .ui-form-content > .ui-form-section:first-child,
+#prModal .ui-form-body > .ui-form-section:first-child {
+    margin-top: 0;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+#prModal .ui-form-section-header {
+    margin-bottom: 12px;
+}
+
+#prModal .ui-form-section-title {
+    align-items: center;
+}
+
+#prModal .ui-form-section-title h3 {
+    margin: 0;
+}
+
+#prModal .ui-form-section-title p {
+    margin: 3px 0 0;
+}
+
+
+/* =========================================================
+   PR INFORMATION GRID
+========================================================= */
+
+#prModal .ui-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 14px 16px;
+
+    align-items: end;
+}
+
+
+/* =========================================================
+   FORM GROUPS
+========================================================= */
+
+#prModal .ui-form-group {
+    margin: 0;
+}
+
+#prModal .ui-form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+}
+
+
+/* =========================================================
+   JOB ORDER SELECT
+========================================================= */
+
+#prModal .pr-select-control {
+    position: relative;
+
     width: 100%;
-  }
+}
 
-  .purchase-page .purchase-request-card {
-    padding: 12px;
-  }
 
-  .pr-jo-form {
-    grid-template-columns: 1fr;
-  }
+/* Put clipboard icon INSIDE select */
+#prModal .pr-select-control > i {
+    position: absolute;
 
-  .pr-jo-form-group.full-width,
-  .pr-jo-section-title.full-width,
-  .pr-jo-actions.full-width,
-  .pr-modal-footer.full-width {
-    grid-column: auto;
-  }
+    top: 50%;
+    left: 14px;
 
-  .pr-jo-actions,
-  .pr-modal-footer,
-  .pr-modal-left-actions,
-  .pr-approval-actions {
+    transform: translateY(-50%);
+
+    z-index: 2;
+
+    color: #163d70;
+
+    font-size: 13px;
+
+    pointer-events: none;
+}
+
+
+#prModal .pr-select-control select {
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 42px;
+
+    margin: 0;
+
+    padding:
+        0
+        38px
+        0
+        42px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+
+#prModal .pr-select-control select:focus {
+    border-color: #0b40b5;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(11, 64, 181, 0.10);
+}
+
+
+/* =========================================================
+   READONLY PR / BUS
+========================================================= */
+
+#prModal input[readonly] {
+    background: #f8fafc;
+
+    color: #64748b;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   REQUESTED PARTS
+========================================================= */
+
+#prModal .pr-parts-container {
+    width: 100%;
+
+    margin-top: 2px;
+
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-  }
 
-  .pr-jo-cancel-btn,
-  .pr-jo-save-btn,
-  .approve-action-btn,
-  .reject-action-btn {
+    gap: 10px;
+}
+
+
+#prModal .pr-part-row {
     width: 100%;
-  }
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        95px
+        112px
+        38px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0;
+
+    background: transparent;
+
+    border: none;
+    border-radius: 0;
+}
+
+
+#prModal .pr-part-row input,
+#prModal .pr-part-row select {
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 42px;
+
+    min-width: 0;
+
+    margin: 0;
+
+    padding: 0 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: #0f172a;
+
+    font-size: 12px;
+
+    outline: none;
+}
+
+
+#prModal .pr-part-row input:focus,
+#prModal .pr-part-row select:focus {
+    border-color: #0b40b5;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(11, 64, 181, 0.10);
+}
+
+
+#prModal .pr-part-row .remove-part-btn {
+    width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    align-self: center;
+
+    background: #fff1f2;
+
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+
+    color: #dc2626;
+
+    cursor: pointer;
+}
+
+
+#prModal .pr-part-row .remove-part-btn:hover:not(:disabled) {
+    background: #dc2626;
+
+    border-color: #dc2626;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   ADD PART BUTTON
+========================================================= */
+
+#prModal #addNewPrPartBtn {
+    min-height: 34px;
+
+    padding: 0 13px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    background: #ffffff;
+
+    border: 1px solid #bfd4ff;
+    border-radius: 8px;
+
+    color: #0b40b5;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+#prModal #addNewPrPartBtn:hover {
+    background: #f5f8ff;
+
+    border-color: #0b40b5;
+}
+
+
+/* =========================================================
+   REMARKS
+========================================================= */
+
+#prModal .ui-form-section + .ui-form-group {
+    margin-top: 6px;
+}
+
+
+#prModal #newPrRemarks {
+    box-sizing: border-box;
+
+    width: 100%;
+    min-height: 86px;
+
+    margin: 0;
+
+    padding: 12px 13px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: #0f172a;
+
+    resize: vertical;
+
+    outline: none;
+}
+
+
+#prModal #newPrRemarks:focus {
+    border-color: #0b40b5;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(11, 64, 181, 0.10);
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+#prModal .ui-form-actions {
+    margin-top: 16px;
+
+    padding-top: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    border-top: 1px solid #e7edf5;
+}
+
+/* =========================================================
+   EDIT / VIEW / REVISE PURCHASE REQUEST MODAL
+========================================================= */
+
+#editPrModal .ui-form-modal {
+    width: min(680px, calc(100vw - 32px));
+    max-width: 680px;
+}
+
+
+/* =========================================================
+   CONTENT SPACING
+========================================================= */
+
+#editPrModal .ui-form-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+#editPrModal .ui-form-body {
+    padding-top: 0;
+}
+
+
+/* =========================================================
+   FORM SECTIONS
+========================================================= */
+
+#editPrModal .ui-form-section {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+#editPrModal .ui-form-content > .ui-form-section:first-child,
+#editPrModal .ui-form-body > .ui-form-section:first-child {
+    margin-top: 0;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+#editPrModal .ui-form-section-header {
+    margin-bottom: 12px;
+}
+
+#editPrModal .ui-form-section-title {
+    align-items: center;
+}
+
+#editPrModal .ui-form-section-title h3 {
+    margin: 0;
+}
+
+#editPrModal .ui-form-section-title p {
+    margin: 3px 0 0;
+}
+
+
+/* =========================================================
+   INFORMATION GRID
+========================================================= */
+
+#editPrModal .ui-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 14px 16px;
+
+    align-items: end;
+}
+
+
+/* =========================================================
+   FORM GROUPS
+========================================================= */
+
+#editPrModal .ui-form-group {
+    margin: 0;
+}
+
+#editPrModal .ui-form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+}
+
+
+/* =========================================================
+   READONLY FIELDS
+========================================================= */
+
+#editPrModal input[readonly] {
+    background: #f8fafc;
+
+    color: #64748b;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   REQUESTED PARTS DESCRIPTION
+========================================================= */
+
+#editPrModal .pr-edit-description {
+    margin: 2px 0 10px;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   REQUESTED PARTS
+========================================================= */
+
+#editPrModal .pr-parts-container {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+#editPrModal .pr-part-row {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        95px
+        112px
+        38px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0;
+
+    background: transparent;
+
+    border: none;
+    border-radius: 0;
+}
+
+#editPrModal .pr-part-row input,
+#editPrModal .pr-part-row select {
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 42px;
+
+    min-width: 0;
+
+    margin: 0;
+
+    padding: 0 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: #0f172a;
+
+    font-size: 12px;
+
+    outline: none;
+}
+
+#editPrModal .pr-part-row input:focus,
+#editPrModal .pr-part-row select:focus {
+    border-color: #0b40b5;
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.10);
+}
+
+#editPrModal .pr-part-row .remove-part-btn {
+    width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #fff1f2;
+
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+
+    color: #dc2626;
+
+    cursor: pointer;
+}
+
+#editPrModal .pr-part-row .remove-part-btn:hover:not(:disabled) {
+    background: #dc2626;
+
+    border-color: #dc2626;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   ADD PART BUTTON
+========================================================= */
+
+#editPrModal #addEditPrPartBtn {
+    min-height: 34px;
+
+    padding: 0 13px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    background: #ffffff;
+
+    border: 1px solid #bfd4ff;
+    border-radius: 8px;
+
+    color: #0b40b5;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+#editPrModal #addEditPrPartBtn:hover {
+    background: #f5f8ff;
+
+    border-color: #0b40b5;
+}
+
+
+/* =========================================================
+   REMARKS
+========================================================= */
+
+#editPrModal .ui-form-section + .ui-form-group {
+    margin-top: 8px;
+}
+
+#editPrModal #edit_remarks {
+    box-sizing: border-box;
+
+    width: 100%;
+    min-height: 86px;
+
+    margin: 0;
+
+    padding: 12px 13px;
+
+    background: #ffffff;
+
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+
+    color: #0f172a;
+
+    resize: vertical;
+
+    outline: none;
+}
+
+#editPrModal #edit_remarks:focus {
+    border-color: #0b40b5;
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.10);
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+#editPrModal .ui-form-actions {
+    margin-top: 16px;
+
+    padding-top: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    border-top: 1px solid #e7edf5;
+}
+
+
+/* =========================================================
+   RESUBMIT BUTTON
+========================================================= */
+
+#editPrModal #submitEditPrBtn {
+    min-width: 120px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    #editPrModal .ui-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #editPrModal .pr-part-row {
+        grid-template-columns: 1fr;
+    }
+
+    #editPrModal .pr-part-row .remove-part-btn {
+        width: 100%;
+    }
+
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    #prModal .ui-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    #prModal .pr-part-row {
+        grid-template-columns: 1fr;
+    }
+
+
+    #prModal .pr-part-row .remove-part-btn {
+        width: 100%;
+    }
+
 }

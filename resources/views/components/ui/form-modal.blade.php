@@ -2,6 +2,8 @@
     'id' => 'modal',
 
     'title' => 'Modal Title',
+    'titleId' => null,
+
     'subtitle' => null,
     'description' => null,
 
@@ -13,6 +15,8 @@
     'method' => 'POST',
 
     'submitText' => 'Save',
+    'submitTextId' => null,
+    'submitId' => null,
     'submitIcon' => 'fa-floppy-disk',
 
     'cancelText' => 'Cancel',
@@ -28,15 +32,11 @@
     'confirmType' => 'warning',
 
     'showActions' => true,
+
+    'closeDataAttribute' => null,
 ])
 
 @php
-    /*
-    |--------------------------------------------------------------------------
-    | Modal Size
-    |--------------------------------------------------------------------------
-    */
-
     $sizeClass = match($size) {
         'small' => 'ui-form-modal-sm',
         'medium' => 'ui-form-modal-md',
@@ -45,13 +45,6 @@
         default => 'ui-form-modal-lg',
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | HTTP Method
-    |--------------------------------------------------------------------------
-    */
-
     $httpMethod = strtoupper($method);
 @endphp
 
@@ -59,24 +52,16 @@
 <div
     id="{{ $id }}"
     {{ $attributes->merge([
-        'class' => 'modal-overlay ui-form-overlay'
+        'class' => 'ui-form-overlay'
     ]) }}
 >
 
-    <div
-        class="
-            modal-card
-            modal-box
-            wide-modal
-            ui-form-modal
-            {{ $sizeClass }}
-        "
-    >
+    <div class="ui-form-modal {{ $sizeClass }}">
 
         {{-- =====================================================
             HEADER
         ====================================================== --}}
-        <div class="modal-header ui-form-modal-header">
+        <div class="ui-form-modal-header">
 
             <div class="ui-form-title-wrap">
 
@@ -91,9 +76,14 @@
 
                 <div class="ui-form-heading">
 
-                    <h2>
+                    <h2
+                        @if($titleId)
+                            id="{{ $titleId }}"
+                        @endif
+                    >
                         {{ $title }}
                     </h2>
+
 
                     @if($description && !$subtitle)
 
@@ -111,8 +101,14 @@
             <button
                 type="button"
                 id="{{ $closeId ?? 'close-' . $id }}"
-                class="modal-close close-btn ui-form-close"
+                class="ui-form-close"
+
                 data-ui-modal-close
+
+                @if($closeDataAttribute)
+                    {{ $closeDataAttribute }}
+                @endif
+
                 aria-label="Close"
             >
                 <i class="fa-solid fa-xmark"></i>
@@ -132,7 +128,7 @@
             action="{{ $action }}"
             method="POST"
 
-            class="job-form wide-form ui-form-content"
+            class="ui-form-content"
 
             @if($confirm)
                 data-confirm-form
@@ -158,25 +154,19 @@
             @csrf
 
 
-            {{-- =================================================
-                METHOD SPOOFING
-            ================================================== --}}
             @if($httpMethod !== 'POST')
-
                 @method($httpMethod)
-
             @endif
 
 
-            {{-- =================================================
-                BODY
-            ================================================== --}}
             <div class="ui-form-modal-body">
 
-                {{-- SECTION TITLE --}}
+                {{-- =================================================
+                    OPTIONAL INTRO
+                ================================================== --}}
                 @if($subtitle)
 
-                    <div class="form-section-title ui-form-intro">
+                    <div class="ui-form-intro">
 
                         <h3>
                             {{ $subtitle }}
@@ -195,7 +185,9 @@
                 @endif
 
 
-                {{-- MAIN FORM CONTENT --}}
+                {{-- =================================================
+                    FORM CONTENT
+                ================================================== --}}
                 {{ $slot }}
 
 
@@ -204,18 +196,23 @@
                 ================================================== --}}
                 @if($showActions)
 
-                    <div class="modal-actions ui-form-actions">
+                    <div class="ui-form-actions">
 
                         <button
                             type="button"
+
                             id="{{ $cancelId ?? 'cancel-' . $id }}"
+
                             class="
-                                secondary-btn
-                                cancel-btn
                                 ui-form-btn
                                 ui-form-btn-cancel
                             "
+
                             data-ui-modal-close
+
+                            @if($closeDataAttribute)
+                                {{ $closeDataAttribute }}
+                            @endif
                         >
                             {{ $cancelText }}
                         </button>
@@ -223,6 +220,11 @@
 
                         <button
                             type="submit"
+
+                            @if($submitId)
+                                id="{{ $submitId }}"
+                            @endif
+
                             class="
                                 ui-form-btn
                                 {{ $submitClass }}
@@ -236,7 +238,11 @@
                             @endif
 
 
-                            <span>
+                            <span
+                                @if($submitTextId)
+                                    id="{{ $submitTextId }}"
+                                @endif
+                            >
                                 {{ $submitText }}
                             </span>
 

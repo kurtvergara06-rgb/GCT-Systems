@@ -213,7 +213,7 @@
                             @forelse($buses as $bus)
                                 <tr>
                                     <td>
-                                        <strong>{{ $bus->bus_no }}</strong>
+                                        {{ $bus->bus_no }}
                                     </td>
 
                                     <td>
