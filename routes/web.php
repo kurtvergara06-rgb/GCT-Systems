@@ -14,6 +14,7 @@ use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
+use App\Http\Controllers\Operation\RouteController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
@@ -960,19 +961,31 @@ Route::middleware('auth')->group(function () {
     );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Routes & Stops
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| Routes & Stops
+|--------------------------------------------------------------------------
+*/
 
-    Route::view(
-        '/operation/routes',
-        'Operation.Routes.routes-stops'
-    )->name(
-        'operation.routes'
-    );
+Route::get(
+    '/operation/routes',
+    [RouteController::class, 'index']
+)->name('operation.routes');
 
+Route::post(
+    '/operation/routes',
+    [RouteController::class, 'store']
+)->name('operation.routes.store');
+
+Route::put(
+    '/operation/routes/{shuttleRoute}',
+    [RouteController::class, 'update']
+)->name('operation.routes.update');
+
+Route::delete(
+    '/operation/routes/{shuttleRoute}',
+    [RouteController::class, 'destroy']
+)->name('operation.routes.destroy');
 
     /*
     |--------------------------------------------------------------------------
@@ -1037,8 +1050,15 @@ Route::middleware('auth')->group(function () {
         'trip-records'
     );
 
+    route::view(
+        '/operation/fuel-efficiency',
+        'Operation.fuel-efficiency-monitoring'
+    )->name(
+        'fuel-efficiency'
+    );
 
-    /*
+
+    /*use
     |--------------------------------------------------------------------------
     | ADMIN DEPARTMENT
     |--------------------------------------------------------------------------
@@ -1059,66 +1079,68 @@ Route::middleware('auth')->group(function () {
     );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Management
-    |--------------------------------------------------------------------------
-    */
 
-    Route::controller(
-        AdminUserController::class
-    )
-        ->prefix('admin/users')
-        ->group(function () {
+/*
+|--------------------------------------------------------------------------
+| ADMIN - USER MANAGEMENT
+|--------------------------------------------------------------------------
+*/
 
-            Route::get(
-                '/',
-                'index'
-            )->name(
-                'admin.users'
-            );
+Route::get(
+    '/admin/users',
+    [AdminUserController::class, 'index']
+)->name('admin.users');
+
+Route::post(
+    '/admin/users',
+    [AdminUserController::class, 'store']
+)->name('admin.users.store');
+
+Route::put(
+    '/admin/users/{user}',
+    [AdminUserController::class, 'update']
+)->name('admin.users.update');
+
+Route::delete(
+    '/admin/users/{user}',
+    [AdminUserController::class, 'destroy']
+)->name('admin.users.destroy');
+
+Route::post(
+    '/admin/users/{user}/reset-password',
+    [AdminUserController::class, 'resetPassword']
+)->name('admin.users.reset-password');
+
+Route::patch(
+    '/admin/users/{user}/status',
+    [AdminUserController::class, 'updateStatus']
+)->name('admin.users.update-status');
+
+Route::view(
+    '/admin/roles-permissions',
+    'Admin.User_Management.permissions'
+)->name('admin.roles-permissions');
+
+Route::view(
+    '/admin/account-requests',
+    'Admin.User_Management.account-requests'
+)->name('admin.account-requests');
+/*
+|--------------------------------------------------------------------------
+| ADMIN - SYSTEM MONITORING
+|--------------------------------------------------------------------------
+*/
+
+Route::view(
+    '/admin/activity-logs',
+    'Admin.System_Monitoring.activity-logs'
+)->name('admin.activity-logs');
 
 
-            Route::post(
-                '/',
-                'store'
-            )->name(
-                'admin.users.store'
-            );
-
-
-            Route::put(
-                '/{user}',
-                'update'
-            )->name(
-                'admin.users.update'
-            );
-
-
-            Route::patch(
-                '/{user}/status',
-                'updateStatus'
-            )->name(
-                'admin.users.update-status'
-            );
-
-
-            Route::patch(
-                '/{user}/reset-password',
-                'resetPassword'
-            )->name(
-                'admin.users.reset-password'
-            );
-
-
-            Route::delete(
-                '/{user}',
-                'destroy'
-            )->name(
-                'admin.users.destroy'
-            );
-
-        });
+Route::view(
+    '/admin/notifications',
+    'Admin.System_Monitoring.notifications'
+)->name('admin.notifications');
 
 
     /*

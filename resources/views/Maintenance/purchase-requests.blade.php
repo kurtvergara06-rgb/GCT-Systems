@@ -1,1502 +1,1502 @@
-<x-layout.app
-    title="FROMS - Purchase Requests"
-
-    :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
-        'resources/css/Main-styles/form-components.css',
-        'resources/css/Maintenance/purchase-requests.css',
-        'resources/js/Main-js/sidebar.js',
-        'resources/js/Maintenance/purchase-requests.js'
-    ]"
->
-
-    @php
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS ORDER
-        |--------------------------------------------------------------------------
-        |
-        | Rejected is a branch:
-        |
-        | Submitted → Rejected → Revise → Submitted
-        | Submitted → Approved → For Purchase → Ordered
-        | → Pick-up / Delivery → Issued
-        |
-        */
-
-        $statuses = [
-            'Submitted',
-            'Rejected',
-            'Approved',
-            'For Purchase',
-            'Ordered',
-            'For Pick-up',
-            'Picked Up',
-            'For Delivery',
-            'Delivered',
-            'Issued',
-        ];
-
-
-        $submitted =
-            $submitted ?? 0;
-
-        $rejected =
-            $rejected ?? 0;
-
-        $approved =
-            $approved ?? 0;
-
-        $forPurchase =
-            $forPurchase ?? 0;
+  <x-layout.app
+      title="FROMS - Purchase Requests"
+
+      :assets="[
+          'resources/css/Main-styles/main.css',
+          'resources/css/Main-styles/sidebar.css',
+          'resources/css/Main-styles/form-components.css',
+          'resources/css/Maintenance/purchase-requests.css',
+          'resources/js/Main-js/sidebar.js',
+          'resources/js/Maintenance/purchase-requests.js'
+      ]"
+  >
+
+      @php
+
+          /*
+          |--------------------------------------------------------------------------
+          | STATUS ORDER
+          |--------------------------------------------------------------------------
+          |
+          | Rejected is a branch:
+          |
+          | Submitted → Rejected → Revise → Submitted
+          | Submitted → Approved → For Purchase → Ordered
+          | → Pick-up / Delivery → Issued
+          |
+          */
+
+          $statuses = [
+              'Submitted',
+              'Rejected',
+              'Approved',
+              'For Purchase',
+              'Ordered',
+              'For Pick-up',
+              'Picked Up',
+              'For Delivery',
+              'Delivered',
+              'Issued',
+          ];
+
+
+          $submitted =
+              $submitted ?? 0;
+
+          $rejected =
+              $rejected ?? 0;
+
+          $approved =
+              $approved ?? 0;
+
+          $forPurchase =
+              $forPurchase ?? 0;
 
-        $isMaintenanceAdmin =
-            $isMaintenanceAdmin ?? false;
+          $isMaintenanceAdmin =
+              $isMaintenanceAdmin ?? false;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | AVAILABLE JOB ORDERS FOR NEW PR
-        |--------------------------------------------------------------------------
-        |
-        | Controller still protects this on backend.
-        | This also keeps existing PR JOs out of the dropdown.
-        |
-        */
+          /*
+          |--------------------------------------------------------------------------
+          | AVAILABLE JOB ORDERS FOR NEW PR
+          |--------------------------------------------------------------------------
+          |
+          | Controller still protects this on backend.
+          | This also keeps existing PR JOs out of the dropdown.
+          |
+          */
 
-        $availablePrJobOrders =
-            $jobOrders->filter(function ($jobOrder) {
+          $availablePrJobOrders =
+              $jobOrders->filter(function ($jobOrder) {
 
-                if (
-                    empty($jobOrder->assigned_mechanic) ||
-                    empty($jobOrder->part_needed) ||
-                    $jobOrder->status === 'Completed'
-                ) {
-                    return false;
-                }
+                  if (
+                      empty($jobOrder->assigned_mechanic) ||
+                      empty($jobOrder->part_needed) ||
+                      $jobOrder->status === 'Completed'
+                  ) {
+                      return false;
+                  }
 
 
-                return !\App\Models\Maintenance\PurchaseRequest::query()
-                    ->where(
-                        'job_order_no',
-                        $jobOrder->job_order_no
-                    )
-                    ->where(
-                        'pr_no',
-                        'not like',
-                        '%-P'
-                    )
-                    ->where(function ($query) {
+                  return !\App\Models\Maintenance\PurchaseRequest::query()
+                      ->where(
+                          'job_order_no',
+                          $jobOrder->job_order_no
+                      )
+                      ->where(
+                          'pr_no',
+                          'not like',
+                          '%-P'
+                      )
+                      ->where(function ($query) {
 
-                        $query
-                            ->whereNull(
-                                'source_type'
-                            )
-                            ->orWhere(
-                                'source_type',
-                                'Maintenance Request'
-                            );
+                          $query
+                              ->whereNull(
+                                  'source_type'
+                              )
+                              ->orWhere(
+                                  'source_type',
+                                  'Maintenance Request'
+                              );
 
-                    })
-                    ->exists();
+                      })
+                      ->exists();
 
-            })
-            ->values();
+              })
+              ->values();
 
-    @endphp
+      @endphp
 
 
-    {{-- =========================================================
-        VALIDATION ERROR
-    ========================================================== --}}
-    @if($errors->any())
+      {{-- =========================================================
+          VALIDATION ERROR
+      ========================================================== --}}
+      @if($errors->any())
 
-        <div
-            id="validationErrorModal"
-            class="modal-overlay show active"
-        >
+          <div
+              id="validationErrorModal"
+              class="modal-overlay show active"
+          >
 
-            <div class="modal-card delete-modal-box">
+              <div class="modal-card delete-modal-box">
 
-                <div class="delete-icon">
+                  <div class="delete-icon">
 
-                    <i class="fa-solid fa-triangle-exclamation"></i>
+                      <i class="fa-solid fa-triangle-exclamation"></i>
 
-                </div>
+                  </div>
 
 
-                <h2>
-                    Form Error
-                </h2>
+                  <h2>
+                      Form Error
+                  </h2>
 
 
-                <p>
-                    Please check the form. Some required information is missing.
-                </p>
+                  <p>
+                      Please check the form. Some required information is missing.
+                  </p>
 
 
-                <ul class="form-error-list">
+                  <ul class="form-error-list">
 
-                    @foreach($errors->all() as $error)
+                      @foreach($errors->all() as $error)
 
-                        <li>
-                            {{ $error }}
-                        </li>
+                          <li>
+                              {{ $error }}
+                          </li>
 
-                    @endforeach
+                      @endforeach
 
-                </ul>
+                  </ul>
 
 
-                <div class="delete-modal-actions">
+                  <div class="delete-modal-actions">
 
-                    <button
-                        type="button"
-                        id="closeValidationErrorModal"
-                        class="secondary-btn cancel-delete-btn"
-                    >
-                        Okay
-                    </button>
+                      <button
+                          type="button"
+                          id="closeValidationErrorModal"
+                          class="secondary-btn cancel-delete-btn"
+                      >
+                          Okay
+                      </button>
 
-                </div>
+                  </div>
 
-            </div>
+              </div>
 
-        </div>
+          </div>
 
-    @endif
+      @endif
 
 
-    <div class="app">
+      <div class="app">
 
-        {{-- =====================================================
-            SIDEBAR
-        ====================================================== --}}
-        <x-layout.sidebar
-            department="Maintenance"
+          {{-- =====================================================
+              SIDEBAR
+          ====================================================== --}}
+          <x-layout.sidebar
+              department="Maintenance"
 
-            subtitle="Department Module"
+              subtitle="Department Module"
 
-            icon="fa-truck"
+              icon="fa-truck"
 
-            :items="[
-                [
-                    'label' => 'Dashboard',
-                    'route' => 'maintenance-dashboard',
-                    'icon' => 'fa-table-cells-large'
-                ],
-                [
-                    'label' => 'Job Orders',
-                    'route' => 'job-orders',
-                    'icon' => 'fa-clipboard-list'
-                ],
-                [
-                    'label' => 'Mechanic List',
-                    'route' => 'mechanic-list',
-                    'icon' => 'fa-bus'
-                ],
-                [
-                    'label' => 'PMS Scheduling',
-                    'route' => 'PMS-Scheduling',
-                    'icon' => 'fa-calendar-check'
-                ],
-                [
-                    'label' => 'Purchase Requests',
-                    'route' => 'purchase-requests',
-                    'icon' => 'fa-file-invoice'
-                ],
-                [
-                    'label' => 'Fuel Reports',
-                    'route' => 'fuel-reports',
-                    'icon' => 'fa-gas-pump'
-                ],
-            ]"
-        />
+              :items="[
+                  [
+                      'label' => 'Dashboard',
+                      'route' => 'maintenance-dashboard',
+                      'icon' => 'fa-table-cells-large'
+                  ],
+                  [
+                      'label' => 'Job Orders',
+                      'route' => 'job-orders',
+                      'icon' => 'fa-clipboard-list'
+                  ],
+                  [
+                      'label' => 'Mechanic List',
+                      'route' => 'mechanic-list',
+                      'icon' => 'fa-bus'
+                  ],
+                  [
+                      'label' => 'PMS Scheduling',
+                      'route' => 'PMS-Scheduling',
+                      'icon' => 'fa-calendar-check'
+                  ],
+                  [
+                      'label' => 'Purchase Requests',
+                      'route' => 'purchase-requests',
+                      'icon' => 'fa-file-invoice'
+                  ],
+                  [
+                      'label' => 'Fuel Reports',
+                      'route' => 'fuel-reports',
+                      'icon' => 'fa-gas-pump'
+                  ],
+              ]"
+          />
 
 
-        <main class="main purchase-page">
+          <main class="main purchase-page">
 
-            {{-- =====================================================
-                TOPBAR
-            ====================================================== --}}
-            <x-layout.topbar
-                title="Purchase Requests"
+              {{-- =====================================================
+                  TOPBAR
+              ====================================================== --}}
+              <x-layout.topbar
+                  title="Purchase Requests"
 
-                subtitle="Manage requested parts and maintenance purchasing records"
+                  subtitle="Manage requested parts and maintenance purchasing records"
 
-                notification-count="6"
-            />
+                  notification-count="6"
+              />
 
 
-            {{-- =====================================================
-                SUMMARY
-            ====================================================== --}}
-            <section class="stats-grid purchase-stats-grid">
+              {{-- =====================================================
+                  SUMMARY
+              ====================================================== --}}
+              <section class="stats-grid purchase-stats-grid">
 
-                <x-ui.summary-card
-                    label="Submitted"
+                  <x-ui.summary-card
+                      label="Submitted"
 
-                    value="{{ $submitted }}"
+                      value="{{ $submitted }}"
 
-                    small="Waiting approval"
+                      small="Waiting approval"
 
-                    icon="fa-paper-plane"
+                      icon="fa-paper-plane"
 
-                    color="blue"
-                />
+                      color="blue"
+                  />
 
 
-                <x-ui.summary-card
-                    label="Rejected"
+                  <x-ui.summary-card
+                      label="Rejected"
 
-                    value="{{ $rejected }}"
+                      value="{{ $rejected }}"
 
-                    small="Needs revision"
+                      small="Needs revision"
 
-                    icon="fa-xmark"
+                      icon="fa-xmark"
 
-                    color="red"
-                />
+                      color="red"
+                  />
 
 
-                <x-ui.summary-card
-                    label="Approved"
+                  <x-ui.summary-card
+                      label="Approved"
 
-                    value="{{ $approved }}"
+                      value="{{ $approved }}"
 
-                    small="Approved requests"
+                      small="Approved requests"
 
-                    icon="fa-check"
+                      icon="fa-check"
 
-                    color="purple"
-                />
+                      color="purple"
+                  />
 
 
-                <x-ui.summary-card
-                    label="For Purchase"
+                  <x-ui.summary-card
+                      label="For Purchase"
 
-                    value="{{ $forPurchase }}"
+                      value="{{ $forPurchase }}"
 
-                    small="Ready to purchase"
+                      small="Ready to purchase"
 
-                    icon="fa-cart-shopping"
+                      icon="fa-cart-shopping"
 
-                    color="blue"
-                />
+                      color="blue"
+                  />
 
-            </section>
+              </section>
 
 
-            {{-- =====================================================
-                TABLE CARD
-            ====================================================== --}}
-            <section class="table-card purchase-request-card">
+              {{-- =====================================================
+                  TABLE CARD
+              ====================================================== --}}
+              <section class="table-card purchase-request-card">
 
-                <div class="section-header">
+                  <div class="section-header">
 
-                    <div>
+                      <div>
 
-                        <h2>
-                            Purchase Request Records
-                        </h2>
+                          <h2>
+                              Purchase Request Records
+                          </h2>
 
 
-                        <p>
-                            Track requested parts, approval status,
-                            warehouse issuance, and purchasing progress
-                        </p>
+                          <p>
+                              Track requested parts, approval status,
+                              warehouse issuance, and purchasing progress
+                          </p>
 
-                    </div>
+                      </div>
 
-                </div>
+                  </div>
 
 
-                {{-- =================================================
-                    TOOLBAR
-                ================================================== --}}
-                <form
-                    action="{{ route('purchase-requests') }}"
+                  {{-- =================================================
+                      TOOLBAR
+                  ================================================== --}}
+                  <form
+                      action="{{ route('purchase-requests') }}"
 
-                    method="GET"
+                      method="GET"
 
-                    class="toolbar purchase-toolbar"
-                >
+                      class="toolbar purchase-toolbar"
+                  >
 
-                    {{-- SEARCH --}}
-                    <div class="search-box">
+                      {{-- SEARCH --}}
+                      <div class="search-box">
 
-                        <i class="fa-solid fa-magnifying-glass"></i>
+                          <i class="fa-solid fa-magnifying-glass"></i>
 
 
-                        <input
-                            type="text"
+                          <input
+                              type="text"
 
-                            name="search"
+                              name="search"
 
-                            value="{{ request('search') }}"
+                              value="{{ request('search') }}"
 
-                            placeholder="Search PR no., JO no., bus no., item..."
-                        >
+                              placeholder="Search PR no., JO no., bus no., item..."
+                          >
 
-                    </div>
+                      </div>
 
 
-                    {{-- STATUS --}}
-                    <div class="filter-group">
+                      {{-- STATUS --}}
+                      <div class="filter-group">
 
-                        <label for="prStatusFilter">
-                            Status
-                        </label>
+                          <label for="prStatusFilter">
+                              Status
+                          </label>
 
 
-                        <select
-                            name="status"
+                          <select
+                              name="status"
 
-                            id="prStatusFilter"
+                              id="prStatusFilter"
 
-                            class="pr-status-select"
+                              class="pr-status-select"
 
-                            onchange="this.form.requestSubmit()"
-                        >
+                              onchange="this.form.requestSubmit()"
+                          >
 
-                            <option
-                                value="All Statuses"
+                              <option
+                                  value="All Statuses"
 
-                                @selected(
-                                    request(
-                                        'status',
-                                        'All Statuses'
-                                    ) === 'All Statuses'
-                                )
-                            >
-                                All Statuses
-                            </option>
+                                  @selected(
+                                      request(
+                                          'status',
+                                          'All Statuses'
+                                      ) === 'All Statuses'
+                                  )
+                              >
+                                  All Statuses
+                              </option>
 
 
-                            @foreach($statuses as $status)
+                              @foreach($statuses as $status)
 
-                                <option
-                                    value="{{ $status }}"
+                                  <option
+                                      value="{{ $status }}"
 
-                                    @selected(
-                                        request('status')
-                                        === $status
-                                    )
-                                >
-                                    {{ $status }}
-                                </option>
+                                      @selected(
+                                          request('status')
+                                          === $status
+                                      )
+                                  >
+                                      {{ $status }}
+                                  </option>
 
-                            @endforeach
+                              @endforeach
 
-                        </select>
+                          </select>
 
-                    </div>
+                      </div>
 
 
-                    {{-- NEW PR --}}
-                    <button
-                        type="button"
+                      {{-- NEW PR --}}
+                      <button
+                          type="button"
 
-                        id="openPrModal"
+                          id="openPrModal"
 
-                        class="primary-btn compact-new-pr-btn"
-                    >
+                          class="primary-btn compact-new-pr-btn"
+                      >
 
-                        <i class="fa-solid fa-plus"></i>
+                          <i class="fa-solid fa-plus"></i>
 
-                        New PR
+                          New PR
 
-                    </button>
+                      </button>
 
-                </form>
+                  </form>
 
 
-                {{-- =================================================
-                    TABLE
-                ================================================== --}}
-                <div class="table-wrap purchase-table-wrap">
+                  {{-- =================================================
+                      TABLE
+                  ================================================== --}}
+                  <div class="table-wrap purchase-table-wrap">
 
-                    <table class="purchase-request-table">
+                      <table class="purchase-request-table">
 
-                        <thead>
+                          <thead>
 
-                            <tr>
+                              <tr>
 
-                                <th>
-                                    PR #
-                                </th>
+                                  <th>
+                                      PR #
+                                  </th>
 
-                                <th>
-                                    Bus #
-                                </th>
+                                  <th>
+                                      Bus #
+                                  </th>
 
-                                <th>
-                                    Requested Item / Part
-                                </th>
+                                  <th>
+                                      Requested Item / Part
+                                  </th>
 
-                                <th>
-                                    Qty
-                                </th>
+                                  <th>
+                                      Qty
+                                  </th>
 
-                                <th>
-                                    Status
-                                </th>
+                                  <th>
+                                      Status
+                                  </th>
 
-                                <th>
-                                    Created
-                                </th>
+                                  <th>
+                                      Created
+                                  </th>
 
-                                <th>
-                                    Actions
-                                </th>
+                                  <th>
+                                      Actions
+                                  </th>
 
-                            </tr>
+                              </tr>
 
-                        </thead>
+                          </thead>
 
 
-                        <tbody>
+                          <tbody>
 
-                            @forelse($purchaseRequests as $pr)
+                              @forelse($purchaseRequests as $pr)
 
-                                @php
+                                  @php
 
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | FIRST ITEM FOR TABLE
-                                    |--------------------------------------------------------------------------
-                                    */
+                                      /*
+                                      |--------------------------------------------------------------------------
+                                      | FIRST ITEM FOR TABLE
+                                      |--------------------------------------------------------------------------
+                                      */
 
-                                    $firstRequestedItem =
-                                        trim(
-                                            explode(
-                                                ',',
-                                                $pr->item ?? ''
-                                            )[0] ?? ''
-                                        );
+                                      $firstRequestedItem =
+                                          trim(
+                                              explode(
+                                                  ',',
+                                                  $pr->item ?? ''
+                                              )[0] ?? ''
+                                          );
 
 
-                                    if (
-                                        str_contains(
-                                            $firstRequestedItem,
-                                            ' - Qty:'
-                                        )
-                                    ) {
+                                      if (
+                                          str_contains(
+                                              $firstRequestedItem,
+                                              ' - Qty:'
+                                          )
+                                      ) {
 
-                                        $firstRequestedItem =
-                                            trim(
-                                                explode(
-                                                    ' - Qty:',
-                                                    $firstRequestedItem
-                                                )[0]
-                                                ?? $firstRequestedItem
-                                            );
+                                          $firstRequestedItem =
+                                              trim(
+                                                  explode(
+                                                      ' - Qty:',
+                                                      $firstRequestedItem
+                                                  )[0]
+                                                  ?? $firstRequestedItem
+                                              );
 
-                                    }
+                                      }
 
 
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | PR STATE
-                                    |--------------------------------------------------------------------------
-                                    */
+                                      /*
+                                      |--------------------------------------------------------------------------
+                                      | PR STATE
+                                      |--------------------------------------------------------------------------
+                                      */
 
-                                    $isSubmitted =
-                                        $pr->status === 'Submitted';
+                                      $isSubmitted =
+                                          $pr->status === 'Submitted';
 
 
-                                    $isRejected =
-                                        $pr->status === 'Rejected';
+                                      $isRejected =
+                                          $pr->status === 'Rejected';
 
 
-                                    $isProcessed =
-                                        in_array(
-                                            $pr->status,
-                                            [
-                                                'Approved',
-                                                'For Purchase',
-                                                'Ordered',
-                                                'For Pick-up',
-                                                'Picked Up',
-                                                'For Delivery',
-                                                'Delivered',
-                                                'Issued',
-                                            ],
-                                            true
-                                        );
+                                      $isProcessed =
+                                          in_array(
+                                              $pr->status,
+                                              [
+                                                  'Approved',
+                                                  'For Purchase',
+                                                  'Ordered',
+                                                  'For Pick-up',
+                                                  'Picked Up',
+                                                  'For Delivery',
+                                                  'Delivered',
+                                                  'Issued',
+                                              ],
+                                              true
+                                          );
 
 
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | EDIT
-                                    |--------------------------------------------------------------------------
-                                    |
-                                    | Submitted = normal Edit
-                                    | Rejected  = Revise & Resubmit
-                                    | Processed = locked
-                                    |
-                                    */
+                                      /*
+                                      |--------------------------------------------------------------------------
+                                      | EDIT
+                                      |--------------------------------------------------------------------------
+                                      |
+                                      | Submitted = normal Edit
+                                      | Rejected  = Revise & Resubmit
+                                      | Processed = locked
+                                      |
+                                      */
 
-                                    $canEdit =
-                                        $isSubmitted ||
-                                        $isRejected;
+                                      $canEdit =
+                                          $isSubmitted ||
+                                          $isRejected;
 
 
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | APPROVE / REJECT
-                                    |--------------------------------------------------------------------------
-                                    */
+                                      /*
+                                      |--------------------------------------------------------------------------
+                                      | APPROVE / REJECT
+                                      |--------------------------------------------------------------------------
+                                      */
 
-                                    $canApproveOrReject =
-                                        $isMaintenanceAdmin &&
-                                        $isSubmitted;
+                                      $canApproveOrReject =
+                                          $isMaintenanceAdmin &&
+                                          $isSubmitted;
 
 
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | DELETE
-                                    |--------------------------------------------------------------------------
-                                    |
-                                    | Only Submitted may be deleted.
-                                    |
-                                    | Rejected must remain for history
-                                    | and be revised/resubmitted.
-                                    |
-                                    */
+                                      /*
+                                      |--------------------------------------------------------------------------
+                                      | DELETE
+                                      |--------------------------------------------------------------------------
+                                      |
+                                      | Only Submitted may be deleted.
+                                      |
+                                      | Rejected must remain for history
+                                      | and be revised/resubmitted.
+                                      |
+                                      */
 
-                                    $canDelete =
-                                        $isSubmitted;
+                                      $canDelete =
+                                          $isSubmitted;
 
-                                @endphp
+                                  @endphp
 
 
-                                <tr>
+                                  <tr>
 
-                                    {{-- PR --}}
-                                    <td>
-                                        {{ $pr->pr_no }}
-                                    </td>
+                                      {{-- PR --}}
+                                      <td>
+                                          {{ $pr->pr_no }}
+                                      </td>
 
 
-                                    {{-- BUS --}}
-                                    <td>
-                                        {{ $pr->bus_no }}
-                                    </td>
+                                      {{-- BUS --}}
+                                      <td>
+                                          {{ $pr->bus_no }}
+                                      </td>
 
 
-                                    {{-- ITEM --}}
-                                    <td class="requested-part-cell">
+                                      {{-- ITEM --}}
+                                      <td class="requested-part-cell">
 
-                                        {{
-                                            $firstRequestedItem
-                                                ?: '—'
-                                        }}
+                                          {{
+                                              $firstRequestedItem
+                                                  ?: '—'
+                                          }}
 
-                                    </td>
+                                      </td>
 
 
-                                    {{-- QTY --}}
-                                    <td>
-                                        {{ $pr->quantity }}
-                                    </td>
+                                      {{-- QTY --}}
+                                      <td>
+                                          {{ $pr->quantity }}
+                                      </td>
 
 
-                                    {{-- STATUS --}}
-                                    <td class="status-col">
+                                      {{-- STATUS --}}
+                                      <td class="status-col">
 
-                                        <x-ui.status-badge
-                                            :status="$pr->status"
+                                          <x-ui.status-badge
+                                              :status="$pr->status"
 
-                                            type="purchase"
-                                        />
+                                              type="purchase"
+                                          />
 
-                                    </td>
+                                      </td>
 
 
-                                    {{-- CREATED --}}
-                                    <td class="created-cell">
+                                      {{-- CREATED --}}
+                                      <td class="created-cell">
 
-                                        {{
-                                            $pr->created_at
-                                                ? $pr->created_at
-                                                    ->format(
-                                                        'm/d/y | h:i A'
-                                                    )
-                                                : '—'
-                                        }}
+                                          {{
+                                              $pr->created_at
+                                                  ? $pr->created_at
+                                                      ->format(
+                                                          'm/d/y | h:i A'
+                                                      )
+                                                  : '—'
+                                          }}
 
-                                    </td>
+                                      </td>
 
 
-                                    {{-- ACTIONS --}}
-                                    <td>
+                                      {{-- ACTIONS --}}
+                                      <td>
 
-                                        <div class="actions">
+                                          <div class="actions">
 
-                                            {{-- =================================
-                                                VIEW
-                                            ================================== --}}
-                                            <x-ui.action-button
-                                                type="view"
+                                              {{-- =================================
+                                                  VIEW
+                                              ================================== --}}
+                                              <x-ui.action-button
+                                                  type="view"
 
-                                                title="View Purchase Request"
+                                                  title="View Purchase Request"
 
-                                                class="open-view-pr-modal"
+                                                  class="open-view-pr-modal"
 
-                                                data-id="{{
-                                                    $pr->id
-                                                }}"
+                                                  data-id="{{
+                                                      $pr->id
+                                                  }}"
 
-                                                data-pr-no="{{
-                                                    $pr->pr_no
-                                                }}"
+                                                  data-pr-no="{{
+                                                      $pr->pr_no
+                                                  }}"
 
-                                                data-job-order-no="{{
-                                                    $pr->job_order_no
-                                                }}"
+                                                  data-job-order-no="{{
+                                                      $pr->job_order_no
+                                                  }}"
 
-                                                data-bus-no="{{
-                                                    $pr->bus_no
-                                                }}"
+                                                  data-bus-no="{{
+                                                      $pr->bus_no
+                                                  }}"
 
-                                                data-item="{{
-                                                    $pr->item
-                                                }}"
+                                                  data-item="{{
+                                                      $pr->item
+                                                  }}"
 
-                                                data-quantity="{{
-                                                    $pr->quantity
-                                                }}"
+                                                  data-quantity="{{
+                                                      $pr->quantity
+                                                  }}"
 
-                                                data-status="{{
-                                                    $pr->status
-                                                }}"
+                                                  data-status="{{
+                                                      $pr->status
+                                                  }}"
 
-                                                data-remarks="{{
-                                                    $pr->remarks
-                                                }}"
+                                                  data-remarks="{{
+                                                      $pr->remarks
+                                                  }}"
 
-                                                data-update-url="{{
-                                                    route(
-                                                        'purchase-requests.update',
-                                                        $pr->id
-                                                    )
-                                                }}"
+                                                  data-update-url="{{
+                                                      route(
+                                                          'purchase-requests.update',
+                                                          $pr->id
+                                                      )
+                                                  }}"
 
-                                                data-resubmit-url="{{
-                                                    route(
-                                                        'purchase-requests.resubmit',
-                                                        $pr->id
-                                                    )
-                                                }}"
-                                            />
+                                                  data-resubmit-url="{{
+                                                      route(
+                                                          'purchase-requests.resubmit',
+                                                          $pr->id
+                                                      )
+                                                  }}"
+                                              />
 
 
-                                            {{-- =================================
-                                                EDIT / REVISE
-                                            ================================== --}}
-                                            @if($canEdit)
+                                              {{-- =================================
+                                                  EDIT / REVISE
+                                              ================================== --}}
+                                              @if($canEdit)
 
-                                                <x-ui.action-button
-                                                    type="edit"
+                                                  <x-ui.action-button
+                                                      type="edit"
 
-                                                    title="{{
-                                                        $isRejected
-                                                            ? 'Revise and Resubmit Purchase Request'
-                                                            : 'Edit Purchase Request'
-                                                    }}"
+                                                      title="{{
+                                                          $isRejected
+                                                              ? 'Revise and Resubmit Purchase Request'
+                                                              : 'Edit Purchase Request'
+                                                      }}"
 
-                                                    class="
-                                                        open-edit-pr-modal
-                                                        {{
-                                                            $isRejected
-                                                                ? 'revise-pr-action'
-                                                                : ''
-                                                        }}
-                                                    "
+                                                      class="
+                                                          open-edit-pr-modal
+                                                          {{
+                                                              $isRejected
+                                                                  ? 'revise-pr-action'
+                                                                  : ''
+                                                          }}
+                                                      "
 
-                                                    data-id="{{
-                                                        $pr->id
-                                                    }}"
+                                                      data-id="{{
+                                                          $pr->id
+                                                      }}"
 
-                                                    data-pr-no="{{
-                                                        $pr->pr_no
-                                                    }}"
+                                                      data-pr-no="{{
+                                                          $pr->pr_no
+                                                      }}"
 
-                                                    data-job-order-no="{{
-                                                        $pr->job_order_no
-                                                    }}"
+                                                      data-job-order-no="{{
+                                                          $pr->job_order_no
+                                                      }}"
 
-                                                    data-bus-no="{{
-                                                        $pr->bus_no
-                                                    }}"
+                                                      data-bus-no="{{
+                                                          $pr->bus_no
+                                                      }}"
 
-                                                    data-item="{{
-                                                        $pr->item
-                                                    }}"
+                                                      data-item="{{
+                                                          $pr->item
+                                                      }}"
 
-                                                    data-quantity="{{
-                                                        $pr->quantity
-                                                    }}"
+                                                      data-quantity="{{
+                                                          $pr->quantity
+                                                      }}"
 
-                                                    data-status="{{
-                                                        $pr->status
-                                                    }}"
+                                                      data-status="{{
+                                                          $pr->status
+                                                      }}"
 
-                                                    data-remarks="{{
-                                                        $pr->remarks
-                                                    }}"
+                                                      data-remarks="{{
+                                                          $pr->remarks
+                                                      }}"
 
-                                                    data-update-url="{{
-                                                        route(
-                                                            'purchase-requests.update',
-                                                            $pr->id
-                                                        )
-                                                    }}"
+                                                      data-update-url="{{
+                                                          route(
+                                                              'purchase-requests.update',
+                                                              $pr->id
+                                                          )
+                                                      }}"
 
-                                                    data-resubmit-url="{{
-                                                        route(
-                                                            'purchase-requests.resubmit',
-                                                            $pr->id
-                                                        )
-                                                    }}"
-                                                />
+                                                      data-resubmit-url="{{
+                                                          route(
+                                                              'purchase-requests.resubmit',
+                                                              $pr->id
+                                                          )
+                                                      }}"
+                                                  />
 
-                                            @else
+                                              @else
 
-                                                <x-ui.action-button
-                                                    type="edit"
+                                                  <x-ui.action-button
+                                                      type="edit"
 
-                                                    title="This Purchase Request can no longer be edited."
+                                                      title="This Purchase Request can no longer be edited."
 
-                                                    class="disabled-pr-edit-btn"
+                                                      class="disabled-pr-edit-btn"
 
-                                                    :disabled="true"
-                                                />
+                                                      :disabled="true"
+                                                  />
 
-                                            @endif
+                                              @endif
 
 
-                                            {{-- =================================
-                                                APPROVE / REJECT
-                                            ================================== --}}
-                                            @if($canApproveOrReject)
+                                              {{-- =================================
+                                                  APPROVE / REJECT
+                                              ================================== --}}
+                                              @if($canApproveOrReject)
 
-                                                <x-ui.action-button
-                                                    type="approve"
+                                                  <x-ui.action-button
+                                                      type="approve"
 
-                                                    title="Approve Purchase Request"
+                                                      title="Approve Purchase Request"
 
-                                                    class="open-pr-confirmation"
+                                                      class="open-pr-confirmation"
 
-                                                    data-action="approve"
+                                                      data-action="approve"
 
-                                                    data-pr-no="{{
-                                                        $pr->pr_no
-                                                    }}"
+                                                      data-pr-no="{{
+                                                          $pr->pr_no
+                                                      }}"
 
-                                                    data-action-url="{{
-                                                        route(
-                                                            'purchase-requests.approve',
-                                                            $pr->id
-                                                        )
-                                                    }}"
-                                                />
+                                                      data-action-url="{{
+                                                          route(
+                                                              'purchase-requests.approve',
+                                                              $pr->id
+                                                          )
+                                                      }}"
+                                                  />
 
 
-                                                <x-ui.action-button
-                                                    type="reject"
+                                                  <x-ui.action-button
+                                                      type="reject"
 
-                                                    title="Reject Purchase Request"
+                                                      title="Reject Purchase Request"
 
-                                                    class="open-pr-confirmation"
+                                                      class="open-pr-confirmation"
 
-                                                    data-action="reject"
+                                                      data-action="reject"
 
-                                                    data-pr-no="{{
-                                                        $pr->pr_no
-                                                    }}"
+                                                      data-pr-no="{{
+                                                          $pr->pr_no
+                                                      }}"
 
-                                                    data-action-url="{{
-                                                        route(
-                                                            'purchase-requests.reject',
-                                                            $pr->id
-                                                        )
-                                                    }}"
-                                                />
+                                                      data-action-url="{{
+                                                          route(
+                                                              'purchase-requests.reject',
+                                                              $pr->id
+                                                          )
+                                                      }}"
+                                                  />
 
-                                            @endif
+                                              @endif
 
 
-                                            {{-- =================================
-                                                DELETE
-                                            ================================== --}}
-                                            <form
-                                                id="deletePrForm-{{ $pr->id }}"
+                                              {{-- =================================
+                                                  DELETE
+                                              ================================== --}}
+                                              <form
+                                                  id="deletePrForm-{{ $pr->id }}"
 
-                                                action="{{
-                                                    route(
-                                                        'purchase-requests.destroy',
-                                                        $pr->id
-                                                    )
-                                                }}"
+                                                  action="{{
+                                                      route(
+                                                          'purchase-requests.destroy',
+                                                          $pr->id
+                                                      )
+                                                  }}"
 
-                                                method="POST"
-                                            >
+                                                  method="POST"
+                                              >
 
-                                                @csrf
-                                                @method('DELETE')
+                                                  @csrf
+                                                  @method('DELETE')
 
 
-                                                @if($canDelete)
+                                                  @if($canDelete)
 
-                                                    <x-ui.action-button
-                                                        type="delete"
+                                                      <x-ui.action-button
+                                                          type="delete"
 
-                                                        title="Delete Purchase Request"
+                                                          title="Delete Purchase Request"
 
-                                                        class="open-delete-pr-modal"
+                                                          class="open-delete-pr-modal"
 
-                                                        data-id="{{
-                                                            $pr->id
-                                                        }}"
+                                                          data-id="{{
+                                                              $pr->id
+                                                          }}"
 
-                                                        data-pr-no="{{
-                                                            $pr->pr_no
-                                                        }}"
-                                                    />
+                                                          data-pr-no="{{
+                                                              $pr->pr_no
+                                                          }}"
+                                                      />
 
-                                                @else
+                                                  @else
 
-                                                    <x-ui.action-button
-                                                        type="delete"
+                                                      <x-ui.action-button
+                                                          type="delete"
 
-                                                        title="{{
-                                                            $isRejected
-                                                                ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
-                                                                : 'This PR can no longer be deleted because it is already being processed.'
-                                                        }}"
+                                                          title="{{
+                                                              $isRejected
+                                                                  ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
+                                                                  : 'This PR can no longer be deleted because it is already being processed.'
+                                                          }}"
 
-                                                        :disabled="true"
-                                                    />
+                                                          :disabled="true"
+                                                      />
 
-                                                @endif
+                                                  @endif
 
-                                            </form>
+                                              </form>
 
-                                        </div>
+                                          </div>
 
-                                    </td>
+                                      </td>
 
-                                </tr>
+                                  </tr>
 
 
-                            @empty
+                              @empty
 
-                                <x-ui.empty-row
-                                    colspan="7"
+                                  <x-ui.empty-row
+                                      colspan="7"
 
-                                    message="No purchase requests found."
-                                />
+                                      message="No purchase requests found."
+                                  />
 
-                            @endforelse
+                              @endforelse
 
-                        </tbody>
+                          </tbody>
 
-                    </table>
+                      </table>
 
-                </div>
+                  </div>
 
 
-                <x-ui.table-footer
-                    :items="$purchaseRequests"
-                />
+                  <x-ui.table-footer
+                      :items="$purchaseRequests"
+                  />
 
-            </section>
+              </section>
 
-        </main>
+          </main>
 
-    </div>
+      </div>
 
 
-    {{-- =============================================================
-        NEW PURCHASE REQUEST
-    ============================================================== --}}
-    <x-ui.form-modal
-        id="prModal"
+      {{-- =============================================================
+          NEW PURCHASE REQUEST
+      ============================================================== --}}
+      <x-ui.form-modal
+          id="prModal"
 
-        title="New Purchase Request"
+          title="New Purchase Request"
 
-        description="Create a purchase request from an inspected Job Order."
+          description="Create a purchase request from an inspected Job Order."
 
-        icon="fa-file-circle-plus"
+          icon="fa-file-circle-plus"
 
-        size="large"
+          size="large"
 
-        form-id="newPrForm"
+          form-id="newPrForm"
 
-        :action="route(
-            'purchase-requests.store'
-        )"
+          :action="route(
+              'purchase-requests.store'
+          )"
 
-        method="POST"
+          method="POST"
 
-        submit-text="Create PR"
+          submit-text="Create PR"
 
-        submit-id="createPrBtn"
+          submit-id="createPrBtn"
 
-        submit-icon="fa-file-circle-plus"
+          submit-icon="fa-file-circle-plus"
 
-        close-id="closePrModal"
+          close-id="closePrModal"
 
-        cancel-id="cancelPrModal"
+          cancel-id="cancelPrModal"
 
-        :confirm="true"
+          :confirm="true"
 
-        confirm-title="Create Purchase Request?"
+          confirm-title="Create Purchase Request?"
 
-        confirm-message="Are you sure you want to create this Purchase Request?"
+          confirm-message="Are you sure you want to create this Purchase Request?"
 
-        confirm-button="Yes, Create PR"
+          confirm-button="Yes, Create PR"
 
-        confirm-type="create"
+          confirm-type="create"
 
-        class="{{
-            isset($selectedJobOrder) &&
-            $selectedJobOrder
-                ? 'show active'
-                : ''
-        }}"
-    >
+          class="{{
+              isset($selectedJobOrder) &&
+              $selectedJobOrder
+                  ? 'show active'
+                  : ''
+          }}"
+      >
 
-        {{-- =====================================================
-            PR INFORMATION
-        ====================================================== --}}
-        <x-ui.form-section
-            title="Purchase Request Information"
+          {{-- =====================================================
+              PR INFORMATION
+          ====================================================== --}}
+          <x-ui.form-section
+              title="Purchase Request Information"
 
-            subtitle="Only Job Orders with an assigned mechanic and requested parts can create a PR."
+              subtitle="Only Job Orders with an assigned mechanic and requested parts can create a PR."
 
-            icon="fa-file-invoice"
-        >
+              icon="fa-file-invoice"
+          >
 
-            <div class="ui-form-grid">
+              <div class="ui-form-grid">
 
-                {{-- PR NO --}}
-                <x-ui.form-field
-                    label="PR No."
+                  {{-- PR NO --}}
+                  <x-ui.form-field
+                      label="PR No."
 
-                    name="display_pr_no"
+                      name="display_pr_no"
 
-                    id="newPrNo"
+                      id="newPrNo"
 
-                    :value="$nextPrNo"
+                      :value="$nextPrNo"
 
-                    icon="fa-hashtag"
+                      icon="fa-hashtag"
 
-                    readonly
-                />
+                      readonly
+                  />
 
 
-                <div class="ui-form-group">
+                  <div class="ui-form-group">
 
-    <label for="jobOrderSelect">
-        Job Order
+      <label for="jobOrderSelect">
+          Job Order
 
-        <span class="ui-required">
-            *
-        </span>
-    </label>
+          <span class="ui-required">
+              *
+          </span>
+      </label>
 
-    <div class="pr-select-control">
+      <div class="pr-select-control">
 
-        <i class="fa-solid fa-clipboard-list"></i>
+          <i class="fa-solid fa-clipboard-list"></i>
 
-        <select
-            name="job_order_no"
-            id="jobOrderSelect"
-            required
-        >
-            <option value="">
-                Select Job Order
-            </option>
+          <select
+              name="job_order_no"
+              id="jobOrderSelect"
+              required
+          >
+              <option value="">
+                  Select Job Order
+              </option>
 
-            @foreach($availablePrJobOrders as $jobOrder)
+              @foreach($availablePrJobOrders as $jobOrder)
 
-                <option
-                    value="{{ $jobOrder->job_order_no }}"
+                  <option
+                      value="{{ $jobOrder->job_order_no }}"
 
-                    data-bus="{{ $jobOrder->bus_no }}"
+                      data-bus="{{ $jobOrder->bus_no }}"
 
-                    data-parts="{{ $jobOrder->part_needed }}"
+                      data-parts="{{ $jobOrder->part_needed }}"
 
-                    @selected(
-                        old(
-                            'job_order_no',
-                            $selectedJobOrder?->job_order_no
-                        ) === $jobOrder->job_order_no
-                    )
-                >
-                    {{ $jobOrder->job_order_no }}
-                    - {{ $jobOrder->bus_no }}
-                </option>
+                      @selected(
+                          old(
+                              'job_order_no',
+                              $selectedJobOrder?->job_order_no
+                          ) === $jobOrder->job_order_no
+                      )
+                  >
+                      {{ $jobOrder->job_order_no }}
+                      - {{ $jobOrder->bus_no }}
+                  </option>
 
-            @endforeach
+              @endforeach
 
-        </select>
+          </select>
 
-    </div>
+      </div>
 
-</div>
+  </div>
 
 
-                {{-- BUS --}}
-                <x-ui.form-field
-                    label="Bus #"
+                  {{-- BUS --}}
+                  <x-ui.form-field
+                      label="Bus #"
 
-                    name="bus_no"
+                      name="bus_no"
 
-                    id="busNoInput"
+                      id="busNoInput"
 
-                    value="{{
-                        old(
-                            'bus_no',
-                            $selectedJobOrder
-                                ?->bus_no
-                        )
-                    }}"
+                      value="{{
+                          old(
+                              'bus_no',
+                              $selectedJobOrder
+                                  ?->bus_no
+                          )
+                      }}"
 
-                    icon="fa-bus"
+                      icon="fa-bus"
 
-                    readonly
+                      readonly
 
-                    required
-                />
+                      required
+                  />
 
-            </div>
+              </div>
 
-        </x-ui.form-section>
+          </x-ui.form-section>
 
 
-        {{-- =====================================================
-            REQUESTED PARTS
-        ====================================================== --}}
-        <x-ui.form-section
-            title="Requested Parts"
+          {{-- =====================================================
+              REQUESTED PARTS
+          ====================================================== --}}
+          <x-ui.form-section
+              title="Requested Parts"
 
-            subtitle="Review the parts identified during the mechanic inspection."
+              subtitle="Review the parts identified during the mechanic inspection."
 
-            icon="fa-gears"
-        >
+              icon="fa-gears"
+          >
 
-            <x-slot:action>
+              <x-slot:action>
 
-                <button
-                    type="button"
+                  <button
+                      type="button"
 
-                    id="addNewPrPartBtn"
+                      id="addNewPrPartBtn"
 
-                    class="ui-btn-small"
-                >
+                      class="ui-btn-small"
+                  >
 
-                    <i class="fa-solid fa-plus"></i>
+                      <i class="fa-solid fa-plus"></i>
 
-                    Add Part
+                      Add Part
 
-                </button>
+                  </button>
 
-            </x-slot:action>
+              </x-slot:action>
 
 
-            <div
-                id="newPrPartsContainer"
+              <div
+                  id="newPrPartsContainer"
 
-                class="pr-parts-container"
+                  class="pr-parts-container"
 
-                data-initial-parts="{{
-                    old(
-                        'job_order_no'
-                    )
-                        ? (
-                            optional(
-                                $jobOrders->firstWhere(
-                                    'job_order_no',
-                                    old('job_order_no')
-                                )
-                            )->part_needed
-                            ?? ''
-                        )
-                        : (
-                            $selectedJobOrder
-                                ?->part_needed
-                            ?? ''
-                        )
-                }}"
-            >
-            </div>
+                  data-initial-parts="{{
+                      old(
+                          'job_order_no'
+                      )
+                          ? (
+                              optional(
+                                  $jobOrders->firstWhere(
+                                      'job_order_no',
+                                      old('job_order_no')
+                                  )
+                              )->part_needed
+                              ?? ''
+                          )
+                          : (
+                              $selectedJobOrder
+                                  ?->part_needed
+                              ?? ''
+                          )
+                  }}"
+              >
+              </div>
 
-        </x-ui.form-section>
+          </x-ui.form-section>
 
 
-        {{-- =====================================================
-            REMARKS
-        ====================================================== --}}
-        <div class="ui-form-group ui-form-full">
+          {{-- =====================================================
+              REMARKS
+          ====================================================== --}}
+          <div class="ui-form-group ui-form-full">
 
-            <label for="newPrRemarks">
-                Remarks
-            </label>
+              <label for="newPrRemarks">
+                  Remarks
+              </label>
 
 
-            <textarea
-                name="remarks"
+              <textarea
+                  name="remarks"
 
-                id="newPrRemarks"
+                  id="newPrRemarks"
 
-                placeholder="Optional remarks..."
-            >{{ old('remarks') }}</textarea>
+                  placeholder="Optional remarks..."
+              >{{ old('remarks') }}</textarea>
 
-        </div>
+          </div>
 
-    </x-ui.form-modal>
+      </x-ui.form-modal>
 
 
-    {{-- =============================================================
-        EDIT / VIEW / REVISE PR
-    ============================================================== --}}
-    <x-ui.form-modal
-        id="editPrModal"
+      {{-- =============================================================
+          EDIT / VIEW / REVISE PR
+      ============================================================== --}}
+      <x-ui.form-modal
+          id="editPrModal"
 
-        title="Purchase Request Details"
+          title="Purchase Request Details"
 
-        title-id="editPrModalTitle"
+          title-id="editPrModalTitle"
 
-        description="Review the selected purchase request."
+          description="Review the selected purchase request."
 
-        icon="fa-file-invoice"
+          icon="fa-file-invoice"
 
-        size="large"
+          size="large"
 
-        form-id="editPrForm"
+          form-id="editPrForm"
 
-        action="#"
+          action="#"
 
-        method="PUT"
+          method="PUT"
 
-        close-id="closeEditPrModal"
+          close-id="closeEditPrModal"
 
-        :show-actions="false"
+          :show-actions="false"
 
-        :confirm="true"
+          :confirm="true"
 
-        confirm-title="Save Purchase Request Changes?"
+          confirm-title="Save Purchase Request Changes?"
 
-        confirm-message="Are you sure you want to save these Purchase Request changes?"
+          confirm-message="Are you sure you want to save these Purchase Request changes?"
 
-        confirm-button="Yes, Save Changes"
+          confirm-button="Yes, Save Changes"
 
-        confirm-type="update"
-    >
+          confirm-type="update"
+      >
 
-        {{-- =====================================================
-            INFORMATION
-        ====================================================== --}}
-        <x-ui.form-section
-            title="Purchase Request Information"
+          {{-- =====================================================
+              INFORMATION
+          ====================================================== --}}
+          <x-ui.form-section
+              title="Purchase Request Information"
 
-            subtitle="Review the source Job Order and PR status."
+              subtitle="Review the source Job Order and PR status."
 
-            icon="fa-file-lines"
-        >
+              icon="fa-file-lines"
+          >
 
-            <div class="ui-form-grid">
+              <div class="ui-form-grid">
 
-                {{-- PR --}}
-                <x-ui.form-field
-                    label="PR No."
+                  {{-- PR --}}
+                  <x-ui.form-field
+                      label="PR No."
 
-                    name="pr_no"
+                      name="pr_no"
 
-                    id="edit_pr_no"
+                      id="edit_pr_no"
 
-                    icon="fa-hashtag"
+                      icon="fa-hashtag"
 
-                    readonly
-                />
+                      readonly
+                  />
 
 
-                {{-- JO --}}
-                <x-ui.form-field
-                    label="JO No."
+                  {{-- JO --}}
+                  <x-ui.form-field
+                      label="JO No."
 
-                    name="job_order_no"
+                      name="job_order_no"
 
-                    id="edit_job_order_no"
+                      id="edit_job_order_no"
 
-                    icon="fa-clipboard-list"
+                      icon="fa-clipboard-list"
 
-                    readonly
+                      readonly
 
-                    required
-                />
+                      required
+                  />
 
 
-                {{-- BUS --}}
-                <x-ui.form-field
-                    label="Bus #"
+                  {{-- BUS --}}
+                  <x-ui.form-field
+                      label="Bus #"
 
-                    name="bus_no"
+                      name="bus_no"
 
-                    id="edit_bus_no"
+                      id="edit_bus_no"
 
-                    icon="fa-bus"
+                      icon="fa-bus"
 
-                    readonly
+                      readonly
 
-                    required
-                />
+                      required
+                  />
 
 
-                {{-- STATUS --}}
-                <x-ui.form-field
-                    label="Status"
+                  {{-- STATUS --}}
+                  <x-ui.form-field
+                      label="Status"
 
-                    name="status_display"
+                      name="status_display"
 
-                    id="edit_status_display"
+                      id="edit_status_display"
 
-                    icon="fa-circle-info"
+                      icon="fa-circle-info"
 
-                    readonly
-                />
+                      readonly
+                  />
 
-            </div>
+              </div>
 
-        </x-ui.form-section>
+          </x-ui.form-section>
 
 
-        {{-- =====================================================
-            PARTS
-        ====================================================== --}}
-        <x-ui.form-section
-            title="Requested Parts"
+          {{-- =====================================================
+              PARTS
+          ====================================================== --}}
+          <x-ui.form-section
+              title="Requested Parts"
 
-            subtitle="Revise the requested parts before resubmitting a rejected PR."
+              subtitle="Revise the requested parts before resubmitting a rejected PR."
 
-            icon="fa-gears"
-        >
+              icon="fa-gears"
+          >
 
-            <x-slot:action>
+              <x-slot:action>
 
-                <button
-                    type="button"
+                  <button
+                      type="button"
 
-                    id="addEditPrPartBtn"
+                      id="addEditPrPartBtn"
 
-                    class="ui-btn-small"
-                >
+                      class="ui-btn-small"
+                  >
 
-                    <i class="fa-solid fa-plus"></i>
+                      <i class="fa-solid fa-plus"></i>
 
-                    Add Part
+                      Add Part
 
-                </button>
+                  </button>
 
-            </x-slot:action>
+              </x-slot:action>
 
 
-            <p
-                id="editPrDescription"
+              <p
+                  id="editPrDescription"
 
-                class="pr-edit-description"
-            >
-                Review the purchase request information.
-            </p>
+                  class="pr-edit-description"
+              >
+                  Review the purchase request information.
+              </p>
 
 
-            <div
-                id="editPrPartsContainer"
+              <div
+                  id="editPrPartsContainer"
 
-                class="pr-parts-container"
-            >
-            </div>
+                  class="pr-parts-container"
+              >
+              </div>
 
-        </x-ui.form-section>
+          </x-ui.form-section>
 
 
-        {{-- =====================================================
-            REMARKS
-        ====================================================== --}}
-        <div class="ui-form-group ui-form-full">
+          {{-- =====================================================
+              REMARKS
+          ====================================================== --}}
+          <div class="ui-form-group ui-form-full">
 
-            <label for="edit_remarks">
-                Remarks
-            </label>
+              <label for="edit_remarks">
+                  Remarks
+              </label>
 
 
-            <textarea
-                name="remarks"
+              <textarea
+                  name="remarks"
 
-                id="edit_remarks"
+                  id="edit_remarks"
 
-                placeholder="Optional remarks..."
-            ></textarea>
+                  placeholder="Optional remarks..."
+              ></textarea>
 
-        </div>
+          </div>
 
 
-        {{-- =====================================================
-            EDIT / RESUBMIT ACTIONS
-        ====================================================== --}}
-        <div
-            class="ui-form-actions"
+          {{-- =====================================================
+              EDIT / RESUBMIT ACTIONS
+          ====================================================== --}}
+          <div
+              class="ui-form-actions"
 
-            id="editPrMainActions"
-        >
+              id="editPrMainActions"
+          >
 
-            <button
-                type="button"
+              <button
+                  type="button"
 
-                id="cancelEditPrModal"
+                  id="cancelEditPrModal"
 
-                class="
-                    ui-form-btn
-                    ui-form-btn-cancel
-                "
-            >
-                Cancel
-            </button>
+                  class="
+                      ui-form-btn
+                      ui-form-btn-cancel
+                  "
+              >
+                  Cancel
+              </button>
 
 
-            <button
-                type="submit"
+              <button
+                  type="submit"
 
-                id="submitEditPrBtn"
+                  id="submitEditPrBtn"
 
-                class="
-                    ui-form-btn
-                    ui-form-btn-primary
-                "
-            >
+                  class="
+                      ui-form-btn
+                      ui-form-btn-primary
+                  "
+              >
 
-                <i
-                    id="submitEditPrIcon"
+                  <i
+                      id="submitEditPrIcon"
 
-                    class="fa-solid fa-floppy-disk"
-                ></i>
+                      class="fa-solid fa-floppy-disk"
+                  ></i>
 
 
-                <span id="submitEditPrText">
-                    Save Changes
-                </span>
+                  <span id="submitEditPrText">
+                      Save Changes
+                  </span>
 
-            </button>
+              </button>
 
-        </div>
+          </div>
 
 
-        {{-- =====================================================
-            VIEW ONLY
-        ====================================================== --}}
-        <div
-            class="ui-form-actions"
+          {{-- =====================================================
+              VIEW ONLY
+          ====================================================== --}}
+          <div
+              class="ui-form-actions"
 
-            id="viewOnlyActions"
+              id="viewOnlyActions"
 
-            style="display: none;"
-        >
+              style="display: none;"
+          >
 
-            <button
-                type="button"
+              <button
+                  type="button"
 
-                id="closeViewOnlyPr"
+                  id="closeViewOnlyPr"
 
-                class="
-                    ui-form-btn
-                    ui-form-btn-cancel
-                "
-            >
-                Close
-            </button>
+                  class="
+                      ui-form-btn
+                      ui-form-btn-cancel
+                  "
+              >
+                  Close
+              </button>
 
-        </div>
+          </div>
 
-    </x-ui.form-modal>
+      </x-ui.form-modal>
 
 
-    {{-- =============================================================
-        APPROVE
-    ============================================================== --}}
-    <form
-        id="approvePrForm"
+      {{-- =============================================================
+          APPROVE
+      ============================================================== --}}
+      <form
+          id="approvePrForm"
 
-        action="#"
+          action="#"
 
-        method="POST"
+          method="POST"
 
-        class="hidden"
-    >
+          class="hidden"
+      >
 
-        @csrf
+          @csrf
 
-    </form>
+      </form>
 
 
-    {{-- =============================================================
-        REJECT
-    ============================================================== --}}
-    <form
-        id="rejectPrForm"
+      {{-- =============================================================
+          REJECT
+      ============================================================== --}}
+      <form
+          id="rejectPrForm"
 
-        action="#"
+          action="#"
 
-        method="POST"
+          method="POST"
 
-        class="hidden"
-    >
+          class="hidden"
+      >
 
-        @csrf
+          @csrf
 
 
-        <input
-            type="hidden"
+          <input
+              type="hidden"
 
-            name="remarks"
+              name="remarks"
 
-            value="Rejected by Maintenance Head"
-        >
+              value="Rejected by Maintenance Head"
+          >
 
-    </form>
+      </form>
 
 
-    {{-- =============================================================
-        GLOBAL APPROVE / REJECT CONFIRMATION
-    ============================================================== --}}
-    <x-ui.action-buttom-modal
-        mode="global-confirmation"
-    />
+      {{-- =============================================================
+          GLOBAL APPROVE / REJECT CONFIRMATION
+      ============================================================== --}}
+      <x-ui.action-buttom-modal
+          mode="global-confirmation"
+      />
 
 
-    {{-- =============================================================
-        DELETE
-    ============================================================== --}}
-    <x-ui.action-buttom-modal
-        mode="delete"
+      {{-- =============================================================
+          DELETE
+      ============================================================== --}}
+      <x-ui.action-buttom-modal
+          mode="delete"
 
-        id="deletePrModal"
+          id="deletePrModal"
 
-        delete-title="Delete Purchase Request?"
+          delete-title="Delete Purchase Request?"
 
-        delete-message="Are you sure you want to delete"
+          delete-message="Are you sure you want to delete"
 
-        name-id="deletePrNo"
+          name-id="deletePrNo"
 
-        cancel-id="cancelDeletePr"
+          cancel-id="cancelDeletePr"
 
-        confirm-id="confirmDeletePr"
-    />
+          confirm-id="confirmDeletePr"
+      />
 
 
-</x-layout.app>
+  </x-layout.app>

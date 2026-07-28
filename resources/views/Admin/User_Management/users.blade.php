@@ -62,7 +62,7 @@
 
     <div class="app admin-users-app">
 
-        <x-layout.sidebar
+       <x-layout.sidebar
     department="Admin"
     subtitle="Administration Module"
     icon="fa-user-shield"

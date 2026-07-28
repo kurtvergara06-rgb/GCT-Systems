@@ -3,14 +3,16 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
     ]"
 >
+>
     <div class="app">
 
-      <x-layout.sidebar
+     <x-layout.sidebar
     department="Operation"
     subtitle="Operation Module"
     icon="fa-bus"
@@ -67,9 +69,20 @@
         ],
 
         [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus'
+            'label' => 'Fleet Management',
+            'icon' => 'fa-bus',
+            'children' => [
+                [
+                    'label' => 'Bus Master List',
+                    'route' => 'bus-master-list',
+                    'icon' => 'fa-bus'
+                ],
+                [
+                    'label' => 'Fuel Efficiency',
+                    'route' => 'fuel-efficiency',
+                    'icon' => 'fa-gas-pump'
+                ],
+            ]
         ],
     ]"
 />
