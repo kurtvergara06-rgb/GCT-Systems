@@ -9,5 +9,5 @@ import './Login/login.js';
 import '../css/Maintenance/job-order.css';
 import './Maintenance/job-order.js';
 
-import './Admin/batch-file-processing.js';
+import './Admin/Data_Management/batch-file-processing.js';
 import './Admin/User_Management/users.js';

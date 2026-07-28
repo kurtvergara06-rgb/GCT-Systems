@@ -68,9 +68,20 @@
         ],
 
         [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus'
+            'label' => 'Fleet Management',
+            'icon' => 'fa-bus',
+            'children' => [
+                [
+                    'label' => 'Bus Master List',
+                    'route' => 'bus-master-list',
+                    'icon' => 'fa-bus'
+                ],
+                [
+                    'label' => 'Fuel Efficiency',
+                    'route' => 'fuel-efficiency',
+                    'icon' => 'fa-gas-pump'
+                ],
+            ]
         ],
     ]"
 />

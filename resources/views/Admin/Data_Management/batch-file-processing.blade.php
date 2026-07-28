@@ -4,7 +4,7 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Data_Management/batch-file-processing.css',
-        'resources/js/Admin/Data_Management/batch-file-processing.js'
+        'resources/js/Admin/Data_Management/batch-file-processing.js',
     ]"
 >
     @php
@@ -113,7 +113,7 @@
             : 'Select a processed uploaded file to view its structured trip records.';
     @endphp
 
-   <x-layout.sidebar
+  <x-layout.sidebar
     department="Admin"
     subtitle="Administration Module"
     icon="fa-user-shield"

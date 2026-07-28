@@ -242,7 +242,7 @@
 
                         @foreach($item['children'] as $child)
 
-                            @if(isset($child['route']))
+                            @if(isset($child['route']) && Route::has($child['route']))
 
                                 <a
                                     href="{{ route($child['route']) }}"
@@ -250,15 +250,28 @@
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
 
-                                    <i
-                                        class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"
-                                    ></i>
+                                    <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
 
                                     <span>
                                         {{ $child['label'] ?? 'Submenu' }}
                                     </span>
 
                                 </a>
+
+                            @elseif(!isset($child['route']))
+
+                                <div
+                                    class="submenu-item submenu-item-disabled"
+                                    title="{{ $child['label'] ?? 'Submenu' }}"
+                                >
+
+                                    <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
+
+                                    <span>
+                                        {{ $child['label'] ?? 'Submenu' }}
+                                    </span>
+
+                                </div>
 
                             @endif
 
