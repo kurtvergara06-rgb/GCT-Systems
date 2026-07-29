@@ -55,7 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         modal.classList.remove('show');
 
-        const hasOpenModal = document.querySelector('.modal-overlay.show');
+        const hasOpenModal = document.querySelector(
+            '.modal-overlay.show, ' +
+            '.records-modal-overlay.show, ' +
+            '.batch-delete-modal-overlay.show'
+        );
 
         if (!hasOpenModal) {
             document.body.classList.remove('modal-open');
@@ -366,39 +370,134 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document
-        .querySelectorAll('[data-delete-batch]')
-        .forEach(function (button) {
-            button.addEventListener('click', function () {
-                const deleteUrl = button.dataset.deleteUrl;
-                const batchName = button.dataset.deleteName;
+    /* =========================================================
+   DELETE BATCH FILE
+========================================================= */
 
-                if (deleteForm && deleteUrl) {
-                    deleteForm.setAttribute('action', deleteUrl);
-                }
+document
+    .querySelectorAll('[data-delete-batch]')
+    .forEach(function (button) {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
 
-                if (deleteFileName) {
-                    deleteFileName.textContent =
-                        batchName || 'this uploaded file';
-                }
+            const deleteUrl = button.dataset.deleteUrl;
+            const batchName = button.dataset.deleteName;
 
-                openModal(deleteModal);
-            });
-        });
+            if (!deleteForm || !deleteUrl) {
+                showNotification(
+                    'The delete request could not be prepared.',
+                    'error'
+                );
 
-    if (cancelDeleteButton) {
-        cancelDeleteButton.addEventListener('click', function () {
-            closeModal(deleteModal);
-        });
-    }
-
-    if (deleteModal) {
-        deleteModal.addEventListener('click', function (event) {
-            if (event.target === deleteModal) {
-                closeModal(deleteModal);
+                return;
             }
+
+            deleteForm.setAttribute('action', deleteUrl);
+
+            if (deleteFileName) {
+                deleteFileName.textContent =
+                    batchName || 'this uploaded file';
+            }
+
+            openModal(deleteModal);
         });
-    }
+    });
+
+if (cancelDeleteButton) {
+    cancelDeleteButton.addEventListener('click', function () {
+        closeModal(deleteModal);
+
+        if (deleteForm) {
+            deleteForm.setAttribute('action', '');
+        }
+    });
+}
+
+if (deleteModal) {
+    deleteModal.addEventListener('click', function (event) {
+        if (event.target !== deleteModal) {
+            return;
+        }
+
+        closeModal(deleteModal);
+
+        if (deleteForm) {
+            deleteForm.setAttribute('action', '');
+        }
+    });
+}
+
+if (deleteForm) {
+    deleteForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const deleteUrl = deleteForm.getAttribute('action');
+        const indexUrl =
+            deleteForm.dataset.indexUrl ||
+            '/batch-file-processing';
+
+        const submitButton = deleteForm.querySelector(
+            '.batch-delete-confirm-btn'
+        );
+
+        if (!deleteUrl) {
+            showNotification(
+                'No uploaded file was selected for deletion.',
+                'error'
+            );
+
+            return;
+        }
+
+        if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Deleting...
+            `;
+        }
+
+        try {
+            const formData = new FormData(deleteForm);
+
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                redirect: 'follow',
+                headers: {
+                    Accept: 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `Delete request failed with status ${response.status}.`
+                );
+            }
+
+            window.location.assign(indexUrl);
+        } catch (error) {
+            console.error('Batch delete failed:', error);
+
+            showNotification(
+                'Unable to delete the uploaded file. Please try again.',
+                'error'
+            );
+
+            if (submitButton instanceof HTMLButtonElement) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = `
+                    <i class="fa-solid fa-trash"></i>
+                    Yes, Delete
+                `;
+            }
+        }
+    });
+}
 
     document
         .querySelectorAll('.batch-edit-input')

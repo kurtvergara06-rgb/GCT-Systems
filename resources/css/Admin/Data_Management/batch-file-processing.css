@@ -2016,3 +2016,44 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* =========================================================
+   MODAL STACKING ORDER
+   Keep confirmation dialogs above records modals
+========================================================= */
+
+/* Main records/edit/clean-data modals */
+.records-modal-overlay {
+    z-index: 4000;
+}
+
+/* Batch delete confirmation */
+.batch-delete-modal-overlay {
+    z-index: 5000;
+}
+
+/*
+ * Global system confirmation modal.
+ * This must always appear above Clean Data,
+ * Edit Extracted Data, and Raw Data modals.
+ */
+.modal-overlay {
+    z-index: 10000 !important;
+}
+
+/* Support common global confirmation-modal class names */
+.confirm-modal-overlay,
+.system-confirm-overlay,
+.confirmation-modal-overlay {
+    z-index: 10000 !important;
+}
+
+/* Ensure the confirmation box itself stays above its backdrop */
+.modal-overlay .modal,
+.modal-overlay .confirm-modal,
+.modal-overlay .system-confirm-modal,
+.confirm-modal-overlay .confirm-modal,
+.system-confirm-overlay .system-confirm-modal {
+    position: relative;
+    z-index: 10001 !important;
+}

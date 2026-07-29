@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
 
     /* =========================================================
        ELEMENTS
     ========================================================= */
+
+    const body = document.body;
 
     const routeModal =
         document.getElementById('routeModal');
@@ -10,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const routeDetailsModal =
         document.getElementById('routeDetailsModal');
 
-    const openRouteModalBtn =
+    const openRouteModalButton =
         document.getElementById('openRouteModal');
 
     const routeForm =
@@ -46,486 +49,1065 @@ document.addEventListener('DOMContentLoaded', () => {
     const routeStopList =
         document.getElementById('routeStopList');
 
-    const addRouteStop =
+    const addRouteStopButton =
         document.getElementById('addRouteStop');
+
+    const saveRouteButton =
+        document.getElementById('saveRouteBtn');
 
     const saveRouteText =
         document.getElementById('saveRouteText');
 
+    const routeSearch =
+        document.getElementById('routeSearch');
+
+    const routeStatusFilter =
+        document.getElementById('routeStatusFilter');
+
+    /* =========================================================
+       VIEW ROUTE ELEMENTS
+    ========================================================= */
+
+    const viewRouteCode =
+        document.getElementById('viewRouteCode');
+
+    const viewRouteName =
+        document.getElementById('viewRouteName');
+
+    const viewRouteOrigin =
+        document.getElementById('viewRouteOrigin');
+
+    const viewRouteDestination =
+        document.getElementById(
+            'viewRouteDestination'
+        );
+
+    const viewRouteDistance =
+        document.getElementById('viewRouteDistance');
+
+    const viewRouteTime =
+        document.getElementById('viewRouteTime');
+
+    const viewRouteStatus =
+        document.getElementById('viewRouteStatus');
+
+    const viewRoutePath =
+        document.getElementById('viewRoutePath');
+
+    const viewRouteStopCount =
+        document.getElementById(
+            'viewRouteStopCount'
+        );
+
+    /* =========================================================
+       GPS DATA ELEMENTS
+    ========================================================= */
+
+    const gpsTripRecordsData =
+        document.getElementById(
+            'gpsTripRecordsData'
+        );
+
+    const gpsRouteSuggestionsData =
+        document.getElementById(
+            'gpsRouteSuggestionsData'
+        );
+
+    const routeNameSuggestionList =
+        document.getElementById(
+            'routeNameSuggestionList'
+        );
+
+    const routeOriginSuggestionList =
+        document.getElementById(
+            'routeOriginSuggestionList'
+        );
+
+    const routeDestinationSuggestionList =
+        document.getElementById(
+            'routeDestinationSuggestionList'
+        );
+
+    /* =========================================================
+       VIEW GPS MAP ELEMENTS
+    ========================================================= */
+
+    const gpsTripSelect =
+        document.getElementById('gpsTripSelect');
+
+    const gpsTripMapElement =
+        document.getElementById('gpsTripMap');
+
+    const gpsMapMessage =
+        document.getElementById('gpsMapMessage');
+
+    const gpsTripDetails =
+        document.getElementById('gpsTripDetails');
+
+    const fitGpsMapButton =
+        document.getElementById('fitGpsMap');
+
+    const gpsDetailBus =
+        document.getElementById('gpsDetailBus');
+
+    const gpsDetailGrouping =
+        document.getElementById(
+            'gpsDetailGrouping'
+        );
+
+    const gpsDetailBeginning =
+        document.getElementById(
+            'gpsDetailBeginning'
+        );
+
+    const gpsDetailEnding =
+        document.getElementById(
+            'gpsDetailEnding'
+        );
+
+    const gpsDetailOrigin =
+        document.getElementById(
+            'gpsDetailOrigin'
+        );
+
+    const gpsDetailDestination =
+        document.getElementById(
+            'gpsDetailDestination'
+        );
+
+    const gpsDetailMileage =
+        document.getElementById(
+            'gpsDetailMileage'
+        );
+
+    const gpsDetailDuration =
+        document.getElementById(
+            'gpsDetailDuration'
+        );
+
+    /* =========================================================
+       ADD / EDIT GPS MAP ELEMENTS
+    ========================================================= */
+
+    const routeFormGpsTripSelect =
+        document.getElementById(
+            'routeFormGpsTripSelect'
+        );
+
+    const routeFormGpsMapElement =
+        document.getElementById(
+            'routeFormGpsMap'
+        );
+
+    const routeFormGpsMapMessage =
+        document.getElementById(
+            'routeFormGpsMapMessage'
+        );
+
+    const fitRouteFormGpsMapButton =
+        document.getElementById(
+            'fitRouteFormGpsMap'
+        );
+
+    /* =========================================================
+       DELETE ELEMENTS
+    ========================================================= */
+
     const deleteRouteModal =
-        document.getElementById('deleteRouteModal');
+        document.getElementById(
+            'deleteRouteModal'
+        );
 
     const deleteRouteName =
-        document.getElementById('deleteRouteName');
+        document.getElementById(
+            'deleteRouteName'
+        );
 
-    const cancelDeleteRoute =
-        document.getElementById('cancelDeleteRoute');
+    const cancelDeleteRouteButton =
+        document.getElementById(
+            'cancelDeleteRoute'
+        );
 
-    const confirmDeleteRoute =
-        document.getElementById('confirmDeleteRoute');
+    const confirmDeleteRouteButton =
+        document.getElementById(
+            'confirmDeleteRoute'
+        );
+
+    /* =========================================================
+       VALIDATION ELEMENTS
+    ========================================================= */
+
+    const validationModal =
+        document.getElementById(
+            'routeValidationModal'
+        );
+
+    const closeValidationModalButton =
+        document.getElementById(
+            'closeRouteValidationModal'
+        );
+
+    /* =========================================================
+       STATE
+    ========================================================= */
+
+    const originalStoreUrl =
+        routeForm?.getAttribute('action') ?? '';
+
+    const originalRouteCode =
+        routeCode?.value ?? 'R-01';
+
+    const gpsTripRecords =
+        parseJsonElement(
+            gpsTripRecordsData
+        );
+
+    const gpsRouteSuggestions =
+        parseJsonElement(
+            gpsRouteSuggestionsData
+        );
 
     let selectedDeleteForm = null;
 
+    let viewGpsMap = null;
+    let viewGpsLayer = null;
+    let viewGpsBounds = null;
+
+    let formGpsMap = null;
+    let formGpsLayer = null;
+    let formGpsBounds = null;
+
+    let currentlyApplyingSuggestion = false;
+
+    const leafletAssets = {
+        css:
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+
+        js:
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+    };
+
+    /* =========================================================
+       INITIAL AUTOCOMPLETE SETUP
+    ========================================================= */
+
+    setupRouteAutocomplete();
+
+    function setupRouteAutocomplete() {
+        if (routeName instanceof HTMLInputElement) {
+            routeName.setAttribute(
+                'list',
+                'routeNameSuggestionList'
+            );
+
+            routeName.setAttribute(
+                'autocomplete',
+                'off'
+            );
+        }
+
+        if (routeOrigin instanceof HTMLInputElement) {
+            routeOrigin.setAttribute(
+                'list',
+                'routeOriginSuggestionList'
+            );
+
+            routeOrigin.setAttribute(
+                'autocomplete',
+                'off'
+            );
+        }
+
+        if (
+            routeDestination instanceof
+            HTMLInputElement
+        ) {
+            routeDestination.setAttribute(
+                'list',
+                'routeDestinationSuggestionList'
+            );
+
+            routeDestination.setAttribute(
+                'autocomplete',
+                'off'
+            );
+        }
+
+        renderRouteNameSuggestions();
+        renderOriginSuggestions();
+        renderDestinationSuggestions();
+    }
+
+    /* =========================================================
+       ROUTE NAME SUGGESTIONS
+    ========================================================= */
+
+    function renderRouteNameSuggestions() {
+        if (
+            !(
+                routeNameSuggestionList instanceof
+                HTMLDataListElement
+            )
+        ) {
+            return;
+        }
+
+        routeNameSuggestionList.innerHTML = '';
+
+        const uniqueNames = uniqueValues(
+            gpsRouteSuggestions.map(
+                (suggestion) =>
+                    suggestion.grouping
+            )
+        );
+
+        uniqueNames.forEach((name) => {
+            const option =
+                document.createElement('option');
+
+            option.value = name;
+
+            routeNameSuggestionList.appendChild(
+                option
+            );
+        });
+    }
+
+    function renderOriginSuggestions() {
+        if (
+            !(
+                routeOriginSuggestionList instanceof
+                HTMLDataListElement
+            )
+        ) {
+            return;
+        }
+
+        routeOriginSuggestionList.innerHTML = '';
+
+        const uniqueOrigins = uniqueValues(
+            gpsRouteSuggestions.map(
+                (suggestion) =>
+                    suggestion.origin
+            )
+        );
+
+        uniqueOrigins.forEach((origin) => {
+            const option =
+                document.createElement('option');
+
+            option.value = origin;
+
+            routeOriginSuggestionList.appendChild(
+                option
+            );
+        });
+    }
+
+    function renderDestinationSuggestions() {
+        if (
+            !(
+                routeDestinationSuggestionList instanceof
+                HTMLDataListElement
+            )
+        ) {
+            return;
+        }
+
+        routeDestinationSuggestionList.innerHTML =
+            '';
+
+        const selectedOrigin =
+            normalizeComparable(
+                routeOrigin?.value
+            );
+
+        const availableSuggestions =
+            selectedOrigin
+                ? gpsRouteSuggestions.filter(
+                    (suggestion) =>
+                        normalizeComparable(
+                            suggestion.origin
+                        ) === selectedOrigin
+                )
+                : gpsRouteSuggestions;
+
+        const destinations = uniqueValues(
+            availableSuggestions.map(
+                (suggestion) =>
+                    suggestion.destination
+            )
+        );
+
+        destinations.forEach((destination) => {
+            const option =
+                document.createElement('option');
+
+            option.value = destination;
+
+            routeDestinationSuggestionList
+                .appendChild(option);
+        });
+    }
+
+    /* =========================================================
+       ROUTE AUTOCOMPLETE EVENTS
+    ========================================================= */
+
+    routeName?.addEventListener(
+        'input',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            const suggestion =
+                findSuggestionByGrouping(
+                    routeName.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion
+                );
+            }
+        }
+    );
+
+    routeName?.addEventListener(
+        'change',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            const suggestion =
+                findSuggestionByGrouping(
+                    routeName.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion
+                );
+            }
+        }
+    );
+
+    routeOrigin?.addEventListener(
+        'input',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            renderDestinationSuggestions();
+
+            const suggestion =
+                findSuggestionByLocations(
+                    routeOrigin.value,
+                    routeDestination?.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion,
+                    {
+                        preserveRouteName:
+                            false,
+                    }
+                );
+            }
+        }
+    );
+
+    routeOrigin?.addEventListener(
+        'change',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            renderDestinationSuggestions();
+
+            const suggestion =
+                findSuggestionByLocations(
+                    routeOrigin.value,
+                    routeDestination?.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion
+                );
+            }
+        }
+    );
+
+    routeDestination?.addEventListener(
+        'input',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            const suggestion =
+                findSuggestionByLocations(
+                    routeOrigin?.value,
+                    routeDestination.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion
+                );
+            }
+        }
+    );
+
+    routeDestination?.addEventListener(
+        'change',
+        () => {
+            if (currentlyApplyingSuggestion) {
+                return;
+            }
+
+            const suggestion =
+                findSuggestionByLocations(
+                    routeOrigin?.value,
+                    routeDestination.value
+                );
+
+            if (suggestion) {
+                applyRouteSuggestion(
+                    suggestion
+                );
+            }
+        }
+    );
+
+    /* =========================================================
+       APPLY ROUTE SUGGESTION
+    ========================================================= */
+
+    async function applyRouteSuggestion(
+        suggestion,
+        options = {}
+    ) {
+        if (!suggestion) {
+            return;
+        }
+
+        currentlyApplyingSuggestion = true;
+
+        const preserveRouteName =
+            options.preserveRouteName === true;
+
+        if (!preserveRouteName) {
+            setInputValue(
+                routeName,
+                suggestion.grouping
+            );
+        }
+
+        setInputValue(
+            routeOrigin,
+            suggestion.origin
+        );
+
+        setInputValue(
+            routeDestination,
+            suggestion.destination
+        );
+
+        if (
+            suggestion.distance_km !== null &&
+            suggestion.distance_km !== undefined
+        ) {
+            setInputValue(
+                routeDistance,
+                suggestion.distance_km
+            );
+        }
+
+        if (
+            suggestion
+                .estimated_time_minutes !== null &&
+            suggestion
+                .estimated_time_minutes !== undefined
+        ) {
+            setInputValue(
+                routeTime,
+                suggestion
+                    .estimated_time_minutes
+            );
+        }
+
+        renderDestinationSuggestions();
+
+        populateFormGpsSelect(
+            getCurrentFormRoute()
+        );
+
+        if (
+            routeFormGpsTripSelect instanceof
+            HTMLSelectElement
+        ) {
+            routeFormGpsTripSelect.value =
+                String(
+                    suggestion
+                        .latest_gps_trip_id ??
+                    ''
+                );
+        }
+
+        try {
+            await initializeFormGpsMap();
+
+            const record =
+                getGpsRecordById(
+                    suggestion
+                        .latest_gps_trip_id
+                );
+
+            if (record) {
+                renderFormGpsTrip(record);
+            } else {
+                renderSuggestionCoordinates(
+                    suggestion
+                );
+            }
+        } catch (error) {
+            console.error(
+                'Unable to display suggested route:',
+                error
+            );
+
+            setFormGpsMapMessage(
+                'The suggested route was selected, but the map could not be displayed.',
+                'error'
+            );
+        } finally {
+            currentlyApplyingSuggestion = false;
+        }
+    }
+
+    async function renderSuggestionCoordinates(
+        suggestion
+    ) {
+        const pair =
+            parseCoordinatePair(
+                suggestion.coordinates
+            );
+
+        if (!pair || !formGpsMap) {
+            return;
+        }
+
+        clearFormGpsLayer();
+
+        const originMarker =
+            window.L.marker(
+                pair.origin
+            );
+
+        originMarker.bindPopup(
+            buildSimplePopup(
+                'Origin',
+                suggestion.origin,
+                suggestion
+            )
+        );
+
+        const destinationMarker =
+            window.L.marker(
+                pair.destination
+            );
+
+        destinationMarker.bindPopup(
+            buildSimplePopup(
+                'Destination',
+                suggestion.destination,
+                suggestion
+            )
+        );
+
+        const referenceLine =
+            window.L.polyline(
+                [
+                    pair.origin,
+                    pair.destination,
+                ],
+                {
+                    weight: 5,
+                    opacity: 0.82,
+                    dashArray: '10 8',
+                }
+            );
+
+        formGpsLayer =
+            window.L.featureGroup([
+                originMarker,
+                destinationMarker,
+                referenceLine,
+            ]);
+
+        formGpsLayer.addTo(
+            formGpsMap
+        );
+
+        formGpsBounds =
+            formGpsLayer.getBounds();
+
+        formGpsMap.fitBounds(
+            formGpsBounds,
+            {
+                padding: [35, 35],
+                maxZoom: 13,
+            }
+        );
+
+        originMarker.openPopup();
+
+        if (
+            fitRouteFormGpsMapButton instanceof
+            HTMLButtonElement
+        ) {
+            fitRouteFormGpsMapButton.disabled =
+                false;
+        }
+
+        setFormGpsMapMessage(
+            `${normalizeText(
+                suggestion.grouping,
+                'Suggested route'
+            )} loaded from processed GPS data.`,
+            'success'
+        );
+    }
+
+    function buildSimplePopup(
+        type,
+        location,
+        suggestion
+    ) {
+        return `
+            <div class="gps-map-popup">
+                <strong>
+                    ${escapeHtml(type)}:
+                    ${escapeHtml(location)}
+                </strong>
+
+                <span>
+                    Route:
+                    ${escapeHtml(
+                        suggestion.grouping
+                    )}
+                </span>
+
+                <span>
+                    Bus:
+                    ${escapeHtml(
+                        suggestion.bus_no ||
+                        'Unknown Bus'
+                    )}
+                </span>
+            </div>
+        `;
+    }
+
+    /* =========================================================
+       FIND SUGGESTIONS
+    ========================================================= */
+
+    function findSuggestionByGrouping(value) {
+        const normalized =
+            normalizeComparable(value);
+
+        if (!normalized) {
+            return null;
+        }
+
+        return gpsRouteSuggestions.find(
+            (suggestion) =>
+                normalizeComparable(
+                    suggestion.grouping
+                ) === normalized
+        ) ?? null;
+    }
+
+    function findSuggestionByLocations(
+        origin,
+        destination
+    ) {
+        const normalizedOrigin =
+            normalizeComparable(origin);
+
+        const normalizedDestination =
+            normalizeComparable(destination);
+
+        if (
+            !normalizedOrigin ||
+            !normalizedDestination
+        ) {
+            return null;
+        }
+
+        return gpsRouteSuggestions.find(
+            (suggestion) =>
+                normalizeComparable(
+                    suggestion.origin
+                ) === normalizedOrigin &&
+                normalizeComparable(
+                    suggestion.destination
+                ) === normalizedDestination
+        ) ?? null;
+    }
 
     /* =========================================================
        MODAL HELPERS
     ========================================================= */
 
     function openModal(modal) {
-
-        if (!modal) {
+        if (!(modal instanceof HTMLElement)) {
             return;
         }
 
-        modal.classList.add('show', 'active');
+        modal.classList.add(
+            'show',
+            'active'
+        );
 
-        document.body.style.overflow = 'hidden';
+        modal.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+        body.classList.add('modal-open');
+        body.style.overflow = 'hidden';
     }
-
 
     function closeModal(modal) {
-
-        if (!modal) {
+        if (!(modal instanceof HTMLElement)) {
             return;
         }
 
-        modal.classList.remove('show', 'active');
+        modal.classList.remove(
+            'show',
+            'active'
+        );
 
-        const openModalExists =
+        modal.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
+        const remainingOpenModal =
             document.querySelector(
                 '.ui-form-overlay.show, ' +
+                '.ui-form-overlay.active, ' +
                 '.route-modal-overlay.show, ' +
-                '.modal-overlay.show'
+                '.route-modal-overlay.active, ' +
+                '.modal-overlay.show, ' +
+                '.modal-overlay.active'
             );
 
-        if (!openModalExists) {
-            document.body.style.overflow = '';
+        if (!remainingOpenModal) {
+            body.classList.remove(
+                'modal-open'
+            );
+
+            body.style.removeProperty(
+                'overflow'
+            );
         }
     }
 
+    function isModalOpen(modal) {
+        return (
+            modal instanceof HTMLElement &&
+            (
+                modal.classList.contains(
+                    'show'
+                ) ||
+                modal.classList.contains(
+                    'active'
+                )
+            )
+        );
+    }
 
     /* =========================================================
-       STORE ORIGINAL ACTION
+       ROUTE DATA
     ========================================================= */
 
-    if (routeForm) {
+    function getRouteData(button) {
+        return {
+            id:
+                normalizeText(
+                    button.dataset.id
+                ),
 
-        routeForm.dataset.storeUrl =
-            routeForm.getAttribute('action');
+            routeCode:
+                normalizeText(
+                    button.dataset.routeCode
+                ),
 
+            routeName:
+                normalizeText(
+                    button.dataset.routeName
+                ),
+
+            origin:
+                normalizeText(
+                    button.dataset.origin
+                ),
+
+            destination:
+                normalizeText(
+                    button.dataset.destination
+                ),
+
+            distance:
+                normalizeText(
+                    button.dataset.distance
+                ),
+
+            time:
+                normalizeText(
+                    button.dataset.time
+                ),
+
+            status:
+                normalizeText(
+                    button.dataset.status,
+                    'Active'
+                ),
+
+            updateUrl:
+                normalizeText(
+                    button.dataset.updateUrl
+                ),
+
+            stops:
+                parseStops(
+                    button.dataset.stops
+                ),
+        };
     }
 
-
-    /* =========================================================
-       RESET CREATE FORM
-    ========================================================= */
-
-    function resetCreateForm() {
-
-        if (!routeForm) {
-            return;
+    function parseStops(rawStops) {
+        if (!rawStops) {
+            return [];
         }
 
-        routeForm.reset();
+        try {
+            const parsed =
+                JSON.parse(rawStops);
 
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
 
-        if (routeFormMethod) {
+            return parsed
+                .map(
+                    (stop) =>
+                        normalizeText(stop)
+                )
+                .filter(Boolean);
+        } catch (error) {
+            console.error(
+                'Invalid route stops JSON:',
+                error
+            );
 
-            routeFormMethod.disabled = true;
-            routeFormMethod.value = 'POST';
-
+            return [];
         }
-
-
-        routeForm.action =
-            routeForm.dataset.storeUrl ||
-            routeForm.getAttribute('action');
-
-
-        if (routeModalTitle) {
-            routeModalTitle.textContent =
-                'New Route';
-        }
-
-
-        if (saveRouteText) {
-            saveRouteText.textContent =
-                'Save Route';
-        }
-
-
-        if (routeStatus) {
-            routeStatus.value =
-                'Active';
-        }
-
-
-        resetStops();
     }
-
 
     /* =========================================================
        NEW ROUTE
     ========================================================= */
 
-    openRouteModalBtn?.addEventListener(
+    openRouteModalButton?.addEventListener(
         'click',
         () => {
-
             resetCreateForm();
+            prepareRouteFormMap();
 
             openModal(routeModal);
 
-        }
-    );
-
-
-    /* =========================================================
-       CLOSE ADD / EDIT
-    ========================================================= */
-
-    document
-        .querySelectorAll('[data-close-route-modal]')
-        .forEach(button => {
-
-            button.addEventListener(
-                'click',
-                () => {
-
-                    closeModal(routeModal);
-
-                }
-            );
-
-        });
-
-
-    /* =========================================================
-       STOP ROW
-       GLOBAL FORM REPEATER CLASSES
-    ========================================================= */
-
-    function createStopRow(value = '') {
-
-        const item =
-            document.createElement('div');
-
-
-        /*
-         * IMPORTANT:
-         * These ui-form-* classes use the GLOBAL
-         * form-components.css styling.
-         */
-        item.className =
-            'ui-form-repeater-row route-stop-item';
-
-
-        const number =
-            document.createElement('div');
-
-        number.className =
-            'ui-form-repeater-number route-stop-number';
-
-
-        const input =
-            document.createElement('input');
-
-        input.type = 'text';
-        input.name = 'stops[]';
-        input.value = value;
-        input.placeholder = 'Enter stop name';
-
-
-        const removeButton =
-            document.createElement('button');
-
-        removeButton.type = 'button';
-
-        removeButton.className =
-            'ui-form-repeater-remove remove-route-stop';
-
-        removeButton.title =
-            'Remove Stop';
-
-
-        const trashIcon =
-            document.createElement('i');
-
-        trashIcon.className =
-            'fa-solid fa-trash';
-
-
-        removeButton.appendChild(
-            trashIcon
-        );
-
-
-        item.appendChild(
-            number
-        );
-
-        item.appendChild(
-            input
-        );
-
-        item.appendChild(
-            removeButton
-        );
-
-
-        return item;
-    }
-
-
-    /* =========================================================
-       ADD STOP
-    ========================================================= */
-
-    function addStopInput(value = '') {
-
-        if (!routeStopList) {
-            return;
-        }
-
-
-        const item =
-            createStopRow(value);
-
-
-        routeStopList.appendChild(
-            item
-        );
-
-
-        updateStopNumbers();
-    }
-
-
-    addRouteStop?.addEventListener(
-        'click',
-        () => {
-
-            addStopInput();
-
-        }
-    );
-
-
-    /* =========================================================
-       RESET STOPS
-    ========================================================= */
-
-    function resetStops() {
-
-        if (!routeStopList) {
-            return;
-        }
-
-
-        routeStopList.innerHTML = '';
-
-
-        addStopInput();
-    }
-
-
-    /* =========================================================
-       POPULATE STOPS
-    ========================================================= */
-
-    function populateStops(stops = []) {
-
-        if (!routeStopList) {
-            return;
-        }
-
-
-        routeStopList.innerHTML = '';
-
-
-        if (
-            Array.isArray(stops) &&
-            stops.length > 0
-        ) {
-
-            stops.forEach(stop => {
-
-                addStopInput(stop);
-
-            });
-
-        } else {
-
-            addStopInput();
-
-        }
-
-
-        updateStopNumbers();
-    }
-
-
-    /* =========================================================
-       REMOVE STOP
-    ========================================================= */
-
-    routeStopList?.addEventListener(
-        'click',
-        event => {
-
-            const removeButton =
-                event.target.closest(
-                    '.remove-route-stop'
-                );
-
-
-            if (!removeButton) {
-                return;
-            }
-
-
-            const item =
-                removeButton.closest(
-                    '.route-stop-item'
-                );
-
-
-            if (!item) {
-                return;
-            }
-
-
-            const rows =
-                routeStopList.querySelectorAll(
-                    '.route-stop-item'
-                );
-
-
-            /*
-             * Always keep at least one stop field.
-             */
-            if (rows.length <= 1) {
-
-                const input =
-                    item.querySelector('input');
-
-                if (input) {
-                    input.value = '';
-                }
-
-                return;
-            }
-
-
-            item.remove();
-
-
-            updateStopNumbers();
-
-        }
-    );
-
-
-    /* =========================================================
-       STOP NUMBERS
-    ========================================================= */
-
-    function updateStopNumbers() {
-
-        if (!routeStopList) {
-            return;
-        }
-
-
-        routeStopList
-            .querySelectorAll(
-                '.route-stop-item'
-            )
-            .forEach(
-                (item, index) => {
-
-                    const number =
-                        item.querySelector(
-                            '.route-stop-number'
+            window.setTimeout(() => {
+                initializeFormGpsMap()
+                    .catch((error) => {
+                        console.error(
+                            'Unable to initialize form GPS map:',
+                            error
                         );
 
+                        setFormGpsMapMessage(
+                            'The GPS map could not be loaded.',
+                            'error'
+                        );
+                    });
+            }, 150);
 
-                    if (number) {
-
-                        number.textContent =
-                            String(index + 1);
-
-                    }
-
+            window.requestAnimationFrame(
+                () => {
+                    routeName?.focus();
                 }
             );
-    }
+        }
+    );
 
-
-    /* =========================================================
-       GET ROUTE DATA
-    ========================================================= */
-
-    function getRouteData(button) {
-
-        let stops = [];
-
-
-        try {
-
-            stops =
-                JSON.parse(
-                    button.dataset.stops ||
-                    '[]'
-                );
-
-        } catch (error) {
-
-            console.error(
-                'Invalid route stops data.',
-                error
-            );
-
+    function resetCreateForm() {
+        if (
+            !(
+                routeForm instanceof
+                HTMLFormElement
+            )
+        ) {
+            return;
         }
 
+        routeForm.reset();
 
-        return {
+        routeForm.action =
+            originalStoreUrl;
 
-            id:
-                button.dataset.id || '',
+        if (routeFormMethod) {
+            routeFormMethod.disabled =
+                true;
 
-            routeCode:
-                button.dataset.routeCode || '',
+            routeFormMethod.value =
+                'POST';
+        }
 
-            routeName:
-                button.dataset.routeName || '',
+        setElementText(
+            routeModalTitle,
+            'New Route'
+        );
 
-            origin:
-                button.dataset.origin || '',
+        setElementText(
+            saveRouteText,
+            'Save Route'
+        );
 
-            destination:
-                button.dataset.destination || '',
+        setInputValue(
+            routeCode,
+            originalRouteCode
+        );
 
-            distance:
-                button.dataset.distance || '',
+        setInputValue(
+            routeStatus,
+            'Active'
+        );
 
-            time:
-                button.dataset.time || '',
-
-            status:
-                button.dataset.status || 'Active',
-
-            updateUrl:
-                button.dataset.updateUrl || '',
-
-            stops:
-                Array.isArray(stops)
-                    ? stops
-                    : [],
-
-        };
+        populateStops([]);
+        renderDestinationSuggestions();
+        resetSubmitButton();
+        clearValidationStyles();
     }
-
 
     /* =========================================================
        EDIT ROUTE
@@ -533,511 +1115,1724 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener(
         'click',
-        event => {
+        (event) => {
+            const target = event.target;
 
-            const editButton =
-                event.target.closest(
-                    '.edit-route-btn'
-                );
-
-
-            if (!editButton) {
+            if (!(target instanceof Element)) {
                 return;
             }
 
-
-            const route =
-                getRouteData(
-                    editButton
+            const editButton =
+                target.closest(
+                    '.edit-route-btn'
                 );
 
-
-            if (routeModalTitle) {
-
-                routeModalTitle.textContent =
-                    'Edit Route';
-
-            }
-
-
-            if (saveRouteText) {
-
-                saveRouteText.textContent =
-                    'Update Route';
-
-            }
-
-
-            if (routeCode) {
-
-                routeCode.value =
-                    route.routeCode;
-
-            }
-
-
-            if (routeName) {
-
-                routeName.value =
-                    route.routeName;
-
-            }
-
-
-            if (routeOrigin) {
-
-                routeOrigin.value =
-                    route.origin;
-
-            }
-
-
-            if (routeDestination) {
-
-                routeDestination.value =
-                    route.destination;
-
-            }
-
-
-            if (routeDistance) {
-
-                routeDistance.value =
-                    route.distance;
-
-            }
-
-
-            if (routeTime) {
-
-                routeTime.value =
-                    route.time;
-
-            }
-
-
-            if (routeStatus) {
-
-                routeStatus.value =
-                    route.status;
-
-            }
-
-
-            /*
-             * Laravel PUT request.
-             */
-            if (routeFormMethod) {
-
-                routeFormMethod.disabled =
-                    false;
-
-                routeFormMethod.value =
-                    'PUT';
-
-            }
-
-
             if (
-                routeForm &&
-                route.updateUrl
+                !(
+                    editButton instanceof
+                    HTMLElement
+                )
             ) {
-
-                routeForm.action =
-                    route.updateUrl;
-
+                return;
             }
 
-
-            /*
-             * Load stops using GLOBAL repeater.
-             */
-            populateStops(
-                route.stops
+            prepareEditRoute(
+                getRouteData(editButton)
             );
-
-
-            openModal(
-                routeModal
-            );
-
         }
     );
 
+    function prepareEditRoute(route) {
+        if (
+            !(
+                routeForm instanceof
+                HTMLFormElement
+            )
+        ) {
+            return;
+        }
+
+        routeForm.reset();
+
+        if (route.updateUrl) {
+            routeForm.action =
+                route.updateUrl;
+        }
+
+        if (routeFormMethod) {
+            routeFormMethod.disabled =
+                false;
+
+            routeFormMethod.value =
+                'PUT';
+        }
+
+        setElementText(
+            routeModalTitle,
+            'Edit Route'
+        );
+
+        setElementText(
+            saveRouteText,
+            'Update Route'
+        );
+
+        setInputValue(
+            routeCode,
+            route.routeCode
+        );
+
+        setInputValue(
+            routeName,
+            route.routeName
+        );
+
+        setInputValue(
+            routeOrigin,
+            route.origin
+        );
+
+        setInputValue(
+            routeDestination,
+            route.destination
+        );
+
+        setInputValue(
+            routeDistance,
+            route.distance
+        );
+
+        setInputValue(
+            routeTime,
+            route.time
+        );
+
+        setInputValue(
+            routeStatus,
+            route.status
+        );
+
+        populateStops(route.stops);
+
+        renderDestinationSuggestions();
+        resetSubmitButton();
+        clearValidationStyles();
+
+        prepareRouteFormMap();
+
+        openModal(routeModal);
+
+        window.setTimeout(() => {
+            initializeFormGpsMap()
+                .then(() => {
+                    const matching =
+                        findSuggestionByLocations(
+                            route.origin,
+                            route.destination
+                        );
+
+                    if (matching) {
+                        applyRouteSuggestion(
+                            matching
+                        );
+                    }
+                })
+                .catch((error) => {
+                    console.error(
+                        'Unable to initialize form GPS map:',
+                        error
+                    );
+
+                    setFormGpsMapMessage(
+                        'The GPS map could not be loaded.',
+                        'error'
+                    );
+                });
+        }, 150);
+
+        window.requestAnimationFrame(
+            () => {
+                routeName?.focus();
+            }
+        );
+    }
 
     /* =========================================================
-       VIEW ROUTE
+       CLOSE ROUTE FORM
+    ========================================================= */
+
+    document
+        .querySelectorAll(
+            '[data-close-route-modal]'
+        )
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => {
+                    closeModal(routeModal);
+                    resetSubmitButton();
+                }
+            );
+        });
+
+    /* =========================================================
+       ROUTE STOPS
+    ========================================================= */
+
+    addRouteStopButton?.addEventListener(
+        'click',
+        () => {
+            addStopInput('', true);
+        }
+    );
+
+    routeStopList?.addEventListener(
+        'click',
+        (event) => {
+            const target = event.target;
+
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            const removeButton =
+                target.closest(
+                    '.remove-route-stop'
+                );
+
+            if (
+                !(
+                    removeButton instanceof
+                    HTMLButtonElement
+                )
+            ) {
+                return;
+            }
+
+            const row =
+                removeButton.closest(
+                    '.route-stop-item'
+                );
+
+            if (!(row instanceof HTMLElement)) {
+                return;
+            }
+
+            const rows = getStopRows();
+
+            if (rows.length <= 1) {
+                const input =
+                    row.querySelector(
+                        'input[name="stops[]"]'
+                    );
+
+                if (
+                    input instanceof
+                    HTMLInputElement
+                ) {
+                    input.value = '';
+                    input.focus();
+                }
+
+                return;
+            }
+
+            row.remove();
+            updateStopNumbers();
+        }
+    );
+
+    function populateStops(stops = []) {
+        if (
+            !(
+                routeStopList instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        routeStopList.innerHTML = '';
+
+        const validStops =
+            Array.isArray(stops)
+                ? stops
+                    .map(
+                        (stop) =>
+                            normalizeText(
+                                stop
+                            )
+                    )
+                    .filter(Boolean)
+                : [];
+
+        if (validStops.length === 0) {
+            addStopInput('');
+            return;
+        }
+
+        validStops.forEach((stop) => {
+            addStopInput(stop);
+        });
+
+        updateStopNumbers();
+    }
+
+    function addStopInput(
+        value = '',
+        focusInput = false
+    ) {
+        if (
+            !(
+                routeStopList instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        const row =
+            document.createElement('div');
+
+        row.className =
+            'ui-form-repeater-row ' +
+            'route-stop-item';
+
+        const number =
+            document.createElement('div');
+
+        number.className =
+            'ui-form-repeater-number ' +
+            'route-stop-number';
+
+        const input =
+            document.createElement('input');
+
+        input.type = 'text';
+        input.name = 'stops[]';
+
+        input.value =
+            normalizeText(value);
+
+        input.placeholder =
+            'Enter stop name';
+
+        input.autocomplete = 'off';
+
+        const removeButton =
+            document.createElement('button');
+
+        removeButton.type = 'button';
+
+        removeButton.className =
+            'ui-form-repeater-remove ' +
+            'remove-route-stop';
+
+        removeButton.title =
+            'Remove Stop';
+
+        removeButton.innerHTML = `
+            <i
+                class="fa-solid fa-trash"
+                aria-hidden="true"
+            ></i>
+        `;
+
+        row.append(
+            number,
+            input,
+            removeButton
+        );
+
+        routeStopList.appendChild(row);
+
+        updateStopNumbers();
+
+        if (focusInput) {
+            input.focus();
+        }
+    }
+
+    function getStopRows() {
+        if (
+            !(
+                routeStopList instanceof
+                HTMLElement
+            )
+        ) {
+            return [];
+        }
+
+        return Array.from(
+            routeStopList.querySelectorAll(
+                '.route-stop-item'
+            )
+        );
+    }
+
+    function updateStopNumbers() {
+        getStopRows().forEach(
+            (row, index) => {
+                const number =
+                    row.querySelector(
+                        '.route-stop-number'
+                    );
+
+                if (number) {
+                    number.textContent =
+                        String(index + 1);
+                }
+
+                const input =
+                    row.querySelector(
+                        'input[name="stops[]"]'
+                    );
+
+                if (
+                    input instanceof
+                    HTMLInputElement
+                ) {
+                    input.setAttribute(
+                        'aria-label',
+                        `Shuttle stop ${index + 1}`
+                    );
+                }
+            }
+        );
+    }
+
+    /* =========================================================
+       FORM GPS SELECT
+    ========================================================= */
+
+    function getCurrentFormRoute() {
+        return {
+            routeName:
+                normalizeText(
+                    routeName?.value
+                ),
+
+            origin:
+                normalizeText(
+                    routeOrigin?.value
+                ),
+
+            destination:
+                normalizeText(
+                    routeDestination?.value
+                ),
+        };
+    }
+
+    function prepareRouteFormMap() {
+        populateFormGpsSelect(
+            getCurrentFormRoute()
+        );
+
+        resetFormGpsMap();
+    }
+
+    function populateFormGpsSelect(route) {
+        populateGpsSelect(
+            routeFormGpsTripSelect,
+            route
+        );
+    }
+
+    routeFormGpsTripSelect?.addEventListener(
+        'change',
+        async () => {
+            const record =
+                getGpsRecordById(
+                    routeFormGpsTripSelect.value
+                );
+
+            if (!record) {
+                resetFormGpsMap();
+                return;
+            }
+
+            try {
+                await initializeFormGpsMap();
+
+                renderFormGpsTrip(
+                    record
+                );
+            } catch (error) {
+                console.error(
+                    'Unable to display form GPS trip:',
+                    error
+                );
+
+                setFormGpsMapMessage(
+                    'The selected GPS trip could not be displayed.',
+                    'error'
+                );
+            }
+        }
+    );
+
+    fitRouteFormGpsMapButton
+        ?.addEventListener(
+            'click',
+            () => {
+                if (
+                    formGpsMap &&
+                    formGpsBounds
+                ) {
+                    formGpsMap.fitBounds(
+                        formGpsBounds,
+                        {
+                            padding:
+                                [35, 35],
+
+                            maxZoom:
+                                13,
+                        }
+                    );
+                }
+            }
+        );
+
+    async function initializeFormGpsMap() {
+        if (
+            !(
+                routeFormGpsMapElement instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        await loadLeaflet();
+
+        if (!window.L) {
+            throw new Error(
+                'Leaflet is unavailable.'
+            );
+        }
+
+        if (!formGpsMap) {
+            formGpsMap =
+                window.L.map(
+                    routeFormGpsMapElement,
+                    {
+                        zoomControl:
+                            true,
+
+                        attributionControl:
+                            true,
+                    }
+                );
+
+            formGpsMap.setView(
+                [13.94, 121.16],
+                9
+            );
+
+            addOpenStreetMapLayer(
+                formGpsMap
+            );
+        }
+
+        window.setTimeout(() => {
+            formGpsMap?.invalidateSize();
+        }, 100);
+    }
+
+    function renderFormGpsTrip(record) {
+        const coordinatePair =
+            parseCoordinatePair(
+                record.coordinates
+            );
+
+        if (!coordinatePair) {
+            clearFormGpsLayer();
+
+            setFormGpsMapMessage(
+                'This GPS trip contains invalid coordinates.',
+                'error'
+            );
+
+            return;
+        }
+
+        clearFormGpsLayer();
+
+        formGpsLayer =
+            createGpsRouteLayer(
+                record,
+                coordinatePair
+            );
+
+        formGpsLayer.addTo(
+            formGpsMap
+        );
+
+        formGpsBounds =
+            formGpsLayer.getBounds();
+
+        formGpsMap.fitBounds(
+            formGpsBounds,
+            {
+                padding: [35, 35],
+                maxZoom: 13,
+            }
+        );
+
+        openFirstMarkerPopup(
+            formGpsLayer
+        );
+
+        if (
+            fitRouteFormGpsMapButton instanceof
+            HTMLButtonElement
+        ) {
+            fitRouteFormGpsMapButton.disabled =
+                false;
+        }
+
+        setFormGpsMapMessage(
+            `${normalizeText(
+                record.bus_no,
+                'Bus'
+            )} GPS trip displayed.`,
+            'success'
+        );
+    }
+
+    function clearFormGpsLayer() {
+        if (
+            formGpsMap &&
+            formGpsLayer
+        ) {
+            formGpsMap.removeLayer(
+                formGpsLayer
+            );
+        }
+
+        formGpsLayer = null;
+        formGpsBounds = null;
+    }
+
+    function resetFormGpsMap() {
+        clearFormGpsLayer();
+
+        if (
+            routeFormGpsTripSelect instanceof
+            HTMLSelectElement
+        ) {
+            routeFormGpsTripSelect.value =
+                '';
+        }
+
+        if (
+            fitRouteFormGpsMapButton instanceof
+            HTMLButtonElement
+        ) {
+            fitRouteFormGpsMapButton.disabled =
+                true;
+        }
+
+        setFormGpsMapMessage(
+            gpsTripRecords.length > 0
+                ? 'Select a processed GPS trip to display it on the map.'
+                : 'No processed GPS trips are available.',
+
+            gpsTripRecords.length > 0
+                ? 'info'
+                : 'error'
+        );
+
+        window.setTimeout(() => {
+            formGpsMap?.invalidateSize();
+        }, 100);
+    }
+
+    function setFormGpsMapMessage(
+        message,
+        type = 'info'
+    ) {
+        if (
+            !(
+                routeFormGpsMapMessage instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        routeFormGpsMapMessage.textContent =
+            message;
+
+        routeFormGpsMapMessage.dataset.type =
+            type;
+    }
+
+    /* =========================================================
+       VIEW ROUTE DETAILS
     ========================================================= */
 
     document.addEventListener(
         'click',
-        event => {
+        (event) => {
+            const target = event.target;
 
-            const viewButton =
-                event.target.closest(
-                    '.open-route-details'
-                );
-
-
-            if (!viewButton) {
+            if (!(target instanceof Element)) {
                 return;
             }
 
-
-            const route =
-                getRouteData(
-                    viewButton
+            const viewButton =
+                target.closest(
+                    '.open-route-details'
                 );
 
+            if (
+                !(
+                    viewButton instanceof
+                    HTMLElement
+                )
+            ) {
+                return;
+            }
 
-            setText(
-                'viewRouteCode',
-                route.routeCode || '—'
+            showRouteDetails(
+                getRouteData(viewButton)
             );
-
-
-            setText(
-                'viewRouteName',
-                route.routeName || '—'
-            );
-
-
-            setText(
-                'viewRouteOrigin',
-                route.origin || '—'
-            );
-
-
-            setText(
-                'viewRouteDestination',
-                route.destination || '—'
-            );
-
-
-            setText(
-                'viewRouteDistance',
-
-                route.distance
-                    ? `${formatNumber(route.distance)} KM`
-                    : '—'
-            );
-
-
-            setText(
-                'viewRouteTime',
-
-                route.time
-                    ? `${route.time} minutes`
-                    : '—'
-            );
-
-
-            renderViewStatus(
-                route.status
-            );
-
-
-            renderRoutePath(
-                route.origin,
-                route.stops,
-                route.destination
-            );
-
-
-            openModal(
-                routeDetailsModal
-            );
-
         }
     );
 
-
-    /* =========================================================
-       SET TEXT
-    ========================================================= */
-
-    function setText(id, value) {
-
-        const element =
-            document.getElementById(id);
-
-
-        if (element) {
-
-            element.textContent =
-                value;
-
-        }
-    }
-
-
-    /* =========================================================
-       FORMAT NUMBER
-    ========================================================= */
-
-    function formatNumber(value) {
-
-        const number =
-            Number(value);
-
-
-        if (!Number.isFinite(number)) {
-
-            return value;
-
-        }
-
-
-        return number.toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 1,
-            }
+    function showRouteDetails(route) {
+        setElementText(
+            viewRouteCode,
+            route.routeCode || '—'
         );
+
+        setElementText(
+            viewRouteName,
+            route.routeName || '—'
+        );
+
+        setElementText(
+            viewRouteOrigin,
+            route.origin || '—'
+        );
+
+        setElementText(
+            viewRouteDestination,
+            route.destination || '—'
+        );
+
+        setElementText(
+            viewRouteDistance,
+            route.distance
+                ? `${formatNumber(
+                    route.distance
+                )} KM`
+                : '—'
+        );
+
+        setElementText(
+            viewRouteTime,
+            route.time
+                ? `${formatNumber(
+                    route.time
+                )} minutes`
+                : '—'
+        );
+
+        renderViewStatus(
+            route.status
+        );
+
+        renderRoutePath(
+            route.origin,
+            route.stops,
+            route.destination
+        );
+
+        if (viewRouteStopCount) {
+            viewRouteStopCount.textContent =
+                `${route.stops.length} ${
+                    route.stops.length === 1
+                        ? 'Stop'
+                        : 'Stops'
+                }`;
+        }
+
+        populateGpsSelect(
+            gpsTripSelect,
+            route
+        );
+
+        resetViewGpsMap();
+
+        openModal(routeDetailsModal);
+
+        window.setTimeout(() => {
+            initializeViewGpsMap()
+                .then(() => {
+                    const matchingRecord =
+                        findMatchingGpsRecord(
+                            route
+                        );
+
+                    if (
+                        matchingRecord &&
+                        gpsTripSelect instanceof
+                        HTMLSelectElement
+                    ) {
+                        gpsTripSelect.value =
+                            String(
+                                matchingRecord.id
+                            );
+
+                        renderViewGpsTrip(
+                            matchingRecord
+                        );
+                    }
+                })
+                .catch((error) => {
+                    console.error(
+                        'Unable to initialize view GPS map:',
+                        error
+                    );
+
+                    setViewGpsMapMessage(
+                        'The GPS map could not be loaded.',
+                        'error'
+                    );
+                });
+        }, 150);
     }
-
-
-    /* =========================================================
-       VIEW STATUS
-    ========================================================= */
 
     function renderViewStatus(status) {
-
-        const wrapper =
-            document.getElementById(
-                'viewRouteStatus'
-            );
-
-
-        if (!wrapper) {
+        if (
+            !(
+                viewRouteStatus instanceof
+                HTMLElement
+            )
+        ) {
             return;
         }
 
+        const normalizedStatus =
+            normalizeText(
+                status,
+                'Inactive'
+            );
 
         const statusClass =
-            String(status)
-                .trim()
+            normalizedStatus
                 .toLowerCase()
-                .replaceAll(' ', '-');
+                .replace(
+                    /\s+/g,
+                    '-'
+                );
 
-
-        wrapper.innerHTML = '';
-
+        viewRouteStatus.innerHTML =
+            '';
 
         const badge =
-            document.createElement('span');
-
+            document.createElement(
+                'span'
+            );
 
         badge.className =
-            `badge route-badge route-status ${statusClass}`;
-
+            `route-status ${statusClass}`;
 
         badge.textContent =
-            status || 'Unknown';
+            normalizedStatus;
 
-
-        wrapper.appendChild(
+        viewRouteStatus.appendChild(
             badge
         );
     }
-
-
-    /* =========================================================
-       ROUTE PATH
-    ========================================================= */
 
     function renderRoutePath(
         origin,
         stops,
         destination
     ) {
-
-        const path =
-            document.getElementById(
-                'viewRoutePath'
-            );
-
-
-        if (!path) {
+        if (
+            !(
+                viewRoutePath instanceof
+                HTMLElement
+            )
+        ) {
             return;
         }
 
+        viewRoutePath.innerHTML = '';
 
-        path.innerHTML = '';
+        const routeNodes = [
+            {
+                name:
+                    normalizeText(
+                        origin,
+                        'Unknown Origin'
+                    ),
 
+                type:
+                    'origin',
 
-        path.appendChild(
-            createPathItem(
-                origin || 'Unknown Origin',
-                'Origin',
-                'start',
-                true
-            )
-        );
+                role:
+                    'Origin',
+            },
 
-
-        stops.forEach(
-            (stop, index) => {
-
-                path.appendChild(
-                    createPathItem(
+            ...(Array.isArray(stops)
+                ? stops
+                : []
+            ).map((stop) => ({
+                name:
+                    normalizeText(
                         stop,
-                        `Stop ${index + 1}`,
-                        '',
-                        false
-                    )
-                );
+                        'Unnamed Stop'
+                    ),
 
-            }
-        );
+                type:
+                    'stop',
 
+                role:
+                    'Intermediate Stop',
+            })),
 
-        path.appendChild(
-            createPathItem(
-                destination ||
-                    'Unknown Destination',
+            {
+                name:
+                    normalizeText(
+                        destination,
+                        'Unknown Destination'
+                    ),
 
-                'Destination',
+                type:
+                    'destination',
 
-                'destination',
+                role:
+                    'Destination',
+            },
+        ];
 
-                true
-            )
-        );
+        routeNodes.forEach((node) => {
+            viewRoutePath.appendChild(
+                createRoutePathNode(
+                    node
+                )
+            );
+        });
     }
 
-
-    /* =========================================================
-       CREATE PATH ITEM
-    ========================================================= */
-
-    function createPathItem(
-        name,
-        label,
-        extraClass,
-        locationIcon
-    ) {
-
+    function createRoutePathNode(node) {
         const item =
-            document.createElement('div');
-
+            document.createElement(
+                'article'
+            );
 
         item.className =
-            `route-path-item ${extraClass}`.trim();
-
+            `horizontal-route-node ${node.type}`;
 
         const marker =
-            document.createElement('div');
-
+            document.createElement(
+                'div'
+            );
 
         marker.className =
-            'path-marker';
-
-
-        const icon =
-            document.createElement('i');
-
-
-        icon.className =
-            locationIcon
-                ? 'fa-solid fa-location-dot'
-                : 'fa-solid fa-circle';
-
-
-        marker.appendChild(
-            icon
-        );
-
+            'horizontal-route-marker';
 
         const content =
-            document.createElement('div');
+            document.createElement(
+                'div'
+            );
 
+        content.className =
+            'horizontal-route-content';
 
-        const strong =
-            document.createElement('strong');
+        const name =
+            document.createElement(
+                'strong'
+            );
 
+        name.textContent =
+            node.name;
 
-        strong.textContent =
-            name;
+        const role =
+            document.createElement(
+                'span'
+            );
 
+        role.textContent =
+            node.role;
 
-        const span =
-            document.createElement('span');
-
-
-        span.textContent =
-            label;
-
-
-        content.appendChild(
-            strong
+        content.append(
+            name,
+            role
         );
 
-        content.appendChild(
-            span
-        );
-
-
-        item.appendChild(
-            marker
-        );
-
-        item.appendChild(
+        item.append(
+            marker,
             content
         );
 
-
         return item;
     }
-
-
-    /* =========================================================
-       CLOSE VIEW
-    ========================================================= */
 
     document
         .querySelectorAll(
             '[data-close-route-details]'
         )
-        .forEach(button => {
-
+        .forEach((button) => {
             button.addEventListener(
                 'click',
                 () => {
-
                     closeModal(
                         routeDetailsModal
                     );
+                }
+            );
+        });
 
+    /* =========================================================
+       VIEW GPS MAP
+    ========================================================= */
+
+    gpsTripSelect?.addEventListener(
+        'change',
+        async () => {
+            const record =
+                getGpsRecordById(
+                    gpsTripSelect.value
+                );
+
+            if (!record) {
+                resetViewGpsMap();
+                return;
+            }
+
+            try {
+                await initializeViewGpsMap();
+
+                renderViewGpsTrip(
+                    record
+                );
+            } catch (error) {
+                console.error(
+                    'Unable to display GPS trip:',
+                    error
+                );
+
+                setViewGpsMapMessage(
+                    'The selected GPS trip could not be displayed.',
+                    'error'
+                );
+            }
+        }
+    );
+
+    fitGpsMapButton?.addEventListener(
+        'click',
+        () => {
+            if (
+                viewGpsMap &&
+                viewGpsBounds
+            ) {
+                viewGpsMap.fitBounds(
+                    viewGpsBounds,
+                    {
+                        padding:
+                            [35, 35],
+
+                        maxZoom:
+                            13,
+                    }
+                );
+            }
+        }
+    );
+
+    async function initializeViewGpsMap() {
+        if (
+            !(
+                gpsTripMapElement instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        await loadLeaflet();
+
+        if (!viewGpsMap) {
+            viewGpsMap =
+                window.L.map(
+                    gpsTripMapElement
+                );
+
+            viewGpsMap.setView(
+                [13.94, 121.16],
+                9
+            );
+
+            addOpenStreetMapLayer(
+                viewGpsMap
+            );
+        }
+
+        window.setTimeout(() => {
+            viewGpsMap?.invalidateSize();
+        }, 100);
+    }
+
+    function renderViewGpsTrip(record) {
+        const coordinatePair =
+            parseCoordinatePair(
+                record.coordinates
+            );
+
+        updateViewGpsDetails(record);
+
+        if (!coordinatePair) {
+            clearViewGpsLayer();
+
+            setViewGpsMapMessage(
+                'This GPS trip contains invalid coordinates.',
+                'error'
+            );
+
+            return;
+        }
+
+        clearViewGpsLayer();
+
+        viewGpsLayer =
+            createGpsRouteLayer(
+                record,
+                coordinatePair
+            );
+
+        viewGpsLayer.addTo(
+            viewGpsMap
+        );
+
+        viewGpsBounds =
+            viewGpsLayer.getBounds();
+
+        viewGpsMap.fitBounds(
+            viewGpsBounds,
+            {
+                padding: [35, 35],
+                maxZoom: 13,
+            }
+        );
+
+        openFirstMarkerPopup(
+            viewGpsLayer
+        );
+
+        if (
+            fitGpsMapButton instanceof
+            HTMLButtonElement
+        ) {
+            fitGpsMapButton.disabled =
+                false;
+        }
+
+        setViewGpsMapMessage(
+            `${normalizeText(
+                record.bus_no,
+                'Bus'
+            )} GPS trip displayed.`,
+            'success'
+        );
+    }
+
+    function updateViewGpsDetails(record) {
+        setElementText(
+            gpsDetailBus,
+            record.bus_no || '—'
+        );
+
+        setElementText(
+            gpsDetailGrouping,
+            record.grouping || '—'
+        );
+
+        setElementText(
+            gpsDetailBeginning,
+            formatDateTime(
+                record.beginning_at
+            ) || '—'
+        );
+
+        setElementText(
+            gpsDetailEnding,
+            formatDateTime(
+                record.ending_at
+            ) || '—'
+        );
+
+        setElementText(
+            gpsDetailOrigin,
+            record.initial_location || '—'
+        );
+
+        setElementText(
+            gpsDetailDestination,
+            record.final_location || '—'
+        );
+
+        setElementText(
+            gpsDetailMileage,
+            record.mileage_km !== null &&
+            record.mileage_km !== undefined
+                ? `${formatNumber(
+                    record.mileage_km
+                )} KM`
+                : '—'
+        );
+
+        setElementText(
+            gpsDetailDuration,
+            formatDuration(
+                record.total_minutes ??
+                record.duration_minutes
+            )
+        );
+
+        if (
+            gpsTripDetails instanceof
+            HTMLElement
+        ) {
+            gpsTripDetails.hidden =
+                false;
+        }
+    }
+
+    function clearViewGpsLayer() {
+        if (
+            viewGpsMap &&
+            viewGpsLayer
+        ) {
+            viewGpsMap.removeLayer(
+                viewGpsLayer
+            );
+        }
+
+        viewGpsLayer = null;
+        viewGpsBounds = null;
+    }
+
+    function resetViewGpsMap() {
+        clearViewGpsLayer();
+
+        if (
+            gpsTripSelect instanceof
+            HTMLSelectElement
+        ) {
+            gpsTripSelect.value = '';
+        }
+
+        if (
+            gpsTripDetails instanceof
+            HTMLElement
+        ) {
+            gpsTripDetails.hidden = true;
+        }
+
+        if (
+            fitGpsMapButton instanceof
+            HTMLButtonElement
+        ) {
+            fitGpsMapButton.disabled =
+                true;
+        }
+
+        setViewGpsMapMessage(
+            gpsTripRecords.length > 0
+                ? 'Select a processed GPS trip to display it on the map.'
+                : 'No processed GPS trips are available.',
+
+            gpsTripRecords.length > 0
+                ? 'info'
+                : 'error'
+        );
+    }
+
+    function setViewGpsMapMessage(
+        message,
+        type = 'info'
+    ) {
+        if (
+            !(
+                gpsMapMessage instanceof
+                HTMLElement
+            )
+        ) {
+            return;
+        }
+
+        gpsMapMessage.textContent =
+            message;
+
+        gpsMapMessage.dataset.type =
+            type;
+    }
+
+    /* =========================================================
+       SHARED GPS FUNCTIONS
+    ========================================================= */
+
+    function populateGpsSelect(
+        select,
+        route
+    ) {
+        if (
+            !(
+                select instanceof
+                HTMLSelectElement
+            )
+        ) {
+            return;
+        }
+
+        select.innerHTML =
+            '<option value="">Select a GPS trip</option>';
+
+        const matchingRecords =
+            gpsTripRecords.filter(
+                (record) =>
+                    gpsRecordMatchesRoute(
+                        record,
+                        route
+                    )
+            );
+
+        const orderedRecords = [
+            ...matchingRecords,
+
+            ...gpsTripRecords.filter(
+                (record) =>
+                    !matchingRecords.includes(
+                        record
+                    )
+            ),
+        ];
+
+        orderedRecords.forEach(
+            (record) => {
+                select.appendChild(
+                    createGpsTripOption(
+                        record
+                    )
+                );
+            }
+        );
+
+        select.disabled =
+            gpsTripRecords.length === 0;
+    }
+
+    function createGpsTripOption(record) {
+        const option =
+            document.createElement(
+                'option'
+            );
+
+        option.value =
+            String(record.id ?? '');
+
+        option.textContent = [
+            normalizeText(
+                record.bus_no,
+                'Unknown Bus'
+            ),
+
+            normalizeText(
+                record.grouping
+            ),
+
+            formatDateTime(
+                record.beginning_at
+            ),
+        ]
+            .filter(Boolean)
+            .join(' • ');
+
+        return option;
+    }
+
+    function findMatchingGpsRecord(route) {
+        return gpsTripRecords.find(
+            (record) =>
+                gpsRecordMatchesRoute(
+                    record,
+                    route
+                )
+        ) ?? null;
+    }
+
+    function gpsRecordMatchesRoute(
+        record,
+        route
+    ) {
+        const routeOriginValue =
+            normalizeComparable(
+                route?.origin
+            );
+
+        const routeDestinationValue =
+            normalizeComparable(
+                route?.destination
+            );
+
+        const gpsOrigin =
+            normalizeComparable(
+                record.initial_location
+            );
+
+        const gpsDestination =
+            normalizeComparable(
+                record.final_location
+            );
+
+        const grouping =
+            normalizeComparable(
+                record.grouping
+            );
+
+        return (
+            (
+                routeOriginValue &&
+                routeDestinationValue &&
+                gpsOrigin.includes(
+                    routeOriginValue
+                ) &&
+                gpsDestination.includes(
+                    routeDestinationValue
+                )
+            ) ||
+            (
+                routeOriginValue &&
+                routeDestinationValue &&
+                grouping.includes(
+                    routeOriginValue
+                ) &&
+                grouping.includes(
+                    routeDestinationValue
+                )
+            )
+        );
+    }
+
+    function getGpsRecordById(value) {
+        const id = Number(value);
+
+        if (!Number.isFinite(id)) {
+            return null;
+        }
+
+        return gpsTripRecords.find(
+            (record) =>
+                Number(record.id) === id
+        ) ?? null;
+    }
+
+    function parseCoordinatePair(rawValue) {
+        const match =
+            normalizeText(rawValue).match(
+                /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*(?:->|→|to)\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i
+            );
+
+        if (!match) {
+            return null;
+        }
+
+        const values =
+            match.slice(1).map(Number);
+
+        if (
+            values.some(
+                (value) =>
+                    !Number.isFinite(value)
+            ) ||
+            Math.abs(values[0]) > 90 ||
+            Math.abs(values[2]) > 90 ||
+            Math.abs(values[1]) > 180 ||
+            Math.abs(values[3]) > 180
+        ) {
+            return null;
+        }
+
+        return {
+            origin:
+                [values[0], values[1]],
+
+            destination:
+                [values[2], values[3]],
+        };
+    }
+
+    function createGpsRouteLayer(
+        record,
+        coordinatePair
+    ) {
+        const originMarker =
+            window.L.marker(
+                coordinatePair.origin
+            );
+
+        originMarker.bindPopup(
+            buildGpsPopup(
+                'Origin',
+                record.initial_location,
+                record
+            )
+        );
+
+        const destinationMarker =
+            window.L.marker(
+                coordinatePair.destination
+            );
+
+        destinationMarker.bindPopup(
+            buildGpsPopup(
+                'Destination',
+                record.final_location,
+                record
+            )
+        );
+
+        const line =
+            window.L.polyline(
+                [
+                    coordinatePair.origin,
+                    coordinatePair.destination,
+                ],
+                {
+                    weight: 5,
+                    opacity: 0.82,
+                    dashArray: '10 8',
                 }
             );
 
-        });
+        return window.L.featureGroup([
+            originMarker,
+            destinationMarker,
+            line,
+        ]);
+    }
 
+    function buildGpsPopup(
+        type,
+        location,
+        record
+    ) {
+        return `
+            <div class="gps-map-popup">
+                <strong>
+                    ${escapeHtml(type)}:
+                    ${escapeHtml(
+                        location ||
+                        'Unknown location'
+                    )}
+                </strong>
+
+                <span>
+                    Bus:
+                    ${escapeHtml(
+                        record.bus_no ||
+                        'Unknown Bus'
+                    )}
+                </span>
+
+                <span>
+                    Route:
+                    ${escapeHtml(
+                        record.grouping ||
+                        'Unspecified Route'
+                    )}
+                </span>
+            </div>
+        `;
+    }
+
+    function openFirstMarkerPopup(layer) {
+        const marker =
+            layer
+                .getLayers()
+                .find(
+                    (item) =>
+                        item instanceof
+                        window.L.Marker
+                );
+
+        marker?.openPopup();
+    }
 
     /* =========================================================
-       DELETE MODAL
+       LEAFLET
+    ========================================================= */
+
+    async function loadLeaflet() {
+        if (window.L) {
+            return;
+        }
+
+        if (
+            window.__fromsLeafletPromise instanceof
+            Promise
+        ) {
+            return window.__fromsLeafletPromise;
+        }
+
+        window.__fromsLeafletPromise =
+            new Promise(
+                (resolve, reject) => {
+                    if (
+                        !document.querySelector(
+                            'link[data-froms-leaflet]'
+                        )
+                    ) {
+                        const stylesheet =
+                            document.createElement(
+                                'link'
+                            );
+
+                        stylesheet.rel =
+                            'stylesheet';
+
+                        stylesheet.href =
+                            leafletAssets.css;
+
+                        stylesheet.dataset
+                            .fromsLeaflet =
+                            'true';
+
+                        document.head.appendChild(
+                            stylesheet
+                        );
+                    }
+
+                    const existingScript =
+                        document.querySelector(
+                            'script[data-froms-leaflet]'
+                        );
+
+                    if (existingScript) {
+                        if (window.L) {
+                            resolve();
+                            return;
+                        }
+
+                        existingScript
+                            .addEventListener(
+                                'load',
+                                resolve,
+                                {
+                                    once:
+                                        true,
+                                }
+                            );
+
+                        existingScript
+                            .addEventListener(
+                                'error',
+                                reject,
+                                {
+                                    once:
+                                        true,
+                                }
+                            );
+
+                        return;
+                    }
+
+                    const script =
+                        document.createElement(
+                            'script'
+                        );
+
+                    script.src =
+                        leafletAssets.js;
+
+                    script.async = true;
+
+                    script.dataset
+                        .fromsLeaflet =
+                        'true';
+
+                    script.addEventListener(
+                        'load',
+                        resolve,
+                        {
+                            once: true,
+                        }
+                    );
+
+                    script.addEventListener(
+                        'error',
+                        () => {
+                            reject(
+                                new Error(
+                                    'Leaflet failed to load.'
+                                )
+                            );
+                        },
+                        {
+                            once: true,
+                        }
+                    );
+
+                    document.head.appendChild(
+                        script
+                    );
+                }
+            );
+
+        return window.__fromsLeafletPromise;
+    }
+
+    function addOpenStreetMapLayer(map) {
+        window.L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                maxZoom: 19,
+
+                attribution:
+                    '&copy; OpenStreetMap contributors',
+            }
+        ).addTo(map);
+    }
+
+    /* =========================================================
+       DELETE ROUTE
     ========================================================= */
 
     document.addEventListener(
         'click',
-        event => {
+        (event) => {
+            const target = event.target;
 
-            const deleteButton =
-                event.target.closest(
-                    '.open-delete-route-modal'
-                );
-
-
-            if (!deleteButton) {
+            if (!(target instanceof Element)) {
                 return;
             }
 
+            const deleteButton =
+                target.closest(
+                    '.open-delete-route-modal'
+                );
+
+            if (
+                !(
+                    deleteButton instanceof
+                    HTMLElement
+                )
+            ) {
+                return;
+            }
 
             const formId =
-                deleteButton.dataset.formId;
-
+                normalizeText(
+                    deleteButton.dataset.formId
+                );
 
             selectedDeleteForm =
                 formId
@@ -1046,210 +2841,472 @@ document.addEventListener('DOMContentLoaded', () => {
                     )
                     : null;
 
+            const routeDisplay = [
+                normalizeText(
+                    deleteButton.dataset
+                        .routeCode
+                ),
 
-            const routeDisplay =
-                [
-                    deleteButton.dataset.routeCode,
-                    deleteButton.dataset.routeName
-                ]
-                    .filter(Boolean)
-                    .join(' - ');
+                normalizeText(
+                    deleteButton.dataset
+                        .routeName
+                ),
+            ]
+                .filter(Boolean)
+                .join(' - ');
 
-
-            if (deleteRouteName) {
-
-                deleteRouteName.textContent =
-                    routeDisplay ||
-                    'this route';
-
-            }
-
+            setElementText(
+                deleteRouteName,
+                routeDisplay ||
+                'this route'
+            );
 
             openModal(
                 deleteRouteModal
             );
-
         }
     );
 
+    cancelDeleteRouteButton
+        ?.addEventListener(
+            'click',
+            () => {
+                selectedDeleteForm = null;
 
-    cancelDeleteRoute?.addEventListener(
-        'click',
-        () => {
-
-            selectedDeleteForm =
-                null;
-
-
-            closeModal(
-                deleteRouteModal
-            );
-
-        }
-    );
-
-
-    confirmDeleteRoute?.addEventListener(
-        'click',
-        () => {
-
-            if (!selectedDeleteForm) {
-                return;
+                closeModal(
+                    deleteRouteModal
+                );
             }
+        );
 
+    confirmDeleteRouteButton
+        ?.addEventListener(
+            'click',
+            () => {
+                if (
+                    !(
+                        selectedDeleteForm instanceof
+                        HTMLFormElement
+                    )
+                ) {
+                    closeModal(
+                        deleteRouteModal
+                    );
 
-            const form =
-                selectedDeleteForm;
+                    return;
+                }
 
+                confirmDeleteRouteButton.disabled =
+                    true;
 
-            selectedDeleteForm =
-                null;
-
-
-            closeModal(
-                deleteRouteModal
-            );
-
-
-            form.requestSubmit();
-
-        }
-    );
-
+                selectedDeleteForm
+                    .requestSubmit();
+            }
+        );
 
     /* =========================================================
-       BACKDROP CLOSE
+       SEARCH
     ========================================================= */
+
+    routeSearch?.addEventListener(
+        'input',
+        () => {
+            const query =
+                normalizeText(
+                    routeSearch.value
+                ).toLowerCase();
+
+            document
+                .querySelectorAll(
+                    '.routes-table tbody tr'
+                )
+                .forEach((row) => {
+                    if (
+                        !(
+                            row instanceof
+                            HTMLTableRowElement
+                        )
+                    ) {
+                        return;
+                    }
+
+                    const text =
+                        normalizeText(
+                            row.textContent
+                        ).toLowerCase();
+
+                    row.hidden =
+                        query !== '' &&
+                        !text.includes(query);
+                });
+        }
+    );
+
+    routeStatusFilter?.addEventListener(
+        'change',
+        () => {}
+    );
+
+    /* =========================================================
+       FORM SUBMISSION
+    ========================================================= */
+
+    routeForm?.addEventListener(
+        'submit',
+        () => {
+            if (
+                saveRouteButton instanceof
+                HTMLButtonElement
+            ) {
+                saveRouteButton.disabled =
+                    true;
+            }
+
+            const editing =
+                routeFormMethod &&
+                !routeFormMethod.disabled;
+
+            setElementText(
+                saveRouteText,
+                editing
+                    ? 'Updating...'
+                    : 'Saving...'
+            );
+        }
+    );
+
+    function resetSubmitButton() {
+        if (
+            saveRouteButton instanceof
+            HTMLButtonElement
+        ) {
+            saveRouteButton.disabled =
+                false;
+
+            saveRouteButton.removeAttribute(
+                'aria-busy'
+            );
+        }
+    }
+
+    /* =========================================================
+       CLOSE HANDLERS
+    ========================================================= */
+
+    closeValidationModalButton
+        ?.addEventListener(
+            'click',
+            () => {
+                closeModal(
+                    validationModal
+                );
+            }
+        );
 
     [
         routeModal,
         routeDetailsModal,
-        deleteRouteModal
+        deleteRouteModal,
+        validationModal,
     ]
         .filter(Boolean)
-        .forEach(modal => {
-
+        .forEach((modal) => {
             modal.addEventListener(
                 'click',
-                event => {
-
+                (event) => {
                     if (
-                        event.target ===
-                        modal
+                        event.target === modal
                     ) {
-
-                        closeModal(
-                            modal
-                        );
-
+                        closeModal(modal);
                     }
-
                 }
             );
-
         });
-
-
-    /* =========================================================
-       ESC
-    ========================================================= */
 
     document.addEventListener(
         'keydown',
-        event => {
-
-            if (
-                event.key !==
-                'Escape'
-            ) {
+        (event) => {
+            if (event.key !== 'Escape') {
                 return;
             }
 
+            if (
+                isModalOpen(
+                    deleteRouteModal
+                )
+            ) {
+                closeModal(
+                    deleteRouteModal
+                );
 
-            closeModal(
-                routeModal
-            );
+                return;
+            }
 
-            closeModal(
-                routeDetailsModal
-            );
+            if (
+                isModalOpen(
+                    routeDetailsModal
+                )
+            ) {
+                closeModal(
+                    routeDetailsModal
+                );
 
-            closeModal(
-                deleteRouteModal
-            );
+                return;
+            }
 
+            if (
+                isModalOpen(
+                    routeModal
+                )
+            ) {
+                closeModal(
+                    routeModal
+                );
+            }
         }
     );
 
-
     /* =========================================================
-       VALIDATION ERROR MODAL
+       UTILITIES
     ========================================================= */
 
-    const validationModal =
-        document.getElementById(
-            'routeValidationModal'
-        );
+    function parseJsonElement(element) {
+        if (
+            !(
+                element instanceof
+                HTMLScriptElement
+            )
+        ) {
+            return [];
+        }
 
+        try {
+            const parsed =
+                JSON.parse(
+                    element.textContent ||
+                    '[]'
+                );
 
-    const closeValidationModal =
-        document.getElementById(
-            'closeRouteValidationModal'
-        );
-
-
-    if (
-        validationModal &&
-        closeValidationModal
-    ) {
-
-        closeValidationModal
-            .addEventListener(
-                'click',
-                () => {
-
-                    validationModal.remove();
-
-                }
+            return Array.isArray(parsed)
+                ? parsed
+                : [];
+        } catch (error) {
+            console.error(
+                'Invalid JSON data:',
+                error
             );
 
+            return [];
+        }
     }
 
+    function normalizeText(
+        value,
+        fallback = ''
+    ) {
+        const result =
+            String(value ?? '').trim();
 
-    /* =========================================================
-       FEEDBACK MODAL
-    ========================================================= */
+        return result !== ''
+            ? result
+            : fallback;
+    }
 
-    document
-        .querySelectorAll(
-            '.close-feedback-modal'
-        )
-        .forEach(button => {
+    function normalizeComparable(value) {
+        return normalizeText(value)
+            .toLowerCase()
+            .replace(
+                /[^a-z0-9]+/g,
+                ''
+            );
+    }
 
-            button.addEventListener(
-                'click',
-                () => {
+    function uniqueValues(values) {
+        const seen = new Set();
 
-                    const modal =
-                        button.closest(
-                            '.modal-overlay'
-                        );
+        return values
+            .map((value) =>
+                normalizeText(value)
+            )
+            .filter((value) => {
+                const key =
+                    normalizeComparable(value);
 
-
-                    if (modal) {
-                        modal.remove();
-                    }
-
+                if (!key || seen.has(key)) {
+                    return false;
                 }
+
+                seen.add(key);
+
+                return true;
+            });
+    }
+
+    function setElementText(
+        element,
+        value
+    ) {
+        if (element) {
+            element.textContent =
+                normalizeText(value);
+        }
+    }
+
+    function setInputValue(
+        input,
+        value
+    ) {
+        if (
+            input instanceof
+            HTMLInputElement ||
+            input instanceof
+            HTMLSelectElement
+        ) {
+            input.value =
+                normalizeText(value);
+        }
+    }
+
+    function formatNumber(value) {
+        const number =
+            Number(value);
+
+        if (!Number.isFinite(number)) {
+            return normalizeText(value);
+        }
+
+        return number.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }
+        );
+    }
+
+    function formatDateTime(value) {
+        const text =
+            normalizeText(value);
+
+        if (!text) {
+            return '';
+        }
+
+        const date =
+            new Date(
+                text.includes('T')
+                    ? text
+                    : text.replace(
+                        ' ',
+                        'T'
+                    )
             );
 
-        });
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return text;
+        }
 
+        return date.toLocaleString(
+            undefined,
+            {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            }
+        );
+    }
+
+    function formatDuration(value) {
+        const minutes =
+            Number(value);
+
+        if (
+            !Number.isFinite(minutes) ||
+            minutes < 0
+        ) {
+            return '—';
+        }
+
+        const hours =
+            Math.floor(
+                minutes / 60
+            );
+
+        const remainingMinutes =
+            Math.round(
+                minutes % 60
+            );
+
+        if (hours === 0) {
+            return (
+                `${remainingMinutes} min`
+            );
+        }
+
+        return (
+            `${hours} hr ` +
+            `${remainingMinutes} min`
+        );
+    }
+
+    function escapeHtml(value) {
+        const temporaryElement =
+            document.createElement(
+                'div'
+            );
+
+        temporaryElement.textContent =
+            normalizeText(value);
+
+        return temporaryElement.innerHTML;
+    }
+
+    function clearValidationStyles() {
+        if (
+            !(
+                routeForm instanceof
+                HTMLFormElement
+            )
+        ) {
+            return;
+        }
+
+        routeForm
+            .querySelectorAll(
+                '.is-invalid, ' +
+                '.invalid, ' +
+                '[aria-invalid="true"]'
+            )
+            .forEach((element) => {
+                element.classList.remove(
+                    'is-invalid',
+                    'invalid'
+                );
+
+                element.removeAttribute(
+                    'aria-invalid'
+                );
+            });
+    }
 
     /* =========================================================
-       INITIAL NUMBERING
+       INITIALIZATION
     ========================================================= */
 
     updateStopNumbers();
 
+    if (isModalOpen(validationModal)) {
+        body.classList.add(
+            'modal-open'
+        );
+
+        body.style.overflow =
+            'hidden';
+    }
 });

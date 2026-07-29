@@ -3,20 +3,32 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    /**
+     * Authenticate the user and redirect them to their department dashboard.
+     */
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'email' => [
+                'required',
+                'email',
+            ],
+            'password' => [
+                'required',
+                'string',
+            ],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        $remember = $request->boolean('remember');
+
+        if (! Auth::attempt($credentials, $remember)) {
             return back()
                 ->withInput($request->only('email'))
                 ->with('error', 'Invalid email or password.');
@@ -24,10 +36,10 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var \App\Models\User $user */
-            $user = Auth::user();
-    
-        if (($user->status ?? 'Active') !== 'Active') {
+        /** @var \App\Models\Admin\User|null $authenticatedUser */
+        $authenticatedUser = Auth::user();
+
+        if ($authenticatedUser === null) {
             Auth::logout();
 
             $request->session()->invalidate();
@@ -35,16 +47,60 @@ class LoginController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Your account is not active. Please contact the system administrator.');
+                ->with('error', 'Authentication failed. Please try again.');
         }
 
-        $user->forceFill([
+        /*
+        |--------------------------------------------------------------------------
+        | Account Status Check
+        |--------------------------------------------------------------------------
+        */
+
+        $status = strtolower(
+            trim((string) ($authenticatedUser->status ?? 'Active'))
+        );
+
+        if ($status !== 'active') {
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'error',
+                    'Your account is not active. Please contact the system administrator.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Last Login
+        |--------------------------------------------------------------------------
+        */
+
+        $authenticatedUser->forceFill([
             'last_login_at' => now(),
         ])->save();
 
-        return redirect()->intended($this->redirectByDepartmentAndRole($user->department, $user->role));
+        /*
+        |--------------------------------------------------------------------------
+        | Department Redirect
+        |--------------------------------------------------------------------------
+        */
+
+        $redirectUrl = $this->redirectByDepartmentAndRole(
+            $authenticatedUser->department ?? null,
+            $authenticatedUser->role ?? null
+        );
+
+        return redirect()->intended($redirectUrl);
     }
 
+    /**
+     * Log the current user out.
+     */
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
@@ -55,40 +111,125 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    private function redirectByDepartmentAndRole(?string $department, ?string $role): string
-    {
-        $department = strtolower(trim($department ?? ''));
-        $role = strtolower(trim($role ?? ''));
-
-        $department = str_replace(['_', '-'], ' ', $department);
-        $role = str_replace(['_', '-'], ' ', $role);
+    /**
+     * Determine the correct landing page based on department and role.
+     */
+    private function redirectByDepartmentAndRole(
+        ?string $department,
+        ?string $role
+    ): string {
+        $department = $this->normalizeValue($department);
+        $role = $this->normalizeValue($role);
 
         /*
-          Admin role is removed.
-          Admin account should be:
-          department = Admin
-          role = head
+        |--------------------------------------------------------------------------
+        | Admin Department
+        |--------------------------------------------------------------------------
+        |
+        | Supports existing role values such as:
+        | - head
+        | - staff
+        | - admin
+        | - system admin
+        | - system administrator
+        |
         */
-        if ($department === 'admin' && in_array($role, ['head', 'staff'], true)) {
+
+        $adminRoles = [
+            'head',
+            'staff',
+            'admin',
+            'system admin',
+            'system administrator',
+        ];
+
+        if (
+            in_array($department, ['admin', 'administration'], true) &&
+            in_array($role, $adminRoles, true)
+        ) {
             return route('admin.dashboard');
         }
 
-        if ($department === 'maintenance' && in_array($role, ['head', 'staff'], true)) {
+        /*
+        |--------------------------------------------------------------------------
+        | Maintenance Department
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $department === 'maintenance' &&
+            in_array($role, ['head', 'staff'], true)
+        ) {
             return route('maintenance-dashboard');
         }
 
-        if (in_array($department, ['purchase', 'purchasing'], true) && in_array($role, ['head', 'staff'], true)) {
+        /*
+        |--------------------------------------------------------------------------
+        | Purchase Department
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            in_array($department, ['purchase', 'purchasing'], true) &&
+            in_array($role, ['head', 'staff'], true)
+        ) {
             return route('purchase-orders');
         }
 
-        if ($department === 'warehouse' && in_array($role, ['head', 'staff'], true)) {
+        /*
+        |--------------------------------------------------------------------------
+        | Warehouse Department
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $department === 'warehouse' &&
+            in_array($role, ['head', 'staff'], true)
+        ) {
             return route('inventory');
         }
 
-        if ($department === 'operation' && in_array($role, ['head', 'staff'], true)) {
+        /*
+        |--------------------------------------------------------------------------
+        | Operation Department
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            in_array($department, ['operation', 'operations'], true) &&
+            in_array($role, ['head', 'staff'], true)
+        ) {
             return route('dashboard-operation');
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Unrecognized Account Assignment
+        |--------------------------------------------------------------------------
+        |
+        | Authentication succeeded, but the account has an unsupported
+        | department and role combination.
+        |
+        */
+
+        Auth::logout();
+
         return route('login');
+    }
+
+    /**
+     * Normalize department and role values for reliable comparisons.
+     */
+    private function normalizeValue(?string $value): string
+    {
+        $value = strtolower(trim($value ?? ''));
+
+        $value = str_replace(
+            ['_', '-'],
+            ' ',
+            $value
+        );
+
+        return preg_replace('/\s+/', ' ', $value) ?? '';
     }
 }
