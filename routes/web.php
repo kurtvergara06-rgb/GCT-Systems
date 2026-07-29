@@ -987,6 +987,21 @@ Route::delete(
     [RouteController::class, 'destroy']
 )->name('operation.routes.destroy');
 
+/*
+    |--------------------------------------------------------------------------
+    | Geoapify
+    |--------------------------------------------------------------------------
+    */
+
+Route::get('/operation/routes/location-search', [\App\Http\Controllers\Operation\RouteController::class, 'searchLocations'])
+    ->middleware('throttle:60,1')
+    ->name('operation.routes.location-search');
+
+Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\RouteController::class, 'calculateRoute'])
+    ->middleware('throttle:60,1')
+    ->name('operation.routes.calculate');
+
+
     /*
     |--------------------------------------------------------------------------
     | Trip Schedule

@@ -2,874 +2,2842 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     /* =========================================================
-       ELEMENTS
+       HELPERS AND ELEMENTS
     ========================================================= */
 
+    const $ = (id) => document.getElementById(id);
     const body = document.body;
 
-    const routeModal =
-        document.getElementById('routeModal');
+    const routeModal = $('routeModal');
+    const routeDetailsModal = $('routeDetailsModal');
+    const deleteRouteModal = $('deleteRouteModal');
+    const validationModal = $('routeValidationModal');
 
-    const routeDetailsModal =
-        document.getElementById('routeDetailsModal');
+    const routeForm = $('routeForm');
+    const routeFormMethod = $('routeFormMethod');
+    const routeModalTitle = $('routeModalTitle');
 
-    const openRouteModalButton =
-        document.getElementById('openRouteModal');
+    const routeCode = $('routeCode');
+    const routeName = $('routeName');
+    const routeOrigin = $('routeOrigin');
+    const routeDestination = $('routeDestination');
+    const routeDistance = $('routeDistance');
+    const routeTime = $('routeTime');
+    const routeStatus = $('routeStatus');
 
-    const routeForm =
-        document.getElementById('routeForm');
-
-    const routeFormMethod =
-        document.getElementById('routeFormMethod');
-
-    const routeModalTitle =
-        document.getElementById('routeModalTitle');
-
-    const routeCode =
-        document.getElementById('routeCode');
-
-    const routeName =
-        document.getElementById('routeName');
-
-    const routeOrigin =
-        document.getElementById('routeOrigin');
-
-    const routeDestination =
-        document.getElementById('routeDestination');
-
-    const routeDistance =
-        document.getElementById('routeDistance');
-
-    const routeTime =
-        document.getElementById('routeTime');
-
-    const routeStatus =
-        document.getElementById('routeStatus');
-
-    const routeStopList =
-        document.getElementById('routeStopList');
-
-    const addRouteStopButton =
-        document.getElementById('addRouteStop');
-
-    const saveRouteButton =
-        document.getElementById('saveRouteBtn');
-
-    const saveRouteText =
-        document.getElementById('saveRouteText');
-
-    const routeSearch =
-        document.getElementById('routeSearch');
-
-    const routeStatusFilter =
-        document.getElementById('routeStatusFilter');
+    const routeStopList = $('routeStopList');
+    const saveRouteButton = $('saveRouteBtn');
+    const saveRouteText = $('saveRouteText');
+    const routeSearch = $('routeSearch');
 
     /* =========================================================
-       VIEW ROUTE ELEMENTS
+       ADD / EDIT MAP ELEMENTS
     ========================================================= */
 
-    const viewRouteCode =
-        document.getElementById('viewRouteCode');
+    const mapElement = $('routeFormGpsMap');
+    const mapMessage = $('routeFormGpsMapMessage');
 
-    const viewRouteName =
-        document.getElementById('viewRouteName');
+    const fitMapButton = $('fitRouteFormGpsMap');
+    const pinButton = $('pinActiveLocationBtn');
+    const recalculateButton = $('recalculateRouteBtn');
+    const activeFieldLabel = $('routeMapActiveField');
 
-    const viewRouteOrigin =
-        document.getElementById('viewRouteOrigin');
-
-    const viewRouteDestination =
-        document.getElementById(
-            'viewRouteDestination'
-        );
-
-    const viewRouteDistance =
-        document.getElementById('viewRouteDistance');
-
-    const viewRouteTime =
-        document.getElementById('viewRouteTime');
-
-    const viewRouteStatus =
-        document.getElementById('viewRouteStatus');
-
-    const viewRoutePath =
-        document.getElementById('viewRoutePath');
-
-    const viewRouteStopCount =
-        document.getElementById(
-            'viewRouteStopCount'
-        );
+    const calculationSummary = $('routeCalculationSummary');
+    const calculatedDistanceText = $('routeCalculatedDistanceText');
+    const calculatedTimeText = $('routeCalculatedTimeText');
+    const useCalculatedValuesButton = $('useCalculatedValuesBtn');
 
     /* =========================================================
-       GPS DATA ELEMENTS
+       VIEW ROUTE MAP ELEMENTS
     ========================================================= */
 
-    const gpsTripRecordsData =
-        document.getElementById(
-            'gpsTripRecordsData'
-        );
-
-    const gpsRouteSuggestionsData =
-        document.getElementById(
-            'gpsRouteSuggestionsData'
-        );
-
-    const routeNameSuggestionList =
-        document.getElementById(
-            'routeNameSuggestionList'
-        );
-
-    const routeOriginSuggestionList =
-        document.getElementById(
-            'routeOriginSuggestionList'
-        );
-
-    const routeDestinationSuggestionList =
-        document.getElementById(
-            'routeDestinationSuggestionList'
-        );
+    const viewMapElement = $('gpsTripMap');
+    const viewFitMapButton = $('fitGpsMap');
+    const viewMapMessage = $('gpsMapMessage');
 
     /* =========================================================
-       VIEW GPS MAP ELEMENTS
+       HIDDEN FORM FIELDS
     ========================================================= */
 
-    const gpsTripSelect =
-        document.getElementById('gpsTripSelect');
+    const hidden = {
+        origin: {
+            address: $('routeOriginAddress'),
+            latitude: $('routeOriginLatitude'),
+            longitude: $('routeOriginLongitude'),
+            source: $('routeOriginSource'),
+        },
 
-    const gpsTripMapElement =
-        document.getElementById('gpsTripMap');
+        destination: {
+            address: $('routeDestinationAddress'),
+            latitude: $('routeDestinationLatitude'),
+            longitude: $('routeDestinationLongitude'),
+            source: $('routeDestinationSource'),
+        },
 
-    const gpsMapMessage =
-        document.getElementById('gpsMapMessage');
-
-    const gpsTripDetails =
-        document.getElementById('gpsTripDetails');
-
-    const fitGpsMapButton =
-        document.getElementById('fitGpsMap');
-
-    const gpsDetailBus =
-        document.getElementById('gpsDetailBus');
-
-    const gpsDetailGrouping =
-        document.getElementById(
-            'gpsDetailGrouping'
-        );
-
-    const gpsDetailBeginning =
-        document.getElementById(
-            'gpsDetailBeginning'
-        );
-
-    const gpsDetailEnding =
-        document.getElementById(
-            'gpsDetailEnding'
-        );
-
-    const gpsDetailOrigin =
-        document.getElementById(
-            'gpsDetailOrigin'
-        );
-
-    const gpsDetailDestination =
-        document.getElementById(
-            'gpsDetailDestination'
-        );
-
-    const gpsDetailMileage =
-        document.getElementById(
-            'gpsDetailMileage'
-        );
-
-    const gpsDetailDuration =
-        document.getElementById(
-            'gpsDetailDuration'
-        );
+        calculatedDistance: $('routeCalculatedDistance'),
+        calculatedTime: $('routeCalculatedTime'),
+        distanceSource: $('routeDistanceSource'),
+        distanceManual: $('routeDistanceManual'),
+        timeManual: $('routeTimeManual'),
+        geometry: $('routeGeometry'),
+    };
 
     /* =========================================================
-       ADD / EDIT GPS MAP ELEMENTS
+       SERVER DATA
     ========================================================= */
 
-    const routeFormGpsTripSelect =
-        document.getElementById(
-            'routeFormGpsTripSelect'
-        );
+    const gpsLocations = parseJson(
+        $('gpsLocationSuggestionsData')
+    )
+        .map(normalizePlace)
+        .filter(Boolean);
 
-    const routeFormGpsMapElement =
-        document.getElementById(
-            'routeFormGpsMap'
-        );
-
-    const routeFormGpsMapMessage =
-        document.getElementById(
-            'routeFormGpsMapMessage'
-        );
-
-    const fitRouteFormGpsMapButton =
-        document.getElementById(
-            'fitRouteFormGpsMap'
-        );
-
-    /* =========================================================
-       DELETE ELEMENTS
-    ========================================================= */
-
-    const deleteRouteModal =
-        document.getElementById(
-            'deleteRouteModal'
-        );
-
-    const deleteRouteName =
-        document.getElementById(
-            'deleteRouteName'
-        );
-
-    const cancelDeleteRouteButton =
-        document.getElementById(
-            'cancelDeleteRoute'
-        );
-
-    const confirmDeleteRouteButton =
-        document.getElementById(
-            'confirmDeleteRoute'
-        );
-
-    /* =========================================================
-       VALIDATION ELEMENTS
-    ========================================================= */
-
-    const validationModal =
-        document.getElementById(
-            'routeValidationModal'
-        );
-
-    const closeValidationModalButton =
-        document.getElementById(
-            'closeRouteValidationModal'
-        );
+    const config = parseJsonObject(
+        $('routeMapConfigData')
+    );
 
     /* =========================================================
        STATE
     ========================================================= */
 
-    const originalStoreUrl =
-        routeForm?.getAttribute('action') ?? '';
+    const searchCache = new Map();
+    const autocompleteControllers = new WeakMap();
 
-    const originalRouteCode =
-        routeCode?.value ?? 'R-01';
+    let map = null;
+    let mapMarkerLayer = null;
+    let mapRoadLayer = null;
+    let mapBounds = null;
 
-    const gpsTripRecords =
-        parseJsonElement(
-            gpsTripRecordsData
-        );
+    let viewMap = null;
+    let viewMarkerLayer = null;
+    let viewRoadLayer = null;
+    let viewMapBounds = null;
 
-    const gpsRouteSuggestions =
-        parseJsonElement(
-            gpsRouteSuggestionsData
-        );
+    let activeLocationInput = null;
+    let pinMode = false;
 
+    let routeRequestController = null;
     let selectedDeleteForm = null;
 
-    let viewGpsMap = null;
-    let viewGpsLayer = null;
-    let viewGpsBounds = null;
+    let distanceEdited = false;
+    let timeEdited = false;
+    let lastCalculated = null;
 
-    let formGpsMap = null;
-    let formGpsLayer = null;
-    let formGpsBounds = null;
-
-    let currentlyApplyingSuggestion = false;
-
-    const leafletAssets = {
-        css:
-            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-
-        js:
-            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    };
+    const originalAction = routeForm?.action || '';
+    const originalRouteCode = routeCode?.value || 'R-01';
 
     /* =========================================================
-       INITIAL AUTOCOMPLETE SETUP
+       INITIAL SETUP
     ========================================================= */
 
-    setupRouteAutocomplete();
+    setupLocationInput(
+        routeOrigin,
+        'Origin',
+        hidden.origin
+    );
 
-    function setupRouteAutocomplete() {
-        if (routeName instanceof HTMLInputElement) {
-            routeName.setAttribute(
-                'list',
-                'routeNameSuggestionList'
-            );
+    setupLocationInput(
+        routeDestination,
+        'Destination',
+        hidden.destination
+    );
 
-            routeName.setAttribute(
-                'autocomplete',
-                'off'
-            );
-        }
-
-        if (routeOrigin instanceof HTMLInputElement) {
-            routeOrigin.setAttribute(
-                'list',
-                'routeOriginSuggestionList'
-            );
-
-            routeOrigin.setAttribute(
-                'autocomplete',
-                'off'
-            );
-        }
-
-        if (
-            routeDestination instanceof
-            HTMLInputElement
-        ) {
-            routeDestination.setAttribute(
-                'list',
-                'routeDestinationSuggestionList'
-            );
-
-            routeDestination.setAttribute(
-                'autocomplete',
-                'off'
-            );
-        }
-
-        renderRouteNameSuggestions();
-        renderOriginSuggestions();
-        renderDestinationSuggestions();
-    }
+    getStopInputs().forEach((input) => {
+        setupStopInput(input);
+    });
 
     /* =========================================================
-       ROUTE NAME SUGGESTIONS
+       EVENT LISTENERS
     ========================================================= */
 
-    function renderRouteNameSuggestions() {
-        if (
-            !(
-                routeNameSuggestionList instanceof
-                HTMLDataListElement
-            )
-        ) {
-            return;
+    $('openRouteModal')?.addEventListener(
+        'click',
+        openCreateRouteModal
+    );
+
+    $('addRouteStop')?.addEventListener(
+        'click',
+        () => addStopInput('', true)
+    );
+
+    routeStopList?.addEventListener(
+        'click',
+        handleStopListClick
+    );
+
+    routeDistance?.addEventListener('input', () => {
+        distanceEdited = true;
+        setValue(hidden.distanceManual, '1');
+    });
+
+    routeTime?.addEventListener('input', () => {
+        timeEdited = true;
+        setValue(hidden.timeManual, '1');
+    });
+
+    useCalculatedValuesButton?.addEventListener(
+        'click',
+        () => {
+            if (!lastCalculated) {
+                return;
+            }
+
+            applyCalculatedValues(
+                lastCalculated,
+                true
+            );
         }
+    );
 
-        routeNameSuggestionList.innerHTML = '';
-
-        const uniqueNames = uniqueValues(
-            gpsRouteSuggestions.map(
-                (suggestion) =>
-                    suggestion.grouping
-            )
+    fitMapButton?.addEventListener('click', () => {
+        fitMapToBounds(
+            map,
+            mapBounds,
+            15
         );
+    });
 
-        uniqueNames.forEach((name) => {
-            const option =
-                document.createElement('option');
+    viewFitMapButton?.addEventListener('click', () => {
+        fitMapToBounds(
+            viewMap,
+            viewMapBounds,
+            15
+        );
+    });
 
-            option.value = name;
+    pinButton?.addEventListener(
+        'click',
+        enableManualPinMode
+    );
 
-            routeNameSuggestionList.appendChild(
-                option
+    recalculateButton?.addEventListener(
+        'click',
+        () => calculateRoadRoute(true)
+    );
+
+    document.addEventListener(
+        'click',
+        handleDocumentClick
+    );
+
+    document.addEventListener(
+        'keydown',
+        handleEscapeKey
+    );
+
+    document
+        .querySelectorAll('[data-close-route-modal]')
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => closeModal(routeModal)
             );
         });
-    }
 
-    function renderOriginSuggestions() {
-        if (
-            !(
-                routeOriginSuggestionList instanceof
-                HTMLDataListElement
-            )
-        ) {
-            return;
-        }
-
-        routeOriginSuggestionList.innerHTML = '';
-
-        const uniqueOrigins = uniqueValues(
-            gpsRouteSuggestions.map(
-                (suggestion) =>
-                    suggestion.origin
-            )
-        );
-
-        uniqueOrigins.forEach((origin) => {
-            const option =
-                document.createElement('option');
-
-            option.value = origin;
-
-            routeOriginSuggestionList.appendChild(
-                option
+    document
+        .querySelectorAll('[data-close-route-details]')
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => closeModal(routeDetailsModal)
             );
         });
-    }
 
-    function renderDestinationSuggestions() {
-        if (
-            !(
-                routeDestinationSuggestionList instanceof
-                HTMLDataListElement
-            )
-        ) {
-            return;
-        }
+    $('cancelDeleteRoute')?.addEventListener(
+        'click',
+        () => closeModal(deleteRouteModal)
+    );
 
-        routeDestinationSuggestionList.innerHTML =
-            '';
+    $('confirmDeleteRoute')?.addEventListener(
+        'click',
+        () => selectedDeleteForm?.requestSubmit()
+    );
 
-        const selectedOrigin =
-            normalizeComparable(
-                routeOrigin?.value
-            );
+    $('closeRouteValidationModal')?.addEventListener(
+        'click',
+        () => closeModal(validationModal)
+    );
 
-        const availableSuggestions =
-            selectedOrigin
-                ? gpsRouteSuggestions.filter(
-                    (suggestion) =>
-                        normalizeComparable(
-                            suggestion.origin
-                        ) === selectedOrigin
-                )
-                : gpsRouteSuggestions;
-
-        const destinations = uniqueValues(
-            availableSuggestions.map(
-                (suggestion) =>
-                    suggestion.destination
-            )
-        );
-
-        destinations.forEach((destination) => {
-            const option =
-                document.createElement('option');
-
-            option.value = destination;
-
-            routeDestinationSuggestionList
-                .appendChild(option);
-        });
-    }
-
-    /* =========================================================
-       ROUTE AUTOCOMPLETE EVENTS
-    ========================================================= */
-
-    routeName?.addEventListener(
+    routeSearch?.addEventListener(
         'input',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            const suggestion =
-                findSuggestionByGrouping(
-                    routeName.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion
-                );
-            }
-        }
+        filterRouteTable
     );
 
-    routeName?.addEventListener(
-        'change',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            const suggestion =
-                findSuggestionByGrouping(
-                    routeName.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion
-                );
-            }
-        }
-    );
-
-    routeOrigin?.addEventListener(
-        'input',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            renderDestinationSuggestions();
-
-            const suggestion =
-                findSuggestionByLocations(
-                    routeOrigin.value,
-                    routeDestination?.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion,
-                    {
-                        preserveRouteName:
-                            false,
-                    }
-                );
-            }
-        }
-    );
-
-    routeOrigin?.addEventListener(
-        'change',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            renderDestinationSuggestions();
-
-            const suggestion =
-                findSuggestionByLocations(
-                    routeOrigin.value,
-                    routeDestination?.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion
-                );
-            }
-        }
-    );
-
-    routeDestination?.addEventListener(
-        'input',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            const suggestion =
-                findSuggestionByLocations(
-                    routeOrigin?.value,
-                    routeDestination.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion
-                );
-            }
-        }
-    );
-
-    routeDestination?.addEventListener(
-        'change',
-        () => {
-            if (currentlyApplyingSuggestion) {
-                return;
-            }
-
-            const suggestion =
-                findSuggestionByLocations(
-                    routeOrigin?.value,
-                    routeDestination.value
-                );
-
-            if (suggestion) {
-                applyRouteSuggestion(
-                    suggestion
-                );
-            }
-        }
+    routeForm?.addEventListener(
+        'submit',
+        validateRouteFormBeforeSubmit
     );
 
     /* =========================================================
-       APPLY ROUTE SUGGESTION
+       CREATE ROUTE
     ========================================================= */
 
-    async function applyRouteSuggestion(
-        suggestion,
-        options = {}
-    ) {
-        if (!suggestion) {
+    function openCreateRouteModal() {
+        resetCreateForm();
+        openModal(routeModal);
+
+        window.setTimeout(async () => {
+            await initializeMap();
+            map?.invalidateSize();
+        }, 150);
+    }
+
+    function resetCreateForm() {
+        if (!routeForm) {
             return;
         }
 
-        currentlyApplyingSuggestion = true;
+        routeForm.reset();
+        routeForm.action = originalAction;
 
-        const preserveRouteName =
-            options.preserveRouteName === true;
-
-        if (!preserveRouteName) {
-            setInputValue(
-                routeName,
-                suggestion.grouping
-            );
+        if (routeFormMethod) {
+            routeFormMethod.disabled = true;
+            routeFormMethod.value = 'POST';
         }
 
-        setInputValue(
-            routeOrigin,
-            suggestion.origin
+        setTextElement(
+            routeModalTitle,
+            'New Route'
         );
 
-        setInputValue(
+        setTextElement(
+            saveRouteText,
+            'Save Route'
+        );
+
+        setValue(
+            routeCode,
+            originalRouteCode
+        );
+
+        setValue(
+            routeStatus,
+            'Active'
+        );
+
+        populateStops([]);
+
+        getAllLocationInputs().forEach(
+            clearPlace
+        );
+
+        resetCalculation();
+        clearFormMap();
+
+        activeLocationInput = null;
+        pinMode = false;
+
+        if (pinButton) {
+            pinButton.disabled = true;
+        }
+
+        if (activeFieldLabel) {
+            activeFieldLabel.innerHTML = `
+                <i class="fa-solid fa-location-crosshairs"></i>
+                Click an Origin, Stop, or Destination field first.
+            `;
+        }
+    }
+
+    /* =========================================================
+       EDIT ROUTE
+    ========================================================= */
+
+    function prepareEditRoute(route) {
+        if (!routeForm) {
+            return;
+        }
+
+        routeForm.reset();
+        routeForm.action = route.updateUrl;
+
+        if (routeFormMethod) {
+            routeFormMethod.disabled = false;
+            routeFormMethod.value = 'PUT';
+        }
+
+        setTextElement(
+            routeModalTitle,
+            'Edit Route'
+        );
+
+        setTextElement(
+            saveRouteText,
+            'Update Route'
+        );
+
+        setValue(routeCode, route.routeCode);
+        setValue(routeName, route.routeName);
+        setValue(routeOrigin, route.origin);
+
+        setValue(
             routeDestination,
-            suggestion.destination
+            route.destination
         );
 
-        if (
-            suggestion.distance_km !== null &&
-            suggestion.distance_km !== undefined
-        ) {
-            setInputValue(
-                routeDistance,
-                suggestion.distance_km
-            );
-        }
-
-        if (
-            suggestion
-                .estimated_time_minutes !== null &&
-            suggestion
-                .estimated_time_minutes !== undefined
-        ) {
-            setInputValue(
-                routeTime,
-                suggestion
-                    .estimated_time_minutes
-            );
-        }
-
-        renderDestinationSuggestions();
-
-        populateFormGpsSelect(
-            getCurrentFormRoute()
+        setValue(
+            routeDistance,
+            route.distance
         );
 
-        if (
-            routeFormGpsTripSelect instanceof
-            HTMLSelectElement
-        ) {
-            routeFormGpsTripSelect.value =
-                String(
-                    suggestion
-                        .latest_gps_trip_id ??
-                    ''
-                );
-        }
+        setValue(
+            routeTime,
+            route.time
+        );
 
-        try {
-            await initializeFormGpsMap();
+        setValue(
+            routeStatus,
+            route.status
+        );
 
-            const record =
-                getGpsRecordById(
-                    suggestion
-                        .latest_gps_trip_id
-                );
+        populateStops(route.stops);
 
-            if (record) {
-                renderFormGpsTrip(record);
+        restorePlace(
+            routeOrigin,
+            route.originMeta
+        );
+
+        restorePlace(
+            routeDestination,
+            route.destinationMeta
+        );
+
+        route.stops.forEach((stop, index) => {
+            restorePlace(
+                getStopInputs()[index],
+                stop
+            );
+        });
+
+        const savedGeometry =
+            normalizeRouteGeometry(
+                route.routeGeometry
+            );
+
+        setValue(
+            hidden.geometry,
+            savedGeometry
+                ? JSON.stringify(savedGeometry)
+                : ''
+        );
+
+        lastCalculated = {
+            distance_km:
+                route.calculatedDistance ||
+                route.distance,
+
+            duration_minutes:
+                route.calculatedTime ||
+                route.time,
+
+            source:
+                route.distanceSource ||
+                'OSRM',
+
+            geometry:
+                savedGeometry,
+        };
+
+        openModal(routeModal);
+
+        window.setTimeout(async () => {
+            await initializeMap();
+            map?.invalidateSize();
+
+            if (savedGeometry) {
+                drawRoadGeometry(savedGeometry);
             } else {
-                renderSuggestionCoordinates(
-                    suggestion
-                );
+                renderFormMarkers();
             }
-        } catch (error) {
-            console.error(
-                'Unable to display suggested route:',
-                error
-            );
-
-            setFormGpsMapMessage(
-                'The suggested route was selected, but the map could not be displayed.',
-                'error'
-            );
-        } finally {
-            currentlyApplyingSuggestion = false;
-        }
+        }, 150);
     }
 
-    async function renderSuggestionCoordinates(
-        suggestion
-    ) {
-        const pair =
-            parseCoordinatePair(
-                suggestion.coordinates
-            );
+    /* =========================================================
+       DOCUMENT CLICK HANDLER
+    ========================================================= */
 
-        if (!pair || !formGpsMap) {
+    function handleDocumentClick(event) {
+        const target = event.target;
+
+        if (!(target instanceof Element)) {
             return;
         }
 
-        clearFormGpsLayer();
-
-        const originMarker =
-            window.L.marker(
-                pair.origin
+        const feedbackClose =
+            target.closest(
+                '[data-close-feedback]'
             );
 
-        originMarker.bindPopup(
-            buildSimplePopup(
-                'Origin',
-                suggestion.origin,
-                suggestion
-            )
-        );
+        if (feedbackClose) {
+            const feedbackModal =
+                feedbackClose.closest(
+                    '.feedback-modal-overlay'
+                );
 
-        const destinationMarker =
-            window.L.marker(
-                pair.destination
+            closeModal(feedbackModal);
+            return;
+        }
+
+        const editButton =
+            target.closest(
+                '.edit-route-btn'
             );
 
-        destinationMarker.bindPopup(
-            buildSimplePopup(
-                'Destination',
-                suggestion.destination,
-                suggestion
+        if (editButton) {
+            prepareEditRoute(
+                getRouteData(editButton)
+            );
+
+            return;
+        }
+
+        const viewButton =
+            target.closest(
+                '.open-route-details'
+            );
+
+        if (viewButton) {
+            showRouteDetails(
+                getRouteData(viewButton)
+            );
+
+            return;
+        }
+
+        const deleteButton =
+            target.closest(
+                '.open-delete-route-modal'
+            );
+
+        if (deleteButton) {
+            prepareDeleteRoute(deleteButton);
+            return;
+        }
+
+        if (
+            !target.closest(
+                '.location-autocomplete'
             )
+        ) {
+            closeAllSuggestionPanels();
+        }
+    }
+
+    /* =========================================================
+       STOPS
+    ========================================================= */
+
+    function handleStopListClick(event) {
+        const removeButton =
+            event.target.closest(
+                '.remove-route-stop'
+            );
+
+        if (!removeButton) {
+            return;
+        }
+
+        const row =
+            removeButton.closest(
+                '.route-stop-item'
+            );
+
+        if (!row) {
+            return;
+        }
+
+        const rows = getStopRows();
+
+        if (rows.length === 1) {
+            const input =
+                row.querySelector(
+                    'input[name="stops[]"]'
+                );
+
+            if (input) {
+                input.value = '';
+                clearPlace(input);
+            }
+        } else {
+            row.remove();
+        }
+
+        updateStopNumbers();
+        locationsChanged();
+    }
+
+    function addStopInput(
+        value = '',
+        focus = false,
+        stop = null
+    ) {
+        if (!routeStopList) {
+            return;
+        }
+
+        const row =
+            document.createElement('div');
+
+        row.className =
+            'ui-form-repeater-row route-stop-item';
+
+        row.innerHTML = `
+            <div
+                class="ui-form-repeater-number route-stop-number"
+            ></div>
+
+            <div class="route-stop-location-field">
+                <input
+                    type="text"
+                    name="stops[]"
+                    placeholder="Search or enter a stop"
+                    autocomplete="off"
+                >
+
+                <input
+                    type="hidden"
+                    name="stop_addresses[]"
+                >
+
+                <input
+                    type="hidden"
+                    name="stop_latitudes[]"
+                >
+
+                <input
+                    type="hidden"
+                    name="stop_longitudes[]"
+                >
+
+                <input
+                    type="hidden"
+                    name="stop_sources[]"
+                >
+            </div>
+
+            <button
+                type="button"
+                class="ui-form-repeater-remove remove-route-stop"
+                title="Remove Stop"
+            >
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        `;
+
+        routeStopList.appendChild(row);
+
+        const input =
+            row.querySelector(
+                'input[name="stops[]"]'
+            );
+
+        input.value =
+            typeof value === 'string'
+                ? value
+                : value?.name || '';
+
+        setupStopInput(input);
+
+        if (stop) {
+            restorePlace(input, stop);
+        }
+
+        updateStopNumbers();
+
+        if (focus) {
+            input.focus();
+        }
+    }
+
+    function populateStops(stops) {
+        if (!routeStopList) {
+            return;
+        }
+
+        routeStopList.innerHTML = '';
+
+        if (
+            !Array.isArray(stops) ||
+            stops.length === 0
+        ) {
+            addStopInput('');
+            return;
+        }
+
+        stops.forEach((stop) => {
+            addStopInput(
+                stop.name || stop,
+                false,
+                typeof stop === 'object'
+                    ? stop
+                    : null
+            );
+        });
+    }
+
+    function updateStopNumbers() {
+        getStopRows().forEach((row, index) => {
+            const number =
+                row.querySelector(
+                    '.route-stop-number'
+                );
+
+            const input =
+                row.querySelector(
+                    'input[name="stops[]"]'
+                );
+
+            if (number) {
+                number.textContent =
+                    String(index + 1);
+            }
+
+            if (input) {
+                input.dataset.role =
+                    `Stop ${index + 1}`;
+            }
+        });
+    }
+
+    /* =========================================================
+       AUTOCOMPLETE SETUP
+    ========================================================= */
+
+    function setupLocationInput(
+        input,
+        role,
+        hiddenFields = null
+    ) {
+        if (
+            !(input instanceof HTMLInputElement) ||
+            input.dataset.locationReady === '1'
+        ) {
+            return;
+        }
+
+        input.dataset.locationReady = '1';
+        input.dataset.role = role;
+        input.autocomplete = 'off';
+
+        if (hiddenFields) {
+            input._routeHidden =
+                hiddenFields;
+        }
+
+        wrapAutocomplete(input);
+    }
+
+    function setupStopInput(input) {
+        if (!(input instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const row =
+            input.closest(
+                '.route-stop-item'
+            );
+
+        input._routeHidden = {
+            address:
+                row?.querySelector(
+                    'input[name="stop_addresses[]"]'
+                ),
+
+            latitude:
+                row?.querySelector(
+                    'input[name="stop_latitudes[]"]'
+                ),
+
+            longitude:
+                row?.querySelector(
+                    'input[name="stop_longitudes[]"]'
+                ),
+
+            source:
+                row?.querySelector(
+                    'input[name="stop_sources[]"]'
+                ),
+        };
+
+        setupLocationInput(
+            input,
+            input.dataset.role || 'Stop',
+            input._routeHidden
+        );
+    }
+
+    function wrapAutocomplete(input) {
+        let wrapper =
+            input.closest(
+                '.location-autocomplete'
+            );
+
+        if (!wrapper) {
+            wrapper =
+                document.createElement('div');
+
+            wrapper.className =
+                'location-autocomplete';
+
+            input.parentNode.insertBefore(
+                wrapper,
+                input
+            );
+
+            wrapper.appendChild(input);
+        }
+
+        let status =
+            wrapper.querySelector(
+                '.location-confirmation-status'
+            );
+
+        if (!status) {
+            status =
+                document.createElement('div');
+
+            status.className =
+                'location-confirmation-status';
+
+            wrapper.appendChild(status);
+        }
+
+        let panel =
+            wrapper.querySelector(
+                '.location-suggestion-panel'
+            );
+
+        if (!panel) {
+            panel =
+                document.createElement('div');
+
+            panel.className =
+                'location-suggestion-panel';
+
+            panel.hidden = true;
+
+            panel.setAttribute(
+                'role',
+                'listbox'
+            );
+
+            wrapper.appendChild(panel);
+        }
+
+        let timer = null;
+        let highlightedIndex = -1;
+        let results = [];
+        let abortController = null;
+
+        const closePanel = () => {
+            panel.hidden = true;
+            panel.innerHTML = '';
+            highlightedIndex = -1;
+        };
+
+        autocompleteControllers.set(
+            input,
+            {
+                panel,
+                status,
+                closePanel,
+            }
         );
 
-        const referenceLine =
-            window.L.polyline(
-                [
-                    pair.origin,
-                    pair.destination,
-                ],
+        input.addEventListener('focus', () => {
+            setActiveInput(input);
+
+            if (input.value.trim()) {
+                runSearch();
+            }
+        });
+
+        input.addEventListener('click', () => {
+            setActiveInput(input);
+        });
+
+        input.addEventListener('input', () => {
+            setActiveInput(input);
+
+            if (
+                input.dataset.selectedName &&
+                normalize(input.value) !==
+                normalize(
+                    input.dataset.selectedName
+                )
+            ) {
+                clearPlace(input);
+                locationsChanged();
+            }
+
+            window.clearTimeout(timer);
+
+            const localResults =
+                searchGps(input.value);
+
+            results = localResults;
+
+            renderSuggestionPanel(
+                panel,
+                results,
+                input.value,
+                false
+            );
+
+            panel.hidden = false;
+
+            if (
+                input.value.trim().length >= 3
+            ) {
+                timer = window.setTimeout(
+                    runSearch,
+                    900
+                );
+            }
+        });
+
+        input.addEventListener(
+            'keydown',
+            (event) => {
+                if (panel.hidden) {
+                    return;
+                }
+
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+
+                    highlightedIndex =
+                        Math.min(
+                            highlightedIndex + 1,
+                            results.length - 1
+                        );
+
+                    highlightSuggestion(
+                        panel,
+                        highlightedIndex
+                    );
+                }
+
+                if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+
+                    highlightedIndex =
+                        Math.max(
+                            highlightedIndex - 1,
+                            0
+                        );
+
+                    highlightSuggestion(
+                        panel,
+                        highlightedIndex
+                    );
+                }
+
+                if (
+                    event.key === 'Enter' &&
+                    highlightedIndex >= 0
+                ) {
+                    event.preventDefault();
+
+                    const place =
+                        results[highlightedIndex];
+
+                    if (place) {
+                        choosePlace(
+                            input,
+                            place
+                        );
+                    }
+
+                    closePanel();
+                }
+
+                if (event.key === 'Escape') {
+                    closePanel();
+                }
+            }
+        );
+
+        panel.addEventListener(
+            'mousedown',
+            (event) => {
+                event.preventDefault();
+            }
+        );
+
+        panel.addEventListener(
+            'click',
+            (event) => {
+                const item =
+                    event.target.closest(
+                        '[data-place-index]'
+                    );
+
+                if (!item) {
+                    return;
+                }
+
+                const place =
+                    results[
+                        Number(
+                            item.dataset.placeIndex
+                        )
+                    ];
+
+                if (place) {
+                    choosePlace(
+                        input,
+                        place
+                    );
+                }
+
+                closePanel();
+            }
+        );
+
+        async function runSearch() {
+            const query =
+                input.value.trim();
+
+            const localResults =
+                searchGps(query);
+
+            results = localResults;
+
+            renderSuggestionPanel(
+                panel,
+                results,
+                query,
+                query.length >= 3
+            );
+
+            panel.hidden = false;
+
+            if (query.length < 3) {
+                return;
+            }
+
+            abortController?.abort();
+
+            abortController =
+                new AbortController();
+
+            try {
+                const remoteResults =
+                    await searchRemote(
+                        query,
+                        abortController.signal
+                    );
+
+                if (
+                    input.value.trim() !== query
+                ) {
+                    return;
+                }
+
+                results = dedupePlaces([
+                    ...localResults,
+                    ...remoteResults,
+                ]);
+
+                renderSuggestionPanel(
+                    panel,
+                    results,
+                    query,
+                    false
+                );
+            } catch (error) {
+                if (
+                    error.name !== 'AbortError'
+                ) {
+                    renderSuggestionPanel(
+                        panel,
+                        results,
+                        query,
+                        false,
+                        'Map search is temporarily unavailable.'
+                    );
+                }
+            }
+        }
+    }
+
+    /* =========================================================
+       AUTOCOMPLETE RESULTS
+    ========================================================= */
+
+    function renderSuggestionPanel(
+        panel,
+        places,
+        query,
+        loading = false,
+        error = ''
+    ) {
+        panel.innerHTML = '';
+
+        if (places.length) {
+            let previousGroup = '';
+
+            places.forEach((place, index) => {
+                const group =
+                    place.source === 'GPS Batch'
+                        ? 'Saved GPS locations'
+                        : 'OpenStreetMap results';
+
+                if (group !== previousGroup) {
+                    const heading =
+                        document.createElement(
+                            'div'
+                        );
+
+                    heading.className =
+                        'location-suggestion-heading';
+
+                    heading.textContent =
+                        group;
+
+                    panel.appendChild(heading);
+                    previousGroup = group;
+                }
+
+                const button =
+                    document.createElement(
+                        'button'
+                    );
+
+                button.type = 'button';
+
+                button.className =
+                    'location-suggestion-item';
+
+                button.dataset.placeIndex =
+                    String(index);
+
+                button.innerHTML = `
+                    <span class="location-suggestion-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </span>
+
+                    <span class="location-suggestion-copy">
+                        <strong>
+                            ${highlightMatch(
+                                place.name,
+                                query
+                            )}
+                        </strong>
+
+                        <small>
+                            ${escapeHtml(
+                                place.address ||
+                                place.name
+                            )}
+                        </small>
+                    </span>
+
+                    <span class="location-source-badge">
+                        ${escapeHtml(place.source)}
+                    </span>
+                `;
+
+                panel.appendChild(button);
+            });
+        }
+
+        if (loading) {
+            const loadingRow =
+                document.createElement('div');
+
+            loadingRow.className =
+                'location-suggestion-loading';
+
+            loadingRow.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Searching OpenStreetMap…
+            `;
+
+            panel.appendChild(loadingRow);
+        } else if (!places.length) {
+            const emptyRow =
+                document.createElement('div');
+
+            emptyRow.className =
+                'location-suggestion-empty';
+
+            emptyRow.innerHTML = `
+                <i class="fa-solid fa-map-pin"></i>
+
+                <div>
+                    <strong>
+                        No confirmed location found
+                    </strong>
+
+                    <span>
+                        Try another search or use
+                        “Pin Active Field” on the map.
+                    </span>
+                </div>
+            `;
+
+            panel.appendChild(emptyRow);
+        }
+
+        if (error) {
+            const errorRow =
+                document.createElement('div');
+
+            errorRow.className =
+                'location-suggestion-error';
+
+            errorRow.textContent = error;
+
+            panel.appendChild(errorRow);
+        }
+    }
+
+    async function searchRemote(
+        query,
+        signal
+    ) {
+        const cacheKey =
+            query.toLowerCase();
+
+        if (searchCache.has(cacheKey)) {
+            return searchCache.get(
+                cacheKey
+            );
+        }
+
+        if (!config.searchUrl) {
+            return [];
+        }
+
+        const response = await fetch(
+            `${config.searchUrl}?q=${encodeURIComponent(query)}`,
+            {
+                headers: {
+                    Accept:
+                        'application/json',
+
+                    'X-Requested-With':
+                        'XMLHttpRequest',
+                },
+
+                signal,
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                'Location search failed.'
+            );
+        }
+
+        const places =
+            (data.results || [])
+                .map(normalizePlace)
+                .filter(Boolean);
+
+        searchCache.set(
+            cacheKey,
+            places
+        );
+
+        return places;
+    }
+
+    function searchGps(query) {
+        const normalizedQuery =
+            normalize(query);
+
+        if (!normalizedQuery) {
+            return gpsLocations.slice(0, 8);
+        }
+
+        return gpsLocations
+            .map((place) => {
+                const normalizedName =
+                    normalize(place.name);
+
+                const normalizedAddress =
+                    normalize(place.address);
+
+                let score = 0;
+
+                if (
+                    normalizedName ===
+                    normalizedQuery
+                ) {
+                    score = 100;
+                } else if (
+                    normalizedName.startsWith(
+                        normalizedQuery
+                    )
+                ) {
+                    score = 80;
+                } else if (
+                    normalizedName.includes(
+                        normalizedQuery
+                    )
+                ) {
+                    score = 60;
+                } else if (
+                    normalizedAddress.includes(
+                        normalizedQuery
+                    )
+                ) {
+                    score = 40;
+                }
+
+                return {
+                    place,
+                    score,
+                };
+            })
+            .filter(
+                (entry) => entry.score > 0
+            )
+            .sort(
+                (a, b) =>
+                    b.score - a.score
+            )
+            .slice(0, 8)
+            .map(
+                (entry) => entry.place
+            );
+    }
+
+    /* =========================================================
+       LOCATION SELECTION
+    ========================================================= */
+
+    function choosePlace(
+        input,
+        place
+    ) {
+        if (!input || !place) {
+            return;
+        }
+
+        input.value = place.name;
+
+        input.dataset.selectedName =
+            place.name;
+
+        input.dataset.latitude =
+            String(place.latitude);
+
+        input.dataset.longitude =
+            String(place.longitude);
+
+        input.dataset.address =
+            place.address || place.name;
+
+        input.dataset.source =
+            place.source;
+
+        syncHiddenFields(input);
+        updateConfirmation(input, true);
+        setActiveInput(input);
+
+        focusSelectedPlace(place);
+        locationsChanged();
+    }
+
+    function restorePlace(
+        input,
+        place
+    ) {
+        if (
+            !input ||
+            !place ||
+            !isValidCoordinate(
+                place.latitude,
+                place.longitude
+            )
+        ) {
+            return;
+        }
+
+        input.dataset.selectedName =
+            input.value;
+
+        input.dataset.address =
+            place.address || input.value;
+
+        input.dataset.latitude =
+            String(place.latitude);
+
+        input.dataset.longitude =
+            String(place.longitude);
+
+        input.dataset.source =
+            place.source ||
+            place.location_source ||
+            'Saved Route';
+
+        syncHiddenFields(input);
+        updateConfirmation(input, true);
+    }
+
+    function clearPlace(input) {
+        if (!input) {
+            return;
+        }
+
+        delete input.dataset.selectedName;
+        delete input.dataset.latitude;
+        delete input.dataset.longitude;
+        delete input.dataset.address;
+        delete input.dataset.source;
+
+        syncHiddenFields(input);
+        updateConfirmation(input, false);
+    }
+
+    function syncHiddenFields(input) {
+        const fields =
+            input._routeHidden || {};
+
+        setValue(
+            fields.address,
+            input.dataset.address || ''
+        );
+
+        setValue(
+            fields.latitude,
+            input.dataset.latitude || ''
+        );
+
+        setValue(
+            fields.longitude,
+            input.dataset.longitude || ''
+        );
+
+        setValue(
+            fields.source,
+            input.dataset.source || ''
+        );
+    }
+
+    function updateConfirmation(
+        input,
+        confirmed
+    ) {
+        const status =
+            autocompleteControllers
+                .get(input)
+                ?.status;
+
+        if (!status) {
+            return;
+        }
+
+        status.className =
+            `location-confirmation-status ${
+                confirmed
+                    ? 'confirmed'
+                    : 'unconfirmed'
+            }`;
+
+        if (confirmed) {
+            status.innerHTML = `
+                <i class="fa-solid fa-circle-check"></i>
+
+                <span>
+                    Confirmed •
+                    ${escapeHtml(
+                        input.dataset.source || ''
+                    )}
+                </span>
+            `;
+
+            return;
+        }
+
+        status.innerHTML =
+            input.value.trim()
+                ? `
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <span>
+                        Select a suggestion or pin this location.
+                    </span>
+                `
+                : '';
+    }
+
+    function setActiveInput(input) {
+        activeLocationInput = input;
+
+        if (pinButton) {
+            pinButton.disabled = false;
+        }
+
+        if (activeFieldLabel) {
+            activeFieldLabel.innerHTML = `
+                <i class="fa-solid fa-location-crosshairs"></i>
+                Active: ${escapeHtml(fieldRole(input))}
+            `;
+        }
+    }
+
+    function closeAllSuggestionPanels() {
+        document
+            .querySelectorAll(
+                '.location-suggestion-panel'
+            )
+            .forEach((panel) => {
+                panel.hidden = true;
+            });
+    }
+
+    /* =========================================================
+       MANUAL PIN
+    ========================================================= */
+
+    async function enableManualPinMode() {
+        if (!activeLocationInput) {
+            return;
+        }
+
+        await initializeMap();
+
+        pinMode = true;
+
+        map
+            .getContainer()
+            .classList
+            .add('route-map-pin-mode');
+
+        setMapMessage(
+            `Click the map to position ${fieldRole(activeLocationInput)}.`,
+            'warning'
+        );
+    }
+
+    /* =========================================================
+       ADD / EDIT MAP
+    ========================================================= */
+
+    async function initializeMap() {
+        if (!mapElement) {
+            return;
+        }
+
+        await loadLeaflet();
+        fixDefaultLeafletIcons();
+
+        if (!map) {
+            map = L.map(
+                mapElement,
                 {
-                    weight: 5,
-                    opacity: 0.82,
-                    dashArray: '10 8',
+                    zoomControl: true,
+                    attributionControl: true,
+                }
+            ).setView(
+                [13.94, 121.16],
+                9
+            );
+
+            addOpenStreetMapTiles(map);
+
+            map.on('click', (event) => {
+                if (
+                    !pinMode ||
+                    !activeLocationInput
+                ) {
+                    return;
+                }
+
+                pinMode = false;
+
+                map
+                    .getContainer()
+                    .classList
+                    .remove(
+                        'route-map-pin-mode'
+                    );
+
+                const place = {
+                    name:
+                        activeLocationInput
+                            .value
+                            .trim() ||
+                        fieldRole(
+                            activeLocationInput
+                        ),
+
+                    address:
+                        activeLocationInput
+                            .value
+                            .trim() ||
+                        'Manually pinned location',
+
+                    latitude:
+                        event.latlng.lat,
+
+                    longitude:
+                        event.latlng.lng,
+
+                    source:
+                        'Manual Pin',
+                };
+
+                choosePlace(
+                    activeLocationInput,
+                    place
+                );
+            });
+        }
+
+        window.setTimeout(
+            () => map?.invalidateSize(),
+            100
+        );
+    }
+
+    function focusSelectedPlace(place) {
+        initializeMap().then(() => {
+            renderFormMarkers();
+
+            map.setView(
+                [
+                    Number(place.latitude),
+                    Number(place.longitude),
+                ],
+                16,
+                {
+                    animate: true,
                 }
             );
+        });
+    }
 
-        formGpsLayer =
-            window.L.featureGroup([
-                originMarker,
-                destinationMarker,
-                referenceLine,
-            ]);
+    /* =========================================================
+       ROUTE CALCULATION
+    ========================================================= */
 
-        formGpsLayer.addTo(
-            formGpsMap
+    function locationsChanged() {
+        distanceEdited = false;
+        timeEdited = false;
+
+        setValue(
+            hidden.distanceManual,
+            '0'
         );
 
-        formGpsBounds =
-            formGpsLayer.getBounds();
-
-        formGpsMap.fitBounds(
-            formGpsBounds,
-            {
-                padding: [35, 35],
-                maxZoom: 13,
-            }
+        setValue(
+            hidden.timeManual,
+            '0'
         );
 
-        originMarker.openPopup();
+        setValue(
+            hidden.geometry,
+            ''
+        );
+
+        renderFormMarkers();
+        calculateRoadRoute(false);
+    }
+
+    async function calculateRoadRoute(
+        force = false
+    ) {
+        const inputs =
+            getAllLocationInputs()
+                .filter(
+                    (input) =>
+                        input.value.trim()
+                );
+
+        const points =
+            inputs
+                .filter(hasCoordinates)
+                .map((input) => ({
+                    latitude:
+                        Number(
+                            input.dataset.latitude
+                        ),
+
+                    longitude:
+                        Number(
+                            input.dataset.longitude
+                        ),
+                }));
+
+        const hasIncompleteLocation =
+            inputs.length !== points.length;
 
         if (
-            fitRouteFormGpsMapButton instanceof
-            HTMLButtonElement
+            !hasCoordinates(routeOrigin) ||
+            !hasCoordinates(
+                routeDestination
+            ) ||
+            hasIncompleteLocation
         ) {
-            fitRouteFormGpsMapButton.disabled =
+            if (recalculateButton) {
+                recalculateButton.disabled =
+                    true;
+            }
+
+            setMapMessage(
+                'Confirm Origin, every entered Stop, and Destination to calculate the road route.',
+                'warning'
+            );
+
+            renderFormMarkers();
+            return;
+        }
+
+        if (recalculateButton) {
+            recalculateButton.disabled =
                 false;
         }
 
-        setFormGpsMapMessage(
-            `${normalizeText(
-                suggestion.grouping,
-                'Suggested route'
-            )} loaded from processed GPS data.`,
-            'success'
+        if (!config.routingUrl) {
+            setMapMessage(
+                'The routing URL is not configured.',
+                'error'
+            );
+
+            return;
+        }
+
+        routeRequestController?.abort();
+
+        routeRequestController =
+            new AbortController();
+
+        setMapMessage(
+            'Calculating road distance and travel time…',
+            'info'
+        );
+
+        try {
+            const response = await fetch(
+                config.routingUrl,
+                {
+                    method: 'POST',
+
+                    headers: {
+                        Accept:
+                            'application/json',
+
+                        'Content-Type':
+                            'application/json',
+
+                        'X-CSRF-TOKEN':
+                            config.csrfToken,
+
+                        'X-Requested-With':
+                            'XMLHttpRequest',
+                    },
+
+                    body:
+                        JSON.stringify({
+                            points,
+                        }),
+
+                    signal:
+                        routeRequestController
+                            .signal,
+                }
+            );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+                const validationMessage =
+                    Object.values(
+                        data.errors || {}
+                    )[0]?.[0];
+
+                throw new Error(
+                    data.message ||
+                    validationMessage ||
+                    'Route calculation failed.'
+                );
+            }
+
+            lastCalculated = data;
+
+            applyCalculatedValues(
+                data,
+                force
+            );
+
+            drawRoadGeometry(
+                data.geometry
+            );
+
+            setMapMessage(
+                `Route calculated successfully: ${data.distance_km} KM • ${data.duration_minutes} minutes.`,
+                'success'
+            );
+        } catch (error) {
+            if (
+                error.name === 'AbortError'
+            ) {
+                return;
+            }
+
+            console.error(
+                'Route calculation failed:',
+                error
+            );
+
+            setMapMessage(
+                `${error.message} You may enter distance and time manually.`,
+                'error'
+            );
+
+            renderFormMarkers();
+        }
+    }
+
+    function applyCalculatedValues(
+        data,
+        force = false
+    ) {
+        const geometry =
+            normalizeRouteGeometry(
+                data.geometry
+            );
+
+        setValue(
+            hidden.calculatedDistance,
+            data.distance_km
+        );
+
+        setValue(
+            hidden.calculatedTime,
+            data.duration_minutes
+        );
+
+        setValue(
+            hidden.distanceSource,
+            data.source || 'OSRM'
+        );
+
+        setValue(
+            hidden.geometry,
+            geometry
+                ? JSON.stringify(geometry)
+                : ''
+        );
+
+        if (
+            force ||
+            !distanceEdited
+        ) {
+            setValue(
+                routeDistance,
+                data.distance_km
+            );
+
+            distanceEdited = false;
+
+            setValue(
+                hidden.distanceManual,
+                '0'
+            );
+        }
+
+        if (
+            force ||
+            !timeEdited
+        ) {
+            setValue(
+                routeTime,
+                data.duration_minutes
+            );
+
+            timeEdited = false;
+
+            setValue(
+                hidden.timeManual,
+                '0'
+            );
+        }
+
+        if (calculatedDistanceText) {
+            calculatedDistanceText.textContent =
+                `${data.distance_km} KM calculated`;
+        }
+
+        if (calculatedTimeText) {
+            calculatedTimeText.textContent =
+                `${data.duration_minutes} min calculated`;
+        }
+
+        if (calculationSummary) {
+            calculationSummary.hidden =
+                false;
+        }
+    }
+
+    /* =========================================================
+       ADD / EDIT MARKERS
+    ========================================================= */
+
+    function renderFormMarkers() {
+        if (!map || !window.L) {
+            return;
+        }
+
+        clearFormMap();
+
+        const inputs =
+            getAllLocationInputs()
+                .filter(hasCoordinates);
+
+        if (!inputs.length) {
+            if (fitMapButton) {
+                fitMapButton.disabled = true;
+            }
+
+            return;
+        }
+
+        const markers = inputs.map((input) => {
+            const marker = L.marker([
+                Number(input.dataset.latitude),
+                Number(input.dataset.longitude),
+            ]);
+
+            marker.bindPopup(`
+                <div class="gps-map-popup">
+                    <strong>
+                        ${escapeHtml(fieldRole(input))}
+                    </strong>
+
+                    <span>
+                        ${escapeHtml(input.value)}
+                    </span>
+
+                    <small>
+                        ${escapeHtml(
+                            input.dataset.source || ''
+                        )}
+                    </small>
+                </div>
+            `);
+
+            return marker;
+        });
+
+        mapMarkerLayer =
+            L.featureGroup(markers)
+                .addTo(map);
+
+        mapBounds =
+            mapMarkerLayer.getBounds();
+
+        if (fitMapButton) {
+            fitMapButton.disabled = false;
+        }
+
+        if (
+            inputs.length > 1 &&
+            mapBounds.isValid()
+        ) {
+            map.fitBounds(
+                mapBounds,
+                {
+                    padding: [40, 40],
+                    maxZoom: 14,
+                }
+            );
+        }
+    }
+
+    function drawRoadGeometry(value) {
+        renderFormMarkers();
+
+        if (!map || !window.L) {
+            return;
+        }
+
+        const geometry =
+            normalizeRouteGeometry(value);
+
+        const latLngs =
+            getGeometryLatLngs(geometry);
+
+        if (latLngs.length < 2) {
+            console.warn(
+                'No valid OSRM geometry was available.',
+                value
+            );
+
+            return;
+        }
+
+        if (mapRoadLayer) {
+            map.removeLayer(mapRoadLayer);
+            mapRoadLayer = null;
+        }
+
+        const roadCasing =
+            L.polyline(
+                latLngs,
+                {
+                    color: '#ffffff',
+                    weight: 11,
+                    opacity: 0.98,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    interactive: false,
+                }
+            );
+
+        const roadMain =
+            L.polyline(
+                latLngs,
+                {
+                    color: '#0b40b5',
+                    weight: 6,
+                    opacity: 0.95,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                }
+            );
+
+        const roadHighlight =
+            L.polyline(
+                latLngs,
+                {
+                    color: '#60a5fa',
+                    weight: 2,
+                    opacity: 0.95,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    interactive: false,
+                }
+            );
+
+        mapRoadLayer =
+            L.layerGroup([
+                roadCasing,
+                roadMain,
+                roadHighlight,
+            ]).addTo(map);
+
+        const boundsItems = [
+            roadMain,
+        ];
+
+        if (mapMarkerLayer) {
+            boundsItems.push(
+                mapMarkerLayer
+            );
+        }
+
+        mapBounds =
+            L.featureGroup(
+                boundsItems
+            ).getBounds();
+
+        fitMapToBounds(
+            map,
+            mapBounds,
+            15
         );
     }
 
-    function buildSimplePopup(
-        type,
-        location,
-        suggestion
-    ) {
-        return `
-            <div class="gps-map-popup">
-                <strong>
-                    ${escapeHtml(type)}:
-                    ${escapeHtml(location)}
-                </strong>
+    function clearFormMap() {
+        if (
+            map &&
+            mapMarkerLayer
+        ) {
+            map.removeLayer(
+                mapMarkerLayer
+            );
+        }
 
-                <span>
-                    Route:
-                    ${escapeHtml(
-                        suggestion.grouping
-                    )}
-                </span>
+        if (
+            map &&
+            mapRoadLayer
+        ) {
+            map.removeLayer(
+                mapRoadLayer
+            );
+        }
 
-                <span>
-                    Bus:
-                    ${escapeHtml(
-                        suggestion.bus_no ||
-                        'Unknown Bus'
-                    )}
-                </span>
-            </div>
+        mapMarkerLayer = null;
+        mapRoadLayer = null;
+        mapBounds = null;
+    }
+
+    /* =========================================================
+       VIEW ROUTE DETAILS
+    ========================================================= */
+
+    async function showRouteDetails(route) {
+        setText(
+            'viewRouteCode',
+            route.routeCode || '—'
+        );
+
+        setText(
+            'viewRouteName',
+            route.routeName || '—'
+        );
+
+        setText(
+            'viewRouteOrigin',
+            route.origin || '—'
+        );
+
+        setText(
+            'viewRouteDestination',
+            route.destination || '—'
+        );
+
+        setText(
+            'viewRouteDistance',
+            route.distance
+                ? `${Number(route.distance).toFixed(2)} KM`
+                : '—'
+        );
+
+        setText(
+            'viewRouteTime',
+            route.time
+                ? `${route.time} minutes`
+                : '—'
+        );
+
+        renderViewStatus(
+            route.status
+        );
+
+        renderViewRouteSequence(
+            route
+        );
+
+        setText(
+            'viewRouteStopCount',
+            `${route.stops.length} ${
+                route.stops.length === 1
+                    ? 'Stop'
+                    : 'Stops'
+            }`
+        );
+
+        openModal(routeDetailsModal);
+
+        window.setTimeout(async () => {
+            try {
+                await initializeViewMap();
+                viewMap?.invalidateSize();
+
+                drawSavedRouteInView(
+                    route
+                );
+            } catch (error) {
+                console.error(
+                    'Unable to display saved route map:',
+                    error
+                );
+
+                setViewMapMessage(
+                    'The saved route map could not be loaded.',
+                    'error'
+                );
+            }
+        }, 150);
+    }
+
+    function renderViewStatus(status) {
+        const container =
+            $('viewRouteStatus');
+
+        if (!container) {
+            return;
+        }
+
+        const value =
+            status || 'Inactive';
+
+        container.innerHTML = `
+            <span
+                class="route-status ${escapeHtml(
+                    value.toLowerCase()
+                )}"
+            >
+                ${escapeHtml(value)}
+            </span>
         `;
     }
 
+    function renderViewRouteSequence(route) {
+        const path =
+            $('viewRoutePath');
+
+        if (!path) {
+            return;
+        }
+
+        path.innerHTML = '';
+
+        const nodes = [
+            {
+                name: route.origin,
+                role: 'Origin',
+                type: 'origin',
+            },
+
+            ...route.stops.map(
+                (stop, index) => ({
+                    name:
+                        stop.name ||
+                        `Stop ${index + 1}`,
+
+                    role:
+                        `Stop ${index + 1}`,
+
+                    type: 'stop',
+                })
+            ),
+
+            {
+                name: route.destination,
+                role: 'Destination',
+                type: 'destination',
+            },
+        ];
+
+        nodes.forEach((node) => {
+            const item =
+                document.createElement(
+                    'article'
+                );
+
+            item.className =
+                `horizontal-route-node ${node.type}`;
+
+            item.innerHTML = `
+                <div
+                    class="horizontal-route-marker"
+                ></div>
+
+                <div
+                    class="horizontal-route-content"
+                >
+                    <strong>
+                        ${escapeHtml(node.name)}
+                    </strong>
+
+                    <span>
+                        ${escapeHtml(node.role)}
+                    </span>
+                </div>
+            `;
+
+            path.appendChild(item);
+        });
+    }
+
     /* =========================================================
-       FIND SUGGESTIONS
+       VIEW ROUTE MAP
     ========================================================= */
 
-    function findSuggestionByGrouping(value) {
-        const normalized =
-            normalizeComparable(value);
-
-        if (!normalized) {
-            return null;
+    async function initializeViewMap() {
+        if (!viewMapElement) {
+            return;
         }
 
-        return gpsRouteSuggestions.find(
-            (suggestion) =>
-                normalizeComparable(
-                    suggestion.grouping
-                ) === normalized
-        ) ?? null;
+        await loadLeaflet();
+        fixDefaultLeafletIcons();
+
+        if (!viewMap) {
+            viewMap = L.map(
+                viewMapElement,
+                {
+                    zoomControl: true,
+                    attributionControl: true,
+                }
+            ).setView(
+                [13.94, 121.16],
+                9
+            );
+
+            addOpenStreetMapTiles(viewMap);
+        }
+
+        window.setTimeout(
+            () => viewMap?.invalidateSize(),
+            100
+        );
     }
 
-    function findSuggestionByLocations(
-        origin,
-        destination
-    ) {
-        const normalizedOrigin =
-            normalizeComparable(origin);
-
-        const normalizedDestination =
-            normalizeComparable(destination);
-
-        if (
-            !normalizedOrigin ||
-            !normalizedDestination
-        ) {
-            return null;
+    function drawSavedRouteInView(route) {
+        if (!viewMap || !window.L) {
+            return;
         }
 
-        return gpsRouteSuggestions.find(
-            (suggestion) =>
-                normalizeComparable(
-                    suggestion.origin
-                ) === normalizedOrigin &&
-                normalizeComparable(
-                    suggestion.destination
-                ) === normalizedDestination
-        ) ?? null;
+        clearViewMap();
+
+        const points = [];
+
+        if (
+            isValidCoordinate(
+                route.originMeta?.latitude,
+                route.originMeta?.longitude
+            )
+        ) {
+            points.push({
+                label: 'Origin',
+                name: route.origin,
+
+                latitude:
+                    Number(
+                        route.originMeta.latitude
+                    ),
+
+                longitude:
+                    Number(
+                        route.originMeta.longitude
+                    ),
+
+                source:
+                    route.originMeta.source ||
+                    'Saved Route',
+            });
+        }
+
+        route.stops.forEach(
+            (stop, index) => {
+                if (
+                    !isValidCoordinate(
+                        stop.latitude,
+                        stop.longitude
+                    )
+                ) {
+                    return;
+                }
+
+                points.push({
+                    label:
+                        `Stop ${index + 1}`,
+
+                    name:
+                        stop.name ||
+                        `Stop ${index + 1}`,
+
+                    latitude:
+                        Number(stop.latitude),
+
+                    longitude:
+                        Number(stop.longitude),
+
+                    source:
+                        stop.source ||
+                        stop.location_source ||
+                        'Saved Route',
+                });
+            }
+        );
+
+        if (
+            isValidCoordinate(
+                route.destinationMeta?.latitude,
+                route.destinationMeta?.longitude
+            )
+        ) {
+            points.push({
+                label: 'Destination',
+                name: route.destination,
+
+                latitude:
+                    Number(
+                        route.destinationMeta.latitude
+                    ),
+
+                longitude:
+                    Number(
+                        route.destinationMeta.longitude
+                    ),
+
+                source:
+                    route.destinationMeta.source ||
+                    'Saved Route',
+            });
+        }
+
+        if (!points.length) {
+            setViewMapMessage(
+                'This route has no saved map coordinates.',
+                'warning'
+            );
+
+            if (viewFitMapButton) {
+                viewFitMapButton.disabled =
+                    true;
+            }
+
+            return;
+        }
+
+        const markers =
+            points.map((point) => {
+                const marker = L.marker([
+                    point.latitude,
+                    point.longitude,
+                ]);
+
+                marker.bindPopup(`
+                    <div class="gps-map-popup">
+                        <strong>
+                            ${escapeHtml(point.label)}
+                        </strong>
+
+                        <span>
+                            ${escapeHtml(point.name)}
+                        </span>
+
+                        <small>
+                            ${escapeHtml(point.source)}
+                        </small>
+                    </div>
+                `);
+
+                return marker;
+            });
+
+        viewMarkerLayer =
+            L.featureGroup(markers)
+                .addTo(viewMap);
+
+        const geometry =
+            normalizeRouteGeometry(
+                route.routeGeometry
+            );
+
+        const roadLatLngs =
+            getGeometryLatLngs(
+                geometry
+            );
+
+        let visibleRoadLayer = null;
+
+        if (roadLatLngs.length >= 2) {
+            const roadCasing =
+                L.polyline(
+                    roadLatLngs,
+                    {
+                        color: '#ffffff',
+                        weight: 11,
+                        opacity: 0.98,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        interactive: false,
+                    }
+                );
+
+            const roadMain =
+                L.polyline(
+                    roadLatLngs,
+                    {
+                        color: '#0b40b5',
+                        weight: 6,
+                        opacity: 0.95,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                    }
+                );
+
+            const roadHighlight =
+                L.polyline(
+                    roadLatLngs,
+                    {
+                        color: '#60a5fa',
+                        weight: 2,
+                        opacity: 0.95,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        interactive: false,
+                    }
+                );
+
+            viewRoadLayer =
+                L.layerGroup([
+                    roadCasing,
+                    roadMain,
+                    roadHighlight,
+                ]).addTo(viewMap);
+
+            visibleRoadLayer =
+                roadMain;
+        } else if (points.length >= 2) {
+            const fallback =
+                points.map(
+                    (point) => [
+                        point.latitude,
+                        point.longitude,
+                    ]
+                );
+
+            const fallbackCasing =
+                L.polyline(
+                    fallback,
+                    {
+                        color: '#ffffff',
+                        weight: 10,
+                        opacity: 0.95,
+                        interactive: false,
+                    }
+                );
+
+            const fallbackMain =
+                L.polyline(
+                    fallback,
+                    {
+                        color: '#0b40b5',
+                        weight: 5,
+                        opacity: 0.9,
+                        dashArray: '10 8',
+                    }
+                );
+
+            viewRoadLayer =
+                L.layerGroup([
+                    fallbackCasing,
+                    fallbackMain,
+                ]).addTo(viewMap);
+
+            visibleRoadLayer =
+                fallbackMain;
+        }
+
+        const boundsItems = [
+            viewMarkerLayer,
+        ];
+
+        if (visibleRoadLayer) {
+            boundsItems.push(
+                visibleRoadLayer
+            );
+        }
+
+        viewMapBounds =
+            L.featureGroup(
+                boundsItems
+            ).getBounds();
+
+        fitMapToBounds(
+            viewMap,
+            viewMapBounds,
+            15
+        );
+
+        if (viewFitMapButton) {
+            viewFitMapButton.disabled =
+                false;
+        }
+
+        const hasActualGeometry =
+            roadLatLngs.length >= 2;
+
+        setViewMapMessage(
+            hasActualGeometry
+                ? 'Actual saved OSRM road route displayed.'
+                : 'No saved OSRM geometry was found. A reference path is displayed.',
+
+            hasActualGeometry
+                ? 'success'
+                : 'warning'
+        );
+    }
+
+    function clearViewMap() {
+        if (
+            viewMap &&
+            viewMarkerLayer
+        ) {
+            viewMap.removeLayer(
+                viewMarkerLayer
+            );
+        }
+
+        if (
+            viewMap &&
+            viewRoadLayer
+        ) {
+            viewMap.removeLayer(
+                viewRoadLayer
+            );
+        }
+
+        viewMarkerLayer = null;
+        viewRoadLayer = null;
+        viewMapBounds = null;
     }
 
     /* =========================================================
-       MODAL HELPERS
+       DELETE ROUTE
+    ========================================================= */
+
+    function prepareDeleteRoute(button) {
+        selectedDeleteForm =
+            document.getElementById(
+                button.dataset.formId || ''
+            );
+
+        setText(
+            'deleteRouteName',
+            [
+                button.dataset.routeCode,
+                button.dataset.routeName,
+            ]
+                .filter(Boolean)
+                .join(' - ') ||
+            'this route'
+        );
+
+        openModal(deleteRouteModal);
+    }
+
+    /* =========================================================
+       VALIDATION
+    ========================================================= */
+
+    function validateRouteFormBeforeSubmit(
+        event
+    ) {
+        const invalidLocations =
+            getAllLocationInputs()
+                .filter(
+                    (input) =>
+                        input.value.trim() &&
+                        !hasCoordinates(input)
+                );
+
+        if (
+            !hasCoordinates(routeOrigin) ||
+            !hasCoordinates(
+                routeDestination
+            ) ||
+            invalidLocations.length
+        ) {
+            event.preventDefault();
+
+            setMapMessage(
+                'Confirm Origin, every entered Stop, and Destination by selecting a suggestion or pinning them on the map.',
+                'error'
+            );
+
+            const firstInvalid =
+                invalidLocations[0] ||
+                (
+                    !hasCoordinates(routeOrigin)
+                        ? routeOrigin
+                        : routeDestination
+                );
+
+            firstInvalid?.focus();
+            return;
+        }
+
+        if (saveRouteButton) {
+            saveRouteButton.disabled = true;
+        }
+
+        if (saveRouteText) {
+            saveRouteText.textContent =
+                routeFormMethod?.disabled
+                    ? 'Saving...'
+                    : 'Updating...';
+        }
+    }
+
+    /* =========================================================
+       TABLE SEARCH
+    ========================================================= */
+
+    function filterRouteTable() {
+        const query =
+            routeSearch
+                ?.value
+                .trim()
+                .toLowerCase() || '';
+
+        document
+            .querySelectorAll(
+                '.routes-table tbody tr'
+            )
+            .forEach((row) => {
+                row.hidden =
+                    query !== '' &&
+                    !row
+                        .textContent
+                        .toLowerCase()
+                        .includes(query);
+            });
+    }
+
+    /* =========================================================
+       ROUTE DATA
+    ========================================================= */
+
+    function getRouteData(button) {
+        return {
+            routeCode:
+                button.dataset.routeCode ||
+                '',
+
+            routeName:
+                button.dataset.routeName ||
+                '',
+
+            origin:
+                button.dataset.origin ||
+                '',
+
+            destination:
+                button.dataset.destination ||
+                '',
+
+            distance:
+                button.dataset.distance ||
+                '',
+
+            time:
+                button.dataset.time ||
+                '',
+
+            calculatedDistance:
+                button.dataset.calculatedDistance ||
+                '',
+
+            calculatedTime:
+                button.dataset.calculatedTime ||
+                '',
+
+            distanceSource:
+                button.dataset.distanceSource ||
+                '',
+
+            status:
+                button.dataset.status ||
+                'Active',
+
+            updateUrl:
+                button.dataset.updateUrl ||
+                '',
+
+            originMeta: {
+                address:
+                    button.dataset.originAddress,
+
+                latitude:
+                    button.dataset.originLatitude,
+
+                longitude:
+                    button.dataset.originLongitude,
+
+                source:
+                    button.dataset.originSource,
+            },
+
+            destinationMeta: {
+                address:
+                    button.dataset.destinationAddress,
+
+                latitude:
+                    button.dataset.destinationLatitude,
+
+                longitude:
+                    button.dataset.destinationLongitude,
+
+                source:
+                    button.dataset.destinationSource,
+            },
+
+            stops:
+                parseStops(
+                    button.dataset.stops
+                ),
+
+            routeGeometry:
+                normalizeRouteGeometry(
+                    button.dataset.routeGeometry
+                ),
+        };
+    }
+
+    /* =========================================================
+       RESET
+    ========================================================= */
+
+    function resetCalculation() {
+        distanceEdited = false;
+        timeEdited = false;
+        lastCalculated = null;
+
+        setValue(
+            hidden.calculatedDistance,
+            ''
+        );
+
+        setValue(
+            hidden.calculatedTime,
+            ''
+        );
+
+        setValue(
+            hidden.distanceSource,
+            ''
+        );
+
+        setValue(
+            hidden.distanceManual,
+            '0'
+        );
+
+        setValue(
+            hidden.timeManual,
+            '0'
+        );
+
+        setValue(
+            hidden.geometry,
+            ''
+        );
+
+        if (calculationSummary) {
+            calculationSummary.hidden =
+                true;
+        }
+
+        if (recalculateButton) {
+            recalculateButton.disabled =
+                true;
+        }
+
+        if (fitMapButton) {
+            fitMapButton.disabled =
+                true;
+        }
+
+        setMapMessage(
+            'Select confirmed locations to build the road route.',
+            'info'
+        );
+    }
+
+    /* =========================================================
+       MODALS
     ========================================================= */
 
     function openModal(modal) {
-        if (!(modal instanceof HTMLElement)) {
+        if (!modal) {
             return;
         }
 
@@ -883,12 +2851,16 @@ document.addEventListener('DOMContentLoaded', () => {
             'false'
         );
 
-        body.classList.add('modal-open');
-        body.style.overflow = 'hidden';
+        body.classList.add(
+            'modal-open'
+        );
+
+        body.style.overflow =
+            'hidden';
     }
 
     function closeModal(modal) {
-        if (!(modal instanceof HTMLElement)) {
+        if (!modal) {
             return;
         }
 
@@ -902,7 +2874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'true'
         );
 
-        const remainingOpenModal =
+        const openModalExists =
             document.querySelector(
                 '.ui-form-overlay.show, ' +
                 '.ui-form-overlay.active, ' +
@@ -912,7 +2884,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 '.modal-overlay.active'
             );
 
-        if (!remainingOpenModal) {
+        if (!openModalExists) {
             body.classList.remove(
                 'modal-open'
             );
@@ -923,1824 +2895,324 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function isModalOpen(modal) {
-        return (
-            modal instanceof HTMLElement &&
-            (
-                modal.classList.contains(
-                    'show'
-                ) ||
-                modal.classList.contains(
-                    'active'
-                )
-            )
-        );
-    }
-
-    /* =========================================================
-       ROUTE DATA
-    ========================================================= */
-
-    function getRouteData(button) {
-        return {
-            id:
-                normalizeText(
-                    button.dataset.id
-                ),
-
-            routeCode:
-                normalizeText(
-                    button.dataset.routeCode
-                ),
-
-            routeName:
-                normalizeText(
-                    button.dataset.routeName
-                ),
-
-            origin:
-                normalizeText(
-                    button.dataset.origin
-                ),
-
-            destination:
-                normalizeText(
-                    button.dataset.destination
-                ),
-
-            distance:
-                normalizeText(
-                    button.dataset.distance
-                ),
-
-            time:
-                normalizeText(
-                    button.dataset.time
-                ),
-
-            status:
-                normalizeText(
-                    button.dataset.status,
-                    'Active'
-                ),
-
-            updateUrl:
-                normalizeText(
-                    button.dataset.updateUrl
-                ),
-
-            stops:
-                parseStops(
-                    button.dataset.stops
-                ),
-        };
-    }
-
-    function parseStops(rawStops) {
-        if (!rawStops) {
-            return [];
+    function handleEscapeKey(event) {
+        if (event.key !== 'Escape') {
+            return;
         }
 
-        try {
-            const parsed =
-                JSON.parse(rawStops);
+        closeAllSuggestionPanels();
 
-            if (!Array.isArray(parsed)) {
-                return [];
-            }
-
-            return parsed
-                .map(
-                    (stop) =>
-                        normalizeText(stop)
-                )
-                .filter(Boolean);
-        } catch (error) {
-            console.error(
-                'Invalid route stops JSON:',
-                error
-            );
-
-            return [];
-        }
-    }
-
-    /* =========================================================
-       NEW ROUTE
-    ========================================================= */
-
-    openRouteModalButton?.addEventListener(
-        'click',
-        () => {
-            resetCreateForm();
-            prepareRouteFormMap();
-
-            openModal(routeModal);
-
-            window.setTimeout(() => {
-                initializeFormGpsMap()
-                    .catch((error) => {
-                        console.error(
-                            'Unable to initialize form GPS map:',
-                            error
-                        );
-
-                        setFormGpsMapMessage(
-                            'The GPS map could not be loaded.',
-                            'error'
-                        );
-                    });
-            }, 150);
-
-            window.requestAnimationFrame(
-                () => {
-                    routeName?.focus();
-                }
-            );
-        }
-    );
-
-    function resetCreateForm() {
         if (
-            !(
-                routeForm instanceof
-                HTMLFormElement
-            )
+            routeDetailsModal?.classList
+                .contains('active')
         ) {
+            closeModal(routeDetailsModal);
             return;
         }
 
-        routeForm.reset();
-
-        routeForm.action =
-            originalStoreUrl;
-
-        if (routeFormMethod) {
-            routeFormMethod.disabled =
-                true;
-
-            routeFormMethod.value =
-                'POST';
-        }
-
-        setElementText(
-            routeModalTitle,
-            'New Route'
-        );
-
-        setElementText(
-            saveRouteText,
-            'Save Route'
-        );
-
-        setInputValue(
-            routeCode,
-            originalRouteCode
-        );
-
-        setInputValue(
-            routeStatus,
-            'Active'
-        );
-
-        populateStops([]);
-        renderDestinationSuggestions();
-        resetSubmitButton();
-        clearValidationStyles();
-    }
-
-    /* =========================================================
-       EDIT ROUTE
-    ========================================================= */
-
-    document.addEventListener(
-        'click',
-        (event) => {
-            const target = event.target;
-
-            if (!(target instanceof Element)) {
-                return;
-            }
-
-            const editButton =
-                target.closest(
-                    '.edit-route-btn'
-                );
-
-            if (
-                !(
-                    editButton instanceof
-                    HTMLElement
-                )
-            ) {
-                return;
-            }
-
-            prepareEditRoute(
-                getRouteData(editButton)
-            );
-        }
-    );
-
-    function prepareEditRoute(route) {
         if (
-            !(
-                routeForm instanceof
-                HTMLFormElement
-            )
+            routeModal?.classList
+                .contains('active')
         ) {
+            closeModal(routeModal);
             return;
         }
 
-        routeForm.reset();
-
-        if (route.updateUrl) {
-            routeForm.action =
-                route.updateUrl;
-        }
-
-        if (routeFormMethod) {
-            routeFormMethod.disabled =
-                false;
-
-            routeFormMethod.value =
-                'PUT';
-        }
-
-        setElementText(
-            routeModalTitle,
-            'Edit Route'
-        );
-
-        setElementText(
-            saveRouteText,
-            'Update Route'
-        );
-
-        setInputValue(
-            routeCode,
-            route.routeCode
-        );
-
-        setInputValue(
-            routeName,
-            route.routeName
-        );
-
-        setInputValue(
-            routeOrigin,
-            route.origin
-        );
-
-        setInputValue(
-            routeDestination,
-            route.destination
-        );
-
-        setInputValue(
-            routeDistance,
-            route.distance
-        );
-
-        setInputValue(
-            routeTime,
-            route.time
-        );
-
-        setInputValue(
-            routeStatus,
-            route.status
-        );
-
-        populateStops(route.stops);
-
-        renderDestinationSuggestions();
-        resetSubmitButton();
-        clearValidationStyles();
-
-        prepareRouteFormMap();
-
-        openModal(routeModal);
-
-        window.setTimeout(() => {
-            initializeFormGpsMap()
-                .then(() => {
-                    const matching =
-                        findSuggestionByLocations(
-                            route.origin,
-                            route.destination
-                        );
-
-                    if (matching) {
-                        applyRouteSuggestion(
-                            matching
-                        );
-                    }
-                })
-                .catch((error) => {
-                    console.error(
-                        'Unable to initialize form GPS map:',
-                        error
-                    );
-
-                    setFormGpsMapMessage(
-                        'The GPS map could not be loaded.',
-                        'error'
-                    );
-                });
-        }, 150);
-
-        window.requestAnimationFrame(
-            () => {
-                routeName?.focus();
-            }
-        );
-    }
-
-    /* =========================================================
-       CLOSE ROUTE FORM
-    ========================================================= */
-
-    document
-        .querySelectorAll(
-            '[data-close-route-modal]'
-        )
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    closeModal(routeModal);
-                    resetSubmitButton();
-                }
-            );
-        });
-
-    /* =========================================================
-       ROUTE STOPS
-    ========================================================= */
-
-    addRouteStopButton?.addEventListener(
-        'click',
-        () => {
-            addStopInput('', true);
-        }
-    );
-
-    routeStopList?.addEventListener(
-        'click',
-        (event) => {
-            const target = event.target;
-
-            if (!(target instanceof Element)) {
-                return;
-            }
-
-            const removeButton =
-                target.closest(
-                    '.remove-route-stop'
-                );
-
-            if (
-                !(
-                    removeButton instanceof
-                    HTMLButtonElement
-                )
-            ) {
-                return;
-            }
-
-            const row =
-                removeButton.closest(
-                    '.route-stop-item'
-                );
-
-            if (!(row instanceof HTMLElement)) {
-                return;
-            }
-
-            const rows = getStopRows();
-
-            if (rows.length <= 1) {
-                const input =
-                    row.querySelector(
-                        'input[name="stops[]"]'
-                    );
-
-                if (
-                    input instanceof
-                    HTMLInputElement
-                ) {
-                    input.value = '';
-                    input.focus();
-                }
-
-                return;
-            }
-
-            row.remove();
-            updateStopNumbers();
-        }
-    );
-
-    function populateStops(stops = []) {
         if (
-            !(
-                routeStopList instanceof
-                HTMLElement
-            )
+            deleteRouteModal?.classList
+                .contains('active')
         ) {
+            closeModal(deleteRouteModal);
             return;
         }
 
-        routeStopList.innerHTML = '';
-
-        const validStops =
-            Array.isArray(stops)
-                ? stops
-                    .map(
-                        (stop) =>
-                            normalizeText(
-                                stop
-                            )
-                    )
-                    .filter(Boolean)
-                : [];
-
-        if (validStops.length === 0) {
-            addStopInput('');
-            return;
+        if (
+            validationModal?.classList
+                .contains('active')
+        ) {
+            closeModal(validationModal);
         }
-
-        validStops.forEach((stop) => {
-            addStopInput(stop);
-        });
-
-        updateStopNumbers();
     }
 
-    function addStopInput(
-        value = '',
-        focusInput = false
+    /* =========================================================
+       MAP HELPERS
+    ========================================================= */
+
+    function fitMapToBounds(
+        targetMap,
+        bounds,
+        maxZoom = 15
     ) {
         if (
-            !(
-                routeStopList instanceof
-                HTMLElement
-            )
+            !targetMap ||
+            !bounds?.isValid()
         ) {
             return;
         }
 
-        const row =
-            document.createElement('div');
-
-        row.className =
-            'ui-form-repeater-row ' +
-            'route-stop-item';
-
-        const number =
-            document.createElement('div');
-
-        number.className =
-            'ui-form-repeater-number ' +
-            'route-stop-number';
-
-        const input =
-            document.createElement('input');
-
-        input.type = 'text';
-        input.name = 'stops[]';
-
-        input.value =
-            normalizeText(value);
-
-        input.placeholder =
-            'Enter stop name';
-
-        input.autocomplete = 'off';
-
-        const removeButton =
-            document.createElement('button');
-
-        removeButton.type = 'button';
-
-        removeButton.className =
-            'ui-form-repeater-remove ' +
-            'remove-route-stop';
-
-        removeButton.title =
-            'Remove Stop';
-
-        removeButton.innerHTML = `
-            <i
-                class="fa-solid fa-trash"
-                aria-hidden="true"
-            ></i>
-        `;
-
-        row.append(
-            number,
-            input,
-            removeButton
-        );
-
-        routeStopList.appendChild(row);
-
-        updateStopNumbers();
-
-        if (focusInput) {
-            input.focus();
-        }
-    }
-
-    function getStopRows() {
-        if (
-            !(
-                routeStopList instanceof
-                HTMLElement
-            )
-        ) {
-            return [];
-        }
-
-        return Array.from(
-            routeStopList.querySelectorAll(
-                '.route-stop-item'
-            )
-        );
-    }
-
-    function updateStopNumbers() {
-        getStopRows().forEach(
-            (row, index) => {
-                const number =
-                    row.querySelector(
-                        '.route-stop-number'
-                    );
-
-                if (number) {
-                    number.textContent =
-                        String(index + 1);
-                }
-
-                const input =
-                    row.querySelector(
-                        'input[name="stops[]"]'
-                    );
-
-                if (
-                    input instanceof
-                    HTMLInputElement
-                ) {
-                    input.setAttribute(
-                        'aria-label',
-                        `Shuttle stop ${index + 1}`
-                    );
-                }
-            }
-        );
-    }
-
-    /* =========================================================
-       FORM GPS SELECT
-    ========================================================= */
-
-    function getCurrentFormRoute() {
-        return {
-            routeName:
-                normalizeText(
-                    routeName?.value
-                ),
-
-            origin:
-                normalizeText(
-                    routeOrigin?.value
-                ),
-
-            destination:
-                normalizeText(
-                    routeDestination?.value
-                ),
-        };
-    }
-
-    function prepareRouteFormMap() {
-        populateFormGpsSelect(
-            getCurrentFormRoute()
-        );
-
-        resetFormGpsMap();
-    }
-
-    function populateFormGpsSelect(route) {
-        populateGpsSelect(
-            routeFormGpsTripSelect,
-            route
-        );
-    }
-
-    routeFormGpsTripSelect?.addEventListener(
-        'change',
-        async () => {
-            const record =
-                getGpsRecordById(
-                    routeFormGpsTripSelect.value
-                );
-
-            if (!record) {
-                resetFormGpsMap();
-                return;
-            }
-
-            try {
-                await initializeFormGpsMap();
-
-                renderFormGpsTrip(
-                    record
-                );
-            } catch (error) {
-                console.error(
-                    'Unable to display form GPS trip:',
-                    error
-                );
-
-                setFormGpsMapMessage(
-                    'The selected GPS trip could not be displayed.',
-                    'error'
-                );
-            }
-        }
-    );
-
-    fitRouteFormGpsMapButton
-        ?.addEventListener(
-            'click',
-            () => {
-                if (
-                    formGpsMap &&
-                    formGpsBounds
-                ) {
-                    formGpsMap.fitBounds(
-                        formGpsBounds,
-                        {
-                            padding:
-                                [35, 35],
-
-                            maxZoom:
-                                13,
-                        }
-                    );
-                }
-            }
-        );
-
-    async function initializeFormGpsMap() {
-        if (
-            !(
-                routeFormGpsMapElement instanceof
-                HTMLElement
-            )
-        ) {
-            return;
-        }
-
-        await loadLeaflet();
-
-        if (!window.L) {
-            throw new Error(
-                'Leaflet is unavailable.'
-            );
-        }
-
-        if (!formGpsMap) {
-            formGpsMap =
-                window.L.map(
-                    routeFormGpsMapElement,
-                    {
-                        zoomControl:
-                            true,
-
-                        attributionControl:
-                            true,
-                    }
-                );
-
-            formGpsMap.setView(
-                [13.94, 121.16],
-                9
-            );
-
-            addOpenStreetMapLayer(
-                formGpsMap
-            );
-        }
-
-        window.setTimeout(() => {
-            formGpsMap?.invalidateSize();
-        }, 100);
-    }
-
-    function renderFormGpsTrip(record) {
-        const coordinatePair =
-            parseCoordinatePair(
-                record.coordinates
-            );
-
-        if (!coordinatePair) {
-            clearFormGpsLayer();
-
-            setFormGpsMapMessage(
-                'This GPS trip contains invalid coordinates.',
-                'error'
-            );
-
-            return;
-        }
-
-        clearFormGpsLayer();
-
-        formGpsLayer =
-            createGpsRouteLayer(
-                record,
-                coordinatePair
-            );
-
-        formGpsLayer.addTo(
-            formGpsMap
-        );
-
-        formGpsBounds =
-            formGpsLayer.getBounds();
-
-        formGpsMap.fitBounds(
-            formGpsBounds,
+        targetMap.fitBounds(
+            bounds,
             {
-                padding: [35, 35],
-                maxZoom: 13,
+                padding: [40, 40],
+                maxZoom,
             }
         );
-
-        openFirstMarkerPopup(
-            formGpsLayer
-        );
-
-        if (
-            fitRouteFormGpsMapButton instanceof
-            HTMLButtonElement
-        ) {
-            fitRouteFormGpsMapButton.disabled =
-                false;
-        }
-
-        setFormGpsMapMessage(
-            `${normalizeText(
-                record.bus_no,
-                'Bus'
-            )} GPS trip displayed.`,
-            'success'
-        );
     }
 
-    function clearFormGpsLayer() {
-        if (
-            formGpsMap &&
-            formGpsLayer
-        ) {
-            formGpsMap.removeLayer(
-                formGpsLayer
-            );
-        }
-
-        formGpsLayer = null;
-        formGpsBounds = null;
-    }
-
-    function resetFormGpsMap() {
-        clearFormGpsLayer();
-
-        if (
-            routeFormGpsTripSelect instanceof
-            HTMLSelectElement
-        ) {
-            routeFormGpsTripSelect.value =
-                '';
-        }
-
-        if (
-            fitRouteFormGpsMapButton instanceof
-            HTMLButtonElement
-        ) {
-            fitRouteFormGpsMapButton.disabled =
-                true;
-        }
-
-        setFormGpsMapMessage(
-            gpsTripRecords.length > 0
-                ? 'Select a processed GPS trip to display it on the map.'
-                : 'No processed GPS trips are available.',
-
-            gpsTripRecords.length > 0
-                ? 'info'
-                : 'error'
-        );
-
-        window.setTimeout(() => {
-            formGpsMap?.invalidateSize();
-        }, 100);
-    }
-
-    function setFormGpsMapMessage(
+    function setMapMessage(
         message,
         type = 'info'
     ) {
-        if (
-            !(
-                routeFormGpsMapMessage instanceof
-                HTMLElement
-            )
-        ) {
+        if (!mapMessage) {
             return;
         }
 
-        routeFormGpsMapMessage.textContent =
+        mapMessage.textContent =
             message;
 
-        routeFormGpsMapMessage.dataset.type =
+        mapMessage.dataset.type =
+            type;
+    }
+
+    function setViewMapMessage(
+        message,
+        type = 'info'
+    ) {
+        if (!viewMapMessage) {
+            return;
+        }
+
+        viewMapMessage.textContent =
+            message;
+
+        viewMapMessage.dataset.type =
             type;
     }
 
     /* =========================================================
-       VIEW ROUTE DETAILS
+       GEOMETRY HELPERS
     ========================================================= */
 
-    document.addEventListener(
-        'click',
-        (event) => {
-            const target = event.target;
+    function normalizeRouteGeometry(value) {
+        if (!value) {
+            return null;
+        }
 
-            if (!(target instanceof Element)) {
-                return;
-            }
+        let geometry = value;
 
-            const viewButton =
-                target.closest(
-                    '.open-route-details'
+        if (
+            typeof geometry === 'string'
+        ) {
+            geometry =
+                parseDatasetJson(
+                    geometry
                 );
-
-            if (
-                !(
-                    viewButton instanceof
-                    HTMLElement
-                )
-            ) {
-                return;
-            }
-
-            showRouteDetails(
-                getRouteData(viewButton)
-            );
-        }
-    );
-
-    function showRouteDetails(route) {
-        setElementText(
-            viewRouteCode,
-            route.routeCode || '—'
-        );
-
-        setElementText(
-            viewRouteName,
-            route.routeName || '—'
-        );
-
-        setElementText(
-            viewRouteOrigin,
-            route.origin || '—'
-        );
-
-        setElementText(
-            viewRouteDestination,
-            route.destination || '—'
-        );
-
-        setElementText(
-            viewRouteDistance,
-            route.distance
-                ? `${formatNumber(
-                    route.distance
-                )} KM`
-                : '—'
-        );
-
-        setElementText(
-            viewRouteTime,
-            route.time
-                ? `${formatNumber(
-                    route.time
-                )} minutes`
-                : '—'
-        );
-
-        renderViewStatus(
-            route.status
-        );
-
-        renderRoutePath(
-            route.origin,
-            route.stops,
-            route.destination
-        );
-
-        if (viewRouteStopCount) {
-            viewRouteStopCount.textContent =
-                `${route.stops.length} ${
-                    route.stops.length === 1
-                        ? 'Stop'
-                        : 'Stops'
-                }`;
         }
 
-        populateGpsSelect(
-            gpsTripSelect,
-            route
+        if (
+            !geometry ||
+            typeof geometry !== 'object'
+        ) {
+            return null;
+        }
+
+        if (
+            geometry.type === 'Feature' &&
+            geometry.geometry
+        ) {
+            geometry =
+                geometry.geometry;
+        }
+
+        if (
+            geometry.route &&
+            typeof geometry.route ===
+                'object'
+        ) {
+            geometry =
+                geometry.route;
+        }
+
+        if (
+            geometry.geometry &&
+            typeof geometry.geometry ===
+                'object'
+        ) {
+            geometry =
+                geometry.geometry;
+        }
+
+        if (
+            Array.isArray(
+                geometry.coordinates
+            ) &&
+            geometry.coordinates.length >= 2
+        ) {
+            return {
+                type:
+                    geometry.type ||
+                    'LineString',
+
+                coordinates:
+                    geometry.coordinates,
+            };
+        }
+
+        console.warn(
+            'The route geometry is not a valid LineString:',
+            geometry
         );
 
-        resetViewGpsMap();
-
-        openModal(routeDetailsModal);
-
-        window.setTimeout(() => {
-            initializeViewGpsMap()
-                .then(() => {
-                    const matchingRecord =
-                        findMatchingGpsRecord(
-                            route
-                        );
-
-                    if (
-                        matchingRecord &&
-                        gpsTripSelect instanceof
-                        HTMLSelectElement
-                    ) {
-                        gpsTripSelect.value =
-                            String(
-                                matchingRecord.id
-                            );
-
-                        renderViewGpsTrip(
-                            matchingRecord
-                        );
-                    }
-                })
-                .catch((error) => {
-                    console.error(
-                        'Unable to initialize view GPS map:',
-                        error
-                    );
-
-                    setViewGpsMapMessage(
-                        'The GPS map could not be loaded.',
-                        'error'
-                    );
-                });
-        }, 150);
+        return null;
     }
 
-    function renderViewStatus(status) {
+    function getGeometryLatLngs(geometry) {
+        const normalizedGeometry =
+            normalizeRouteGeometry(
+                geometry
+            );
+
         if (
-            !(
-                viewRouteStatus instanceof
-                HTMLElement
+            !normalizedGeometry ||
+            !Array.isArray(
+                normalizedGeometry.coordinates
             )
+        ) {
+            return [];
+        }
+
+        return normalizedGeometry
+            .coordinates
+            .map((coordinate) => {
+                if (
+                    !Array.isArray(coordinate) ||
+                    coordinate.length < 2
+                ) {
+                    return null;
+                }
+
+                const longitude =
+                    Number(coordinate[0]);
+
+                const latitude =
+                    Number(coordinate[1]);
+
+                if (
+                    !Number.isFinite(latitude) ||
+                    !Number.isFinite(longitude)
+                ) {
+                    return null;
+                }
+
+                return [
+                    latitude,
+                    longitude,
+                ];
+            })
+            .filter(Boolean);
+    }
+
+    /* =========================================================
+       DEFAULT LEAFLET ICONS
+    ========================================================= */
+
+    function fixDefaultLeafletIcons() {
+        if (
+            !window.L ||
+            !L.Icon?.Default
         ) {
             return;
         }
 
-        const normalizedStatus =
-            normalizeText(
-                status,
-                'Inactive'
-            );
+        delete L.Icon.Default
+            .prototype
+            ._getIconUrl;
 
-        const statusClass =
-            normalizedStatus
-                .toLowerCase()
-                .replace(
-                    /\s+/g,
-                    '-'
-                );
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl:
+                'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
 
-        viewRouteStatus.innerHTML =
-            '';
+            iconUrl:
+                'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
 
-        const badge =
-            document.createElement(
-                'span'
-            );
-
-        badge.className =
-            `route-status ${statusClass}`;
-
-        badge.textContent =
-            normalizedStatus;
-
-        viewRouteStatus.appendChild(
-            badge
-        );
-    }
-
-    function renderRoutePath(
-        origin,
-        stops,
-        destination
-    ) {
-        if (
-            !(
-                viewRoutePath instanceof
-                HTMLElement
-            )
-        ) {
-            return;
-        }
-
-        viewRoutePath.innerHTML = '';
-
-        const routeNodes = [
-            {
-                name:
-                    normalizeText(
-                        origin,
-                        'Unknown Origin'
-                    ),
-
-                type:
-                    'origin',
-
-                role:
-                    'Origin',
-            },
-
-            ...(Array.isArray(stops)
-                ? stops
-                : []
-            ).map((stop) => ({
-                name:
-                    normalizeText(
-                        stop,
-                        'Unnamed Stop'
-                    ),
-
-                type:
-                    'stop',
-
-                role:
-                    'Intermediate Stop',
-            })),
-
-            {
-                name:
-                    normalizeText(
-                        destination,
-                        'Unknown Destination'
-                    ),
-
-                type:
-                    'destination',
-
-                role:
-                    'Destination',
-            },
-        ];
-
-        routeNodes.forEach((node) => {
-            viewRoutePath.appendChild(
-                createRoutePathNode(
-                    node
-                )
-            );
+            shadowUrl:
+                'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         });
     }
 
-    function createRoutePathNode(node) {
-        const item =
-            document.createElement(
-                'article'
-            );
-
-        item.className =
-            `horizontal-route-node ${node.type}`;
-
-        const marker =
-            document.createElement(
-                'div'
-            );
-
-        marker.className =
-            'horizontal-route-marker';
-
-        const content =
-            document.createElement(
-                'div'
-            );
-
-        content.className =
-            'horizontal-route-content';
-
-        const name =
-            document.createElement(
-                'strong'
-            );
-
-        name.textContent =
-            node.name;
-
-        const role =
-            document.createElement(
-                'span'
-            );
-
-        role.textContent =
-            node.role;
-
-        content.append(
-            name,
-            role
-        );
-
-        item.append(
-            marker,
-            content
-        );
-
-        return item;
-    }
-
-    document
-        .querySelectorAll(
-            '[data-close-route-details]'
-        )
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    closeModal(
-                        routeDetailsModal
-                    );
-                }
-            );
-        });
-
     /* =========================================================
-       VIEW GPS MAP
-    ========================================================= */
-
-    gpsTripSelect?.addEventListener(
-        'change',
-        async () => {
-            const record =
-                getGpsRecordById(
-                    gpsTripSelect.value
-                );
-
-            if (!record) {
-                resetViewGpsMap();
-                return;
-            }
-
-            try {
-                await initializeViewGpsMap();
-
-                renderViewGpsTrip(
-                    record
-                );
-            } catch (error) {
-                console.error(
-                    'Unable to display GPS trip:',
-                    error
-                );
-
-                setViewGpsMapMessage(
-                    'The selected GPS trip could not be displayed.',
-                    'error'
-                );
-            }
-        }
-    );
-
-    fitGpsMapButton?.addEventListener(
-        'click',
-        () => {
-            if (
-                viewGpsMap &&
-                viewGpsBounds
-            ) {
-                viewGpsMap.fitBounds(
-                    viewGpsBounds,
-                    {
-                        padding:
-                            [35, 35],
-
-                        maxZoom:
-                            13,
-                    }
-                );
-            }
-        }
-    );
-
-    async function initializeViewGpsMap() {
-        if (
-            !(
-                gpsTripMapElement instanceof
-                HTMLElement
-            )
-        ) {
-            return;
-        }
-
-        await loadLeaflet();
-
-        if (!viewGpsMap) {
-            viewGpsMap =
-                window.L.map(
-                    gpsTripMapElement
-                );
-
-            viewGpsMap.setView(
-                [13.94, 121.16],
-                9
-            );
-
-            addOpenStreetMapLayer(
-                viewGpsMap
-            );
-        }
-
-        window.setTimeout(() => {
-            viewGpsMap?.invalidateSize();
-        }, 100);
-    }
-
-    function renderViewGpsTrip(record) {
-        const coordinatePair =
-            parseCoordinatePair(
-                record.coordinates
-            );
-
-        updateViewGpsDetails(record);
-
-        if (!coordinatePair) {
-            clearViewGpsLayer();
-
-            setViewGpsMapMessage(
-                'This GPS trip contains invalid coordinates.',
-                'error'
-            );
-
-            return;
-        }
-
-        clearViewGpsLayer();
-
-        viewGpsLayer =
-            createGpsRouteLayer(
-                record,
-                coordinatePair
-            );
-
-        viewGpsLayer.addTo(
-            viewGpsMap
-        );
-
-        viewGpsBounds =
-            viewGpsLayer.getBounds();
-
-        viewGpsMap.fitBounds(
-            viewGpsBounds,
-            {
-                padding: [35, 35],
-                maxZoom: 13,
-            }
-        );
-
-        openFirstMarkerPopup(
-            viewGpsLayer
-        );
-
-        if (
-            fitGpsMapButton instanceof
-            HTMLButtonElement
-        ) {
-            fitGpsMapButton.disabled =
-                false;
-        }
-
-        setViewGpsMapMessage(
-            `${normalizeText(
-                record.bus_no,
-                'Bus'
-            )} GPS trip displayed.`,
-            'success'
-        );
-    }
-
-    function updateViewGpsDetails(record) {
-        setElementText(
-            gpsDetailBus,
-            record.bus_no || '—'
-        );
-
-        setElementText(
-            gpsDetailGrouping,
-            record.grouping || '—'
-        );
-
-        setElementText(
-            gpsDetailBeginning,
-            formatDateTime(
-                record.beginning_at
-            ) || '—'
-        );
-
-        setElementText(
-            gpsDetailEnding,
-            formatDateTime(
-                record.ending_at
-            ) || '—'
-        );
-
-        setElementText(
-            gpsDetailOrigin,
-            record.initial_location || '—'
-        );
-
-        setElementText(
-            gpsDetailDestination,
-            record.final_location || '—'
-        );
-
-        setElementText(
-            gpsDetailMileage,
-            record.mileage_km !== null &&
-            record.mileage_km !== undefined
-                ? `${formatNumber(
-                    record.mileage_km
-                )} KM`
-                : '—'
-        );
-
-        setElementText(
-            gpsDetailDuration,
-            formatDuration(
-                record.total_minutes ??
-                record.duration_minutes
-            )
-        );
-
-        if (
-            gpsTripDetails instanceof
-            HTMLElement
-        ) {
-            gpsTripDetails.hidden =
-                false;
-        }
-    }
-
-    function clearViewGpsLayer() {
-        if (
-            viewGpsMap &&
-            viewGpsLayer
-        ) {
-            viewGpsMap.removeLayer(
-                viewGpsLayer
-            );
-        }
-
-        viewGpsLayer = null;
-        viewGpsBounds = null;
-    }
-
-    function resetViewGpsMap() {
-        clearViewGpsLayer();
-
-        if (
-            gpsTripSelect instanceof
-            HTMLSelectElement
-        ) {
-            gpsTripSelect.value = '';
-        }
-
-        if (
-            gpsTripDetails instanceof
-            HTMLElement
-        ) {
-            gpsTripDetails.hidden = true;
-        }
-
-        if (
-            fitGpsMapButton instanceof
-            HTMLButtonElement
-        ) {
-            fitGpsMapButton.disabled =
-                true;
-        }
-
-        setViewGpsMapMessage(
-            gpsTripRecords.length > 0
-                ? 'Select a processed GPS trip to display it on the map.'
-                : 'No processed GPS trips are available.',
-
-            gpsTripRecords.length > 0
-                ? 'info'
-                : 'error'
-        );
-    }
-
-    function setViewGpsMapMessage(
-        message,
-        type = 'info'
-    ) {
-        if (
-            !(
-                gpsMapMessage instanceof
-                HTMLElement
-            )
-        ) {
-            return;
-        }
-
-        gpsMapMessage.textContent =
-            message;
-
-        gpsMapMessage.dataset.type =
-            type;
-    }
-
-    /* =========================================================
-       SHARED GPS FUNCTIONS
-    ========================================================= */
-
-    function populateGpsSelect(
-        select,
-        route
-    ) {
-        if (
-            !(
-                select instanceof
-                HTMLSelectElement
-            )
-        ) {
-            return;
-        }
-
-        select.innerHTML =
-            '<option value="">Select a GPS trip</option>';
-
-        const matchingRecords =
-            gpsTripRecords.filter(
-                (record) =>
-                    gpsRecordMatchesRoute(
-                        record,
-                        route
-                    )
-            );
-
-        const orderedRecords = [
-            ...matchingRecords,
-
-            ...gpsTripRecords.filter(
-                (record) =>
-                    !matchingRecords.includes(
-                        record
-                    )
-            ),
-        ];
-
-        orderedRecords.forEach(
-            (record) => {
-                select.appendChild(
-                    createGpsTripOption(
-                        record
-                    )
-                );
-            }
-        );
-
-        select.disabled =
-            gpsTripRecords.length === 0;
-    }
-
-    function createGpsTripOption(record) {
-        const option =
-            document.createElement(
-                'option'
-            );
-
-        option.value =
-            String(record.id ?? '');
-
-        option.textContent = [
-            normalizeText(
-                record.bus_no,
-                'Unknown Bus'
-            ),
-
-            normalizeText(
-                record.grouping
-            ),
-
-            formatDateTime(
-                record.beginning_at
-            ),
-        ]
-            .filter(Boolean)
-            .join(' • ');
-
-        return option;
-    }
-
-    function findMatchingGpsRecord(route) {
-        return gpsTripRecords.find(
-            (record) =>
-                gpsRecordMatchesRoute(
-                    record,
-                    route
-                )
-        ) ?? null;
-    }
-
-    function gpsRecordMatchesRoute(
-        record,
-        route
-    ) {
-        const routeOriginValue =
-            normalizeComparable(
-                route?.origin
-            );
-
-        const routeDestinationValue =
-            normalizeComparable(
-                route?.destination
-            );
-
-        const gpsOrigin =
-            normalizeComparable(
-                record.initial_location
-            );
-
-        const gpsDestination =
-            normalizeComparable(
-                record.final_location
-            );
-
-        const grouping =
-            normalizeComparable(
-                record.grouping
-            );
-
-        return (
-            (
-                routeOriginValue &&
-                routeDestinationValue &&
-                gpsOrigin.includes(
-                    routeOriginValue
-                ) &&
-                gpsDestination.includes(
-                    routeDestinationValue
-                )
-            ) ||
-            (
-                routeOriginValue &&
-                routeDestinationValue &&
-                grouping.includes(
-                    routeOriginValue
-                ) &&
-                grouping.includes(
-                    routeDestinationValue
-                )
-            )
-        );
-    }
-
-    function getGpsRecordById(value) {
-        const id = Number(value);
-
-        if (!Number.isFinite(id)) {
-            return null;
-        }
-
-        return gpsTripRecords.find(
-            (record) =>
-                Number(record.id) === id
-        ) ?? null;
-    }
-
-    function parseCoordinatePair(rawValue) {
-        const match =
-            normalizeText(rawValue).match(
-                /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*(?:->|→|to)\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i
-            );
-
-        if (!match) {
-            return null;
-        }
-
-        const values =
-            match.slice(1).map(Number);
-
-        if (
-            values.some(
-                (value) =>
-                    !Number.isFinite(value)
-            ) ||
-            Math.abs(values[0]) > 90 ||
-            Math.abs(values[2]) > 90 ||
-            Math.abs(values[1]) > 180 ||
-            Math.abs(values[3]) > 180
-        ) {
-            return null;
-        }
-
-        return {
-            origin:
-                [values[0], values[1]],
-
-            destination:
-                [values[2], values[3]],
-        };
-    }
-
-    function createGpsRouteLayer(
-        record,
-        coordinatePair
-    ) {
-        const originMarker =
-            window.L.marker(
-                coordinatePair.origin
-            );
-
-        originMarker.bindPopup(
-            buildGpsPopup(
-                'Origin',
-                record.initial_location,
-                record
-            )
-        );
-
-        const destinationMarker =
-            window.L.marker(
-                coordinatePair.destination
-            );
-
-        destinationMarker.bindPopup(
-            buildGpsPopup(
-                'Destination',
-                record.final_location,
-                record
-            )
-        );
-
-        const line =
-            window.L.polyline(
-                [
-                    coordinatePair.origin,
-                    coordinatePair.destination,
-                ],
-                {
-                    weight: 5,
-                    opacity: 0.82,
-                    dashArray: '10 8',
-                }
-            );
-
-        return window.L.featureGroup([
-            originMarker,
-            destinationMarker,
-            line,
-        ]);
-    }
-
-    function buildGpsPopup(
-        type,
-        location,
-        record
-    ) {
-        return `
-            <div class="gps-map-popup">
-                <strong>
-                    ${escapeHtml(type)}:
-                    ${escapeHtml(
-                        location ||
-                        'Unknown location'
-                    )}
-                </strong>
-
-                <span>
-                    Bus:
-                    ${escapeHtml(
-                        record.bus_no ||
-                        'Unknown Bus'
-                    )}
-                </span>
-
-                <span>
-                    Route:
-                    ${escapeHtml(
-                        record.grouping ||
-                        'Unspecified Route'
-                    )}
-                </span>
-            </div>
-        `;
-    }
-
-    function openFirstMarkerPopup(layer) {
-        const marker =
-            layer
-                .getLayers()
-                .find(
-                    (item) =>
-                        item instanceof
-                        window.L.Marker
-                );
-
-        marker?.openPopup();
-    }
-
-    /* =========================================================
-       LEAFLET
+       LEAFLET LOADER
     ========================================================= */
 
     async function loadLeaflet() {
         if (window.L) {
+            fixDefaultLeafletIcons();
             return;
         }
 
         if (
-            window.__fromsLeafletPromise instanceof
-            Promise
+            window.__routesLeafletPromise
         ) {
-            return window.__fromsLeafletPromise;
+            await window
+                .__routesLeafletPromise;
+
+            fixDefaultLeafletIcons();
+            return;
         }
 
-        window.__fromsLeafletPromise =
+        window.__routesLeafletPromise =
             new Promise(
                 (resolve, reject) => {
                     if (
                         !document.querySelector(
-                            'link[data-froms-leaflet]'
+                            'link[data-routes-leaflet]'
                         )
                     ) {
-                        const stylesheet =
+                        const link =
                             document.createElement(
                                 'link'
                             );
 
-                        stylesheet.rel =
+                        link.rel =
                             'stylesheet';
 
-                        stylesheet.href =
-                            leafletAssets.css;
+                        link.href =
+                            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 
-                        stylesheet.dataset
-                            .fromsLeaflet =
-                            'true';
+                        link.dataset
+                            .routesLeaflet =
+                            '1';
 
-                        document.head.appendChild(
-                            stylesheet
-                        );
+                        document.head
+                            .appendChild(link);
                     }
 
-                    const existingScript =
+                    const existing =
                         document.querySelector(
-                            'script[data-froms-leaflet]'
+                            'script[data-routes-leaflet]'
                         );
 
-                    if (existingScript) {
+                    if (existing) {
                         if (window.L) {
                             resolve();
                             return;
                         }
 
-                        existingScript
-                            .addEventListener(
-                                'load',
-                                resolve,
-                                {
-                                    once:
-                                        true,
-                                }
-                            );
+                        existing.addEventListener(
+                            'load',
+                            resolve,
+                            {
+                                once: true,
+                            }
+                        );
 
-                        existingScript
-                            .addEventListener(
-                                'error',
-                                reject,
-                                {
-                                    once:
-                                        true,
-                                }
-                            );
+                        existing.addEventListener(
+                            'error',
+                            reject,
+                            {
+                                once: true,
+                            }
+                        );
 
                         return;
                     }
@@ -2751,47 +3223,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         );
 
                     script.src =
-                        leafletAssets.js;
-
-                    script.async = true;
+                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
                     script.dataset
-                        .fromsLeaflet =
-                        'true';
+                        .routesLeaflet =
+                        '1';
 
-                    script.addEventListener(
-                        'load',
-                        resolve,
-                        {
-                            once: true,
-                        }
-                    );
+                    script.onload =
+                        resolve;
 
-                    script.addEventListener(
-                        'error',
-                        () => {
-                            reject(
-                                new Error(
-                                    'Leaflet failed to load.'
-                                )
-                            );
-                        },
-                        {
-                            once: true,
-                        }
-                    );
+                    script.onerror =
+                        reject;
 
-                    document.head.appendChild(
-                        script
-                    );
+                    document.head
+                        .appendChild(script);
                 }
             );
 
-        return window.__fromsLeafletPromise;
+        await window
+            .__routesLeafletPromise;
+
+        fixDefaultLeafletIcons();
     }
 
-    function addOpenStreetMapLayer(map) {
-        window.L.tileLayer(
+    function addOpenStreetMapTiles(
+        targetMap
+    ) {
+        L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             {
                 maxZoom: 19,
@@ -2799,300 +3257,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 attribution:
                     '&copy; OpenStreetMap contributors',
             }
-        ).addTo(map);
+        ).addTo(targetMap);
     }
 
     /* =========================================================
-       DELETE ROUTE
+       GENERAL HELPERS
     ========================================================= */
 
-    document.addEventListener(
-        'click',
-        (event) => {
-            const target = event.target;
-
-            if (!(target instanceof Element)) {
-                return;
-            }
-
-            const deleteButton =
-                target.closest(
-                    '.open-delete-route-modal'
-                );
-
-            if (
-                !(
-                    deleteButton instanceof
-                    HTMLElement
-                )
-            ) {
-                return;
-            }
-
-            const formId =
-                normalizeText(
-                    deleteButton.dataset.formId
-                );
-
-            selectedDeleteForm =
-                formId
-                    ? document.getElementById(
-                        formId
-                    )
-                    : null;
-
-            const routeDisplay = [
-                normalizeText(
-                    deleteButton.dataset
-                        .routeCode
-                ),
-
-                normalizeText(
-                    deleteButton.dataset
-                        .routeName
-                ),
-            ]
-                .filter(Boolean)
-                .join(' - ');
-
-            setElementText(
-                deleteRouteName,
-                routeDisplay ||
-                'this route'
-            );
-
-            openModal(
-                deleteRouteModal
-            );
-        }
-    );
-
-    cancelDeleteRouteButton
-        ?.addEventListener(
-            'click',
-            () => {
-                selectedDeleteForm = null;
-
-                closeModal(
-                    deleteRouteModal
-                );
-            }
-        );
-
-    confirmDeleteRouteButton
-        ?.addEventListener(
-            'click',
-            () => {
-                if (
-                    !(
-                        selectedDeleteForm instanceof
-                        HTMLFormElement
-                    )
-                ) {
-                    closeModal(
-                        deleteRouteModal
-                    );
-
-                    return;
-                }
-
-                confirmDeleteRouteButton.disabled =
-                    true;
-
-                selectedDeleteForm
-                    .requestSubmit();
-            }
-        );
-
-    /* =========================================================
-       SEARCH
-    ========================================================= */
-
-    routeSearch?.addEventListener(
-        'input',
-        () => {
-            const query =
-                normalizeText(
-                    routeSearch.value
-                ).toLowerCase();
-
-            document
-                .querySelectorAll(
-                    '.routes-table tbody tr'
-                )
-                .forEach((row) => {
-                    if (
-                        !(
-                            row instanceof
-                            HTMLTableRowElement
-                        )
-                    ) {
-                        return;
-                    }
-
-                    const text =
-                        normalizeText(
-                            row.textContent
-                        ).toLowerCase();
-
-                    row.hidden =
-                        query !== '' &&
-                        !text.includes(query);
-                });
-        }
-    );
-
-    routeStatusFilter?.addEventListener(
-        'change',
-        () => {}
-    );
-
-    /* =========================================================
-       FORM SUBMISSION
-    ========================================================= */
-
-    routeForm?.addEventListener(
-        'submit',
-        () => {
-            if (
-                saveRouteButton instanceof
-                HTMLButtonElement
-            ) {
-                saveRouteButton.disabled =
-                    true;
-            }
-
-            const editing =
-                routeFormMethod &&
-                !routeFormMethod.disabled;
-
-            setElementText(
-                saveRouteText,
-                editing
-                    ? 'Updating...'
-                    : 'Saving...'
-            );
-        }
-    );
-
-    function resetSubmitButton() {
-        if (
-            saveRouteButton instanceof
-            HTMLButtonElement
-        ) {
-            saveRouteButton.disabled =
-                false;
-
-            saveRouteButton.removeAttribute(
-                'aria-busy'
-            );
-        }
+    function getAllLocationInputs() {
+        return [
+            routeOrigin,
+            ...getStopInputs(),
+            routeDestination,
+        ].filter(Boolean);
     }
 
-    /* =========================================================
-       CLOSE HANDLERS
-    ========================================================= */
-
-    closeValidationModalButton
-        ?.addEventListener(
-            'click',
-            () => {
-                closeModal(
-                    validationModal
-                );
-            }
-        );
-
-    [
-        routeModal,
-        routeDetailsModal,
-        deleteRouteModal,
-        validationModal,
-    ]
-        .filter(Boolean)
-        .forEach((modal) => {
-            modal.addEventListener(
-                'click',
-                (event) => {
-                    if (
-                        event.target === modal
-                    ) {
-                        closeModal(modal);
-                    }
-                }
-            );
-        });
-
-    document.addEventListener(
-        'keydown',
-        (event) => {
-            if (event.key !== 'Escape') {
-                return;
-            }
-
-            if (
-                isModalOpen(
-                    deleteRouteModal
-                )
-            ) {
-                closeModal(
-                    deleteRouteModal
-                );
-
-                return;
-            }
-
-            if (
-                isModalOpen(
-                    routeDetailsModal
-                )
-            ) {
-                closeModal(
-                    routeDetailsModal
-                );
-
-                return;
-            }
-
-            if (
-                isModalOpen(
-                    routeModal
-                )
-            ) {
-                closeModal(
-                    routeModal
-                );
-            }
-        }
-    );
-
-    /* =========================================================
-       UTILITIES
-    ========================================================= */
-
-    function parseJsonElement(element) {
-        if (
-            !(
-                element instanceof
-                HTMLScriptElement
+    function getStopInputs() {
+        return routeStopList
+            ? Array.from(
+                routeStopList
+                    .querySelectorAll(
+                        'input[name="stops[]"]'
+                    )
             )
-        ) {
-            return [];
+            : [];
+    }
+
+    function getStopRows() {
+        return routeStopList
+            ? Array.from(
+                routeStopList
+                    .querySelectorAll(
+                        '.route-stop-item'
+                    )
+            )
+            : [];
+    }
+
+    function hasCoordinates(input) {
+        return (
+            input &&
+            isValidCoordinate(
+                input.dataset.latitude,
+                input.dataset.longitude
+            )
+        );
+    }
+
+    function isValidCoordinate(
+        latitude,
+        longitude
+    ) {
+        const lat =
+            Number(latitude);
+
+        const lng =
+            Number(longitude);
+
+        return (
+            Number.isFinite(lat) &&
+            Number.isFinite(lng) &&
+            Math.abs(lat) <= 90 &&
+            Math.abs(lng) <= 180
+        );
+    }
+
+    function fieldRole(input) {
+        if (!input) {
+            return 'Location';
         }
 
+        return (
+            input.dataset.role ||
+            (
+                input === routeOrigin
+                    ? 'Origin'
+                    : input ===
+                        routeDestination
+                        ? 'Destination'
+                        : 'Location'
+            )
+        );
+    }
+
+    function parseJson(element) {
         try {
-            const parsed =
+            const value =
                 JSON.parse(
-                    element.textContent ||
+                    element?.textContent ||
                     '[]'
                 );
 
-            return Array.isArray(parsed)
-                ? parsed
+            return Array.isArray(value)
+                ? value
                 : [];
         } catch (error) {
             console.error(
-                'Invalid JSON data:',
+                'Unable to parse JSON array:',
                 error
             );
 
@@ -3100,20 +3361,169 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function normalizeText(
-        value,
-        fallback = ''
-    ) {
-        const result =
-            String(value ?? '').trim();
+    function parseJsonObject(element) {
+        try {
+            const value =
+                JSON.parse(
+                    element?.textContent ||
+                    '{}'
+                );
 
-        return result !== ''
-            ? result
-            : fallback;
+            return (
+                value &&
+                typeof value === 'object'
+            )
+                ? value
+                : {};
+        } catch (error) {
+            console.error(
+                'Unable to parse JSON object:',
+                error
+            );
+
+            return {};
+        }
     }
 
-    function normalizeComparable(value) {
-        return normalizeText(value)
+    function parseDatasetJson(value) {
+        if (
+            value === null ||
+            value === undefined ||
+            value === ''
+        ) {
+            return null;
+        }
+
+        let parsedValue = value;
+
+        try {
+            for (
+                let attempt = 0;
+                attempt < 4;
+                attempt += 1
+            ) {
+                if (
+                    typeof parsedValue !==
+                    'string'
+                ) {
+                    break;
+                }
+
+                const trimmedValue =
+                    parsedValue.trim();
+
+                if (!trimmedValue) {
+                    return null;
+                }
+
+                parsedValue =
+                    JSON.parse(
+                        trimmedValue
+                    );
+            }
+
+            return parsedValue;
+        } catch (error) {
+            console.error(
+                'Unable to parse dataset JSON:',
+                error,
+                value
+            );
+
+            return null;
+        }
+    }
+
+    function parseStops(value) {
+        const parsed =
+            parseDatasetJson(value);
+
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+
+        return parsed.map((stop) => {
+            if (
+                typeof stop === 'string'
+            ) {
+                return {
+                    name: stop,
+                };
+            }
+
+            return stop;
+        });
+    }
+
+    function normalizePlace(place) {
+        const latitude =
+            Number(place?.latitude);
+
+        const longitude =
+            Number(place?.longitude);
+
+        if (
+            !place?.name ||
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude)
+        ) {
+            return null;
+        }
+
+        return {
+            id:
+                place.id ||
+                `${place.source}-${latitude}-${longitude}`,
+
+            name:
+                String(place.name),
+
+            address:
+                String(
+                    place.address ||
+                    place.name
+                ),
+
+            latitude,
+            longitude,
+
+            source:
+                String(
+                    place.source ||
+                    'OpenStreetMap'
+                ),
+
+            grouping:
+                place.grouping || '',
+        };
+    }
+
+    function dedupePlaces(places) {
+        const seen = new Set();
+
+        return places.filter((place) => {
+            const key = [
+                normalize(place.name),
+
+                Number(place.latitude)
+                    .toFixed(5),
+
+                Number(place.longitude)
+                    .toFixed(5),
+            ].join(':');
+
+            if (seen.has(key)) {
+                return false;
+            }
+
+            seen.add(key);
+            return true;
+        });
+    }
+
+    function normalize(value) {
+        return String(value || '')
+            .trim()
             .toLowerCase()
             .replace(
                 /[^a-z0-9]+/g,
@@ -3121,192 +3531,112 @@ document.addEventListener('DOMContentLoaded', () => {
             );
     }
 
-    function uniqueValues(values) {
-        const seen = new Set();
-
-        return values
-            .map((value) =>
-                normalizeText(value)
+    function highlightSuggestion(
+        panel,
+        index
+    ) {
+        panel
+            .querySelectorAll(
+                '.location-suggestion-item'
             )
-            .filter((value) => {
-                const key =
-                    normalizeComparable(value);
-
-                if (!key || seen.has(key)) {
-                    return false;
+            .forEach(
+                (element, itemIndex) => {
+                    element.classList.toggle(
+                        'active',
+                        itemIndex === index
+                    );
                 }
-
-                seen.add(key);
-
-                return true;
-            });
+            );
     }
 
-    function setElementText(
+    function highlightMatch(
+        value,
+        query
+    ) {
+        const text =
+            String(value || '');
+
+        const search =
+            String(query || '');
+
+        if (!search) {
+            return escapeHtml(text);
+        }
+
+        const index =
+            text
+                .toLowerCase()
+                .indexOf(
+                    search.toLowerCase()
+                );
+
+        if (index < 0) {
+            return escapeHtml(text);
+        }
+
+        return [
+            escapeHtml(
+                text.slice(0, index)
+            ),
+
+            '<mark>',
+
+            escapeHtml(
+                text.slice(
+                    index,
+                    index + search.length
+                )
+            ),
+
+            '</mark>',
+
+            escapeHtml(
+                text.slice(
+                    index + search.length
+                )
+            ),
+        ].join('');
+    }
+
+    function escapeHtml(value) {
+        const div =
+            document.createElement('div');
+
+        div.textContent =
+            String(value ?? '');
+
+        return div.innerHTML;
+    }
+
+    function setValue(
+        element,
+        value
+    ) {
+        if (element) {
+            element.value =
+                value ?? '';
+        }
+    }
+
+    function setText(
+        id,
+        value
+    ) {
+        const element = $(id);
+
+        if (element) {
+            element.textContent =
+                value ?? '';
+        }
+    }
+
+    function setTextElement(
         element,
         value
     ) {
         if (element) {
             element.textContent =
-                normalizeText(value);
+                value ?? '';
         }
-    }
-
-    function setInputValue(
-        input,
-        value
-    ) {
-        if (
-            input instanceof
-            HTMLInputElement ||
-            input instanceof
-            HTMLSelectElement
-        ) {
-            input.value =
-                normalizeText(value);
-        }
-    }
-
-    function formatNumber(value) {
-        const number =
-            Number(value);
-
-        if (!Number.isFinite(number)) {
-            return normalizeText(value);
-        }
-
-        return number.toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2,
-            }
-        );
-    }
-
-    function formatDateTime(value) {
-        const text =
-            normalizeText(value);
-
-        if (!text) {
-            return '';
-        }
-
-        const date =
-            new Date(
-                text.includes('T')
-                    ? text
-                    : text.replace(
-                        ' ',
-                        'T'
-                    )
-            );
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return text;
-        }
-
-        return date.toLocaleString(
-            undefined,
-            {
-                year: 'numeric',
-                month: 'short',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-            }
-        );
-    }
-
-    function formatDuration(value) {
-        const minutes =
-            Number(value);
-
-        if (
-            !Number.isFinite(minutes) ||
-            minutes < 0
-        ) {
-            return '—';
-        }
-
-        const hours =
-            Math.floor(
-                minutes / 60
-            );
-
-        const remainingMinutes =
-            Math.round(
-                minutes % 60
-            );
-
-        if (hours === 0) {
-            return (
-                `${remainingMinutes} min`
-            );
-        }
-
-        return (
-            `${hours} hr ` +
-            `${remainingMinutes} min`
-        );
-    }
-
-    function escapeHtml(value) {
-        const temporaryElement =
-            document.createElement(
-                'div'
-            );
-
-        temporaryElement.textContent =
-            normalizeText(value);
-
-        return temporaryElement.innerHTML;
-    }
-
-    function clearValidationStyles() {
-        if (
-            !(
-                routeForm instanceof
-                HTMLFormElement
-            )
-        ) {
-            return;
-        }
-
-        routeForm
-            .querySelectorAll(
-                '.is-invalid, ' +
-                '.invalid, ' +
-                '[aria-invalid="true"]'
-            )
-            .forEach((element) => {
-                element.classList.remove(
-                    'is-invalid',
-                    'invalid'
-                );
-
-                element.removeAttribute(
-                    'aria-invalid'
-                );
-            });
-    }
-
-    /* =========================================================
-       INITIALIZATION
-    ========================================================= */
-
-    updateStopNumbers();
-
-    if (isModalOpen(validationModal)) {
-        body.classList.add(
-            'modal-open'
-        );
-
-        body.style.overflow =
-            'hidden';
     }
 });
