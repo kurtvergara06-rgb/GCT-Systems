@@ -251,7 +251,6 @@
                             for="routeStatusFilter"
                             class="visually-hidden"
                         >
-                            Status
                         </label>
 
                         <select
@@ -330,7 +329,13 @@
                                 @php
                                     $stopsJson = $route
                                         ->stops
-                                        ->pluck('stop_name')
+                                        ->map(fn ($stop) => [
+                                            'name' => $stop->stop_name,
+                                            'address' => $stop->address,
+                                            'latitude' => $stop->latitude,
+                                            'longitude' => $stop->longitude,
+                                            'source' => $stop->location_source,
+                                        ])
                                         ->values()
                                         ->toJson();
 
@@ -377,6 +382,15 @@
                                             data-route-name="{{ $route->route_name }}"
                                             data-origin="{{ $route->origin }}"
                                             data-destination="{{ $route->destination }}"
+                                                data-origin-address="{{ $route->origin_address }}"
+                                                data-origin-latitude="{{ $route->origin_latitude }}"
+                                                data-origin-longitude="{{ $route->origin_longitude }}"
+                                                data-origin-source="{{ $route->origin_source }}"
+                                                data-destination-address="{{ $route->destination_address }}"
+                                                data-destination-latitude="{{ $route->destination_latitude }}"
+                                                data-destination-longitude="{{ $route->destination_longitude }}"
+                                                data-destination-source="{{ $route->destination_source }}"
+                                                data-route-geometry='@json($route->route_geometry)'
                                             data-distance="{{ $route->distance_km }}"
                                             data-time="{{ $route->estimated_time_minutes }}"
                                             data-status="{{ $route->status }}"
@@ -448,6 +462,15 @@
                                                 data-route-name="{{ $route->route_name }}"
                                                 data-origin="{{ $route->origin }}"
                                                 data-destination="{{ $route->destination }}"
+                                                data-origin-address="{{ $route->origin_address }}"
+                                                data-origin-latitude="{{ $route->origin_latitude }}"
+                                                data-origin-longitude="{{ $route->origin_longitude }}"
+                                                data-origin-source="{{ $route->origin_source }}"
+                                                data-destination-address="{{ $route->destination_address }}"
+                                                data-destination-latitude="{{ $route->destination_latitude }}"
+                                                data-destination-longitude="{{ $route->destination_longitude }}"
+                                                data-destination-source="{{ $route->destination_source }}"
+                                                data-route-geometry='@json($route->route_geometry)'
                                                 data-distance="{{ $route->distance_km }}"
                                                 data-time="{{ $route->estimated_time_minutes }}"
                                                 data-status="{{ $route->status }}"
@@ -468,6 +491,15 @@
                                                 data-route-name="{{ $route->route_name }}"
                                                 data-origin="{{ $route->origin }}"
                                                 data-destination="{{ $route->destination }}"
+                                                data-origin-address="{{ $route->origin_address }}"
+                                                data-origin-latitude="{{ $route->origin_latitude }}"
+                                                data-origin-longitude="{{ $route->origin_longitude }}"
+                                                data-origin-source="{{ $route->origin_source }}"
+                                                data-destination-address="{{ $route->destination_address }}"
+                                                data-destination-latitude="{{ $route->destination_latitude }}"
+                                                data-destination-longitude="{{ $route->destination_longitude }}"
+                                                data-destination-source="{{ $route->destination_source }}"
+                                                data-route-geometry='@json($route->route_geometry)'
                                                 data-distance="{{ $route->distance_km }}"
                                                 data-time="{{ $route->estimated_time_minutes }}"
                                                 data-status="{{ $route->status }}"
@@ -659,6 +691,23 @@
                 required
             />
 
+            <input type="hidden" name="origin_address" id="routeOriginAddress">
+            <input type="hidden" name="origin_latitude" id="routeOriginLatitude">
+            <input type="hidden" name="origin_longitude" id="routeOriginLongitude">
+            <input type="hidden" name="origin_source" id="routeOriginSource">
+
+            <input type="hidden" name="destination_address" id="routeDestinationAddress">
+            <input type="hidden" name="destination_latitude" id="routeDestinationLatitude">
+            <input type="hidden" name="destination_longitude" id="routeDestinationLongitude">
+            <input type="hidden" name="destination_source" id="routeDestinationSource">
+
+            <input type="hidden" name="calculated_distance_km" id="routeCalculatedDistance">
+            <input type="hidden" name="calculated_time_minutes" id="routeCalculatedTime">
+            <input type="hidden" name="distance_source" id="routeDistanceSource">
+            <input type="hidden" name="distance_is_manual" id="routeDistanceManual" value="0">
+            <input type="hidden" name="time_is_manual" id="routeTimeManual" value="0">
+            <input type="hidden" name="route_geometry" id="routeGeometry">
+
 
             {{-- DISTANCE --}}
             <x-ui.form-field
@@ -674,7 +723,7 @@
                 unit="KM"
 
                 min="0"
-                step="0.1"
+                step="0.01"
             />
 
 
@@ -757,12 +806,19 @@
                             </div>
 
 
-                            <input
-                                type="text"
-                                name="stops[]"
-                                value="{{ $stop }}"
-                                placeholder="Enter stop name"
-                            >
+                            <div class="route-stop-location-field">
+                                <input
+                                    type="text"
+                                    name="stops[]"
+                                    value="{{ $stop }}"
+                                    placeholder="Search or enter a stop"
+                                    autocomplete="off"
+                                >
+                                <input type="hidden" name="stop_addresses[]" value="{{ old('stop_addresses.' . $index) }}">
+                                <input type="hidden" name="stop_latitudes[]" value="{{ old('stop_latitudes.' . $index) }}">
+                                <input type="hidden" name="stop_longitudes[]" value="{{ old('stop_longitudes.' . $index) }}">
+                                <input type="hidden" name="stop_sources[]" value="{{ old('stop_sources.' . $index) }}">
+                            </div>
 
 
                             <button
@@ -790,11 +846,18 @@
                         </div>
 
 
-                        <input
-                            type="text"
-                            name="stops[]"
-                            placeholder="Enter stop name"
-                        >
+                        <div class="route-stop-location-field">
+                            <input
+                                type="text"
+                                name="stops[]"
+                                placeholder="Search or enter a stop"
+                                autocomplete="off"
+                            >
+                            <input type="hidden" name="stop_addresses[]">
+                            <input type="hidden" name="stop_latitudes[]">
+                            <input type="hidden" name="stop_longitudes[]">
+                            <input type="hidden" name="stop_sources[]">
+                        </div>
 
 
                         <button
@@ -818,44 +881,45 @@
 
         <x-ui.form-section
             title="Route Map Preview"
-            subtitle="Select a processed GPS trip to preview its recorded origin and destination."
+            subtitle="Select GPS or map-search suggestions, or pin the active location manually."
             icon="fa-map-location-dot"
         >
             <div class="route-form-map-toolbar">
-                <div class="route-form-map-field">
-                    <label for="routeFormGpsTripSelect">GPS Trip Record</label>
-                    <select id="routeFormGpsTripSelect">
-                        <option value="">Select a GPS trip</option>
-                    </select>
+                <div class="route-map-active-field" id="routeMapActiveField">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    Click an Origin, Stop, or Destination field first.
                 </div>
 
-                <button
-                    type="button"
-                    class="route-form-fit-map-btn"
-                    id="fitRouteFormGpsMap"
-                    disabled
-                >
+                <button type="button" class="route-form-map-tool-btn" id="pinActiveLocationBtn" disabled>
+                    <i class="fa-solid fa-thumbtack"></i>
+                    Pin Active Field
+                </button>
+
+                <button type="button" class="route-form-map-tool-btn" id="recalculateRouteBtn" disabled>
+                    <i class="fa-solid fa-rotate"></i>
+                    Recalculate
+                </button>
+
+                <button type="button" class="route-form-fit-map-btn" id="fitRouteFormGpsMap" disabled>
                     <i class="fa-solid fa-expand"></i>
                     Fit Route
                 </button>
             </div>
 
-            <div
-                class="route-form-map-message"
-                id="routeFormGpsMapMessage"
-                role="status"
-            >
-                Select a processed GPS trip to display it on the map.
+            <div class="route-form-map-message" id="routeFormGpsMapMessage" role="status" aria-live="polite">
+                Select confirmed locations to build the road route.
             </div>
 
-            <div
-                class="route-form-gps-map"
-                id="routeFormGpsMap"
-                aria-label="Route form GPS map preview"
-            ></div>
+            <div class="route-calculation-summary" id="routeCalculationSummary" hidden>
+                <span id="routeCalculatedDistanceText">—</span>
+                <span id="routeCalculatedTimeText">—</span>
+                <button type="button" id="useCalculatedValuesBtn">Use calculated values</button>
+            </div>
+
+            <div class="route-form-gps-map" id="routeFormGpsMap" aria-label="Interactive route map preview"></div>
 
             <p class="route-form-map-note">
-                The line connects the GPS record's beginning and ending coordinates.
+                Search results use OpenStreetMap data. Routing estimates use OSRM and do not include live traffic.
             </p>
         </x-ui.form-section>
 
@@ -1139,38 +1203,52 @@
     />
 
 
-    {{-- =========================================================
-        SUCCESS FEEDBACK
-    ========================================================== --}}
-    @if(session('success'))
+ {{-- =========================================================
+    SUCCESS FEEDBACK
+========================================================== --}}
+@if(session('success'))
 
-        <x-ui.action-buttom-modal
-            mode="feedback"
+    <x-ui.action-buttom-modal
+        mode="feedback"
+        feedback-type="success"
+        :message="session('success')"
+        button-text="Okay"
+    />
 
-            feedback-type="success"
-
-            :message="session('success')"
-
-            button-text="Okay"
-        />
-
-    @endif
+@endif
 
 
-    {{-- GPS data consumed by routes-stops.js. --}}
-    <script
-        type="application/json"
-        id="gpsTripRecordsData"
-    >@json($gpsTripRecords)</script>
+{{-- =========================================================
+    ROUTE MAP DATA CONSUMED BY routes-stops.js
+========================================================== --}}
 
-    <script
-        type="application/json"
-        id="gpsRouteSuggestionsData"
-    >@json($gpsRouteSuggestions)</script>
+@php
+    $routeMapConfig = [
+        'searchUrl' => route(
+            'operation.routes.location-search'
+        ),
 
-    {{-- Browser autocomplete lists populated by routes-stops.js. --}}
-    <datalist id="routeNameSuggestionList"></datalist>
-    <datalist id="routeOriginSuggestionList"></datalist>
-    <datalist id="routeDestinationSuggestionList"></datalist>
+        'routingUrl' => route(
+            'operation.routes.calculate'
+        ),
+
+        'csrfToken' => csrf_token(),
+    ];
+@endphp
+
+<script
+    type="application/json"
+    id="gpsTripRecordsData"
+>@json($gpsTripRecords ?? [])</script>
+
+<script
+    type="application/json"
+    id="gpsLocationSuggestionsData"
+>@json($gpsLocationSuggestions ?? [])</script>
+
+<script
+    type="application/json"
+    id="routeMapConfigData"
+>@json($routeMapConfig)</script>
 
 </x-layout.app>
