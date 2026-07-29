@@ -1050,13 +1050,6 @@ Route::delete(
         'trip-records'
     );
 
-    route::view(
-        '/operation/fuel-efficiency',
-        'Operation.fuel-efficiency-monitoring'
-    )->name(
-        'fuel-efficiency'
-    );
-
 
     /*use
     |--------------------------------------------------------------------------

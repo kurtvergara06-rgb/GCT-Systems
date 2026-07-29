@@ -78,13 +78,13 @@
         [
             'label' => 'Dashboard',
             'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large'
+            'icon' => 'fa-table-cells-large',
         ],
 
         [
             'label' => 'Routes',
             'route' => 'operation.routes',
-            'icon' => 'fa-route'
+            'icon' => 'fa-route',
         ],
 
         [
@@ -94,19 +94,19 @@
                 [
                     'label' => 'Trip Schedule',
                     'route' => 'trip-schedule',
-                    'icon' => 'fa-calendar-days'
+                    'icon' => 'fa-calendar-days',
                 ],
                 [
                     'label' => 'Driver & Bus Assignment',
                     'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie'
+                    'icon' => 'fa-user-tie',
                 ],
                 [
                     'label' => 'Auto Scheduling',
                     'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles'
+                    'icon' => 'fa-wand-magic-sparkles',
                 ],
-            ]
+            ],
         ],
 
         [
@@ -116,31 +116,20 @@
                 [
                     'label' => 'Driver Attendance',
                     'route' => 'driver-attendance',
-                    'icon' => 'fa-id-card'
+                    'icon' => 'fa-id-card',
                 ],
                 [
                     'label' => 'Mechanic Attendance',
                     'route' => 'mechanic-attendance',
-                    'icon' => 'fa-users-gear'
+                    'icon' => 'fa-users-gear',
                 ],
-            ]
+            ],
         ],
 
         [
-            'label' => 'Fleet Management',
+            'label' => 'Bus Master List',
+            'route' => 'bus-master-list',
             'icon' => 'fa-bus',
-            'children' => [
-                [
-                    'label' => 'Bus Master List',
-                    'route' => 'bus-master-list',
-                    'icon' => 'fa-bus'
-                ],
-                [
-                    'label' => 'Fuel Efficiency',
-                    'route' => 'fuel-efficiency',
-                    'icon' => 'fa-gas-pump'
-                ],
-            ]
         ],
     ]"
 />
@@ -155,6 +144,58 @@
                 subtitle="Manage shuttle routes, stops, distances, and estimated travel times for scheduling and dispatch"
                 notification-count="6"
             />
+
+
+            {{-- =====================================================
+                ROUTE SUMMARY
+            ====================================================== --}}
+          @php
+    $routeStats = $routeStats ?? [
+        'total' => $routes->total(),
+        'active' => $routes->getCollection()
+            ->where('status', 'Active')
+            ->count(),
+        'inactive' => $routes->getCollection()
+            ->where('status', 'Inactive')
+            ->count(),
+        'stops' => $routes->getCollection()
+            ->sum(fn ($route) => $route->stops->count()),
+    ];
+@endphp
+
+<section class="route-summary-grid" aria-label="Route summary">
+    <x-ui.summary-card
+        label="Total Routes"
+        :value="$routeStats['total']"
+        small="All registered routes"
+        icon="fa-route"
+        color="blue"
+    />
+
+    <x-ui.summary-card
+        label="Active Routes"
+        :value="$routeStats['active']"
+        small="Available for scheduling"
+        icon="fa-circle-check"
+        color="green"
+    />
+
+    <x-ui.summary-card
+        label="Inactive Routes"
+        :value="$routeStats['inactive']"
+        small="Currently unavailable"
+        icon="fa-circle-pause"
+        color="orange"
+    />
+
+    <x-ui.summary-card
+        label="Total Stops"
+        :value="$routeStats['stops']"
+        small="Stops in loaded routes"
+        icon="fa-location-dot"
+        color="purple"
+    />
+</section>
 
 
             {{-- =====================================================
@@ -775,163 +816,310 @@
 
         </x-ui.form-section>
 
+        <x-ui.form-section
+            title="Route Map Preview"
+            subtitle="Select a processed GPS trip to preview its recorded origin and destination."
+            icon="fa-map-location-dot"
+        >
+            <div class="route-form-map-toolbar">
+                <div class="route-form-map-field">
+                    <label for="routeFormGpsTripSelect">GPS Trip Record</label>
+                    <select id="routeFormGpsTripSelect">
+                        <option value="">Select a GPS trip</option>
+                    </select>
+                </div>
+
+                <button
+                    type="button"
+                    class="route-form-fit-map-btn"
+                    id="fitRouteFormGpsMap"
+                    disabled
+                >
+                    <i class="fa-solid fa-expand"></i>
+                    Fit Route
+                </button>
+            </div>
+
+            <div
+                class="route-form-map-message"
+                id="routeFormGpsMapMessage"
+                role="status"
+            >
+                Select a processed GPS trip to display it on the map.
+            </div>
+
+            <div
+                class="route-form-gps-map"
+                id="routeFormGpsMap"
+                aria-label="Route form GPS map preview"
+            ></div>
+
+            <p class="route-form-map-note">
+                The line connects the GPS record's beginning and ending coordinates.
+            </p>
+        </x-ui.form-section>
+
     </x-ui.form-modal>
 
 
     {{-- =========================================================
         VIEW ROUTE MODAL
     ========================================================== --}}
-    <div
-        class="route-modal-overlay"
-        id="routeDetailsModal"
+    {{-- =========================================================
+    VIEW ROUTE MODAL
+========================================================= --}}
+<div
+    class="route-modal-overlay"
+    id="routeDetailsModal"
+    aria-hidden="true"
+>
+    <section
+        class="route-modal route-details-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="routeDetailsTitle"
     >
-
-        <div class="route-modal route-details-modal">
-
-            <div class="route-modal-header">
+        {{-- Modal Header --}}
+        <header class="route-details-header">
+            <div class="route-details-title-group">
+                <div class="route-details-header-icon">
+                    <i class="fa-solid fa-route"></i>
+                </div>
 
                 <div>
-
-                    <h2>
+                    <h2 id="routeDetailsTitle">
                         Route Details
                     </h2>
 
                     <p>
                         Route information and shuttle stop sequence.
                     </p>
+                </div>
+            </div>
 
+            <button
+                type="button"
+                class="route-modal-close"
+                data-close-route-details
+                aria-label="Close route details"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        {{-- Modal Body --}}
+        <div class="route-details-body">
+            <section class="route-details-grid">
+                {{-- Route ID --}}
+                <div class="route-detail-field">
+                    <span>Route ID</span>
+
+                    <strong id="viewRouteCode">
+                        —
+                    </strong>
                 </div>
 
-
-                <button
-                    type="button"
-                    class="route-modal-close"
-                    data-close-route-details
-                >
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-
-            </div>
-
-
-            <div class="route-details-body">
-
-                <section class="route-details-grid">
-
-                    <div>
-
-                        <span>
-                            Route ID
-                        </span>
-
-                        <strong id="viewRouteCode">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Status
-                        </span>
-
-                        <div id="viewRouteStatus">
-                            —
-                        </div>
-
-                    </div>
-
-
-                    <div class="full">
-
-                        <span>
-                            Route Name
-                        </span>
-
-                        <strong id="viewRouteName">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Origin
-                        </span>
-
-                        <strong id="viewRouteOrigin">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Destination
-                        </span>
-
-                        <strong id="viewRouteDestination">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Distance
-                        </span>
-
-                        <strong id="viewRouteDistance">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Estimated Time
-                        </span>
-
-                        <strong id="viewRouteTime">
-                            —
-                        </strong>
-
-                    </div>
-
-                </section>
-
-
-                {{-- ROUTE PATH --}}
-                <section class="route-path">
-
-                    <h3>
-                        Route Path
-                    </h3>
-
+                {{-- Status --}}
+                <div class="route-detail-field">
+                    <span>Status</span>
 
                     <div
-                        class="route-path-list"
-                        id="viewRoutePath"
+                        class="route-detail-value route-status-value"
+                        id="viewRouteStatus"
                     >
+                        —
+                    </div>
+                </div>
+
+                {{-- Route Name --}}
+                <div class="route-detail-field full">
+                    <span>Route Name</span>
+
+                    <strong id="viewRouteName">
+                        —
+                    </strong>
+                </div>
+
+                {{-- Origin --}}
+                <div class="route-detail-field">
+                    <span>Origin</span>
+
+                    <strong id="viewRouteOrigin">
+                        —
+                    </strong>
+                </div>
+
+                {{-- Destination --}}
+                <div class="route-detail-field">
+                    <span>Destination</span>
+
+                    <strong id="viewRouteDestination">
+                        —
+                    </strong>
+                </div>
+
+                {{-- Distance --}}
+                <div class="route-detail-field">
+                    <span>Distance</span>
+
+                    <strong id="viewRouteDistance">
+                        —
+                    </strong>
+                </div>
+
+                {{-- Estimated Time --}}
+                <div class="route-detail-field">
+                    <span>Estimated Time</span>
+
+                    <strong id="viewRouteTime">
+                        —
+                    </strong>
+                </div>
+            </section>
+
+
+            {{-- =================================================
+                GPS TRIP MAP
+            ================================================== --}}
+            <section class="gps-map-section">
+                <div class="gps-map-heading">
+                    <div>
+                        <h3>GPS Trip Map</h3>
+                        <p>
+                            View processed GPS trip records and their
+                            recorded origin and destination coordinates.
+                        </p>
                     </div>
 
-                </section>
+                    <span
+                        class="gps-record-count"
+                        id="gpsRecordCount"
+                    >
+                        {{ $gpsTripRecords->count() }} GPS Records
+                    </span>
+                </div>
 
-            </div>
+                <div class="gps-map-toolbar">
+                    <div class="gps-map-field">
+                        <label for="gpsTripSelect">
+                            GPS Trip Record
+                        </label>
 
+                        <select id="gpsTripSelect">
+                            <option value="">
+                                Select a GPS trip
+                            </option>
+                        </select>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="gps-fit-map-btn"
+                        id="fitGpsMap"
+                        disabled
+                    >
+                        <i class="fa-solid fa-expand"></i>
+                        Fit Route
+                    </button>
+                </div>
+
+                <div
+                    class="gps-map-message"
+                    id="gpsMapMessage"
+                    role="status"
+                >
+                    Select a processed GPS trip to display it on the map.
+                </div>
+
+                <div
+                    class="gps-trip-map"
+                    id="gpsTripMap"
+                    aria-label="GPS trip route map"
+                ></div>
+
+                <div
+                    class="gps-trip-details"
+                    id="gpsTripDetails"
+                    hidden
+                >
+                    <article class="gps-detail-card">
+                        <span>Bus Number</span>
+                        <strong id="gpsDetailBus">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Route Grouping</span>
+                        <strong id="gpsDetailGrouping">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Beginning</span>
+                        <strong id="gpsDetailBeginning">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Ending</span>
+                        <strong id="gpsDetailEnding">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Initial Location</span>
+                        <strong id="gpsDetailOrigin">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Final Location</span>
+                        <strong id="gpsDetailDestination">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Mileage</span>
+                        <strong id="gpsDetailMileage">—</strong>
+                    </article>
+
+                    <article class="gps-detail-card">
+                        <span>Total Time</span>
+                        <strong id="gpsDetailDuration">—</strong>
+                    </article>
+                </div>
+
+                <p class="gps-map-note">
+                    The line connects the recorded beginning and ending
+                    coordinates. It is a reference line, not the exact
+                    road path traveled.
+                </p>
+            </section>
+
+            {{-- Horizontal Route Path --}}
+            <section class="route-path-section">
+                <div class="route-path-heading">
+                    <div>
+                        <h3>Route Path</h3>
+
+                        <p>
+                            Origin, intermediate shuttle stops, and destination.
+                        </p>
+                    </div>
+
+                    <span class="route-path-count" id="viewRouteStopCount">
+                        0 Stops
+                    </span>
+                </div>
+
+                <div class="horizontal-route-card">
+                    <div
+                        class="horizontal-route-path"
+                        id="viewRoutePath"
+                    >
+                        {{-- Generated through routes-stops.js --}}
+                    </div>
+                </div>
+            </section>
         </div>
+    </section>
+</div>
 
-    </div>
+
 
 
     {{-- =========================================================
@@ -967,5 +1155,22 @@
         />
 
     @endif
+
+
+    {{-- GPS data consumed by routes-stops.js. --}}
+    <script
+        type="application/json"
+        id="gpsTripRecordsData"
+    >@json($gpsTripRecords)</script>
+
+    <script
+        type="application/json"
+        id="gpsRouteSuggestionsData"
+    >@json($gpsRouteSuggestions)</script>
+
+    {{-- Browser autocomplete lists populated by routes-stops.js. --}}
+    <datalist id="routeNameSuggestionList"></datalist>
+    <datalist id="routeOriginSuggestionList"></datalist>
+    <datalist id="routeDestinationSuggestionList"></datalist>
 
 </x-layout.app>
