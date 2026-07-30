@@ -136,9 +136,9 @@ class JobOrderController extends Controller
 
         $availableMechanics =
             MechanicAttendance::query()
-                ->where(
+                ->whereIn(
                     'status',
-                    'Present'
+                    ['Present', 'Late']
                 )
                 ->whereNotIn(
                     'mechanic_name',
@@ -440,8 +440,11 @@ class JobOrderController extends Controller
                     ->exists();
 
             if (
-                $mechanic->status
-                    !== 'Present'
+                ! in_array(
+                $mechanic->status,
+                ['Present', 'Late'],
+                true
+            )
                 || $hasActiveJobOrder
             ) {
                 return redirect()
@@ -550,7 +553,7 @@ class JobOrderController extends Controller
         );
 
         return redirect()
-            ->route('job-orders')
+            ->to(route('job-orders', [], false))
             ->with(
                 'success',
                 $jobOrder->status
@@ -852,7 +855,7 @@ class JobOrderController extends Controller
         );
 
         return redirect()
-            ->route('job-orders')
+            ->to(route('job-orders', [], false))
             ->with(
                 'success',
                 'Job order updated successfully.'
@@ -1073,7 +1076,7 @@ class JobOrderController extends Controller
         );
 
         return redirect()
-            ->route('job-orders')
+            ->to(route('job-orders', [], false))
             ->with(
                 'success',
                 'Purchase request created successfully.'
@@ -1321,7 +1324,7 @@ class JobOrderController extends Controller
         );
 
         return redirect()
-            ->route('job-orders')
+            ->to(route('job-orders', [], false))
             ->with(
                 'success',
                 'Job order marked as completed.'
@@ -1385,7 +1388,7 @@ class JobOrderController extends Controller
         );
 
         return redirect()
-            ->route('job-orders')
+            ->to(route('job-orders', [], false))
             ->with(
                 'success',
                 'Job order deleted successfully.'

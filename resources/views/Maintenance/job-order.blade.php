@@ -858,6 +858,13 @@
                                                     $jobOrder->id
                                                 }}"
 
+                                                data-update-url="{{
+                                                    route(
+                                                        'job-orders.update',
+                                                        $jobOrder->id
+                                                    )
+                                                }}"
+
                                                 data-job-order-no="{{
                                                     $jobOrder->job_order_no
                                                 }}"

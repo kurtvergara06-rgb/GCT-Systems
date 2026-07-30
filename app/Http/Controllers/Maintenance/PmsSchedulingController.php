@@ -222,7 +222,7 @@ class PmsSchedulingController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
-        return view('Maintenance.pms-scheduling', compact(
+        return view('maintenance.pms-scheduling', compact(
             'rows',
             'processedBuses',
             'gpsRecordsToday',
@@ -296,7 +296,7 @@ class PmsSchedulingController extends Controller
         PmsSchedule::create($validated);
 
         return redirect()
-            ->route('PMS-Scheduling')
+            ->to(route('PMS-Scheduling', [], false))
             ->with(
                 'success',
                 'PMS task created successfully.'
@@ -371,7 +371,7 @@ class PmsSchedulingController extends Controller
         $pmsSchedule->update($validated);
 
         return redirect()
-            ->route('PMS-Scheduling')
+            ->to(route('PMS-Scheduling', [], false))
             ->with(
                 'success',
                 'PMS task updated successfully.'
@@ -387,7 +387,7 @@ class PmsSchedulingController extends Controller
 
         if ($hasActiveJobOrder) {
             return redirect()
-                ->route('PMS-Scheduling')
+                ->to(route('PMS-Scheduling', [], false))
                 ->with(
                     'error',
                     'This PMS task cannot be deleted while it has an active Job Order.'
@@ -397,7 +397,7 @@ class PmsSchedulingController extends Controller
         $pmsSchedule->delete();
 
         return redirect()
-            ->route('PMS-Scheduling')
+            ->to(route('PMS-Scheduling', [], false))
             ->with(
                 'success',
                 'PMS task deleted successfully.'
@@ -412,7 +412,7 @@ class PmsSchedulingController extends Controller
 
         if (! $latestGps) {
             return redirect()
-                ->route('PMS-Scheduling')
+                ->to(route('PMS-Scheduling', [], false))
                 ->with(
                     'error',
                     'No processed GPS mileage record was found for this bus.'
@@ -427,7 +427,7 @@ class PmsSchedulingController extends Controller
                 - self::WARNING_RANGE_KM
         ) {
             return redirect()
-                ->route('PMS-Scheduling')
+                ->to(route('PMS-Scheduling', [], false))
                 ->with(
                     'error',
                     'This PMS task is still Upcoming and cannot create a Job Order yet.'
@@ -452,14 +452,20 @@ class PmsSchedulingController extends Controller
             )
             . ' km.';
 
-        return redirect()->route('job-orders', [
-            'create_pms' => 1,
-            'pms_schedule_id' => $pmsSchedule->id,
-            'bus_no' => $pmsSchedule->bus_no,
-            'maintenance_type' => 'PMS',
-            'problem_issue' => $issue,
-        ]);
-    }
+        return redirect()->to(
+            route(
+                'job-orders',
+                [
+                    'create_pms' => 1,
+                    'pms_schedule_id' => $pmsSchedule->id,
+                    'bus_no' => $pmsSchedule->bus_no,
+                    'maintenance_type' => 'PMS',
+                    'problem_issue' => $issue,
+                ],
+                false
+            )
+        );
+            }
 
     /*
     |--------------------------------------------------------------------------
@@ -544,16 +550,13 @@ class PmsSchedulingController extends Controller
                 });
 
             foreach ($orphanedSchedules as $schedule) {
-                /*
-                 * Remove related Job Orders first to prevent
-                 * foreign-key errors.
-                 */
+                $hasJobOrders = $schedule
+                    ->jobOrders()
+                    ->exists();
 
-                $schedule->jobOrders()->delete();
-
-                /*
-                 * Delete the orphaned PMS schedule.
-                 */
+                if ($hasJobOrders) {
+                    continue;
+                }
 
                 $schedule->delete();
             }

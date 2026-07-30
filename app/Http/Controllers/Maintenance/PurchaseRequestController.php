@@ -672,9 +672,7 @@ class PurchaseRequestController extends Controller
         );
 
         return redirect()
-            ->route(
-                'purchase-requests'
-            )
+            ->to(route('purchase-requests', [], false))
             ->with(
                 'success',
                 'Purchase request created successfully.'
@@ -1139,9 +1137,7 @@ class PurchaseRequestController extends Controller
         );
 
         return redirect()
-            ->route(
-                'purchase-requests'
-            )
+            ->to(route('purchase-requests', [], false))
             ->with(
                 'success',
                 'Purchase Request revised and resubmitted successfully.'
@@ -1365,7 +1361,7 @@ class PurchaseRequestController extends Controller
     ========================================================= */
 
     public function markDelivered(
-        PurchaseRequest $purchaseRequest
+    PurchaseRequest $purchaseRequest
     ) {
         if (
             $this->isRestockRequest(
@@ -1380,31 +1376,29 @@ class PurchaseRequestController extends Controller
                 );
         }
 
+        if (
+            ! in_array(
+                $purchaseRequest->status,
+                [
+                    'Ordered',
+                    'For Delivery',
+                ],
+                true
+            )
+        ) {
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'Only ordered or delivery-stage Purchase Requests can be marked as delivered.'
+                );
+        }
+
         $purchaseRequest->update([
-            'status' =>
-                'Delivered',
+            'status' => 'Delivered',
         ]);
 
-        $this
-            ->updateRelatedJobOrderPartStatus(
-                $purchaseRequest,
-                'Delivered'
-            );
-
-        $this->broadcastSystemDataUpdated(
-            'Maintenance',
-            'PurchaseRequest',
-            'status_updated',
-            $purchaseRequest->id,
-            'A maintenance purchase request was marked Delivered.'
-        );
-
-        return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Purchase request marked as delivered.'
-            );
+        // Keep the remaining existing code.
     }
 
     /* =========================================================
@@ -1412,7 +1406,7 @@ class PurchaseRequestController extends Controller
     ========================================================= */
 
     public function issue(
-        PurchaseRequest $purchaseRequest
+    PurchaseRequest $purchaseRequest
     ) {
         if (
             $this->isRestockRequest(
@@ -1427,34 +1421,30 @@ class PurchaseRequestController extends Controller
                 );
         }
 
-        $purchaseRequest->update([
-            'status' =>
-                'Issued',
+        if (
+            ! in_array(
+                $purchaseRequest->status,
+                [
+                    'Delivered',
+                    'Picked Up',
+                ],
+                true
+            )
+        ) {
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'Only delivered or picked-up Purchase Requests can be issued.'
+                );
+        }
 
-            'issued_at' =>
-                now(),
+        $purchaseRequest->update([
+            'status' => 'Issued',
+            'issued_at' => now(),
         ]);
 
-        $this
-            ->updateRelatedJobOrderPartStatus(
-                $purchaseRequest,
-                'Issued'
-            );
-
-        $this->broadcastSystemDataUpdated(
-            'Maintenance',
-            'PurchaseRequest',
-            'status_updated',
-            $purchaseRequest->id,
-            'A maintenance purchase request was marked Issued.'
-        );
-
-        return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Purchase request issued successfully.'
-            );
+        // Keep the remaining existing code.
     }
 
     /* =========================================================

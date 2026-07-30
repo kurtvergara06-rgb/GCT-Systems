@@ -169,6 +169,7 @@
       @endif
 
 
+
       <div class="app">
 
           {{-- =====================================================
@@ -1498,5 +1499,46 @@
           confirm-id="confirmDeletePr"
       />
 
+@if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const message = @json(session('success'));
+
+            if (typeof window.showSystemToast === 'function') {
+                window.showSystemToast(
+                    message,
+                    'success',
+                    'Success',
+                    {
+                        timeout: 5000,
+                    }
+                );
+            } else {
+                console.log(message);
+            }
+        });
+    </script>
+@endif
+
+@if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const message = @json(session('error'));
+
+            if (typeof window.showSystemToast === 'function') {
+                window.showSystemToast(
+                    message,
+                    'error',
+                    'Action Failed',
+                    {
+                        timeout: 7000,
+                    }
+                );
+            } else {
+                console.error(message);
+            }
+        });
+    </script>
+@endif
 
   </x-layout.app>
