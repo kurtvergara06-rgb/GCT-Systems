@@ -198,7 +198,6 @@
                     <div class="filter-group">
 
                         <label for="partStatusFilter">
-                            Part Status
                         </label>
 
                         <select
@@ -306,8 +305,7 @@
 
                     <div class="filter-group">
 
-                        <label for="maintenanceTypeFilter">
-                            Maintenance Type
+                        <label for="maintenanceTypeFilter">         
                         </label>
 
                         <select
@@ -861,7 +859,8 @@
                                                 data-update-url="{{
                                                     route(
                                                         'job-orders.update',
-                                                        $jobOrder->id
+                                                        $jobOrder->id,
+                                                        false
                                                     )
                                                 }}"
 

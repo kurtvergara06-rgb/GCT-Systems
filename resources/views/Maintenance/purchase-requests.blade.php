@@ -752,16 +752,17 @@
 
                                                       data-update-url="{{
                                                           route(
-                                                              'purchase-requests.update',
-                                                              $pr->id
-                                                          )
-                                                      }}"
+                                                        'purchase-requests.update',
+                                                        $pr->id,
+                                                        false
+                                                    )
 
                                                       data-resubmit-url="{{
                                                           route(
-                                                              'purchase-requests.resubmit',
-                                                              $pr->id
-                                                          )
+                                                            'purchase-requests.resubmit',
+                                                            $pr->id,
+                                                            false
+)
                                                       }}"
                                                   />
 
