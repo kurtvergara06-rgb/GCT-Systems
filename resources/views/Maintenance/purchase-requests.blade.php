@@ -752,20 +752,10 @@
                                                           $pr->remarks
                                                       }}"
 
-                                                      data-update-url="{{
-                                                          route(
-                                                        'purchase-requests.update',
-                                                        $pr->id,
-                                                        false
-                                                    )
+                                                      data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
 
-                                                      data-resubmit-url="{{
-                                                          route(
-                                                            'purchase-requests.resubmit',
-                                                            $pr->id,
-                                                            false
-)
-                                                      }}"
+                                                      ddata-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
+
                                                   />
 
                                               @else
