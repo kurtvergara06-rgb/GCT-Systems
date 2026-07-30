@@ -1003,17 +1003,8 @@
                                                 DELETE
                                             ========================================== --}}
                                             <form
-                                                id="
-                                                    deleteForm-{{ $jobOrder->id }}
-                                                "
-
-                                                action="{{
-                                                    route(
-                                                        'job-orders.destroy',
-                                                        $jobOrder->id
-                                                    )
-                                                }}"
-
+                                                id="deleteForm-{{ $jobOrder->id }}"
+                                                action="{{ route('job-orders.destroy', $jobOrder->id, false) }}"
                                                 method="POST"
                                             >
 
