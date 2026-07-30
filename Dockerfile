@@ -8,6 +8,7 @@ WORKDIR /app
 # Copy dependency files first for better Docker caching.
 COPY package*.json ./
 
+# Install frontend dependencies.
 RUN npm ci
 
 # Copy the full Laravel project.
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get install -y \
         zip \
         gd \
         opcache \
+        pcntl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -99,7 +101,7 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/start-reverb.sh /usr/local/bin/start-reverb.sh
 
-# Make the startup script executable.
+# Make startup scripts executable.
 RUN chmod +x \
     /usr/local/bin/start.sh \
     /usr/local/bin/start-reverb.sh
@@ -107,4 +109,7 @@ RUN chmod +x \
 # Render web services normally use port 10000.
 EXPOSE 10000
 
+# Default command for the main Laravel web service.
+# The separate Reverb service should override this with:
+# /usr/local/bin/start-reverb.sh
 CMD ["/usr/local/bin/start.sh"]
