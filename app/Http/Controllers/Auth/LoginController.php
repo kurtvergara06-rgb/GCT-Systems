@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     /**
-     * Authenticate the user and redirect them to their department dashboard.
+     * Authenticate the user and redirect them to the correct dashboard.
      */
     public function login(Request $request): RedirectResponse
     {
@@ -86,11 +86,11 @@ class LoginController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Department Redirect
+        | Determine Redirect Path
         |--------------------------------------------------------------------------
         */
 
-        $redirectUrl = $this->redirectByDepartmentAndRole(
+        $redirectPath = $this->redirectByDepartmentAndRole(
             $authenticatedUser->department ?? null,
             $authenticatedUser->role ?? null
         );
@@ -100,18 +100,18 @@ class LoginController extends Controller
         | Remove Old Intended URL
         |--------------------------------------------------------------------------
         |
-        | This prevents Laravel from reusing a malformed or outdated URL such as:
+        | This prevents Laravel from reusing malformed session URLs such as:
         | /https:/admin/dashboard
         |
         */
 
         $request->session()->forget('url.intended');
 
-        return redirect()->to($redirectUrl);
+        return redirect($redirectPath);
     }
 
     /**
-     * Log the current user out.
+     * Log the authenticated user out.
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -124,7 +124,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Determine the correct landing page based on department and role.
+     * Determine the correct relative landing page based on department and role.
      */
     private function redirectByDepartmentAndRole(
         ?string $department,
@@ -151,7 +151,7 @@ class LoginController extends Controller
             in_array($department, ['admin', 'administration'], true) &&
             in_array($role, $adminRoles, true)
         ) {
-            return route('admin.dashboard');
+            return route('admin.dashboard', [], false);
         }
 
         /*
@@ -164,7 +164,7 @@ class LoginController extends Controller
             $department === 'maintenance' &&
             in_array($role, ['head', 'staff'], true)
         ) {
-            return route('maintenance-dashboard');
+            return route('maintenance-dashboard', [], false);
         }
 
         /*
@@ -177,7 +177,7 @@ class LoginController extends Controller
             in_array($department, ['purchase', 'purchasing'], true) &&
             in_array($role, ['head', 'staff'], true)
         ) {
-            return route('purchase-orders');
+            return route('purchase-orders', [], false);
         }
 
         /*
@@ -190,7 +190,7 @@ class LoginController extends Controller
             $department === 'warehouse' &&
             in_array($role, ['head', 'staff'], true)
         ) {
-            return route('inventory');
+            return route('inventory', [], false);
         }
 
         /*
@@ -203,22 +203,22 @@ class LoginController extends Controller
             in_array($department, ['operation', 'operations'], true) &&
             in_array($role, ['head', 'staff'], true)
         ) {
-            return route('dashboard-operation');
+            return route('dashboard-operation', [], false);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Unrecognized Account Assignment
+        | Unsupported Assignment
         |--------------------------------------------------------------------------
         */
 
         Auth::logout();
 
-        return route('login');
+        return route('login', [], false);
     }
 
     /**
-     * Normalize department and role values for reliable comparisons.
+     * Normalize department and role values.
      */
     private function normalizeValue(?string $value): string
     {
