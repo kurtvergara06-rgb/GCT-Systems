@@ -1237,7 +1237,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (editJobForm) {
 
             editJobForm.action =
-              `/job-orders/${id}`;
+              button.dataset.updateUrl || '';
           }
 
 

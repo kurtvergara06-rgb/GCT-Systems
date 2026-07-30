@@ -198,7 +198,6 @@
                     <div class="filter-group">
 
                         <label for="partStatusFilter">
-                            Part Status
                         </label>
 
                         <select
@@ -306,8 +305,7 @@
 
                     <div class="filter-group">
 
-                        <label for="maintenanceTypeFilter">
-                            Maintenance Type
+                        <label for="maintenanceTypeFilter">         
                         </label>
 
                         <select
@@ -858,6 +856,14 @@
                                                     $jobOrder->id
                                                 }}"
 
+                                                data-update-url="{{
+                                                    route(
+                                                        'job-orders.update',
+                                                        $jobOrder->id,
+                                                        false
+                                                    )
+                                                }}"
+
                                                 data-job-order-no="{{
                                                     $jobOrder->job_order_no
                                                 }}"
@@ -997,17 +1003,8 @@
                                                 DELETE
                                             ========================================== --}}
                                             <form
-                                                id="
-                                                    deleteForm-{{ $jobOrder->id }}
-                                                "
-
-                                                action="{{
-                                                    route(
-                                                        'job-orders.destroy',
-                                                        $jobOrder->id
-                                                    )
-                                                }}"
-
+                                                id="deleteForm-{{ $jobOrder->id }}"
+                                                action="{{ route('job-orders.destroy', $jobOrder->id, false) }}"
                                                 method="POST"
                                             >
 
