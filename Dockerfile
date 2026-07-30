@@ -97,9 +97,12 @@ RUN mkdir -p \
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/start.sh /usr/local/bin/start.sh
+COPY docker/start-reverb.sh /usr/local/bin/start-reverb.sh
 
 # Make the startup script executable.
-RUN chmod +x /usr/local/bin/start.sh
+RUN chmod +x \
+    /usr/local/bin/start.sh \
+    /usr/local/bin/start-reverb.sh
 
 # Render web services normally use port 10000.
 EXPOSE 10000
