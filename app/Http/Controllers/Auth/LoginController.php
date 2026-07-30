@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\Admin\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +36,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var \App\Models\Admin\User|null $authenticatedUser */
+        /** @var User|null $authenticatedUser */
         $authenticatedUser = Auth::user();
 
         if ($authenticatedUser === null) {
@@ -95,7 +95,19 @@ class LoginController extends Controller
             $authenticatedUser->role ?? null
         );
 
-        return redirect()->intended($redirectUrl);
+        /*
+        |--------------------------------------------------------------------------
+        | Remove Old Intended URL
+        |--------------------------------------------------------------------------
+        |
+        | This prevents Laravel from reusing a malformed or outdated URL such as:
+        | /https:/admin/dashboard
+        |
+        */
+
+        $request->session()->forget('url.intended');
+
+        return redirect()->to($redirectUrl);
     }
 
     /**
@@ -125,14 +137,6 @@ class LoginController extends Controller
         |--------------------------------------------------------------------------
         | Admin Department
         |--------------------------------------------------------------------------
-        |
-        | Supports existing role values such as:
-        | - head
-        | - staff
-        | - admin
-        | - system admin
-        | - system administrator
-        |
         */
 
         $adminRoles = [
@@ -206,10 +210,6 @@ class LoginController extends Controller
         |--------------------------------------------------------------------------
         | Unrecognized Account Assignment
         |--------------------------------------------------------------------------
-        |
-        | Authentication succeeded, but the account has an unsupported
-        | department and role combination.
-        |
         */
 
         Auth::logout();
