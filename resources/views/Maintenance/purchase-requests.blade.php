@@ -680,18 +680,20 @@
                                                   }}"
 
                                                   data-update-url="{{
-                                                      route(
-                                                          'purchase-requests.update',
-                                                          $pr->id
-                                                      )
-                                                  }}"
+                                                        route(
+                                                            'purchase-requests.update',
+                                                            $pr->id,
+                                                            false
+                                                        )
+                                                    }}"
 
-                                                  data-resubmit-url="{{
-                                                      route(
-                                                          'purchase-requests.resubmit',
-                                                          $pr->id
-                                                      )
-                                                  }}"
+                                                    data-resubmit-url="{{
+                                                        route(
+                                                            'purchase-requests.resubmit',
+                                                            $pr->id,
+                                                            false
+                                                        )
+                                                    }}"
                                               />
 
 
