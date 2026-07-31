@@ -255,7 +255,7 @@
 
             <section class="batch-top-grid">
                 <form
-                    action="{{ route('batch-file-processing.upload') }}"
+                    action="{{ route('batch-file-processing.upload', [], false) }}"
                     method="POST"
                     enctype="multipart/form-data"
                     class="upload-card"
@@ -426,7 +426,7 @@
                         @forelse($batches as $batch)
                             <div class="uploaded-file-row">
                                 <a
-                                    href="{{ route('batch-file-processing', ['batch_id' => $batch->id]) }}"
+                                    href="{{ route('batch-file-processing', ['batch_id' => $batch->id], false) }}"
                                     class="uploaded-file {{ $selectedBatchId == $batch->id ? 'active-file' : '' }}"
                                 >
                                     <div class="file-icon {{ strtolower($batch->file_type ?? 'csv') }}">
@@ -457,7 +457,7 @@
                                     class="delete-upload-btn"
                                     title="Delete uploaded file"
                                     data-delete-batch
-                                    data-delete-url="{{ route('batch-file-processing.destroy', $batch) }}"
+                                    data-delete-url="{{ route('batch-file-processing.destroy', $batch, false) }}"
                                     data-delete-name="{{ $batch->file_name }}"
                                 >
                                     <i class="fa-solid fa-trash"></i>
@@ -569,7 +569,7 @@
                     <div class="table-header-actions">
                         <form
                             method="GET"
-                            action="{{ route('batch-file-processing') }}"
+                            action="{{ route('batch-file-processing', [], false) }}"
                             class="batch-search-form"
                         >
                             @if($selectedBatch)
@@ -1232,7 +1232,7 @@
                     id="batchDeleteForm"
                     method="POST"
                     action=""
-                    data-index-url="{{ route('batch-file-processing') }}"
+                    data-index-url="{{ route('batch-file-processing', [], false) }}"
                 >
                     @csrf
                     @method('DELETE')
