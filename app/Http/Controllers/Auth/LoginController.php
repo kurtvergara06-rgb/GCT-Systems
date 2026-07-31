@@ -190,7 +190,7 @@ class LoginController extends Controller
             $department === 'warehouse' &&
             in_array($role, ['head', 'staff'], true)
         ) {
-            return route('inventory', [], false);
+            return route('warehouse.dashboard', [], false);
         }
 
         /*

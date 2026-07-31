@@ -167,7 +167,6 @@
                         <div class="filter-group">
 
                             <label for="pmsStatusFilter">
-                                Status
                             </label>
 
                             <select
