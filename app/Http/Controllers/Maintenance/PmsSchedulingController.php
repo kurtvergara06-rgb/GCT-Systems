@@ -196,18 +196,18 @@ class PmsSchedulingController extends Controller
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
-        $rows = new LengthAwarePaginator(
-            $groups
-                ->forPage($currentPage, self::PER_PAGE)
-                ->values(),
-            $groups->count(),
-            self::PER_PAGE,
-            $currentPage,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]
-        );
+            $rows = new LengthAwarePaginator(
+                $groups
+                    ->forPage($currentPage, self::PER_PAGE)
+                    ->values(),
+                $groups->count(),
+                self::PER_PAGE,
+                $currentPage,
+                [
+                    'path' => route('PMS-Scheduling', [], false),
+                    'query' => $request->except('page'),
+                ]
+            );
 
         /*
         |--------------------------------------------------------------------------
