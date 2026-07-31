@@ -152,35 +152,64 @@ class BatchFileProcessingController extends Controller
             ],
         ]);
 
-        $file = $validated['gps_file'];
-        $extension = strtolower($file->getClientOriginalExtension());
-
-        $storedName = now()->format('YmdHis')
-            . '_'
-            . Str::random(10)
-            . '.'
-            . $extension;
-
-        $filePath = $file->storeAs(
-            'gps-batches',
-            $storedName,
-            'public'
-        );
-
-        $batch = BatchUpload::create([
-            'file_name' => $file->getClientOriginalName(),
-            'stored_name' => $storedName,
-            'file_path' => $filePath,
-            'file_type' => $extension,
-            'bus_no' => 'Multiple Buses',
-            'uploaded_by' => Auth::id(),
-            'status' => 'Processing',
-            'total_records' => 0,
-            'processed_records' => 0,
-            'failed_records' => 0,
-        ]);
+        $batch = null;
+        $filePath = null;
 
         try {
+            $file = $validated['gps_file'];
+
+            if (! $file->isValid()) {
+                throw new \RuntimeException(
+                    'The uploaded file is invalid or incomplete.'
+                );
+            }
+
+            $extension = strtolower(
+                $file->getClientOriginalExtension()
+            );
+
+            if (! Storage::disk('public')->exists('gps-batches')) {
+                Storage::disk('public')->makeDirectory('gps-batches');
+            }
+
+            $storedName = now()->format('YmdHis')
+                . '_'
+                . Str::random(10)
+                . '.'
+                . $extension;
+
+            $filePath = $file->storeAs(
+                'gps-batches',
+                $storedName,
+                'public'
+            );
+
+            if (! $filePath) {
+                throw new \RuntimeException(
+                    'The uploaded file could not be saved on the server.'
+                );
+            }
+
+            if (! Storage::disk('public')->exists($filePath)) {
+                throw new \RuntimeException(
+                    'The uploaded file was not found after saving.'
+                );
+            }
+
+            $batch = BatchUpload::create([
+                'file_name' => $file->getClientOriginalName(),
+                'stored_name' => $storedName,
+                'file_path' => $filePath,
+                'file_type' => $extension,
+                'bus_no' => 'Multiple Buses',
+                'uploaded_by' => Auth::id(),
+                'status' => 'Processing',
+                'total_records' => 0,
+                'processed_records' => 0,
+                'failed_records' => 0,
+                'error_message' => null,
+            ]);
+
             if ($extension === 'pdf') {
                 $result = $this->processPdfFile($batch);
             } elseif (in_array($extension, ['xls', 'xlsx'], true)) {
@@ -191,10 +220,10 @@ class BatchFileProcessingController extends Controller
 
             $batch->update([
                 'status' => 'In Review',
-                'total_records' => $result['total'],
-                'processed_records' => $result['processed'],
-                'failed_records' => $result['failed'],
-                'error_message' => $result['failed'] > 0
+                'total_records' => $result['total'] ?? 0,
+                'processed_records' => $result['processed'] ?? 0,
+                'failed_records' => $result['failed'] ?? 0,
+                'error_message' => ($result['failed'] ?? 0) > 0
                     ? (
                         $result['first_error']
                         ?? 'Some rows could not be processed. Please review the report data.'
@@ -210,35 +239,62 @@ class BatchFileProcessingController extends Controller
                 'A GPS batch file was uploaded and processed.'
             );
 
-            $message = "{$result['processed']} valid record(s) saved";
+            $message = ($result['processed'] ?? 0)
+                . ' valid record(s) saved';
 
             if (! empty($result['skipped_headers'])) {
-                $message .= ", {$result['skipped_headers']} header row(s) skipped";
+                $message .= ', '
+                    . $result['skipped_headers']
+                    . ' header row(s) skipped';
             }
 
             if (! empty($result['skipped_no_bus_no'])) {
-                $message .= ", {$result['skipped_no_bus_no']} row(s) skipped (no Bus No.)";
+                $message .= ', '
+                    . $result['skipped_no_bus_no']
+                    . ' row(s) skipped (no Bus No.)';
             }
 
-            if ($result['failed'] > 0) {
-                $message .= ", {$result['failed']} failed";
+            if (($result['failed'] ?? 0) > 0) {
+                $message .= ', '
+                    . $result['failed']
+                    . ' failed';
             }
 
             return redirect()
-            ->to(route('batch-file-processing', [
-                'batch_id' => $batch->id,
-            ], false))
-            ->with('success', $message . '.');
-            
+                ->to(route('batch-file-processing', [
+                    'batch_id' => $batch->id,
+                ], false))
+                ->with('success', $message . '.');
+
         } catch (\Throwable $exception) {
-            $batch->update([
-                'status' => 'Failed',
-                'error_message' => $exception->getMessage(),
-            ]);
+            report($exception);
+
+            if ($batch) {
+                try {
+                    $batch->update([
+                        'status' => 'Failed',
+                        'error_message' => Str::limit(
+                            $exception->getMessage(),
+                            1000
+                        ),
+                    ]);
+                } catch (\Throwable $updateException) {
+                    report($updateException);
+                }
+            } elseif ($filePath) {
+                try {
+                    Storage::disk('public')->delete($filePath);
+                } catch (\Throwable $deleteException) {
+                    report($deleteException);
+                }
+            }
 
             return redirect()
-    ->to(route('batch-file-processing', [], false))
-    ->with('error', $exception->getMessage());
+                ->to(route('batch-file-processing', [], false))
+                ->with(
+                    'error',
+                    'Upload failed: ' . $exception->getMessage()
+                );
         }
     }
 

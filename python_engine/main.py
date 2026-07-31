@@ -5,13 +5,16 @@ import uuid
 
 from NLP.pdf_extractor import extract_pdf_text, extract_pdf_rows
 from NLP.text_cleaner import clean_text
-from NLP.entity_extractor import extract_entities, infer_records_from_table_rows
+from NLP.entity_extractor import (
+    extract_entities,
+    infer_records_from_table_rows,
+)
 
 
 app = FastAPI(
     title="GCT Python Engine",
     description="Business Analytics and PDF NLP Processing API",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
@@ -30,49 +33,71 @@ def home():
 def health_check():
     return {
         "status": "online",
-        "service": "GCT Python Engine"
+        "service": "GCT Python Engine",
     }
 
 
 @app.post("/nlp/extract-pdf")
-async def extract_pdf_data(pdf_file: UploadFile = File(...)):
+async def extract_pdf_data(
+    pdf_file: UploadFile = File(...)
+):
     if not pdf_file.filename:
         raise HTTPException(
             status_code=400,
-            detail="No PDF file was uploaded."
+            detail="No PDF file was uploaded.",
         )
 
     if not pdf_file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
-            detail="Only PDF files are allowed."
+            detail="Only PDF files are allowed.",
         )
 
-    unique_name = f"{uuid.uuid4()}_{pdf_file.filename}"
+    unique_name = (
+        f"{uuid.uuid4()}_{pdf_file.filename}"
+    )
+
     saved_pdf_path = UPLOAD_FOLDER / unique_name
 
     try:
         with open(saved_pdf_path, "wb") as buffer:
-            shutil.copyfileobj(pdf_file.file, buffer)
+            shutil.copyfileobj(
+                pdf_file.file,
+                buffer,
+            )
 
-        raw_text = extract_pdf_text(str(saved_pdf_path))
+        raw_text = extract_pdf_text(
+            str(saved_pdf_path)
+        )
 
-        table_result = extract_pdf_rows(str(saved_pdf_path))
+        table_result = extract_pdf_rows(
+            str(saved_pdf_path)
+        )
 
         if isinstance(table_result, tuple):
-            table_rows, detected_table_type = table_result
+            table_rows, detected_table_type = (
+                table_result
+            )
         else:
-            table_rows = table_result
+            table_rows = table_result or []
             detected_table_type = "unknown"
+
+        table_rows = table_rows or []
 
         if not raw_text and not table_rows:
             raise HTTPException(
                 status_code=422,
-                detail="No readable text was found in this PDF. It may be a scanned image PDF."
+                detail=(
+                    "No readable text was found in this PDF. "
+                    "It may be a scanned image PDF."
+                ),
             )
 
         cleaned_text = clean_text(raw_text)
-        extracted_data = extract_entities(cleaned_text)
+
+        extracted_data = extract_entities(
+            cleaned_text
+        )
 
         records = []
         skipped_headers = 0
@@ -82,55 +107,140 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
         debug_info = {}
 
         if table_rows:
-            inference_result = infer_records_from_table_rows(table_rows)
+            inference_result = (
+                infer_records_from_table_rows(
+                    table_rows
+                )
+            )
 
-            records = inference_result.get("records", [])
-            skipped_headers = inference_result.get("skipped_headers", 0)
-            skipped_no_bus_no = inference_result.get("skipped_no_bus_no", 0)
-            debug_info = inference_result.get("debug_info", {})
+            records = inference_result.get(
+                "records",
+                [],
+            )
+
+            skipped_headers = (
+                inference_result.get(
+                    "skipped_headers",
+                    0,
+                )
+            )
+
+            skipped_no_bus_no = (
+                inference_result.get(
+                    "skipped_no_bus_no",
+                    0,
+                )
+            )
+
+            debug_info = inference_result.get(
+                "debug_info",
+                {},
+            )
 
             if records:
                 extraction_mode = "table"
 
-        # Only use text fallback when NO TABLE was found at all.
-        # Do NOT fall back if table_rows exist but produced 0 records.
-        # This prevents random text extraction when valid tables exist.
         if not records and not table_rows:
             has_meaningful_value = any([
                 extracted_data.get("bus_no"),
                 extracted_data.get("grouping"),
                 extracted_data.get("beginning"),
                 extracted_data.get("ending"),
-                extracted_data.get("initial_location"),
-                extracted_data.get("final_location"),
+                extracted_data.get(
+                    "initial_location"
+                ),
+                extracted_data.get(
+                    "final_location"
+                ),
                 extracted_data.get("location"),
-                extracted_data.get("mileage_km"),
-                extracted_data.get("engine_hours"),
+                extracted_data.get(
+                    "mileage_km"
+                ),
+                extracted_data.get(
+                    "engine_hours"
+                ),
             ])
 
-            if has_meaningful_value and extracted_data.get("bus_no"):
+            if (
+                has_meaningful_value
+                and extracted_data.get("bus_no")
+            ):
                 fallback_record = {
                     "record_no": None,
-                    "bus_no": extracted_data.get("bus_no"),
-                    "grouping": extracted_data.get("grouping"),
-                    "trip_type": extracted_data.get("trip_type"),
-                    "beginning": extracted_data.get("beginning"),
-                    "initial_location": extracted_data.get("initial_location"),
-                    "ending": extracted_data.get("ending"),
-                    "final_location": extracted_data.get("final_location"),
-                    "duration_minutes": extracted_data.get("duration_minutes"),
-                    "total_minutes": extracted_data.get("total_minutes"),
-                    "in_motion_minutes": extracted_data.get("in_motion_minutes"),
-                    "idling_minutes": extracted_data.get("idling_minutes"),
-                    "mileage_km": extracted_data.get("mileage_km"),
-                    "engine_hours": extracted_data.get("engine_hours"),
-                    "location": extracted_data.get("location"),
-                    "coordinates": extracted_data.get("coordinates"),
-                    "description": extracted_data.get("description"),
-                    "source_format": "PDF Text Report",
+                    "bus_no": extracted_data.get(
+                        "bus_no"
+                    ),
+                    "grouping": extracted_data.get(
+                        "grouping"
+                    ),
+                    "trip_type": extracted_data.get(
+                        "trip_type"
+                    ),
+                    "beginning": extracted_data.get(
+                        "beginning"
+                    ),
+                    "initial_location": (
+                        extracted_data.get(
+                            "initial_location"
+                        )
+                    ),
+                    "ending": extracted_data.get(
+                        "ending"
+                    ),
+                    "final_location": (
+                        extracted_data.get(
+                            "final_location"
+                        )
+                    ),
+                    "duration_minutes": (
+                        extracted_data.get(
+                            "duration_minutes"
+                        )
+                    ),
+                    "total_minutes": (
+                        extracted_data.get(
+                            "total_minutes"
+                        )
+                    ),
+                    "in_motion_minutes": (
+                        extracted_data.get(
+                            "in_motion_minutes"
+                        )
+                    ),
+                    "idling_minutes": (
+                        extracted_data.get(
+                            "idling_minutes"
+                        )
+                    ),
+                    "mileage_km": (
+                        extracted_data.get(
+                            "mileage_km"
+                        )
+                    ),
+                    "engine_hours": (
+                        extracted_data.get(
+                            "engine_hours"
+                        )
+                    ),
+                    "location": extracted_data.get(
+                        "location"
+                    ),
+                    "coordinates": (
+                        extracted_data.get(
+                            "coordinates"
+                        )
+                    ),
+                    "description": (
+                        extracted_data.get(
+                            "description"
+                        )
+                    ),
+                    "source_format": (
+                        "PDF Text Report"
+                    ),
                     "raw_data": {
-                        "raw_text": raw_text
-                    }
+                        "raw_text": raw_text,
+                    },
                 }
 
                 records = [fallback_record]
@@ -146,17 +256,41 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
             "records": records,
             "extracted_data": extracted_data,
             "_debug": {
-                "table_rows_found": len(table_rows),
+                "table_rows_found": len(
+                    table_rows
+                ),
                 "records_created": len(records),
-                "skipped_headers": skipped_headers,
-                "skipped_no_bus_no": skipped_no_bus_no,
-                "extraction_mode": extraction_mode,
+                "skipped_headers": (
+                    skipped_headers
+                ),
+                "skipped_no_bus_no": (
+                    skipped_no_bus_no
+                ),
+                "extraction_mode": (
+                    extraction_mode
+                ),
                 "table_type": table_type,
-                "detected_header": debug_info.get("detected_header"),
-                "sample_rows": debug_info.get("sample_rows"),
-                "num_standard_rows": debug_info.get("num_standard_rows"),
-                "num_key_value_rows": debug_info.get("num_key_value_rows"),
-            }
+                "detected_header": (
+                    debug_info.get(
+                        "detected_header"
+                    )
+                ),
+                "sample_rows": (
+                    debug_info.get(
+                        "sample_rows"
+                    )
+                ),
+                "num_standard_rows": (
+                    debug_info.get(
+                        "num_standard_rows"
+                    )
+                ),
+                "num_key_value_rows": (
+                    debug_info.get(
+                        "num_key_value_rows"
+                    )
+                ),
+            },
         }
 
     except HTTPException:
@@ -165,9 +299,14 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=f"PDF NLP processing failed: {str(error)}"
+            detail=(
+                "PDF NLP processing failed: "
+                f"{str(error)}"
+            ),
         )
 
     finally:
+        await pdf_file.close()
+
         if saved_pdf_path.exists():
             saved_pdf_path.unlink()
