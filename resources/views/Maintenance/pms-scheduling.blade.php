@@ -167,7 +167,6 @@
                         <div class="filter-group">
 
                             <label for="pmsStatusFilter">
-                                Status
                             </label>
 
                             <select
@@ -514,12 +513,7 @@
                                                 class="pms-edit-task-btn open-edit-pms"
                                                 title="Edit PMS Task"
 
-                                                data-update-url="{{ 
-                                                route(
-                                                'pms-schedules.update',
-                                                $task->schedule,
-                                                false
-)
+                                                data-update-url="{{ route('pms-schedules.update', $task->schedule, false) }}"
 
                                                 data-bus-no="{{ $task->schedule->bus_no }}"
 

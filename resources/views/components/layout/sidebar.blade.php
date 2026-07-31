@@ -245,7 +245,7 @@
                             @if(isset($child['route']) && Route::has($child['route']))
 
                                 <a
-                                    href="{{ route($child['route']) }}"
+                                    href="{{ route($child['route'], [], false) }}"
                                     class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
@@ -290,7 +290,7 @@
                 @if($itemRoute)
 
                     <a
-                        href="{{ route($itemRoute) }}"
+                        href="{{ route($itemRoute, [], false) }}"
                         class="menu-item {{ $isParentActive ? 'active' : '' }}"
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
@@ -405,7 +405,7 @@
             )
 
                 <a
-                    href="{{ route('settings') }}"
+                    href="{{ route('settings', [], false) }}"
                     class="profile-menu-item"
                 >
 
@@ -444,7 +444,7 @@
             )
 
                 <form
-                    action="{{ route('logout') }}"
+                    action="{{ route('logout', [], false) }}"
                     method="POST"
                     class="profile-logout-form"
                 >
