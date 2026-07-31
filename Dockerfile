@@ -14,6 +14,24 @@ RUN npm ci
 # Copy the full Laravel project.
 COPY . .
 
+# Receive Render environment variables as Docker build arguments.
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+
+# Make the values available to Vite during npm run build.
+ENV VITE_REVERB_APP_KEY="${VITE_REVERB_APP_KEY}"
+ENV VITE_REVERB_HOST="${VITE_REVERB_HOST}"
+ENV VITE_REVERB_PORT="${VITE_REVERB_PORT}"
+ENV VITE_REVERB_SCHEME="${VITE_REVERB_SCHEME}"
+
+# Stop the build when any required Reverb frontend value is missing.
+RUN test -n "$VITE_REVERB_APP_KEY" \
+    && test -n "$VITE_REVERB_HOST" \
+    && test -n "$VITE_REVERB_PORT" \
+    && test -n "$VITE_REVERB_SCHEME"
+
 # Build Vite production assets.
 RUN npm run build
 
@@ -59,7 +77,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Allow PHP-FPM's www-data user to read Render secret files.
-# Render secret files are commonly accessible through group ID 1000.
 RUN set -eux; \
     SECRET_GROUP="$(getent group 1000 | cut -d: -f1 || true)"; \
     if [ -z "$SECRET_GROUP" ]; then \
@@ -110,6 +127,6 @@ RUN chmod +x \
 EXPOSE 10000
 
 # Default command for the main Laravel web service.
-# The separate Reverb service should override this with:
+# The separate Reverb service overrides this command with:
 # /usr/local/bin/start-reverb.sh
 CMD ["/usr/local/bin/start.sh"]
