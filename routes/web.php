@@ -429,11 +429,9 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::view(
-        '/warehouse/dashboard',
-        'Warehouse.dashboard-warehouse'
-    )->name(
-        'warehouse.dashboard'
-    );
+    '/warehouse/dashboard',
+    'warehouse.dashboard-warehouse'
+    )->name('warehouse.dashboard');
 
 
     /*

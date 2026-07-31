@@ -22,7 +22,6 @@
     $recentPartRequests = $recentPartRequests ?? collect();
   @endphp>
 
-
   <div class="app warehouse-dashboard-page">
 
     {{-- =====================================================
