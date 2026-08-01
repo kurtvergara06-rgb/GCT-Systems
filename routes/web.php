@@ -15,6 +15,7 @@ use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\RouteController;
+use App\Http\Controllers\Operation\TripScheduleController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
@@ -431,7 +432,7 @@ Route::middleware('auth')->group(function () {
     Route::view(
     '/warehouse/dashboard',
     'Warehouse.dashboard-warehouse'
-)->name('warehouse.dashboard');
+    )->name('warehouse.dashboard');
 
 
     /*
@@ -1003,12 +1004,31 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
     |--------------------------------------------------------------------------
     */
 
-    Route::view(
-        '/operation/trip-schedule',
-        'Operation.Scheduling_And_Dispatch.trip-schedule'
-    )->name(
-        'trip-schedule'
-    );
+    Route::controller(TripScheduleController::class)
+        ->prefix('operation/trip-schedule')
+        ->group(function () {
+
+            Route::get(
+                '/',
+                'index'
+            )->name('trip-schedule');
+
+            Route::post(
+                '/',
+                'store'
+            )->name('trip-schedule.store');
+
+            Route::put(
+                '/{tripSchedule}',
+                'update'
+            )->name('trip-schedule.update');
+
+            Route::delete(
+                '/{tripSchedule}',
+                'destroy'
+            )->name('trip-schedule.destroy');
+
+        });
 
 
     /*

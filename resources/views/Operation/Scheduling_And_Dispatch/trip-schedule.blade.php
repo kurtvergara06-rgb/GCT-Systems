@@ -3,953 +3,432 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
         'resources/js/Main-js/sidebar.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
     ]"
 >
-
-<div class="app">
-
-   <x-layout.sidebar
-    department="Operation"
-    subtitle="Operation Module"
-    icon="fa-bus"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
-
-        [
-            'label' => 'Scheduling',
-            'icon' => 'fa-calendar-days',
-            'children' => [
+    <div class="app">
+        <x-layout.sidebar
+            department="Operation"
+            subtitle="Operation Module"
+            icon="fa-bus"
+            :items="[
                 [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
+                    'label' => 'Dashboard',
+                    'route' => 'dashboard-operation',
+                    'icon' => 'fa-table-cells-large',
+                ],
+                [
+                    'label' => 'Routes',
+                    'route' => 'operation.routes',
+                    'icon' => 'fa-route',
+                ],
+                [
+                    'label' => 'Scheduling',
                     'icon' => 'fa-calendar-days',
+                    'children' => [
+                        [
+                            'label' => 'Trip Schedule',
+                            'route' => 'trip-schedule',
+                            'icon' => 'fa-calendar-days',
+                        ],
+                        [
+                            'label' => 'Driver & Bus Assignment',
+                            'route' => 'driver-bus-assignment',
+                            'icon' => 'fa-user-tie',
+                        ],
+                        [
+                            'label' => 'Auto Scheduling',
+                            'route' => 'auto-scheduling',
+                            'icon' => 'fa-wand-magic-sparkles',
+                        ],
+                    ],
                 ],
                 [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
+                    'label' => 'Attendance',
+                    'icon' => 'fa-calendar-check',
+                    'children' => [
+                        [
+                            'label' => 'Driver Attendance',
+                            'route' => 'driver-attendance',
+                            'icon' => 'fa-id-card',
+                        ],
+                        [
+                            'label' => 'Mechanic Attendance',
+                            'route' => 'mechanic-attendance',
+                            'icon' => 'fa-users-gear',
+                        ],
+                    ],
                 ],
                 [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
+                    'label' => 'Bus Master List',
+                    'route' => 'bus-master-list',
+                    'icon' => 'fa-bus',
                 ],
-            ],
-        ],
-
-        [
-            'label' => 'Attendance',
-            'icon' => 'fa-calendar-check',
-            'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-users-gear',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
-    ]"
-/>
-
-    <main class="main trip-schedule-page">
-
-        <x-layout.topbar
-            title="Trip Schedule"
-            subtitle="Create and manage shuttle trips, routes, departure times, and schedule status"
-            notification-count="4"
+            ]"
         />
 
+        <main class="main trip-schedule-page">
+            <x-layout.topbar
+                title="Trip Schedule"
+                subtitle="Create route schedules before assigning a driver and bus"
+                notification-count="4"
+            />
 
-        {{-- =====================================================
-             SUMMARY
-        ====================================================== --}}
-        <section class="trip-summary-grid">
+            @if($errors->any())
+                <div class="alert-error">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-            <article class="trip-summary-card">
+            <section class="trip-summary-grid">
+                <article class="trip-summary-card">
+                    <div class="trip-summary-icon blue">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <p>Total Trips Today</p>
+                        <h2>{{ $totalTripsToday }}</h2>
+                        <small>Scheduled today</small>
+                    </div>
+                </article>
 
-                <div class="trip-summary-icon blue">
-                    <i class="fa-solid fa-calendar-days"></i>
+                <article class="trip-summary-card">
+                    <div class="trip-summary-icon green">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <p>Assigned Trips</p>
+                        <h2>{{ $assignedTrips }}</h2>
+                        <small>Driver and bus assigned</small>
+                    </div>
+                </article>
+
+                <article class="trip-summary-card">
+                    <div class="trip-summary-icon yellow">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <p>Pending Assignment</p>
+                        <h2>{{ $pendingAssignments }}</h2>
+                        <small>Awaiting resources</small>
+                    </div>
+                </article>
+
+                <article class="trip-summary-card">
+                    <div class="trip-summary-icon purple">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <div>
+                        <p>Active Routes</p>
+                        <h2>{{ $activeRoutesUsed }}</h2>
+                        <small>Used today</small>
+                    </div>
+                </article>
+            </section>
+
+            <section class="trip-card">
+                <div class="trip-card-header">
+                    <div>
+                        <h2>Trip Records</h2>
+                        <p>
+                            Create the trip route and schedule first. Driver and bus
+                            assignment is handled on the next module.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="new-trip-btn"
+                        id="openTripModal"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        New Trip
+                    </button>
                 </div>
 
-                <div>
-                    <p>Total Trips Today</p>
-                    <h2>8</h2>
-                    <small>Scheduled trips</small>
-                </div>
-
-            </article>
-
-
-            <article class="trip-summary-card">
-
-                <div class="trip-summary-icon green">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-
-                <div>
-                    <p>Assigned Trips</p>
-                    <h2>6</h2>
-                    <small>Driver and bus assigned</small>
-                </div>
-
-            </article>
-
-
-            <article class="trip-summary-card">
-
-                <div class="trip-summary-icon yellow">
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-
-                <div>
-                    <p>Pending Assignment</p>
-                    <h2>2</h2>
-                    <small>Awaiting resources</small>
-                </div>
-
-            </article>
-
-
-            <article class="trip-summary-card">
-
-                <div class="trip-summary-icon purple">
-                    <i class="fa-solid fa-route"></i>
-                </div>
-
-                <div>
-                    <p>Active Routes</p>
-                    <h2>4</h2>
-                    <small>Used in today's schedule</small>
-                </div>
-
-            </article>
-
-        </section>
-
-
-        {{-- =====================================================
-             MAIN CARD
-        ====================================================== --}}
-        <section class="trip-card">
-
-            <div class="trip-card-header">
-
-                <div>
-                    <h2>Trip Records</h2>
-
-                    <p>
-                        Create shuttle trips first, then assign an available
-                        driver and bus through the assignment module.
-                    </p>
-                </div>
-
-
-                <button
-                    type="button"
-                    class="new-trip-btn"
-                    id="openTripModal"
+                <form
+                    method="GET"
+                    action="{{ route('trip-schedule', [], false) }}"
+                    class="trip-toolbar"
                 >
-                    <i class="fa-solid fa-plus"></i>
-                    New Trip
-                </button>
-
-            </div>
-
-
-            {{-- =================================================
-                 TOOLBAR
-            ================================================== --}}
-            <div class="trip-toolbar">
-
-                <div class="trip-search">
-
-                    <i class="fa-solid fa-magnifying-glass"></i>
-
-                    <input
-                        type="text"
-                        id="tripSearch"
-                        placeholder="Search trip ID, route, status..."
-                    >
-
-                </div>
-
-
-                <div class="trip-filter">
-
-                    <label>
-                        Date
-                    </label>
-
-                    <input
-                        type="date"
-                        value="2026-07-23"
-                    >
-
-                </div>
-
-
-                <div class="trip-filter">
-
-                    <label>
-                        Route
-                    </label>
-
-                    <select id="routeFilter">
-                        <option value="all">All Routes</option>
-                        <option value="r-01">R-01</option>
-                        <option value="r-02">R-02</option>
-                        <option value="r-03">R-03</option>
-                        <option value="r-04">R-04</option>
-                    </select>
-
-                </div>
-
-
-                <div class="trip-filter">
-
-                    <label>
-                        Status
-                    </label>
-
-                    <select id="tripStatusFilter">
-                        <option value="all">All Statuses</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="ready">Ready</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="completed">Completed</option>
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            {{-- =================================================
-                 TABLE
-            ================================================== --}}
-            <div class="trip-table-wrap">
-
-                <table class="trip-table">
-
-                    <thead>
-
-                        <tr>
-                            <th>Trip ID</th>
-                            <th>Date</th>
-                            <th>Route</th>
-                            <th>Departure</th>
-                            <th>ETA</th>
-                            <th>Shift</th>
-                            <th>Assignment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody id="tripTableBody">
-
-                        <tr
-                            data-trip-row
-                            data-search="t-001 r-01 downtown express scheduled assigned morning"
-                            data-route="r-01"
-                            data-status="scheduled"
+                    <div class="trip-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Search trip ID, route, status..."
                         >
+                    </div>
 
-                            <td>T-001</td>
-
-                            <td>
-                                Jul 23, 2026
-                            </td>
-
-                            <td>
-
-                                <div class="route-cell">
-
-                                    <strong>R-01</strong>
-
-                                    <span>
-                                        Downtown Express
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <td>6:00 AM</td>
-
-                            <td>6:45 AM</td>
-
-                            <td>
-                                <span class="shift-badge morning">
-                                    Morning
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-badge assigned">
-                                    Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="trip-status scheduled">
-                                    Scheduled
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <div class="trip-actions">
-
-                                    <button
-                                        type="button"
-                                        class="trip-action view"
-                                        title="View"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        class="trip-action edit edit-trip"
-                                        title="Edit"
-                                        data-trip="T-001"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        class="trip-action delete delete-trip"
-                                        title="Delete"
-                                        data-trip="T-001"
-                                    >
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-
-                        <tr
-                            data-trip-row
-                            data-search="t-002 r-02 sto tomas ready assigned morning"
-                            data-route="r-02"
-                            data-status="ready"
+                    <div class="trip-filter">
+                        <label>Date</label>
+                        <input
+                            type="date"
+                            name="trip_date"
+                            value="{{ request('trip_date') }}"
+                            onchange="this.form.requestSubmit()"
                         >
+                    </div>
 
-                            <td>T-002</td>
-
-                            <td>
-                                Jul 23, 2026
-                            </td>
-
-                            <td>
-
-                                <div class="route-cell">
-
-                                    <strong>R-02</strong>
-
-                                    <span>
-                                        Sto. Tomas
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <td>6:30 AM</td>
-
-                            <td>7:30 AM</td>
-
-                            <td>
-                                <span class="shift-badge morning">
-                                    Morning
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-badge assigned">
-                                    Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="trip-status ready">
-                                    Ready
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <div class="trip-actions">
-
-                                    <button
-                                        type="button"
-                                        class="trip-action view"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="trip-action edit edit-trip"
-                                        data-trip="T-002"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="trip-action delete delete-trip"
-                                        data-trip="T-002"
-                                    >
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-
-                        <tr
-                            data-trip-row
-                            data-search="t-003 r-03 campus loop dispatched assigned morning"
-                            data-route="r-03"
-                            data-status="dispatched"
+                    <div class="trip-filter">
+                        <label>Status</label>
+                        <select
+                            name="status"
+                            onchange="this.form.requestSubmit()"
                         >
-
-                            <td>T-003</td>
-
-                            <td>
-                                Jul 23, 2026
-                            </td>
-
-                            <td>
-
-                                <div class="route-cell">
-
-                                    <strong>R-03</strong>
-
-                                    <span>
-                                        Campus Loop
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <td>7:00 AM</td>
-
-                            <td>7:35 AM</td>
-
-                            <td>
-                                <span class="shift-badge morning">
-                                    Morning
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-badge assigned">
-                                    Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="trip-status dispatched">
-                                    Dispatched
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <div class="trip-actions">
-
-                                    <button
-                                        type="button"
-                                        class="trip-action view"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-
-                        <tr
-                            class="pending-row"
-                            data-trip-row
-                            data-search="t-004 r-04 industrial zone scheduled unassigned morning"
-                            data-route="r-04"
-                            data-status="scheduled"
-                        >
-
-                            <td>T-004</td>
-
-                            <td>
-                                Jul 23, 2026
-                            </td>
-
-                            <td>
-
-                                <div class="route-cell">
-
-                                    <strong>R-04</strong>
-
-                                    <span>
-                                        Industrial Zone
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <td>7:30 AM</td>
-
-                            <td>8:20 AM</td>
-
-                            <td>
-                                <span class="shift-badge morning">
-                                    Morning
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <a
-                                    href="{{ route('driver-bus-assignment') }}"
-                                    class="assignment-badge unassigned"
+                            <option value="all">All Statuses</option>
+                            @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled'] as $status)
+                                <option
+                                    value="{{ $status }}"
+                                    @selected(request('status') === $status)
                                 >
-                                    Unassigned
-                                </a>
+                                    {{ $status }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
 
-                            </td>
+                <div class="trip-table-wrap">
+                    <table class="trip-table">
+                        <thead>
+                            <tr>
+                                <th>Trip ID</th>
+                                <th>Date</th>
+                                <th>Route</th>
+                                <th>Departure</th>
+                                <th>ETA</th>
+                                <th>Shift</th>
+                                <th>Assignment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-                            <td>
-                                <span class="trip-status scheduled">
-                                    Scheduled
-                                </span>
-                            </td>
+                        <tbody>
+                            @forelse($trips as $trip)
+                                @php
+                                    $route = $trip->shuttleRoute;
+                                    $canEdit = !in_array($trip->status, ['Dispatched', 'Completed'], true);
+                                    $canDelete = in_array($trip->status, ['Scheduled', 'Cancelled'], true)
+                                        && $trip->assignment_status === 'Unassigned';
 
-                            <td>
+                                    $viewTripData = [
+                                        'tripCode' => $trip->trip_code,
+                                        'date' => $trip->trip_date?->format('M d, Y'),
+                                        'routeCode' => $route?->route_code,
+                                        'routeName' => $route?->route_name,
+                                        'origin' => $route?->origin,
+                                        'destination' => $route?->destination,
+                                        'departure' => \Carbon\Carbon::parse($trip->departure_time)->format('g:i A'),
+                                        'arrival' => \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('g:i A'),
+                                        'shift' => $trip->shift,
+                                        'assignment' => $trip->assignment_status,
+                                        'status' => $trip->status,
+                                        'notes' => $trip->notes,
+                                    ];
+                                @endphp
 
-                                <div class="trip-actions">
+                                <tr class="{{ $trip->assignment_status === 'Unassigned' ? 'pending-row' : '' }}">
+                                    <td>{{ $trip->trip_code }}</td>
+                                    <td>{{ $trip->trip_date?->format('M d, Y') }}</td>
+                                    <td>
+                                        <div class="route-cell">
+                                            <strong>{{ $route?->route_code ?? '—' }}</strong>
+                                            <span>{{ $route?->route_name ?? 'Deleted route' }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('g:i A') }}</td>
+                                    <td>
+                                        <span class="shift-badge {{ strtolower($trip->shift) }}">
+                                            {{ $trip->shift }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if($trip->assignment_status === 'Unassigned')
+                                            <a
+                                                href="{{ route('driver-bus-assignment', [], false) }}"
+                                                class="assignment-badge unassigned"
+                                            >
+                                                Unassigned
+                                            </a>
+                                        @else
+                                            <span class="assignment-badge assigned">
+                                                Assigned
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="trip-status {{ strtolower($trip->status) }}">
+                                            {{ $trip->status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="trip-actions">
+                                            <button
+                                                type="button"
+                                                class="trip-action view view-trip"
+                                                title="View"
+                                                data-trip='@json($viewTripData)'
+                                            >
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
 
-                                    <button
-                                        type="button"
-                                        class="trip-action view"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
+                                            @if($canEdit)
+                                                <button
+                                                    type="button"
+                                                    class="trip-action edit edit-trip"
+                                                    title="Edit"
+                                                    data-id="{{ $trip->id }}"
+                                                    data-trip-code="{{ $trip->trip_code }}"
+                                                    data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
+                                                    data-route-id="{{ $trip->shuttle_route_id }}"
+                                                    data-departure-time="{{ \Carbon\Carbon::parse($trip->departure_time)->format('H:i') }}"
+                                                    data-arrival-time="{{ \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('H:i') }}"
+                                                    data-status="{{ $trip->status }}"
+                                                    data-notes="{{ $trip->notes }}"
+                                                    data-update-url="{{ route('trip-schedule.update', $trip->id, false) }}"
+                                                >
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                            @endif
 
-                                    <button
-                                        type="button"
-                                        class="trip-action edit edit-trip"
-                                        data-trip="T-004"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
+                                            @if($canDelete)
+                                                <form
+                                                    id="deleteTripForm-{{ $trip->id }}"
+                                                    method="POST"
+                                                    action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
 
-                                    <button
-                                        type="button"
-                                        class="trip-action delete delete-trip"
-                                        data-trip="T-004"
-                                    >
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-
-                        <tr
-                            data-trip-row
-                            data-search="t-005 r-01 downtown express ready assigned morning"
-                            data-route="r-01"
-                            data-status="ready"
-                        >
-
-                            <td>T-005</td>
-
-                            <td>
-                                Jul 23, 2026
-                            </td>
-
-                            <td>
-
-                                <div class="route-cell">
-
-                                    <strong>R-01</strong>
-
-                                    <span>
-                                        Downtown Express
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <td>8:00 AM</td>
-
-                            <td>8:45 AM</td>
-
-                            <td>
-                                <span class="shift-badge morning">
-                                    Morning
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-badge assigned">
-                                    Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="trip-status ready">
-                                    Ready
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <div class="trip-actions">
-
-                                    <button
-                                        type="button"
-                                        class="trip-action view"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="trip-action edit edit-trip"
-                                        data-trip="T-005"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="trip-action delete delete-trip"
-                                        data-trip="T-005"
-                                    >
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-            <div class="trip-table-footer">
-
-                <span id="tripResultCount">
-                    Showing 5 trip records
-                </span>
-
-
-                <div class="trip-pagination">
-
-                    <button disabled>
-                        Previous
-                    </button>
-
-                    <span>
-                        Page 1 of 1
-                    </span>
-
-                    <button disabled>
-                        Next
-                    </button>
-
+                                                    <button
+                                                        type="button"
+                                                        class="trip-action delete delete-trip"
+                                                        title="Delete"
+                                                        data-form-id="deleteTripForm-{{ $trip->id }}"
+                                                        data-trip-code="{{ $trip->trip_code }}"
+                                                    >
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <x-ui.empty-row
+                                    colspan="9"
+                                    message="No trip schedules found."
+                                />
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
 
-            </div>
-
-        </section>
-
-    </main>
-
-</div>
-
-
-{{-- =========================================================
-     CREATE / EDIT TRIP MODAL
-========================================================= --}}
-<div
-    class="trip-modal-overlay"
-    id="tripModal"
->
-
-    <div class="trip-modal">
-
-        <div class="trip-modal-header">
-
-            <div>
-                <h2 id="tripModalTitle">
-                    New Trip
-                </h2>
-
-                <p>
-                    Create a shuttle trip using an existing route.
-                </p>
-            </div>
-
-
-            <button
-                type="button"
-                class="trip-modal-close"
-                data-close-trip-modal
-            >
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-        </div>
-
-
-        <form
-            class="trip-form"
-            id="tripForm"
-        >
-
-            <div class="trip-form-grid">
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Trip Date
-                    </label>
-
-                    <input
-                        type="date"
-                        id="tripDate"
-                        value="2026-07-23"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Route
-                    </label>
-
-                    <select
-                        id="tripRoute"
-                        required
-                    >
-                        <option value="">
-                            Select route
-                        </option>
-
-                        <option value="R-01">
-                            R-01 - Downtown Express
-                        </option>
-
-                        <option value="R-02">
-                            R-02 - Sto. Tomas
-                        </option>
-
-                        <option value="R-03">
-                            R-03 - Campus Loop
-                        </option>
-
-                        <option value="R-04">
-                            R-04 - Industrial Zone
-                        </option>
-                    </select>
-
-                </div>
-
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Departure Time
-                    </label>
-
-                    <input
-                        type="time"
-                        id="departureTime"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Estimated Arrival
-                    </label>
-
-                    <input
-                        type="time"
-                        id="arrivalTime"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Shift
-                    </label>
-
-                    <select id="tripShift">
-
-                        <option>
-                            Morning
-                        </option>
-
-                        <option>
-                            Afternoon
-                        </option>
-
-                        <option>
-                            Evening
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="trip-form-group">
-
-                    <label>
-                        Status
-                    </label>
-
-                    <select id="tripStatus">
-
-                        <option>
-                            Scheduled
-                        </option>
-
-                        <option>
-                            Ready
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="trip-form-group full">
-
-                    <label>
-                        Notes
-                    </label>
-
-                    <textarea
-                        id="tripNotes"
-                        rows="4"
-                        placeholder="Optional trip remarks..."
-                    ></textarea>
-
-                </div>
-
-            </div>
-
-
-            <div class="trip-form-note">
-
-                <i class="fa-solid fa-circle-info"></i>
-
-                <div>
-
-                    <strong>
-                        Driver and bus assignment is handled separately.
-                    </strong>
-
-                    <span>
-                        After creating the trip, assign available resources
-                        through Driver & Bus Assignment or Auto Scheduling.
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="trip-modal-actions">
-
-                <button
-                    type="button"
-                    class="trip-secondary-btn"
-                    data-close-trip-modal
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    type="submit"
-                    class="trip-primary-btn"
-                >
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    Save Trip
-                </button>
-
-            </div>
-
-        </form>
-
+                <x-ui.table-footer :items="$trips" />
+            </section>
+        </main>
     </div>
 
-</div>
+    <x-ui.form-modal
+        id="tripModal"
+        title="New Trip"
+        title-id="tripModalTitle"
+        description="Create a shuttle trip using an active route."
+        icon="fa-calendar-plus"
+        size="large"
+        form-id="tripForm"
+        :action="route('trip-schedule.store', [], false)"
+        method="POST"
+        submit-text="Save Trip"
+        submit-text-id="tripSubmitText"
+        submit-icon="fa-floppy-disk"
+        cancel-text="Cancel"
+        cancel-id="cancelTripModal"
+        close-id="closeTripModal"
+    >
+        <input type="hidden" name="_method" id="tripFormMethod" value="PUT" disabled>
 
+        <div class="ui-form-grid trip-ui-form-grid">
+            <x-ui.form-field label="Trip ID" name="trip_code_display" id="tripCode" value="Auto-generated" icon="fa-hashtag" :readonly="true" />
+            <x-ui.form-field label="Trip Date" name="trip_date" id="tripDate" type="date" :value="old('trip_date', now()->format('Y-m-d'))" icon="fa-calendar-day" :required="true" />
+
+            <div class="ui-form-group ui-form-full">
+                <label for="tripRoute">Route <span class="ui-required">*</span></label>
+                <div class="ui-input-wrap has-icon">
+                    <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
+                    <select name="shuttle_route_id" id="tripRoute" required>
+                        <option value="">Select active route</option>
+                        @foreach($activeRoutes as $route)
+                            <option value="{{ $route->id }}" data-duration="{{ $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
+                                {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
+            </div>
+
+            <x-ui.form-field label="Departure Time" name="departure_time" id="departureTime" type="time" :value="old('departure_time')" icon="fa-clock" :required="true" />
+            <x-ui.form-field label="Estimated Arrival" name="estimated_arrival_time" id="arrivalTime" type="time" :value="old('estimated_arrival_time')" icon="fa-clock-rotate-left" />
+            <x-ui.form-field label="Shift" name="shift_display" id="tripShift" value="Automatic" icon="fa-business-time" :readonly="true" />
+            <x-ui.form-select label="Status" name="status" id="tripStatus" :options="['Scheduled' => 'Scheduled', 'Cancelled' => 'Cancelled']" selected="Scheduled" icon="fa-circle-check" :required="true" />
+
+            <div class="ui-form-group ui-form-full">
+                <label for="tripNotes">Notes</label>
+                <div class="ui-input-wrap trip-textarea-wrap">
+                    <textarea name="notes" id="tripNotes" rows="4" placeholder="Optional trip remarks...">{{ old('notes') }}</textarea>
+                </div>
+                @error('notes')<span class="ui-field-error">{{ $message }}</span>@enderror
+            </div>
+        </div>
+
+        <div class="trip-form-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Driver and bus assignment is handled separately.</strong>
+                <span>After creating the trip, assign resources through Driver & Bus Assignment or Auto Scheduling.</span>
+            </div>
+        </div>
+    </x-ui.form-modal>
+
+    <x-ui.form-modal
+        id="viewTripModal"
+        title="Trip Details"
+        description="Complete schedule information."
+        icon="fa-calendar-check"
+        size="large"
+        form-id="viewTripForm"
+        action="#"
+        method="POST"
+        :show-actions="false"
+        close-id="closeViewTripModal"
+    >
+        <div class="trip-details-grid" id="viewTripContent"></div>
+        <div class="ui-form-actions">
+            <button type="button" id="closeViewTripButton" class="ui-form-btn ui-form-btn-primary">
+                <i class="fa-solid fa-check"></i><span>Close</span>
+            </button>
+        </div>
+    </x-ui.form-modal>
+
+    <x-ui.action-buttom-modal
+        mode="delete"
+        id="deleteTripModal"
+        delete-title="Delete Trip Schedule?"
+        delete-message="Are you sure you want to delete"
+        name-id="deleteTripName"
+        cancel-id="cancelDeleteTrip"
+        confirm-id="confirmDeleteTrip"
+    />
 </x-layout.app>
