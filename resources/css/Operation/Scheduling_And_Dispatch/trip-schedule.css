@@ -278,7 +278,6 @@
     grid-template-columns:
         minmax(280px, 1fr)
         170px
-        160px
         170px;
 
     gap: 10px;
@@ -860,140 +859,57 @@
 
 
 /* =========================================================
-   MODAL
+   SHARED FORM COMPONENT INTEGRATION
 ========================================================= */
 
-.trip-modal-overlay {
-    position: fixed;
-
-    inset: 0;
-
+#tripModal.ui-form-overlay,
+#viewTripModal.ui-form-overlay {
     z-index: 3000;
-
-    padding: 20px;
-
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    background:
-        rgba(6, 31, 61, 0.58);
-
-    backdrop-filter: blur(3px);
 }
 
 
-.trip-modal-overlay.show {
+#tripModal.ui-form-overlay.show,
+#tripModal.ui-form-overlay.active,
+#viewTripModal.ui-form-overlay.show,
+#viewTripModal.ui-form-overlay.active {
     display: flex;
 }
 
 
-.trip-modal {
-    width: min(680px, 100%);
-
-    max-height: calc(100vh - 40px);
-
-    overflow-y: auto;
-
-    background: #ffffff;
-
-    border: 1px solid var(--trip-border);
-    border-radius: 18px;
-
-    box-shadow:
-        0 22px 60px rgba(6, 31, 61, 0.24);
+#tripModal .ui-form-modal,
+#viewTripModal .ui-form-modal {
+    width: min(760px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
 }
 
 
-.trip-modal-header {
+#tripModal .ui-form-modal-body,
+#viewTripModal .ui-form-modal-body {
     padding: 20px 22px;
-
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    border-bottom:
-        1px solid var(--trip-border);
-}
-
-
-.trip-modal-header h2 {
-    margin: 0;
-
-    color: var(--trip-navy);
-
-    font-size: 20px;
-    font-weight: 800;
-}
-
-
-.trip-modal-header p {
-    margin: 4px 0 0;
-
-    color: var(--trip-muted);
-
-    font-size: 12px;
-}
-
-
-.trip-modal-close {
-    width: 36px;
-    height: 36px;
-
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #ffffff;
-
-    border: 1px solid var(--trip-border);
-    border-radius: 9px;
-
-    color: var(--trip-muted);
-
-    font-size: 14px;
-
-    cursor: pointer;
 }
 
 
 /* =========================================================
-   FORM
+   TRIP FORM GRID
 ========================================================= */
 
-.trip-form {
-    padding: 20px 22px;
-}
-
-
-.trip-form-grid {
+.trip-ui-form-grid {
     display: grid;
 
     grid-template-columns:
         repeat(2, minmax(0, 1fr));
 
-    gap: 14px;
+    gap: 16px;
 }
 
 
-.trip-form-group {
-    display: flex;
-    flex-direction: column;
-
-    gap: 7px;
-}
-
-
-.trip-form-group.full {
+.trip-ui-form-grid .ui-form-full {
     grid-column: 1 / -1;
 }
 
 
-.trip-form-group label {
+#tripModal .ui-form-group label,
+#viewTripModal .ui-form-group label {
     color: #334155;
 
     font-size: 12px;
@@ -1001,44 +917,48 @@
 }
 
 
-.trip-form-group input,
-.trip-form-group select,
-.trip-form-group textarea {
+#tripModal .ui-input-wrap input,
+#tripModal .ui-input-wrap select,
+#tripModal .ui-input-wrap textarea {
     width: 100%;
+}
 
-    background: #ffffff;
+
+#tripModal .ui-input-wrap input[readonly] {
+    background: #f8fafc;
+
+    color: #64748b;
+}
+
+
+/* =========================================================
+   NOTES TEXTAREA
+========================================================= */
+
+.trip-textarea-wrap {
+    align-items: flex-start;
+}
+
+
+.trip-textarea-wrap textarea {
+    min-height: 104px;
+
+    padding: 12px 14px;
 
     border: 1px solid var(--trip-border);
-    border-radius: 9px;
+    border-radius: 10px;
 
     color: var(--trip-text);
 
-    font-size: 13px;
+    font: inherit;
+    line-height: 1.5;
 
+    resize: vertical;
     outline: none;
 }
 
 
-.trip-form-group input,
-.trip-form-group select {
-    height: 42px;
-
-    padding: 0 12px;
-}
-
-
-.trip-form-group textarea {
-    padding: 11px 12px;
-
-    line-height: 1.5;
-
-    resize: vertical;
-}
-
-
-.trip-form-group input:focus,
-.trip-form-group select:focus,
-.trip-form-group textarea:focus {
+.trip-textarea-wrap textarea:focus {
     border-color: var(--trip-blue);
 
     box-shadow:
@@ -1047,7 +967,7 @@
 
 
 /* =========================================================
-   NOTE
+   FORM INFORMATION NOTE
 ========================================================= */
 
 .trip-form-note {
@@ -1102,65 +1022,124 @@
 
 
 /* =========================================================
-   MODAL BUTTONS
+   TRIP DETAILS
 ========================================================= */
 
-.trip-modal-actions {
-    margin-top: 20px;
+.trip-details-grid {
+    display: grid;
 
-    padding-top: 16px;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
-    display: flex;
-    justify-content: flex-end;
-
-    gap: 10px;
-
-    border-top:
-        1px solid var(--trip-soft-border);
+    gap: 14px;
 }
 
 
-.trip-secondary-btn,
-.trip-primary-btn {
-    height: 40px;
+.trip-detail-card {
+    min-width: 0;
 
-    padding: 0 16px;
+    padding: 13px 14px;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 7px;
-
-    border-radius: 9px;
-
-    font-size: 13px;
-    font-weight: 700;
-
-    cursor: pointer;
-}
-
-
-.trip-secondary-btn {
-    background: #ffffff;
+    background: #f8fafc;
 
     border: 1px solid var(--trip-border);
-
-    color: #475569;
+    border-radius: 10px;
 }
 
 
-.trip-primary-btn {
-    background: var(--trip-blue);
-
-    border: 1px solid var(--trip-blue);
-
-    color: #ffffff;
+.trip-detail-card.full {
+    grid-column: 1 / -1;
 }
 
 
-.trip-primary-btn:hover {
-    background: var(--trip-blue-dark);
+.trip-detail-card label {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.035em;
+}
+
+
+.trip-detail-card .trip-detail-value {
+    color: var(--trip-navy);
+
+    font-size: 13px;
+    font-weight: 650;
+
+    line-height: 1.45;
+
+    overflow-wrap: anywhere;
+}
+
+
+#viewTripModal .ui-form-actions {
+    margin-top: 20px;
+}
+
+
+/* =========================================================
+   ERROR MESSAGE
+========================================================= */
+
+.alert-error {
+    margin-bottom: 16px;
+
+    padding: 12px 14px;
+
+    background: #fff1f2;
+
+    border: 1px solid #fecdd3;
+    border-radius: 10px;
+
+    color: #be123c;
+
+    font-size: 12px;
+}
+
+
+.alert-error ul {
+    margin: 0;
+
+    padding-left: 18px;
+}
+
+
+/* =========================================================
+   EXTRA BADGE STATES
+========================================================= */
+
+.trip-status.cancelled {
+    background: #fee2e2;
+
+    border: 1px solid #fecaca;
+
+    color: #b91c1c;
+}
+
+
+.shift-badge.afternoon {
+    background: #ffedd5;
+
+    border: 1px solid #fed7aa;
+
+    color: #c2410c;
+}
+
+
+.shift-badge.night {
+    background: #e0e7ff;
+
+    border: 1px solid #c7d2fe;
+
+    color: #4338ca;
 }
 
 
@@ -1178,7 +1157,9 @@
 
     .trip-toolbar {
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+            minmax(220px, 1fr)
+            160px
+            160px;
     }
 
 }
@@ -1215,13 +1196,28 @@
     }
 
 
-    .trip-form-grid {
+    .trip-ui-form-grid,
+    .trip-details-grid {
         grid-template-columns: 1fr;
     }
 
 
-    .trip-form-group.full {
+    .trip-ui-form-grid .ui-form-full,
+    .trip-detail-card.full {
         grid-column: auto;
+    }
+
+
+    #tripModal .ui-form-modal,
+    #viewTripModal .ui-form-modal {
+        width:
+            min(
+                100%,
+                calc(100vw - 20px)
+            );
+
+        max-height:
+            calc(100vh - 20px);
     }
 
 }
