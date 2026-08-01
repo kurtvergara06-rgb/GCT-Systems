@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
   function openModal(modal) {
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     modal.classList.add('show');
     modal.classList.add('active');
@@ -8,7 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function closeModal(modal) {
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     modal.classList.remove('show');
     modal.classList.remove('active');
@@ -24,10 +28,14 @@ document.addEventListener('DOMContentLoaded', function () {
   function setInputValue(id, value) {
     const input = document.getElementById(id);
 
-    if (!input) return;
+    if (!input) {
+      return;
+    }
 
     input.value =
-      value === undefined || value === null || value === 'null'
+      value === undefined ||
+      value === null ||
+      value === 'null'
         ? ''
         : value;
   }
@@ -39,11 +47,13 @@ document.addEventListener('DOMContentLoaded', function () {
   */
 
   const addModal = document.getElementById('addModal');
-  const openAddModal = document.getElementById('openAddModal');
+  const openAddModalButton = document.getElementById('openAddModal');
 
-  if (openAddModal && addModal) {
-    openAddModal.addEventListener('click', function (event) {
+  if (openAddModalButton && addModal) {
+    openAddModalButton.addEventListener('click', function (event) {
       event.preventDefault();
+      event.stopPropagation();
+
       openModal(addModal);
     });
   }
@@ -55,11 +65,13 @@ document.addEventListener('DOMContentLoaded', function () {
   */
 
   const importModal = document.getElementById('importModal');
-  const openImportModal = document.getElementById('openImportModal');
+  const openImportModalButton = document.getElementById('openImportModal');
 
-  if (openImportModal && importModal) {
-    openImportModal.addEventListener('click', function (event) {
+  if (openImportModalButton && importModal) {
+    openImportModalButton.addEventListener('click', function (event) {
       event.preventDefault();
+      event.stopPropagation();
+
       openModal(importModal);
     });
   }
@@ -74,27 +86,93 @@ document.addEventListener('DOMContentLoaded', function () {
   const editForm = document.getElementById('editForm');
 
   document.addEventListener('click', function (event) {
-    const button = event.target.closest('.openEditModal');
+    const editButton = event.target.closest('.openEditModal');
 
-    if (!button) return;
-
-    event.preventDefault();
-
-    if (editForm) {
-      editForm.action = button.dataset.action || '#';
+    if (!editButton) {
+      return;
     }
 
-    setInputValue('edit_item_code', button.dataset.code);
-    setInputValue('edit_item_name', button.dataset.name);
-    setInputValue('edit_category', button.dataset.category);
-    setInputValue('edit_quantity', button.dataset.quantity);
-    setInputValue('edit_unit', button.dataset.unit);
-    setInputValue('edit_reorder', button.dataset.reorder);
-    setInputValue('edit_supplier', button.dataset.supplier);
-    setInputValue('edit_location', button.dataset.location);
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!editModal || !editForm) {
+      console.error('Edit modal or edit form was not found.');
+      return;
+    }
+
+    const updateUrl = editButton.dataset.action;
+
+    if (!updateUrl) {
+      console.error('Inventory update URL was not found.');
+      return;
+    }
+
+    /*
+     * Set the PUT form destination.
+     * This does not redirect the browser.
+     */
+    editForm.setAttribute('action', updateUrl);
+
+    setInputValue(
+      'edit_item_code',
+      editButton.dataset.code
+    );
+
+    setInputValue(
+      'edit_item_name',
+      editButton.dataset.name
+    );
+
+    setInputValue(
+      'edit_category',
+      editButton.dataset.category
+    );
+
+    setInputValue(
+      'edit_quantity',
+      editButton.dataset.quantity
+    );
+
+    setInputValue(
+      'edit_unit',
+      editButton.dataset.unit
+    );
+
+    setInputValue(
+      'edit_reorder',
+      editButton.dataset.reorder
+    );
+
+    setInputValue(
+      'edit_supplier',
+      editButton.dataset.supplier
+    );
+
+    setInputValue(
+      'edit_location',
+      editButton.dataset.location
+    );
 
     openModal(editModal);
   });
+
+  /*
+  |--------------------------------------------------------------------------
+  | PREVENT EDIT FORM FROM USING GET
+  |--------------------------------------------------------------------------
+  */
+
+  if (editForm) {
+    editForm.addEventListener('submit', function (event) {
+      const action = editForm.getAttribute('action');
+
+      if (!action || action === '#') {
+        event.preventDefault();
+
+        console.error('The edit form action is missing.');
+      }
+    });
+  }
 
   /*
   |--------------------------------------------------------------------------
@@ -103,11 +181,21 @@ document.addEventListener('DOMContentLoaded', function () {
   */
 
   document.querySelectorAll('.closeModal').forEach(function (button) {
-    button.addEventListener('click', function () {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
       const modal = button.closest('.modal-overlay');
+
       closeModal(modal);
     });
   });
+
+  /*
+  |--------------------------------------------------------------------------
+  | CLOSE WHEN CLICKING OUTSIDE MODAL
+  |--------------------------------------------------------------------------
+  */
 
   document.querySelectorAll('.modal-overlay').forEach(function (modal) {
     modal.addEventListener('click', function (event) {
@@ -116,6 +204,12 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  /*
+  |--------------------------------------------------------------------------
+  | CLOSE USING ESCAPE KEY
+  |--------------------------------------------------------------------------
+  */
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
