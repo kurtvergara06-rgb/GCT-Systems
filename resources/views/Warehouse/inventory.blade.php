@@ -211,7 +211,7 @@
                           type="button"
                           class="action-btn edit openEditModal"
                           title="Edit Item"
-                          data-action="{{ route('inventory.update', $item->id) }}"
+                          data-action="/inventory/{{ $item->id }}"
                           data-code="{{ $item->item_code }}"
                           data-name="{{ $item->item_name }}"
                           data-category="{{ $item->category }}"
@@ -225,7 +225,7 @@
                       </button>
 
                       <form
-                        action="{{ route('inventory.destroy', $item->id) }}"
+                        action="/inventory/{{ $item->id }}"
                         method="POST"
                         data-confirm-form
                         data-confirm-title="Delete Inventory Item?"
@@ -299,7 +299,7 @@
       </div>
 
       <form
-        action="{{ route('inventory.store') }}"
+        action="/inventory"
         method="POST"
         data-confirm-form
         data-confirm-title="Add Inventory Item?"
@@ -518,7 +518,7 @@
       </div>
 
       <form
-        action="{{ route('inventory.import') }}"
+        action="/inventory/import"
         method="POST"
         enctype="multipart/form-data"
         data-confirm-form
