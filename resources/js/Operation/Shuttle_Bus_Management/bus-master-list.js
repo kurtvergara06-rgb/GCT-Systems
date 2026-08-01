@@ -2,6 +2,56 @@ import '../../echo';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    function normalizeBusPath(
+        value,
+        fallback = '/bus-master-list'
+    ) {
+        const rawValue = String(value || '').trim();
+
+        if (!rawValue) {
+            return fallback;
+        }
+
+        if (
+            rawValue.startsWith('/')
+            && !rawValue.startsWith('//')
+        ) {
+            return rawValue;
+        }
+
+        try {
+            const parsed = new URL(
+                rawValue,
+                window.location.origin
+            );
+
+            if (
+                parsed.origin
+                === window.location.origin
+            ) {
+                return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+            }
+        } catch (error) {
+            // Continue to malformed URL cleanup.
+        }
+
+        const withoutScheme = rawValue
+            .replace(/^https?:\/+/i, '')
+            .replace(/^\/+/, '');
+
+        const pathIndex =
+            withoutScheme.indexOf(
+                'bus-master-list'
+            );
+
+        if (pathIndex >= 0) {
+            return `/${withoutScheme.slice(pathIndex)}`;
+        }
+
+        return fallback;
+    }
+
+
     /*
     |--------------------------------------------------------------------------
     | Elements
@@ -192,8 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 |--------------------------------------------------------------------------
                 */
 
-                editBusForm.action =
-                    button.dataset.updateUrl || '#';
+                editBusForm.setAttribute(
+                    'action',
+                    normalizeBusPath(
+                        button.dataset.updateUrl,
+                        `/bus-master-list/${button.dataset.id}`
+                    )
+                );
 
 
                 /*

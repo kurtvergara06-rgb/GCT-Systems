@@ -1,4 +1,52 @@
 document.addEventListener('DOMContentLoaded', function () {
+  function normalizeMechanicAttendancePath(
+    value,
+    fallback = '/mechanic-attendance'
+  ) {
+    const rawValue = String(value || '').trim();
+
+    if (!rawValue) {
+      return fallback;
+    }
+
+    if (
+      rawValue.startsWith('/')
+      && !rawValue.startsWith('//')
+    ) {
+      return rawValue;
+    }
+
+    try {
+      const parsed = new URL(
+        rawValue,
+        window.location.origin
+      );
+
+      if (
+        parsed.origin
+        === window.location.origin
+      ) {
+        return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+    } catch (error) {
+      // Continue with malformed URL cleanup.
+    }
+
+    const withoutScheme = rawValue
+      .replace(/^https?:\/+/i, '')
+      .replace(/^\/+/, '');
+
+    const pathIndex = withoutScheme.indexOf(
+      'mechanic-attendance'
+    );
+
+    if (pathIndex >= 0) {
+      return `/${withoutScheme.slice(pathIndex)}`;
+    }
+
+    return fallback;
+  }
+
   function openModal(modal) {
     if (modal) {
       modal.classList.add('show');
@@ -16,39 +64,62 @@ document.addEventListener('DOMContentLoaded', function () {
   | Feedback Modal
   |--------------------------------------------------------------------------
   */
-  document.querySelectorAll('.close-feedback-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay');
-      closeModal(modal);
+  document
+    .querySelectorAll('.close-feedback-modal')
+    .forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = button.closest(
+          '.success-modal-overlay'
+        );
+
+        closeModal(modal);
+      });
     });
-  });
 
   /*
   |--------------------------------------------------------------------------
   | Import Attendance Modal
   |--------------------------------------------------------------------------
   */
-  const importAttendanceModal = document.getElementById('importAttendanceModal');
-  const openImportAttendanceModal = document.getElementById('openImportAttendanceModal');
-  const closeImportAttendanceModal = document.getElementById('closeImportAttendanceModal');
-  const cancelImportAttendanceModal = document.getElementById('cancelImportAttendanceModal');
+  const importAttendanceModal =
+    document.getElementById(
+      'importAttendanceModal'
+    );
+
+  const openImportAttendanceModal =
+    document.getElementById(
+      'openImportAttendanceModal'
+    );
+
+  const closeImportAttendanceModal =
+    document.getElementById(
+      'closeImportAttendanceModal'
+    );
+
+  const cancelImportAttendanceModal =
+    document.getElementById(
+      'cancelImportAttendanceModal'
+    );
 
   if (openImportAttendanceModal) {
-    openImportAttendanceModal.addEventListener('click', () => {
-      openModal(importAttendanceModal);
-    });
+    openImportAttendanceModal
+      .addEventListener('click', () => {
+        openModal(importAttendanceModal);
+      });
   }
 
   if (closeImportAttendanceModal) {
-    closeImportAttendanceModal.addEventListener('click', () => {
-      closeModal(importAttendanceModal);
-    });
+    closeImportAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(importAttendanceModal);
+      });
   }
 
   if (cancelImportAttendanceModal) {
-    cancelImportAttendanceModal.addEventListener('click', () => {
-      closeModal(importAttendanceModal);
-    });
+    cancelImportAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(importAttendanceModal);
+      });
   }
 
   /*
@@ -56,27 +127,45 @@ document.addEventListener('DOMContentLoaded', function () {
   | New Attendance Modal
   |--------------------------------------------------------------------------
   */
-  const mechanicAttendanceModal = document.getElementById('mechanicAttendanceModal');
-  const openMechanicAttendanceModal = document.getElementById('openMechanicAttendanceModal');
-  const closeMechanicAttendanceModal = document.getElementById('closeMechanicAttendanceModal');
-  const cancelMechanicAttendanceModal = document.getElementById('cancelMechanicAttendanceModal');
+  const mechanicAttendanceModal =
+    document.getElementById(
+      'mechanicAttendanceModal'
+    );
+
+  const openMechanicAttendanceModal =
+    document.getElementById(
+      'openMechanicAttendanceModal'
+    );
+
+  const closeMechanicAttendanceModal =
+    document.getElementById(
+      'closeMechanicAttendanceModal'
+    );
+
+  const cancelMechanicAttendanceModal =
+    document.getElementById(
+      'cancelMechanicAttendanceModal'
+    );
 
   if (openMechanicAttendanceModal) {
-    openMechanicAttendanceModal.addEventListener('click', () => {
-      openModal(mechanicAttendanceModal);
-    });
+    openMechanicAttendanceModal
+      .addEventListener('click', () => {
+        openModal(mechanicAttendanceModal);
+      });
   }
 
   if (closeMechanicAttendanceModal) {
-    closeMechanicAttendanceModal.addEventListener('click', () => {
-      closeModal(mechanicAttendanceModal);
-    });
+    closeMechanicAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(mechanicAttendanceModal);
+      });
   }
 
   if (cancelMechanicAttendanceModal) {
-    cancelMechanicAttendanceModal.addEventListener('click', () => {
-      closeModal(mechanicAttendanceModal);
-    });
+    cancelMechanicAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(mechanicAttendanceModal);
+      });
   }
 
   /*
@@ -84,85 +173,153 @@ document.addEventListener('DOMContentLoaded', function () {
   | Edit Attendance Modal
   |--------------------------------------------------------------------------
   */
-  const editMechanicAttendanceModal = document.getElementById(
-    'editMechanicAttendanceModal'
-  );
+  const editMechanicAttendanceModal =
+    document.getElementById(
+      'editMechanicAttendanceModal'
+    );
 
-  const editMechanicAttendanceForm = document.getElementById(
-    'editMechanicAttendanceForm'
-  );
+  const editMechanicAttendanceForm =
+    document.getElementById(
+      'editMechanicAttendanceForm'
+    );
 
-  const closeEditMechanicAttendanceModal = document.getElementById(
-    'closeEditMechanicAttendanceModal'
-  );
+  const closeEditMechanicAttendanceModal =
+    document.getElementById(
+      'closeEditMechanicAttendanceModal'
+    );
 
-  const cancelEditMechanicAttendanceModal = document.getElementById(
-    'cancelEditMechanicAttendanceModal'
-  );
+  const cancelEditMechanicAttendanceModal =
+    document.getElementById(
+      'cancelEditMechanicAttendanceModal'
+    );
 
-  const editMechanicId = document.getElementById('edit_mechanic_id');
-  const editMechanicName = document.getElementById('edit_mechanic_name');
-  const editShift = document.getElementById('edit_shift');
-  const editAssignedJob = document.getElementById('edit_assigned_job');
-  const editAttendanceDate = document.getElementById('edit_attendance_date');
-  const editTimeIn = document.getElementById('edit_time_in');
-  const editTimeOut = document.getElementById('edit_time_out');
-  const editStatus = document.getElementById('edit_status');
+  const editMechanicId =
+    document.getElementById(
+      'edit_mechanic_id'
+    );
+
+  const editMechanicName =
+    document.getElementById(
+      'edit_mechanic_name'
+    );
+
+  const editShift =
+    document.getElementById(
+      'edit_shift'
+    );
+
+  const editAssignedJob =
+    document.getElementById(
+      'edit_assigned_job'
+    );
+
+  const editAttendanceDate =
+    document.getElementById(
+      'edit_attendance_date'
+    );
+
+  const editTimeIn =
+    document.getElementById(
+      'edit_time_in'
+    );
+
+  const editTimeOut =
+    document.getElementById(
+      'edit_time_out'
+    );
+
+  const editStatus =
+    document.getElementById(
+      'edit_status'
+    );
 
   document
-    .querySelectorAll('.open-edit-attendance-modal')
+    .querySelectorAll(
+      '.open-edit-attendance-modal'
+    )
     .forEach((button) => {
       button.addEventListener('click', () => {
         if (editMechanicAttendanceForm) {
-          editMechanicAttendanceForm.action = button.dataset.updateUrl || '#';
+          editMechanicAttendanceForm
+            .setAttribute(
+              'action',
+              normalizeMechanicAttendancePath(
+                button.dataset.updateUrl,
+                `/mechanic-attendance/${button.dataset.id}`
+              )
+            );
         }
 
         if (editMechanicId) {
-          editMechanicId.value = button.dataset.mechanicId || '';
+          editMechanicId.value =
+            button.dataset.mechanicId
+            || '';
         }
 
         if (editMechanicName) {
-          editMechanicName.value = button.dataset.mechanicName || '';
+          editMechanicName.value =
+            button.dataset.mechanicName
+            || '';
         }
 
         if (editShift) {
-          editShift.value = button.dataset.shift || 'Morning';
+          editShift.value =
+            button.dataset.shift
+            || 'Morning';
         }
 
         if (editAssignedJob) {
-          editAssignedJob.value = button.dataset.assignedJob || '';
+          editAssignedJob.value =
+            button.dataset.assignedJob
+            || '';
         }
 
         if (editAttendanceDate) {
-          editAttendanceDate.value = button.dataset.attendanceDate || '';
+          editAttendanceDate.value =
+            button.dataset.attendanceDate
+            || '';
         }
 
         if (editTimeIn) {
-          editTimeIn.value = button.dataset.timeIn || '';
+          editTimeIn.value =
+            button.dataset.timeIn
+            || '';
         }
 
         if (editTimeOut) {
-          editTimeOut.value = button.dataset.timeOut || '';
+          editTimeOut.value =
+            button.dataset.timeOut
+            || '';
         }
 
         if (editStatus) {
-          editStatus.value = button.dataset.status || 'Present';
+          editStatus.value =
+            button.dataset.status
+            || 'Present';
         }
 
-        openModal(editMechanicAttendanceModal);
+        openModal(
+          editMechanicAttendanceModal
+        );
       });
     });
 
   if (closeEditMechanicAttendanceModal) {
-    closeEditMechanicAttendanceModal.addEventListener('click', () => {
-      closeModal(editMechanicAttendanceModal);
-    });
+    closeEditMechanicAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(
+          editMechanicAttendanceModal
+        );
+      });
   }
 
   if (cancelEditMechanicAttendanceModal) {
-    cancelEditMechanicAttendanceModal.addEventListener('click', () => {
-      closeModal(editMechanicAttendanceModal);
-    });
+    cancelEditMechanicAttendanceModal
+      .addEventListener('click', () => {
+        closeModal(
+          editMechanicAttendanceModal
+        );
+      });
   }
 
   /*
@@ -170,56 +327,73 @@ document.addEventListener('DOMContentLoaded', function () {
   | Delete Attendance Modal
   |--------------------------------------------------------------------------
   */
-  const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
+  const deleteAttendanceModal =
+    document.getElementById(
+      'deleteAttendanceModal'
+    );
 
-  const deleteAttendanceName = document.getElementById('deleteAttendanceName');
+  const deleteAttendanceName =
+    document.getElementById(
+      'deleteAttendanceName'
+    );
 
-  const cancelDeleteAttendance = document.getElementById(
-    'cancelDeleteAttendance'
-  );
+  const cancelDeleteAttendance =
+    document.getElementById(
+      'cancelDeleteAttendance'
+    );
 
-  const confirmDeleteAttendance = document.getElementById(
-    'confirmDeleteAttendance'
-  );
+  const confirmDeleteAttendance =
+    document.getElementById(
+      'confirmDeleteAttendance'
+    );
 
   let selectedDeleteForm = null;
 
   document
-    .querySelectorAll('.open-delete-attendance-modal')
+    .querySelectorAll(
+      '.open-delete-attendance-modal'
+    )
     .forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
+      button.addEventListener(
+        'click',
+        (event) => {
+          event.preventDefault();
 
-        const attendanceId = button.dataset.id;
+          const attendanceId =
+            button.dataset.id;
 
-        selectedDeleteForm = document.getElementById(
-          `deleteAttendanceForm-${attendanceId}`
-        );
+          selectedDeleteForm =
+            document.getElementById(
+              `deleteAttendanceForm-${attendanceId}`
+            );
 
-        if (deleteAttendanceName) {
-          deleteAttendanceName.textContent =
-            button.dataset.mechanicName ||
-            button.dataset.mechanicId ||
-            'this attendance record';
+          if (deleteAttendanceName) {
+            deleteAttendanceName.textContent =
+              button.dataset.mechanicName
+              || button.dataset.mechanicId
+              || 'this attendance record';
+          }
+
+          openModal(deleteAttendanceModal);
         }
-
-        openModal(deleteAttendanceModal);
-      });
+      );
     });
 
   if (cancelDeleteAttendance) {
-    cancelDeleteAttendance.addEventListener('click', () => {
-      selectedDeleteForm = null;
-      closeModal(deleteAttendanceModal);
-    });
+    cancelDeleteAttendance
+      .addEventListener('click', () => {
+        selectedDeleteForm = null;
+        closeModal(deleteAttendanceModal);
+      });
   }
 
   if (confirmDeleteAttendance) {
-    confirmDeleteAttendance.addEventListener('click', () => {
-      if (selectedDeleteForm) {
-        selectedDeleteForm.requestSubmit();
-      }
-    });
+    confirmDeleteAttendance
+      .addEventListener('click', () => {
+        if (selectedDeleteForm) {
+          selectedDeleteForm.requestSubmit();
+        }
+      });
   }
 
   /*
@@ -232,11 +406,14 @@ document.addEventListener('DOMContentLoaded', function () {
       '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
     )
     .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
+      modal.addEventListener(
+        'click',
+        (event) => {
+          if (event.target === modal) {
+            closeModal(modal);
+          }
         }
-      });
+      );
     });
 
   /*
@@ -244,12 +421,17 @@ document.addEventListener('DOMContentLoaded', function () {
   | Close Modal Using Escape Key
   |--------------------------------------------------------------------------
   */
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      closeModal(importAttendanceModal);
-      closeModal(mechanicAttendanceModal);
-      closeModal(editMechanicAttendanceModal);
-      closeModal(deleteAttendanceModal);
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Escape') {
+        closeModal(importAttendanceModal);
+        closeModal(mechanicAttendanceModal);
+        closeModal(
+          editMechanicAttendanceModal
+        );
+        closeModal(deleteAttendanceModal);
+      }
     }
-  });
+  );
 });

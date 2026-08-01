@@ -9,6 +9,7 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class InventoryController extends Controller
 {
@@ -21,7 +22,7 @@ class InventoryController extends Controller
         $query = InventoryItem::query();
 
         if ($request->filled('search')) {
-            $search = trim($request->search);
+            $search = trim((string) $request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('item_code', 'like', "%{$search}%")
@@ -34,7 +35,10 @@ class InventoryController extends Controller
             });
         }
 
-        if ($request->filled('category') && $request->category !== 'All Categories') {
+        if (
+            $request->filled('category')
+            && $request->category !== 'All Categories'
+        ) {
             $query->where('category', $request->category);
         }
 
@@ -81,24 +85,46 @@ class InventoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'item_code' => ['nullable', 'string', 'max:255'],
+            'item_code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('inventory_items', 'item_code'),
+            ],
             'parts_name' => ['nullable', 'string', 'max:255'],
-            'item_name' => ['nullable', 'string', 'max:255'],
+            'item_name' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'on_hand' => ['required', 'integer', 'min:0'],
             'quantity_available' => ['nullable', 'integer', 'min:0'],
             'unit' => ['nullable', 'string', 'max:255'],
-            'unit_of_measurement' => ['nullable', 'string', 'max:255'],
+            'unit_of_measurement' => ['required', 'string', 'max:255'],
             'reorder_level' => ['required', 'integer', 'min:0'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
+        ], [
+            'item_code.unique' => 'The item code already exists. Please use a different item code.',
         ]);
 
         $inventoryItem = null;
 
         DB::transaction(function () use ($validated, &$inventoryItem) {
-            $validated['quantity_available'] = $validated['quantity_available'] ?? $validated['on_hand'];
+            $validated['parts_name'] =
+                $validated['parts_name']
+                ?? $validated['item_name'];
+
+            $validated['quantity_available'] =
+                $validated['quantity_available']
+                ?? $validated['on_hand'];
+
+            $validated['unit'] =
+                $validated['unit']
+                ?? $validated['unit_of_measurement'];
+
+            $validated['location'] =
+                $validated['location']
+                ?? $validated['storage_location']
+                ?? null;
 
             $validated['status'] = $this->inventoryStatus(
                 (int) $validated['on_hand'],
@@ -120,30 +146,58 @@ class InventoryController extends Controller
             );
         }
 
-        session()->flash('success', 'Inventory item added successfully.');
+        session()->flash(
+            'success',
+            'Inventory item added successfully.'
+        );
 
         return new RedirectResponse('/inventory');
     }
 
-    public function update(Request $request, InventoryItem $inventoryItem): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        InventoryItem $inventoryItem
+    ): RedirectResponse {
         $validated = $request->validate([
-            'item_code' => ['nullable', 'string', 'max:255'],
+            'item_code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('inventory_items', 'item_code')
+                    ->ignore($inventoryItem->id),
+            ],
             'parts_name' => ['nullable', 'string', 'max:255'],
-            'item_name' => ['nullable', 'string', 'max:255'],
+            'item_name' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:255'],
             'on_hand' => ['required', 'integer', 'min:0'],
             'quantity_available' => ['nullable', 'integer', 'min:0'],
             'unit' => ['nullable', 'string', 'max:255'],
-            'unit_of_measurement' => ['nullable', 'string', 'max:255'],
+            'unit_of_measurement' => ['required', 'string', 'max:255'],
             'reorder_level' => ['required', 'integer', 'min:0'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
+        ], [
+            'item_code.unique' => 'The item code already belongs to another inventory item.',
         ]);
 
         DB::transaction(function () use ($validated, $inventoryItem) {
-            $validated['quantity_available'] = $validated['quantity_available'] ?? $validated['on_hand'];
+            $validated['parts_name'] =
+                $validated['parts_name']
+                ?? $validated['item_name'];
+
+            $validated['quantity_available'] =
+                $validated['quantity_available']
+                ?? $validated['on_hand'];
+
+            $validated['unit'] =
+                $validated['unit']
+                ?? $validated['unit_of_measurement'];
+
+            $validated['location'] =
+                $validated['location']
+                ?? $validated['storage_location']
+                ?? null;
 
             $validated['status'] = $this->inventoryStatus(
                 (int) $validated['on_hand'],
@@ -152,7 +206,9 @@ class InventoryController extends Controller
 
             $inventoryItem->update($validated);
 
-            $this->createAutoRestockRequestIfNeeded($inventoryItem->fresh());
+            $this->createAutoRestockRequestIfNeeded(
+                $inventoryItem->fresh()
+            );
         });
 
         $this->broadcastSystemDataUpdated(
@@ -163,13 +219,17 @@ class InventoryController extends Controller
             'An inventory item was updated.'
         );
 
-        session()->flash('success', 'Inventory item updated successfully.');
+        session()->flash(
+            'success',
+            'Inventory item updated successfully.'
+        );
 
         return new RedirectResponse('/inventory');
     }
 
-    public function destroy(InventoryItem $inventoryItem): RedirectResponse
-    {
+    public function destroy(
+        InventoryItem $inventoryItem
+    ): RedirectResponse {
         $inventoryItem->delete();
 
         $this->broadcastSystemDataUpdated(
@@ -180,7 +240,10 @@ class InventoryController extends Controller
             'An inventory item was deleted.'
         );
 
-        session()->flash('success', 'Inventory item deleted successfully.');
+        session()->flash(
+            'success',
+            'Inventory item deleted successfully.'
+        );
 
         return new RedirectResponse('/inventory');
     }
@@ -188,14 +251,22 @@ class InventoryController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'inventory_file' => ['required', 'file', 'mimes:csv,txt'],
+            'inventory_file' => [
+                'required',
+                'file',
+                'mimes:csv,txt',
+            ],
         ]);
 
         $file = $request->file('inventory_file');
         $handle = fopen($file->getRealPath(), 'r');
 
         if (! $handle) {
-            session()->flash('error', 'Unable to read the uploaded file.');
+            session()->flash(
+                'error',
+                'Unable to read the uploaded file.'
+            );
+
             return new RedirectResponse('/inventory');
         }
 
@@ -203,49 +274,92 @@ class InventoryController extends Controller
 
         if (! $header) {
             fclose($handle);
-            session()->flash('error', 'The uploaded CSV file is empty.');
+
+            session()->flash(
+                'error',
+                'The uploaded CSV file is empty.'
+            );
+
             return new RedirectResponse('/inventory');
         }
 
-        $header = array_map(function ($value) {
-            return strtolower(trim($value));
-        }, $header);
+        $header = array_map(
+            fn ($value) => strtolower(trim((string) $value)),
+            $header
+        );
 
         $created = 0;
         $updated = 0;
 
-        DB::transaction(function () use ($handle, $header, &$created, &$updated) {
+        DB::transaction(function () use (
+            $handle,
+            $header,
+            &$created,
+            &$updated
+        ) {
             while (($row = fgetcsv($handle)) !== false) {
+                if (count($header) !== count($row)) {
+                    continue;
+                }
+
                 $data = array_combine($header, $row);
 
                 if (! $data) {
                     continue;
                 }
 
-                $itemCode = trim($data['item_code'] ?? '');
-                $partsName = trim($data['parts_name'] ?? $data['item_name'] ?? '');
+                $itemCode = trim((string) ($data['item_code'] ?? ''));
+
+                $partsName = trim((string) (
+                    $data['parts_name']
+                    ?? $data['item_name']
+                    ?? ''
+                ));
 
                 if ($itemCode === '' && $partsName === '') {
                     continue;
                 }
 
-                $onHand = (int) ($data['on_hand'] ?? $data['quantity_available'] ?? 0);
-                $reorderLevel = (int) ($data['reorder_level'] ?? 0);
+                $onHand = (int) (
+                    $data['on_hand']
+                    ?? $data['quantity_available']
+                    ?? 0
+                );
+
+                $reorderLevel = (int) (
+                    $data['reorder_level']
+                    ?? 0
+                );
+
+                $unit = trim((string) (
+                    $data['unit']
+                    ?? $data['unit_of_measurement']
+                    ?? ''
+                ));
+
+                $location = trim((string) (
+                    $data['location']
+                    ?? $data['storage_location']
+                    ?? ''
+                ));
 
                 $payload = [
                     'item_code' => $itemCode ?: null,
                     'parts_name' => $partsName ?: null,
                     'item_name' => $partsName ?: null,
-                    'category' => trim($data['category'] ?? '') ?: null,
+                    'category' => trim((string) ($data['category'] ?? '')) ?: null,
                     'on_hand' => $onHand,
                     'quantity_available' => $onHand,
-                    'unit' => trim($data['unit'] ?? $data['unit_of_measurement'] ?? '') ?: null,
-                    'unit_of_measurement' => trim($data['unit_of_measurement'] ?? $data['unit'] ?? '') ?: null,
+                    'unit' => $unit ?: null,
+                    'unit_of_measurement' => $unit ?: null,
                     'reorder_level' => $reorderLevel,
-                    'status' => $this->inventoryStatus($onHand, $reorderLevel),
-                    'supplier' => trim($data['supplier'] ?? '') ?: null,
-                    'location' => trim($data['location'] ?? $data['storage_location'] ?? '') ?: null,
-                    'storage_location' => trim($data['storage_location'] ?? $data['location'] ?? '') ?: null,
+                    'status' => $this->inventoryStatus(
+                        $onHand,
+                        $reorderLevel
+                    ),
+                    'supplier' => trim((string) ($data['supplier'] ?? '')) ?: null,
+                    'location' => $location ?: null,
+                    'storage_location' => $location ?: null,
                 ];
 
                 if ($itemCode !== '') {
@@ -263,7 +377,9 @@ class InventoryController extends Controller
                     $updated++;
                 }
 
-                $this->createAutoRestockRequestIfNeeded($inventoryItem->fresh());
+                $this->createAutoRestockRequestIfNeeded(
+                    $inventoryItem->fresh()
+                );
             }
         });
 
@@ -297,19 +413,24 @@ class InventoryController extends Controller
         }
     }
 
-    private function createAutoRestockRequestIfNeeded(InventoryItem $inventoryItem): void
-    {
+    private function createAutoRestockRequestIfNeeded(
+        InventoryItem $inventoryItem
+    ): void {
         $itemName = $this->getInventoryItemName($inventoryItem);
         $unit = $this->getInventoryUnit($inventoryItem);
 
-        $onHand = (int) ($inventoryItem->on_hand ?? $inventoryItem->quantity_available ?? 0);
-        $reorderLevel = (int) ($inventoryItem->reorder_level ?? 0);
+        $onHand = (int) (
+            $inventoryItem->on_hand
+            ?? $inventoryItem->quantity_available
+            ?? 0
+        );
 
-        if ($itemName === '') {
-            return;
-        }
+        $reorderLevel = (int) (
+            $inventoryItem->reorder_level
+            ?? 0
+        );
 
-        if ($reorderLevel <= 0) {
+        if ($itemName === '' || $reorderLevel <= 0) {
             return;
         }
 
@@ -337,7 +458,10 @@ class InventoryController extends Controller
             return;
         }
 
-        $neededQuantity = max($reorderLevel - $onHand, 1);
+        $neededQuantity = max(
+            $reorderLevel - $onHand,
+            1
+        );
 
         MaintenanceRequest::create([
             'pr_no' => $this->generateRestockPrNo(),
@@ -347,7 +471,11 @@ class InventoryController extends Controller
             'quantity' => $neededQuantity,
             'status' => 'For Purchase',
             'source_type' => 'Auto Restock',
-            'remarks' => "Auto restock request from Warehouse Inventory. {$itemName} is below reorder level. Current stock: {$onHand} {$unit}. Reorder level: {$reorderLevel} {$unit}.",
+            'remarks' =>
+                "Auto restock request from Warehouse Inventory. "
+                . "{$itemName} is below reorder level. "
+                . "Current stock: {$onHand} {$unit}. "
+                . "Reorder level: {$reorderLevel} {$unit}.",
         ]);
     }
 
@@ -367,37 +495,50 @@ class InventoryController extends Controller
         $lastNumber = (int) substr($latest->pr_no, -4);
         $nextNumber = $lastNumber + 1;
 
-        return "RST-{$year}-" . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+        return "RST-{$year}-"
+            . str_pad(
+                (string) $nextNumber,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
     }
 
-    private function inventoryStatus(int $onHand, int $reorderLevel): string
-    {
+    private function inventoryStatus(
+        int $onHand,
+        int $reorderLevel
+    ): string {
         if ($onHand <= 0) {
             return 'Critical';
         }
 
-        if ($reorderLevel > 0 && $onHand <= $reorderLevel) {
+        if (
+            $reorderLevel > 0
+            && $onHand <= $reorderLevel
+        ) {
             return 'Low Stock';
         }
 
         return 'In Stock';
     }
 
-    private function getInventoryItemName(InventoryItem $inventoryItem): string
-    {
-        return trim(
+    private function getInventoryItemName(
+        InventoryItem $inventoryItem
+    ): string {
+        return trim((string) (
             $inventoryItem->parts_name
             ?? $inventoryItem->item_name
             ?? ''
-        );
+        ));
     }
 
-    private function getInventoryUnit(InventoryItem $inventoryItem): string
-    {
-        return trim(
+    private function getInventoryUnit(
+        InventoryItem $inventoryItem
+    ): string {
+        return trim((string) (
             $inventoryItem->unit
             ?? $inventoryItem->unit_of_measurement
             ?? 'pcs'
-        ) ?: 'pcs';
+        )) ?: 'pcs';
     }
 }

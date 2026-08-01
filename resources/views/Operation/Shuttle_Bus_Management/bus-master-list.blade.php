@@ -9,7 +9,7 @@
         'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
     ]"
 >
->
+
     <div class="app">
 
      <x-layout.sidebar
@@ -130,7 +130,7 @@
 
                 <form
                     method="GET"
-                    action="{{ route('bus-master-list') }}"
+                    action="/bus-master-list"
                     class="toolbar bus-toolbar"
                 >
                     <div class="search-box">
@@ -266,12 +266,12 @@
                                                 data-capacity="{{ $bus->capacity }}"
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-status="{{ $bus->status }}"
-                                                data-update-url="{{ route('bus-master-list.update', $bus->id) }}"
+                                                data-update-url="/bus-master-list/{{ $bus->id }}"
                                             />
 
                                             <form
                                                 id="deleteBusForm-{{ $bus->id }}"
-                                                action="{{ route('bus-master-list.destroy', $bus->id) }}"
+                                                action="/bus-master-list/{{ $bus->id }}"
                                                 method="POST"
                                             >
                                                 @csrf
@@ -309,7 +309,7 @@
         title="Add New Bus"
         subtitle="Bus Information"
         description="Add an official bus record for Operations, GPS matching, PMS, and Job Orders."
-        action="{{ route('bus-master-list.store') }}"
+        action="/bus-master-list"
         method="POST"
         submit-text="Save Bus"
         close-id="closeBusModal"
@@ -422,7 +422,7 @@
             </div>
 
             <form
-                action="{{ route('bus-master-list.import') }}"
+                action="/bus-master-list/import"
                 method="POST"
                 enctype="multipart/form-data"
                 class="job-form"

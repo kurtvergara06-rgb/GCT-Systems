@@ -9,6 +9,22 @@
   ]"
 >
 
+  <style>
+    .badge.leave {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 78px;
+      padding: 6px 12px;
+      border: 1px solid #c4b5fd;
+      border-radius: 999px;
+      background: #ede9fe;
+      color: #7c3aed;
+      font-weight: 700;
+      line-height: 1;
+    }
+  </style>
+
   <div class="app">
 
    <x-layout.sidebar
@@ -140,7 +156,7 @@
         </div>
 
         <form
-          action="{{ route('mechanic-attendance') }}"
+          action="{{ route('mechanic-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
         >
@@ -295,12 +311,12 @@
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
-                        data-update-url="{{ route('mechanic-attendance.update', $attendance->id) }}"
+                        data-update-url="{{ route('mechanic-attendance.update', $attendance->id, false) }}"
                       />
 
                       <form
                         id="deleteAttendanceForm-{{ $attendance->id }}"
-                        action="{{ route('mechanic-attendance.destroy', $attendance->id) }}"
+                        action="{{ route('mechanic-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
                       >
                         @csrf
@@ -353,7 +369,7 @@
 
       <form
         id="importAttendanceForm"
-        action="{{ route('mechanic-attendance.import') }}"
+        action="{{ route('mechanic-attendance.import', [], false) }}"
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
@@ -419,7 +435,7 @@
       </div>
 
       <form
-        action="{{ route('mechanic-attendance.store') }}"
+        action="{{ route('mechanic-attendance.store', [], false) }}"
         method="POST"
         class="job-form wide-form"
         data-confirm-form

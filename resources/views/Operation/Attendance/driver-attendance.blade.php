@@ -9,6 +9,22 @@
   ]"
 >
 
+  <style>
+    .badge.leave {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 78px;
+      padding: 6px 12px;
+      border: 1px solid #c4b5fd;
+      border-radius: 999px;
+      background: #ede9fe;
+      color: #6d28d9;
+      font-weight: 700;
+      line-height: 1;
+    }
+  </style>
+
   <div class="app">
 
     {{-- =====================================================
@@ -181,7 +197,7 @@
             SEARCH / FILTER / BUTTONS
         ================================================== --}}
         <form
-          action="{{ route('driver-attendance') }}"
+          action="{{ route('driver-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
         >
@@ -446,7 +462,7 @@
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
-                        data-update-url="{{ route('driver-attendance.update', $attendance->id) }}"
+                        data-update-url="{{ route('driver-attendance.update', $attendance->id, false) }}"
                       >
 
                         <i class="fa-solid fa-pen"></i>
@@ -457,7 +473,7 @@
                       {{-- DELETE FORM --}}
                       <form
                         id="deleteDriverAttendanceForm-{{ $attendance->id }}"
-                        action="{{ route('driver-attendance.destroy', $attendance->id) }}"
+                        action="{{ route('driver-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
                       >
 
@@ -551,7 +567,7 @@
 
       <form
         id="importDriverAttendanceForm"
-        action="{{ route('driver-attendance.import') }}"
+        action="{{ route('driver-attendance.import', [], false) }}"
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
@@ -677,7 +693,7 @@
 
 
       <form
-        action="{{ route('driver-attendance.store') }}"
+        action="{{ route('driver-attendance.store', [], false) }}"
         method="POST"
         class="job-form wide-form"
         data-confirm-form
