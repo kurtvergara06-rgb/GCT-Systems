@@ -226,7 +226,7 @@
                 ================================================== --}}
                 <form
                     method="GET"
-                    action="{{ route('operation.routes') }}"
+                    action="{{ route('operation.routes', [], false) }}"
                     class="toolbar routes-toolbar"
                 >
 
@@ -503,10 +503,7 @@
                                                 data-distance="{{ $route->distance_km }}"
                                                 data-time="{{ $route->estimated_time_minutes }}"
                                                 data-status="{{ $route->status }}"
-                                                data-update-url="{{ route(
-                                                    'operation.routes.update',
-                                                    $route->id
-                                                ) }}"
+                                                data-update-url="{{ route('operation.routes.update', $route->id, false) }}"
                                                 data-stops="{{ $stopsJson }}"
                                             >
                                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -516,10 +513,7 @@
                                             {{-- DELETE --}}
                                             <form
                                                 id="deleteRouteForm-{{ $route->id }}"
-                                                action="{{ route(
-                                                    'operation.routes.destroy',
-                                                    $route->id
-                                                ) }}"
+                                                action="{{ route('operation.routes.destroy', $route->id, false) }}"
                                                 method="POST"
                                                 class="route-delete-form"
                                             >
@@ -603,7 +597,7 @@
 
         form-id="routeForm"
 
-        action="/operation/routes" "
+        :action="route('operation.routes.store', [], false)"
 
         submit-text="Save Route"
         submit-text-id="saveRouteText"
@@ -1224,9 +1218,9 @@
 
 @php
     $routeMapConfig = [
-        'searchUrl' => '/operation/routes/location-search',
+        'searchUrl' => route('operation.routes.location-search', [], false),
 
-        'routingUrl' => '/operation/routes/calculate',
+        'routingUrl' => route('operation.routes.calculate', [], false),
 
         'csrfToken' => csrf_token(),
     ];

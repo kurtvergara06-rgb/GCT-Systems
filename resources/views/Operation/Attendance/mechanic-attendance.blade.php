@@ -4,11 +4,26 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/Attendance/available-mechanics.css',
-    'resources/css/Operation/Attendance/mechanic-attendance-on-leave-fix.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Operation/Attendance/mechanic-attendance.js'
   ]"
 >
+
+  <style>
+    .badge.leave {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 78px;
+      padding: 6px 12px;
+      border: 1px solid #c4b5fd;
+      border-radius: 999px;
+      background: #ede9fe;
+      color: #7c3aed;
+      font-weight: 700;
+      line-height: 1;
+    }
+  </style>
 
   <div class="app">
 
@@ -141,7 +156,7 @@
         </div>
 
         <form
-          action="/mechanic-attendance"
+          action="{{ route('mechanic-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
         >
@@ -296,12 +311,12 @@
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
-                        data-update-url="/mechanic-attendance/{{ $attendance->id }}"
+                        data-update-url="{{ route('mechanic-attendance.update', $attendance->id, false) }}"
                       />
 
                       <form
                         id="deleteAttendanceForm-{{ $attendance->id }}"
-                        action="/mechanic-attendance/{{ $attendance->id }}"
+                        action="{{ route('mechanic-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
                       >
                         @csrf
@@ -354,7 +369,7 @@
 
       <form
         id="importAttendanceForm"
-        action="/mechanic-attendance/import"
+        action="{{ route('mechanic-attendance.import', [], false) }}"
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
@@ -420,7 +435,7 @@
       </div>
 
       <form
-        action="/mechanic-attendance"
+        action="{{ route('mechanic-attendance.store', [], false) }}"
         method="POST"
         class="job-form wide-form"
         data-confirm-form
