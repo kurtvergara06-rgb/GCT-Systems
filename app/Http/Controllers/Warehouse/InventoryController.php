@@ -13,13 +13,9 @@ use Illuminate\Support\Facades\DB;
 class InventoryController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Auto-create restock requests for existing low / critical stocks
-        |--------------------------------------------------------------------------
-        */
         $this->syncAutoRestockRequests();
 
         $query = InventoryItem::query();
@@ -124,8 +120,9 @@ class InventoryController extends Controller
             );
         }
 
-        return back()
-    ->with('success', 'Inventory item deleted successfully.');
+        session()->flash('success', 'Inventory item added successfully.');
+
+        return new RedirectResponse('/inventory');
     }
 
     public function update(Request $request, InventoryItem $inventoryItem): RedirectResponse
@@ -166,8 +163,9 @@ class InventoryController extends Controller
             'An inventory item was updated.'
         );
 
-        return back()
-    ->with('error', 'Unable to read the uploaded file.');
+        session()->flash('success', 'Inventory item updated successfully.');
+
+        return new RedirectResponse('/inventory');
     }
 
     public function destroy(InventoryItem $inventoryItem): RedirectResponse
@@ -182,9 +180,9 @@ class InventoryController extends Controller
             'An inventory item was deleted.'
         );
 
-        return redirect()
-            ->route('inventory')
-            ->with('success', 'Inventory item deleted successfully.');
+        session()->flash('success', 'Inventory item deleted successfully.');
+
+        return new RedirectResponse('/inventory');
     }
 
     public function import(Request $request): RedirectResponse
@@ -197,19 +195,16 @@ class InventoryController extends Controller
         $handle = fopen($file->getRealPath(), 'r');
 
         if (! $handle) {
-            return redirect()
-                ->route('inventory')
-                ->with('error', 'Unable to read the uploaded file.');
+            session()->flash('error', 'Unable to read the uploaded file.');
+            return new RedirectResponse('/inventory');
         }
 
         $header = fgetcsv($handle);
 
         if (! $header) {
             fclose($handle);
-
-            return redirect()
-                ->route('inventory')
-                ->with('error', 'The uploaded CSV file is empty.');
+            session()->flash('error', 'The uploaded CSV file is empty.');
+            return new RedirectResponse('/inventory');
         }
 
         $header = array_map(function ($value) {
@@ -282,9 +277,12 @@ class InventoryController extends Controller
             "Inventory import completed. Created: {$created}, Updated: {$updated}."
         );
 
-        return redirect()
-            ->route('inventory')
-            ->with('success', "Inventory import completed. Created: {$created}, Updated: {$updated}.");
+        session()->flash(
+            'success',
+            "Inventory import completed. Created: {$created}, Updated: {$updated}."
+        );
+
+        return new RedirectResponse('/inventory');
     }
 
     private function syncAutoRestockRequests(): void
@@ -341,18 +339,6 @@ class InventoryController extends Controller
 
         $neededQuantity = max($reorderLevel - $onHand, 1);
 
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |--------------------------------------------------------------------------
-        | Your purchase_requests table has NO `unit` column
-        | and NO `date_requested` column.
-        |
-        | So this insert only uses columns that exist in your table.
-        | Unit is saved inside item text:
-        | Engine Oil - Qty: 10 liter
-        |--------------------------------------------------------------------------
-        */
         MaintenanceRequest::create([
             'pr_no' => $this->generateRestockPrNo(),
             'job_order_no' => 'RESTOCK',
