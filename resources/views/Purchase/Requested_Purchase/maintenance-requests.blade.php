@@ -105,7 +105,7 @@
           </div>
         </div>
 
-        <form action="{{ route('maintenance-requests') }}" method="GET" class="requested-toolbar">
+        <form action="/maintenance-requests" method="GET" class="requested-toolbar">
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -213,7 +213,7 @@
 
                       @if($purchaseRequest->status === 'For Purchase')
                         <form
-                          action="{{ route('maintenance-requests.create-po', $purchaseRequest->id) }}"
+                          action="/maintenance-requests/{{ $purchaseRequest->id }}/create-po"
                           method="POST"
                           class="inline-action-form"
                         >

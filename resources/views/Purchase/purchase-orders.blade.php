@@ -195,7 +195,7 @@
           </div>
         </div>
 
-        <form action="{{ route('purchase-orders') }}" method="GET" class="po-toolbar">
+        <form action="/purchase-orders" method="GET" class="po-toolbar">
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -313,7 +313,7 @@
 
                   <td>
                     <form
-                      action="{{ route('purchase-orders.update-status', $purchaseOrder->id) }}"
+                      action="/purchase-orders/{{ $purchaseOrder->id }}/status"
                       method="POST"
                       class="status-update-form"
                       data-confirm-form
@@ -370,7 +370,7 @@
                         data-discount="{{ $purchaseOrder->discount }}"
                         data-vat="{{ $purchaseOrder->vat }}"
                         data-items='@json($items)'
-                        data-update-url="{{ route('purchase-orders.update', $purchaseOrder->id) }}"
+                        data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
                       >
                         <i class="fa-solid {{ $isDraft ? 'fa-pen-to-square' : 'fa-eye' }}"></i>
                       </button>
@@ -378,7 +378,7 @@
                       @if($isDraft)
                         <form
                           id="deletePoForm-{{ $purchaseOrder->id }}"
-                          action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}"
+                          action="/purchase-orders/{{ $purchaseOrder->id }}"
                           method="POST"
                         >
                           @csrf
@@ -440,10 +440,10 @@
 
       <form
         id="poForm"
-        action="{{ route('purchase-orders.store') }}"
+        action="/purchase-orders"
         method="POST"
         class="po-form"
-        data-store-url="{{ route('purchase-orders.store') }}"
+        data-store-url="/purchase-orders"
         data-confirm-form
         data-confirm-title="Create Purchase Order?"
         data-confirm-message="Are you sure you want to create this Purchase Order?"

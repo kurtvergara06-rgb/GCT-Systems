@@ -29,19 +29,6 @@ class MaintenanceRequestController extends Controller
 
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Base Query
-        |--------------------------------------------------------------------------
-        | Purchase Department should show Maintenance Request records that were sent
-        | by Warehouse for purchasing.
-        |
-        | IMPORTANT:
-        | - Include PR numbers with "-P" because Warehouse creates those when
-        |   unavailable parts are sent to Purchase.
-        | - Exclude Inventory Restock records like RST-2026-0001.
-        |--------------------------------------------------------------------------
-        */
         $baseQuery = MaintenanceRequest::query()
             ->where(function ($q) {
                 $q->whereNull('source_type')
@@ -61,19 +48,11 @@ class MaintenanceRequestController extends Controller
                     ->orWhere('pr_no', 'not like', 'RST-%');
             });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Active Purchase Requests
-        |--------------------------------------------------------------------------
-        | Show Maintenance PRs that need Purchase Department processing.
-        | This includes "-P" records created from Warehouse missing parts.
-        |--------------------------------------------------------------------------
-        */
         $query = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses);
 
         if ($request->filled('search')) {
-            $search = trim($request->search);
+            $search = trim((string) $request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('pr_no', 'like', "%{$search}%")
@@ -85,7 +64,10 @@ class MaintenanceRequestController extends Controller
             });
         }
 
-        if ($request->filled('status') && $request->status !== 'All States') {
+        if (
+            $request->filled('status')
+            && $request->status !== 'All States'
+        ) {
             $query->where('status', $request->status);
         }
 
@@ -94,33 +76,28 @@ class MaintenanceRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
-            return $this->prepareRequestForDisplay($purchaseRequest);
-        });
+        $purchaseRequests
+            ->getCollection()
+            ->transform(function ($purchaseRequest) {
+                return $this->prepareRequestForDisplay(
+                    $purchaseRequest
+                );
+            });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Issued Purchase History
-        |--------------------------------------------------------------------------
-        | Show completed Maintenance purchase requests already issued by Warehouse.
-        | Restock records are excluded.
-        |--------------------------------------------------------------------------
-        */
         $issuedRequests = (clone $baseQuery)
             ->where('status', 'Issued')
             ->latest()
             ->paginate(5, ['*'], 'history_page')
             ->withQueryString();
 
-        $issuedRequests->getCollection()->transform(function ($purchaseRequest) {
-            return $this->prepareRequestForDisplay($purchaseRequest);
-        });
+        $issuedRequests
+            ->getCollection()
+            ->transform(function ($purchaseRequest) {
+                return $this->prepareRequestForDisplay(
+                    $purchaseRequest
+                );
+            });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Summary Counts
-        |--------------------------------------------------------------------------
-        */
         $totalRequests = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses)
             ->count();
@@ -142,7 +119,10 @@ class MaintenanceRequestController extends Controller
             ->count();
 
         $delivered = (clone $baseQuery)
-            ->whereIn('status', ['Delivered', 'Picked Up'])
+            ->whereIn('status', [
+                'Delivered',
+                'Picked Up',
+            ])
             ->count();
 
         $pickedUp = (clone $baseQuery)
@@ -151,70 +131,120 @@ class MaintenanceRequestController extends Controller
 
         $statuses = $this->purchaseStatuses;
 
-        return view('Purchase.Requested_Purchase.maintenance-requests', compact(
-            'purchaseRequests',
-            'issuedRequests',
-            'totalRequests',
-            'forPurchase',
-            'ordered',
-            'forPickup',
-            'forDelivery',
-            'delivered',
-            'pickedUp',
-            'statuses'
-        ));
+        return view(
+            'Purchase.Requested_Purchase.maintenance-requests',
+            compact(
+                'purchaseRequests',
+                'issuedRequests',
+                'totalRequests',
+                'forPurchase',
+                'ordered',
+                'forPickup',
+                'forDelivery',
+                'delivered',
+                'pickedUp',
+                'statuses'
+            )
+        );
     }
 
-    public function createPo(MaintenanceRequest $maintenanceRequest): RedirectResponse
-    {
+    public function createPo(
+        MaintenanceRequest $maintenanceRequest
+    ): RedirectResponse {
         if ($maintenanceRequest->status !== 'For Purchase') {
-            return redirect()
-                ->back()
-                ->with('error', 'Only For Purchase requests can create a purchase order.');
+            session()->flash(
+                'error',
+                'Only For Purchase requests can create a purchase order.'
+            );
+
+            return new RedirectResponse('/maintenance-requests');
         }
 
-        if (PurchaseOrder::where('purchase_request_id', $maintenanceRequest->id)->exists()) {
-            return redirect()
-                ->back()
-                ->with('error', 'A purchase order already exists for this maintenance request.');
+        $purchaseOrderExists = PurchaseOrder::query()
+            ->where(
+                'purchase_request_id',
+                $maintenanceRequest->id
+            )
+            ->exists();
+
+        if ($purchaseOrderExists) {
+            session()->flash(
+                'error',
+                'A purchase order already exists for this maintenance request.'
+            );
+
+            return new RedirectResponse('/maintenance-requests');
         }
 
-        return redirect()
-            ->route('purchase-orders', [
-                'create_from_pr' => $maintenanceRequest->id,
-            ])
-            ->with('open_po_modal', true);
+        session()->flash('open_po_modal', true);
+
+        return new RedirectResponse(
+            '/purchase-orders?create_from_pr='
+            . $maintenanceRequest->id
+        );
     }
 
-    private function prepareRequestForDisplay(MaintenanceRequest $purchaseRequest): MaintenanceRequest
-    {
-        $parts = collect($this->partParser->parsePartText($purchaseRequest->item))
+    private function prepareRequestForDisplay(
+        MaintenanceRequest $purchaseRequest
+    ): MaintenanceRequest {
+        $parts = collect(
+            $this->partParser->parsePartText(
+                $purchaseRequest->item
+            )
+        )
             ->map(function ($part) {
-                $unit = ($part['unit'] ?? '') !== '' ? $part['unit'] : '—';
+                $unit = ($part['unit'] ?? '') !== ''
+                    ? $part['unit']
+                    : '—';
 
                 return [
                     'name' => $part['name'] ?? '',
                     'quantity' => $part['quantity'] ?? 1,
                     'unit' => $unit,
-                    'quantity_display' => trim(($part['quantity'] ?? 1) . ' ' . $unit),
+                    'quantity_display' => trim(
+                        ($part['quantity'] ?? 1)
+                        . ' '
+                        . $unit
+                    ),
                 ];
             })
-            ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
+            ->filter(
+                fn ($part) =>
+                    is_array($part)
+                    && ! empty($part['name'])
+            )
             ->values()
             ->toArray();
 
         $purchaseRequest->parts_breakdown = $parts;
-        $purchaseRequest->first_item_display = $parts[0]['name'] ?? $purchaseRequest->item ?? '—';
 
-        $firstQuantity = $parts[0]['quantity'] ?? null;
-        $firstUnit = $parts[0]['unit'] ?? null;
+        $purchaseRequest->first_item_display =
+            $parts[0]['name']
+            ?? $purchaseRequest->item
+            ?? '—';
 
-        if ($firstQuantity && $firstUnit && $firstUnit !== '—') {
-            $purchaseRequest->first_quantity_display = $firstQuantity . ' ' . $firstUnit;
+        $firstQuantity =
+            $parts[0]['quantity']
+            ?? null;
+
+        $firstUnit =
+            $parts[0]['unit']
+            ?? null;
+
+        if (
+            $firstQuantity
+            && $firstUnit
+            && $firstUnit !== '—'
+        ) {
+            $purchaseRequest->first_quantity_display =
+                $firstQuantity . ' ' . $firstUnit;
         } elseif ($firstQuantity) {
-            $purchaseRequest->first_quantity_display = $firstQuantity;
+            $purchaseRequest->first_quantity_display =
+                $firstQuantity;
         } else {
-            $purchaseRequest->first_quantity_display = $purchaseRequest->quantity ?? '—';
+            $purchaseRequest->first_quantity_display =
+                $purchaseRequest->quantity
+                ?? '—';
         }
 
         return $purchaseRequest;
