@@ -215,7 +215,7 @@
                           data-code="{{ $item->item_code }}"
                           data-name="{{ $item->item_name }}"
                           data-category="{{ $item->category }}"
-                          data-quantity="{{ $item->quantity_available }}"
+                          data-quantity="{{ $item->on_hand }}"
                           data-unit="{{ $item->unit_of_measurement }}"
                           data-reorder="{{ $item->reorder_level }}"
                           data-supplier="{{ $item->supplier }}"
@@ -328,7 +328,7 @@
 
           <div class="form-group">
             <label>Quantity Available</label>
-            <input type="number" name="quantity_available" min="0" required>
+            <input type="number" name="on_hand" min="0" required>
           </div>
 
           <div class="form-group">
@@ -403,7 +403,7 @@
 
           <div class="form-group">
             <label>Quantity Available</label>
-            <input type="number" name="quantity_available" id="edit_quantity" min="0" required>
+            <input type="number" name="on_hand" id="edit_quantity" min="0" required>
           </div>
 
           <div class="form-group">
