@@ -124,9 +124,8 @@ class InventoryController extends Controller
             );
         }
 
-        return redirect()
-            ->route('inventory')
-            ->with('success', 'Inventory item added successfully.');
+        return back()
+    ->with('success', 'Inventory item deleted successfully.');
     }
 
     public function update(Request $request, InventoryItem $inventoryItem): RedirectResponse
@@ -167,9 +166,8 @@ class InventoryController extends Controller
             'An inventory item was updated.'
         );
 
-        return redirect()
-            ->route('inventory')
-            ->with('success', 'Inventory item updated successfully.');
+        return back()
+    ->with('error', 'Unable to read the uploaded file.');
     }
 
     public function destroy(InventoryItem $inventoryItem): RedirectResponse
