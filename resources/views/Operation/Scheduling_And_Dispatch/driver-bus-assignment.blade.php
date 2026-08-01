@@ -3,946 +3,546 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
-        'resources/js/Main-js/sidebar.js'
+        'resources/js/Main-js/sidebar.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
     ]"
 >
-
-<div class="app">
-
-   <x-layout.sidebar
-    department="Operation"
-    subtitle="Operation Module"
-    icon="fa-bus"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
-
-        [
-            'label' => 'Scheduling',
-            'icon' => 'fa-calendar-days',
-            'children' => [
+    <div class="app">
+        <x-layout.sidebar
+            department="Operation"
+            subtitle="Operation Module"
+            icon="fa-bus"
+            :items="[
                 [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
+                    'label' => 'Dashboard',
+                    'route' => 'dashboard-operation',
+                    'icon' => 'fa-table-cells-large',
+                ],
+                [
+                    'label' => 'Routes',
+                    'route' => 'operation.routes',
+                    'icon' => 'fa-route',
+                ],
+                [
+                    'label' => 'Scheduling',
                     'icon' => 'fa-calendar-days',
+                    'children' => [
+                        [
+                            'label' => 'Trip Schedule',
+                            'route' => 'trip-schedule',
+                            'icon' => 'fa-calendar-days',
+                        ],
+                        [
+                            'label' => 'Driver & Bus Assignment',
+                            'route' => 'driver-bus-assignment',
+                            'icon' => 'fa-user-tie',
+                        ],
+                        [
+                            'label' => 'Auto Scheduling',
+                            'route' => 'auto-scheduling',
+                            'icon' => 'fa-wand-magic-sparkles',
+                        ],
+                    ],
                 ],
                 [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
+                    'label' => 'Attendance',
+                    'icon' => 'fa-calendar-check',
+                    'children' => [
+                        [
+                            'label' => 'Driver Attendance',
+                            'route' => 'driver-attendance',
+                            'icon' => 'fa-id-card',
+                        ],
+                        [
+                            'label' => 'Mechanic Attendance',
+                            'route' => 'mechanic-attendance',
+                            'icon' => 'fa-users-gear',
+                        ],
+                    ],
                 ],
                 [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
+                    'label' => 'Bus Master List',
+                    'route' => 'bus-master-list',
+                    'icon' => 'fa-bus',
                 ],
-            ],
-        ],
-
-        [
-            'label' => 'Attendance',
-            'icon' => 'fa-calendar-check',
-            'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-users-gear',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
-    ]"
-/>
-
-
-    <main class="main assignment-page">
-
-        <x-layout.topbar
-            title="Driver & Bus Assignment"
-            subtitle="Assign available drivers and shuttle buses to scheduled trips"
-            notification-count="4"
+            ]"
         />
 
+        <main class="main assignment-page">
+            <x-layout.topbar
+                title="Driver & Bus Assignment"
+                subtitle="Assign available drivers and active buses to scheduled trips"
+                notification-count="4"
+            />
 
-        {{-- =====================================================
-             SUMMARY CARDS
-        ====================================================== --}}
-        <section class="assignment-summary-grid">
+            @if($errors->any())
+                <div class="assignment-alert error">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-            <article class="assignment-summary-card">
+            <section class="assignment-summary-grid">
+                <article class="assignment-summary-card">
+                    <div class="summary-icon blue">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <p>Scheduled Trips</p>
+                        <h2>{{ $scheduledTripsToday }}</h2>
+                        <small>Trips for today</small>
+                    </div>
+                </article>
 
-                <div class="summary-icon blue">
-                    <i class="fa-solid fa-calendar-days"></i>
+                <article class="assignment-summary-card">
+                    <div class="summary-icon green">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <p>Available Drivers</p>
+                        <h2>{{ $availableDrivers->count() }}</h2>
+                        <small>Present or late today</small>
+                    </div>
+                </article>
+
+                <article class="assignment-summary-card">
+                    <div class="summary-icon purple">
+                        <i class="fa-solid fa-bus"></i>
+                    </div>
+                    <div>
+                        <p>Available Buses</p>
+                        <h2>{{ $availableBuses->count() }}</h2>
+                        <small>Active vehicles</small>
+                    </div>
+                </article>
+
+                <article class="assignment-summary-card">
+                    <div class="summary-icon yellow">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div>
+                        <p>Unassigned Trips</p>
+                        <h2>{{ $pendingAssignments }}</h2>
+                        <small>Need assignment today</small>
+                    </div>
+                </article>
+            </section>
+
+            <section class="assignment-card">
+                <div class="assignment-card-header">
+                    <div>
+                        <h2>Trip Assignments</h2>
+                        <p>Manage the driver and bus assigned to each trip schedule.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="new-assignment-btn"
+                        id="openAssignmentModal"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        New Assignment
+                    </button>
                 </div>
 
-                <div>
-                    <p>Scheduled Trips</p>
-                    <h2>8</h2>
-                    <small>Trips for today</small>
-                </div>
-
-            </article>
-
-
-            <article class="assignment-summary-card">
-
-                <div class="summary-icon green">
-                    <i class="fa-solid fa-user-check"></i>
-                </div>
-
-                <div>
-                    <p>Available Drivers</p>
-                    <h2>10</h2>
-                    <small>Ready for assignment</small>
-                </div>
-
-            </article>
-
-
-            <article class="assignment-summary-card">
-
-                <div class="summary-icon purple">
-                    <i class="fa-solid fa-bus"></i>
-                </div>
-
-                <div>
-                    <p>Available Buses</p>
-                    <h2>7</h2>
-                    <small>Operational vehicles</small>
-                </div>
-
-            </article>
-
-
-            <article class="assignment-summary-card">
-
-                <div class="summary-icon yellow">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                </div>
-
-                <div>
-                    <p>Unassigned Trips</p>
-                    <h2>2</h2>
-                    <small>Need assignment</small>
-                </div>
-
-            </article>
-
-        </section>
-
-
-        {{-- =====================================================
-             ASSIGNMENT TABLE
-        ====================================================== --}}
-        <section class="assignment-card">
-
-            <div class="assignment-card-header">
-
-                <div>
-                    <h2>Trip Assignments</h2>
-
-                    <p>
-                        Manage driver and bus assignments for scheduled shuttle trips.
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    class="new-assignment-btn"
-                    id="openAssignmentModal"
+                <form
+                    method="GET"
+                    action="{{ route('driver-bus-assignment', [], false) }}"
+                    class="assignment-toolbar"
                 >
-                    <i class="fa-solid fa-plus"></i>
-                    New Assignment
-                </button>
-
-            </div>
-
-
-            {{-- FILTERS --}}
-            <div class="assignment-toolbar">
-
-                <div class="assignment-search">
-
-                    <i class="fa-solid fa-magnifying-glass"></i>
-
-                    <input
-                        type="text"
-                        placeholder="Search trip, route, driver, bus..."
-                    >
-
-                </div>
-
-
-                <div class="assignment-filter">
-
-                    <label>Date</label>
-
-                    <input
-                        type="date"
-                        value="2026-07-23"
-                    >
-
-                </div>
-
-
-                <div class="assignment-filter">
-
-                    <label>Status</label>
-
-                    <select>
-                        <option>All Statuses</option>
-                        <option>Ready</option>
-                        <option>Assigned</option>
-                        <option>Unassigned</option>
-                        <option>Dispatched</option>
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <div class="assignment-table-wrap">
-
-                <table class="assignment-table">
-
-                    <thead>
-                        <tr>
-                            <th>Trip ID</th>
-                            <th>Schedule</th>
-                            <th>Route</th>
-                            <th>Driver</th>
-                            <th>Bus</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-
-                    <tbody>
-
-                        <tr>
-
-                            <td>T-001</td>
-
-                            <td>
-                                <div class="schedule-cell">
-                                    <strong>6:00 AM</strong>
-                                    <span>Jul 23, 2026</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="route-cell">
-                                    <strong>R-01</strong>
-                                    <span>Downtown Express</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="driver-cell">
-
-                                    <div class="driver-avatar">
-                                        RA
-                                    </div>
-
-                                    <div>
-                                        <strong>Rowell Amano</strong>
-                                        <span>Available</span>
-                                    </div>
-
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="bus-badge">
-                                    BUS-001
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-status ready">
-                                    Ready
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="assignment-actions">
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action view"
-                                        title="View"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action edit"
-                                        title="Edit Assignment"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                </div>
-                            </td>
-
-                        </tr>
-
-
-                        <tr>
-
-                            <td>T-002</td>
-
-                            <td>
-                                <div class="schedule-cell">
-                                    <strong>6:30 AM</strong>
-                                    <span>Jul 23, 2026</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="route-cell">
-                                    <strong>R-02</strong>
-                                    <span>Sto. Tomas</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="driver-cell">
-
-                                    <div class="driver-avatar">
-                                        CM
-                                    </div>
-
-                                    <div>
-                                        <strong>Cardo Mendoza</strong>
-                                        <span>Available</span>
-                                    </div>
-
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="bus-badge">
-                                    BUS-003
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-status assigned">
-                                    Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="assignment-actions">
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action view"
-                                        title="View"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action edit"
-                                        title="Edit Assignment"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                </div>
-                            </td>
-
-                        </tr>
-
-
-                        <tr>
-
-                            <td>T-003</td>
-
-                            <td>
-                                <div class="schedule-cell">
-                                    <strong>7:00 AM</strong>
-                                    <span>Jul 23, 2026</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="route-cell">
-                                    <strong>R-03</strong>
-                                    <span>Campus Loop</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="driver-cell">
-
-                                    <div class="driver-avatar">
-                                        JP
-                                    </div>
-
-                                    <div>
-                                        <strong>Juan Perez</strong>
-                                        <span>Available</span>
-                                    </div>
-
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="bus-badge">
-                                    BUS-004
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-status dispatched">
-                                    Dispatched
-                                </span>
-                            </td>
-
-                            <td>
-                                <div class="assignment-actions">
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action view"
-                                        title="View"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                </div>
-                            </td>
-
-                        </tr>
-
-
-                        <tr class="unassigned-row">
-
-                            <td>T-004</td>
-
-                            <td>
-                                <div class="schedule-cell">
-                                    <strong>7:30 AM</strong>
-                                    <span>Jul 23, 2026</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="route-cell">
-                                    <strong>R-04</strong>
-                                    <span>Industrial Zone</span>
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="not-assigned">
-                                    Not Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="not-assigned">
-                                    Not Assigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="assignment-status unassigned">
-                                    Unassigned
-                                </span>
-                            </td>
-
-                            <td>
-                                <button
-                                    type="button"
-                                    class="assign-now-btn"
-                                    data-open-assignment
+                    <div class="assignment-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Search trip, route, driver, bus..."
+                        >
+                    </div>
+
+                    <div class="assignment-filter">
+                        <label>Date</label>
+                        <input
+                            type="date"
+                            name="trip_date"
+                            value="{{ request('trip_date') }}"
+                            onchange="this.form.requestSubmit()"
+                        >
+                    </div>
+
+                    <div class="assignment-filter">
+                        <label>Status</label>
+                        <select
+                            name="status"
+                            onchange="this.form.requestSubmit()"
+                        >
+                            <option value="all">All Statuses</option>
+                            @foreach(['Ready', 'Assigned', 'Unassigned', 'Dispatched', 'Completed'] as $status)
+                                <option
+                                    value="{{ $status }}"
+                                    @selected(request('status') === $status)
                                 >
-                                    Assign
-                                </button>
-                            </td>
+                                    {{ $status }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
 
-                        </tr>
+                <div class="assignment-table-wrap">
+                    <table class="assignment-table">
+                        <thead>
+                            <tr>
+                                <th>Trip ID</th>
+                                <th>Schedule</th>
+                                <th>Route</th>
+                                <th>Driver</th>
+                                <th>Bus</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
+                        <tbody>
+                            @forelse($trips as $trip)
+                                @php
+                                    $route = $trip->shuttleRoute;
+                                    $assignment = $trip->assignment;
+                                    $driver = $assignment?->driverAttendance;
+                                    $bus = $assignment?->bus;
+                                    $isLocked = in_array(
+                                        $trip->status,
+                                        ['Dispatched', 'Completed'],
+                                        true
+                                    );
 
-                        <tr>
+                                    $details = [
+                                        'tripCode' => $trip->trip_code,
+                                        'date' => $trip->trip_date?->format('M d, Y'),
+                                        'departure' => \Carbon\Carbon::parse($trip->departure_time)->format('g:i A'),
+                                        'arrival' => \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('g:i A'),
+                                        'route' => trim(($route?->route_code ?? '') . ' - ' . ($route?->route_name ?? '')),
+                                        'driver' => $assignment?->driver_name,
+                                        'driverStatus' => $driver?->status,
+                                        'bus' => $bus?->bus_no,
+                                        'status' => $trip->status,
+                                        'assignmentStatus' => $trip->assignment_status,
+                                    ];
+                                @endphp
 
-                            <td>T-005</td>
+                                <tr class="{{ $trip->assignment_status === 'Unassigned' ? 'unassigned-row' : '' }}">
+                                    <td>{{ $trip->trip_code }}</td>
 
-                            <td>
-                                <div class="schedule-cell">
-                                    <strong>8:00 AM</strong>
-                                    <span>Jul 23, 2026</span>
-                                </div>
-                            </td>
+                                    <td>
+                                        <div class="schedule-cell">
+                                            <strong>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}</strong>
+                                            <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
+                                        </div>
+                                    </td>
 
-                            <td>
-                                <div class="route-cell">
-                                    <strong>R-01</strong>
-                                    <span>Downtown Express</span>
-                                </div>
-                            </td>
+                                    <td>
+                                        <div class="route-cell">
+                                            <strong>{{ $route?->route_code ?? '—' }}</strong>
+                                            <span>{{ $route?->route_name ?? 'Deleted route' }}</span>
+                                        </div>
+                                    </td>
 
-                            <td>
-                                <div class="driver-cell">
+                                    <td>
+                                        @if($assignment)
+                                            <div class="driver-cell">
+                                                <div class="driver-avatar">
+                                                    {{ collect(explode(' ', $assignment->driver_name))
+                                                        ->filter()
+                                                        ->take(2)
+                                                        ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                                                        ->implode('') }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ $assignment->driver_name }}</strong>
+                                                    <span>{{ $driver?->status ?? 'Recorded' }}</span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="not-assigned">Not Assigned</span>
+                                        @endif
+                                    </td>
 
-                                    <div class="driver-avatar">
-                                        AR
-                                    </div>
+                                    <td>
+                                        @if($bus)
+                                            <span class="bus-badge">{{ $bus->bus_no }}</span>
+                                        @else
+                                            <span class="not-assigned">Not Assigned</span>
+                                        @endif
+                                    </td>
 
-                                    <div>
-                                        <strong>Allan Reyes</strong>
-                                        <span>Available</span>
-                                    </div>
+                                    <td>
+                                        <span class="assignment-status {{ strtolower($trip->assignment_status === 'Unassigned' ? 'unassigned' : $trip->status) }}">
+                                            {{ $trip->assignment_status === 'Unassigned' ? 'Unassigned' : $trip->status }}
+                                        </span>
+                                    </td>
 
-                                </div>
-                            </td>
+                                    <td>
+                                        <div class="assignment-actions">
+                                            <button
+                                                type="button"
+                                                class="assignment-action view view-assignment"
+                                                title="View"
+                                                data-details='@json($details)'
+                                            >
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
 
-                            <td>
-                                <span class="bus-badge">
-                                    BUS-006
-                                </span>
-                            </td>
+                                            @if(!$assignment)
+                                                <button
+                                                    type="button"
+                                                    class="assign-now-btn open-assignment"
+                                                    data-trip-id="{{ $trip->id }}"
+                                                >
+                                                    Assign
+                                                </button>
+                                            @elseif(!$isLocked)
+                                                <button
+                                                    type="button"
+                                                    class="assignment-action edit edit-assignment"
+                                                    title="Edit Assignment"
+                                                    data-assignment-id="{{ $assignment->id }}"
+                                                    data-trip-id="{{ $trip->id }}"
+                                                    data-driver-id="{{ $assignment->driver_attendance_id }}"
+                                                    data-bus-id="{{ $assignment->bus_id }}"
+                                                    data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
+                                                >
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
 
-                            <td>
-                                <span class="assignment-status ready">
-                                    Ready
-                                </span>
-                            </td>
+                                                <form
+                                                    id="removeAssignmentForm-{{ $assignment->id }}"
+                                                    method="POST"
+                                                    action="{{ route('driver-bus-assignment.destroy', $assignment->id, false) }}"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
 
-                            <td>
-                                <div class="assignment-actions">
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action view"
-                                        title="View"
-                                    >
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="assignment-action edit"
-                                        title="Edit Assignment"
-                                    >
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                </div>
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-            <div class="assignment-footer">
-
-                <span>
-                    Showing 5 trip assignments
-                </span>
-
-                <div>
-                    <button disabled>Previous</button>
-                    <span>Page 1 of 1</span>
-                    <button disabled>Next</button>
+                                                    <button
+                                                        type="button"
+                                                        class="assignment-action remove remove-assignment"
+                                                        title="Remove Assignment"
+                                                        data-form-id="removeAssignmentForm-{{ $assignment->id }}"
+                                                        data-trip-code="{{ $trip->trip_code }}"
+                                                    >
+                                                        <i class="fa-solid fa-link-slash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <x-ui.empty-row
+                                    colspan="7"
+                                    message="No trip schedules found."
+                                />
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
 
-            </div>
+                <x-ui.table-footer :items="$trips" />
+            </section>
 
-        </section>
-
-
-        {{-- =====================================================
-             AVAILABLE RESOURCES
-        ====================================================== --}}
-        <section class="resource-grid">
-
-            {{-- DRIVERS --}}
-            <article class="resource-card">
-
-                <div class="resource-card-header">
-
-                    <div>
-                        <span>Workforce</span>
-                        <h2>Available Drivers</h2>
+            <section class="resource-grid">
+                <article class="resource-card">
+                    <div class="resource-card-header">
+                        <div>
+                            <span>Workforce</span>
+                            <h2>Available Drivers</h2>
+                        </div>
+                        <strong class="resource-total">{{ $availableDrivers->count() }}</strong>
                     </div>
 
-                    <strong class="resource-total">
-                        10
-                    </strong>
+                    @forelse($availableDrivers as $driver)
+                        <div class="resource-record">
+                            <div class="driver-avatar">
+                                {{ collect(explode(' ', $driver->driver_name))
+                                    ->filter()
+                                    ->take(2)
+                                    ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                                    ->implode('') }}
+                            </div>
 
-                </div>
+                            <div class="resource-record-info">
+                                <strong>{{ $driver->driver_name }}</strong>
+                                <span>{{ $driver->shift }} Shift</span>
+                            </div>
 
+                            <span class="availability available">
+                                {{ $driver->status }}
+                            </span>
+                        </div>
+                    @empty
+                        <p class="resource-empty">No available drivers today.</p>
+                    @endforelse
+                </article>
 
-                <div class="resource-record">
-
-                    <div class="driver-avatar">
-                        RA
+                <article class="resource-card">
+                    <div class="resource-card-header">
+                        <div>
+                            <span>Fleet</span>
+                            <h2>Available Buses</h2>
+                        </div>
+                        <strong class="resource-total">{{ $availableBuses->count() }}</strong>
                     </div>
 
-                    <div class="resource-record-info">
-                        <strong>Rowell Amano</strong>
-                        <span>Morning Shift</span>
-                    </div>
-
-                    <span class="availability available">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <div class="resource-record">
-
-                    <div class="driver-avatar">
-                        CM
-                    </div>
-
-                    <div class="resource-record-info">
-                        <strong>Cardo Mendoza</strong>
-                        <span>Morning Shift</span>
-                    </div>
-
-                    <span class="availability available">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <div class="resource-record">
-
-                    <div class="driver-avatar">
-                        AR
-                    </div>
-
-                    <div class="resource-record-info">
-                        <strong>Allan Reyes</strong>
-                        <span>Morning Shift</span>
-                    </div>
-
-                    <span class="availability assigned">
-                        Assigned
-                    </span>
-
-                </div>
-
-            </article>
-
-
-            {{-- BUSES --}}
-            <article class="resource-card">
-
-                <div class="resource-card-header">
-
-                    <div>
-                        <span>Fleet</span>
-                        <h2>Available Buses</h2>
-                    </div>
-
-                    <strong class="resource-total">
-                        7
-                    </strong>
-
-                </div>
-
-
-                <div class="resource-record">
-
-                    <div class="bus-resource-icon">
-                        <i class="fa-solid fa-bus"></i>
-                    </div>
-
-                    <div class="resource-record-info">
-                        <strong>BUS-001</strong>
-                        <span>Operational</span>
-                    </div>
-
-                    <span class="availability available">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <div class="resource-record">
-
-                    <div class="bus-resource-icon">
-                        <i class="fa-solid fa-bus"></i>
-                    </div>
-
-                    <div class="resource-record-info">
-                        <strong>BUS-003</strong>
-                        <span>Operational</span>
-                    </div>
-
-                    <span class="availability available">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <div class="resource-record">
-
-                    <div class="bus-resource-icon">
-                        <i class="fa-solid fa-bus"></i>
-                    </div>
-
-                    <div class="resource-record-info">
-                        <strong>BUS-005</strong>
-                        <span>Under Maintenance</span>
-                    </div>
-
-                    <span class="availability unavailable">
-                        Unavailable
-                    </span>
-
-                </div>
-
-            </article>
-
-        </section>
-
-    </main>
-
-</div>
-
-
-{{-- =========================================================
-     NEW ASSIGNMENT MODAL
-========================================================= --}}
-<div
-    class="assignment-modal-overlay"
-    id="assignmentModal"
->
-
-    <div class="assignment-modal">
-
-        <div class="assignment-modal-header">
-
-            <div>
-                <h2>Driver & Bus Assignment</h2>
-
-                <p>
-                    Select an available driver and shuttle bus for the trip.
-                </p>
-            </div>
-
-            <button
-                type="button"
-                class="modal-close"
-                onclick="document.getElementById('assignmentModal').classList.remove('show')"
-            >
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-        </div>
-
-
-        <div class="assignment-modal-body">
-
-            <div class="trip-summary">
-
-                <div>
-                    <span>Trip</span>
-                    <strong>T-004</strong>
-                </div>
-
-                <div>
-                    <span>Route</span>
-                    <strong>R-04 - Industrial Zone</strong>
-                </div>
-
-                <div>
-                    <span>Departure</span>
-                    <strong>7:30 AM</strong>
-                </div>
-
-            </div>
-
-
-            <div class="assignment-form-grid">
-
-                <div class="assignment-field">
-
-                    <label>
-                        Driver
-                    </label>
-
-                    <select>
-                        <option value="">
-                            Select available driver
-                        </option>
-
-                        <option>
-                            Rowell Amano
-                        </option>
-
-                        <option>
-                            Cardo Mendoza
-                        </option>
-
-                        <option>
-                            Allan Reyes
-                        </option>
-
-                        <option>
-                            Juan Perez
-                        </option>
-                    </select>
-
-                    <small>
-                        Only present and available drivers are shown.
-                    </small>
-
-                </div>
-
-
-                <div class="assignment-field">
-
-                    <label>
-                        Shuttle Bus
-                    </label>
-
-                    <select>
-                        <option value="">
-                            Select available bus
-                        </option>
-
-                        <option>
-                            BUS-001
-                        </option>
-
-                        <option>
-                            BUS-003
-                        </option>
-
-                        <option>
-                            BUS-004
-                        </option>
-
-                        <option>
-                            BUS-006
-                        </option>
-                    </select>
-
-                    <small>
-                        Buses under maintenance are excluded.
-                    </small>
-
-                </div>
-
-            </div>
-
-
-            <div class="assignment-validation">
-
-                <i class="fa-solid fa-circle-check"></i>
-
-                <div>
-                    <strong>
-                        Assignment validation
-                    </strong>
-
-                    <span>
-                        The system will check availability and schedule
-                        conflicts before confirming an assignment.
-                    </span>
-                </div>
-
-            </div>
-
-
-            <div class="assignment-modal-footer">
-
-                <button
-                    type="button"
-                    class="secondary-modal-btn"
-                    onclick="document.getElementById('assignmentModal').classList.remove('show')"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    type="button"
-                    class="primary-modal-btn"
-                >
-                    <i class="fa-solid fa-check"></i>
-                    Confirm Assignment
-                </button>
-
-            </div>
-
-        </div>
-
+                    @forelse($availableBuses as $bus)
+                        <div class="resource-record">
+                            <div class="bus-resource-icon">
+                                <i class="fa-solid fa-bus"></i>
+                            </div>
+
+                            <div class="resource-record-info">
+                                <strong>{{ $bus->bus_no }}</strong>
+                                <span>{{ $bus->bus_model ?: 'Operational bus' }}</span>
+                            </div>
+
+                            <span class="availability available">Available</span>
+                        </div>
+                    @empty
+                        <p class="resource-empty">No active buses available.</p>
+                    @endforelse
+                </article>
+            </section>
+        </main>
     </div>
 
-</div>
+    <x-ui.form-modal
+        id="assignmentModal"
+        title="Driver & Bus Assignment"
+        title-id="assignmentModalTitle"
+        description="Select an available driver and active bus for the trip."
+        icon="fa-user-tie"
+        size="large"
+        form-id="assignmentForm"
+        :action="route('driver-bus-assignment.store', [], false)"
+        method="POST"
+        submit-text="Confirm Assignment"
+        submit-text-id="assignmentSubmitText"
+        submit-icon="fa-check"
+        cancel-text="Cancel"
+        cancel-id="cancelAssignmentModal"
+        close-id="closeAssignmentModal"
+    >
+        <input
+            type="hidden"
+            name="_method"
+            id="assignmentFormMethod"
+            value="PUT"
+            disabled
+        >
 
+        <div class="assignment-form-grid">
+            <div class="ui-form-group ui-form-full">
+                <label for="assignmentTrip">
+                    Trip
+                    <span class="ui-required">*</span>
+                </label>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
+                <div class="ui-input-wrap has-icon">
+                    <span class="ui-input-icon">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </span>
 
-        const modal = document.getElementById('assignmentModal');
-        const openButton = document.getElementById('openAssignmentModal');
+                    <select
+                        name="trip_schedule_id"
+                        id="assignmentTrip"
+                        required
+                    >
+                        <option value="">Select unassigned trip</option>
 
-        openButton?.addEventListener('click', function () {
-            modal?.classList.add('show');
-        });
+                        @foreach($unassignedTrips as $trip)
+                            <option value="{{ $trip->id }}">
+                                {{ $trip->trip_code }}
+                                — {{ $trip->trip_date?->format('M d, Y') }}
+                                — {{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}
+                                — {{ $trip->shuttleRoute?->route_code }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
-        document.querySelectorAll('[data-open-assignment]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                modal?.classList.add('show');
-            });
-        });
+            <x-ui.form-select
+                label="Driver"
+                name="driver_attendance_id"
+                id="assignmentDriver"
+                :options="$availableDrivers->pluck('driver_name', 'id')->all()"
+                placeholder="Select available driver"
+                icon="fa-id-card"
+                :required="true"
+            />
 
-        modal?.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                modal.classList.remove('show');
-            }
-        });
+            <x-ui.form-select
+                label="Shuttle Bus"
+                name="bus_id"
+                id="assignmentBus"
+                :options="$availableBuses->pluck('bus_no', 'id')->all()"
+                placeholder="Select available bus"
+                icon="fa-bus"
+                :required="true"
+            />
+        </div>
 
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                modal?.classList.remove('show');
-            }
-        });
+        <div class="assignment-validation">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+                <strong>Assignment validation</strong>
+                <span>
+                    The system checks driver attendance, bus status,
+                    and overlapping schedules before saving.
+                </span>
+            </div>
+        </div>
+    </x-ui.form-modal>
 
-    });
-</script>
+    <x-ui.form-modal
+        id="viewAssignmentModal"
+        title="Assignment Details"
+        description="Trip, driver, and bus information."
+        icon="fa-clipboard-check"
+        size="large"
+        form-id="viewAssignmentForm"
+        action="#"
+        method="POST"
+        :show-actions="false"
+        close-id="closeViewAssignmentModal"
+    >
+        <div
+            class="assignment-details-grid"
+            id="viewAssignmentContent"
+        ></div>
 
+        <div class="ui-form-actions">
+            <button
+                type="button"
+                id="closeViewAssignmentButton"
+                class="ui-form-btn ui-form-btn-primary"
+            >
+                <i class="fa-solid fa-check"></i>
+                <span>Close</span>
+            </button>
+        </div>
+    </x-ui.form-modal>
+
+    <x-ui.action-buttom-modal
+        mode="delete"
+        id="removeAssignmentModal"
+        delete-title="Remove Assignment?"
+        delete-message="Remove the driver and bus from"
+        name-id="removeAssignmentName"
+        cancel-id="cancelRemoveAssignment"
+        confirm-id="confirmRemoveAssignment"
+    />
 </x-layout.app>

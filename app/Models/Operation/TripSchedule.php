@@ -5,6 +5,7 @@ namespace App\Models\Operation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TripSchedule extends Model
 {
@@ -32,6 +33,14 @@ class TripSchedule extends Model
         return $this->belongsTo(
             ShuttleRoute::class,
             'shuttle_route_id'
+        );
+    }
+
+    public function assignment(): HasOne
+    {
+        return $this->hasOne(
+            TripAssignment::class,
+            'trip_schedule_id'
         );
     }
 }

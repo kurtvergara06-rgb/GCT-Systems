@@ -15,7 +15,7 @@ use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\RouteController;
-use App\Http\Controllers\Operation\TripScheduleController;
+use App\Http\Controllers\Operation\TripAssignmentController;
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
@@ -1004,31 +1004,12 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
     |--------------------------------------------------------------------------
     */
 
-    Route::controller(TripScheduleController::class)
-        ->prefix('operation/trip-schedule')
-        ->group(function () {
-
-            Route::get(
-                '/',
-                'index'
-            )->name('trip-schedule');
-
-            Route::post(
-                '/',
-                'store'
-            )->name('trip-schedule.store');
-
-            Route::put(
-                '/{tripSchedule}',
-                'update'
-            )->name('trip-schedule.update');
-
-            Route::delete(
-                '/{tripSchedule}',
-                'destroy'
-            )->name('trip-schedule.destroy');
-
-        });
+    Route::view(
+        '/operation/trip-schedule',
+        'Operation.Scheduling_And_Dispatch.trip-schedule'
+    )->name(
+        'trip-schedule'
+    );
 
 
     /*
@@ -1037,12 +1018,31 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
     |--------------------------------------------------------------------------
     */
 
-    Route::view(
-        '/operation/driver-bus-assignment',
-        'Operation.Scheduling_And_Dispatch.driver-bus-assignment'
-    )->name(
-        'driver-bus-assignment'
-    );
+    Route::controller(TripAssignmentController::class)
+        ->prefix('operation/driver-bus-assignment')
+        ->group(function () {
+
+            Route::get(
+                '/',
+                'index'
+            )->name('driver-bus-assignment');
+
+            Route::post(
+                '/',
+                'store'
+            )->name('driver-bus-assignment.store');
+
+            Route::put(
+                '/{tripAssignment}',
+                'update'
+            )->name('driver-bus-assignment.update');
+
+            Route::delete(
+                '/{tripAssignment}',
+                'destroy'
+            )->name('driver-bus-assignment.destroy');
+
+        });
 
 
     /*
