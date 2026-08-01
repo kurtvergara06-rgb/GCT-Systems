@@ -7,6 +7,7 @@ use App\Models\Operation\MechanicAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 class MechanicAttendanceController extends Controller
@@ -55,7 +56,7 @@ class MechanicAttendanceController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
@@ -79,12 +80,15 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was created.'
         );
 
-        return redirect()
-            ->route('mechanic-attendance')
-            ->with('success', 'Mechanic attendance record created successfully.');
+        session()->flash(
+            'success',
+            'Mechanic attendance record created successfully.'
+        );
+
+        return new RedirectResponse('/mechanic-attendance');
     }
 
-    public function update(Request $request, MechanicAttendance $mechanicAttendance)
+    public function update(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
     {
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
@@ -106,12 +110,15 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was updated.'
         );
 
-        return redirect()
-            ->route('mechanic-attendance')
-            ->with('success', 'Mechanic attendance record updated successfully.');
+        session()->flash(
+            'success',
+            'Mechanic attendance record updated successfully.'
+        );
+
+        return new RedirectResponse('/mechanic-attendance');
     }
 
-    public function destroy(MechanicAttendance $mechanicAttendance)
+    public function destroy(MechanicAttendance $mechanicAttendance): RedirectResponse
     {
         $attendanceId = $mechanicAttendance->id;
 
@@ -125,12 +132,15 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was deleted.'
         );
 
-        return redirect()
-            ->route('mechanic-attendance')
-            ->with('success', 'Mechanic attendance record deleted successfully.');
+        session()->flash(
+            'success',
+            'Mechanic attendance record deleted successfully.'
+        );
+
+        return new RedirectResponse('/mechanic-attendance');
     }
 
-    public function import(Request $request)
+    public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
@@ -140,18 +150,24 @@ class MechanicAttendanceController extends Controller
         $handle = fopen($file->getRealPath(), 'r');
 
         if (! $handle) {
-            return redirect()
-                ->route('mechanic-attendance')
-                ->with('error', 'Unable to read the uploaded CSV file.');
+            session()->flash(
+                'error',
+                'Unable to read the uploaded CSV file.'
+            );
+
+            return new RedirectResponse('/mechanic-attendance');
         }
 
         try {
             $header = fgetcsv($handle);
 
             if (! $header) {
-                return redirect()
-                    ->route('mechanic-attendance')
-                    ->with('error', 'CSV file is empty.');
+                session()->flash(
+                    'error',
+                    'CSV file is empty.'
+                );
+
+                return new RedirectResponse('/mechanic-attendance');
             }
 
             $header = array_map(function ($value) {
@@ -170,12 +186,12 @@ class MechanicAttendanceController extends Controller
 
             foreach ($requiredColumns as $column) {
                 if (! in_array($column, $header, true)) {
-                    return redirect()
-                        ->route('mechanic-attendance')
-                        ->with(
-                            'error',
-                            "Invalid CSV format. Missing required column: {$column}"
-                        );
+                    session()->flash(
+                        'error',
+                        "Invalid CSV format. Missing required column: {$column}"
+                    );
+
+                    return new RedirectResponse('/mechanic-attendance');
                 }
             }
 
@@ -231,23 +247,23 @@ class MechanicAttendanceController extends Controller
                 } catch (Throwable $error) {
                     $skipped++;
 
-                    return redirect()
-                        ->route('mechanic-attendance')
-                        ->with(
-                            'error',
-                            "Invalid CSV format on row {$rowNumber}. "
-                            . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
-                        );
+                    session()->flash(
+                        'error',
+                        "Invalid CSV format on row {$rowNumber}. "
+                        . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
+                    );
+
+                    return new RedirectResponse('/mechanic-attendance');
                 }
             }
 
             if ($imported === 0) {
-                return redirect()
-                    ->route('mechanic-attendance')
-                    ->with(
-                        'error',
-                        'No attendance records were imported. Please check your CSV format.'
-                    );
+                session()->flash(
+                    'error',
+                    'No attendance records were imported. Please check your CSV format.'
+                );
+
+                return new RedirectResponse('/mechanic-attendance');
             }
 
             $this->broadcastSystemDataUpdated(
@@ -264,16 +280,19 @@ class MechanicAttendanceController extends Controller
                 $message .= " {$skipped} row(s) were skipped.";
             }
 
-            return redirect()
-                ->route('mechanic-attendance')
-                ->with('success', $message);
+            session()->flash(
+                'success',
+                $message
+            );
+
+            return new RedirectResponse('/mechanic-attendance');
         } catch (Throwable $error) {
-            return redirect()
-                ->route('mechanic-attendance')
-                ->with(
-                    'error',
-                    'Unable to import the CSV file. Please check the file format and try again.'
-                );
+            session()->flash(
+                'error',
+                'Unable to import the CSV file. Please check the file format and try again.'
+            );
+
+            return new RedirectResponse('/mechanic-attendance');
         } finally {
             if (is_resource($handle)) {
                 fclose($handle);

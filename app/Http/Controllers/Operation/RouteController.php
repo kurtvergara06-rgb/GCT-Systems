@@ -225,7 +225,9 @@ class RouteController extends Controller
             $this->saveStops($route, $validated);
         });
 
-        return redirect()->route('operation.routes')->with('success', 'Route created successfully.');
+        session()->flash('success', 'Route created successfully.');
+
+        return new RedirectResponse('/operation/routes');
     }
 
     public function update(Request $request, ShuttleRoute $shuttleRoute): RedirectResponse
@@ -238,13 +240,17 @@ class RouteController extends Controller
             $this->saveStops($shuttleRoute, $validated);
         });
 
-        return redirect()->route('operation.routes')->with('success', 'Route updated successfully.');
+        session()->flash('success', 'Route updated successfully.');
+
+        return new RedirectResponse('/operation/routes');
     }
 
     public function destroy(ShuttleRoute $shuttleRoute): RedirectResponse
     {
         $shuttleRoute->delete();
-        return redirect()->route('operation.routes')->with('success', 'Route deleted successfully.');
+        session()->flash('success', 'Route deleted successfully.');
+
+        return new RedirectResponse('/operation/routes');
     }
 
     private function validateRoute(Request $request): array

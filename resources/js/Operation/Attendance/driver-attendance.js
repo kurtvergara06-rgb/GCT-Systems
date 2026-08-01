@@ -1,5 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  function normalizeDriverAttendancePath(value, fallback = '/driver-attendance') {
+    const rawValue = String(value || '').trim();
+
+    if (!rawValue) {
+      return fallback;
+    }
+
+    if (rawValue.startsWith('/') && !rawValue.startsWith('//')) {
+      return rawValue;
+    }
+
+    try {
+      const parsed = new URL(rawValue, window.location.origin);
+
+      if (parsed.origin === window.location.origin) {
+        return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+    } catch (error) {
+      // Continue with malformed URL cleanup.
+    }
+
+    const withoutScheme = rawValue
+      .replace(/^https?:\/+/i, '')
+      .replace(/^\/+/, '');
+
+    const pathIndex = withoutScheme.indexOf('driver-attendance');
+
+    if (pathIndex >= 0) {
+      return `/${withoutScheme.slice(pathIndex)}`;
+    }
+
+    return fallback;
+  }
+
+
   /*
   |--------------------------------------------------------------------------
   | Modal Helpers
@@ -244,9 +279,13 @@ document.addEventListener('DOMContentLoaded', function () {
           if (
             editDriverAttendanceForm
           ) {
-            editDriverAttendanceForm.action =
-              button.dataset.updateUrl
-              || '#';
+            editDriverAttendanceForm.setAttribute(
+              'action',
+              normalizeDriverAttendancePath(
+                button.dataset.updateUrl,
+                `/driver-attendance/${button.dataset.id}`
+              )
+            );
           }
 
 

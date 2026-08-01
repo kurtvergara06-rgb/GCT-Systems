@@ -603,7 +603,7 @@
 
         form-id="routeForm"
 
-        :action="route('operation.routes.store')"
+        action="/operation/routes" "
 
         submit-text="Save Route"
         submit-text-id="saveRouteText"
@@ -1224,13 +1224,9 @@
 
 @php
     $routeMapConfig = [
-        'searchUrl' => route(
-            'operation.routes.location-search'
-        ),
+        'searchUrl' => '/operation/routes/location-search',
 
-        'routingUrl' => route(
-            'operation.routes.calculate'
-        ),
+        'routingUrl' => '/operation/routes/calculate',
 
         'csrfToken' => csrf_token(),
     ];

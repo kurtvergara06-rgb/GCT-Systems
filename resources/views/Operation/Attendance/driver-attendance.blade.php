@@ -4,6 +4,7 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
+    'resources/css/Operation/Attendance/driver-attendance-on-leave-fix.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Operation/Attendance/driver-attendance.js'
   ]"
@@ -181,7 +182,7 @@
             SEARCH / FILTER / BUTTONS
         ================================================== --}}
         <form
-          action="{{ route('driver-attendance') }}"
+          action="/driver-attendance"
           method="GET"
           class="toolbar attendance-toolbar"
         >
@@ -446,7 +447,7 @@
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
-                        data-update-url="{{ route('driver-attendance.update', $attendance->id) }}"
+                        data-update-url="/driver-attendance/{{ $attendance->id }}"
                       >
 
                         <i class="fa-solid fa-pen"></i>
@@ -457,7 +458,7 @@
                       {{-- DELETE FORM --}}
                       <form
                         id="deleteDriverAttendanceForm-{{ $attendance->id }}"
-                        action="{{ route('driver-attendance.destroy', $attendance->id) }}"
+                        action="/driver-attendance/{{ $attendance->id }}"
                         method="POST"
                       >
 
@@ -551,7 +552,7 @@
 
       <form
         id="importDriverAttendanceForm"
-        action="{{ route('driver-attendance.import') }}"
+        action="/driver-attendance/import"
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
@@ -677,7 +678,7 @@
 
 
       <form
-        action="{{ route('driver-attendance.store') }}"
+        action="/driver-attendance"
         method="POST"
         class="job-form wide-form"
         data-confirm-form

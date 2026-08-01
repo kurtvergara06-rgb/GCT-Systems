@@ -4,6 +4,7 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/Attendance/available-mechanics.css',
+    'resources/css/Operation/Attendance/mechanic-attendance-on-leave-fix.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Operation/Attendance/mechanic-attendance.js'
   ]"
@@ -140,7 +141,7 @@
         </div>
 
         <form
-          action="{{ route('mechanic-attendance') }}"
+          action="/mechanic-attendance"
           method="GET"
           class="toolbar attendance-toolbar"
         >
@@ -295,12 +296,12 @@
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
-                        data-update-url="{{ route('mechanic-attendance.update', $attendance->id) }}"
+                        data-update-url="/mechanic-attendance/{{ $attendance->id }}"
                       />
 
                       <form
                         id="deleteAttendanceForm-{{ $attendance->id }}"
-                        action="{{ route('mechanic-attendance.destroy', $attendance->id) }}"
+                        action="/mechanic-attendance/{{ $attendance->id }}"
                         method="POST"
                       >
                         @csrf
@@ -353,7 +354,7 @@
 
       <form
         id="importAttendanceForm"
-        action="{{ route('mechanic-attendance.import') }}"
+        action="/mechanic-attendance/import"
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
@@ -419,7 +420,7 @@
       </div>
 
       <form
-        action="{{ route('mechanic-attendance.store') }}"
+        action="/mechanic-attendance"
         method="POST"
         class="job-form wide-form"
         data-confirm-form
