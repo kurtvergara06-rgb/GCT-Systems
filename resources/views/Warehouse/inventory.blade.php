@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <form method="GET" action="{{ route('inventory') }}" class="toolbar inventory-toolbar">
+        <form method="GET" action="/inventory" class="toolbar inventory-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input
@@ -259,35 +259,52 @@
         </div>
 
         {{-- CUSTOM PAGINATION --}}
-        <div class="table-footer">
-          <p>
-            Showing {{ $inventoryItems->firstItem() ?? 0 }} to {{ $inventoryItems->lastItem() ?? 0 }} of {{ $inventoryItems->total() }} entries
-          </p>
+<div class="table-footer">
+    <p>
+        Showing {{ $inventoryItems->firstItem() ?? 0 }}
+        to {{ $inventoryItems->lastItem() ?? 0 }}
+        of {{ $inventoryItems->total() }} entries
+    </p>
 
-          <div class="custom-pagination">
-            @if ($inventoryItems->onFirstPage())
-              <span class="page-btn disabled">Previous</span>
-            @else
-              <a href="{{ $inventoryItems->previousPageUrl() }}" class="page-btn">Previous</a>
-            @endif
-
-            <span class="page-number">
-              Page {{ $inventoryItems->currentPage() }} of {{ $inventoryItems->lastPage() }}
+    <div class="custom-pagination">
+        @if ($inventoryItems->onFirstPage())
+            <span class="page-btn disabled">
+                Previous
             </span>
+        @else
+            <a
+                href="/inventory?{{ http_build_query(array_merge(
+                    request()->except('page'),
+                    ['page' => $inventoryItems->currentPage() - 1]
+                )) }}"
+                class="page-btn"
+            >
+                Previous
+            </a>
+        @endif
 
-            @if ($inventoryItems->hasMorePages())
-              <a href="{{ $inventoryItems->nextPageUrl() }}" class="page-btn">Next</a>
-            @else
-              <span class="page-btn disabled">Next</span>
-            @endif
-          </div>
-        </div>
+        <span class="page-number">
+            Page {{ $inventoryItems->currentPage() }}
+            of {{ $inventoryItems->lastPage() }}
+        </span>
 
-      </section>
-
-    </main>
-
-  </div>
+        @if ($inventoryItems->hasMorePages())
+            <a
+                href="/inventory?{{ http_build_query(array_merge(
+                    request()->except('page'),
+                    ['page' => $inventoryItems->currentPage() + 1]
+                )) }}"
+                class="page-btn"
+            >
+                Next
+            </a>
+        @else
+            <span class="page-btn disabled">
+                Next
+            </span>
+        @endif
+    </div>
+</div>
 
   {{-- ADD MODAL --}}
   <div class="modal-overlay" id="addModal">
