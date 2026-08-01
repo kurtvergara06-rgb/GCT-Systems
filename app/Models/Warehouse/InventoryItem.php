@@ -10,27 +10,47 @@ class InventoryItem extends Model
 
     protected $fillable = [
         'item_code',
+        'parts_name',
         'item_name',
         'category',
+        'on_hand',
         'quantity_available',
+        'unit',
         'unit_of_measurement',
         'reorder_level',
+        'status',
         'supplier',
+        'location',
         'storage_location',
     ];
 
     protected $casts = [
+        'on_hand' => 'integer',
         'quantity_available' => 'integer',
         'reorder_level' => 'integer',
     ];
 
-    public function getStockStatusAttribute()
+    public function getStockStatusAttribute(): string
     {
-        if ((int) $this->quantity_available <= 0) {
+        $stock = (int) (
+            $this->on_hand
+            ?? $this->quantity_available
+            ?? 0
+        );
+
+        $reorderLevel = (int) (
+            $this->reorder_level
+            ?? 0
+        );
+
+        if ($stock <= 0) {
             return 'Critical';
         }
 
-        if ((int) $this->quantity_available <= (int) $this->reorder_level) {
+        if (
+            $reorderLevel > 0
+            && $stock <= $reorderLevel
+        ) {
             return 'Low Stock';
         }
 
@@ -38,21 +58,31 @@ class InventoryItem extends Model
     }
 
     /*
-     * Compatibility aliases.
-     * These help if other controllers/pages still call old names.
-     */
-    public function getPartsNameAttribute()
+    |--------------------------------------------------------------------------
+    | Compatibility aliases
+    |--------------------------------------------------------------------------
+    */
+
+    public function getPartsNameAttribute(): ?string
     {
-        return $this->item_name;
+        return $this->attributes['parts_name']
+            ?? $this->attributes['item_name']
+            ?? null;
     }
 
-    public function getOnHandAttribute()
+    public function getOnHandAttribute($value): int
     {
-        return $this->quantity_available;
+        return (int) (
+            $value
+            ?? $this->attributes['quantity_available']
+            ?? 0
+        );
     }
 
-    public function getUnitAttribute()
+    public function getUnitAttribute($value): ?string
     {
-        return $this->unit_of_measurement;
+        return $value
+            ?? $this->attributes['unit_of_measurement']
+            ?? null;
     }
 }
