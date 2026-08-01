@@ -1227,3 +1227,81 @@
         max-height: calc(100vh - 20px);
     }
 }
+
+
+/* =========================================================
+   SEARCHABLE BUS DROPDOWN
+========================================================= */
+
+#assignmentModal .ui-form-modal,
+#assignmentModal .ui-form-modal-body {
+    overflow: visible;
+}
+
+.assignment-combobox { position: relative; width: 100%; }
+.assignment-combobox-trigger {
+    width: 100%; height: 42px; padding: 0 12px; display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 16px; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid var(--assign-border); border-radius: 9px;
+    color: var(--assign-text); font: inherit; text-align: left; cursor: pointer;
+}
+.assignment-combobox-trigger:focus {
+    border-color: var(--assign-blue); outline: none;
+    box-shadow: 0 0 0 3px rgba(11, 64, 181, .1);
+}
+.assignment-combobox-icon { color: var(--assign-blue); text-align: center; }
+.assignment-combobox-label {
+    min-width: 0; overflow: hidden; color: var(--assign-text); font-size: 13px;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.assignment-combobox-label.placeholder { color: #8a98ac; }
+.assignment-combobox-trigger > .fa-chevron-down {
+    color: var(--assign-muted); font-size: 11px; transition: transform .18s ease;
+}
+.assignment-combobox-trigger[aria-expanded="true"] > .fa-chevron-down { transform: rotate(180deg); }
+.assignment-combobox-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; left: 0; z-index: 5000;
+    display: none; padding: 8px; background: #fff;
+    border: 1px solid var(--assign-border); border-radius: 10px;
+    box-shadow: 0 14px 35px rgba(6, 31, 61, .18);
+}
+.assignment-combobox-menu.show { display: block; }
+.assignment-combobox-search { position: relative; margin-bottom: 7px; }
+.assignment-combobox-search i {
+    position: absolute; top: 50%; left: 12px; transform: translateY(-50%);
+    color: var(--assign-blue); font-size: 12px; pointer-events: none;
+}
+.assignment-combobox-search input {
+    width: 100%; height: 38px; padding: 0 12px 0 34px; background: #fff;
+    border: 1px solid var(--assign-border); border-radius: 8px;
+    color: var(--assign-text); font-size: 12px; outline: none;
+}
+.assignment-combobox-search input:focus {
+    border-color: var(--assign-blue); box-shadow: 0 0 0 3px rgba(11, 64, 181, .1);
+}
+.assignment-combobox-options { max-height: 240px; overflow-y: auto; overscroll-behavior: contain; }
+.assignment-combobox-option {
+    width: 100%; padding: 9px 10px; display: flex; align-items: center;
+    justify-content: space-between; gap: 10px; background: transparent;
+    border: 0; border-radius: 8px; color: var(--assign-text); text-align: left; cursor: pointer;
+}
+.assignment-combobox-option:hover { background: #f1f6ff; }
+.assignment-combobox-option.selected { background: #eaf2ff; color: var(--assign-blue); }
+.assignment-combobox-option > span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.assignment-combobox-option strong { font-size: 12px; font-weight: 700; }
+.assignment-combobox-option small {
+    overflow: hidden; color: var(--assign-muted); font-size: 10px;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.assignment-combobox-option > i { display: none; color: var(--assign-blue); font-size: 11px; }
+.assignment-combobox-option.selected > i { display: inline-block; }
+.assignment-combobox-empty { margin: 0; padding: 12px; color: var(--assign-muted); font-size: 12px; text-align: center; }
+
+/* =========================================================
+   RESOURCE PAGINATION
+========================================================= */
+.resource-pagination {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--assign-soft-border);
+}
+.resource-pagination .table-footer { margin: 0; }

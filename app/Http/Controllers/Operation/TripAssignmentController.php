@@ -70,7 +70,7 @@ class TripAssignmentController extends Controller
         $trips = $query
             ->orderByDesc('trip_date')
             ->orderBy('departure_time')
-            ->paginate(8)
+            ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
         $today = now()->toDateString();
@@ -84,16 +84,29 @@ class TripAssignmentController extends Controller
             ->where('assignment_status', 'Unassigned')
             ->count();
 
-        $availableDrivers = DriverAttendance::query()
+        $driverOptions = DriverAttendance::query()
             ->whereDate('attendance_date', $today)
             ->whereIn('status', ['Present', 'Late'])
             ->orderBy('driver_name')
             ->get();
 
-        $availableBuses = Bus::query()
+        $busOptions = Bus::query()
             ->where('status', 'Active')
             ->orderBy('bus_no')
             ->get();
+
+        $availableDrivers = DriverAttendance::query()
+            ->whereDate('attendance_date', $today)
+            ->whereIn('status', ['Present', 'Late'])
+            ->orderBy('driver_name')
+            ->paginate(10, ['*'], 'driver_page')
+            ->withQueryString();
+
+        $availableBuses = Bus::query()
+            ->where('status', 'Active')
+            ->orderBy('bus_no')
+            ->paginate(10, ['*'], 'bus_page')
+            ->withQueryString();
 
         $unassignedTrips = TripSchedule::query()
             ->with('shuttleRoute')
@@ -111,6 +124,8 @@ class TripAssignmentController extends Controller
                 'pendingAssignments',
                 'availableDrivers',
                 'availableBuses',
+                'driverOptions',
+                'busOptions',
                 'unassignedTrips'
             )
         );

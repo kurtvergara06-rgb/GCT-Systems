@@ -105,7 +105,7 @@
                     </div>
                     <div>
                         <p>Available Drivers</p>
-                        <h2>{{ $availableDrivers->count() }}</h2>
+                        <h2>{{ $availableDrivers->total() }}</h2>
                         <small>Present or late today</small>
                     </div>
                 </article>
@@ -116,7 +116,7 @@
                     </div>
                     <div>
                         <p>Available Buses</p>
-                        <h2>{{ $availableBuses->count() }}</h2>
+                        <h2>{{ $availableBuses->total() }}</h2>
                         <small>Active vehicles</small>
                     </div>
                 </article>
@@ -361,7 +361,7 @@
                             <span>Workforce</span>
                             <h2>Available Drivers</h2>
                         </div>
-                        <strong class="resource-total">{{ $availableDrivers->count() }}</strong>
+                        <strong class="resource-total">{{ $availableDrivers->total() }}</strong>
                     </div>
 
                     @forelse($availableDrivers as $driver)
@@ -386,6 +386,10 @@
                     @empty
                         <p class="resource-empty">No available drivers today.</p>
                     @endforelse
+
+                    <div class="resource-pagination">
+                        <x-ui.table-footer :items="$availableDrivers" />
+                    </div>
                 </article>
 
                 <article class="resource-card">
@@ -394,7 +398,7 @@
                             <span>Fleet</span>
                             <h2>Available Buses</h2>
                         </div>
-                        <strong class="resource-total">{{ $availableBuses->count() }}</strong>
+                        <strong class="resource-total">{{ $availableBuses->total() }}</strong>
                     </div>
 
                     @forelse($availableBuses as $bus)
@@ -413,6 +417,10 @@
                     @empty
                         <p class="resource-empty">No active buses available.</p>
                     @endforelse
+
+                    <div class="resource-pagination">
+                        <x-ui.table-footer :items="$availableBuses" />
+                    </div>
                 </article>
             </section>
         </main>
@@ -474,25 +482,160 @@
                 </div>
             </div>
 
-            <x-ui.form-select
-                label="Driver"
-                name="driver_attendance_id"
-                id="assignmentDriver"
-                :options="$availableDrivers->pluck('driver_name', 'id')->all()"
-                placeholder="Select available driver"
-                icon="fa-id-card"
-                :required="true"
-            />
+            <div class="ui-form-group">
+    <label for="assignmentDriverTrigger">
+        Driver
+        <span class="ui-required">*</span>
+    </label>
 
-            <x-ui.form-select
-                label="Shuttle Bus"
-                name="bus_id"
-                id="assignmentBus"
-                :options="$availableBuses->pluck('bus_no', 'id')->all()"
-                placeholder="Select available bus"
-                icon="fa-bus"
-                :required="true"
-            />
+    <div
+        class="assignment-combobox"
+        id="assignmentDriverCombobox"
+    >
+        <input
+            type="hidden"
+            name="driver_attendance_id"
+            id="assignmentDriver"
+            required
+        >
+
+        <button
+            type="button"
+            class="assignment-combobox-trigger"
+            id="assignmentDriverTrigger"
+            aria-expanded="false"
+        >
+            <span class="assignment-combobox-icon">
+                <i class="fa-solid fa-id-card"></i>
+            </span>
+
+            <span
+                class="assignment-combobox-label placeholder"
+                id="assignmentDriverLabel"
+            >
+                Select available driver
+            </span>
+
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+
+        <div
+            class="assignment-combobox-menu"
+            id="assignmentDriverMenu"
+        >
+            <div class="assignment-combobox-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    type="search"
+                    id="assignmentDriverSearch"
+                    placeholder="Search driver name or ID..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="assignment-combobox-options">
+                @forelse($driverOptions as $driver)
+                    @php
+                        $driverLabel = $driver->driver_name
+                            . ' — '
+                            . $driver->shift
+                            . ' Shift';
+                    @endphp
+
+                    <button
+                        type="button"
+                        class="assignment-combobox-option assignment-driver-option"
+                        data-value="{{ $driver->id }}"
+                        data-label="{{ $driverLabel }}"
+                        data-search="{{ strtolower(
+                            $driver->driver_id
+                            . ' '
+                            . $driver->driver_name
+                            . ' '
+                            . $driver->shift
+                            . ' '
+                            . $driver->status
+                        ) }}"
+                    >
+                        <span>
+                            <strong>{{ $driver->driver_name }}</strong>
+
+                            <small>
+                                {{ $driver->driver_id }}
+                                — {{ $driver->shift }} Shift
+                                — {{ $driver->status }}
+                            </small>
+                        </span>
+
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                @empty
+                    <p class="assignment-combobox-empty">
+                        No available drivers for today.
+                    </p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    @error('driver_attendance_id')
+        <span class="ui-field-error">
+            {{ $message }}
+        </span>
+    @enderror
+</div>
+
+            <div class="ui-form-group">
+                <label for="assignmentBusTrigger">
+                    Shuttle Bus
+                    <span class="ui-required">*</span>
+                </label>
+
+                <div class="assignment-combobox" id="assignmentBusCombobox">
+                    <input type="hidden" name="bus_id" id="assignmentBus" required>
+
+                    <button type="button" class="assignment-combobox-trigger" id="assignmentBusTrigger" aria-expanded="false">
+                        <span class="assignment-combobox-icon"><i class="fa-solid fa-bus"></i></span>
+                        <span class="assignment-combobox-label placeholder" id="assignmentBusLabel">Select available bus</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+
+                    <div class="assignment-combobox-menu" id="assignmentBusMenu">
+                        <div class="assignment-combobox-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" id="assignmentBusSearch" placeholder="Search bus number or model..." autocomplete="off">
+                        </div>
+
+                        <div class="assignment-combobox-options">
+                            @forelse($busOptions as $bus)
+                                @php
+                                    $busLabel = $bus->bus_no . ($bus->bus_model ? ' — ' . $bus->bus_model : '');
+                                @endphp
+                                <button
+                                    type="button"
+                                    class="assignment-combobox-option"
+                                    data-value="{{ $bus->id }}"
+                                    data-label="{{ $busLabel }}"
+                                    data-search="{{ strtolower($bus->bus_no . ' ' . ($bus->bus_model ?? '') . ' ' . ($bus->plate_no ?? '')) }}"
+                                >
+                                    <span>
+                                        <strong>{{ $bus->bus_no }}</strong>
+                                        <small>{{ $bus->bus_model ?: 'Operational bus' }}</small>
+                                    </span>
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            @empty
+                                <p class="assignment-combobox-empty">No active buses available.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                @error('bus_id')
+                    <span class="ui-field-error">{{ $message }}</span>
+                @enderror
+            </div>
         </div>
 
         <div class="assignment-validation">
