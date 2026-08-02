@@ -6,6 +6,7 @@
         'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling-resolution-fix.js',
     ]"
 >
 <div class="app">
