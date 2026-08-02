@@ -13,7 +13,12 @@
     @endif
   </div>
 
-  <div class="top-actions" id="topbarActions">
+  <div
+    class="top-actions"
+    id="topbarActions"
+    data-summary-url="{{ route('topbar.summary', [], false) }}"
+    data-read-all-url="{{ route('topbar.notifications.read-all', [], false) }}"
+  >
 
     {{-- NOTIFICATIONS --}}
     <div class="topbar-action-item">
@@ -30,9 +35,9 @@
         <span
           id="notificationBadge"
           class="topbar-badge"
-          @if(!$notificationCount) hidden @endif
+          hidden
         >
-          {{ $notificationCount ?? 0 }}
+          0
         </span>
       </button>
 
@@ -292,6 +297,83 @@
     overflow-y: auto;
   }
 
+  .topbar-list-item {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    background: #ffffff;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    transition: background 150ms ease;
+  }
+
+  .topbar-list-item:hover {
+    background: #f8fafc;
+  }
+
+  .topbar-list-item.is-unread {
+    background: #eff6ff;
+  }
+
+  .topbar-list-icon {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #eaf1fb;
+    color: #0b40b5;
+  }
+
+  .topbar-list-content {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .topbar-list-title {
+    display: block;
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .topbar-list-meta {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .topbar-list-count {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    align-self: center;
+    border-radius: 999px;
+    background: #0b40b5;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 28px;
+    text-align: center;
+  }
+
+  .topbar-loading-state {
+    padding: 28px 20px;
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
+  }
+
   .topbar-empty-state {
     display: flex;
     min-height: 230px;
@@ -362,6 +444,174 @@
         '.topbar-dropdown'
       );
 
+    const notificationsList =
+      document.getElementById('notificationsList');
+    const pendingActionsList =
+      document.getElementById('pendingActionsList');
+    const recentActivityList =
+      document.getElementById('recentActivityList');
+    const notificationBadge =
+      document.getElementById('notificationBadge');
+    const markAllButton =
+      document.getElementById('markAllNotificationsRead');
+    const csrfToken =
+      document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    let summaryLoaded = false;
+    let summaryLoading = false;
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function emptyState(icon, title, message) {
+      return `
+        <div class="topbar-empty-state">
+          <div class="topbar-empty-icon">
+            <i class="${escapeHtml(icon)}"></i>
+          </div>
+          <strong>${escapeHtml(title)}</strong>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    function renderNotifications(items, container, isActivity = false) {
+      if (!container) {
+        return;
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = emptyState(
+          isActivity
+            ? 'fa-solid fa-clock-rotate-left'
+            : 'fa-regular fa-bell',
+          isActivity ? 'No recent activity yet' : 'No notifications yet',
+          isActivity
+            ? 'Recent changes made in the system will appear here.'
+            : 'Important system updates will appear here.'
+        );
+        return;
+      }
+
+      container.innerHTML = items.map(function (item) {
+        const tag = item.url ? 'a' : 'div';
+        const href = item.url
+          ? ` href="${escapeHtml(item.url)}"`
+          : '';
+        const unreadClass = item.unread ? ' is-unread' : '';
+
+        return `
+          <${tag}${href} class="topbar-list-item${unreadClass}">
+            <span class="topbar-list-icon">
+              <i class="${isActivity
+                ? 'fa-solid fa-clock-rotate-left'
+                : 'fa-regular fa-bell'}"></i>
+            </span>
+            <span class="topbar-list-content">
+              <span class="topbar-list-title">${escapeHtml(item.message)}</span>
+              <span class="topbar-list-meta">
+                ${escapeHtml(item.module)} · ${escapeHtml(item.time)}
+              </span>
+            </span>
+          </${tag}>
+        `;
+      }).join('');
+    }
+
+    function renderPendingActions(items) {
+      if (!pendingActionsList) {
+        return;
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        pendingActionsList.innerHTML = emptyState(
+          'fa-solid fa-list-check',
+          'No pending actions',
+          'There are no pending records for your department.'
+        );
+        return;
+      }
+
+      pendingActionsList.innerHTML = items.map(function (item) {
+        return `
+          <a href="${escapeHtml(item.url)}" class="topbar-list-item">
+            <span class="topbar-list-icon">
+              <i class="fa-solid ${escapeHtml(item.icon)}"></i>
+            </span>
+            <span class="topbar-list-content">
+              <span class="topbar-list-title">${escapeHtml(item.label)}</span>
+              <span class="topbar-list-meta">Open the related page</span>
+            </span>
+            <span class="topbar-list-count">${escapeHtml(item.count)}</span>
+          </a>
+        `;
+      }).join('');
+    }
+
+    function updateBadge(count) {
+      const unreadCount = Math.max(0, Number(count) || 0);
+
+      if (!notificationBadge) {
+        return;
+      }
+
+      notificationBadge.textContent = unreadCount > 99
+        ? '99+'
+        : String(unreadCount);
+      notificationBadge.hidden = unreadCount === 0;
+
+      if (markAllButton) {
+        markAllButton.disabled = unreadCount === 0;
+      }
+    }
+
+    async function loadTopbarSummary(force = false) {
+      if (summaryLoading || (summaryLoaded && !force)) {
+        return;
+      }
+
+      summaryLoading = true;
+
+      try {
+        const response = await fetch(
+          topbarActions.dataset.summaryUrl,
+          {
+            headers: {
+              Accept: 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Topbar summary could not be loaded.');
+        }
+
+        const summary = await response.json();
+
+        updateBadge(summary.unread_count);
+        renderNotifications(summary.notifications, notificationsList);
+        renderPendingActions(summary.pending_actions);
+        renderNotifications(
+          summary.recent_activity,
+          recentActivityList,
+          true
+        );
+
+        summaryLoaded = true;
+      } catch (error) {
+        console.warn(error);
+      } finally {
+        summaryLoading = false;
+      }
+    }
+
     function closeAllTopbarDropdowns(
       exceptDropdownId = null
     ) {
@@ -409,6 +659,8 @@
             return;
           }
 
+          loadTopbarSummary();
+
           const isCurrentlyOpen =
             !dropdown.hidden;
 
@@ -447,6 +699,51 @@
         }
       );
     });
+
+    if (markAllButton) {
+      markAllButton.addEventListener('click', async function () {
+        if (markAllButton.disabled) {
+          return;
+        }
+
+        markAllButton.disabled = true;
+
+        try {
+          const response = await fetch(
+            topbarActions.dataset.readAllUrl,
+            {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+              body: JSON.stringify({}),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Notifications could not be marked as read.');
+          }
+
+          summaryLoaded = false;
+          await loadTopbarSummary(true);
+        } catch (error) {
+          console.warn(error);
+          markAllButton.disabled = false;
+        }
+      });
+    }
+
+    window.addEventListener('system-data-updated', function () {
+      summaryLoaded = false;
+      window.setTimeout(function () {
+        loadTopbarSummary(true);
+      }, 250);
+    });
+
+    loadTopbarSummary();
 
     document.addEventListener(
       'click',
