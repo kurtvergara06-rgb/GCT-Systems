@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Operation\Bus;
+use App\Models\Maintenance\Bus;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Operation\Bus;
+use App\Models\Maintenance\Bus;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
@@ -11,6 +11,8 @@ use App\Models\Operation\TripSchedule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AutoSchedulingController extends Controller
@@ -529,6 +531,187 @@ class AutoSchedulingController extends Controller
 
             'conflicts' =>
                 $conflicts->values(),
+        ]);
+    }
+
+
+    /**
+     * Persist reviewed auto-scheduling recommendations.
+     *
+     * Only record identifiers are accepted from the browser. Every trip,
+     * driver, bus, attendance status, and overlap is checked again while the
+     * affected rows are locked so stale previews cannot create conflicts.
+     */
+    public function confirm(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'recommendations' => [
+                'required',
+                'array',
+                'min:1',
+                'max:200',
+            ],
+            'recommendations.*.trip_schedule_id' => [
+                'required',
+                'integer',
+                'distinct',
+                'exists:trip_schedules,id',
+            ],
+            'recommendations.*.driver_attendance_id' => [
+                'required',
+                'integer',
+                'exists:driver_attendances,id',
+            ],
+            'recommendations.*.bus_id' => [
+                'required',
+                'integer',
+                'exists:buses,id',
+            ],
+        ]);
+
+        $savedCount = DB::transaction(function () use ($validated): int {
+            $recommendations = collect(
+                $validated['recommendations']
+            );
+
+            $trips = TripSchedule::query()
+                ->whereIn(
+                    'id',
+                    $recommendations->pluck('trip_schedule_id')
+                )
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $drivers = DriverAttendance::query()
+                ->whereIn(
+                    'id',
+                    $recommendations->pluck('driver_attendance_id')
+                )
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $buses = Bus::query()
+                ->whereIn(
+                    'id',
+                    $recommendations->pluck('bus_id')
+                )
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $tripDates = $trips
+                ->pluck('trip_date')
+                ->filter()
+                ->map(fn ($date) => $date->format('Y-m-d'))
+                ->unique();
+
+            $existingAssignments = TripAssignment::query()
+                ->with('tripSchedule')
+                ->whereHas(
+                    'tripSchedule',
+                    fn ($query) => $query
+                        ->whereIn('trip_date', $tripDates)
+                        ->whereNotIn(
+                            'status',
+                            ['Cancelled', 'Completed']
+                        )
+                )
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($recommendations as $index => $recommendation) {
+                $trip = $trips->get(
+                    (int) $recommendation['trip_schedule_id']
+                );
+
+                $driver = $drivers->get(
+                    (int) $recommendation['driver_attendance_id']
+                );
+
+                $bus = $buses->get(
+                    (int) $recommendation['bus_id']
+                );
+
+                $field = "recommendations.{$index}";
+
+                if (
+                    !$trip
+                    || $trip->assignment_status !== 'Unassigned'
+                    || $trip->status !== 'Scheduled'
+                ) {
+                    throw ValidationException::withMessages([
+                        $field => 'A selected trip is no longer available for assignment. Generate the schedule again.',
+                    ]);
+                }
+
+                if (
+                    !$driver
+                    || !in_array($driver->status, ['Present', 'Late'], true)
+                    || !$driver->attendance_date?->isSameDay($trip->trip_date)
+                    || $driver->shift !== $trip->shift
+                ) {
+                    throw ValidationException::withMessages([
+                        $field => 'A selected driver is no longer eligible for this trip. Generate the schedule again.',
+                    ]);
+                }
+
+                if (!$bus || $bus->status !== 'Active') {
+                    throw ValidationException::withMessages([
+                        $field => 'A selected bus is no longer active. Generate the schedule again.',
+                    ]);
+                }
+
+                if (
+                    $this->driverHasConflict(
+                        trip: $trip,
+                        driverId: $driver->driver_id,
+                        existingAssignments: $existingAssignments,
+                        generatedRecommendations: collect()
+                    )
+                    || $this->busHasConflict(
+                        trip: $trip,
+                        busId: $bus->id,
+                        existingAssignments: $existingAssignments,
+                        generatedRecommendations: collect()
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        $field => 'A selected driver or bus now has an overlapping trip. Generate the schedule again.',
+                    ]);
+                }
+
+                $assignment = TripAssignment::create([
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $driver->id,
+                    'driver_id' => $driver->driver_id,
+                    'driver_name' => $driver->driver_name,
+                    'bus_id' => $bus->id,
+                    'assigned_by' => auth()->id(),
+                ]);
+
+                $trip->update([
+                    'assignment_status' => 'Assigned',
+                    'status' => 'Ready',
+                ]);
+
+                $assignment->setRelation('tripSchedule', $trip);
+                $existingAssignments->push($assignment);
+            }
+
+            return $recommendations->count();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$savedCount} schedule assignment(s) saved successfully.",
+            'saved' => $savedCount,
+            'redirect_url' => route(
+                'driver-bus-assignment',
+                [],
+                false
+            ),
         ]);
     }
 

@@ -287,7 +287,10 @@
             ================================================== --}}
             @else
 
-                @if($itemRoute)
+                @if(
+                    $itemRoute
+                    && \Illuminate\Support\Facades\Route::has($itemRoute)
+                )
 
                     <a
                         href="{{ route($item['route'], [], false) }}"

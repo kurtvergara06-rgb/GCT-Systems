@@ -26,6 +26,7 @@ use App\Http\Controllers\Purchase\ScheduledPurchaseController;
 
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
+use App\Http\Controllers\TopbarController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +64,16 @@ Route::post(
 */
 
 Route::middleware('auth')->group(function () {
+
+    Route::get(
+        '/topbar/summary',
+        [TopbarController::class, 'summary']
+    )->name('topbar.summary');
+
+    Route::post(
+        '/topbar/notifications/read-all',
+        [TopbarController::class, 'markAllNotificationsRead']
+    )->name('topbar.notifications.read-all');
 
     /*
     |--------------------------------------------------------------------------
@@ -403,18 +414,6 @@ Route::middleware('auth')->group(function () {
             );
 
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Maintenance Settings
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/maintenance/settings',
-        'Maintenance.settings'
-    )->name('settings');
 
 
     /*
@@ -823,20 +822,6 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Bus Assignment
-    |--------------------------------------------------------------------------
-    */
-
-    Route::view(
-        '/operation/bus-assignment',
-        'Operation.Shuttle_Bus_Management.bus-assignment'
-    )->name(
-        'bus-assignment'
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
     | Driver Attendance
     |--------------------------------------------------------------------------
     */
@@ -1090,6 +1075,13 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
                 'generate'
             )->name(
                 'auto-scheduling.generate'
+            );
+
+            Route::post(
+                '/confirm',
+                'confirm'
+            )->name(
+                'auto-scheduling.confirm'
             );
 
         });
