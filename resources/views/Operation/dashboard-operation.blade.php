@@ -156,7 +156,7 @@
                         </div>
 
                         <a
-                            href="{{ route('trip-schedule') }}"
+                            href="{{ route('trip-schedule', [], false) }}"
                             class="view-all-link"
                         >
                             View Schedule
@@ -327,7 +327,7 @@
                         </div>
 
                         <a
-                            href="{{ route('bus-master-list') }}"
+                            href="{{ route('bus-master-list', [], false) }}"
                             class="view-all-link"
                         >
                             View Fleet
@@ -439,7 +439,7 @@
                         </div>
 
                         <a
-                            href="{{ route('driver-attendance') }}"
+                            href="{{ route('driver-attendance', [], false) }}"
                             class="view-all-link"
                         >
                             View Attendance
@@ -534,7 +534,7 @@
                         </div>
 
                         <a
-                            href="{{ route('mechanic-attendance') }}"
+                            href="{{ route('mechanic-attendance', [], false) }}"
                             class="view-all-link"
                         >
                             View Mechanics
@@ -627,7 +627,7 @@
                     <div class="quick-actions">
 
                         <a
-                            href="{{ route('trip-schedule') }}"
+                            href="{{ route('trip-schedule', [], false) }}"
                             class="quick-action-item"
                         >
 
@@ -646,7 +646,7 @@
 
 
                         <a
-                            href="{{ route('driver-bus-assignment') }}"
+                            href="{{ route('driver-bus-assignment', [], false) }}"
                             class="quick-action-item"
                         >
 
@@ -665,7 +665,7 @@
 
 
                         <a
-                            href="{{ route('bus-master-list') }}"
+                            href="{{ route('bus-master-list', [], false) }}"
                             class="quick-action-item"
                         >
 
