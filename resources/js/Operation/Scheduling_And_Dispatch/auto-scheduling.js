@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resourceAvailableBuses');
 
     let recommendations = [];
+    let schedulingConflicts = [];
 
 
     form?.addEventListener('submit', async (event) => {
@@ -73,6 +74,331 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmButton?.addEventListener('click', async () => {
         await confirmSchedule();
     });
+
+
+    document.addEventListener('click', (event) => {
+        const reviewButton = event.target.closest(
+            '[data-review-ai-resolution]'
+        );
+
+        if (reviewButton) {
+            const index = Number(
+                reviewButton.dataset.reviewAiResolution
+            );
+
+            if (
+                Number.isInteger(index)
+                && schedulingConflicts[index]
+            ) {
+                openResolutionModal(
+                    schedulingConflicts[index]
+                );
+            }
+
+            return;
+        }
+
+        if (
+            event.target.closest('[data-close-resolution-modal]')
+        ) {
+            closeResolutionModal();
+        }
+    });
+
+    function renderAiConflictAnalysis({
+    ai,
+    aiConflict,
+    findings,
+    actions,
+    warnings,
+    alternativeDrivers,
+    alternativeBuses,
+}) {
+    const title =
+        aiConflict.title
+        || 'AI Conflict Analysis';
+
+    const explanation =
+        aiConflict.explanation
+        || ai.conflict_explanation
+        || 'The AI detected an unresolved scheduling conflict.';
+
+    const score =
+        Number.isFinite(Number(ai.score))
+            ? Number(ai.score)
+            : null;
+
+    return `
+        <div class="ai-conflict-analysis">
+            <div class="ai-conflict-heading">
+                <div class="ai-conflict-title">
+                    <span class="ai-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </span>
+
+                    <div>
+                        <span class="section-eyebrow warning">
+                            AI Conflict Analysis
+                        </span>
+
+                        <h3>${escapeHtml(title)}</h3>
+                    </div>
+                </div>
+
+                ${
+                    score !== null
+                        ? `
+                            <span class="ai-score-badge">
+                                Score: ${score}
+                            </span>
+                        `
+                        : ''
+                }
+            </div>
+
+            <p class="ai-conflict-explanation">
+                ${escapeHtml(explanation)}
+            </p>
+
+            ${renderAiFindings(findings)}
+
+            ${renderAiWarnings(warnings)}
+
+            ${renderAiActions(actions)}
+
+            ${renderAiAlternatives(
+                alternativeDrivers,
+                alternativeBuses
+            )}
+        </div>
+    `;
+}
+
+
+function renderAiFindings(findings) {
+    if (!findings.length) {
+        return '';
+    }
+
+    return `
+        <div class="ai-detail-section">
+            <h4>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                What the AI found
+            </h4>
+
+            <div class="ai-findings-list">
+                ${findings
+                    .map((finding) => `
+                        <div class="ai-finding-item">
+                            <span class="ai-finding-count">
+                                ${Number(finding.count || 0)}
+                            </span>
+
+                            <span>
+                                ${escapeHtml(
+                                    finding.explanation
+                                    || finding.category
+                                    || 'Scheduling issue detected.'
+                                )}
+                            </span>
+                        </div>
+                    `)
+                    .join('')}
+            </div>
+        </div>
+    `;
+}
+
+
+function renderAiWarnings(warnings) {
+    if (!warnings.length) {
+        return '';
+    }
+
+    return `
+        <div class="ai-detail-section">
+            <h4>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Warnings
+            </h4>
+
+            <ul class="ai-warning-list">
+                ${warnings
+                    .map((warning) => `
+                        <li>
+                            ${escapeHtml(warning)}
+                        </li>
+                    `)
+                    .join('')}
+            </ul>
+        </div>
+    `;
+}
+
+
+    function renderAiActions(actions) {
+        if (!actions.length) {
+            return '';
+        }
+
+        return `
+            <div class="ai-detail-section">
+                <h4>
+                    <i class="fa-solid fa-lightbulb"></i>
+                    Recommended actions
+                </h4>
+
+                <div class="ai-action-list">
+                    ${actions
+                        .map((action) => `
+                            <div class="ai-action-item">
+                                <strong>
+                                    ${escapeHtml(
+                                        getResolutionActionLabel(action)
+                                    )}
+                                </strong>
+
+                                <span>
+                                    ${escapeHtml(
+                                        action.explanation
+                                        || ''
+                                    )}
+                                </span>
+
+                                ${
+                                    action.suggested_time
+                                        ? `
+                                            <small>
+                                                Suggested time:
+                                                ${escapeHtml(
+                                                    formatDisplayTime(
+                                                        action.suggested_time
+                                                    )
+                                                )}
+                                            </small>
+                                        `
+                                        : ''
+                                }
+                            </div>
+                        `)
+                        .join('')}
+                </div>
+            </div>
+        `;
+    }
+
+
+    function renderAiAlternatives(
+        alternativeDrivers,
+        alternativeBuses
+    ) {
+        if (
+            !alternativeDrivers.length
+            && !alternativeBuses.length
+        ) {
+            return '';
+        }
+
+        return `
+            <div class="ai-detail-section">
+                <h4>
+                    <i class="fa-solid fa-list-check"></i>
+                    Possible alternatives
+                </h4>
+
+                <div class="ai-alternative-grid">
+                    ${
+                        alternativeDrivers.length
+                            ? `
+                                <div class="ai-alternative-group">
+                                    <strong>
+                                        Alternative drivers
+                                    </strong>
+
+                                    ${alternativeDrivers
+                                        .map((driver) => `
+                                            <div class="ai-alternative-item">
+                                                <span>
+                                                    ${escapeHtml(
+                                                        driver.label
+                                                    )}
+                                                </span>
+
+                                                ${
+                                                    driver.score !== null
+                                                    && driver.score !== undefined
+                                                        ? `
+                                                            <small>
+                                                                Score:
+                                                                ${Number(
+                                                                    driver.score
+                                                                )}
+                                                            </small>
+                                                        `
+                                                        : ''
+                                                }
+
+                                                <p>
+                                                    ${escapeHtml(
+                                                        driver.reason
+                                                    )}
+                                                </p>
+                                            </div>
+                                        `)
+                                        .join('')}
+                                </div>
+                            `
+                            : ''
+                    }
+
+                    ${
+                        alternativeBuses.length
+                            ? `
+                                <div class="ai-alternative-group">
+                                    <strong>
+                                        Alternative buses
+                                    </strong>
+
+                                    ${alternativeBuses
+                                        .map((bus) => `
+                                            <div class="ai-alternative-item">
+                                                <span>
+                                                    ${escapeHtml(
+                                                        bus.label
+                                                    )}
+                                                </span>
+
+                                                ${
+                                                    bus.score !== null
+                                                    && bus.score !== undefined
+                                                        ? `
+                                                            <small>
+                                                                Score:
+                                                                ${Number(
+                                                                    bus.score
+                                                                )}
+                                                            </small>
+                                                        `
+                                                        : ''
+                                                }
+
+                                                <p>
+                                                    ${escapeHtml(
+                                                        bus.reason
+                                                    )}
+                                                </p>
+                                            </div>
+                                        `)
+                                        .join('')}
+                                </div>
+                            `
+                            : ''
+                    }
+                </div>
+            </div>
+        `;
+    }
 
 
     async function generateSchedule() {
@@ -117,11 +443,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSummary(data.summary || {});
             renderRecommendations(recommendations);
 
-            renderConflicts(
+            schedulingConflicts =
                 Array.isArray(data.conflicts)
                     ? data.conflicts
-                    : []
-            );
+                    : [];
+
+            renderConflicts(schedulingConflicts);
 
             previewSection?.scrollIntoView({
                 behavior: 'smooth',
@@ -137,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 || 'Unable to generate schedule.'
             );
 
+            schedulingConflicts = [];
             renderConflicts([]);
             updateConfirmButton();
         } finally {
@@ -477,56 +805,421 @@ document.addEventListener('DOMContentLoaded', () => {
         conflictSection.hidden = false;
 
         conflictContent.innerHTML = items
-            .map((item) => `
-                <div class="auto-conflict-record">
-                    <div class="conflict-trip">
-                        <span>Trip</span>
-                        <strong>
-                            ${escapeHtml(item.trip_code)}
-                        </strong>
-                    </div>
+            .map((item) => {
+                const ai = item.ai || {};
+                const aiConflict = ai.conflict || {};
+                const analysis = ai || {};
 
-                    <div class="conflict-trip">
-                        <span>Route</span>
-                        <strong>
-                            ${escapeHtml(
-                                `${item.route_code} — ${item.route_name}`
-                            )}
-                        </strong>
-                    </div>
+                const findings = Array.isArray(
+                    aiConflict.findings
+                )
+                    ? aiConflict.findings
+                    : [];
 
-                    <div class="conflict-trip">
-                        <span>Departure</span>
-                        <strong>
-                            ${escapeHtml(
-                                item.departure_display
-                                || formatDisplayTime(
-                                    item.departure_time
-                                )
-                            )}
-                        </strong>
-                    </div>
+                const actions = Array.isArray(
+                    aiConflict.recommended_actions
+                )
+                    ? aiConflict.recommended_actions
+                    : [];
 
-                    <div class="conflict-reason">
-                        <i class="fa-solid fa-circle-info"></i>
+                const warnings = Array.isArray(
+                    analysis.warnings
+                )
+                    ? analysis.warnings
+                    : [];
 
-                        <div>
+                const alternativeDrivers =
+                    Array.isArray(
+                        analysis.alternative_drivers
+                    )
+                        ? analysis.alternative_drivers
+                        : [];
+
+                const alternativeBuses =
+                    Array.isArray(
+                        analysis.alternative_buses
+                    )
+                        ? analysis.alternative_buses
+                        : [];
+
+                return `
+                    <div class="auto-conflict-record">
+                        <div class="conflict-trip">
+                            <span>Trip</span>
+
+                            <strong>
+                                ${escapeHtml(item.trip_code)}
+                            </strong>
+                        </div>
+
+                        <div class="conflict-trip">
+                            <span>Route</span>
+
                             <strong>
                                 ${escapeHtml(
-                                    item.reason
-                                    || 'Unable to assign resources.'
+                                    `${item.route_code} — ${item.route_name}`
                                 )}
                             </strong>
-
-                            <span>
-                                Review attendance, buses,
-                                or existing assignments.
-                            </span>
                         </div>
+
+                        <div class="conflict-trip">
+                            <span>Departure</span>
+
+                            <strong>
+                                ${escapeHtml(
+                                    item.departure_display
+                                    || formatDisplayTime(
+                                        item.departure_time
+                                    )
+                                )}
+                            </strong>
+                        </div>
+
+                        <div class="conflict-reason">
+                            <i class="fa-solid fa-circle-info"></i>
+
+                            <div>
+                                <strong>
+                                    ${escapeHtml(
+                                        item.reason
+                                        || 'Unable to assign resources.'
+                                    )}
+                                </strong>
+
+                                <span>
+                                    The system could not create a
+                                    conflict-free assignment.
+                                </span>
+                            </div>
+                        </div>
+
+                        ${
+                            ai.available
+                                ? renderAiConflictAnalysis({
+                                    ai,
+                                    aiConflict,
+                                    findings,
+                                    actions,
+                                    warnings,
+                                    alternativeDrivers,
+                                    alternativeBuses,
+                                })
+                                : `
+                                    <div class="ai-unavailable-notice">
+                                        <i class="fa-solid fa-robot"></i>
+
+                                        <div>
+                                            <strong>
+                                                AI explanation unavailable
+                                            </strong>
+
+                                            <span>
+                                                The normal scheduling conflict
+                                                remains valid. You may resolve
+                                                it manually.
+                                            </span>
+                                        </div>
+                                    </div>
+                                `
+                        }
+
+                        ${renderConflictButtons(item, items.indexOf(item))}
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+
+
+    function renderConflictButtons(item, index) {
+        const actions = Array.isArray(
+            item?.ai?.conflict?.recommended_actions
+        )
+            ? item.ai.conflict.recommended_actions
+            : [];
+
+        const timeAction = actions.find(
+            (action) =>
+                action.type === 'adjust_departure_time'
+                && action.suggested_time
+        );
+
+        return `
+            <div class="ai-resolution-buttons">
+                <a
+                    href="/operation/driver-bus-assignment"
+                    class="ai-resolution-btn manual"
+                >
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    Resolve Manually
+                </a>
+
+                <button
+                    type="button"
+                    class="ai-resolution-btn primary"
+                    data-review-ai-resolution="${index}"
+                    ${timeAction ? '' : 'disabled'}
+                    title="${
+                        timeAction
+                            ? 'Review and apply the AI resolution'
+                            : 'No safe automatic resolution is available'
+                    }"
+                >
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Review AI Resolution
+                </button>
+            </div>
+        `;
+    }
+
+
+    function getTimeResolutionAction(conflict) {
+        const actions = Array.isArray(
+            conflict?.ai?.conflict?.recommended_actions
+        )
+            ? conflict.ai.conflict.recommended_actions
+            : [];
+
+        return actions.find(
+            (action) =>
+                action.type === 'adjust_departure_time'
+                && action.suggested_time
+        ) || null;
+    }
+
+
+    function openResolutionModal(conflict) {
+        const action = getTimeResolutionAction(conflict);
+
+        if (!action) {
+            window.alert(
+                'No safe automatic resolution is available for this conflict.'
+            );
+            return;
+        }
+
+        closeResolutionModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'ai-resolution-modal-overlay';
+        overlay.id = 'aiResolutionModal';
+
+        overlay.innerHTML = `
+            <div
+                class="ai-resolution-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="aiResolutionModalTitle"
+            >
+                <div class="ai-resolution-modal-header">
+                    <div>
+                        <span class="section-eyebrow">
+                            AI-assisted resolution
+                        </span>
+                        <h2 id="aiResolutionModalTitle">
+                            Review proposed solution
+                        </h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="ai-modal-close"
+                        data-close-resolution-modal
+                        aria-label="Close"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="ai-resolution-summary-grid">
+                    <div>
+                        <span>Trip</span>
+                        <strong>${escapeHtml(conflict.trip_code)}</strong>
+                    </div>
+                    <div>
+                        <span>Current departure</span>
+                        <strong>${escapeHtml(
+                            conflict.departure_display
+                            || formatDisplayTime(conflict.departure_time)
+                        )}</strong>
+                    </div>
+                    <div class="proposed">
+                        <span>Proposed departure</span>
+                        <strong>${escapeHtml(
+                            formatDisplayTime(action.suggested_time)
+                        )}</strong>
                     </div>
                 </div>
-            `)
-            .join('');
+
+                <div class="ai-resolution-note">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <p>
+                        Laravel will check the driver, bus, attendance,
+                        shift, PMS status, and overlapping trips again
+                        before saving. Nothing will be changed when the
+                        proposed time is no longer valid.
+                    </p>
+                </div>
+
+                <p class="ai-resolution-description">
+                    ${escapeHtml(action.explanation || '')}
+                </p>
+
+                <div
+                    class="ai-resolution-error"
+                    id="aiResolutionError"
+                    hidden
+                ></div>
+
+                <div class="ai-resolution-modal-actions">
+                    <button
+                        type="button"
+                        class="ai-resolution-btn manual"
+                        data-close-resolution-modal
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="ai-resolution-btn primary"
+                        id="applyAiResolutionButton"
+                    >
+                        <i class="fa-solid fa-circle-check"></i>
+                        Apply Resolution
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.classList.add('ai-modal-open');
+
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                closeResolutionModal();
+            }
+        });
+
+        document
+            .getElementById('applyAiResolutionButton')
+            ?.addEventListener('click', async () => {
+                await applyAiResolution(conflict, action);
+            });
+    }
+
+
+    function closeResolutionModal() {
+        document
+            .getElementById('aiResolutionModal')
+            ?.remove();
+
+        document.body.classList.remove('ai-modal-open');
+    }
+
+
+    async function applyAiResolution(conflict, action) {
+        const button = document.getElementById(
+            'applyAiResolutionButton'
+        );
+
+        const errorBox = document.getElementById(
+            'aiResolutionError'
+        );
+
+        const csrfToken = form
+            ?.querySelector('input[name="_token"]')
+            ?.value;
+
+        if (!button) {
+            return;
+        }
+
+        button.disabled = true;
+        button.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Applying...
+        `;
+
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.textContent = '';
+        }
+
+        try {
+            const response = await fetch(
+                '/operation/auto-scheduling/resolve',
+                {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken || '',
+                    },
+                    body: JSON.stringify({
+                        trip_schedule_id:
+                            conflict.trip_schedule_id,
+                        resolution_type:
+                            'adjust_departure_time',
+                        suggested_time:
+                            normalizeApiTime(
+                                action.suggested_time
+                            ),
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    getErrorMessage(data)
+                );
+            }
+
+            closeResolutionModal();
+
+            window.alert(
+                data.message
+                || 'The scheduling conflict was resolved.'
+            );
+
+            await generateSchedule();
+        } catch (error) {
+            console.error(error);
+
+            if (errorBox) {
+                errorBox.hidden = false;
+                errorBox.textContent =
+                    error.message
+                    || 'Unable to apply the resolution.';
+            }
+        } finally {
+            button.disabled = false;
+            button.innerHTML = `
+                <i class="fa-solid fa-circle-check"></i>
+                Apply Resolution
+            `;
+        }
+    }
+
+
+    function normalizeApiTime(value) {
+        const parts = String(value || '')
+            .trim()
+            .split(':');
+
+        if (parts.length < 2) {
+            return String(value || '');
+        }
+
+        return [
+            parts[0].padStart(2, '0'),
+            parts[1].padStart(2, '0'),
+            (parts[2] || '00').padStart(2, '0'),
+        ].join(':');
     }
 
 

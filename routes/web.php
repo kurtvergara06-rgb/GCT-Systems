@@ -1057,34 +1057,22 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
 |--------------------------------------------------------------------------
 */
 
-    Route::controller(
-        AutoSchedulingController::class
-    )
-        ->prefix('operation/auto-scheduling')
-        ->group(function () {
+    
+Route::controller(AutoSchedulingController::class)
+    ->prefix('operation/auto-scheduling')
+    ->group(function () {
+        Route::get('/', 'index')
+            ->name('auto-scheduling');
 
-            Route::get(
-                '/',
-                'index'
-            )->name(
-                'auto-scheduling'
-            );
+        Route::post('/generate', 'generate')
+            ->name('auto-scheduling.generate');
 
-            Route::post(
-                '/generate',
-                'generate'
-            )->name(
-                'auto-scheduling.generate'
-            );
+        Route::post('/confirm', 'confirm')
+            ->name('auto-scheduling.confirm');
 
-            Route::post(
-                '/confirm',
-                'confirm'
-            )->name(
-                'auto-scheduling.confirm'
-            );
-
-        });
+        Route::post('/resolve', 'resolve')
+            ->name('auto-scheduling.resolve');
+    });
 
 
     Route::redirect(
