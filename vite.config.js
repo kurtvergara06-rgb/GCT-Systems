@@ -141,7 +141,7 @@ export default defineConfig({
                 'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
                 'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
 
-                // ======================================================
+               // ======================================================
                 // OPERATION — SCHEDULING AND DISPATCH
                 // ======================================================
 
@@ -149,9 +149,10 @@ export default defineConfig({
                 'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
 
-                // Do not include a trip-schedule JavaScript file until
-                // the file physically exists.
-                // 'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
+                                
 
                 // ======================================================
                 // OPERATION — TRIP RECORDS
