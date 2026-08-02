@@ -70,10 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    confirmButton?.addEventListener('click', () => {
-        window.alert(
-            'Preview generation is ready. Confirm and save will be connected after local testing.'
-        );
+    confirmButton?.addEventListener('click', async () => {
+        await confirmSchedule();
     });
 
 
@@ -144,6 +142,102 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             setLoading(false);
         }
+    }
+
+
+    async function confirmSchedule() {
+        if (!confirmButton || !recommendations.length) {
+            return;
+        }
+
+        const confirmUrl = normalizePath(
+            confirmButton.dataset.confirmUrl,
+            '/operation/auto-scheduling/confirm'
+        );
+
+        const csrfToken = form
+            ?.querySelector('input[name="_token"]')
+            ?.value;
+
+        setConfirmLoading(true);
+
+        try {
+            const response = await fetch(confirmUrl, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                },
+                body: JSON.stringify({
+                    recommendations: recommendations.map((item) => ({
+                        trip_schedule_id: item.trip_schedule_id,
+                        driver_attendance_id: item.driver_attendance_id,
+                        bus_id: item.bus_id,
+                    })),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(getErrorMessage(data));
+            }
+
+            recommendations = [];
+            renderRecommendations(recommendations);
+
+            if (footerMessage) {
+                footerMessage.textContent =
+                    data.message
+                    || 'Schedule assignments saved successfully.';
+            }
+
+            if (data.redirect_url) {
+                window.location.assign(
+                    normalizePath(
+                        data.redirect_url,
+                        '/operation/driver-bus-assignment'
+                    )
+                );
+            }
+        } catch (error) {
+            console.error(error);
+
+            if (footerMessage) {
+                footerMessage.textContent =
+                    error.message
+                    || 'Unable to save the schedule.';
+            }
+
+            window.alert(
+                error.message
+                || 'Unable to save the schedule.'
+            );
+        } finally {
+            setConfirmLoading(false);
+        }
+    }
+
+
+    function setConfirmLoading(loading) {
+        if (!confirmButton) {
+            return;
+        }
+
+        confirmButton.disabled =
+            loading || recommendations.length === 0;
+
+        confirmButton.innerHTML = loading
+            ? `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Saving...
+            `
+            : `
+                <i class="fa-solid fa-circle-check"></i>
+                Confirm Schedule
+            `;
     }
 
 
@@ -481,11 +575,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateConfirmButton() {
         if (confirmButton) {
-            /*
-             * Preview-only phase:
-             * saving will be connected after testing.
-             */
-            confirmButton.disabled = true;
+            confirmButton.disabled =
+                recommendations.length === 0;
         }
     }
 

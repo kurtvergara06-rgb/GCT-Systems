@@ -164,7 +164,7 @@
                         type="submit"
                         class="generate-schedule-btn"
                         id="generateScheduleButton"
-                        data-generate-url="/operation/auto-scheduling/generate"
+                        data-generate-url="{{ route('auto-scheduling.generate', [], false) }}"
                     >
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                         <span>Generate Schedule</span>
@@ -297,7 +297,13 @@
                         Regenerate
                     </button>
 
-                    <button type="button" class="schedule-primary-btn" id="confirmScheduleButton" disabled>
+                    <button
+                        type="button"
+                        class="schedule-primary-btn"
+                        id="confirmScheduleButton"
+                        data-confirm-url="{{ route('auto-scheduling.confirm', [], false) }}"
+                        disabled
+                    >
                         <i class="fa-solid fa-circle-check"></i>
                         Confirm Schedule
                     </button>
@@ -321,7 +327,7 @@
 
             <div id="autoSchedulingConflictContent"></div>
 
-            <a href="/operation/driver-bus-assignment" class="resolve-conflict-btn">
+            <a href="{{ route('driver-bus-assignment', [], false) }}" class="resolve-conflict-btn">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 Resolve Manually
             </a>
