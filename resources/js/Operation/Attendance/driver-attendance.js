@@ -196,311 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Searchable Bus Dropdown
-  |--------------------------------------------------------------------------
-  */
-
-  const busCombobox =
-    document.getElementById(
-      'driverBusCombobox'
-    );
-
-  const busInput =
-    document.getElementById(
-      'driverBusAssignment'
-    );
-
-  const busTrigger =
-    document.getElementById(
-      'driverBusTrigger'
-    );
-
-  const busMenu =
-    document.getElementById(
-      'driverBusMenu'
-    );
-
-  const busLabel =
-    document.getElementById(
-      'driverBusLabel'
-    );
-
-  const busSearch =
-    document.getElementById(
-      'driverBusSearch'
-    );
-
-  const busHelp =
-    document.getElementById(
-      'driverBusHelp'
-    );
-
-  const busOptions =
-    document.querySelectorAll(
-      '.attendance-combobox-option'
-    );
-
-
-  function openBusDropdown() {
-    if (
-      !busMenu
-      || !busTrigger
-      || busTrigger.disabled
-    ) {
-      return;
-    }
-
-    busMenu.classList.add('show');
-
-    busTrigger.setAttribute(
-      'aria-expanded',
-      'true'
-    );
-
-    window.setTimeout(() => {
-      busSearch?.focus();
-    }, 50);
-  }
-
-
-  function closeBusDropdown() {
-    busMenu?.classList.remove('show');
-
-    busTrigger?.setAttribute(
-      'aria-expanded',
-      'false'
-    );
-  }
-
-
-  function filterBusOptions(value) {
-    const searchValue =
-      String(value || '')
-        .trim()
-        .toLowerCase();
-
-    busOptions.forEach((option) => {
-      const searchableText =
-        String(
-          option.dataset.search || ''
-        ).toLowerCase();
-
-      option.hidden =
-        Boolean(searchValue)
-        && !searchableText.includes(
-          searchValue
-        );
-    });
-  }
-
-
-  function selectBus(value, label) {
-    const normalizedValue =
-      String(value || '');
-
-    if (busInput) {
-      busInput.value =
-        normalizedValue;
-    }
-
-    if (busLabel) {
-      busLabel.textContent =
-        label || 'No bus assigned';
-
-      busLabel.classList.toggle(
-        'placeholder',
-        !normalizedValue
-      );
-    }
-
-    busOptions.forEach((option) => {
-      const optionValue =
-        String(
-          option.dataset.value || ''
-        );
-
-      option.classList.toggle(
-        'selected',
-        optionValue === normalizedValue
-      );
-    });
-
-    closeBusDropdown();
-  }
-
-
-  function selectBusByValue(value) {
-    const normalizedValue =
-      String(value || '').trim();
-
-    const matchingOption =
-      Array.from(busOptions)
-        .find((option) => {
-          const optionValue =
-            String(
-              option.dataset.value || ''
-            ).trim();
-
-          return (
-            optionValue
-            === normalizedValue
-          );
-        });
-
-    if (matchingOption) {
-      selectBus(
-        matchingOption.dataset.value,
-        matchingOption.dataset.label
-      );
-
-      return;
-    }
-
-    /*
-     * Old records may contain BUS-001,
-     * BUS-002, and similar values that
-     * are no longer in Bus Master List.
-     */
-
-    if (normalizedValue) {
-      if (busInput) {
-        busInput.value = '';
-      }
-
-      if (busLabel) {
-        busLabel.textContent =
-          `${normalizedValue} — not found in Bus Master List`;
-
-        busLabel.classList.remove(
-          'placeholder'
-        );
-      }
-
-      busOptions.forEach((option) => {
-        option.classList.remove(
-          'selected'
-        );
-      });
-
-      return;
-    }
-
-    selectBus(
-      '',
-      'No bus assigned'
-    );
-  }
-
-
-  function resetBusSearch() {
-    if (busSearch) {
-      busSearch.value = '';
-    }
-
-    filterBusOptions('');
-  }
-
-
-  function syncBusAvailability() {
-    const unavailableStatuses = [
-      'Absent',
-      'On Leave',
-    ];
-
-    const unavailable =
-      unavailableStatuses.includes(
-        status?.value
-      );
-
-    if (busTrigger) {
-      busTrigger.disabled =
-        unavailable;
-    }
-
-    if (unavailable) {
-      selectBus(
-        '',
-        'No bus assigned'
-      );
-
-      closeBusDropdown();
-
-      if (busHelp) {
-        busHelp.textContent =
-          'Bus selection is disabled for Absent or On Leave drivers.';
-      }
-
-      return;
-    }
-
-    if (busHelp) {
-      busHelp.textContent =
-        'Only active buses from Bus Master List are shown.';
-    }
-  }
-
-
-  busTrigger?.addEventListener(
-    'click',
-    () => {
-      const isOpen =
-        busMenu
-          ?.classList
-          .contains('show');
-
-      if (isOpen) {
-        closeBusDropdown();
-      } else {
-        openBusDropdown();
-      }
-    }
-  );
-
-
-  busSearch?.addEventListener(
-    'input',
-    () => {
-      filterBusOptions(
-        busSearch.value
-      );
-    }
-  );
-
-
-  busOptions.forEach((option) => {
-    option.addEventListener(
-      'click',
-      () => {
-        selectBus(
-          option.dataset.value,
-          option.dataset.label
-        );
-      }
-    );
-  });
-
-
-  document.addEventListener(
-    'click',
-    (event) => {
-      if (
-        busCombobox
-        && !busCombobox.contains(
-          event.target
-        )
-      ) {
-        closeBusDropdown();
-      }
-    }
-  );
-
-
-  status?.addEventListener(
-    'change',
-    syncBusAvailability
-  );
 
 
   /*
@@ -581,14 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
       status.value =
         'Present';
     }
-
-    selectBus(
-      '',
-      'No bus assigned'
-    );
-
-    resetBusSearch();
-    syncBusAvailability();
   }
 
 
@@ -631,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
       button.addEventListener(
         'click',
         () => {
-          closeBusDropdown();
           closeModal(attendanceModal);
         }
       );
@@ -741,14 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
               button.dataset.status
               || 'Present';
           }
-
-          selectBusByValue(
-            button.dataset.busAssignment
-            || ''
-          );
-
-          resetBusSearch();
-          syncBusAvailability();
           openModal(attendanceModal);
         }
       );
@@ -807,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
               button.dataset.shift,
             ],
             [
-              'Bus / Assignment',
+              'Current Assignment',
               button.dataset.busAssignment
               || 'Unassigned',
             ],
@@ -1034,8 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
             event.target
             === modal
           ) {
-            closeBusDropdown();
-            closeModal(modal);
+              closeModal(modal);
           }
         }
       );
