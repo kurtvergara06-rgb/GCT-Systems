@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Operation\DriverAttendance;
-use App\Models\Operation\Bus;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rule;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -24,7 +22,11 @@ class DriverAttendanceController extends Controller
 
     public function index(Request $request)
     {
-        $query = DriverAttendance::query();
+        $query = DriverAttendance::query()
+            ->with([
+                'tripAssignments.bus',
+                'tripAssignments.tripSchedule.shuttleRoute',
+            ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -39,8 +41,27 @@ class DriverAttendanceController extends Controller
                 $q->where('driver_id', 'like', "%{$search}%")
                     ->orWhere('driver_name', 'like', "%{$search}%")
                     ->orWhere('shift', 'like', "%{$search}%")
-                    ->orWhere('bus_assignment', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'tripAssignments.bus',
+                        function ($busQuery) use ($search) {
+                            $busQuery->where(
+                                'bus_no',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    )
+                    ->orWhereHas(
+                        'tripAssignments.tripSchedule',
+                        function ($tripQuery) use ($search) {
+                            $tripQuery->where(
+                                'trip_code',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    );
             });
         }
 
@@ -106,11 +127,6 @@ class DriverAttendanceController extends Controller
         $nextDriverId =
             $this->generateDriverId();
 
-        $activeBuses = Bus::query()
-            ->where('status', 'Active')
-            ->orderBy('bus_no')
-            ->get();
-
         return view(
             'Operation.Attendance.driver-attendance',
             compact(
@@ -119,8 +135,7 @@ class DriverAttendanceController extends Controller
                 'absent',
                 'late',
                 'onDuty',
-                'nextDriverId',
-                'activeBuses'
+                'nextDriverId'
             )
         );
     }
@@ -136,24 +151,11 @@ class DriverAttendanceController extends Controller
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'bus_assignment' => [
-                'nullable',
-                Rule::exists('buses', 'bus_no')
-                    ->where('status', 'Active'),
-            ],
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
-
-        if (in_array(
-            $validated['status'],
-            ['Absent', 'On Leave'],
-            true
-        )) {
-            $validated['bus_assignment'] = null;
-        }
 
         $validated['driver_id'] =
             $this->generateDriverId();
@@ -192,24 +194,11 @@ class DriverAttendanceController extends Controller
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'bus_assignment' => [
-                'nullable',
-                Rule::exists('buses', 'bus_no')
-                    ->where('status', 'Active'),
-            ],
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
-
-        if (in_array(
-            $validated['status'],
-            ['Absent', 'On Leave'],
-            true
-        )) {
-            $validated['bus_assignment'] = null;
-        }
 
         $driverAttendance->update(
             $validated
@@ -240,6 +229,15 @@ class DriverAttendanceController extends Controller
     public function destroy(
         DriverAttendance $driverAttendance
     ): RedirectResponse {
+        if ($driverAttendance->tripAssignments()->exists()) {
+            session()->flash(
+                'error',
+                'This attendance record cannot be deleted because it has a trip assignment.'
+            );
+
+            return new RedirectResponse('/driver-attendance');
+        }
+
         $attendanceId =
             $driverAttendance->id;
 
@@ -340,7 +338,6 @@ class DriverAttendanceController extends Controller
             $requiredColumns = [
                 'driver_name',
                 'shift',
-                'bus_assignment',
                 'attendance_date',
                 'time_in',
                 'time_out',
@@ -522,13 +519,6 @@ class DriverAttendanceController extends Controller
                                 $data[
                                     'shift'
                                 ] ?? 'Morning'
-                            ),
-
-                        'bus_assignment' =>
-                            trim(
-                                $data[
-                                    'bus_assignment'
-                                ] ?? ''
                             ),
 
                         'attendance_date' =>

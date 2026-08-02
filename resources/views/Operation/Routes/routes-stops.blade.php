@@ -149,19 +149,7 @@
             {{-- =====================================================
                 ROUTE SUMMARY
             ====================================================== --}}
-          @php
-    $routeStats = $routeStats ?? [
-        'total' => $routes->total(),
-        'active' => $routes->getCollection()
-            ->where('status', 'Active')
-            ->count(),
-        'inactive' => $routes->getCollection()
-            ->where('status', 'Inactive')
-            ->count(),
-        'stops' => $routes->getCollection()
-            ->sum(fn ($route) => $route->stops->count()),
-    ];
-@endphp
+
 
 <section class="route-summary-grid" aria-label="Route summary">
     <x-ui.summary-card

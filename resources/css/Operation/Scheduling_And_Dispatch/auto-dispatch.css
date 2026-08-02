@@ -1395,3 +1395,123 @@
     }
 
 }
+
+/* =========================================================
+   AUTO SCHEDULING DYNAMIC STATES
+========================================================= */
+
+[hidden] {
+    display: none !important;
+}
+
+.auto-scheduling-form {
+    width: 100%;
+}
+
+.generate-schedule-btn:disabled,
+.schedule-primary-btn:disabled,
+.schedule-secondary-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.auto-empty-state {
+    min-height: 170px;
+    padding: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    gap: 8px;
+
+    color: var(--auto-muted);
+    text-align: center;
+}
+
+.auto-empty-state > i {
+    color: var(--auto-blue);
+    font-size: 30px;
+}
+
+.auto-empty-state strong {
+    color: var(--auto-navy);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.auto-empty-state span {
+    max-width: 420px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.auto-empty-state.error > i,
+.auto-empty-state.error strong {
+    color: var(--auto-red);
+}
+
+.auto-time-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.auto-time-cell strong {
+    color: var(--auto-text);
+    font-size: 12px;
+}
+
+.auto-time-cell small {
+    color: var(--auto-muted);
+    font-size: 10px;
+}
+
+.auto-conflict-record {
+    display: grid;
+
+    grid-template-columns:
+        minmax(90px, 0.7fr)
+        minmax(160px, 1.5fr)
+        minmax(110px, 0.8fr)
+        minmax(260px, 2.3fr);
+
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.auto-conflict-record:last-child {
+    margin-bottom: 0;
+}
+
+.resolve-conflict-btn {
+    text-decoration: none;
+}
+
+.schedule-action-btn.remove {
+    background: #fff0f0;
+    border-color: #fee2e2;
+    color: var(--auto-red);
+}
+
+.schedule-action-btn.remove:hover {
+    background: var(--auto-red);
+    border-color: var(--auto-red);
+    color: #ffffff;
+}
+
+@media (max-width: 900px) {
+    .auto-conflict-record {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .auto-conflict-record {
+        grid-template-columns: 1fr;
+    }
+}

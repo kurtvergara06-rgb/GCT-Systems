@@ -5,7 +5,6 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
-    'resources/css/Operation/Attendance/driver-attendance-bus-combobox.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Operation/Attendance/driver-attendance.js'
   ]"
@@ -309,7 +308,7 @@
 
                 <th>Shift</th>
 
-                <th>Bus / Assignment</th>
+                <th>Current Assignment</th>
 
                 <th>Date</th>
 
@@ -348,6 +347,44 @@
 
                   };
 
+                  $activeAssignments = $attendance
+                    ->tripAssignments
+                    ->filter(function ($assignment) {
+                      $trip = $assignment->tripSchedule;
+
+                      return $trip
+                        && ! in_array(
+                          $trip->status,
+                          ['Cancelled', 'Completed'],
+                          true
+                        );
+                    })
+                    ->sortBy(function ($assignment) {
+                      return optional(
+                        $assignment->tripSchedule
+                      )->departure_time;
+                    })
+                    ->values();
+
+                  $primaryAssignment = $activeAssignments->first();
+                  $primaryTrip = $primaryAssignment?->tripSchedule;
+                  $primaryBus = $primaryAssignment?->bus;
+
+                  $assignmentSummary = $primaryAssignment
+                    ? trim(
+                        ($primaryBus?->bus_no ?? 'Bus unavailable')
+                        . ' | '
+                        . ($primaryTrip?->trip_code ?? 'Trip unavailable')
+                      )
+                    : 'Unassigned';
+
+                  if ($activeAssignments->count() > 1) {
+                    $assignmentSummary .=
+                      ' | '
+                      . $activeAssignments->count()
+                      . ' assigned trips';
+                  }
+
                 @endphp
 
 
@@ -374,7 +411,55 @@
 
 
                   <td>
-                    {{ $attendance->bus_assignment ?: 'Unassigned' }}
+
+                    @if($primaryAssignment)
+
+                      <div class="current-assignment-cell">
+
+                        <span class="current-assignment-bus">
+                          {{ $primaryBus?->bus_no ?? 'Bus unavailable' }}
+                        </span>
+
+                        <span class="current-assignment-trip">
+                          {{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}
+
+                          @if($primaryTrip)
+                            •
+                            {{
+                              date(
+                                'h:i A',
+                                strtotime($primaryTrip->departure_time)
+                              )
+                            }}
+                            –
+                            {{
+                              date(
+                                'h:i A',
+                                strtotime(
+                                  $primaryTrip->estimated_arrival_time
+                                )
+                              )
+                            }}
+                          @endif
+                        </span>
+
+                        @if($activeAssignments->count() > 1)
+                          <small class="current-assignment-more">
+                            +{{ $activeAssignments->count() - 1 }}
+                            more assignment(s)
+                          </small>
+                        @endif
+
+                      </div>
+
+                    @else
+
+                      <span class="current-assignment-empty">
+                        Unassigned
+                      </span>
+
+                    @endif
+
                   </td>
 
 
@@ -442,7 +527,7 @@
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"
                         data-shift="{{ $attendance->shift }}"
-                        data-bus-assignment="{{ $attendance->bus_assignment ?: 'Unassigned' }}"
+                        data-bus-assignment="{{ $assignmentSummary }}"
                         data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
                         data-time-in="{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}"
                         data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
@@ -461,7 +546,6 @@
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"
                         data-shift="{{ $attendance->shift }}"
-                        data-bus-assignment="{{ $attendance->bus_assignment }}"
                         data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('Y-m-d') : '' }}"
                         data-time-in="{{ $attendance->time_in }}"
                         data-time-out="{{ $attendance->time_out }}"
@@ -613,7 +697,6 @@
             Required columns:
             driver_name,
             shift,
-            bus_assignment,
             attendance_date,
             time_in,
             time_out,
@@ -725,127 +808,6 @@
         :required="true"
       />
 
-      <div class="ui-form-group">
-        <label for="driverBusTrigger">
-          Bus / Assignment
-        </label>
-
-        <div
-          class="attendance-combobox"
-          id="driverBusCombobox"
-        >
-          <input
-            type="hidden"
-            name="bus_assignment"
-            id="driverBusAssignment"
-            value="{{ old('bus_assignment') }}"
-          >
-
-          <button
-            type="button"
-            class="attendance-combobox-trigger"
-            id="driverBusTrigger"
-            aria-expanded="false"
-          >
-            <span class="attendance-combobox-icon">
-              <i class="fa-solid fa-bus"></i>
-            </span>
-
-            <span
-              class="attendance-combobox-label placeholder"
-              id="driverBusLabel"
-            >
-              Select active bus
-            </span>
-
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-
-          <div
-            class="attendance-combobox-menu"
-            id="driverBusMenu"
-          >
-            <div class="attendance-combobox-search">
-              <i class="fa-solid fa-magnifying-glass"></i>
-
-              <input
-                type="search"
-                id="driverBusSearch"
-                placeholder="Search bus number, model, or plate..."
-                autocomplete="off"
-              >
-            </div>
-
-            <div class="attendance-combobox-options">
-              <button
-                type="button"
-                class="attendance-combobox-option"
-                data-value=""
-                data-label="No bus assigned"
-                data-search="no bus unassigned"
-              >
-                <span>
-                  <strong>No bus assigned</strong>
-                  <small>Leave the driver without a bus</small>
-                </span>
-
-                <i class="fa-solid fa-check"></i>
-              </button>
-
-              @foreach($activeBuses as $bus)
-                @php
-                  $busLabel = $bus->bus_no
-                    . (
-                      $bus->bus_model
-                        ? ' — ' . $bus->bus_model
-                        : ''
-                    );
-                @endphp
-
-                <button
-                  type="button"
-                  class="attendance-combobox-option"
-                  data-value="{{ $bus->bus_no }}"
-                  data-label="{{ $busLabel }}"
-                  data-search="{{ strtolower(
-                    $bus->bus_no
-                    . ' '
-                    . ($bus->bus_model ?? '')
-                    . ' '
-                    . ($bus->plate_no ?? '')
-                  ) }}"
-                >
-                  <span>
-                    <strong>{{ $bus->bus_no }}</strong>
-                    <small>
-                      {{ $bus->bus_model ?: 'Operational bus' }}
-                      @if($bus->plate_no)
-                        — {{ $bus->plate_no }}
-                      @endif
-                    </small>
-                  </span>
-
-                  <i class="fa-solid fa-check"></i>
-                </button>
-              @endforeach
-            </div>
-          </div>
-        </div>
-
-        <small
-          class="attendance-bus-help"
-          id="driverBusHelp"
-        >
-          Only active buses from Bus Master List are shown.
-        </small>
-
-        @error('bus_assignment')
-          <span class="ui-field-error">
-            {{ $message }}
-          </span>
-        @enderror
-      </div>
-
       <x-ui.form-field
         label="Date"
         name="attendance_date"
@@ -895,10 +857,10 @@
       <i class="fa-solid fa-circle-info"></i>
 
       <div>
-        <strong>Bus assignment rule</strong>
+        <strong>Automatic assignment display</strong>
         <span>
-          The bus field is cleared automatically when the driver is
-          Absent or On Leave.
+          Bus and trip assignments are managed in Driver & Bus Assignment
+          or Auto Scheduling and are displayed here automatically.
         </span>
       </div>
     </div>

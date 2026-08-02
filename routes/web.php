@@ -17,6 +17,7 @@ use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\RouteController;
 use App\Http\Controllers\Operation\TripAssignmentController;
 use App\Http\Controllers\Operation\TripScheduleController;
+use App\Http\Controllers\Operation\AutoSchedulingController; 
 
 use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
@@ -1065,23 +1066,38 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
         });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Auto Scheduling
-    |--------------------------------------------------------------------------
-    */
+   /*
+|--------------------------------------------------------------------------
+| Auto Scheduling
+|--------------------------------------------------------------------------
+*/
 
-    Route::view(
-        '/operation/auto-scheduling',
-        'Operation.Scheduling_And_Dispatch.auto-dispatch'
-    )->name(
-        'auto-scheduling'
-    );
+    Route::controller(
+        AutoSchedulingController::class
+    )
+        ->prefix('operation/auto-scheduling')
+        ->group(function () {
+
+            Route::get(
+                '/',
+                'index'
+            )->name(
+                'auto-scheduling'
+            );
+
+            Route::post(
+                '/generate',
+                'generate'
+            )->name(
+                'auto-scheduling.generate'
+            );
+
+        });
 
 
-    Route::view(
+    Route::redirect(
         '/operation/auto-dispatch',
-        'Operation.Scheduling_And_Dispatch.auto-dispatch'
+        '/operation/auto-scheduling'
     )->name(
         'auto-dispatch'
     );
