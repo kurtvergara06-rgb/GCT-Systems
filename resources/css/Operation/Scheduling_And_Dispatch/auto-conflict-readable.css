@@ -275,6 +275,7 @@
     font-size: 10px;
     line-height: 1.55;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
 
 .gct-selected-combination {
