@@ -13,5 +13,8 @@ import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.css';
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-readable.css';
 import './Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js';
 
+import '../css/Operation/Attendance/batch-attendance.css';
+import './Operation/Attendance/batch-attendance.js';
+
 import './Admin/Data_Management/batch-file-processing.js';
 import './Admin/User_Management/users.js';
