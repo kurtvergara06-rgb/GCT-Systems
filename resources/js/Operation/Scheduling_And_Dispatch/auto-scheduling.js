@@ -236,6 +236,20 @@ function renderAiWarnings(warnings) {
     `;
 }
 
+    function getResolutionActionLabel(action) {
+        if (
+            action?.type === 'adjust_departure_time'
+            && action?.suggested_time
+        ) {
+            return `Review departure at ${
+                formatDisplayTime(action.suggested_time)
+            }`;
+        }
+
+        return action?.title
+            || action?.label
+            || 'Review recommended action';
+    }
 
     function renderAiActions(actions) {
         if (!actions.length) {
