@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\PreferredAiResolutionMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -33,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 Request::HEADER_X_FORWARDED_PORT |
                 Request::HEADER_X_FORWARDED_PROTO
         );
+
+        $middleware->web(append: [
+            PreferredAiResolutionMiddleware::class,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
