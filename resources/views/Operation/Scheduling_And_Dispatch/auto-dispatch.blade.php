@@ -323,4 +323,92 @@
         </section>
     </main>
 </div>
+
+<script>
+var getResolutionActionLabel = function (action) {
+    if (
+        action
+        && action.type === 'adjust_departure_time'
+        && action.suggested_time
+    ) {
+        var parts = String(action.suggested_time).split(':');
+        var hour = Number(parts[0]);
+        var minute = parts[1] || '00';
+        var period = hour >= 12 ? 'PM' : 'AM';
+
+        hour = hour % 12 || 12;
+
+        return 'Review departure at '
+            + hour
+            + ':'
+            + minute
+            + ' '
+            + period;
+    }
+
+    return action && (action.title || action.label)
+        ? (action.title || action.label)
+        : 'Review recommended action';
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const originalFetch = window.fetch.bind(window);
+
+    window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string'
+            ? input
+            : input?.url || '';
+
+        if (
+            url.endsWith('/operation/auto-scheduling/resolve')
+            && typeof init.body === 'string'
+        ) {
+            try {
+                const payload = JSON.parse(init.body);
+
+                if (
+                    !payload.proposed_departure_time
+                    && payload.suggested_time
+                ) {
+                    payload.proposed_departure_time =
+                        payload.suggested_time;
+                }
+
+                delete payload.suggested_time;
+                delete payload.resolution_type;
+
+                init = {
+                    ...init,
+                    body: JSON.stringify(payload),
+                };
+            } catch (error) {
+                console.warn(
+                    'Unable to normalize AI resolution request.',
+                    error
+                );
+            }
+        }
+
+        return originalFetch(input, init);
+    };
+
+    const cleanSuggestedTime = () => {
+        document
+            .querySelectorAll('.ai-action-item > small')
+            .forEach((element) => element.remove());
+    };
+
+    cleanSuggestedTime();
+
+    const observer = new MutationObserver(
+        cleanSuggestedTime
+    );
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+});
+</script>
+
 </x-layout.app>
