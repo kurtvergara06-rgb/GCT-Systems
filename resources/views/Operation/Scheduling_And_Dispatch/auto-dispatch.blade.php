@@ -325,6 +325,32 @@
 </div>
 
 <script>
+var getResolutionActionLabel = function (action) {
+    if (
+        action
+        && action.type === 'adjust_departure_time'
+        && action.suggested_time
+    ) {
+        var parts = String(action.suggested_time).split(':');
+        var hour = Number(parts[0]);
+        var minute = parts[1] || '00';
+        var period = hour >= 12 ? 'PM' : 'AM';
+
+        hour = hour % 12 || 12;
+
+        return 'Review departure at '
+            + hour
+            + ':'
+            + minute
+            + ' '
+            + period;
+    }
+
+    return action && (action.title || action.label)
+        ? (action.title || action.label)
+        : 'Review recommended action';
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const originalFetch = window.fetch.bind(window);
 
