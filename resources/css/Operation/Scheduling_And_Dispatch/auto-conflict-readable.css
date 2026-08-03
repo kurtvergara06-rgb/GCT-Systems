@@ -1,0 +1,404 @@
+/*
+ * Readability layer for the redesigned Auto Scheduling conflict panel.
+ * Loaded after auto-conflict-redesign.css so the GCT theme remains unchanged.
+ */
+
+.auto-scheduling-page .conflict-card {
+    padding: 22px;
+}
+
+.auto-scheduling-page .conflict-header {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.auto-scheduling-page .conflict-header .conflict-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    font-size: 17px;
+}
+
+.auto-scheduling-page .conflict-header h2 {
+    font-size: 21px;
+    line-height: 1.25;
+}
+
+.auto-scheduling-page .conflict-header p {
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.gct-conflict-record {
+    border-radius: 16px;
+}
+
+.gct-conflict-record + .gct-conflict-record {
+    margin-top: 26px;
+}
+
+.gct-conflict-summary {
+    grid-template-columns:
+        minmax(140px, 0.8fr)
+        minmax(310px, 2fr)
+        minmax(150px, 0.85fr)
+        minmax(330px, 1.7fr);
+}
+
+.gct-conflict-summary-item {
+    gap: 14px;
+    min-height: 86px;
+    padding: 19px 20px;
+}
+
+.gct-conflict-summary-icon {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.gct-conflict-summary-copy span {
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.gct-conflict-summary-copy strong {
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.gct-conflict-summary-copy small {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.gct-ai-panel {
+    padding: 24px;
+}
+
+.gct-ai-heading {
+    gap: 18px;
+    margin-bottom: 21px;
+}
+
+.gct-ai-title-wrap {
+    gap: 14px;
+}
+
+.gct-ai-icon {
+    flex-basis: 43px;
+    width: 43px;
+    height: 43px;
+    border-radius: 12px;
+    font-size: 17px;
+}
+
+.gct-ai-heading h3 {
+    margin: 3px 0 6px;
+    font-size: 18px;
+}
+
+.gct-ai-heading p {
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.gct-ai-score {
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.gct-ai-layout {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr);
+    gap: 22px;
+}
+
+.gct-panel-block {
+    padding: 18px;
+    border-radius: 13px;
+}
+
+.gct-panel-block + .gct-panel-block {
+    margin-top: 16px;
+}
+
+.gct-panel-heading {
+    gap: 9px;
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+.gct-finding-list {
+    gap: 11px;
+}
+
+.gct-finding-item {
+    gap: 12px;
+    min-height: 58px;
+    padding: 12px 13px;
+    border-radius: 11px;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.gct-finding-count {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.gct-ai-context {
+    padding: 18px;
+    border-radius: 13px;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.gct-ai-context i {
+    right: 18px;
+    bottom: 14px;
+    font-size: 48px;
+}
+
+.gct-ai-context p {
+    max-width: calc(100% - 68px);
+}
+
+.gct-best-action {
+    padding: 18px;
+    border-left-width: 4px;
+    border-radius: 12px;
+}
+
+.gct-best-action-top {
+    gap: 15px;
+}
+
+.gct-best-action h4 {
+    margin-bottom: 8px;
+    font-size: 17px;
+}
+
+.gct-best-action p {
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.gct-confidence {
+    min-width: 72px;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+.gct-confidence strong {
+    margin: 3px 0;
+    font-size: 22px;
+}
+
+.gct-confidence small {
+    padding: 3px 7px;
+    font-size: 9px;
+}
+
+.gct-validation-list {
+    gap: 9px;
+    margin-top: 16px;
+}
+
+.gct-validation-item {
+    gap: 9px;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.gct-option-section {
+    margin-top: 18px;
+    padding-top: 17px;
+}
+
+.gct-option-section-header {
+    margin-bottom: 12px;
+}
+
+.gct-option-section-header strong {
+    gap: 8px;
+    font-size: 13px;
+}
+
+.gct-option-section-header span {
+    font-size: 10px;
+}
+
+.gct-option-grid {
+    gap: 11px;
+}
+
+.gct-option-card {
+    min-height: 116px;
+    padding: 15px;
+    border-radius: 11px;
+}
+
+.gct-option-radio {
+    top: 13px;
+    right: 13px;
+    width: 19px;
+    height: 19px;
+}
+
+.gct-option-card.is-selected .gct-option-radio::after {
+    width: 10px;
+    height: 10px;
+}
+
+.gct-option-card strong {
+    max-width: calc(100% - 29px);
+    font-size: 13px;
+}
+
+.gct-option-score {
+    margin-top: 9px;
+    padding: 4px 8px;
+    font-size: 9px;
+}
+
+.gct-option-card p {
+    margin-top: 10px;
+    font-size: 10px;
+    line-height: 1.55;
+    -webkit-line-clamp: 3;
+}
+
+.gct-selected-combination {
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.gct-selected-chip {
+    gap: 7px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-size: 10px;
+}
+
+.gct-conflict-actions {
+    gap: 12px;
+    padding: 17px 22px;
+}
+
+.gct-conflict-actions .ai-resolution-btn {
+    min-height: 43px;
+    padding-inline: 17px;
+    font-size: 12px;
+}
+
+.gct-resolution-selection {
+    gap: 12px;
+    margin: 17px 0;
+}
+
+.gct-resolution-selection-card {
+    padding: 14px;
+    border-radius: 11px;
+}
+
+.gct-resolution-selection-card span {
+    margin-bottom: 5px;
+    font-size: 10px;
+}
+
+.gct-resolution-selection-card strong {
+    font-size: 13px;
+}
+
+.gct-result-status {
+    gap: 7px;
+    padding: 6px 10px;
+    font-size: 10px;
+}
+
+.gct-result-checks {
+    gap: 9px;
+    margin: 17px 0;
+    padding: 15px;
+    border-radius: 11px;
+}
+
+.gct-result-checks span {
+    gap: 9px;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+@media (max-width: 1400px) {
+    .gct-conflict-summary {
+        grid-template-columns: minmax(130px, 0.8fr) minmax(270px, 1.8fr) minmax(135px, 0.8fr) minmax(290px, 1.55fr);
+    }
+
+    .gct-ai-panel {
+        padding: 21px;
+    }
+
+    .gct-option-card {
+        min-height: 108px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .gct-conflict-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gct-conflict-summary-item:nth-child(3) {
+        border-left: 0;
+        border-top: 1px solid var(--border-color, #e4e9f0);
+    }
+
+    .gct-conflict-summary-item:nth-child(4) {
+        border-top: 1px solid var(--border-color, #e4e9f0);
+    }
+
+    .gct-ai-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .auto-scheduling-page .conflict-card {
+        padding: 16px;
+    }
+
+    .gct-conflict-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .gct-conflict-summary-item + .gct-conflict-summary-item {
+        border-top: 1px solid var(--border-color, #e4e9f0);
+        border-left: 0;
+    }
+
+    .gct-ai-panel {
+        padding: 17px;
+    }
+
+    .gct-option-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gct-conflict-actions {
+        flex-direction: column-reverse;
+    }
+
+    .gct-conflict-actions .ai-resolution-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
