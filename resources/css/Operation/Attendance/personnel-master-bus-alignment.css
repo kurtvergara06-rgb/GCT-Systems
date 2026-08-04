@@ -1,0 +1,161 @@
+/* Keep Personnel Management visually consistent with the Bus Master List. */
+
+.personnel-master-panel {
+  padding: 16px;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+}
+
+.personnel-section-header {
+  margin-bottom: 12px;
+}
+
+.personnel-module-label {
+  display: none;
+}
+
+.personnel-section-header h2 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.personnel-section-header p {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.attendance-toolbar.personnel-master-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+  align-items: end;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.personnel-master-toolbar .search-box {
+  min-width: 0;
+}
+
+.personnel-master-toolbar .search-box input {
+  width: 100%;
+  height: 40px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-master-toolbar .search-box input:focus {
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.personnel-master-toolbar .search-box > i {
+  color: #0b40b5;
+}
+
+.personnel-master-toolbar .filter-group {
+  min-width: 150px;
+}
+
+.personnel-master-toolbar .filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.personnel-master-toolbar .filter-group select {
+  height: 40px;
+  min-width: 150px;
+  padding: 0 34px 0 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-search-btn {
+  display: none !important;
+}
+
+.personnel-add-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #ffc400;
+  color: #061b3a;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.personnel-add-btn:hover {
+  background: #f5a800;
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.28);
+}
+
+.personnel-master-table-wrap {
+  border-radius: 10px;
+}
+
+.personnel-master-table thead {
+  background: #f3f7fc;
+}
+
+.personnel-master-table th {
+  padding: 13px 14px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+}
+
+.personnel-master-table td {
+  padding: 13px 14px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-master-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+@media (max-width: 900px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: 1fr 160px;
+  }
+
+  .personnel-add-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .personnel-master-toolbar .filter-group,
+  .personnel-master-toolbar .filter-group select,
+  .personnel-add-btn {
+    width: 100%;
+  }
+}
