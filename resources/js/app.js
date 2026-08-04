@@ -16,6 +16,7 @@ import './Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import '../css/Operation/Attendance/batch-attendance-availability.css';
 import '../css/Operation/Attendance/personnel-attendance-refactor.css';
+import '../css/Operation/Attendance/personnel-master-bus-alignment.css';
 import './Operation/Attendance/batch-attendance.js';
 import './Operation/Attendance/batch-attendance-availability.js';
 import './Operation/Attendance/personnel-attendance-refactor.js';
