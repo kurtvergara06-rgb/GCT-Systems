@@ -5,18 +5,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isDriver && !isMechanic) return;
 
+    /*
+    |--------------------------------------------------------------------------
+    | ATTENDANCE-ONLY PAGE
+    |--------------------------------------------------------------------------
+    |
+    | Permanent personnel creation belongs exclusively to Driver Master List
+    | and Mechanic Master List. The attendance pages only keep daily attendance
+    | import, batch recording, viewing, editing, and deletion of attendance.
+    |
+    */
+
     const toolbar = document.querySelector('.attendance-toolbar');
+    const oldNewRecordButton = toolbar?.querySelector('.primary-btn');
+    const oldPersonnelLink = toolbar?.querySelector('.personnel-master-link');
     const importButton = toolbar?.querySelector('.import-btn');
 
-    if (toolbar && importButton && !toolbar.querySelector('.personnel-master-link')) {
-        const masterLink = document.createElement('a');
-        masterLink.className = 'secondary-btn personnel-master-link';
-        masterLink.href = isDriver
-            ? '/operation/personnel/drivers'
-            : '/operation/personnel/mechanics';
-        masterLink.innerHTML = `<i class="fa-solid fa-address-book"></i> ${isDriver ? 'Driver' : 'Mechanic'} Master List`;
-        toolbar.insertBefore(masterLink, importButton);
+    oldPersonnelLink?.remove();
+    oldNewRecordButton?.remove();
+
+    if (importButton) {
+        importButton.innerHTML = '<i class="fa-solid fa-file-import"></i> Import Attendance';
+        importButton.title = 'Import daily attendance records';
     }
+
+    const pageCard = document.querySelector('.attendance-card');
+    const sectionHeader = pageCard?.querySelector('.section-header');
+
+    if (sectionHeader && !sectionHeader.querySelector('.attendance-scope-note')) {
+        const note = document.createElement('div');
+        note.className = 'attendance-scope-note';
+        note.innerHTML = `
+            <i class="fa-solid fa-circle-info"></i>
+            <span>
+                This page records daily attendance only. Permanent ${isDriver ? 'driver' : 'mechanic'} profiles are managed in Personnel Management.
+            </span>`;
+        sectionHeader.appendChild(note);
+    }
+
+    /* Remove the old single-record creation modal from the active page flow. */
+    const oldCreateModalId = isDriver
+        ? 'driverAttendanceModal'
+        : 'mechanicAttendanceModal';
+
+    document.getElementById(oldCreateModalId)?.remove();
+
+    /*
+    |--------------------------------------------------------------------------
+    | GCT TIME INPUT MODAL
+    |--------------------------------------------------------------------------
+    */
 
     document.addEventListener('click', (event) => {
         const applyButton = event.target.closest('#batchApplyTime');
@@ -53,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="batch-time-modal-icon"><i class="fa-regular fa-clock"></i></div>
                 <div class="batch-time-modal-copy">
                     <h3 id="batchTimeModalTitle">Apply Time to Selected</h3>
-                    <p>This time will be applied to ${selectedRows.length} selected personnel record(s).</p>
+                    <p>This time will be applied to ${selectedRows.length} selected attendance record(s).</p>
                 </div>
                 <button type="button" class="batch-time-modal-close" data-time-modal-close>&times;</button>
                 <label class="batch-time-modal-field">
@@ -94,13 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             overlay.remove();
-            showToast(`Time applied to ${selectedRows.length} selected record(s).`, 'success');
+            showToast(`Time applied to ${selectedRows.length} selected attendance record(s).`, 'success');
         });
     }
 
     function showToast(message, type) {
         if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(message, type, type === 'success' ? 'Attendance Updated' : 'Attendance Notice');
+            window.showSystemToast(
+                message,
+                type,
+                type === 'success' ? 'Attendance Updated' : 'Attendance Notice',
+            );
             return;
         }
 
