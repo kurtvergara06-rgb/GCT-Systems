@@ -28,7 +28,10 @@ class PersonnelController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('Operation.Personnel.driver-master-list', compact('drivers'));
+        return view(
+            'Operation.Personnel Management.driver_master_list',
+            compact('drivers')
+        );
     }
 
     public function mechanics(Request $request): View
@@ -47,7 +50,10 @@ class PersonnelController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('Operation.Personnel.mechanic-master-list', compact('mechanics'));
+        return view(
+            'Operation.Personnel Management.mechanic_master_list',
+            compact('mechanics')
+        );
     }
 
     public function storeDriver(Request $request): RedirectResponse
