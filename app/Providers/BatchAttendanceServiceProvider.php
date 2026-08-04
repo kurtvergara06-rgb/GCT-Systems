@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Operation\BatchAttendanceController;
+use App\Http\Controllers\Operation\PersonnelController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +21,20 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                 Route::post('/{type}', [BatchAttendanceController::class, 'store'])
                     ->whereIn('type', ['driver', 'mechanic'])
                     ->name('operation.attendance.batch.store');
+            });
+
+        Route::middleware(['web', 'auth'])
+            ->prefix('operation/personnel')
+            ->group(function (): void {
+                Route::get('/drivers', [PersonnelController::class, 'drivers'])
+                    ->name('operation.personnel.drivers');
+                Route::post('/drivers', [PersonnelController::class, 'storeDriver'])
+                    ->name('operation.personnel.drivers.store');
+
+                Route::get('/mechanics', [PersonnelController::class, 'mechanics'])
+                    ->name('operation.personnel.mechanics');
+                Route::post('/mechanics', [PersonnelController::class, 'storeMechanic'])
+                    ->name('operation.personnel.mechanics.store');
             });
     }
 }
