@@ -60,6 +60,17 @@
                     <thead><tr><th>Driver ID</th><th>Driver</th><th>Default Shift</th><th>Contact</th><th>License Number</th><th>License Expiration</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($drivers as $driver)
+                        @php
+                            $driverRecord = e(json_encode([
+                                'driver_id' => $driver->driver_id,
+                                'driver_name' => $driver->driver_name,
+                                'shift' => $driver->shift,
+                                'contact_number' => $driver->contact_number,
+                                'license_number' => $driver->license_number,
+                                'license_expiration' => $driver->license_expiration?->format('Y-m-d'),
+                                'employment_status' => $driver->employment_status,
+                            ], JSON_THROW_ON_ERROR));
+                        @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar"><i class="fa-solid fa-user"></i></span><div><strong>{{ $driver->driver_name }}</strong><small>Driver profile</small></div></div></td>
@@ -69,8 +80,8 @@
                             <td>{{ $driver->license_expiration?->format('M d, Y') ?? '—' }}</td>
                             <td><span class="badge personnel-status {{ strtolower($driver->employment_status) }}">{{ $driver->employment_status }}</span></td>
                             <td><div class="actions">
-                                <button type="button" class="action-btn view" title="View" data-personnel-action="view" data-record='@json(["driver_id"=>$driver->driver_id,"driver_name"=>$driver->driver_name,"shift"=>$driver->shift,"contact_number"=>$driver->contact_number,"license_number"=>$driver->license_number,"license_expiration"=>$driver->license_expiration?->format("Y-m-d"),"employment_status"=>$driver->employment_status])'><i class="fa-solid fa-eye"></i></button>
-                                <button type="button" class="action-btn edit" title="Edit" data-personnel-action="edit" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" data-record='@json(["driver_id"=>$driver->driver_id,"driver_name"=>$driver->driver_name,"shift"=>$driver->shift,"contact_number"=>$driver->contact_number,"license_number"=>$driver->license_number,"license_expiration"=>$driver->license_expiration?->format("Y-m-d"),"employment_status"=>$driver->employment_status])'><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" class="action-btn view" title="View" data-personnel-action="view" data-record="{{ $driverRecord }}"><i class="fa-solid fa-eye"></i></button>
+                                <button type="button" class="action-btn edit" title="Edit" data-personnel-action="edit" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" data-record="{{ $driverRecord }}"><i class="fa-solid fa-pen-to-square"></i></button>
                                 @if($driver->employment_status === 'Active')
                                 <form method="POST" action="{{ route('operation.personnel.drivers.deactivate', $driver, false) }}" data-confirm-form data-confirm-title="Deactivate Driver?" data-confirm-message="This removes the driver from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">@csrf @method('PATCH')<button type="submit" class="action-btn delete" title="Deactivate"><i class="fa-solid fa-user-slash"></i></button></form>
                                 @endif

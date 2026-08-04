@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname.replace(/\/$/, '');
+
+    ensureOperationPersonnelMenu(path);
+
     const isDriver = path.endsWith('/driver-attendance');
     const isMechanic = path.endsWith('/mechanic-attendance');
 
@@ -149,3 +152,70 @@ document.addEventListener('DOMContentLoaded', () => {
         console[type === 'error' ? 'error' : 'log'](message);
     }
 });
+
+function ensureOperationPersonnelMenu(path) {
+    const sidebar = document.getElementById('appSidebar');
+    const menu = sidebar?.querySelector('.menu');
+    const department = sidebar?.querySelector('.brand h2')?.textContent?.trim().toLowerCase();
+
+    if (!menu || department !== 'operation') return;
+
+    const dropdowns = [...menu.querySelectorAll('.menu-dropdown')];
+    const hasPersonnelMenu = dropdowns.some((dropdown) => (
+        dropdown.querySelector('.dropdown-toggle span')?.textContent?.trim() === 'Personnel Management'
+    ));
+
+    if (hasPersonnelMenu) return;
+
+    const attendanceDropdown = dropdowns.find((dropdown) => (
+        dropdown.querySelector('.dropdown-toggle span')?.textContent?.trim() === 'Attendance'
+    ));
+
+    if (!attendanceDropdown) return;
+
+    const driverActive = path === '/operation/personnel/drivers';
+    const mechanicActive = path === '/operation/personnel/mechanics';
+    const parentActive = driverActive || mechanicActive;
+    const personnelDropdown = document.createElement('div');
+
+    personnelDropdown.className = `menu-dropdown${parentActive ? ' open active' : ''}`;
+    personnelDropdown.innerHTML = `
+        <button
+            type="button"
+            class="menu-item dropdown-toggle${parentActive ? ' active' : ''}"
+            aria-expanded="${parentActive ? 'true' : 'false'}"
+            title="Personnel Management"
+        >
+            <i class="fa-solid fa-address-book"></i>
+            <span>Personnel Management</span>
+            <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+        </button>
+        <div class="submenu">
+            <a
+                href="/operation/personnel/drivers"
+                class="submenu-item${driverActive ? ' active' : ''}"
+                title="Driver Master List"
+            >
+                <i class="fa-solid fa-id-card"></i>
+                <span>Driver Master List</span>
+            </a>
+            <a
+                href="/operation/personnel/mechanics"
+                class="submenu-item${mechanicActive ? ' active' : ''}"
+                title="Mechanic Master List"
+            >
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Mechanic Master List</span>
+            </a>
+        </div>`;
+
+    const toggle = personnelDropdown.querySelector('.dropdown-toggle');
+
+    toggle?.addEventListener('click', () => {
+        const isOpen = personnelDropdown.classList.toggle('open');
+        toggle.classList.toggle('active', isOpen || parentActive);
+        toggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    attendanceDropdown.before(personnelDropdown);
+}
