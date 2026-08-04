@@ -54,6 +54,16 @@
                     <thead><tr><th>Mechanic ID</th><th>Mechanic</th><th>Default Shift</th><th>Contact</th><th>Specialization</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($mechanics as $mechanic)
+                        @php
+                            $mechanicRecord = e(json_encode([
+                                'mechanic_id' => $mechanic->mechanic_id,
+                                'mechanic_name' => $mechanic->mechanic_name,
+                                'shift' => $mechanic->shift,
+                                'contact_number' => $mechanic->contact_number,
+                                'specialization' => $mechanic->specialization,
+                                'employment_status' => $mechanic->employment_status,
+                            ], JSON_THROW_ON_ERROR));
+                        @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $mechanic->mechanic_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar mechanic"><i class="fa-solid fa-screwdriver-wrench"></i></span><div><strong>{{ $mechanic->mechanic_name }}</strong><small>Mechanic profile</small></div></div></td>
@@ -62,8 +72,8 @@
                             <td>{{ $mechanic->specialization ?: '—' }}</td>
                             <td><span class="badge personnel-status {{ strtolower($mechanic->employment_status) }}">{{ $mechanic->employment_status }}</span></td>
                             <td><div class="actions">
-                                <button type="button" class="action-btn view" title="View" data-personnel-action="view" data-record='@json(["mechanic_id"=>$mechanic->mechanic_id,"mechanic_name"=>$mechanic->mechanic_name,"shift"=>$mechanic->shift,"contact_number"=>$mechanic->contact_number,"specialization"=>$mechanic->specialization,"employment_status"=>$mechanic->employment_status])'><i class="fa-solid fa-eye"></i></button>
-                                <button type="button" class="action-btn edit" title="Edit" data-personnel-action="edit" data-update-url="{{ route('operation.personnel.mechanics.update', $mechanic, false) }}" data-record='@json(["mechanic_id"=>$mechanic->mechanic_id,"mechanic_name"=>$mechanic->mechanic_name,"shift"=>$mechanic->shift,"contact_number"=>$mechanic->contact_number,"specialization"=>$mechanic->specialization,"employment_status"=>$mechanic->employment_status])'><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" class="action-btn view" title="View" data-personnel-action="view" data-record="{{ $mechanicRecord }}"><i class="fa-solid fa-eye"></i></button>
+                                <button type="button" class="action-btn edit" title="Edit" data-personnel-action="edit" data-update-url="{{ route('operation.personnel.mechanics.update', $mechanic, false) }}" data-record="{{ $mechanicRecord }}"><i class="fa-solid fa-pen-to-square"></i></button>
                                 @if($mechanic->employment_status === 'Active')
                                 <form method="POST" action="{{ route('operation.personnel.mechanics.deactivate', $mechanic, false) }}" data-confirm-form data-confirm-title="Deactivate Mechanic?" data-confirm-message="This removes the mechanic from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">@csrf @method('PATCH')<button type="submit" class="action-btn delete" title="Deactivate"><i class="fa-solid fa-user-slash"></i></button></form>
                                 @endif
