@@ -3,16 +3,18 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
+use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class BatchAttendanceController extends Controller
 {
@@ -37,34 +39,32 @@ class BatchAttendanceController extends Controller
 
         $date = Carbon::parse($validated['date'])->toDateString();
         $shift = $validated['shift'] ?? 'all';
-        $model = $this->modelFor($type);
+        $personModel = $this->personModelFor($type);
+        $attendanceModel = $this->attendanceModelFor($type);
         $nameColumn = $this->nameColumn($type);
         $idColumn = $this->personIdColumn($type);
 
-        $records = $model::query()
+        $people = $personModel::query()
+            ->where('employment_status', 'Active')
             ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
-            ->latest('id')
+            ->orderBy($nameColumn)
             ->get();
 
-        $roster = $records
-            ->unique(fn ($record) => $this->personKey($record->{$nameColumn}, $record->shift))
-            ->values();
-
-        $dateRecords = $model::query()
+        $dateRecords = $attendanceModel::query()
             ->whereDate('attendance_date', $date)
             ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->get()
-            ->keyBy(fn ($record) => $this->personKey($record->{$nameColumn}, $record->shift));
+            ->keyBy($idColumn);
 
-        $rows = $roster->map(function ($source) use (
+        $rows = $people->map(function ($person) use (
             $dateRecords,
             $date,
             $type,
             $nameColumn,
             $idColumn
         ): array {
-            $key = $this->personKey($source->{$nameColumn}, $source->shift);
-            $record = $dateRecords->get($key);
+            $personId = (string) $person->{$idColumn};
+            $record = $dateRecords->get($personId);
             $status = $record?->status;
 
             if ($status === 'On Duty') {
@@ -72,16 +72,16 @@ class BatchAttendanceController extends Controller
             }
 
             return [
-                'person_id' => (string) $source->{$idColumn},
-                'name' => (string) $source->{$nameColumn},
-                'shift' => (string) $source->shift,
+                'person_id' => $personId,
+                'name' => (string) $person->{$nameColumn},
+                'shift' => (string) $person->shift,
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
                 'status' => $status ?: 'Present',
-                'availability' => $this->availabilityLabel($type, $record ?: $source),
+                'availability' => $this->availabilityLabel($type, $record, $personId),
                 'assigned_job' => $type === 'mechanic'
-                    ? (string) ($record?->assigned_job ?? $source->assigned_job ?? '')
+                    ? (string) ($record?->assigned_job ?? '')
                     : null,
             ];
         });
@@ -113,59 +113,72 @@ class BatchAttendanceController extends Controller
         ]);
 
         $date = Carbon::parse($validated['attendance_date'])->toDateString();
-        $model = $this->modelFor($type);
+        $attendanceModel = $this->attendanceModelFor($type);
         $nameColumn = $this->nameColumn($type);
         $idColumn = $this->personIdColumn($type);
         $saved = 0;
 
-        DB::transaction(function () use (
-            $validated,
-            $date,
-            $type,
-            $model,
-            $nameColumn,
-            $idColumn,
-            &$saved
-        ): void {
-            foreach ($validated['rows'] as $index => $row) {
-                $status = $row['status'];
-                $timeIn = $row['time_in'] ?? null;
-                $timeOut = $row['time_out'] ?? null;
+        try {
+            DB::transaction(function () use (
+                $validated,
+                $date,
+                $type,
+                $attendanceModel,
+                $nameColumn,
+                $idColumn,
+                &$saved
+            ): void {
+                foreach ($validated['rows'] as $index => $row) {
+                    $status = $row['status'];
+                    $timeIn = $row['time_in'] ?? null;
+                    $timeOut = $row['time_out'] ?? null;
 
-                if (in_array($status, ['Absent', 'On Leave'], true)) {
-                    $timeIn = null;
-                    $timeOut = null;
-                } else {
-                    if (!$timeIn) {
-                        throw ValidationException::withMessages([
-                            "rows.{$index}.time_in" => "Time-in is required for {$row['name']}.",
-                        ]);
+                    if (in_array($status, ['Absent', 'On Leave'], true)) {
+                        $timeIn = null;
+                        $timeOut = null;
+                    } else {
+                        if (! $timeIn) {
+                            throw ValidationException::withMessages([
+                                "rows.{$index}.time_in" => "Time-in is required for {$row['name']}.",
+                            ]);
+                        }
+
+                        $status = $this->attendanceStatus($row['shift'], $timeIn);
                     }
 
-                    $status = $this->attendanceStatus($row['shift'], $timeIn);
+                    $values = [
+                        $nameColumn => trim($row['name']),
+                        'shift' => $row['shift'],
+                        'time_in' => $timeIn ? $timeIn . ':00' : null,
+                        'time_out' => $timeOut ? $timeOut . ':00' : null,
+                        'status' => $status,
+                    ];
+
+                    if ($type === 'mechanic') {
+                        $values['assigned_job'] = trim((string) ($row['assigned_job'] ?? ''));
+                    }
+
+                    $attendanceModel::query()->updateOrCreate(
+                        [
+                            $idColumn => $row['person_id'],
+                            'attendance_date' => $date,
+                        ],
+                        $values
+                    );
+
+                    $saved++;
                 }
+            });
+        } catch (ValidationException $error) {
+            throw $error;
+        } catch (Throwable $error) {
+            report($error);
 
-                $attributes = [
-                    $nameColumn => trim($row['name']),
-                    'shift' => $row['shift'],
-                    'attendance_date' => $date,
-                ];
-
-                $values = [
-                    $idColumn => $row['person_id'],
-                    'time_in' => $timeIn ? $timeIn . ':00' : null,
-                    'time_out' => $timeOut ? $timeOut . ':00' : null,
-                    'status' => $status,
-                ];
-
-                if ($type === 'mechanic') {
-                    $values['assigned_job'] = trim((string) ($row['assigned_job'] ?? ''));
-                }
-
-                $model::query()->updateOrCreate($attributes, $values);
-                $saved++;
-            }
-        });
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance could not be saved. Please run the latest database migrations and try again.',
+            ], 422);
+        }
 
         $label = $type === 'driver' ? 'driver' : 'mechanic';
 
@@ -194,36 +207,45 @@ class BatchAttendanceController extends Controller
             : 'Present';
     }
 
-    private function availabilityLabel(string $type, object $record): string
-    {
+    private function availabilityLabel(
+        string $type,
+        ?object $record,
+        string $personId
+    ): string {
+        if ($record && in_array($record->status, ['Absent', 'On Leave'], true)) {
+            return 'Unavailable';
+        }
+
         if ($type === 'mechanic') {
-            return trim((string) ($record->assigned_job ?? '')) !== ''
+            return trim((string) ($record?->assigned_job ?? '')) !== ''
                 ? 'On Job'
                 : 'Available';
         }
 
-        if (method_exists($record, 'tripAssignments')) {
-            return $record->tripAssignments()->exists() ? 'On Duty' : 'Available';
+        if (! $record) {
+            return 'Available';
         }
 
-        return $record->status === 'On Duty' ? 'On Duty' : 'Available';
+        return $record->tripAssignments()
+            ->whereHas('tripSchedule', function ($query): void {
+                $query->whereNotIn('status', ['Cancelled', 'Completed']);
+            })
+            ->exists()
+                ? 'On Duty'
+                : 'Available';
     }
 
     private function timeValue(mixed $value): ?string
     {
-        if (!$value) {
-            return null;
-        }
-
-        return Carbon::parse((string) $value)->format('H:i');
+        return $value ? Carbon::parse((string) $value)->format('H:i') : null;
     }
 
-    private function personKey(string $name, string $shift): string
+    private function personModelFor(string $type): string
     {
-        return mb_strtolower(trim($name)) . '|' . $shift;
+        return $type === 'driver' ? Driver::class : Mechanic::class;
     }
 
-    private function modelFor(string $type): string
+    private function attendanceModelFor(string $type): string
     {
         return $type === 'driver' ? DriverAttendance::class : MechanicAttendance::class;
     }
