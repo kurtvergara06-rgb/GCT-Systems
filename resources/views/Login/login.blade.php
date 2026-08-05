@@ -80,15 +80,20 @@
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
 
-          <div class="vehicle vehicle-car-one">
-            <i class="fa-solid fa-car-side"></i>
-          </div>
           <div class="vehicle vehicle-van">
-            <i class="fa-solid fa-van-shuttle"></i>
+            <img
+              src="{{ asset('img/GCT_bus2.png') }}"
+              alt=""
+              style="display:block;width:min(22vw,245px);height:auto;object-fit:contain;"
+            >
           </div>
+
           <div class="vehicle vehicle-bus">
-            <span class="bus-route">GCT</span>
-            <i class="fa-solid fa-bus-simple"></i>
+            <img
+              src="{{ asset('img/GCT_bus1.png') }}"
+              alt=""
+              style="display:block;width:min(36vw,460px);height:auto;object-fit:contain;"
+            >
           </div>
         </div>
 
