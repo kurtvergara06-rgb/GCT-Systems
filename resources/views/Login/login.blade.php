@@ -80,19 +80,27 @@
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
 
-          <div class="vehicle vehicle-van">
+          <div class="vehicle vehicle-car-one">
             <img
               src="{{ asset('img/GCT_bus2.png') }}"
               alt=""
-              style="display:block;width:min(22vw,245px);height:auto;object-fit:contain;"
+              style="display:block;width:min(14vw,170px);height:auto;object-fit:contain;"
+            >
+          </div>
+
+          <div class="vehicle vehicle-van">
+            <img
+              src="{{ asset('img/GCT_bus1.png') }}"
+              alt=""
+              style="display:block;width:min(19vw,230px);height:auto;object-fit:contain;"
             >
           </div>
 
           <div class="vehicle vehicle-bus">
             <img
-              src="{{ asset('img/GCT_bus1.png') }}"
+              src="{{ asset('img/GCT_bus.png') }}"
               alt=""
-              style="display:block;width:min(36vw,460px);height:auto;object-fit:contain;"
+              style="display:block;width:min(38vw,500px);height:auto;object-fit:contain;"
             >
           </div>
         </div>
