@@ -10,24 +10,11 @@
 @php
     $authUser = auth()->user();
 
-    /*
-    |--------------------------------------------------------------------------
-    | DISPLAY NAME
-    |--------------------------------------------------------------------------
-    */
-
     $displayName = trim(
         $authUser?->name
         ?? $userName
         ?? 'Guest User'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEPARTMENT
-    |--------------------------------------------------------------------------
-    */
 
     $departmentRaw = trim(
         $authUser?->department
@@ -48,50 +35,82 @@
         str_replace(['_', '-'], ' ', $roleRaw)
     );
 
+    $componentDepartment = strtolower(
+        trim(str_replace(['_', '-'], ' ', $department))
+    );
 
     /*
     |--------------------------------------------------------------------------
-    | ROLE LABEL
+    | MAINTENANCE NAVIGATION
     |--------------------------------------------------------------------------
+    |
+    | Keep one consistent grouped menu across every Maintenance page. Existing
+    | page-level item arrays remain supported for all other departments.
+    |
     */
+    if ($componentDepartment === 'maintenance') {
+        $items = [
+            [
+                'label' => 'Dashboard',
+                'route' => 'maintenance-dashboard',
+                'icon' => 'fa-table-cells-large',
+            ],
+            [
+                'label' => 'Work Management',
+                'icon' => 'fa-screwdriver-wrench',
+                'children' => [
+                    [
+                        'label' => 'Job Orders',
+                        'route' => 'job-orders',
+                        'icon' => 'fa-clipboard-list',
+                    ],
+                    [
+                        'label' => 'PMS Scheduling',
+                        'route' => 'PMS-Scheduling',
+                        'icon' => 'fa-calendar-check',
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Resources',
+                'icon' => 'fa-toolbox',
+                'children' => [
+                    [
+                        'label' => 'Mechanic Availability',
+                        'route' => 'mechanic-list',
+                        'icon' => 'fa-user-gear',
+                    ],
+                    [
+                        'label' => 'Fuel Reports',
+                        'route' => 'fuel-reports',
+                        'icon' => 'fa-gas-pump',
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Purchase Requests',
+                'route' => 'purchase-requests',
+                'icon' => 'fa-file-invoice',
+            ],
+        ];
+    }
 
     if ($authUser) {
-
         if (
             $normalizedDepartment === 'admin'
             && $normalizedRole === 'head'
         ) {
             $displayRole = 'System Admin';
-
         } elseif ($normalizedRole === 'head') {
-
-            $displayRole =
-                ucfirst($normalizedDepartment) . ' Head';
-
+            $displayRole = ucfirst($normalizedDepartment) . ' Head';
         } elseif ($normalizedRole === 'staff') {
-
-            $displayRole =
-                ucfirst($normalizedDepartment) . ' Staff';
-
+            $displayRole = ucfirst($normalizedDepartment) . ' Staff';
         } else {
-
-            $displayRole =
-                ucfirst($normalizedDepartment) . ' User';
+            $displayRole = ucfirst($normalizedDepartment) . ' User';
         }
-
     } else {
-
-        $displayRole =
-            $userRole
-            ?? ucfirst($normalizedDepartment) . ' User';
+        $displayRole = $userRole ?? ucfirst($normalizedDepartment) . ' User';
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | INITIALS
-    |--------------------------------------------------------------------------
-    */
 
     $nameParts = collect(
         preg_split('/\s+/', $displayName)
@@ -106,13 +125,6 @@
 
     $initials = $initials ?: 'U';
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAINTENANCE SETTINGS ACCESS
-    |--------------------------------------------------------------------------
-    */
-
     $canOpenMaintenanceSettings =
         $normalizedDepartment === 'maintenance'
         || (
@@ -125,10 +137,6 @@
     class="sidebar"
     id="appSidebar"
 >
-
-    {{-- =====================================================
-        COLLAPSE BUTTON
-    ====================================================== --}}
     <button
         type="button"
         class="sidebar-collapse-btn"
@@ -140,54 +148,30 @@
         <i class="fa-solid fa-chevron-left"></i>
     </button>
 
-
-    {{-- =====================================================
-        BRAND
-    ====================================================== --}}
     <div class="brand">
-
         <div class="brand-icon">
             <i class="fa-solid {{ $icon }}"></i>
         </div>
 
         <div class="brand-text">
-
-            <h2>
-                {{ $department }}
-            </h2>
-
-            <p>
-                {{ $subtitle }}
-            </p>
-
+            <h2>{{ $department }}</h2>
+            <p>{{ $subtitle }}</p>
         </div>
-
     </div>
 
-
-    {{-- =====================================================
-        NAVIGATION
-    ====================================================== --}}
     <nav class="menu">
-
         @foreach($items as $item)
-
             @php
                 $hasChildren =
                     isset($item['children'])
                     && is_array($item['children'])
                     && count($item['children']) > 0;
 
-                $itemRoute =
-                    $item['route'] ?? null;
-
+                $itemRoute = $item['route'] ?? null;
                 $isParentActive = false;
 
-
                 if ($hasChildren) {
-
                     foreach ($item['children'] as $child) {
-
                         if (
                             isset($child['route'])
                             && request()->routeIs($child['route'])
@@ -196,9 +180,7 @@
                             break;
                         }
                     }
-
                 } else {
-
                     $isParentActive =
                         $itemRoute
                         ? request()->routeIs($itemRoute)
@@ -206,122 +188,65 @@
                 }
             @endphp
 
-
-            {{-- =================================================
-                DROPDOWN ITEM
-            ================================================== --}}
             @if($hasChildren)
-
                 <div
                     class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}"
                 >
-
                     <button
                         type="button"
                         class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
                         aria-expanded="{{ $isParentActive ? 'true' : 'false' }}"
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
+                        <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
 
-                        <i
-                            class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
-                        ></i>
+                        <span>{{ $item['label'] ?? 'Menu' }}</span>
 
-                        <span>
-                            {{ $item['label'] ?? 'Menu' }}
-                        </span>
-
-                        <i
-                            class="fa-solid fa-chevron-down dropdown-arrow"
-                        ></i>
-
+                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                     </button>
 
-
                     <div class="submenu">
-
                         @foreach($item['children'] as $child)
-
                             @if(isset($child['route']) && Route::has($child['route']))
-
                                 <a
                                     href="{{ route($child['route'], [], false) }}"
                                     class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
-
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
-
-                                    <span>
-                                        {{ $child['label'] ?? 'Submenu' }}
-                                    </span>
-
+                                    <span>{{ $child['label'] ?? 'Submenu' }}</span>
                                 </a>
-
                             @elseif(!isset($child['route']))
-
                                 <div
                                     class="submenu-item submenu-item-disabled"
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
-
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
-
-                                    <span>
-                                        {{ $child['label'] ?? 'Submenu' }}
-                                    </span>
-
+                                    <span>{{ $child['label'] ?? 'Submenu' }}</span>
                                 </div>
-
                             @endif
-
                         @endforeach
-
                     </div>
-
                 </div>
-
-
-            {{-- =================================================
-                NORMAL MENU ITEM
-            ================================================== --}}
             @else
-
                 @if(
                     $itemRoute
                     && \Illuminate\Support\Facades\Route::has($itemRoute)
                 )
-
                     <a
                         href="{{ route($item['route'], [], false) }}"
                         class="menu-item {{ $isParentActive ? 'active' : '' }}"
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
-
-                        <i
-                            class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"
-                        ></i>
-
-                        <span>
-                            {{ $item['label'] ?? 'Menu' }}
-                        </span>
-
+                        <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
+                        <span>{{ $item['label'] ?? 'Menu' }}</span>
                     </a>
-
                 @endif
-
             @endif
-
         @endforeach
-
     </nav>
 
-
-    {{-- =====================================================
-        PROFILE
-    ====================================================== --}}
     <div class="sidebar-profile-wrap">
-
         <button
             type="button"
             class="user-box sidebar-profile-toggle"
@@ -329,123 +254,69 @@
             aria-expanded="false"
             title="{{ $displayName }}"
         >
-
             <div class="avatar">
                 <span>{{ $initials }}</span>
             </div>
 
-
             <div class="user-box-text">
-
-                <h4>
-                    {{ $displayName }}
-                </h4>
-
-                <p>
-                    {{ $displayRole }}
-                </p>
-
+                <h4>{{ $displayName }}</h4>
+                <p>{{ $displayRole }}</p>
             </div>
 
-
-            <i
-                class="fa-solid fa-chevron-down profile-chevron"
-            ></i>
-
+            <i class="fa-solid fa-chevron-down profile-chevron"></i>
         </button>
 
-
-        {{-- =================================================
-            PROFILE POPUP
-        ================================================== --}}
         <div
             class="sidebar-profile-menu"
             id="sidebarProfileMenu"
         >
-
             <div class="profile-menu-header">
-
                 <div class="profile-menu-avatar">
                     {{ $initials }}
                 </div>
 
                 <div>
-
-                    <h4>
-                        {{ $displayName }}
-                    </h4>
-
-                    <p>
-                        {{ $displayRole }}
-                    </p>
-
+                    <h4>{{ $displayName }}</h4>
+                    <p>{{ $displayRole }}</p>
                 </div>
-
             </div>
 
-
             <div class="profile-menu-divider"></div>
-
 
             <button
                 type="button"
                 class="profile-menu-item"
                 disabled
             >
-
                 <i class="fa-solid fa-user"></i>
-
-                <span>
-                    Profile
-                </span>
-
+                <span>Profile</span>
             </button>
-
 
             @if(
                 $canOpenMaintenanceSettings
                 && \Illuminate\Support\Facades\Route::has('settings')
             )
-
                 <a
                     href="{{ route('settings', [], false) }}"
                     class="profile-menu-item"
                 >
-
                     <i class="fa-solid fa-gear"></i>
-
-                    <span>
-                        Settings
-                    </span>
-
+                    <span>Settings</span>
                 </a>
-
             @else
-
                 <button
                     type="button"
                     class="profile-menu-item"
                     disabled
                 >
-
                     <i class="fa-solid fa-gear"></i>
-
-                    <span>
-                        Settings
-                    </span>
-
+                    <span>Settings</span>
                 </button>
-
             @endif
-
 
             <div class="profile-menu-divider"></div>
 
-
-            @if(
-                \Illuminate\Support\Facades\Route::has('logout')
-            )
-
+            @if(\Illuminate\Support\Facades\Route::has('logout'))
                 <form
                     action="{{ route('logout', [], false) }}"
                     method="POST"
@@ -457,37 +328,20 @@
                         type="submit"
                         class="profile-menu-item logout"
                     >
-
                         <i class="fa-solid fa-right-from-bracket"></i>
-
-                        <span>
-                            Log out
-                        </span>
-
+                        <span>Log out</span>
                     </button>
-
                 </form>
-
             @else
-
                 <button
                     type="button"
                     class="profile-menu-item logout"
                     disabled
                 >
-
                     <i class="fa-solid fa-right-from-bracket"></i>
-
-                    <span>
-                        Log out
-                    </span>
-
+                    <span>Log out</span>
                 </button>
-
             @endif
-
         </div>
-
     </div>
-
 </aside>
