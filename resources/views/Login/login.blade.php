@@ -17,67 +17,6 @@
     'resources/css/Login/login.css',
     'resources/js/Login/login.js',
   ])
-
-  <style>
-    .fleet-visual {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 58px;
-      z-index: 2;
-      height: 470px;
-      overflow: visible;
-      pointer-events: none;
-    }
-
-    .fleet-composite {
-      position: absolute;
-      left: -3%;
-      bottom: 0;
-      display: block;
-      width: min(48vw, 720px);
-      max-width: 96%;
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.34));
-    }
-
-    @media (max-width: 1180px) {
-      .fleet-visual {
-        bottom: 64px;
-        height: 390px;
-      }
-
-      .fleet-composite {
-        left: -2%;
-        width: min(49vw, 590px);
-      }
-    }
-
-    @media (max-width: 960px) {
-      .fleet-visual {
-        bottom: 74px;
-        height: 310px;
-      }
-
-      .fleet-composite {
-        left: 0;
-        width: min(80vw, 500px);
-      }
-    }
-
-    @media (max-width: 620px) {
-      .fleet-visual {
-        bottom: 78px;
-        height: 210px;
-      }
-
-      .fleet-composite {
-        left: -3%;
-        width: min(92vw, 340px);
-      }
-    }
-  </style>
 </head>
 
 <body>
@@ -141,11 +80,29 @@
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
 
-          <img
-            src="{{ asset('img/gct_transport_services_fleet_showcase.png') }}"
-            alt=""
-            class="fleet-composite"
-          >
+          <div class="vehicle vehicle-car-one">
+            <img
+              src="{{ asset('img/GCT_bus2.png') }}"
+              alt=""
+              class="fleet-asset-small"
+            >
+          </div>
+
+          <div class="vehicle vehicle-van">
+            <img
+              src="{{ asset('img/GCT_bus1.png') }}"
+              alt=""
+              class="fleet-asset-medium"
+            >
+          </div>
+
+          <div class="vehicle vehicle-bus">
+            <img
+              src="{{ asset('img/GCT_bus.png') }}"
+              alt=""
+              class="fleet-asset-large"
+            >
+          </div>
         </div>
 
         <div class="security-note">
