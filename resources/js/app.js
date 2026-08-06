@@ -8,6 +8,7 @@ import './Login/login.js';
 
 import '../css/Maintenance/job-order.css';
 import './Maintenance/job-order.js';
+import './Maintenance/job-order-finish-guard.js';
 
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.css';
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-readable.css';
