@@ -48,7 +48,9 @@ select {
   background: #f8fbff;
 }
 
-/* Brand panel */
+/* =========================
+   BRAND PANEL
+========================= */
 .gct-brand-panel {
   position: relative;
   min-height: 100vh;
@@ -65,6 +67,7 @@ select {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0.48;
   background:
     linear-gradient(128deg, transparent 0 27%, rgba(255, 255, 255, 0.05) 27% 38%, transparent 38%),
@@ -87,6 +90,7 @@ select {
 .brand-grid {
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0.24;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
@@ -142,13 +146,20 @@ select {
 
 .brand-content {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   min-height: 100vh;
   max-width: 850px;
   margin: 0 auto;
   padding: clamp(34px, 5vh, 58px) clamp(42px, 5vw, 80px) 32px;
   display: flex;
   flex-direction: column;
+}
+
+.brand-header,
+.services-list,
+.security-note {
+  position: relative;
+  z-index: 5;
 }
 
 .brand-header {
@@ -254,14 +265,17 @@ select {
   line-height: 1.35;
 }
 
-/* Fleet composition */
+/* =========================
+   FLEET COMPOSITION
+========================= */
 .fleet-visual {
   position: absolute;
-  z-index: 0;
+  z-index: 2;
   left: 3%;
   right: 1%;
-  bottom: 86px;
-  height: min(39vh, 350px);
+  bottom: 76px;
+  height: 300px;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -269,45 +283,48 @@ select {
   position: absolute;
   bottom: 0;
   transform-origin: center bottom;
-  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.34));
+  filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.32));
 }
 
 .vehicle-car-one {
-  left: 3%;
+  left: 4%;
   z-index: 1;
-  transform: translateY(15px);
+  transform: translateY(14px);
 }
 
 .vehicle-van {
-  left: 12%;
+  left: 13%;
   z-index: 2;
-  transform: translateY(7px);
+  transform: translateY(8px);
 }
 
 .vehicle-bus {
-  left: 29%;
+  left: 28%;
   z-index: 3;
-  transform: translateY(0);
 }
 
 .fleet-asset-small,
 .fleet-asset-medium,
 .fleet-asset-large {
   display: block;
-  height: auto;
+  width: auto;
+  max-width: none;
   object-fit: contain;
 }
 
 .fleet-asset-small {
-  width: min(11vw, 130px);
+  width: 105px;
+  max-height: 95px;
 }
 
 .fleet-asset-medium {
-  width: min(16vw, 190px);
+  width: 145px;
+  max-height: 125px;
 }
 
 .fleet-asset-large {
-  width: min(29vw, 385px);
+  width: 285px;
+  max-height: 235px;
 }
 
 .light-trail {
@@ -341,7 +358,7 @@ select {
   gap: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 16px;
-  background: rgba(1, 25, 67, 0.58);
+  background: rgba(1, 25, 67, 0.72);
   backdrop-filter: blur(12px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
@@ -373,7 +390,9 @@ select {
   font-size: 12px;
 }
 
-/* Form panel */
+/* =========================
+   FORM PANEL
+========================= */
 .gct-form-panel {
   position: relative;
   min-height: 100vh;
@@ -675,7 +694,7 @@ select {
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-btn:hover {
@@ -770,6 +789,9 @@ select {
   background: transparent;
 }
 
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 1180px) {
   .gct-login-page {
     grid-template-columns: minmax(390px, 45%) minmax(490px, 55%);
@@ -785,19 +807,34 @@ select {
   }
 
   .fleet-visual {
-    opacity: 0.84;
+    height: 260px;
   }
 
   .vehicle-car-one {
-    left: 1%;
+    left: 2%;
   }
 
   .vehicle-van {
-    left: 10%;
+    left: 12%;
   }
 
   .vehicle-bus {
-    left: 27%;
+    left: 29%;
+  }
+
+  .fleet-asset-small {
+    width: 88px;
+    max-height: 82px;
+  }
+
+  .fleet-asset-medium {
+    width: 122px;
+    max-height: 108px;
+  }
+
+  .fleet-asset-large {
+    width: 245px;
+    max-height: 205px;
   }
 }
 
@@ -830,20 +867,35 @@ select {
   }
 
   .fleet-visual {
-    bottom: 92px;
-    height: 260px;
+    bottom: 88px;
+    height: 235px;
+  }
+
+  .vehicle-car-one {
+    left: 4%;
+  }
+
+  .vehicle-van {
+    left: 16%;
+  }
+
+  .vehicle-bus {
+    left: 34%;
   }
 
   .fleet-asset-small {
-    width: 100px;
+    width: 92px;
+    max-height: 82px;
   }
 
   .fleet-asset-medium {
-    width: 140px;
+    width: 125px;
+    max-height: 110px;
   }
 
   .fleet-asset-large {
     width: 235px;
+    max-height: 195px;
   }
 
   .gct-form-panel {
@@ -901,8 +953,8 @@ select {
 
   .fleet-visual {
     bottom: 82px;
-    height: 175px;
-    opacity: 0.82;
+    height: 155px;
+    opacity: 0.9;
   }
 
   .vehicle-car-one {
@@ -910,23 +962,26 @@ select {
   }
 
   .vehicle-van {
-    left: 11%;
+    left: 13%;
   }
 
   .vehicle-bus {
-    left: 29%;
+    left: 32%;
   }
 
   .fleet-asset-small {
-    width: 68px;
+    width: 60px;
+    max-height: 55px;
   }
 
   .fleet-asset-medium {
-    width: 92px;
+    width: 82px;
+    max-height: 72px;
   }
 
   .fleet-asset-large {
-    width: 150px;
+    width: 145px;
+    max-height: 122px;
   }
 
   .security-note {
