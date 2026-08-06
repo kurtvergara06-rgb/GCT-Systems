@@ -15,7 +15,6 @@
   @vite([
     'resources/css/Main-styles/theme.css',
     'resources/css/Login/login.css',
-    'resources/css/Login/login-polish.css',
     'resources/js/Login/login.js',
   ])
 </head>
