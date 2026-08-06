@@ -4,17 +4,13 @@
 
 :root {
   --gct-blue: #0757e6;
-  --gct-blue-deep: #002c7d;
+  --gct-blue-deep: #003da9;
   --gct-navy: #031b49;
-  --gct-navy-dark: #011231;
   --gct-yellow: #ffc400;
-  --gct-yellow-soft: #ffd95e;
-  --gct-white: #ffffff;
   --gct-text: #102347;
   --gct-muted: #667797;
   --gct-border: #d8e2f1;
   --gct-danger: #c93434;
-  --gct-success: #168754;
   --gct-shadow: 0 30px 70px rgba(12, 38, 86, 0.16);
 }
 
@@ -52,33 +48,19 @@ select {
   background: #f8fbff;
 }
 
-/* =========================================================
+/* =========================
    BRAND PANEL
 ========================================================= */
-
 .gct-brand-panel {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  color: #ffffff;
-  border-bottom: 8px solid var(--gct-yellow);
+  color: #fff;
   background:
-    radial-gradient(
-      circle at 16% 8%,
-      rgba(36, 113, 255, 0.62),
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at 85% 52%,
-      rgba(20, 78, 193, 0.35),
-      transparent 34%
-    ),
-    linear-gradient(
-      145deg,
-      #041a48 0%,
-      #052c72 52%,
-      #031a47 100%
-    );
+    radial-gradient(circle at 16% 8%, rgba(36, 113, 255, 0.62), transparent 26%),
+    radial-gradient(circle at 85% 52%, rgba(20, 78, 193, 0.35), transparent 34%),
+    linear-gradient(145deg, #041a48 0%, #052c72 52%, #031a47 100%);
+  border-bottom: 8px solid var(--gct-yellow);
 }
 
 .gct-brand-panel::before {
@@ -89,38 +71,21 @@ select {
   opacity: 0.48;
   pointer-events: none;
   background:
-    linear-gradient(
-      128deg,
-      transparent 0 27%,
-      rgba(255, 255, 255, 0.05) 27% 38%,
-      transparent 38% 100%
-    ),
-    linear-gradient(
-      310deg,
-      transparent 0 68%,
-      rgba(12, 89, 236, 0.28) 68% 77%,
-      transparent 77% 100%
-    );
+    linear-gradient(128deg, transparent 0 27%, rgba(255, 255, 255, 0.05) 27% 38%, transparent 38% 100%),
+    linear-gradient(310deg, transparent 0 68%, rgba(12, 89, 236, 0.28) 68% 77%, transparent 77% 100%);
 }
 
 .gct-brand-panel::after {
   content: "";
   position: absolute;
+  right: -22px;
   top: 0;
   right: -22px;
   bottom: 0;
-  z-index: 8;
   width: 36px;
-  pointer-events: none;
+  z-index: 8;
   transform: skewX(-7deg);
-  background:
-    linear-gradient(
-      180deg,
-      #0b68ff 0%,
-      #0142c4 70%,
-      #ffc400 70%,
-      #ffc400 100%
-    );
+  background: linear-gradient(180deg, #0b68ff, #0142c4 70%, #ffc400 70% 100%);
   box-shadow: 10px 0 28px rgba(6, 72, 190, 0.25);
 }
 
@@ -201,7 +166,7 @@ select {
 
 .brand-content {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   min-height: 100vh;
   max-width: 850px;
   margin: 0 auto;
@@ -211,6 +176,13 @@ select {
     32px;
   display: flex;
   flex-direction: column;
+}
+
+.brand-header,
+.services-list,
+.security-note {
+  position: relative;
+  z-index: 5;
 }
 
 .brand-header {
@@ -315,8 +287,7 @@ select {
     1px solid rgba(255, 196, 0, 0.72);
   border-radius: 50%;
   background: rgba(0, 42, 111, 0.58);
-  box-shadow:
-    inset 0 0 20px rgba(2, 100, 255, 0.2);
+  box-shadow: inset 0 0 20px rgba(2, 100, 255, 0.2);
 }
 
 .service-item h2 {
@@ -337,69 +308,75 @@ select {
    FLEET VEHICLES
 ========================================================= */
 
+/* =========================
+   FLEET COMPOSITION
+========================= */
 .fleet-visual {
   position: absolute;
-  left: 3%;
+  left: 5%;
   right: 2%;
-  bottom: 88px;
-  z-index: 2;
-  height: 310px;
-  overflow: visible;
+  bottom: 92px;
+  height: min(37vh, 330px);
+  z-index: -1;
   pointer-events: none;
 }
 
 .vehicle {
   position: absolute;
-  bottom: 0;
-  display: block;
+  display: grid;
+  place-items: center;
   transform-origin: center bottom;
-  filter:
-    drop-shadow(
-      0 18px 22px rgba(0, 0, 0, 0.3)
-    );
+  filter: drop-shadow(0 24px 22px rgba(0, 0, 0, 0.4));
 }
 
-.vehicle img {
+.vehicle i {
   display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  background: linear-gradient(180deg, #f4f7fb 0%, #b8c5d8 58%, #5a6c86 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .vehicle-car-one {
-  left: 2%;
+  left: 3%;
   bottom: 3px;
-  z-index: 1;
-  width: clamp(78px, 8vw, 110px);
-  transform: translateY(10px);
+  font-size: clamp(76px, 8vw, 126px);
+  transform: perspective(600px) rotateY(-8deg);
 }
 
 .vehicle-van {
-  left: 10%;
-  bottom: 6px;
+  left: 18%;
+  bottom: 18px;
   z-index: 2;
-  width: clamp(115px, 13vw, 160px);
-  transform: translateY(4px);
+  font-size: clamp(88px, 9vw, 145px);
+  transform: perspective(600px) rotateY(-4deg);
 }
 
 .vehicle-bus {
-  left: 24%;
-  bottom: 5px;
-  z-index: 3;
-  width: clamp(230px, 26vw, 330px);
-  transform: none;
+  right: -1%;
+  bottom: -3px;
+  z-index: 4;
+  font-size: clamp(190px, 22vw, 350px);
+  transform: perspective(900px) rotateY(-8deg);
 }
 
-.fleet-asset-small,
-.fleet-asset-medium,
-.fleet-asset-large {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
+.vehicle-bus i {
+  background: linear-gradient(180deg, #4aa3ff 0%, #0755d5 47%, #ffc400 48%, #ffbd00 64%, #0d49a5 65%, #002e78 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.bus-route {
+  position: absolute;
+  top: 28%;
+  left: 48%;
+  z-index: 2;
+  color: var(--gct-yellow);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  transform: translateX(-50%);
 }
 
 .light-trail {
@@ -441,7 +418,7 @@ select {
   border:
     1px solid rgba(255, 255, 255, 0.14);
   border-radius: 16px;
-  background: rgba(1, 25, 67, 0.76);
+  background: rgba(1, 25, 67, 0.58);
   backdrop-filter: blur(12px);
   box-shadow:
     0 12px 30px rgba(0, 0, 0, 0.2);
@@ -478,7 +455,6 @@ select {
 /* =========================================================
    LOGIN PANEL
 ========================================================= */
-
 .gct-form-panel {
   position: relative;
   min-height: 100vh;
@@ -487,17 +463,8 @@ select {
   place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(
-      circle at 70% 10%,
-      rgba(56, 128, 255, 0.12),
-      transparent 26%
-    ),
-    linear-gradient(
-      145deg,
-      #ffffff 0%,
-      #f6f9ff 55%,
-      #edf4ff 100%
-    );
+    radial-gradient(circle at 70% 10%, rgba(56, 128, 255, 0.12), transparent 26%),
+    linear-gradient(145deg, #ffffff 0%, #f6f9ff 55%, #edf4ff 100%);
 }
 
 .gct-form-panel::before {
@@ -511,9 +478,7 @@ select {
   border:
     1px solid rgba(5, 87, 230, 0.08);
   border-radius: 50%;
-  box-shadow:
-    0 0 0 70px rgba(5, 87, 230, 0.025),
-    0 0 0 150px rgba(5, 87, 230, 0.018);
+  box-shadow: 0 0 0 70px rgba(5, 87, 230, 0.025), 0 0 0 150px rgba(5, 87, 230, 0.018);
 }
 
 .panel-glow {
@@ -567,12 +532,7 @@ select {
   border:
     2px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  background:
-    linear-gradient(
-      145deg,
-      #e8f0ff,
-      #ffffff
-    );
+  background: linear-gradient(145deg, #e8f0ff, #ffffff);
   box-shadow:
     0 0 0 10px rgba(7, 87, 230, 0.055),
     0 14px 28px rgba(7, 87, 230, 0.12);
@@ -619,10 +579,6 @@ select {
   background: #fff4f4;
 }
 
-.login-alert i {
-  margin-top: 2px;
-}
-
 .login-alert strong,
 .login-alert span {
   display: block;
@@ -633,7 +589,8 @@ select {
   font-size: 13px;
 }
 
-.login-alert span {
+.login-alert span,
+.field-error {
   font-size: 12px;
 }
 
@@ -696,15 +653,10 @@ select {
   font-size: 17px;
 }
 
-.input-box input,
-.input-box input:hover,
-.input-box input:focus,
-.input-box input:active {
-  width: 100%;
+.input-box input {
   min-width: 0;
-  height: 58px;
   flex: 1;
-  margin: 0;
+  height: 58px;
   padding: 0;
   color: var(--gct-text);
   border: 0 !important;
@@ -721,31 +673,6 @@ select {
   color: #8796af;
 }
 
-.input-box input:-webkit-autofill,
-.input-box input:-webkit-autofill:hover,
-.input-box input:-webkit-autofill:focus,
-.input-box input:-webkit-autofill:active {
-  border: 0 !important;
-  border-radius: 0 !important;
-  -webkit-text-fill-color: var(--gct-text);
-  -webkit-box-shadow:
-    0 0 0 1000px #ffffff inset !important;
-  box-shadow:
-    0 0 0 1000px #ffffff inset !important;
-  transition:
-    background-color 9999s ease-out 0s;
-}
-
-.input-box select {
-  min-width: 0;
-  flex: 1;
-  height: 58px;
-  color: var(--gct-text);
-  border: 0;
-  outline: 0;
-  background: transparent;
-}
-
 .toggle-password {
   width: 40px;
   height: 40px;
@@ -758,9 +685,7 @@ select {
   border-radius: 9px;
   background: transparent;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .toggle-password:hover,
@@ -774,7 +699,6 @@ select {
   display: block;
   margin-top: 7px;
   color: var(--gct-danger);
-  font-size: 12px;
 }
 
 .login-options {
@@ -800,14 +724,19 @@ select {
   accent-color: var(--gct-blue);
 }
 
-.forgot-link {
+.forgot-link,
+.footer-links a {
   color: var(--gct-blue);
-  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
 
-.forgot-link:hover {
+.forgot-link {
+  font-size: 13px;
+}
+
+.forgot-link:hover,
+.footer-links a:hover {
   text-decoration: underline;
 }
 
@@ -822,28 +751,17 @@ select {
   color: #ffffff;
   border: 0;
   border-radius: 12px;
-  background:
-    linear-gradient(
-      135deg,
-      #0870ff 0%,
-      #0757e6 46%,
-      #003eaf 100%
-    );
-  box-shadow:
-    0 15px 26px rgba(4, 77, 204, 0.28);
+  background: linear-gradient(135deg, #0870ff 0%, #0757e6 46%, #003eaf 100%);
+  box-shadow: 0 15px 26px rgba(4, 77, 204, 0.28);
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 20px 32px rgba(4, 77, 204, 0.34);
+  box-shadow: 0 20px 32px rgba(4, 77, 204, 0.34);
   filter: saturate(1.08);
 }
 
@@ -927,7 +845,6 @@ select {
 /* =========================================================
    LEGACY REGISTER PAGE SUPPORT
 ========================================================= */
-
 .register-card {
   width: min(640px, 100%);
   padding: 34px;
@@ -951,10 +868,9 @@ select {
   text-align: center;
 }
 
-/* =========================================================
+/* =========================
    RESPONSIVE
 ========================================================= */
-
 @media (max-width: 1180px) {
   .gct-login-page {
     grid-template-columns:
@@ -972,22 +888,7 @@ select {
   }
 
   .fleet-visual {
-    height: 275px;
-  }
-
-  .vehicle-car-one {
-    left: 1%;
-    width: 92px;
-  }
-
-  .vehicle-van {
-    left: 10%;
-    width: 135px;
-  }
-
-  .vehicle-bus {
-    left: 25%;
-    width: 270px;
+    opacity: 0.72;
   }
 }
 
@@ -1020,25 +921,9 @@ select {
   }
 
   .fleet-visual {
-    left: 3%;
     right: 0;
-    bottom: 92px;
-    height: 235px;
-  }
-
-  .vehicle-car-one {
-    left: 1%;
-    width: 80px;
-  }
-
-  .vehicle-van {
-    left: 10%;
-    width: 112px;
-  }
-
-  .vehicle-bus {
-    left: 24%;
-    width: 215px;
+    bottom: 95px;
+    height: 270px;
   }
 
   .gct-form-panel {
@@ -1095,24 +980,21 @@ select {
   }
 
   .fleet-visual {
-    bottom: 82px;
-    height: 160px;
-    opacity: 0.92;
-  }
-
-  .vehicle-car-one {
-    left: 0;
-    width: 55px;
-  }
-
-  .vehicle-van {
-    left: 10%;
-    width: 76px;
+    height: 190px;
+    bottom: 85px;
+    opacity: 0.68;
   }
 
   .vehicle-bus {
-    left: 24%;
-    width: 135px;
+    font-size: 210px;
+  }
+
+  .vehicle-van {
+    font-size: 90px;
+  }
+
+  .vehicle-car-one {
+    font-size: 76px;
   }
 
   .security-note {
