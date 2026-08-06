@@ -15,6 +15,7 @@
   @vite([
     'resources/css/Main-styles/theme.css',
     'resources/css/Login/login.css',
+    'resources/css/Login/login-polish.css',
     'resources/js/Login/login.js',
   ])
 </head>
@@ -84,7 +85,7 @@
             <img
               src="{{ asset('img/GCT_bus2.png') }}"
               alt=""
-              style="display:block;width:min(14vw,170px);height:auto;object-fit:contain;"
+              class="fleet-asset-small"
             >
           </div>
 
@@ -92,7 +93,7 @@
             <img
               src="{{ asset('img/GCT_bus1.png') }}"
               alt=""
-              style="display:block;width:min(19vw,230px);height:auto;object-fit:contain;"
+              class="fleet-asset-medium"
             >
           </div>
 
@@ -100,7 +101,7 @@
             <img
               src="{{ asset('img/GCT_bus.png') }}"
               alt=""
-              style="display:block;width:min(38vw,500px);height:auto;object-fit:contain;"
+              class="fleet-asset-large"
             >
           </div>
         </div>
