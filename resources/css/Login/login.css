@@ -4,17 +4,13 @@
 
 :root {
   --gct-blue: #0757e6;
-  --gct-blue-deep: #002c7d;
+  --gct-blue-deep: #003da9;
   --gct-navy: #031b49;
-  --gct-navy-dark: #011231;
   --gct-yellow: #ffc400;
-  --gct-yellow-soft: #ffd95e;
-  --gct-white: #ffffff;
   --gct-text: #102347;
   --gct-muted: #667797;
   --gct-border: #d8e2f1;
   --gct-danger: #c93434;
-  --gct-success: #168754;
   --gct-shadow: 0 30px 70px rgba(12, 38, 86, 0.16);
 }
 
@@ -32,13 +28,15 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
 button,
 a,
-input {
+input,
+select {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -50,19 +48,17 @@ input {
   background: #f8fbff;
 }
 
-/* =========================================================
-   BRAND PANEL
-========================================================= */
+/* Brand panel */
 .gct-brand-panel {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
   color: #fff;
+  border-bottom: 8px solid var(--gct-yellow);
   background:
     radial-gradient(circle at 16% 8%, rgba(36, 113, 255, 0.62), transparent 26%),
     radial-gradient(circle at 85% 52%, rgba(20, 78, 193, 0.35), transparent 34%),
     linear-gradient(145deg, #041a48 0%, #052c72 52%, #031a47 100%);
-  border-bottom: 8px solid var(--gct-yellow);
 }
 
 .gct-brand-panel::before {
@@ -71,20 +67,20 @@ input {
   inset: 0;
   opacity: 0.48;
   background:
-    linear-gradient(128deg, transparent 0 27%, rgba(255, 255, 255, 0.05) 27% 38%, transparent 38% 100%),
-    linear-gradient(310deg, transparent 0 68%, rgba(12, 89, 236, 0.28) 68% 77%, transparent 77% 100%);
+    linear-gradient(128deg, transparent 0 27%, rgba(255, 255, 255, 0.05) 27% 38%, transparent 38%),
+    linear-gradient(310deg, transparent 0 68%, rgba(12, 89, 236, 0.28) 68% 77%, transparent 77%);
 }
 
 .gct-brand-panel::after {
   content: "";
   position: absolute;
-  right: -22px;
+  z-index: 8;
   top: 0;
+  right: -22px;
   bottom: 0;
   width: 36px;
-  z-index: 8;
   transform: skewX(-7deg);
-  background: linear-gradient(180deg, #0b68ff, #0142c4 70%, #ffc400 70% 100%);
+  background: linear-gradient(180deg, #0b68ff, #0142c4 70%, #ffc400 70%);
   box-shadow: 10px 0 28px rgba(6, 72, 190, 0.25);
 }
 
@@ -242,7 +238,6 @@ input {
   border: 1px solid rgba(255, 196, 0, 0.72);
   border-radius: 50%;
   background: rgba(0, 42, 111, 0.58);
-  box-shadow: inset 0 0 20px rgba(2, 100, 255, 0.2);
 }
 
 .service-item h2 {
@@ -259,72 +254,60 @@ input {
   line-height: 1.35;
 }
 
+/* Fleet composition */
 .fleet-visual {
   position: absolute;
-  left: 5%;
-  right: 2%;
-  bottom: 92px;
-  height: min(37vh, 330px);
-  z-index: -1;
+  z-index: 0;
+  left: 3%;
+  right: 1%;
+  bottom: 86px;
+  height: min(39vh, 350px);
   pointer-events: none;
 }
 
 .vehicle {
   position: absolute;
-  display: grid;
-  place-items: center;
+  bottom: 0;
   transform-origin: center bottom;
-  filter: drop-shadow(0 24px 22px rgba(0, 0, 0, 0.4));
-}
-
-.vehicle i {
-  display: block;
-  background: linear-gradient(180deg, #f4f7fb 0%, #b8c5d8 58%, #5a6c86 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.5);
+  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.34));
 }
 
 .vehicle-car-one {
   left: 3%;
-  bottom: 3px;
-  font-size: clamp(76px, 8vw, 126px);
-  transform: perspective(600px) rotateY(-8deg);
+  z-index: 1;
+  transform: translateY(15px);
 }
 
 .vehicle-van {
-  left: 18%;
-  bottom: 18px;
+  left: 12%;
   z-index: 2;
-  font-size: clamp(88px, 9vw, 145px);
-  transform: perspective(600px) rotateY(-4deg);
+  transform: translateY(7px);
 }
 
 .vehicle-bus {
-  right: -1%;
-  bottom: -3px;
-  z-index: 4;
-  font-size: clamp(190px, 22vw, 350px);
-  transform: perspective(900px) rotateY(-8deg);
+  left: 29%;
+  z-index: 3;
+  transform: translateY(0);
 }
 
-.vehicle-bus i {
-  background: linear-gradient(180deg, #4aa3ff 0%, #0755d5 47%, #ffc400 48%, #ffbd00 64%, #0d49a5 65%, #002e78 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+.fleet-asset-small,
+.fleet-asset-medium,
+.fleet-asset-large {
+  display: block;
+  height: auto;
+  object-fit: contain;
 }
 
-.bus-route {
-  position: absolute;
-  top: 28%;
-  left: 48%;
-  z-index: 2;
-  color: var(--gct-yellow);
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  transform: translateX(-50%);
+.fleet-asset-small {
+  width: min(11vw, 130px);
+}
+
+.fleet-asset-medium {
+  width: min(16vw, 190px);
+}
+
+.fleet-asset-large {
+  width: min(29vw, 385px);
 }
 
 .light-trail {
@@ -390,9 +373,7 @@ input {
   font-size: 12px;
 }
 
-/* =========================================================
-   LOGIN PANEL
-========================================================= */
+/* Form panel */
 .gct-form-panel {
   position: relative;
   min-height: 100vh;
@@ -402,7 +383,7 @@ input {
   overflow: hidden;
   background:
     radial-gradient(circle at 70% 10%, rgba(56, 128, 255, 0.12), transparent 26%),
-    linear-gradient(145deg, #ffffff 0%, #f6f9ff 55%, #edf4ff 100%);
+    linear-gradient(145deg, #fff, #f6f9ff 55%, #edf4ff);
 }
 
 .gct-form-panel::before {
@@ -414,9 +395,7 @@ input {
   height: 620px;
   border: 1px solid rgba(5, 87, 230, 0.08);
   border-radius: 50%;
-  box-shadow:
-    0 0 0 70px rgba(5, 87, 230, 0.025),
-    0 0 0 150px rgba(5, 87, 230, 0.018);
+  box-shadow: 0 0 0 70px rgba(5, 87, 230, 0.025), 0 0 0 150px rgba(5, 87, 230, 0.018);
 }
 
 .panel-glow {
@@ -468,10 +447,8 @@ input {
   font-size: 31px;
   border: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  background: linear-gradient(145deg, #e8f0ff, #ffffff);
-  box-shadow:
-    0 0 0 10px rgba(7, 87, 230, 0.055),
-    0 14px 28px rgba(7, 87, 230, 0.12);
+  background: linear-gradient(145deg, #e8f0ff, #fff);
+  box-shadow: 0 0 0 10px rgba(7, 87, 230, 0.055), 0 14px 28px rgba(7, 87, 230, 0.12);
 }
 
 .login-heading {
@@ -515,10 +492,6 @@ input {
   background: #fff4f4;
 }
 
-.login-alert i {
-  margin-top: 2px;
-}
-
 .login-alert strong,
 .login-alert span {
   display: block;
@@ -529,7 +502,8 @@ input {
   font-size: 13px;
 }
 
-.login-alert span {
+.login-alert span,
+.field-error {
   font-size: 12px;
 }
 
@@ -558,6 +532,7 @@ input {
   display: flex;
   align-items: center;
   gap: 14px;
+  overflow: hidden;
   border: 1px solid var(--gct-border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.95);
@@ -576,19 +551,29 @@ input {
 }
 
 .input-box > i {
+  flex: 0 0 auto;
   color: #536b94;
   font-size: 17px;
 }
 
-.input-box input {
+.input-box input,
+.input-box input:hover,
+.input-box input:focus,
+.input-box input:active {
   min-width: 0;
+  width: 100%;
   flex: 1;
   height: 58px;
+  margin: 0;
   padding: 0;
   color: var(--gct-text);
-  border: 0;
-  outline: 0;
-  background: transparent;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
   font-size: 15px;
 }
 
@@ -596,9 +581,22 @@ input {
   color: #8796af;
 }
 
+.input-box input:-webkit-autofill,
+.input-box input:-webkit-autofill:hover,
+.input-box input:-webkit-autofill:focus,
+.input-box input:-webkit-autofill:active {
+  border: 0 !important;
+  border-radius: 0 !important;
+  -webkit-text-fill-color: var(--gct-text);
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
 .toggle-password {
   width: 40px;
   height: 40px;
+  margin-left: auto;
   flex: 0 0 40px;
   display: grid;
   place-items: center;
@@ -607,7 +605,6 @@ input {
   border-radius: 9px;
   background: transparent;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .toggle-password:hover,
@@ -621,7 +618,6 @@ input {
   display: block;
   margin-top: 7px;
   color: var(--gct-danger);
-  font-size: 12px;
 }
 
 .login-options {
@@ -647,14 +643,19 @@ input {
   accent-color: var(--gct-blue);
 }
 
-.forgot-link {
+.forgot-link,
+.footer-links a {
   color: var(--gct-blue);
-  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
 
-.forgot-link:hover {
+.forgot-link {
+  font-size: 13px;
+}
+
+.forgot-link:hover,
+.footer-links a:hover {
   text-decoration: underline;
 }
 
@@ -669,7 +670,7 @@ input {
   color: #fff;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0870ff 0%, #0757e6 46%, #003eaf 100%);
+  background: linear-gradient(135deg, #0870ff, #0757e6 46%, #003eaf);
   box-shadow: 0 15px 26px rgba(4, 77, 204, 0.28);
   font-size: 17px;
   font-weight: 800;
@@ -680,11 +681,6 @@ input {
 .login-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 32px rgba(4, 77, 204, 0.34);
-  filter: saturate(1.08);
-}
-
-.login-btn:active {
-  transform: translateY(0);
 }
 
 .login-btn:disabled {
@@ -724,9 +720,9 @@ input {
 
 .login-footer {
   margin-top: 28px;
-  text-align: center;
   color: #6e7e99;
   font-size: 12px;
+  text-align: center;
 }
 
 .login-footer p {
@@ -740,19 +736,7 @@ input {
   gap: 13px;
 }
 
-.footer-links a {
-  color: var(--gct-blue);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
-}
-
-/* =========================================================
-   LEGACY REGISTER PAGE SUPPORT
-========================================================= */
+/* Register support */
 .register-card {
   width: min(640px, 100%);
   padding: 34px;
@@ -786,9 +770,6 @@ input {
   background: transparent;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 @media (max-width: 1180px) {
   .gct-login-page {
     grid-template-columns: minmax(390px, 45%) minmax(490px, 55%);
@@ -804,7 +785,19 @@ input {
   }
 
   .fleet-visual {
-    opacity: 0.72;
+    opacity: 0.84;
+  }
+
+  .vehicle-car-one {
+    left: 1%;
+  }
+
+  .vehicle-van {
+    left: 10%;
+  }
+
+  .vehicle-bus {
+    left: 27%;
   }
 }
 
@@ -837,9 +830,20 @@ input {
   }
 
   .fleet-visual {
-    right: 0;
-    bottom: 95px;
-    height: 270px;
+    bottom: 92px;
+    height: 260px;
+  }
+
+  .fleet-asset-small {
+    width: 100px;
+  }
+
+  .fleet-asset-medium {
+    width: 140px;
+  }
+
+  .fleet-asset-large {
+    width: 235px;
   }
 
   .gct-form-panel {
@@ -896,21 +900,33 @@ input {
   }
 
   .fleet-visual {
-    height: 190px;
-    bottom: 85px;
-    opacity: 0.68;
-  }
-
-  .vehicle-bus {
-    font-size: 210px;
-  }
-
-  .vehicle-van {
-    font-size: 90px;
+    bottom: 82px;
+    height: 175px;
+    opacity: 0.82;
   }
 
   .vehicle-car-one {
-    font-size: 76px;
+    left: 0;
+  }
+
+  .vehicle-van {
+    left: 11%;
+  }
+
+  .vehicle-bus {
+    left: 29%;
+  }
+
+  .fleet-asset-small {
+    width: 68px;
+  }
+
+  .fleet-asset-medium {
+    width: 92px;
+  }
+
+  .fleet-asset-large {
+    width: 150px;
   }
 
   .security-note {
