@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = menu.querySelector('input');
     const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
 
+    const getDisplayText = (option) => {
+      const originalText = option?.textContent?.trim() || '';
+
+      return typeof config.formatOptionText === 'function'
+        ? config.formatOptionText(originalText, option?.value || '')
+        : originalText;
+    };
+
     const closeMenu = () => {
       menu.hidden = true;
       combobox.classList.remove('is-open');
@@ -71,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const hasValue = Boolean(option?.value);
 
       label.textContent = hasValue
-        ? option.textContent.trim()
+        ? getDisplayText(option)
         : config.placeholder;
       label.classList.toggle('placeholder', !hasValue);
     };
@@ -121,12 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const text = option.textContent.trim();
+        const originalText = option.textContent.trim();
+        const displayText = getDisplayText(option);
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'jo-mechanic-combobox-option';
         button.dataset.value = option.value;
-        button.dataset.search = `${option.value} ${text}`.toLowerCase();
+        button.dataset.search = `${option.value} ${originalText}`.toLowerCase();
 
         if (option.value === select.value) {
           button.classList.add('is-selected');
@@ -134,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         button.innerHTML = `
           <span>
-            <strong>${text}</strong>
+            <strong>${displayText}</strong>
             <small>${config.optionHint}</small>
           </span>
           <i class="fa-solid fa-check"></i>
@@ -211,6 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
     searchPlaceholder: 'Search bus number or plate...',
     emptyMessage: 'No bus matches your search.',
     optionHint: 'Available bus',
+    formatOptionText: (text) => {
+      const parts = text
+        .split(' - ')
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      if (
+        parts.length === 2 &&
+        parts[0].toLowerCase() === parts[1].toLowerCase()
+      ) {
+        return parts[0];
+      }
+
+      return text;
+    },
   });
 
   setupSearchableSelect(mechanicSelect, {
