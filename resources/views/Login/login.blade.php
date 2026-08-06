@@ -77,7 +77,7 @@
           </article>
         </div>
 
-        <div class="fleet-visual" aria-hidden="true">
+       <div class="fleet-visual" aria-hidden="true">
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
 
@@ -85,7 +85,7 @@
             <img
               src="{{ asset('img/GCT_bus2.png') }}"
               alt=""
-              class="fleet-asset-small"
+              class="fleet-image fleet-image-small"
             >
           </div>
 
@@ -93,7 +93,7 @@
             <img
               src="{{ asset('img/GCT_bus1.png') }}"
               alt=""
-              class="fleet-asset-medium"
+              class="fleet-image fleet-image-medium"
             >
           </div>
 
@@ -101,7 +101,7 @@
             <img
               src="{{ asset('img/GCT_bus.png') }}"
               alt=""
-              class="fleet-asset-large"
+              class="fleet-image fleet-image-large"
             >
           </div>
         </div>

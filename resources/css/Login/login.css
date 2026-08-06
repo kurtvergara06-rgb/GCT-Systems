@@ -32,13 +32,15 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
 button,
 a,
-input {
+input,
+select {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -53,50 +55,100 @@ input {
 /* =========================================================
    BRAND PANEL
 ========================================================= */
+
 .gct-brand-panel {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  color: #fff;
-  background:
-    radial-gradient(circle at 16% 8%, rgba(36, 113, 255, 0.62), transparent 26%),
-    radial-gradient(circle at 85% 52%, rgba(20, 78, 193, 0.35), transparent 34%),
-    linear-gradient(145deg, #041a48 0%, #052c72 52%, #031a47 100%);
+  color: #ffffff;
   border-bottom: 8px solid var(--gct-yellow);
+  background:
+    radial-gradient(
+      circle at 16% 8%,
+      rgba(36, 113, 255, 0.62),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 85% 52%,
+      rgba(20, 78, 193, 0.35),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #041a48 0%,
+      #052c72 52%,
+      #031a47 100%
+    );
 }
 
 .gct-brand-panel::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0.48;
+  pointer-events: none;
   background:
-    linear-gradient(128deg, transparent 0 27%, rgba(255, 255, 255, 0.05) 27% 38%, transparent 38% 100%),
-    linear-gradient(310deg, transparent 0 68%, rgba(12, 89, 236, 0.28) 68% 77%, transparent 77% 100%);
+    linear-gradient(
+      128deg,
+      transparent 0 27%,
+      rgba(255, 255, 255, 0.05) 27% 38%,
+      transparent 38% 100%
+    ),
+    linear-gradient(
+      310deg,
+      transparent 0 68%,
+      rgba(12, 89, 236, 0.28) 68% 77%,
+      transparent 77% 100%
+    );
 }
 
 .gct-brand-panel::after {
   content: "";
   position: absolute;
-  right: -22px;
   top: 0;
+  right: -22px;
   bottom: 0;
-  width: 36px;
   z-index: 8;
+  width: 36px;
+  pointer-events: none;
   transform: skewX(-7deg);
-  background: linear-gradient(180deg, #0b68ff, #0142c4 70%, #ffc400 70% 100%);
+  background:
+    linear-gradient(
+      180deg,
+      #0b68ff 0%,
+      #0142c4 70%,
+      #ffc400 70%,
+      #ffc400 100%
+    );
   box-shadow: 10px 0 28px rgba(6, 72, 190, 0.25);
 }
 
 .brand-grid {
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0.24;
+  pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    );
   background-size: 54px 54px;
-  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 75%, transparent);
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      #000000 22%,
+      #000000 75%,
+      transparent
+    );
 }
 
 .route-line {
@@ -104,6 +156,7 @@ input {
   z-index: 1;
   width: 360px;
   height: 230px;
+  pointer-events: none;
   border: 2px solid rgba(255, 196, 0, 0.4);
   border-left-color: transparent;
   border-bottom-color: transparent;
@@ -119,7 +172,9 @@ input {
   height: 12px;
   border-radius: 50%;
   background: var(--gct-yellow);
-  box-shadow: 0 0 0 8px rgba(255, 196, 0, 0.1), 0 0 22px rgba(255, 196, 0, 0.7);
+  box-shadow:
+    0 0 0 8px rgba(255, 196, 0, 0.1),
+    0 0 22px rgba(255, 196, 0, 0.7);
 }
 
 .route-line::before {
@@ -150,12 +205,17 @@ input {
   min-height: 100vh;
   max-width: 850px;
   margin: 0 auto;
-  padding: clamp(34px, 5vh, 58px) clamp(42px, 5vw, 80px) 32px;
+  padding:
+    clamp(34px, 5vh, 58px)
+    clamp(42px, 5vw, 80px)
+    32px;
   display: flex;
   flex-direction: column;
 }
 
 .brand-header {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: flex-start;
   gap: 28px;
@@ -167,7 +227,10 @@ input {
   flex: 0 0 auto;
   object-fit: contain;
   border-radius: 50%;
-  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.24));
+  filter:
+    drop-shadow(
+      0 16px 26px rgba(0, 0, 0, 0.24)
+    );
 }
 
 .brand-heading {
@@ -185,12 +248,13 @@ input {
 
 .brand-heading h1 {
   margin: 0;
-  color: #fff;
+  color: #ffffff;
   font-size: clamp(35px, 3.35vw, 58px);
   font-weight: 850;
   line-height: 0.98;
   letter-spacing: -0.045em;
-  text-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  text-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.22);
 }
 
 .brand-divider {
@@ -198,7 +262,12 @@ input {
   max-width: 370px;
   height: 2px;
   margin: 17px 0 13px;
-  background: linear-gradient(90deg, var(--gct-yellow), rgba(255, 196, 0, 0.1));
+  background:
+    linear-gradient(
+      90deg,
+      var(--gct-yellow),
+      rgba(255, 196, 0, 0.1)
+    );
 }
 
 .brand-tagline {
@@ -213,6 +282,8 @@ input {
 }
 
 .services-list {
+  position: relative;
+  z-index: 5;
   width: min(440px, 100%);
   margin-top: clamp(24px, 3.5vh, 42px);
   display: grid;
@@ -226,7 +297,8 @@ input {
   grid-template-columns: 48px minmax(0, 1fr);
   align-items: center;
   gap: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.1);
 }
 
 .service-item:last-child {
@@ -239,15 +311,17 @@ input {
   display: grid;
   place-items: center;
   color: var(--gct-yellow);
-  border: 1px solid rgba(255, 196, 0, 0.72);
+  border:
+    1px solid rgba(255, 196, 0, 0.72);
   border-radius: 50%;
   background: rgba(0, 42, 111, 0.58);
-  box-shadow: inset 0 0 20px rgba(2, 100, 255, 0.2);
+  box-shadow:
+    inset 0 0 20px rgba(2, 100, 255, 0.2);
 }
 
 .service-item h2 {
   margin: 0 0 3px;
-  color: #fff;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 750;
 }
@@ -259,72 +333,73 @@ input {
   line-height: 1.35;
 }
 
+/* =========================================================
+   FLEET VEHICLES
+========================================================= */
+
 .fleet-visual {
   position: absolute;
-  left: 5%;
+  left: 3%;
   right: 2%;
-  bottom: 92px;
-  height: min(37vh, 330px);
-  z-index: -1;
+  bottom: 88px;
+  z-index: 2;
+  height: 310px;
+  overflow: visible;
   pointer-events: none;
 }
 
 .vehicle {
   position: absolute;
-  display: grid;
-  place-items: center;
+  bottom: 0;
+  display: block;
   transform-origin: center bottom;
-  filter: drop-shadow(0 24px 22px rgba(0, 0, 0, 0.4));
+  filter:
+    drop-shadow(
+      0 18px 22px rgba(0, 0, 0, 0.3)
+    );
 }
 
-.vehicle i {
+.vehicle img {
   display: block;
-  background: linear-gradient(180deg, #f4f7fb 0%, #b8c5d8 58%, #5a6c86 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.5);
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .vehicle-car-one {
-  left: 3%;
+  left: 2%;
   bottom: 3px;
-  font-size: clamp(76px, 8vw, 126px);
-  transform: perspective(600px) rotateY(-8deg);
+  z-index: 1;
+  width: clamp(78px, 8vw, 110px);
+  transform: translateY(10px);
 }
 
 .vehicle-van {
-  left: 18%;
-  bottom: 18px;
+  left: 10%;
+  bottom: 6px;
   z-index: 2;
-  font-size: clamp(88px, 9vw, 145px);
-  transform: perspective(600px) rotateY(-4deg);
+  width: clamp(115px, 13vw, 160px);
+  transform: translateY(4px);
 }
 
 .vehicle-bus {
-  right: -1%;
-  bottom: -3px;
-  z-index: 4;
-  font-size: clamp(190px, 22vw, 350px);
-  transform: perspective(900px) rotateY(-8deg);
+  left: 24%;
+  bottom: 5px;
+  z-index: 3;
+  width: clamp(230px, 26vw, 330px);
+  transform: none;
 }
 
-.vehicle-bus i {
-  background: linear-gradient(180deg, #4aa3ff 0%, #0755d5 47%, #ffc400 48%, #ffbd00 64%, #0d49a5 65%, #002e78 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.bus-route {
-  position: absolute;
-  top: 28%;
-  left: 48%;
-  z-index: 2;
-  color: var(--gct-yellow);
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  transform: translateX(-50%);
+.fleet-asset-small,
+.fleet-asset-medium,
+.fleet-asset-large {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .light-trail {
@@ -332,9 +407,14 @@ input {
   left: -8%;
   right: 0;
   height: 85px;
-  border-bottom: 3px solid rgba(255, 196, 0, 0.9);
+  pointer-events: none;
+  border-bottom:
+    3px solid rgba(255, 196, 0, 0.9);
   border-radius: 50%;
-  filter: drop-shadow(0 0 10px rgba(255, 196, 0, 0.65));
+  filter:
+    drop-shadow(
+      0 0 10px rgba(255, 196, 0, 0.65)
+    );
 }
 
 .light-trail-one {
@@ -349,18 +429,22 @@ input {
 }
 
 .security-note {
-  margin-top: auto;
+  position: relative;
+  z-index: 6;
   width: fit-content;
   max-width: 430px;
+  margin-top: auto;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
   border-radius: 16px;
-  background: rgba(1, 25, 67, 0.58);
+  background: rgba(1, 25, 67, 0.76);
   backdrop-filter: blur(12px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 .security-shield {
@@ -369,9 +453,10 @@ input {
   flex: 0 0 47px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: #ffffff;
   font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.52);
+  border:
+    2px solid rgba(255, 255, 255, 0.52);
   border-radius: 14px;
 }
 
@@ -393,6 +478,7 @@ input {
 /* =========================================================
    LOGIN PANEL
 ========================================================= */
+
 .gct-form-panel {
   position: relative;
   min-height: 100vh;
@@ -401,8 +487,17 @@ input {
   place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 70% 10%, rgba(56, 128, 255, 0.12), transparent 26%),
-    linear-gradient(145deg, #ffffff 0%, #f6f9ff 55%, #edf4ff 100%);
+    radial-gradient(
+      circle at 70% 10%,
+      rgba(56, 128, 255, 0.12),
+      transparent 26%
+    ),
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #f6f9ff 55%,
+      #edf4ff 100%
+    );
 }
 
 .gct-form-panel::before {
@@ -412,7 +507,9 @@ input {
   bottom: -220px;
   width: 620px;
   height: 620px;
-  border: 1px solid rgba(5, 87, 230, 0.08);
+  pointer-events: none;
+  border:
+    1px solid rgba(5, 87, 230, 0.08);
   border-radius: 50%;
   box-shadow:
     0 0 0 70px rgba(5, 87, 230, 0.025),
@@ -451,7 +548,8 @@ input {
 .login-card {
   width: 100%;
   padding: clamp(34px, 5vw, 58px);
-  border: 1px solid rgba(207, 220, 240, 0.76);
+  border:
+    1px solid rgba(207, 220, 240, 0.76);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(24px);
@@ -466,9 +564,15 @@ input {
   place-items: center;
   color: var(--gct-blue);
   font-size: 31px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border:
+    2px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  background: linear-gradient(145deg, #e8f0ff, #ffffff);
+  background:
+    linear-gradient(
+      145deg,
+      #e8f0ff,
+      #ffffff
+    );
   box-shadow:
     0 0 0 10px rgba(7, 87, 230, 0.055),
     0 14px 28px rgba(7, 87, 230, 0.12);
@@ -551,6 +655,10 @@ input {
   font-weight: 750;
 }
 
+/* =========================================================
+   FIXED INPUT FIELDS
+========================================================= */
+
 .input-box {
   width: 100%;
   min-height: 62px;
@@ -558,16 +666,23 @@ input {
   display: flex;
   align-items: center;
   gap: 14px;
+  overflow: hidden;
   border: 1px solid var(--gct-border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 6px 16px rgba(26, 56, 101, 0.035);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  background: #ffffff;
+  box-shadow:
+    0 6px 16px rgba(26, 56, 101, 0.035);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .input-box:focus-within {
   border-color: var(--gct-blue);
-  box-shadow: 0 0 0 4px rgba(7, 87, 230, 0.11), 0 10px 22px rgba(24, 70, 145, 0.08);
+  box-shadow:
+    0 0 0 4px rgba(7, 87, 230, 0.11),
+    0 10px 22px rgba(24, 70, 145, 0.08);
   transform: translateY(-1px);
 }
 
@@ -576,19 +691,29 @@ input {
 }
 
 .input-box > i {
+  flex: 0 0 auto;
   color: #536b94;
   font-size: 17px;
 }
 
-.input-box input {
+.input-box input,
+.input-box input:hover,
+.input-box input:focus,
+.input-box input:active {
+  width: 100%;
   min-width: 0;
-  flex: 1;
   height: 58px;
+  flex: 1;
+  margin: 0;
   padding: 0;
   color: var(--gct-text);
-  border: 0;
-  outline: 0;
-  background: transparent;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
   font-size: 15px;
 }
 
@@ -596,9 +721,35 @@ input {
   color: #8796af;
 }
 
+.input-box input:-webkit-autofill,
+.input-box input:-webkit-autofill:hover,
+.input-box input:-webkit-autofill:focus,
+.input-box input:-webkit-autofill:active {
+  border: 0 !important;
+  border-radius: 0 !important;
+  -webkit-text-fill-color: var(--gct-text);
+  -webkit-box-shadow:
+    0 0 0 1000px #ffffff inset !important;
+  box-shadow:
+    0 0 0 1000px #ffffff inset !important;
+  transition:
+    background-color 9999s ease-out 0s;
+}
+
+.input-box select {
+  min-width: 0;
+  flex: 1;
+  height: 58px;
+  color: var(--gct-text);
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
 .toggle-password {
   width: 40px;
   height: 40px;
+  margin-left: auto;
   flex: 0 0 40px;
   display: grid;
   place-items: center;
@@ -607,7 +758,9 @@ input {
   border-radius: 9px;
   background: transparent;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .toggle-password:hover,
@@ -666,20 +819,31 @@ input {
   align-items: center;
   justify-content: center;
   gap: 15px;
-  color: #fff;
+  color: #ffffff;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0870ff 0%, #0757e6 46%, #003eaf 100%);
-  box-shadow: 0 15px 26px rgba(4, 77, 204, 0.28);
+  background:
+    linear-gradient(
+      135deg,
+      #0870ff 0%,
+      #0757e6 46%,
+      #003eaf 100%
+    );
+  box-shadow:
+    0 15px 26px rgba(4, 77, 204, 0.28);
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 32px rgba(4, 77, 204, 0.34);
+  box-shadow:
+    0 20px 32px rgba(4, 77, 204, 0.34);
   filter: saturate(1.08);
 }
 
@@ -703,11 +867,21 @@ input {
 
 .trust-divider > span {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #dbe4f1);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #dbe4f1
+    );
 }
 
 .trust-divider > span:last-child {
-  background: linear-gradient(90deg, #dbe4f1, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      #dbe4f1,
+      transparent
+    );
 }
 
 .trust-divider p {
@@ -724,9 +898,9 @@ input {
 
 .login-footer {
   margin-top: 28px;
-  text-align: center;
   color: #6e7e99;
   font-size: 12px;
+  text-align: center;
 }
 
 .login-footer p {
@@ -753,12 +927,13 @@ input {
 /* =========================================================
    LEGACY REGISTER PAGE SUPPORT
 ========================================================= */
+
 .register-card {
   width: min(640px, 100%);
   padding: 34px;
   border: 1px solid var(--gct-border);
   border-radius: 20px;
-  background: #fff;
+  background: #ffffff;
   box-shadow: var(--gct-shadow);
 }
 
@@ -776,22 +951,15 @@ input {
   text-align: center;
 }
 
-.input-box select {
-  min-width: 0;
-  flex: 1;
-  height: 58px;
-  color: var(--gct-text);
-  border: 0;
-  outline: 0;
-  background: transparent;
-}
-
 /* =========================================================
    RESPONSIVE
 ========================================================= */
+
 @media (max-width: 1180px) {
   .gct-login-page {
-    grid-template-columns: minmax(390px, 45%) minmax(490px, 55%);
+    grid-template-columns:
+      minmax(390px, 45%)
+      minmax(490px, 55%);
   }
 
   .brand-content {
@@ -804,7 +972,22 @@ input {
   }
 
   .fleet-visual {
-    opacity: 0.72;
+    height: 275px;
+  }
+
+  .vehicle-car-one {
+    left: 1%;
+    width: 92px;
+  }
+
+  .vehicle-van {
+    left: 10%;
+    width: 135px;
+  }
+
+  .vehicle-bus {
+    left: 25%;
+    width: 270px;
   }
 }
 
@@ -837,9 +1020,25 @@ input {
   }
 
   .fleet-visual {
+    left: 3%;
     right: 0;
-    bottom: 95px;
-    height: 270px;
+    bottom: 92px;
+    height: 235px;
+  }
+
+  .vehicle-car-one {
+    left: 1%;
+    width: 80px;
+  }
+
+  .vehicle-van {
+    left: 10%;
+    width: 112px;
+  }
+
+  .vehicle-bus {
+    left: 24%;
+    width: 215px;
   }
 
   .gct-form-panel {
@@ -896,21 +1095,24 @@ input {
   }
 
   .fleet-visual {
-    height: 190px;
-    bottom: 85px;
-    opacity: 0.68;
-  }
-
-  .vehicle-bus {
-    font-size: 210px;
-  }
-
-  .vehicle-van {
-    font-size: 90px;
+    bottom: 82px;
+    height: 160px;
+    opacity: 0.92;
   }
 
   .vehicle-car-one {
-    font-size: 76px;
+    left: 0;
+    width: 55px;
+  }
+
+  .vehicle-van {
+    left: 10%;
+    width: 76px;
+  }
+
+  .vehicle-bus {
+    left: 24%;
+    width: 135px;
   }
 
   .security-note {
@@ -951,6 +1153,71 @@ input {
 
   .trust-divider > span {
     display: none;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 961px) {
+  .brand-content {
+    padding-top: 24px;
+    padding-bottom: 20px;
+  }
+
+  .company-logo {
+    width: 105px;
+    height: 105px;
+  }
+
+  .brand-heading h1 {
+    font-size: 38px;
+  }
+
+  .services-list {
+    margin-top: 18px;
+    gap: 7px;
+  }
+
+  .service-item {
+    min-height: 46px;
+  }
+
+  .fleet-visual {
+    bottom: 74px;
+    height: 225px;
+  }
+
+  .vehicle-car-one {
+    width: 78px;
+  }
+
+  .vehicle-van {
+    width: 110px;
+  }
+
+  .vehicle-bus {
+    width: 220px;
+  }
+
+  .security-note {
+    padding: 10px 13px;
+  }
+
+  .login-card {
+    padding-top: 34px;
+    padding-bottom: 34px;
+  }
+
+  .user-icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 16px;
+  }
+
+  .login-heading {
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 17px;
   }
 }
 
