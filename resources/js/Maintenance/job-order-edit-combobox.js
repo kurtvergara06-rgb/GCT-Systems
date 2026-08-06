@@ -100,19 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     trigger.setAttribute('aria-expanded', 'false');
   };
 
-  const openMenu = () => {
-    if (mechanicSelect.disabled) {
-      return;
-    }
-
-    menu.hidden = false;
-    combobox.classList.add('is-open');
-    trigger.setAttribute('aria-expanded', 'true');
-    searchInput.value = '';
-    filterOptions('');
-    window.setTimeout(() => searchInput.focus(), 0);
-  };
-
   const updateLabel = () => {
     const selectedOption = mechanicSelect.options[mechanicSelect.selectedIndex];
     const selectedText = selectedOption?.value
@@ -184,8 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
     optionsContainer
       .querySelectorAll('.jo-mechanic-combobox-option')
       .forEach((optionButton) => {
-        const matches = optionButton.dataset.search.includes(normalizedQuery);
+        const searchText = optionButton.dataset.search || '';
+        const matches = searchText.includes(normalizedQuery);
+
         optionButton.hidden = !matches;
+        optionButton.style.display = matches ? '' : 'none';
+        optionButton.setAttribute('aria-hidden', matches ? 'false' : 'true');
 
         if (matches) {
           visibleCount += 1;
@@ -204,6 +195,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       emptyResult?.remove();
     }
+  };
+
+  const openMenu = () => {
+    if (mechanicSelect.disabled) {
+      return;
+    }
+
+    menu.hidden = false;
+    combobox.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    searchInput.value = '';
+    filterOptions('');
+    window.setTimeout(() => searchInput.focus(), 0);
   };
 
   const syncDisabledState = () => {
@@ -225,6 +229,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   searchInput.addEventListener('input', () => {
     filterOptions(searchInput.value);
+  });
+
+  searchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeMenu();
+      trigger.focus();
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+
+      const firstVisibleOption = Array.from(
+        optionsContainer.querySelectorAll('.jo-mechanic-combobox-option')
+      ).find((optionButton) => optionButton.style.display !== 'none');
+
+      firstVisibleOption?.click();
+    }
   });
 
   document.addEventListener('click', (event) => {
