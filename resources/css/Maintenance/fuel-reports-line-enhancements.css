@@ -1,0 +1,184 @@
+/* Fuel Reports line charts and Job Order-style modal */
+
+.fuel-page .fuel-chart-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #b9c7d8 transparent;
+}
+
+.fuel-page .fuel-chart-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.fuel-page .fuel-chart-container::-webkit-scrollbar-thumb {
+  background: #b9c7d8;
+  border-radius: 999px;
+}
+
+.fuel-page .fuel-chart-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fuel-page .fuel-chart-scroll-inner {
+  min-width: 100%;
+}
+
+#fuelModal .fuel-modal-job-order-style {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(86vh, 820px);
+  border-radius: 18px;
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 24px 70px rgba(6, 31, 61, 0.24);
+  overflow: hidden;
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-modal-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #e3eaf3;
+  background: #ffffff;
+}
+
+#fuelModal .fuel-modal-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid #f3cf61;
+  border-radius: 14px;
+  color: #9a6800;
+  background: #fff4cf;
+  font-size: 18px;
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-modal-header h2 {
+  margin: 0 0 3px;
+  color: #061f3d;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-modal-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+#fuelModal .fuel-modal-job-order-style #fuelForm {
+  padding: 20px 24px 0;
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-form-grid {
+  gap: 16px;
+}
+
+#fuelModal .fuel-modal-job-order-style .form-group > label,
+#fuelModal .fuel-modal-job-order-style .form-group > div > label {
+  margin-bottom: 7px;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#fuelModal .fuel-modal-job-order-style input,
+#fuelModal .fuel-modal-job-order-style select,
+#fuelModal .fuel-modal-job-order-style textarea,
+#fuelModal .fuel-modal-job-order-style .searchable-select-trigger {
+  min-height: 42px;
+  border: 1px solid #cfdbea;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: none;
+  font-size: 13px;
+}
+
+#fuelModal .fuel-modal-job-order-style input:focus,
+#fuelModal .fuel-modal-job-order-style select:focus,
+#fuelModal .fuel-modal-job-order-style textarea:focus,
+#fuelModal .fuel-modal-job-order-style .searchable-select-trigger:focus-within {
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+  outline: none;
+}
+
+#fuelModal .fuel-modal-job-order-style .gps-status-card,
+#fuelModal .fuel-modal-job-order-style .efficiency-preview,
+#fuelModal .fuel-modal-job-order-style .manual-toggle-group {
+  border-radius: 12px;
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 18px -24px 0;
+  padding: 16px 24px;
+  border-top: 1px solid #e3eaf3;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+}
+
+#fuelModal .fuel-modal-job-order-style .fuel-cancel-btn {
+  min-width: 96px;
+  min-height: 42px;
+  border: 1px solid #cfdbea;
+  border-radius: 10px;
+  color: #10213a;
+  background: #ffffff;
+  font-weight: 700;
+}
+
+#fuelModal .fuel-modal-job-order-style #saveFuelRecord {
+  min-width: 154px;
+  min-height: 42px;
+  border: 1px solid #e7aa00;
+  border-radius: 10px;
+  color: #061f3d;
+  background: #ffc400;
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.24);
+  font-weight: 800;
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+#fuelModal .fuel-modal-job-order-style #saveFuelRecord:not(:disabled):hover {
+  background: #ffcf2f;
+  box-shadow: 0 10px 22px rgba(255, 196, 0, 0.32);
+  transform: translateY(-1px);
+}
+
+#fuelModal .fuel-modal-job-order-style #saveFuelRecord:disabled {
+  border-color: #dce4ee;
+  color: #94a3b8;
+  background: #edf2f7;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  #fuelModal .fuel-modal-job-order-style .fuel-modal-header {
+    grid-template-columns: auto 1fr auto;
+    padding: 18px;
+  }
+
+  #fuelModal .fuel-modal-job-order-style #fuelForm {
+    padding: 18px 18px 0;
+  }
+
+  #fuelModal .fuel-modal-job-order-style .fuel-modal-actions {
+    margin-right: -18px;
+    margin-left: -18px;
+    padding: 14px 18px;
+  }
+}
