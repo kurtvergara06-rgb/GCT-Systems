@@ -1,0 +1,124 @@
+/* Shared UI enhancements used across department modules. */
+
+.system-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid #bfd5ff;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #0b40b5;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.system-id-badge--small {
+  min-height: 24px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.system-id-badge--large {
+  min-height: 34px;
+  padding: 7px 13px;
+  font-size: 13px;
+}
+
+.system-id-badge--neutral {
+  border-color: #d9e2ef;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.system-id-empty {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.record-reference {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.record-reference__secondary {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.record-reference__secondary i {
+  color: #0b40b5;
+  font-size: 10px;
+}
+
+.search-box.is-searching::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 15px;
+  height: 15px;
+  margin-top: -8px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #0057f8;
+  border-radius: 50%;
+  animation: sharedSearchSpin .7s linear infinite;
+}
+
+.search-box.is-searching input {
+  padding-right: 42px;
+}
+
+@keyframes sharedSearchSpin {
+  to { transform: rotate(360deg); }
+}
+
+.topbar-action-item .dynamic-action-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  z-index: 2;
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.topbar-action-item .dynamic-action-badge[hidden] {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .system-id-badge {
+    max-width: 190px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
