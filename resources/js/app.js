@@ -12,10 +12,13 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Login/login.css';
 import './Login/login.js';
 
-import '../css/Maintenance/job-order.css';
+/*
+ * Job Orders core CSS and JavaScript are loaded by the Job Orders Blade page.
+ * Do not import job-order.css or job-order.js here because app.js is already
+ * loaded by the shared layout, which would execute the page script twice.
+ */
 import '../css/Maintenance/job-order-redesign.css';
 import '../css/Maintenance/job-order-edit-combobox.css';
-import './Maintenance/job-order.js';
 import './Maintenance/job-order-finish-guard.js';
 import './Maintenance/job-order-edit-combobox.js';
 import './Maintenance/job-order-new-combobox.js';
