@@ -102,10 +102,16 @@
   box-shadow: 0 7px 16px rgba(255, 180, 0, .22);
 }
 
+/* The records scroll inside the table instead of extending the whole page. */
 .app:has(#jobModal) .table-wrap {
+  position: relative;
+  width: 100%;
+  max-height: clamp(360px, 52vh, 620px);
   border: 1px solid #e1e9f3;
   border-radius: 13px;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .app:has(#jobModal) table {
@@ -116,6 +122,14 @@
 
 .app:has(#jobModal) table thead {
   background: #f3f7fb;
+}
+
+.app:has(#jobModal) table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #f3f7fb;
+  box-shadow: 0 1px 0 #dce5f0;
 }
 
 .app:has(#jobModal) table th {
@@ -147,7 +161,6 @@
 
 .app:has(#jobModal) table tbody tr:hover {
   background: #f4f8ff;
-  box-shadow: inset 3px 0 0 var(--jo-blue);
 }
 
 .app:has(#jobModal) table tbody tr:last-child td {
@@ -261,6 +274,10 @@
   .app:has(#jobModal) .job-toolbar {
     grid-template-columns: minmax(280px, 1fr) 145px 125px auto;
   }
+
+  .app:has(#jobModal) .table-wrap {
+    max-height: 54vh;
+  }
 }
 
 @media (max-width: 900px) {
@@ -270,6 +287,10 @@
 
   .app:has(#jobModal) .job-toolbar .search-box {
     grid-column: 1 / -1;
+  }
+
+  .app:has(#jobModal) .table-wrap {
+    max-height: 58vh;
   }
 }
 
@@ -281,5 +302,9 @@
   .app:has(#jobModal) .job-toolbar .primary-btn,
   .app:has(#jobModal) .job-toolbar select {
     width: 100%;
+  }
+
+  .app:has(#jobModal) .table-wrap {
+    max-height: 62vh;
   }
 }
