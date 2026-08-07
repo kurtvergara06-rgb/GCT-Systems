@@ -64,44 +64,4 @@ document.addEventListener('DOMContentLoaded', () => {
       element.setAttribute('title', element.textContent);
     });
   });
-
-  const addFuelChartEmptyStates = () => {
-    document.querySelectorAll('.fuel-chart-card').forEach((card) => {
-      const container = card.querySelector('.fuel-chart-container');
-      const canvas = container?.querySelector('canvas');
-
-      if (!container || !canvas || card.classList.contains('has-empty-chart')) {
-        return;
-      }
-
-      let hasData = false;
-
-      if (window.Chart && typeof window.Chart.getChart === 'function') {
-        const chart = window.Chart.getChart(canvas);
-        hasData = Boolean(chart?.data?.datasets?.some((dataset) =>
-          Array.isArray(dataset.data)
-          && dataset.data.some((value) => Number(value) !== 0)
-        ));
-      }
-
-      if (hasData) {
-        return;
-      }
-
-      const title = card.querySelector('h2')?.textContent?.trim() || 'Chart';
-      const state = document.createElement('div');
-      state.className = 'fuel-chart-empty-state';
-      state.innerHTML = `
-        <i class="fa-solid fa-chart-column"></i>
-        <strong>No ${title.toLowerCase()} data yet</strong>
-        <p>Add a fuel record to generate this chart for the selected reporting period.</p>
-      `;
-
-      container.style.position = 'relative';
-      container.appendChild(state);
-      card.classList.add('has-empty-chart');
-    });
-  };
-
-  window.setTimeout(addFuelChartEmptyStates, 900);
 });
