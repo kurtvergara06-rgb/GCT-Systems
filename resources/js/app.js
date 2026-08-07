@@ -13,6 +13,7 @@ import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
 import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
+import './Main-js/scroll-table-pagination.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 
 /* Job Orders shared refinements loaded once through the application bundle. */
