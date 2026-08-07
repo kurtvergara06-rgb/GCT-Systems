@@ -289,14 +289,6 @@
         title="Fuel Reports"
         subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
       />
-
-      @if(session('success'))
-        <div class="fuel-alert success">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>{{ session('success') }}</span>
-        </div>
-      @endif
-
       @if(session('error'))
         <div class="fuel-alert error">
           <i class="fa-solid fa-triangle-exclamation"></i>
