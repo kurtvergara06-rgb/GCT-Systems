@@ -6,11 +6,11 @@ button,
 input,
 select,
 textarea {
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 * {
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 body {
@@ -111,7 +111,7 @@ button,
   font-weight: 700;
 }
 
-/* Stronger shared status pills for Inter. */
+/* Stronger shared status pills for Poppins. */
 .badge,
 .bus-status,
 .status-badge,
