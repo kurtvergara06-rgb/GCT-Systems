@@ -1,0 +1,497 @@
+name: Apply Final Fuel Reports Redesign
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-final-fuel-redesign.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  redesign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply Fuel Reports redesign
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          # ---------------------------------------------------------
+          # Blade: simplify page hierarchy and remove redundant table.
+          # ---------------------------------------------------------
+          blade_path = Path('resources/views/Maintenance/fuel-reports.blade.php')
+          blade = blade_path.read_text(encoding='utf-8')
+
+          blade = blade.replace(
+              'description="Average kilometers travelled per liter for each vehicle."\n          chart-id="fuelEfficiencyChart"',
+              'description="Top 10 vehicles ranked by fuel efficiency. Fleet average is shown as a reference."\n          chart-id="fuelEfficiencyChart"\n          tag="Top 10"'
+          )
+          blade = blade.replace(
+              'description="Comparison between total distance and total fuel consumption."\n          chart-id="fuelUsageChart"',
+              'description="Top 10 buses by distance with total fuel consumption."\n          chart-id="fuelUsageChart"\n          tag="Top 10"'
+          )
+
+          blade = re.sub(
+              r'\n\s*{{-- EFFICIENCY TABLE --}}.*?(?=\n\s*{{-- RECENT RECORDS --}})',
+              '\n',
+              blade,
+              flags=re.S,
+              count=1,
+          )
+
+          blade = blade.replace('{{-- RECENT RECORDS --}}', '{{-- RECENT FUEL ENTRIES --}}')
+          blade = blade.replace('<h2>Recent Fuel Records</h2>', '<h2>Recent Fuel Entries</h2>')
+          blade = blade.replace(
+              '<p>Latest fuel records with GPS or manual distance source.</p>',
+              '<p>Latest saved fuel entries for quick verification and audit.</p>'
+          )
+
+          blade_path.write_text(blade, encoding='utf-8')
+
+          # ---------------------------------------------------------
+          # Chart component: optional compact Top 10 indicator.
+          # ---------------------------------------------------------
+          component_path = Path('resources/views/components/ui/chart-card.blade.php')
+          component = component_path.read_text(encoding='utf-8')
+          component = component.replace(
+              "  'height' => '310px',\n])",
+              "  'height' => '310px',\n  'tag' => null,\n])"
+          )
+          component = component.replace(
+              '    <div class="fuel-chart-icon {{ $iconColor }}">\n      <i class="fa-solid {{ $icon }}"></i>\n    </div>',
+              '''    <div class="fuel-chart-header-actions">\n      @if($tag)\n        <span class="fuel-chart-tag">{{ $tag }}</span>\n      @endif\n\n      <div class="fuel-chart-icon {{ $iconColor }}">\n        <i class="fa-solid {{ $icon }}"></i>\n      </div>\n    </div>'''
+          )
+          component_path.write_text(component, encoding='utf-8')
+
+          # ---------------------------------------------------------
+          # Controller: recent history is deliberately compact.
+          # ---------------------------------------------------------
+          controller_path = Path('app/Http/Controllers/Maintenance/FuelReportController.php')
+          controller = controller_path.read_text(encoding='utf-8')
+          controller = controller.replace(
+              "$recentFuelRecords = $fuelReports\n            ->take(10)\n            ->values();",
+              "$recentFuelRecords = $fuelReports\n            ->take(5)\n            ->values();"
+          )
+          controller_path.write_text(controller, encoding='utf-8')
+
+          # ---------------------------------------------------------
+          # JS: one chart implementation only. Top 10 + readable IDs.
+          # ---------------------------------------------------------
+          js_path = Path('resources/js/Maintenance/fuel-reports.js')
+          js = js_path.read_text(encoding='utf-8')
+
+          start_marker = '/* =========================================================\n   CONSOLIDATED: resources/js/Maintenance/fuel-report-chart-refinement.js'
+          end_marker = 'const enhanceFuelModal = () => {'
+          start = js.find(start_marker)
+          end = js.find(end_marker)
+
+          if start == -1 or end == -1 or end <= start:
+              raise SystemExit('Could not locate consolidated Fuel chart section.')
+
+          chart_code = r'''/* =========================================================
+   FUEL ANALYTICS - TOP 10 READABLE CHARTS
+========================================================= */
+const parseFuelAnalytics = () => {
+  const source = document.getElementById('fuelAnalyticsData');
+
+  if (!source) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(source.textContent.trim());
+  } catch (error) {
+    console.error('Unable to parse fuel analytics data.', error);
+    return null;
+  }
+};
+
+const fuelChartFont = {
+  family: 'Poppins',
+  size: 10,
+};
+
+const fuelLegendOptions = {
+  position: 'bottom',
+  labels: {
+    usePointStyle: true,
+    boxWidth: 8,
+    padding: 16,
+    color: '#475569',
+    font: {
+      family: 'Poppins',
+      size: 10,
+      weight: '600',
+    },
+  },
+};
+
+const getFuelRows = data => {
+  const labels = Array.isArray(data.labels) ? data.labels : [];
+  const efficiency = Array.isArray(data.efficiency) ? data.efficiency : [];
+  const distance = Array.isArray(data.distance) ? data.distance : [];
+  const fuel = Array.isArray(data.fuel) ? data.fuel : [];
+
+  return labels.map((label, index) => ({
+    label,
+    efficiency: Number(efficiency[index] || 0),
+    distance: Number(distance[index] || 0),
+    fuel: Number(fuel[index] || 0),
+  }));
+};
+
+const showFuelChartEmptyState = (canvas, message) => {
+  const container = canvas?.closest('.fuel-chart-container');
+
+  if (!container || container.querySelector('.fuel-chart-empty-state')) {
+    return;
+  }
+
+  const state = document.createElement('div');
+  state.className = 'fuel-chart-empty-state';
+  state.innerHTML = `
+    <i class="fa-solid fa-chart-line"></i>
+    <strong>No chart data yet</strong>
+    <p>${message}</p>
+  `;
+  container.appendChild(state);
+};
+
+const clearFuelChartEmptyState = canvas => {
+  canvas?.closest('.fuel-chart-container')
+    ?.querySelector('.fuel-chart-empty-state')
+    ?.remove();
+};
+
+const fleetAverageReferencePlugin = {
+  id: 'fuelFleetAverageReference',
+  afterDraw(chart, args, options) {
+    const average = Number(options?.value || 0);
+    const xScale = chart.scales.x;
+    const area = chart.chartArea;
+
+    if (!average || !xScale || !area) {
+      return;
+    }
+
+    const x = xScale.getPixelForValue(average);
+    const ctx = chart.ctx;
+
+    ctx.save();
+    ctx.strokeStyle = '#d89b00';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(x, area.top);
+    ctx.lineTo(x, area.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8a5b00';
+    ctx.font = '600 10px Poppins';
+    ctx.textAlign = x > area.right - 90 ? 'right' : 'left';
+    ctx.fillText(`Fleet avg ${average.toFixed(2)}`, x + (x > area.right - 90 ? -6 : 6), area.top + 12);
+    ctx.restore();
+  },
+};
+
+const renderEfficiencyChart = data => {
+  const canvas = document.getElementById('fuelEfficiencyChart');
+
+  if (!canvas) {
+    return;
+  }
+
+  Chart.getChart(canvas)?.destroy();
+  clearFuelChartEmptyState(canvas);
+
+  const fleetAverage = Number(data.fleetAverage || 0);
+  const rows = getFuelRows(data)
+    .filter(row => row.efficiency > 0)
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .slice(0, 10);
+
+  if (!rows.length) {
+    showFuelChartEmptyState(canvas, 'Save fuel entries to generate vehicle efficiency rankings.');
+    return;
+  }
+
+  new Chart(canvas, {
+    type: 'bar',
+    plugins: [fleetAverageReferencePlugin],
+    data: {
+      labels: rows.map(row => row.label),
+      datasets: [{
+        label: 'Efficiency (km/L)',
+        data: rows.map(row => row.efficiency),
+        backgroundColor: 'rgba(11, 64, 181, 0.82)',
+        borderColor: '#0b40b5',
+        borderWidth: 1,
+        borderRadius: 5,
+        barThickness: 14,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      interaction: { mode: 'nearest', intersect: false },
+      layout: { padding: { right: 18 } },
+      plugins: {
+        legend: fuelLegendOptions,
+        fuelFleetAverageReference: { value: fleetAverage },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `Efficiency: ${Number(context.raw || 0).toFixed(2)} km/L`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          suggestedMax: Math.max(7, ...rows.map(row => row.efficiency)) + 0.5,
+          title: {
+            display: true,
+            text: 'km/L',
+            color: '#64748b',
+            font: { ...fuelChartFont, weight: '600' },
+          },
+          ticks: { color: '#64748b', font: fuelChartFont },
+          grid: { color: 'rgba(148, 163, 184, 0.18)' },
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: '#334155',
+            font: { family: 'Poppins', size: 10, weight: '600' },
+          },
+        },
+      },
+    },
+  });
+};
+
+const renderUsageChart = data => {
+  const canvas = document.getElementById('fuelUsageChart');
+
+  if (!canvas) {
+    return;
+  }
+
+  Chart.getChart(canvas)?.destroy();
+  clearFuelChartEmptyState(canvas);
+
+  const rows = getFuelRows(data)
+    .filter(row => row.distance > 0 || row.fuel > 0)
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, 10);
+
+  if (!rows.length) {
+    showFuelChartEmptyState(canvas, 'Save fuel entries to compare distance and fuel usage.');
+    return;
+  }
+
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: rows.map(row => row.label),
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Distance (km)',
+          data: rows.map(row => row.distance),
+          backgroundColor: 'rgba(11, 64, 181, 0.82)',
+          borderColor: '#0b40b5',
+          borderWidth: 1,
+          borderRadius: 5,
+          barThickness: 18,
+          yAxisID: 'distanceAxis',
+        },
+        {
+          type: 'line',
+          label: 'Fuel Used (L)',
+          data: rows.map(row => row.fuel),
+          borderColor: '#e2a900',
+          backgroundColor: '#ffc400',
+          borderWidth: 2.25,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#ffc400',
+          pointBorderColor: '#d89b00',
+          tension: 0.25,
+          yAxisID: 'fuelAxis',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: fuelLegendOptions,
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = Number(context.raw || 0).toFixed(2);
+              return context.dataset.label.startsWith('Distance')
+                ? `Distance: ${value} km`
+                : `Fuel Used: ${value} L`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: '#475569',
+            autoSkip: false,
+            maxRotation: 38,
+            minRotation: 38,
+            font: { family: 'Poppins', size: 9, weight: '600' },
+          },
+        },
+        distanceAxis: {
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Distance (km)',
+            color: '#64748b',
+            font: { ...fuelChartFont, weight: '600' },
+          },
+          ticks: { color: '#64748b', font: fuelChartFont },
+          grid: { color: 'rgba(148, 163, 184, 0.18)' },
+        },
+        fuelAxis: {
+          type: 'linear',
+          position: 'right',
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Fuel Used (L)',
+            color: '#64748b',
+            font: { ...fuelChartFont, weight: '600' },
+          },
+          ticks: { color: '#64748b', font: fuelChartFont },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    },
+  });
+};
+
+'''
+
+          js = js[:start] + chart_code + js[end:]
+          js_path.write_text(js, encoding='utf-8')
+
+          # ---------------------------------------------------------
+          # Existing Fuel CSS only: polish the redesigned hierarchy.
+          # ---------------------------------------------------------
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = 'FINAL FUEL REPORTS DASHBOARD REDESIGN'
+          block = r'''
+
+/* =========================================================
+   FINAL FUEL REPORTS DASHBOARD REDESIGN
+========================================================= */
+.fuel-page .fuel-chart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fuel-page .fuel-chart-tag {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d6e0ee;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbff;
+  color: #163b6c;
+  font-family: "Poppins", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fuel-page .fuel-chart-container {
+  overflow: hidden !important;
+  min-height: 300px;
+}
+
+.fuel-page .fuel-chart-scroll-inner {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.fuel-page .fuel-chart-card {
+  min-width: 0;
+}
+
+.fuel-page .fuel-chart-heading p {
+  max-width: 520px;
+}
+
+.fuel-page .recent-fuel-card {
+  margin-bottom: 18px;
+}
+
+.fuel-page .recent-fuel-card .section-header {
+  margin-bottom: 10px;
+}
+
+.fuel-page .recent-fuel-card .table-wrap {
+  max-height: none !important;
+}
+
+.fuel-page .recent-records-table td,
+.fuel-page .recent-records-table th {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+@media (max-width: 900px) {
+  .fuel-page .fuel-chart-tag {
+    display: none;
+  }
+}
+'''
+          if marker not in css:
+              css = css.rstrip() + block + '\n'
+          css_path.write_text(css, encoding='utf-8')
+
+          # Remove this temporary workflow from the final repository.
+          workflow = Path('.github/workflows/apply-final-fuel-redesign.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit redesigned Fuel Reports
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Redesign Fuel Reports dashboard for readability"
+          git push origin HEAD:main
