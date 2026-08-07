@@ -23,6 +23,7 @@ export default defineConfig({
                 'resources/css/Main-styles/sidebar.css',
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/system-toast.css',
+                'resources/css/Account/account.css',
 
                 'resources/js/Main-js/sidebar.js',
                 'resources/js/Main-js/confirmation-modal.js',
