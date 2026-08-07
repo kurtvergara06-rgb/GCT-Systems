@@ -59,6 +59,88 @@ textarea {
   font-weight: 700;
 }
 
+/* Stronger shared status pills for Inter. */
+.badge,
+.bus-status,
+.status-badge,
+.attendance-status,
+.jo-status,
+.part-status {
+  min-width: 92px;
+  min-height: 28px;
+  padding: 6px 13px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .01em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.badge.ongoing,
+.badge.normal,
+.badge.open,
+.badge.issued,
+.badge.for-purchase,
+.status-badge.ongoing,
+.status-badge.in-progress {
+  border-color: #a9c8ff;
+  background: #dceaff;
+  color: #0644b8;
+}
+
+.badge.hold,
+.badge.submitted,
+.badge.pending,
+.badge.pending-purchase,
+.badge.high,
+.badge.progress,
+.status-badge.hold,
+.status-badge.pending {
+  border-color: #f3ce65;
+  background: #fff0bd;
+  color: #8a5600;
+}
+
+.badge.completed,
+.badge.approved,
+.badge.available,
+.badge.low,
+.badge.delivered,
+.badge.in-stock,
+.status-badge.completed,
+.status-badge.approved {
+  border-color: #8bdcab;
+  background: #d7f7e3;
+  color: #087332;
+}
+
+.badge.critical,
+.badge.not-available,
+.badge.rejected,
+.badge.urgent,
+.status-badge.rejected,
+.status-badge.urgent {
+  border-color: #ffaaaa;
+  background: #ffe0e0;
+  color: #b20f1b;
+}
+
+.badge.draft,
+.status-badge.draft,
+.status-badge.locked {
+  border-color: #cbd5e1;
+  background: #edf2f7;
+  color: #475569;
+}
+
+.badge.delivering {
+  border-color: #c4b5fd;
+  background: #ebe7ff;
+  color: #5b21b6;
+}
+
 .record-reference {
   display: flex;
   min-width: 0;
