@@ -34,25 +34,6 @@
   padding-bottom: 16px;
 }
 
-.jo-page tbody tr[data-ui-status="hold"] td:first-child,
-.purchase-request-page tbody tr[data-ui-status="hold"] td:first-child {
-  box-shadow: inset 3px 0 #f59e0b;
-}
-
-.jo-page tbody tr[data-ui-status="progress"] td:first-child {
-  box-shadow: inset 3px 0 #2563eb;
-}
-
-.jo-page tbody tr[data-ui-status="completed"] td:first-child,
-.purchase-request-page tbody tr[data-ui-status="completed"] td:first-child {
-  box-shadow: inset 3px 0 #16a34a;
-}
-
-.jo-page tbody tr[data-ui-status="rejected"] td:first-child,
-.purchase-request-page tbody tr[data-ui-status="rejected"] td:first-child {
-  box-shadow: inset 3px 0 #dc2626;
-}
-
 .maintenance-secondary-text {
   display: block;
   max-width: 240px;
