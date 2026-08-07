@@ -96,6 +96,32 @@ const badgeTable = (table) => {
         return;
       }
 
+      /*
+       * Some tables render identifiers inside a semantic <strong> or <span>
+       * so they can keep secondary text underneath (for example a bus model).
+       * Treat that first direct child as the identifier instead of requiring
+       * the ID to be a raw text node. This keeps Bus IDs visually consistent
+       * with Job Orders without page-specific markup.
+       */
+      const nestedCandidate = Array.from(cell.children).find((element) => {
+        if (!['STRONG', 'SPAN'].includes(element.tagName)) {
+          return false;
+        }
+
+        if (element.matches('.badge, .status-badge, .workflow-badge, .source-badge')) {
+          return false;
+        }
+
+        const value = element.textContent.trim();
+        return value !== '' && value !== '—' && !value.toLowerCase().includes('no ');
+      });
+
+      if (nestedCandidate) {
+        nestedCandidate.classList.add('system-id-badge', 'system-id-badge--small');
+        nestedCandidate.title = nestedCandidate.textContent.trim();
+        return;
+      }
+
       const directTextNodes = Array.from(cell.childNodes)
         .filter((node) => node.nodeType === Node.TEXT_NODE)
         .filter((node) => node.textContent.trim() !== '');
