@@ -46,36 +46,38 @@
         of {{ $items->total() }} entries
     </p>
 
-    <div class="custom-pagination">
-        @if ($items->onFirstPage())
-            <span class="page-btn disabled">
-                Previous
-            </span>
-        @else
-            <a
-                href="{{ $path }}?{{ $previousQuery }}"
-                class="page-btn"
-            >
-                Previous
-            </a>
-        @endif
+    @if ($lastPage > 1)
+        <div class="custom-pagination">
+            @if ($items->onFirstPage())
+                <span class="page-btn disabled">
+                    Previous
+                </span>
+            @else
+                <a
+                    href="{{ $path }}?{{ $previousQuery }}"
+                    class="page-btn"
+                >
+                    Previous
+                </a>
+            @endif
 
-        <span class="page-number">
-            Page {{ $currentPage }}
-            of {{ $lastPage }}
-        </span>
-
-        @if ($items->hasMorePages())
-            <a
-                href="{{ $path }}?{{ $nextQuery }}"
-                class="page-btn"
-            >
-                Next
-            </a>
-        @else
-            <span class="page-btn disabled">
-                Next
+            <span class="page-number">
+                Page {{ $currentPage }}
+                of {{ $lastPage }}
             </span>
-        @endif
-    </div>
+
+            @if ($items->hasMorePages())
+                <a
+                    href="{{ $path }}?{{ $nextQuery }}"
+                    class="page-btn"
+                >
+                    Next
+                </a>
+            @else
+                <span class="page-btn disabled">
+                    Next
+                </span>
+            @endif
+        </div>
+    @endif
 </div>
