@@ -3,7 +3,7 @@
 use App\Http\Controllers\AccountController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')
+Route::middleware(['web', 'auth'])
     ->prefix('account')
     ->controller(AccountController::class)
     ->group(function () {
