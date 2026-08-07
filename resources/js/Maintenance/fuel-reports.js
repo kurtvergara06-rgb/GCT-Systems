@@ -1643,10 +1643,6 @@ const fleetAverageReferencePlugin = {
     ctx.lineTo(x, area.bottom);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#8a5b00';
-    ctx.font = '600 10px Poppins';
-    ctx.textAlign = x > area.right - 90 ? 'right' : 'left';
-    ctx.fillText(`Fleet avg ${average.toFixed(2)}`, x + (x > area.right - 90 ? -6 : 6), area.top + 12);
     ctx.restore();
   },
 };

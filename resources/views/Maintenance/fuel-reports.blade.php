@@ -354,7 +354,7 @@
 
         <x-ui.chart-card
           title="Fuel Efficiency by Vehicle"
-          description="Top 10 vehicles ranked by fuel efficiency. Fleet average is shown as a reference."
+          description="Top 10 vehicles ranked by fuel efficiency. Fleet Average: {{ number_format($fleetAverage, 2) }} km/L."
           chart-id="fuelEfficiencyChart"
           tag="Top 10"
           icon="fa-chart-column"
