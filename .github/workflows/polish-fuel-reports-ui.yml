@@ -1,0 +1,252 @@
+name: Polish Fuel Reports UI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/polish-fuel-reports-ui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Polish existing Fuel Reports files
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          blade_path = Path('resources/views/Maintenance/fuel-reports.blade.php')
+          blade = blade_path.read_text(encoding='utf-8')
+
+          blade = blade.replace(
+              'description="Top 10 vehicles ranked by fuel efficiency. Fleet average is shown as a reference."',
+              'description="10 lowest-efficiency buses that need the most attention. Fleet average is shown as a reference."'
+          )
+          blade = blade.replace('tag="Top 10"\n          icon="fa-chart-column"', 'tag="Needs Attention"\n          icon="fa-chart-column"', 1)
+
+          # Add a specific wrapper class to Recent Fuel Entries only.
+          recent_marker = '<section class="table-card fuel-card recent-fuel-card">'
+          if recent_marker in blade:
+              start = blade.index(recent_marker)
+              wrap = '<div class="table-wrap">'
+              wrap_pos = blade.find(wrap, start)
+              if wrap_pos != -1:
+                  blade = blade[:wrap_pos] + '<div class="table-wrap recent-fuel-scroll">' + blade[wrap_pos + len(wrap):]
+
+          blade_path.write_text(blade, encoding='utf-8')
+
+          js_path = Path('resources/js/Maintenance/fuel-reports.js')
+          js = js_path.read_text(encoding='utf-8')
+
+          # Maintenance-focused efficiency chart: lowest positive efficiency first.
+          js = js.replace(
+              ".sort((a, b) => b.efficiency - a.efficiency)\n    .slice(0, 10);",
+              ".sort((a, b) => a.efficiency - b.efficiency)\n    .slice(0, 10);",
+              1,
+          )
+
+          # Slightly softer and more compact chart visuals.
+          js = js.replace("backgroundColor: 'rgba(11, 64, 181, 0.82)'", "backgroundColor: 'rgba(11, 64, 181, 0.72)'", 2)
+          js = js.replace("barThickness: 14,", "barThickness: 12,", 1)
+          js = js.replace("barThickness: 18,", "barThickness: 16,", 1)
+          js = js.replace("maxRotation: 38,\n  minRotation: 38,", "maxRotation: 28,\n  minRotation: 28,")
+          js = js.replace("tension: 0.25,", "tension: 0.32,", 1)
+
+          # Make efficiency tooltip explicitly maintenance-oriented.
+          js = js.replace(
+              "return `Efficiency: ${Number(context.raw || 0).toFixed(2)} km/L`;",
+              "return `${context.label}: ${Number(context.raw || 0).toFixed(2)} km/L`;",
+              1,
+          )
+
+          js_path.write_text(js, encoding='utf-8')
+
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+
+          marker = 'FUEL REPORTS JO ACTIONS + SCROLL POLISH'
+          if marker not in css:
+              css += r'''
+
+/* =========================================================
+   FUEL REPORTS JO ACTIONS + SCROLL POLISH
+========================================================= */
+.fuel-page .recent-fuel-scroll {
+  width: 100%;
+  max-height: 330px;
+  overflow: auto !important;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.fuel-page .recent-fuel-scroll .recent-records-table {
+  min-width: 1120px;
+  margin: 0;
+}
+
+.fuel-page .recent-fuel-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #f3f7fb;
+  box-shadow: 0 1px 0 #dce5f0;
+}
+
+.fuel-page .recent-fuel-scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.fuel-page .recent-fuel-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.fuel-page .recent-fuel-scroll::-webkit-scrollbar-thumb {
+  background: #c5d1df;
+  border: 2px solid #f1f5f9;
+  border-radius: 999px;
+}
+
+.fuel-page .recent-fuel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9fb0c4;
+}
+
+/* Match Job Orders action controls exactly in visual language. */
+.fuel-page .fuel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.fuel-page .fuel-action-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.fuel-page .fuel-action-btn i {
+  margin: 0 !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+.fuel-page .fuel-action-btn.view,
+.fuel-page .fuel-action-btn.edit {
+  border-color: #d5e4f8 !important;
+  background: #edf3fb !important;
+  color: #0b4cb8 !important;
+}
+
+.fuel-page .fuel-action-btn.view:hover,
+.fuel-page .fuel-action-btn.edit:hover {
+  border-color: #bfd6f4 !important;
+  background: #dbeafe !important;
+  color: #0644a8 !important;
+  transform: translateY(-1px);
+}
+
+.fuel-page .fuel-action-btn.delete {
+  border-color: #ffd5d5 !important;
+  background: #fff0f0 !important;
+  color: #dc2626 !important;
+}
+
+.fuel-page .fuel-action-btn.delete:hover {
+  border-color: #fecaca !important;
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  transform: translateY(-1px);
+}
+
+/* Chart polish: keep dashboard cards aligned with the system shell. */
+.fuel-page .fuel-analytics-grid {
+  align-items: stretch;
+}
+
+.fuel-page .fuel-chart-card {
+  overflow: hidden;
+  border-color: #dbe4f0;
+  box-shadow: 0 8px 24px rgba(6, 31, 61, 0.06);
+}
+
+.fuel-page .fuel-chart-header {
+  min-height: 70px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef3f8;
+}
+
+.fuel-page .fuel-chart-heading h2 {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.fuel-page .fuel-chart-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.fuel-page .fuel-chart-tag {
+  background: #f8fbff;
+  color: #163b6c;
+  border-color: #d6e0ee;
+}
+
+.fuel-page .fuel-chart-container {
+  height: 300px !important;
+  padding: 8px 4px 2px;
+}
+
+@media (max-width: 1100px) {
+  .fuel-page .fuel-chart-container {
+    height: 280px !important;
+  }
+}
+'''
+
+          css_path.write_text(css, encoding='utf-8')
+
+          workflow = Path('.github/workflows/polish-fuel-reports-ui.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit polished Fuel Reports UI
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Polish Fuel Reports charts actions and scrolling"
+          git push origin HEAD:main
