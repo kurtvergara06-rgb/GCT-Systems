@@ -41,6 +41,21 @@ const shouldBadgeHeader = (text) => {
   );
 };
 
+const makeCompactIdBadge = (element) => {
+  element.classList.add('system-id-badge', 'system-id-badge--small');
+  element.title = element.textContent.trim();
+
+  /*
+   * Some pages style <strong> or <span> as block-level elements.
+   * Keep detected IDs content-sized so they match the compact Job Order
+   * identifier chips instead of stretching across the whole table cell.
+   */
+  element.style.setProperty('display', 'inline-flex', 'important');
+  element.style.setProperty('width', 'max-content', 'important');
+  element.style.setProperty('max-width', '100%', 'important');
+  element.style.setProperty('box-sizing', 'border-box', 'important');
+};
+
 const normalizeExistingIdElements = (root = document) => {
   root.querySelectorAll([
     '.personnel-id',
@@ -55,8 +70,7 @@ const normalizeExistingIdElements = (root = document) => {
       return;
     }
 
-    element.classList.add('system-id-badge', 'system-id-badge--small');
-    element.title = element.textContent.trim();
+    makeCompactIdBadge(element);
   });
 };
 
@@ -76,7 +90,13 @@ const badgeTable = (table) => {
     targetIndexes.forEach((index) => {
       const cell = cells[index];
 
-      if (!cell || cell.querySelector('.system-id-badge')) {
+      if (!cell) {
+        return;
+      }
+
+      const existingBadge = cell.querySelector('.system-id-badge');
+      if (existingBadge) {
+        makeCompactIdBadge(existingBadge);
         return;
       }
 
@@ -91,18 +111,10 @@ const badgeTable = (table) => {
       ].join(','));
 
       if (existingCandidate) {
-        existingCandidate.classList.add('system-id-badge', 'system-id-badge--small');
-        existingCandidate.title = existingCandidate.textContent.trim();
+        makeCompactIdBadge(existingCandidate);
         return;
       }
 
-      /*
-       * Some tables render identifiers inside a semantic <strong> or <span>
-       * so they can keep secondary text underneath (for example a bus model).
-       * Treat that first direct child as the identifier instead of requiring
-       * the ID to be a raw text node. This keeps Bus IDs visually consistent
-       * with Job Orders without page-specific markup.
-       */
       const nestedCandidate = Array.from(cell.children).find((element) => {
         if (!['STRONG', 'SPAN'].includes(element.tagName)) {
           return false;
@@ -117,8 +129,7 @@ const badgeTable = (table) => {
       });
 
       if (nestedCandidate) {
-        nestedCandidate.classList.add('system-id-badge', 'system-id-badge--small');
-        nestedCandidate.title = nestedCandidate.textContent.trim();
+        makeCompactIdBadge(nestedCandidate);
         return;
       }
 
@@ -138,9 +149,8 @@ const badgeTable = (table) => {
       directTextNodes.forEach((node) => node.remove());
 
       const badge = document.createElement('span');
-      badge.className = 'system-id-badge system-id-badge--small';
       badge.textContent = value;
-      badge.title = value;
+      makeCompactIdBadge(badge);
       cell.prepend(badge);
     });
   });
