@@ -117,7 +117,7 @@
           <img
             src="{{ asset('img/GCT-bus.png') }}"
             alt=""
-            class="fleet-composite"
+            class="fleet-composite" 
           >
         </div>
 
@@ -127,7 +127,7 @@
             <strong>Your security is our priority.</strong>
             <span>All account data is protected and encrypted.</span>
           </div>
-        </div>
+        </div>  
       </div>
     </section>
 
