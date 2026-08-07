@@ -1,0 +1,67 @@
+/* PMS Scheduling: keep page controls visible while only the table records scroll. */
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
+  position: relative;
+  width: 100%;
+  max-height: clamp(340px, 48vh, 560px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid var(--pms-border, #dce5f2);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table {
+  margin: 0;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table th {
+  position: sticky;
+  top: 0;
+  z-index: 7;
+  background: var(--pms-table-head, #f3f7fc);
+  box-shadow: 0 1px 0 var(--pms-border, #dce5f2);
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-track {
+  background: #f3f6fa;
+  border-radius: 999px;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb {
+  background: #c5d1df;
+  border: 2px solid #f3f6fa;
+  border-radius: 999px;
+}
+
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb:hover {
+  background: #9faec0;
+}
+
+.pms-page .pms-table-card > .table-footer {
+  margin-top: 14px;
+}
+
+@media (max-width: 1024px) {
+  .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
+    max-height: clamp(320px, 52vh, 500px);
+  }
+}
+
+@media (max-width: 640px) {
+  .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
+    max-height: 430px;
+  }
+}
