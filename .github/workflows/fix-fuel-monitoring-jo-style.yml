@@ -34,7 +34,6 @@ jobs:
    Keep Bus IDs and status pills visually aligned with JO.
 ========================================================= */
 
-/* Bus ID: same shared system ID treatment used by Job Orders. */
 .fuel-page .daily-monitoring-table .bus-cell > strong {
   display: inline-flex !important;
   align-items: center !important;
@@ -62,7 +61,6 @@ jobs:
   letter-spacing: 0 !important;
 }
 
-/* JO-style compact table rows. */
 .fuel-page .daily-monitoring-table th {
   height: 42px !important;
   padding: 10px 14px !important;
@@ -91,51 +89,7 @@ jobs:
   font-weight: 400 !important;
 }
 
-/* Workflow badges: same dimensions and typography as JO status pills. */
-.fuel-page .daily-monitoring-table .workflow-badge {
-  min-width: 92px !important;
-  min-height: 28px !important;
-  padding: 6px 13px !important;
-  border-radius: 999px !important;
-  font-family: "Poppins", sans-serif !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  letter-spacing: 0 !important;
-  gap: 0 !important;
-}
-
-/* JO statuses do not use decorative icons inside the pill. */
-.fuel-page .daily-monitoring-table .workflow-badge i {
-  display: none !important;
-}
-
-.fuel-page .daily-monitoring-table .workflow-badge.for-fuel-entry {
-  border-color: #f3ce65 !important;
-  background: #fff0bd !important;
-  color: #8a5600 !important;
-}
-
-.fuel-page .daily-monitoring-table .workflow-badge.completed {
-  border-color: #8bdcab !important;
-  background: #d7f7e3 !important;
-  color: #087332 !important;
-}
-
-.fuel-page .daily-monitoring-table .workflow-badge.missing-gps,
-.fuel-page .daily-monitoring-table .workflow-badge.needs-review {
-  border-color: #ffaaaa !important;
-  background: #ffe0e0 !important;
-  color: #b20f1b !important;
-}
-
-.fuel-page .daily-monitoring-table .workflow-badge.monitoring {
-  border-color: #cbd5e1 !important;
-  background: #edf2f7 !important;
-  color: #475569 !important;
-}
-
-/* Efficiency pills use the same JO status proportions. */
+.fuel-page .daily-monitoring-table .workflow-badge,
 .fuel-page .daily-monitoring-table .badge {
   min-width: 92px !important;
   min-height: 28px !important;
@@ -149,14 +103,30 @@ jobs:
   gap: 0 !important;
 }
 
+.fuel-page .daily-monitoring-table .workflow-badge i,
 .fuel-page .daily-monitoring-table .badge i {
   display: none !important;
 }
 
+.fuel-page .daily-monitoring-table .workflow-badge.for-fuel-entry {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.completed,
 .fuel-page .daily-monitoring-table .badge.efficient {
   border-color: #8bdcab !important;
   background: #d7f7e3 !important;
   color: #087332 !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.missing-gps,
+.fuel-page .daily-monitoring-table .workflow-badge.needs-review,
+.fuel-page .daily-monitoring-table .badge.inefficient {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
 }
 
 .fuel-page .daily-monitoring-table .badge.normal {
@@ -165,19 +135,13 @@ jobs:
   color: #0644b8 !important;
 }
 
-.fuel-page .daily-monitoring-table .badge.inefficient {
-  border-color: #ffaaaa !important;
-  background: #ffe0e0 !important;
-  color: #b20f1b !important;
-}
-
+.fuel-page .daily-monitoring-table .workflow-badge.monitoring,
 .fuel-page .daily-monitoring-table .badge.no-data {
   border-color: #cbd5e1 !important;
   background: #edf2f7 !important;
   color: #475569 !important;
 }
 
-/* Inputs align more closely with JO controls. */
 .fuel-page .daily-monitoring-table .daily-inline-input {
   height: 38px !important;
   border-radius: 9px !important;
