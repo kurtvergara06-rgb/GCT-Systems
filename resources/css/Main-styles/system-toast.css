@@ -11,19 +11,37 @@
 }
 
 .system-toast-notification {
+    --toast-accent: #0b40b5;
+    --toast-accent-soft: #eaf2ff;
+    --toast-accent-border: #bfd3f7;
+
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 14px 15px;
+    padding: 14px 15px 14px 17px;
+    overflow: hidden;
+    border: 1px solid #dbe4f0;
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: linear-gradient(135deg, #081a32, #102b4d);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
-    color: #f8fafc;
+    background: #ffffff;
+    box-shadow: 0 14px 34px rgba(6, 31, 61, 0.14);
+    color: #061f3d;
     pointer-events: auto;
     opacity: 0;
     transform: translateY(-12px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease;
+}
+
+.system-toast-notification::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--toast-accent);
+}
+
+.system-toast-notification:hover {
+    box-shadow: 0 18px 40px rgba(6, 31, 61, 0.18);
 }
 
 .system-toast-notification.is-visible {
@@ -36,73 +54,101 @@
     transform: translateY(-10px);
 }
 
+.system-toast-notification--success {
+    --toast-accent: #16a34a;
+    --toast-accent-soft: #dcfce7;
+    --toast-accent-border: #bbf7d0;
+}
+
+.system-toast-notification--error {
+    --toast-accent: #dc2626;
+    --toast-accent-soft: #fee2e2;
+    --toast-accent-border: #fecaca;
+}
+
+.system-toast-notification--warning {
+    --toast-accent: #c58a00;
+    --toast-accent-soft: #fff4cf;
+    --toast-accent-border: #f3cf61;
+}
+
+.system-toast-notification--info {
+    --toast-accent: #0b40b5;
+    --toast-accent-soft: #eaf2ff;
+    --toast-accent-border: #bfd3f7;
+}
+
 .system-toast-icon {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--toast-accent-border);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 16px;
-    color: #fff;
-}
-
-.system-toast-notification--success .system-toast-icon {
-    background: rgba(34, 197, 94, 0.18);
-    color: #4ade80;
-    border: 1px solid rgba(74, 222, 128, 0.3);
-}
-
-.system-toast-notification--error .system-toast-icon {
-    background: rgba(248, 113, 113, 0.16);
-    color: #f87171;
-    border: 1px solid rgba(248, 113, 113, 0.3);
-}
-
-.system-toast-notification--warning .system-toast-icon {
-    background: rgba(250, 204, 21, 0.16);
-    color: #facc15;
-    border: 1px solid rgba(250, 204, 21, 0.3);
-}
-
-.system-toast-notification--info .system-toast-icon {
-    background: rgba(59, 130, 246, 0.18);
-    color: #60a5fa;
-    border: 1px solid rgba(96, 165, 250, 0.3);
+    background: var(--toast-accent-soft);
+    color: var(--toast-accent);
+    font-size: 15px;
 }
 
 .system-toast-body {
     min-width: 0;
     flex: 1;
+    padding-top: 1px;
 }
 
 .system-toast-title {
     display: block;
-    font-size: 14px;
-    font-weight: 700;
     margin-bottom: 3px;
-    color: #fff;
+    color: #061f3d;
+    font-family: "Poppins", sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
 }
 
 .system-toast-message {
     display: block;
-    font-size: 13px;
-    line-height: 1.4;
-    color: #cbd5e1;
+    color: #64748b;
+    font-family: "Poppins", sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.5;
     word-break: break-word;
 }
 
 .system-toast-close {
-    border: none;
+    width: 28px;
+    height: 28px;
+    margin: -2px -2px 0 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     color: #94a3b8;
     cursor: pointer;
-    font-size: 15px;
-    padding: 2px 3px;
-    margin-left: 4px;
+    font-size: 12px;
+    transition: background 0.18s ease, color 0.18s ease;
 }
 
 .system-toast-close:hover {
-    color: #fff;
+    background: #f1f5f9;
+    color: #061f3d;
+}
+
+@media (max-width: 640px) {
+    .system-toast-root {
+        top: 12px;
+        right: 12px;
+        width: calc(100vw - 24px);
+    }
+
+    .system-toast-notification {
+        padding: 13px 13px 13px 16px;
+        border-radius: 12px;
+    }
 }
