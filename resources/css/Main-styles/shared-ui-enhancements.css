@@ -1,5 +1,18 @@
 /* Shared UI enhancements used across department modules. */
 
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Inter", sans-serif;
+}
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
 .system-id-badge {
   display: inline-flex;
   align-items: center;
