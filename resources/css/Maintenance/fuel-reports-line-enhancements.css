@@ -44,6 +44,10 @@
   background: #ffffff;
 }
 
+#fuelModal .fuel-modal-job-order-style .fuel-modal-header::before {
+  display: none;
+}
+
 #fuelModal .fuel-modal-title-icon {
   display: inline-flex;
   align-items: center;
