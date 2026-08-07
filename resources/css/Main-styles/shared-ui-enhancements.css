@@ -6,35 +6,38 @@
   justify-content: center;
   max-width: 100%;
   min-height: 28px;
-  padding: 5px 10px;
-  border: 1px solid #bfd5ff;
-  border-radius: 999px;
-  background: #edf4ff;
-  color: #0b40b5;
-  font-size: 12px;
+  padding: 0 10px;
+  border: 1px solid #d6e0ee;
+  border-radius: 7px;
+  background: #f8fbff;
+  color: #163b6c;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: .01em;
+  letter-spacing: .08em;
   white-space: nowrap;
   vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, .03);
 }
 
 .system-id-badge--small {
   min-height: 24px;
-  padding: 4px 8px;
-  font-size: 11px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 10px;
 }
 
 .system-id-badge--large {
-  min-height: 34px;
-  padding: 7px 13px;
-  font-size: 13px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
 }
 
 .system-id-badge--neutral {
-  border-color: #d9e2ef;
-  background: #f8fafc;
-  color: #334155;
+  border-color: #d6e0ee;
+  background: #f8fbff;
+  color: #163b6c;
 }
 
 .system-id-empty {
