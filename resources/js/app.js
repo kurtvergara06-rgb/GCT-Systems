@@ -7,6 +7,7 @@ import '../css/Login/login.css';
 import './Login/login.js';
 
 import '../css/Maintenance/job-order.css';
+import '../css/Maintenance/job-order-redesign.css';
 import '../css/Maintenance/job-order-edit-combobox.css';
 import './Maintenance/job-order.js';
 import './Maintenance/job-order-finish-guard.js';
