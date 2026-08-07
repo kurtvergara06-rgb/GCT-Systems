@@ -12,7 +12,7 @@
 
 <form method="GET" action="{{ $action }}" class="{{ $class }}">
   <div class="search-box">
-    <i class="fa-solid fa-magnifying-glass"></i>  
+    <i class="fa-solid fa-magnifying-glass"></i>
     <input
       type="text"
       name="{{ $searchName }}"
@@ -23,7 +23,7 @@
 
   {{ $slot }}
 
-  @if($showButton)
+  @if($showButton && filled($buttonLabel))
     <button type="button" class="primary-btn" id="{{ $buttonId }}">
       <i class="fa-solid {{ $buttonIcon }}"></i>
       {{ $buttonLabel }}
