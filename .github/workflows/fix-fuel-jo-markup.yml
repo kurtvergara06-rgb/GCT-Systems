@@ -1,0 +1,137 @@
+name: Fix Fuel JO Markup
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-fuel-jo-markup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Update Fuel Monitoring markup
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('resources/views/Maintenance/fuel-reports.blade.php')
+          text = path.read_text(encoding='utf-8')
+
+          old = """                  @php\n                    $workflowClass = strtolower(str_replace(' ', '-', $row->workflow_status));\n                    $efficiencyClass = strtolower(str_replace(' ', '-', $row->efficiency_status));\n                  @endphp\n"""
+          new = """                  @php\n                    $workflowClass = strtolower(str_replace(' ', '-', $row->workflow_status));\n                    $efficiencyClass = strtolower(str_replace(' ', '-', $row->efficiency_status));\n\n                    $workflowBadgeClass = match ($row->workflow_status) {\n                      'Completed' => 'completed',\n                      'For Fuel Entry' => 'hold',\n                      'Missing GPS', 'Needs Review' => 'urgent',\n                      default => 'draft',\n                    };\n                  @endphp\n"""
+          if old not in text:
+              raise SystemExit('php block not found')
+          text = text.replace(old, new, 1)
+
+          old = """                    <td class=\"bus-cell\">\n                      <strong>{{ $row->bus_no }}</strong>\n                      @if($row->bus_model)\n                        <small>{{ $row->bus_model }}</small>\n                      @endif\n"""
+          new = """                    <td class=\"bus-cell\">\n                      <x-ui.id-badge\n                        :value=\"$row->bus_no\"\n                        size=\"small\"\n                      />\n                      @if($row->bus_model)\n                        <small>{{ $row->bus_model }}</small>\n                      @endif\n"""
+          if old not in text:
+              raise SystemExit('bus cell not found')
+          text = text.replace(old, new, 1)
+
+          old = """                    <td>\n                      <span class=\"workflow-badge {{ $workflowClass }}\">\n                        @if($row->workflow_status === 'Completed')\n                          <i class=\"fa-solid fa-circle-check\"></i>\n                        @elseif($row->workflow_status === 'For Fuel Entry')\n                          <i class=\"fa-solid fa-gas-pump\"></i>\n                        @elseif($row->workflow_status === 'Missing GPS')\n                          <i class=\"fa-solid fa-triangle-exclamation\"></i>\n                        @else\n                          <i class=\"fa-solid fa-clock\"></i>\n                        @endif\n                        {{ $row->workflow_status }}\n                      </span>\n                    </td>\n\n                    <td>\n                      <span class=\"badge {{ $efficiencyClass }}\">\n                        @if($row->efficiency_status === 'Efficient')\n                          <i class=\"fa-solid fa-circle-check\"></i>\n                        @elseif($row->efficiency_status === 'Normal')\n                          <i class=\"fa-solid fa-gauge-high\"></i>\n                        @elseif($row->efficiency_status === 'Inefficient')\n                          <i class=\"fa-solid fa-triangle-exclamation\"></i>\n                        @else\n                          <i class=\"fa-solid fa-minus\"></i>\n                        @endif\n                        {{ $row->efficiency_status }}\n                      </span>\n"""
+          new = """                    <td>\n                      <span class=\"badge {{ $workflowBadgeClass }}\">\n                        {{ $row->workflow_status }}\n                      </span>\n                    </td>\n\n                    <td>\n                      <span class=\"badge {{ $efficiencyClass }}\">\n                        {{ $row->efficiency_status }}\n                      </span>\n"""
+          if old not in text:
+              raise SystemExit('status cells not found')
+          text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = 'DAILY MONITORING JO COMPONENT ALIGNMENT'
+          if marker not in css:
+              css += r'''
+
+/* =========================================================
+   DAILY MONITORING JO COMPONENT ALIGNMENT
+========================================================= */
+.fuel-page .daily-monitoring-table .bus-cell .system-id-badge {
+  margin: 0;
+}
+
+.fuel-page .daily-monitoring-table .bus-cell small {
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.fuel-page .daily-monitoring-table td:nth-child(6),
+.fuel-page .daily-monitoring-table td:nth-child(7),
+.fuel-page .daily-monitoring-table th:nth-child(6),
+.fuel-page .daily-monitoring-table th:nth-child(7) {
+  text-align: center;
+}
+
+.fuel-page .daily-monitoring-table .badge {
+  min-width: 92px;
+  min-height: 28px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.fuel-page .daily-monitoring-table .badge.hold {
+  border-color: #f3ce65;
+  background: #fff0bd;
+  color: #8a5600;
+}
+
+.fuel-page .daily-monitoring-table .badge.completed,
+.fuel-page .daily-monitoring-table .badge.efficient {
+  border-color: #8bdcab;
+  background: #d7f7e3;
+  color: #087332;
+}
+
+.fuel-page .daily-monitoring-table .badge.normal {
+  border-color: #a9c8ff;
+  background: #dceaff;
+  color: #0644b8;
+}
+
+.fuel-page .daily-monitoring-table .badge.urgent,
+.fuel-page .daily-monitoring-table .badge.inefficient {
+  border-color: #ffaaaa;
+  background: #ffe0e0;
+  color: #b20f1b;
+}
+
+.fuel-page .daily-monitoring-table .badge.draft,
+.fuel-page .daily-monitoring-table .badge.no-data {
+  border-color: #cbd5e1;
+  background: #edf2f7;
+  color: #475569;
+}
+'''
+              css_path.write_text(css, encoding='utf-8')
+
+          workflow = Path('.github/workflows/fix-fuel-jo-markup.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Match Fuel Monitoring IDs and statuses to Job Orders"
+          git push origin HEAD:main
