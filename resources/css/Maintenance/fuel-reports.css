@@ -2067,3 +2067,72 @@
     padding: 14px 18px;
   }
 }
+
+/* =========================================================
+   FINAL FUEL REPORTS DASHBOARD REDESIGN
+========================================================= */
+.fuel-page .fuel-chart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fuel-page .fuel-chart-tag {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d6e0ee;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbff;
+  color: #163b6c;
+  font-family: "Poppins", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fuel-page .fuel-chart-container {
+  overflow: hidden !important;
+  min-height: 300px;
+}
+
+.fuel-page .fuel-chart-scroll-inner {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.fuel-page .fuel-chart-card {
+  min-width: 0;
+}
+
+.fuel-page .fuel-chart-heading p {
+  max-width: 520px;
+}
+
+.fuel-page .recent-fuel-card {
+  margin-bottom: 18px;
+}
+
+.fuel-page .recent-fuel-card .section-header {
+  margin-bottom: 10px;
+}
+
+.fuel-page .recent-fuel-card .table-wrap {
+  max-height: none !important;
+}
+
+.fuel-page .recent-records-table td,
+.fuel-page .recent-records-table th {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+@media (max-width: 900px) {
+  .fuel-page .fuel-chart-tag {
+    display: none;
+  }
+}
+

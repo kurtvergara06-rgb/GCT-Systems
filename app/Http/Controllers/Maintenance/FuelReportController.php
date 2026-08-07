@@ -103,7 +103,7 @@ class FuelReportController extends Controller
             ->first();
 
         $recentFuelRecords = $fuelReports
-            ->take(10)
+            ->take(5)
             ->values();
 
         $buses = Bus::query()

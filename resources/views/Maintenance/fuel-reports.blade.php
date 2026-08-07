@@ -354,16 +354,18 @@
 
         <x-ui.chart-card
           title="Fuel Efficiency by Vehicle"
-          description="Average kilometers travelled per liter for each vehicle."
+          description="Top 10 vehicles ranked by fuel efficiency. Fleet average is shown as a reference."
           chart-id="fuelEfficiencyChart"
+          tag="Top 10"
           icon="fa-chart-column"
           icon-color="blue"
         />
 
         <x-ui.chart-card
           title="Distance and Fuel Usage"
-          description="Comparison between total distance and total fuel consumption."
+          description="Top 10 buses by distance with total fuel consumption."
           chart-id="fuelUsageChart"
+          tag="Top 10"
           icon="fa-gas-pump"
           icon-color="yellow"
         />
@@ -596,161 +598,14 @@
 
       </section>
 
-      {{-- EFFICIENCY TABLE --}}
-      <section class="table-card fuel-card fuel-efficiency-card">
 
-        <div class="section-header">
-          <div>
-            <h2>Efficiency by Vehicle</h2>
-            <p>Fuel efficiency summary based on the selected reporting period.</p>
-          </div>
-        </div>
-
-        <x-ui.table-toolbar
-          :action="route('fuel-reports')"
-          class="toolbar fuel-toolbar"
-          search-placeholder="Search bus, driver, status, or source"
-          button-id=""
-          button-label=""
-        >
-
-          <div class="filter-group">
-
-            <label for="fuelDateFilter">
-              Date
-            </label>
-
-            <select
-              name="date_filter"
-              id="fuelDateFilter"
-              onchange="this.form.submit()"
-            >
-
-              <option
-                value="This Month"
-                @selected(request('date_filter', 'This Month') === 'This Month')
-              >
-                This Month
-              </option>
-
-              <option
-                value="This Week"
-                @selected(request('date_filter') === 'This Week')
-              >
-                This Week
-              </option>
-
-              <option
-                value="Today"
-                @selected(request('date_filter') === 'Today')
-              >
-                Today
-              </option>
-
-            </select>
-
-          </div>
-
-        </x-ui.table-toolbar>
-
-        <div class="table-wrap">
-
-          <table class="fuel-table">
-
-            <thead>
-              <tr>
-                <th>Vehicle</th>
-                <th>Total KM</th>
-                <th>Total L</th>
-                <th>Average KM/L</th>
-                <th>VS Fleet Avg</th>
-                <th>Entries</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              @forelse($vehicleSummaries as $vehicle)
-
-                @php
-                  $statusClass = strtolower(
-                    str_replace(' ', '-', $vehicle->status)
-                  );
-
-                  $vsSign =
-                    $vehicle->vs_fleet_avg >= 0
-                      ? '+'
-                      : '';
-                @endphp
-
-                <tr class="{{ $vehicle->status === 'Inefficient' ? 'danger-row' : '' }}">
-
-                  <td>
-                    {{ $vehicle->bus_no }}
-                  </td>
-
-                  <td>
-                    {{ number_format($vehicle->total_km, 2) }} km
-                  </td>
-
-                  <td>
-                    {{ number_format($vehicle->total_liters, 2) }} L
-                  </td>
-
-                  <td>
-                    {{ number_format($vehicle->km_per_liter, 2) }} km/L
-                  </td>
-
-                  <td>
-                    {{ $vsSign }}{{ number_format($vehicle->vs_fleet_avg, 1) }}%
-                  </td>
-
-                  <td>
-                    {{ $vehicle->entries }}
-                  </td>
-
-                  <td>
-                    <span class="badge {{ $statusClass }}">
-                      @if($vehicle->status === 'Inefficient')
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                      @elseif($vehicle->status === 'Efficient')
-                        <i class="fa-solid fa-circle-check"></i>
-                      @elseif($vehicle->status === 'Normal')
-                        <i class="fa-solid fa-gauge-high"></i>
-                      @else
-                        <i class="fa-solid fa-minus"></i>
-                      @endif
-                      {{ $vehicle->status }}
-                    </span>
-                  </td>
-
-                </tr>
-
-              @empty
-
-                <x-ui.empty-row
-                  colspan="7"
-                  message="No fuel records found for the selected period."
-                />
-
-              @endforelse
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </section>
-
-      {{-- RECENT RECORDS --}}
+      {{-- RECENT FUEL ENTRIES --}}
       <section class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>
-            <h2>Recent Fuel Records</h2>
-            <p>Latest fuel records with GPS or manual distance source.</p>
+            <h2>Recent Fuel Entries</h2>
+            <p>Latest saved fuel entries for quick verification and audit.</p>
           </div>
         </div>
 
