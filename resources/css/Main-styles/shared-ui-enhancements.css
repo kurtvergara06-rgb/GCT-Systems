@@ -105,6 +105,33 @@ button,
   color: #163b6c;
 }
 
+/* Operation aliases use the same visual language as Maintenance IDs. */
+.personnel-id,
+.driver-id,
+.mechanic-id,
+.bus-id,
+.route-code,
+.trip-code,
+.assignment-reference {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  max-width: 100% !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d6e0ee !important;
+  border-radius: 7px !important;
+  background: #f8fbff !important;
+  color: #163b6c !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, .03) !important;
+}
+
 .system-id-empty {
   color: var(--muted, #64748b);
   font-size: 12px;
@@ -334,7 +361,14 @@ button,
 }
 
 @media (max-width: 768px) {
-  .system-id-badge {
+  .system-id-badge,
+  .personnel-id,
+  .driver-id,
+  .mechanic-id,
+  .bus-id,
+  .route-code,
+  .trip-code,
+  .assignment-reference {
     max-width: 190px;
     overflow: hidden;
     text-overflow: ellipsis;
