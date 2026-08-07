@@ -102,9 +102,7 @@ class FuelReportController extends Controller
             ->sortBy('km_per_liter')
             ->first();
 
-        $recentFuelRecords = $fuelReports
-            ->take(5)
-            ->values();
+        $recentFuelRecords = $fuelReports->values();
 
         $buses = Bus::query()
             ->orderBy('bus_no')
