@@ -3,6 +3,17 @@
   'assets' => []
 ])
 
+@php
+  $viteAssets = array_values(array_unique(array_merge([
+    'resources/css/Main-styles/theme.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
+    'resources/js/Main-js/sidebar.js',
+    'resources/js/Main-js/confirmation-modal.js',
+    'resources/js/app.js',
+  ], $assets)));
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -32,14 +43,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
-  @vite(array_merge([
-    'resources/css/Main-styles/theme.css',
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
-    'resources/js/Main-js/sidebar.js',
-    'resources/js/Main-js/confirmation-modal.js',
-    'resources/js/app.js',
-  ], $assets))
+  @vite($viteAssets)
 </head>
 
 <body>
