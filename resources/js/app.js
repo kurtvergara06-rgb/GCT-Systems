@@ -22,6 +22,9 @@ import './Maintenance/job-order-finish-guard.js';
 import './Maintenance/job-order-edit-combobox.js';
 import './Maintenance/job-order-new-combobox.js';
 
+/* PMS Scheduling table scroll refinement, scoped to .pms-page. */
+import '../css/Maintenance/pms-table-scroll.css';
+
 /* Operation enhancements that are not loaded as separate Blade entrypoints. */
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.css';
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-readable.css';
