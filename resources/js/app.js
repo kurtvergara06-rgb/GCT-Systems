@@ -2,9 +2,12 @@ import './echo';
 
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
+import '../css/Maintenance/maintenance-ui-enhancements.css';
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
+import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
+import './Maintenance/maintenance-ui-enhancements.js';
 
 import '../css/Login/login.css';
 import './Login/login.js';
