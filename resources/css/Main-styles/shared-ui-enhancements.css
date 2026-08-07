@@ -265,10 +265,84 @@ button,
   display: none;
 }
 
+/* =========================================================
+   GLOBAL SCROLLABLE TABLES
+   Normal page tables scroll after more than 8 visible rows.
+   Modal and popup tables retain their own behavior.
+========================================================= */
+
+.table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap),
+.table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap) {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)),
+.table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)) {
+  max-height: 520px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.table-wrap table thead th,
+.table-container table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--table-head, #f3f7fb);
+  box-shadow: 0 1px 0 var(--border, #dce5f0);
+}
+
+.pms-popup-table-wrap table thead th,
+.modal-table-wrap table thead th,
+.modal-overlay .table-wrap table thead th,
+.ui-modal-overlay .table-wrap table thead th {
+  position: static;
+  box-shadow: none;
+}
+
+.table-wrap::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.table-wrap::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+  background: #c5d1df;
+  border: 2px solid #f1f5f9;
+  border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #9fb0c4;
+}
+
+@media (max-width: 1200px) {
+  .table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)),
+  .table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)) {
+    max-height: 470px;
+  }
+}
+
 @media (max-width: 768px) {
   .system-id-badge {
     max-width: 190px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(7)),
+  .table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(7)) {
+    max-height: 420px;
+    overflow: auto;
   }
 }
