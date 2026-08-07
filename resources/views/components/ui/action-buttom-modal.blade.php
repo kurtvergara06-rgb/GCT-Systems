@@ -308,7 +308,7 @@
         /* Keep Recent Fuel Entries compact and scrollable. */
         .fuel-page .recent-fuel-card .table-wrap {
             width: 100%;
-            max-height: 255px !important;
+            max-height: 380px !important;
             overflow: auto !important;
             scrollbar-gutter: stable;
             overscroll-behavior: contain;
