@@ -1,0 +1,195 @@
+.ui-searchable-select {
+  position: relative;
+  width: 100%;
+}
+
+.ui-searchable-select__native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.ui-searchable-select__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  background: #fff;
+  border: 1px solid var(--border, #dbe4f0);
+  border-radius: 10px;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.ui-searchable-select.is-open .ui-searchable-select__control,
+.ui-searchable-select__control:focus-within {
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .1);
+}
+
+.ui-searchable-select__search-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.ui-searchable-select__input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 42px 0 39px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+}
+
+.ui-searchable-select__input::placeholder {
+  color: #94a3b8;
+}
+
+.ui-searchable-select__toggle {
+  position: absolute;
+  right: 4px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.ui-searchable-select__toggle:hover {
+  background: #f1f5f9;
+  color: #0b40b5;
+}
+
+.ui-searchable-select.is-open .ui-searchable-select__toggle i {
+  transform: rotate(180deg);
+}
+
+.ui-searchable-select__toggle i {
+  transition: transform .18s ease;
+}
+
+.ui-searchable-select__panel {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  z-index: 3200;
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 11px;
+  box-shadow: 0 16px 36px rgba(6, 31, 61, .18);
+}
+
+.ui-searchable-select__option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 11px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-searchable-select__option:hover,
+.ui-searchable-select__option:focus,
+.ui-searchable-select__option.is-selected {
+  background: #eef5ff;
+  outline: none;
+}
+
+.ui-searchable-select__option strong {
+  color: #163b6c;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.ui-searchable-select__option span {
+  max-width: 55%;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-searchable-select__empty {
+  padding: 14px 12px;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+
+.fuel-modal .fuel-form-grid {
+  gap: 16px;
+}
+
+.fuel-modal .form-group > label {
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fuel-modal .form-group input,
+.fuel-modal .form-group select,
+.fuel-modal .form-group textarea {
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+.fuel-modal .gps-status-card,
+.fuel-modal .efficiency-preview,
+.fuel-modal .manual-toggle-group {
+  border-radius: 12px;
+}
+
+.fuel-modal .fuel-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: 18px;
+  padding-top: 14px;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .ui-searchable-select__option {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .ui-searchable-select__option span {
+    max-width: 100%;
+  }
+}
