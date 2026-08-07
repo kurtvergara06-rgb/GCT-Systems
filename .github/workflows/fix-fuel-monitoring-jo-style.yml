@@ -1,0 +1,209 @@
+name: Fix Fuel Monitoring JO Style
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-fuel-monitoring-jo-style.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Match Daily Fuel Monitoring to Job Orders
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = 'DAILY FUEL MONITORING - JOB ORDER VISUAL MATCH'
+
+          block = r'''
+
+/* =========================================================
+   DAILY FUEL MONITORING - JOB ORDER VISUAL MATCH
+   Keep Bus IDs and status pills visually aligned with JO.
+========================================================= */
+
+/* Bus ID: same shared system ID treatment used by Job Orders. */
+.fuel-page .daily-monitoring-table .bus-cell > strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d6e0ee !important;
+  border-radius: 7px !important;
+  background: #f8fbff !important;
+  color: #163b6c !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, 0.03) !important;
+}
+
+.fuel-page .daily-monitoring-table .bus-cell small {
+  margin-top: 5px !important;
+  color: #64748b !important;
+  font-size: 9px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+/* JO-style compact table rows. */
+.fuel-page .daily-monitoring-table th {
+  height: 42px !important;
+  padding: 10px 14px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.fuel-page .daily-monitoring-table td {
+  height: 58px !important;
+  padding: 10px 14px !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+}
+
+.fuel-page .daily-monitoring-table .gps-cell > strong {
+  color: #0f172a !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.fuel-page .daily-monitoring-table .gps-cell small {
+  margin-top: 4px !important;
+  color: #64748b !important;
+  font-size: 9px !important;
+  font-weight: 400 !important;
+}
+
+/* Workflow badges: same dimensions and typography as JO status pills. */
+.fuel-page .daily-monitoring-table .workflow-badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  border-radius: 999px !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  gap: 0 !important;
+}
+
+/* JO statuses do not use decorative icons inside the pill. */
+.fuel-page .daily-monitoring-table .workflow-badge i {
+  display: none !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.for-fuel-entry {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.completed {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.missing-gps,
+.fuel-page .daily-monitoring-table .workflow-badge.needs-review {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+.fuel-page .daily-monitoring-table .workflow-badge.monitoring {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+/* Efficiency pills use the same JO status proportions. */
+.fuel-page .daily-monitoring-table .badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  border-radius: 999px !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  gap: 0 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge i {
+  display: none !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.efficient {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.normal {
+  border-color: #a9c8ff !important;
+  background: #dceaff !important;
+  color: #0644b8 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.inefficient {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.no-data {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+/* Inputs align more closely with JO controls. */
+.fuel-page .daily-monitoring-table .daily-inline-input {
+  height: 38px !important;
+  border-radius: 9px !important;
+  border-color: #d6e0ee !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+}
+'''
+
+          if marker not in css:
+              css = css.rstrip() + block + '\n'
+              css_path.write_text(css, encoding='utf-8')
+
+          workflow = Path('.github/workflows/fix-fuel-monitoring-jo-style.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit Fuel Monitoring JO style
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Match Daily Fuel Monitoring styling to Job Orders"
+          git push origin HEAD:main
