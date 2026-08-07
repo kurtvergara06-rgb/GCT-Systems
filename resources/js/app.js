@@ -22,17 +22,14 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import './Maintenance/fuel-report-chart-refinement.js';
 import './Maintenance/fuel-reports-line-enhancements.js';
 
-/* Job Orders shared refinements loaded once through the application bundle. */
 import '../css/Maintenance/job-order-redesign.css';
 import '../css/Maintenance/job-order-edit-combobox.css';
 import './Maintenance/job-order-finish-guard.js';
 import './Maintenance/job-order-edit-combobox.js';
 import './Maintenance/job-order-new-combobox.js';
 
-/* PMS Scheduling table scroll refinement, scoped to .pms-page. */
 import '../css/Maintenance/pms-table-scroll.css';
 
-/* Operation enhancements that are not loaded as separate Blade entrypoints. */
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.css';
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-readable.css';
 import './Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js';
