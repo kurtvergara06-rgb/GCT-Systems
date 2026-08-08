@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editDurationField = createDurationField(
     editMaintenanceType,
     'editJoEstimatedDuration',
-    false
+    true
   );
 
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
