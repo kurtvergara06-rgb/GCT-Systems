@@ -163,11 +163,12 @@
               @empty
                 <tr>
                   <td colspan="8" class="empty-stock-movements">
-                    <div class="stock-movement-empty-state">
-                      <div class="stock-movement-empty-icon"><i class="fa-solid fa-right-left"></i></div>
-                      <h3>No stock movements recorded</h3>
-                      <p>Stock-in, stock-out, and adjustment transactions will appear automatically when inventory changes.</p>
-                    </div>
+                    <x-ui.empty-state
+                      class="stock-movement-empty-state"
+                      icon="fa-right-left"
+                      title="No stock movements recorded"
+                      description="Stock-in, stock-out, and adjustment transactions will appear automatically when inventory changes."
+                    />
                   </td>
                 </tr>
               @endforelse
