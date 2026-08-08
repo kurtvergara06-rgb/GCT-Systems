@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
   const normalizeText = (value) => String(value || '').trim().toLowerCase();
 
+  if (document.querySelector('.jo-page')) {
+    document.getElementById('validationErrorModal')?.remove();
+  }
+
   document.querySelectorAll('.jo-page, .maintenance-dashboard-page').forEach((scope) => {
     scope.querySelectorAll('.badge, .stat-card p, .stat-card-link p').forEach((element) => {
       if (normalizeText(element.textContent) === 'on going') {
