@@ -5,271 +5,96 @@
 ])
 
 @php
+    $value = trim((string) ($status ?? ''));
+    $statusKey = strtolower(str_replace([' ', '/', '_'], '-', $value));
 
     /*
-    |--------------------------------------------------------------------------
-    | ORIGINAL STATUS VALUE
-    |--------------------------------------------------------------------------
-    */
-
-    $value = trim($status ?? '');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RAW STATUS KEY
-    |--------------------------------------------------------------------------
-    |
-    | Examples:
-    |
-    | Approved      -> approved
-    | For Purchase  -> for-purchase
-    | For Pick-up   -> for-pick-up
-    | On Going      -> on-going
-    |
-    */
-
-    $statusKey = strtolower(
-        str_replace(
-            [' ', '/', '_'],
-            ['-', '-', '-'],
-            $value
-        )
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | GENERIC STATUS MAP
-    |--------------------------------------------------------------------------
-    |
-    | Used by modules that depend on generic statuses such as:
-    |
-    | Active
-    | Pending
-    | Completed
-    | Inactive
-    |
-    */
-
+     * Generic visual aliases keep status colors consistent across modules.
+     * Purchase badges preserve their real workflow class because Purchase CSS
+     * styles individual states such as approved, rejected and for-purchase.
+     */
     $statusMap = [
+        'active' => 'active',
+        'present' => 'active',
+        'available' => 'active',
+        'approved' => 'active',
+        'issued' => 'active',
+        'in-stock' => 'active',
 
-        'active' =>
-            'active',
+        'completed' => 'completed',
+        'done' => 'completed',
+        'delivered' => 'completed',
+        'picked-up' => 'completed',
+        'success' => 'completed',
 
-        'present' =>
-            'active',
+        'ongoing' => 'ongoing',
+        'on-going' => 'ongoing',
+        'on-duty' => 'ongoing',
+        'in-progress' => 'ongoing',
+        'processing' => 'ongoing',
 
-        'available' =>
-            'active',
+        'pending' => 'pending',
+        'submitted' => 'pending',
+        'late' => 'pending',
+        'on-hold' => 'pending',
+        'hold' => 'pending',
+        'on-leave' => 'pending',
+        'in-review' => 'pending',
+        'for-purchase' => 'pending',
+        'for-pick-up' => 'pending',
+        'for-delivery' => 'pending',
+        'not-requested' => 'pending',
 
-        'approved' =>
-            'active',
+        'upcoming' => 'upcoming',
+        'ordered' => 'upcoming',
+        'due-soon' => 'due-soon',
+        'overdue' => 'overdue',
 
-        'completed' =>
-            'completed',
+        'efficient' => 'efficient',
+        'normal' => 'normal',
+        'inefficient' => 'inefficient',
+        'under-maintenance' => 'under-maintenance',
+        'under-maintainance' => 'under-maintenance',
 
-        'done' =>
-            'completed',
+        'inactive' => 'inactive',
+        'absent' => 'inactive',
+        'rejected' => 'inactive',
+        'failed' => 'inactive',
+        'cancelled' => 'inactive',
+        'canceled' => 'inactive',
+        'not-available' => 'inactive',
 
-        'ongoing' =>
-            'ongoing',
-
-        'on-going' =>
-            'ongoing',
-
-        'in-progress' =>
-            'ongoing',
-
-        'pending' =>
-            'pending',
-
-        'late' =>
-            'pending',
-
-        'on-hold' =>
-            'pending',
-
-        'upcoming' =>
-            'upcoming',
-
-        'due-soon' =>
-            'due-soon',
-
-        'overdue' =>
-            'overdue',
-
-        'efficient' =>
-            'efficient',
-
-        'normal' =>
-            'normal',
-
-        'inefficient' =>
-            'inefficient',
-
-        'under-maintenance' =>
-            'under-maintenance',
-
-        'under-maintainance' =>
-            'under-maintenance',
-
-        'inactive' =>
-            'inactive',
-
-        'absent' =>
-            'inactive',
-
-        'rejected' =>
-            'inactive',
-
-        'for-purchase' =>
-            'pending',
-
-        'for-pick-up' =>
-            'pending',
-
-        'ordered' =>
-            'upcoming',
-
-        'delivered' =>
-            'completed',
-
-        'issued' =>
-            'active',
-
-        'submitted' =>
-            'pending',
-
+        'draft' => 'draft',
+        'no-attendance' => 'draft',
+        'unknown' => 'draft',
     ];
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PURCHASE STATUS
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    |
-    | Purchase Request must keep its REAL status class.
-    |
-    | Approved     -> approved
-    | Rejected     -> rejected
-    | Submitted    -> submitted
-    | For Purchase -> for-purchase
-    |
-    | This allows purchase-requests.css to control each status independently.
-    |
-    */
-
-    if ($type === 'purchase') {
-
-        $statusClass =
-            $statusKey;
-
-    } else {
-
-        $statusClass =
-            $statusMap[$statusKey]
-            ?? $statusKey;
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | USER MANAGEMENT
-    |--------------------------------------------------------------------------
-    */
+    $statusClass = $type === 'purchase'
+        ? $statusKey
+        : ($statusMap[$statusKey] ?? ($statusKey ?: 'draft'));
 
     if ($type === 'user') {
-
-        $userStatuses = [
-            'active',
-            'inactive',
-            'pending',
-        ];
-
-
-        if (
-            in_array(
-                $statusClass,
-                $userStatuses,
-                true
-            )
-        ) {
-
-            $badgeClass =
-                'status-pill '
-                . $statusClass;
-
-        } else {
-
-            $badgeClass =
-                'role-pill '
-                . $statusClass;
-
-        }
-
-
-        if ($class) {
-
-            $badgeClass .=
-                ' '
-                . $class;
-
-        }
-
+        $userStatuses = ['active', 'inactive', 'pending'];
+        $badgeClass = in_array($statusClass, $userStatuses, true)
+            ? 'status-pill ' . $statusClass
+            : 'role-pill ' . $statusClass;
     } else {
+        $badgeClass = 'badge';
 
-        /*
-        |--------------------------------------------------------------------------
-        | OTHER MODULES
-        |--------------------------------------------------------------------------
-        */
-
-        $badgeClass =
-            'badge';
-
-
-        if (
-            $type !==
-            'default'
-        ) {
-
-            $badgeClass .=
-                ' '
-                . $type
-                . '-badge';
-
+        if ($type !== 'default') {
+            $badgeClass .= ' ' . $type . '-badge';
         }
-
 
         if ($statusClass) {
-
-            $badgeClass .=
-                ' '
-                . $statusClass;
-
+            $badgeClass .= ' ' . $statusClass;
         }
-
-
-        if ($class) {
-
-            $badgeClass .=
-                ' '
-                . $class;
-
-        }
-
     }
 
+    if ($class) {
+        $badgeClass .= ' ' . $class;
+    }
 @endphp
 
-
-<span
-    class="{{ $badgeClass }}"
-    {{ $attributes }}
->
+<span class="{{ $badgeClass }}" {{ $attributes }}>
     {{ $value ?: 'Unknown' }}
 </span>
