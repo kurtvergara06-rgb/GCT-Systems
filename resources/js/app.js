@@ -51,6 +51,22 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     /*
+     * Attendance records must come from the permanent Driver / Mechanic
+     * master lists. Daily attendance is recorded through the shared batch
+     * attendance workflow, so single-record creation actions are redundant.
+     * Keep existing attendance records editable, but remove the legacy
+     * Driver "New Record" and Mechanic "Add New Mechanic" actions.
+     */
+    const attendancePath = window.location.pathname.replace(/\/$/, '');
+    if (
+        attendancePath.endsWith('/driver-attendance') ||
+        attendancePath.endsWith('/mechanic-attendance')
+    ) {
+        document.getElementById('openDriverAttendanceModal')?.remove();
+        document.getElementById('openMechanicAttendanceModal')?.remove();
+    }
+
+    /*
      * Issued inventory transactions now belong to Stock Movements.
      * Keep the underlying Purchase Request records, but remove the duplicate
      * Issued Parts History panel from the Warehouse Part Requests UI.
