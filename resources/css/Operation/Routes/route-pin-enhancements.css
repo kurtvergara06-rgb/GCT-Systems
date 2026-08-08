@@ -1,0 +1,123 @@
+/* Direct map pin controls for Route Origin, Destination, and Stops. */
+
+#routeModal .route-location-pin-host {
+    position: relative;
+}
+
+#routeModal .ui-input-wrap.route-location-pin-host > .location-autocomplete > input,
+#routeModal .route-stop-location-field.route-location-pin-host > .location-autocomplete > input {
+    padding-right: 78px;
+}
+
+#routeModal .route-stop-location-field.route-location-pin-host > .location-autocomplete > input {
+    padding-right: 46px;
+}
+
+#routeModal .route-direct-pin-btn {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    z-index: 4;
+
+    height: 36px;
+    min-width: 60px;
+    padding: 0 10px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    border: 1px solid #d7e3f4;
+    border-radius: 8px;
+
+    color: #0b40b5;
+    background: #eef4ff;
+
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+
+    transition:
+        color 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+#routeModal .route-direct-pin-btn:hover {
+    color: #061f3d;
+    border-color: #f5a800;
+    background: #fff6cc;
+    transform: translateY(-1px);
+}
+
+#routeModal .route-direct-pin-btn.is-stop-pin {
+    min-width: 34px;
+    width: 34px;
+    padding: 0;
+}
+
+#routeModal .route-location-active > label {
+    color: #0b40b5;
+}
+
+#routeModal .ui-form-group.route-location-active .ui-input-wrap,
+#routeModal .route-stop-item.route-location-active .route-stop-location-field {
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+}
+
+/* The autocomplete confirmation row makes the wrapper taller than the input.
+   Anchor Origin/Destination icons to the actual 46px input instead of the
+   total wrapper height so both icons remain perfectly centered. */
+#routeModal #routeOrigin.closest,
+#routeModal #routeDestination.closest {
+    position: relative;
+}
+
+#routeModal .ui-input-wrap:has(#routeOrigin) > .ui-input-icon,
+#routeModal .ui-input-wrap:has(#routeDestination) > .ui-input-icon {
+    top: 23px;
+    width: 18px;
+    height: 18px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transform: translateY(-50%);
+    line-height: 1;
+}
+
+#routeModal .ui-input-wrap:has(#routeOrigin) > .ui-input-icon i,
+#routeModal .ui-input-wrap:has(#routeDestination) > .ui-input-icon i {
+    display: block;
+    line-height: 1;
+}
+
+#routeModal .route-map-pin-mode {
+    outline: 3px solid rgba(255, 196, 0, 0.3);
+    outline-offset: -3px;
+}
+
+#routeModal .route-map-pin-mode::after {
+    pointer-events: none;
+}
+
+@media (max-width: 700px) {
+    #routeModal .route-direct-pin-btn:not(.is-stop-pin) span {
+        display: none;
+    }
+
+    #routeModal .route-direct-pin-btn:not(.is-stop-pin) {
+        width: 36px;
+        min-width: 36px;
+        padding: 0;
+    }
+
+    #routeModal .ui-input-wrap.route-location-pin-host > .location-autocomplete > input {
+        padding-right: 48px;
+    }
+}
