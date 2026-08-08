@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const forms = document.querySelectorAll('form.toolbar');
-
-  const findTableContext = (form) => {
-    let node = form.parentElement;
+  const findTableContext = (toolbar) => {
+    let node = toolbar?.parentElement;
 
     while (node && node !== document.body) {
       const table = node.querySelector('.table-wrap table, table');
@@ -25,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return Array.from(table.tBodies[0].rows).filter((row) => {
       return !row.classList.contains('empty-row')
-        && !row.classList.contains('gct-search-empty-row');
+        && !row.classList.contains('gct-search-empty-row')
+        && !row.classList.contains('inventory-client-empty');
     });
   };
 
@@ -60,75 +59,146 @@ document.addEventListener('DOMContentLoaded', () => {
       : `Showing 0 to 0 of ${totalCount} entries`;
   };
 
-  forms.forEach((form) => {
-    if (form.classList.contains('inventory-toolbar') || form.dataset.clientFilter !== undefined) {
+  const activeFilterValues = (toolbar) => {
+    return Array.from(toolbar.querySelectorAll('select')).map((select) => {
+      const value = String(select.value || '').trim().toLowerCase();
+
+      if (!value || value.startsWith('all ')) {
+        return '';
+      }
+
+      return value;
+    }).filter(Boolean);
+  };
+
+  const applyToolbarFilters = (toolbar) => {
+    if (!toolbar || toolbar.classList.contains('inventory-toolbar')) {
       return;
     }
 
-    const input = form.querySelector('.search-box input[type="text"]');
-    const context = findTableContext(form);
+    const input = toolbar.querySelector('.search-box input[type="text"], .search-box input[type="search"]');
+    const context = findTableContext(toolbar);
 
-    if (!input || !context?.table || input.dataset.autoSearchBound === 'true') {
+    if (!context?.table) {
       return;
     }
 
-    input.dataset.autoSearchBound = 'true';
-    form.dataset.instantSearch = 'true';
+    removeEmptyRow(context.table);
 
-    const applySearch = () => {
-      removeEmptyRow(context.table);
+    const query = String(input?.value || '').trim().toLowerCase();
+    const filters = activeFilterValues(toolbar);
+    const rows = searchableRows(context.table);
+    let visibleCount = 0;
 
-      const query = input.value.trim().toLowerCase();
-      const rows = searchableRows(context.table);
-      let visibleCount = 0;
+    rows.forEach((row) => {
+      const rowText = String(row.textContent || '').toLowerCase();
+      const matchesSearch = !query || rowText.includes(query);
+      const matchesFilters = filters.every((filterValue) => rowText.includes(filterValue));
+      const visible = matchesSearch && matchesFilters;
 
-      rows.forEach((row) => {
-        const matches = !query || row.textContent.toLowerCase().includes(query);
-        row.style.display = matches ? '' : 'none';
+      row.style.display = visible ? '' : 'none';
 
-        if (matches) {
-          visibleCount += 1;
-        }
-      });
-
-      if (visibleCount === 0 && rows.length > 0) {
-        showEmptyRow(context.table);
-      }
-
-      updateCount(context.footer, visibleCount, rows.length);
-    };
-
-    input.addEventListener('input', applySearch);
-
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        applySearch();
-      }
-
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        input.value = '';
-        applySearch();
+      if (visible) {
+        visibleCount += 1;
       }
     });
 
-    form.addEventListener('submit', (event) => {
-      const submitter = event.submitter;
-      const searchIsActive = document.activeElement === input || !submitter;
+    if (visibleCount === 0 && rows.length > 0) {
+      showEmptyRow(context.table);
+    }
 
-      if (searchIsActive) {
-        event.preventDefault();
-        applySearch();
-      }
+    updateCount(context.footer, visibleCount, rows.length);
+  };
+
+  const prepareToolbar = (toolbar) => {
+    if (!toolbar || toolbar.classList.contains('inventory-toolbar')) {
+      return;
+    }
+
+    toolbar.dataset.instantSearch = 'true';
+
+    toolbar.querySelectorAll('select[onchange]').forEach((select) => {
+      select.removeAttribute('onchange');
     });
 
-    document.addEventListener('system:table-rows-loaded', (event) => {
-      if (event.detail?.table === context.table) {
-        window.setTimeout(applySearch, 0);
+    const input = toolbar.querySelector('.search-box input[type="text"], .search-box input[type="search"]');
+    if (input) {
+      input.dataset.autoSearchBound = 'true';
+      input.setAttribute('autocomplete', 'off');
+    }
+
+    applyToolbarFilters(toolbar);
+  };
+
+  document.querySelectorAll('.toolbar').forEach(prepareToolbar);
+
+  document.addEventListener('input', (event) => {
+    const input = event.target.closest?.('.toolbar .search-box input[type="text"], .toolbar .search-box input[type="search"]');
+
+    if (!input) {
+      return;
+    }
+
+    const toolbar = input.closest('.toolbar');
+    applyToolbarFilters(toolbar);
+  }, true);
+
+  document.addEventListener('change', (event) => {
+    const select = event.target.closest?.('.toolbar select');
+
+    if (!select) {
+      return;
+    }
+
+    const toolbar = select.closest('.toolbar');
+    applyToolbarFilters(toolbar);
+  }, true);
+
+  document.addEventListener('keydown', (event) => {
+    const input = event.target.closest?.('.toolbar .search-box input[type="text"], .toolbar .search-box input[type="search"]');
+
+    if (!input) {
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      applyToolbarFilters(input.closest('.toolbar'));
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      input.value = '';
+      applyToolbarFilters(input.closest('.toolbar'));
+    }
+  }, true);
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || !form.classList.contains('toolbar')) {
+      return;
+    }
+
+    if (form.classList.contains('inventory-toolbar')) {
+      return;
+    }
+
+    event.preventDefault();
+    applyToolbarFilters(form);
+  }, true);
+
+  document.addEventListener('system:table-rows-loaded', (event) => {
+    document.querySelectorAll('.toolbar').forEach((toolbar) => {
+      if (toolbar.classList.contains('inventory-toolbar')) {
+        return;
+      }
+
+      const context = findTableContext(toolbar);
+
+      if (context?.table === event.detail?.table) {
+        window.setTimeout(() => applyToolbarFilters(toolbar), 0);
       }
     });
-
-    applySearch();
   });
 });
