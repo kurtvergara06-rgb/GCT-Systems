@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const forms = document.querySelectorAll('form.toolbar');
 
   forms.forEach((form) => {
+    if (form.classList.contains('inventory-toolbar') || form.dataset.clientFilter !== undefined) {
+      return;
+    }
+
     const input = form.querySelector('.search-box input[type="text"]');
 
     if (!input || input.dataset.autoSearchBound === 'true') {
