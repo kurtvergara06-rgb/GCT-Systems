@@ -116,6 +116,14 @@ class TripScheduleController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($request->input('schedule_action') === 'generate_daily') {
+            return $this->duplicateSchedule($request, false);
+        }
+
+        if ($request->input('schedule_action') === 'copy_previous_day') {
+            return $this->duplicateSchedule($request, true);
+        }
+
         $validated = $this->validateTrip($request);
 
         DB::transaction(function () use ($validated) {
@@ -266,6 +274,131 @@ class TripScheduleController extends Controller
         );
 
         return new RedirectResponse('/operation/trip-schedule');
+    }
+
+    private function duplicateSchedule(
+        Request $request,
+        bool $usePreviousDay
+    ): RedirectResponse {
+        $rules = [
+            'target_date' => ['required', 'date'],
+        ];
+
+        if (! $usePreviousDay) {
+            $rules['source_date'] = ['required', 'date'];
+        }
+
+        $validated = $request->validate($rules);
+        $targetDate = Carbon::parse($validated['target_date'])->toDateString();
+        $sourceDate = $usePreviousDay
+            ? Carbon::parse($targetDate)->subDay()->toDateString()
+            : Carbon::parse($validated['source_date'])->toDateString();
+
+        if ($sourceDate === $targetDate) {
+            return redirect()
+                ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
+                ->withInput()
+                ->with('error', 'Source and target dates must be different.');
+        }
+
+        $sourceTrips = TripSchedule::query()
+            ->with('shuttleRoute')
+            ->whereDate('trip_date', $sourceDate)
+            ->where('status', '!=', 'Cancelled')
+            ->whereHas('shuttleRoute', fn ($query) => $query->where('status', 'Active'))
+            ->orderBy('departure_time')
+            ->get();
+
+        if ($sourceTrips->isEmpty()) {
+            $message = $usePreviousDay
+                ? 'No reusable trips were found on the previous day.'
+                : 'No reusable trips were found on the selected source date.';
+
+            return redirect()
+                ->to(route(
+                    'trip-schedule',
+                    ['schedule_tool' => $usePreviousDay ? 'copy' : 'generate'],
+                    false
+                ))
+                ->withInput()
+                ->with('error', $message);
+        }
+
+        $created = 0;
+        $skipped = 0;
+
+        DB::transaction(function () use (
+            $sourceTrips,
+            $targetDate,
+            &$created,
+            &$skipped
+        ): void {
+            $latestTrip = TripSchedule::query()
+                ->lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
+
+            $nextNumber = $latestTrip
+                ? $latestTrip->id + 1
+                : 1;
+
+            foreach ($sourceTrips as $sourceTrip) {
+                $duplicateExists = TripSchedule::query()
+                    ->whereDate('trip_date', $targetDate)
+                    ->where('shuttle_route_id', $sourceTrip->shuttle_route_id)
+                    ->where('departure_time', $sourceTrip->departure_time)
+                    ->exists();
+
+                if ($duplicateExists) {
+                    $skipped++;
+                    continue;
+                }
+
+                $tripCode = 'T-' . str_pad(
+                    (string) $nextNumber,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+                TripSchedule::create([
+                    'trip_code' => $tripCode,
+                    'trip_date' => $targetDate,
+                    'shuttle_route_id' => $sourceTrip->shuttle_route_id,
+                    'departure_time' => $sourceTrip->departure_time,
+                    'estimated_arrival_time' => $sourceTrip->estimated_arrival_time,
+                    'shift' => $sourceTrip->shift,
+                    'assignment_status' => 'Unassigned',
+                    'status' => 'Scheduled',
+                    'notes' => $sourceTrip->notes,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $created++;
+                $nextNumber++;
+            }
+        });
+
+        if ($created === 0) {
+            return redirect()
+                ->to(route('trip-schedule', ['trip_date' => $targetDate], false))
+                ->with(
+                    'error',
+                    "No new trips were created. {$skipped} matching trip(s) already exist on the target date."
+                );
+        }
+
+        $message = "{$created} trip(s) created for "
+            . Carbon::parse($targetDate)->format('M d, Y')
+            . '.';
+
+        if ($skipped > 0) {
+            $message .= " {$skipped} duplicate trip(s) were skipped.";
+        }
+
+        return redirect()
+            ->to(route('trip-schedule', ['trip_date' => $targetDate], false))
+            ->with('success', $message);
     }
 
     private function validateTrip(
