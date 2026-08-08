@@ -9,9 +9,7 @@
 >
 
   @php
-    use App\Models\Warehouse\StockMovement;
-
-    $movementQuery = StockMovement::query();
+    $movementQuery = \App\Models\Warehouse\StockMovement::query();
 
     if (request()->filled('search')) {
       $search = trim(request('search'));
@@ -38,10 +36,10 @@
     }
 
     $stockMovements = $movementQuery->latest()->paginate(20)->withQueryString();
-    $totalMovements = StockMovement::count();
-    $stockIn = StockMovement::where('movement_type', 'Stock In')->count();
-    $stockOut = StockMovement::where('movement_type', 'Stock Out')->count();
-    $adjustments = StockMovement::where('movement_type', 'Adjustment')->count();
+    $totalMovements = \App\Models\Warehouse\StockMovement::count();
+    $stockIn = \App\Models\Warehouse\StockMovement::where('movement_type', 'Stock In')->count();
+    $stockOut = \App\Models\Warehouse\StockMovement::where('movement_type', 'Stock Out')->count();
+    $adjustments = \App\Models\Warehouse\StockMovement::where('movement_type', 'Adjustment')->count();
   @endphp
 
   <div class="app">
