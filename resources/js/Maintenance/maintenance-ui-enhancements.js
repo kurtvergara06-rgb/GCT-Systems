@@ -64,4 +64,146 @@ document.addEventListener('DOMContentLoaded', () => {
       element.setAttribute('title', element.textContent);
     });
   });
+
+  /* =========================================================
+     JOB ORDER RECOMMENDED SERVICE INTERVALS
+     Rule-based recommendation aligned with the current
+     Maintenance Type values used by the Job Order module.
+  ========================================================= */
+  const serviceIntervals = {
+    PMS: {
+      interval: '1–3 hours',
+      description: 'Recommended interval for routine preventive maintenance.',
+    },
+    Repair: {
+      interval: '2–6 hours',
+      description: 'Recommended interval for general corrective repair work.',
+    },
+  };
+
+  const getRecommendation = (maintenanceType) => {
+    const key = String(maintenanceType || '').trim();
+    return serviceIntervals[key] || null;
+  };
+
+  const createRecommendationCard = (select, id) => {
+    if (!select) {
+      return null;
+    }
+
+    const existing = document.getElementById(id);
+    if (existing) {
+      return existing;
+    }
+
+    const card = document.createElement('div');
+    card.id = id;
+    card.className = 'jo-time-recommendation';
+    card.innerHTML = `
+      <span class="jo-time-recommendation-icon" aria-hidden="true">
+        <i class="fa-solid fa-clock"></i>
+      </span>
+      <div>
+        <span class="jo-time-recommendation-label">Recommended Service Time</span>
+        <strong class="jo-time-recommendation-value">Select a maintenance type</strong>
+        <small class="jo-time-recommendation-note">The interval is based on the selected maintenance type.</small>
+      </div>
+    `;
+
+    const fieldGroup = select.closest('.ui-form-group') || select.parentElement;
+    fieldGroup?.insertAdjacentElement('afterend', card);
+
+    return card;
+  };
+
+  const syncRecommendationCard = (select, card) => {
+    if (!select || !card) {
+      return;
+    }
+
+    const recommendation = getRecommendation(select.value);
+    const value = card.querySelector('.jo-time-recommendation-value');
+    const note = card.querySelector('.jo-time-recommendation-note');
+
+    if (!recommendation) {
+      card.classList.add('is-empty');
+      if (value) value.textContent = 'Select a maintenance type';
+      if (note) note.textContent = 'The interval is based on the selected maintenance type.';
+      return;
+    }
+
+    card.classList.remove('is-empty');
+    if (value) value.textContent = recommendation.interval;
+    if (note) note.textContent = recommendation.description;
+  };
+
+  const newMaintenanceType = document.getElementById('jobMaintenanceType');
+  const editMaintenanceType = document.getElementById('edit_maintenance_type');
+
+  const newRecommendationCard = createRecommendationCard(
+    newMaintenanceType,
+    'newJoTimeRecommendation'
+  );
+  const editRecommendationCard = createRecommendationCard(
+    editMaintenanceType,
+    'editJoTimeRecommendation'
+  );
+
+  const syncNewRecommendation = () => {
+    syncRecommendationCard(newMaintenanceType, newRecommendationCard);
+  };
+  const syncEditRecommendation = () => {
+    syncRecommendationCard(editMaintenanceType, editRecommendationCard);
+  };
+
+  newMaintenanceType?.addEventListener('change', syncNewRecommendation);
+  editMaintenanceType?.addEventListener('change', syncEditRecommendation);
+
+  document.getElementById('openJobModal')?.addEventListener('click', () => {
+    window.setTimeout(syncNewRecommendation, 0);
+  });
+
+  document.querySelectorAll('.open-edit-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      window.setTimeout(syncEditRecommendation, 0);
+    });
+  });
+
+  /* PMS Job Orders may be prefilled programmatically by the existing page JS. */
+  window.setTimeout(() => {
+    syncNewRecommendation();
+    syncEditRecommendation();
+  }, 0);
+
+  /* Show the recommendation directly in the Job Order list as supporting context. */
+  document.querySelectorAll('.jo-page .job-orders-table').forEach((table) => {
+    const headers = Array.from(table.querySelectorAll('thead th'));
+    const maintenanceTypeIndex = headers.findIndex(
+      (header) => normalizeText(header.textContent) === 'maintenance type'
+    );
+
+    if (maintenanceTypeIndex < 0) {
+      return;
+    }
+
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      const cell = row.children[maintenanceTypeIndex];
+
+      if (!cell || cell.querySelector('.jo-time-inline')) {
+        return;
+      }
+
+      const recommendation = getRecommendation(cell.textContent);
+
+      if (!recommendation) {
+        return;
+      }
+
+      const helper = document.createElement('span');
+      helper.className = 'jo-time-inline';
+      helper.innerHTML = `<i class="fa-regular fa-clock"></i> ${recommendation.interval}`;
+      helper.title = `Recommended service time: ${recommendation.interval}`;
+      cell.appendChild(helper);
+    });
+  });
 });
