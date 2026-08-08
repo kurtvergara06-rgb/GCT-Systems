@@ -91,11 +91,51 @@
   box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
 }
 
-.jo-estimated-duration-field > small {
-  margin-top: 2px;
-  color: var(--muted, #64748b);
+/* =========================================================
+   OVERDUE JOB ORDERS
+========================================================= */
+
+.jo-page .job-orders-table tbody tr.jo-overdue-row > td {
+  background: #fff1f2;
+  border-top-color: #fecdd3;
+  border-bottom-color: #fecdd3;
+}
+
+.jo-page .job-orders-table tbody tr.jo-overdue-row:hover > td {
+  background: #ffe4e6;
+}
+
+.jo-overdue-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 3px 7px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  background: #fff;
+  color: #b91c1c;
   font-size: 10px;
-  line-height: 1.4;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.jo-overdue-indicator i {
+  font-size: 9px;
+}
+
+.jo-estimate-inline {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jo-overdue-row .jo-estimate-inline {
+  color: #991b1b;
 }
 
 .fuel-chart-card.has-empty-chart .fuel-chart-container {
