@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     button.addEventListener('click', openModal);
 
+    function spinnerMarkup() {
+        return '<span class="gct-spinner gct-spinner-sm" aria-hidden="true"><span class="gct-spinner-ring"></span></span>';
+    }
+
     function openModal() {
         closeModal();
 
@@ -90,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tr>
                             </thead>
                             <tbody id="batchAttendanceBody">
-                                <tr><td colspan="8" class="batch-loading">Loading attendance roster…</td></tr>
+                                <tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -104,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="batchAttendanceSummary" class="batch-summary-grid"></div>
                     <div class="batch-footer-actions">
                         <button type="button" class="secondary-btn" data-batch-close>Cancel</button>
-                        <button type="button" class="primary-btn" id="batchSaveAttendance"><i class="fa-solid fa-floppy-disk"></i> Save All Attendance</button>
+                        <button type="button" class="primary-btn" id="batchSaveAttendance" data-loading-text="Saving attendance..."><i class="fa-solid fa-floppy-disk"></i> Save All Attendance</button>
                     </div>
                 </div>
             </div>`;
@@ -152,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = modal.querySelector('#batchAttendanceDate').value;
         const shift = modal.querySelector('#batchAttendanceShift').value;
         const body = modal.querySelector('#batchAttendanceBody');
-        body.innerHTML = '<tr><td colspan="8" class="batch-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading attendance roster…</td></tr>';
+        body.innerHTML = `<tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>`;
 
         try {
             const response = await fetch(`/operation/attendance/batch/${type}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
@@ -406,8 +410,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving attendance…';
+        if (window.GCTLoading?.set) {
+            window.GCTLoading.set(saveButton, 'Saving attendance...');
+        } else {
+            saveButton.disabled = true;
+            saveButton.innerHTML = `${spinnerMarkup()} <span>Saving attendance...</span>`;
+        }
+
+        let saved = false;
 
         try {
             const response = await fetch(`/operation/attendance/batch/${type}`, {
@@ -427,13 +437,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (!response.ok) throw new Error(errorMessage(data));
 
+            saved = true;
             toast(data.message || 'Attendance saved successfully.', 'success');
-            await loadRoster();
+            closeModal();
+
+            window.setTimeout(() => {
+                window.location.reload();
+            }, 450);
         } catch (error) {
             toast(error.message || 'Unable to save attendance.', 'error');
         } finally {
-            saveButton.disabled = false;
-            saveButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All Attendance';
+            if (!saved) {
+                if (window.GCTLoading?.reset) {
+                    window.GCTLoading.reset(saveButton);
+                } else {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All Attendance';
+                }
+            }
         }
     }
 
