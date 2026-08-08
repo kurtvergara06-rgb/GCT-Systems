@@ -82,6 +82,14 @@ class TripScheduleController extends Controller
                 'estimated_time_minutes',
             ]);
 
+        $reusableScheduleDates = TripSchedule::query()
+            ->where('status', '!=', 'Cancelled')
+            ->whereHas('shuttleRoute', fn ($routeQuery) => $routeQuery->where('status', 'Active'))
+            ->selectRaw('DATE(trip_date) as schedule_date, COUNT(*) as trip_count')
+            ->groupByRaw('DATE(trip_date)')
+            ->orderByDesc('schedule_date')
+            ->get();
+
         $today = now()->toDateString();
 
         $todayTrips = TripSchedule::query()
@@ -106,6 +114,7 @@ class TripScheduleController extends Controller
             compact(
                 'trips',
                 'activeRoutes',
+                'reusableScheduleDates',
                 'totalTripsToday',
                 'assignedTrips',
                 'pendingAssignments',
