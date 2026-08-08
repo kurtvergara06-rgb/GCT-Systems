@@ -48,57 +48,65 @@
 
 /* =========================================================
    JOB ORDER RECOMMENDED SERVICE TIME
+   Compact companion field beside Maintenance Type.
 ========================================================= */
 
 .jo-time-recommendation {
-  grid-column: 1 / -1;
+  min-width: 0;
+  min-height: 68px;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: -2px;
-  padding: 13px 15px;
+  align-items: center;
+  gap: 10px;
+  align-self: end;
+  padding: 9px 12px;
   border: 1px solid #d9e4f2;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #f8fbff;
 }
 
 .jo-time-recommendation-icon {
   display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 9px;
   background: #fff3cd;
   color: #b77900;
+  font-size: 12px;
 }
 
 .jo-time-recommendation > div {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .jo-time-recommendation-label {
   color: var(--muted, #64748b);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.35px;
+  letter-spacing: 0.3px;
 }
 
 .jo-time-recommendation-value {
   margin-top: 1px;
   color: var(--text, #0b2344);
-  font-size: 17px;
-  line-height: 1.25;
+  font-size: 14px;
+  line-height: 1.2;
 }
 
 .jo-time-recommendation-note {
-  margin-top: 3px;
+  margin-top: 2px;
+  overflow: hidden;
   color: var(--muted, #64748b);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 9px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .jo-time-recommendation.is-empty {
@@ -181,6 +189,11 @@
 
 @media (max-width: 768px) {
   .jo-time-recommendation {
-    grid-column: 1;
+    width: 100%;
+    min-height: 64px;
+  }
+
+  .jo-time-recommendation-note {
+    white-space: normal;
   }
 }
