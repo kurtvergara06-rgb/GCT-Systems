@@ -149,13 +149,13 @@
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="status" value="{{ $delivery->status === 'For Pick-up' ? 'Picked Up' : 'Delivered' }}">
-                        <button type="submit" class="receive-delivery-btn" title="Receive Delivery">
+                        <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
                           <i class="fa-solid fa-box-open"></i>
                           Receive
                         </button>
                       </form>
                     @else
-                      <span class="received-label"><i class="fa-solid fa-circle-check"></i> Received</span>
+                      <span class="delivery-status received"><i class="fa-solid fa-circle-check"></i>&nbsp; Received</span>
                     @endif
                   </td>
                 </tr>
