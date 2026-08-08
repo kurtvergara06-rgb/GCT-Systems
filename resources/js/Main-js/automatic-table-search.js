@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   };
 
+  const usesOwnClientFilter = (toolbar) => {
+    return toolbar?.dataset?.clientFilter !== undefined;
+  };
+
   const searchableRows = (table) => {
     if (!table?.tBodies?.[0]) {
       return [];
@@ -72,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const applyToolbarFilters = (toolbar) => {
-    if (!toolbar || toolbar.classList.contains('inventory-toolbar')) {
+    if (!toolbar || usesOwnClientFilter(toolbar)) {
       return;
     }
 
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const prepareToolbar = (toolbar) => {
-    if (!toolbar || toolbar.classList.contains('inventory-toolbar')) {
+    if (!toolbar || usesOwnClientFilter(toolbar)) {
       return;
     }
 
@@ -139,8 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const toolbar = input.closest('.toolbar');
-    applyToolbarFilters(toolbar);
+    applyToolbarFilters(input.closest('.toolbar'));
   }, true);
 
   document.addEventListener('change', (event) => {
@@ -150,8 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const toolbar = select.closest('.toolbar');
-    applyToolbarFilters(toolbar);
+    applyToolbarFilters(select.closest('.toolbar'));
   }, true);
 
   document.addEventListener('keydown', (event) => {
@@ -180,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (form.classList.contains('inventory-toolbar')) {
+    if (usesOwnClientFilter(form)) {
       return;
     }
 
@@ -190,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('system:table-rows-loaded', (event) => {
     document.querySelectorAll('.toolbar').forEach((toolbar) => {
-      if (toolbar.classList.contains('inventory-toolbar')) {
+      if (usesOwnClientFilter(toolbar)) {
         return;
       }
 
