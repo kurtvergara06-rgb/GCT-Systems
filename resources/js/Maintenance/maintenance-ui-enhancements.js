@@ -66,28 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     JOB ORDER RECOMMENDED SERVICE INTERVALS
-     Rule-based recommendation aligned with the current
-     Maintenance Type values used by the Job Order module.
+     JOB ORDER ESTIMATED WORK DURATION
+     Maintenance staff enters the estimate after assessing the
+     actual work instead of using an automatic repair assumption.
   ========================================================= */
-  const serviceIntervals = {
-    PMS: {
-      interval: '1–3 hours',
-      description: 'Recommended interval for routine preventive maintenance.',
-    },
-    Repair: {
-      interval: '2–6 hours',
-      description: 'Recommended interval for general corrective repair work.',
-    },
-  };
-
-  const getRecommendation = (maintenanceType) => {
-    const key = String(maintenanceType || '').trim();
-    return serviceIntervals[key] || null;
-  };
-
-  const createRecommendationCard = (select, id) => {
-    if (!select) {
+  const createDurationField = (maintenanceTypeSelect, id, required = false) => {
+    if (!maintenanceTypeSelect) {
       return null;
     }
 
@@ -96,114 +80,62 @@ document.addEventListener('DOMContentLoaded', () => {
       return existing;
     }
 
-    const card = document.createElement('div');
-    card.id = id;
-    card.className = 'jo-time-recommendation';
-    card.innerHTML = `
-      <span class="jo-time-recommendation-icon" aria-hidden="true">
-        <i class="fa-solid fa-clock"></i>
-      </span>
-      <div>
-        <span class="jo-time-recommendation-label">Recommended Service Time</span>
-        <strong class="jo-time-recommendation-value">Select a maintenance type</strong>
-        <small class="jo-time-recommendation-note">The interval is based on the selected maintenance type.</small>
+    const group = document.createElement('div');
+    group.id = id;
+    group.className = 'ui-form-group jo-estimated-duration-field';
+    group.innerHTML = `
+      <label>
+        Estimated Work Duration
+        ${required ? '<span class="ui-required">*</span>' : ''}
+      </label>
+
+      <div class="jo-duration-control">
+        <div class="ui-input-wrap has-icon">
+          <span class="ui-input-icon">
+            <i class="fa-solid fa-clock"></i>
+          </span>
+          <input
+            type="number"
+            name="estimated_duration_value"
+            min="0.25"
+            step="0.25"
+            placeholder="e.g. 4"
+            ${required ? 'required' : ''}
+          >
+        </div>
+
+        <select name="estimated_duration_unit" ${required ? 'required' : ''}>
+          <option value="Hours">Hours</option>
+          <option value="Minutes">Minutes</option>
+          <option value="Days">Days</option>
+        </select>
       </div>
+
+      <small>
+        ${required
+          ? 'Enter the estimated duration based on the actual maintenance assessment.'
+          : 'Enter a new value only when you want to update the current estimate.'}
+      </small>
     `;
 
-    const fieldGroup = select.closest('.ui-form-group') || select.parentElement;
-    fieldGroup?.insertAdjacentElement('afterend', card);
+    const fieldGroup = maintenanceTypeSelect.closest('.ui-form-group') || maintenanceTypeSelect.parentElement;
+    fieldGroup?.insertAdjacentElement('afterend', group);
 
-    return card;
-  };
-
-  const syncRecommendationCard = (select, card) => {
-    if (!select || !card) {
-      return;
-    }
-
-    const recommendation = getRecommendation(select.value);
-    const value = card.querySelector('.jo-time-recommendation-value');
-    const note = card.querySelector('.jo-time-recommendation-note');
-
-    if (!recommendation) {
-      card.classList.add('is-empty');
-      if (value) value.textContent = 'Select a maintenance type';
-      if (note) note.textContent = 'The interval is based on the selected maintenance type.';
-      return;
-    }
-
-    card.classList.remove('is-empty');
-    if (value) value.textContent = recommendation.interval;
-    if (note) note.textContent = recommendation.description;
+    return group;
   };
 
   const newMaintenanceType = document.getElementById('jobMaintenanceType');
   const editMaintenanceType = document.getElementById('edit_maintenance_type');
 
-  const newRecommendationCard = createRecommendationCard(
+  createDurationField(
     newMaintenanceType,
-    'newJoTimeRecommendation'
+    'newJoEstimatedDuration',
+    true
   );
-  const editRecommendationCard = createRecommendationCard(
+
+  createDurationField(
     editMaintenanceType,
-    'editJoTimeRecommendation'
+    'editJoEstimatedDuration',
+    false
   );
-
-  const syncNewRecommendation = () => {
-    syncRecommendationCard(newMaintenanceType, newRecommendationCard);
-  };
-  const syncEditRecommendation = () => {
-    syncRecommendationCard(editMaintenanceType, editRecommendationCard);
-  };
-
-  newMaintenanceType?.addEventListener('change', syncNewRecommendation);
-  editMaintenanceType?.addEventListener('change', syncEditRecommendation);
-
-  document.getElementById('openJobModal')?.addEventListener('click', () => {
-    window.setTimeout(syncNewRecommendation, 0);
-  });
-
-  document.querySelectorAll('.open-edit-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      window.setTimeout(syncEditRecommendation, 0);
-    });
-  });
-
-  /* PMS Job Orders may be prefilled programmatically by the existing page JS. */
-  window.setTimeout(() => {
-    syncNewRecommendation();
-    syncEditRecommendation();
-  }, 0);
-
-  /* Show the recommendation directly in the Job Order list as supporting context. */
-  document.querySelectorAll('.jo-page .job-orders-table').forEach((table) => {
-    const headers = Array.from(table.querySelectorAll('thead th'));
-    const maintenanceTypeIndex = headers.findIndex(
-      (header) => normalizeText(header.textContent) === 'maintenance type'
-    );
-
-    if (maintenanceTypeIndex < 0) {
-      return;
-    }
-
-    table.querySelectorAll('tbody tr').forEach((row) => {
-      const cell = row.children[maintenanceTypeIndex];
-
-      if (!cell || cell.querySelector('.jo-time-inline')) {
-        return;
-      }
-
-      const recommendation = getRecommendation(cell.textContent);
-
-      if (!recommendation) {
-        return;
-      }
-
-      const helper = document.createElement('span');
-      helper.className = 'jo-time-inline';
-      helper.innerHTML = `<i class="fa-regular fa-clock"></i> ${recommendation.interval}`;
-      helper.title = `Recommended service time: ${recommendation.interval}`;
-      cell.appendChild(helper);
-    });
-  });
 });
