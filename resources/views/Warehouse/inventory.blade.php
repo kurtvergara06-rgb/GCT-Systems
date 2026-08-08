@@ -258,53 +258,7 @@
           </table>
         </div>
 
-        {{-- CUSTOM PAGINATION --}}
-<div class="table-footer">
-    <p>
-        Showing {{ $inventoryItems->firstItem() ?? 0 }}
-        to {{ $inventoryItems->lastItem() ?? 0 }}
-        of {{ $inventoryItems->total() }} entries
-    </p>
-
-    <div class="custom-pagination">
-        @if ($inventoryItems->onFirstPage())
-            <span class="page-btn disabled">
-                Previous
-            </span>
-        @else
-            <a
-                href="/inventory?{{ http_build_query(array_merge(
-                    request()->except('page'),
-                    ['page' => $inventoryItems->currentPage() - 1]
-                )) }}"
-                class="page-btn"
-            >
-                Previous
-            </a>
-        @endif
-
-        <span class="page-number">
-            Page {{ $inventoryItems->currentPage() }}
-            of {{ $inventoryItems->lastPage() }}
-        </span>
-
-        @if ($inventoryItems->hasMorePages())
-            <a
-                href="/inventory?{{ http_build_query(array_merge(
-                    request()->except('page'),
-                    ['page' => $inventoryItems->currentPage() + 1]
-                )) }}"
-                class="page-btn"
-            >
-                Next
-            </a>
-        @else
-            <span class="page-btn disabled">
-                Next
-            </span>
-        @endif
-    </div>
-</div>
+        <x-ui.table-footer :items="$inventoryItems" />
 
   {{-- ADD MODAL --}}
   <div class="modal-overlay" id="addModal">
