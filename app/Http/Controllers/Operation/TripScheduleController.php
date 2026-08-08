@@ -83,9 +83,9 @@ class TripScheduleController extends Controller
             ]);
 
         $reusableScheduleDates = TripSchedule::query()
+            ->selectRaw('DATE(trip_date) as schedule_date, COUNT(*) as trip_count')
             ->where('status', '!=', 'Cancelled')
             ->whereHas('shuttleRoute', fn ($routeQuery) => $routeQuery->where('status', 'Active'))
-            ->selectRaw('DATE(trip_date) as schedule_date, COUNT(*) as trip_count')
             ->groupByRaw('DATE(trip_date)')
             ->orderByDesc('schedule_date')
             ->get();
@@ -126,11 +126,7 @@ class TripScheduleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         if ($request->input('schedule_action') === 'generate_daily') {
-            return $this->duplicateSchedule($request, false);
-        }
-
-        if ($request->input('schedule_action') === 'copy_previous_day') {
-            return $this->duplicateSchedule($request, true);
+            return $this->duplicateSchedule($request);
         }
 
         $validated = $this->validateTrip($request);
@@ -285,23 +281,15 @@ class TripScheduleController extends Controller
         return new RedirectResponse('/operation/trip-schedule');
     }
 
-    private function duplicateSchedule(
-        Request $request,
-        bool $usePreviousDay
-    ): RedirectResponse {
-        $rules = [
+    private function duplicateSchedule(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'source_date' => ['required', 'date'],
             'target_date' => ['required', 'date'],
-        ];
+        ]);
 
-        if (! $usePreviousDay) {
-            $rules['source_date'] = ['required', 'date'];
-        }
-
-        $validated = $request->validate($rules);
         $targetDate = Carbon::parse($validated['target_date'])->toDateString();
-        $sourceDate = $usePreviousDay
-            ? Carbon::parse($targetDate)->subDay()->toDateString()
-            : Carbon::parse($validated['source_date'])->toDateString();
+        $sourceDate = Carbon::parse($validated['source_date'])->toDateString();
 
         if ($sourceDate === $targetDate) {
             return redirect()
@@ -319,18 +307,10 @@ class TripScheduleController extends Controller
             ->get();
 
         if ($sourceTrips->isEmpty()) {
-            $message = $usePreviousDay
-                ? 'No reusable trips were found on the previous day.'
-                : 'No reusable trips were found on the selected source date.';
-
             return redirect()
-                ->to(route(
-                    'trip-schedule',
-                    ['schedule_tool' => $usePreviousDay ? 'copy' : 'generate'],
-                    false
-                ))
+                ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
                 ->withInput()
-                ->with('error', $message);
+                ->with('error', 'No reusable trips were found on the selected source date.');
         }
 
         $created = 0;
