@@ -7,6 +7,7 @@ use App\Models\Admin\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -28,11 +29,28 @@ class LoginController extends Controller
 
         $remember = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials, $remember)) {
+        /** @var User|null $user */
+        $user = User::query()
+            ->where('email', $credentials['email'])
+            ->first();
+
+        if ($user === null) {
             return back()
-                ->withInput($request->only('email'))
-                ->with('error', 'Invalid email or password.');
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'email' => 'Incorrect email address or password.',
+                ]);
         }
+
+        if (! Hash::check($credentials['password'], $user->password)) {
+            return back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'password' => 'Wrong password.',
+                ]);
+        }
+
+        Auth::login($user, $remember);
 
         $request->session()->regenerate();
 
