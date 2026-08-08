@@ -63,14 +63,27 @@
 
             <section class="account-content">
                 <div class="account-hero-card">
-                    <div class="account-avatar-large">{{ $initials }}</div>
-                    <div class="account-hero-copy">
-                        <h2>{{ $user->name }}</h2>
-                        <p>{{ $displayRole }}</p>
-                        <span class="account-status-badge">
-                            <i class="fa-solid fa-circle-check"></i>
-                            {{ $user->status ?: 'Active' }}
-                        </span>
+                    <div class="account-hero-identity">
+                        <div class="account-avatar-large">{{ $initials }}</div>
+                        <div class="account-hero-copy">
+                            <h2>{{ $user->name }}</h2>
+                            <p>{{ $displayRole }} · {{ $department }}</p>
+                            <span class="account-status-badge">
+                                <i class="fa-solid fa-circle-check"></i>
+                                {{ $user->status ?: 'Active' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="account-hero-meta">
+                        <div class="account-hero-meta-item">
+                            <span>User ID</span>
+                            <strong>#{{ $user->id }}</strong>
+                        </div>
+                        <div class="account-hero-meta-item">
+                            <span>Last Login</span>
+                            <strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Not recorded' }}</strong>
+                        </div>
                     </div>
                 </div>
 
@@ -154,6 +167,10 @@
 
                         <div class="account-detail-list">
                             <div class="account-detail-row">
+                                <span>User ID</span>
+                                <strong>#{{ $user->id }}</strong>
+                            </div>
+                            <div class="account-detail-row">
                                 <span>Account Status</span>
                                 <strong>{{ $user->status ?: 'Active' }}</strong>
                             </div>
@@ -164,6 +181,10 @@
                             <div class="account-detail-row">
                                 <span>Role</span>
                                 <strong>{{ $displayRole }}</strong>
+                            </div>
+                            <div class="account-detail-row">
+                                <span>Account Created</span>
+                                <strong>{{ $user->created_at?->format('M d, Y') ?? 'Not recorded' }}</strong>
                             </div>
                             <div class="account-detail-row">
                                 <span>Last Login</span>
