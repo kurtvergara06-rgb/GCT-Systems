@@ -28,13 +28,16 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
-/*
- * Route pin controls are initialized here after the Routes page's own
- * DOMContentLoaded setup has had a chance to wrap the location inputs.
- * This keeps the visible Pin controls reliable without duplicating the
- * existing Leaflet/manual-pin implementation in routes-stops.js.
- */
 document.addEventListener('DOMContentLoaded', () => {
+    /*
+     * Issued inventory transactions now belong to Stock Movements.
+     * Keep the underlying Purchase Request records, but remove the duplicate
+     * Issued Parts History panel from the Warehouse Part Requests UI.
+     */
+    if (window.location.pathname.replace(/\/$/, '').endsWith('/part-requests')) {
+        document.querySelector('.warehouse-history-card')?.remove();
+    }
+
     window.setTimeout(() => {
         const routeModal = document.getElementById('routeModal');
         const routeOrigin = document.getElementById('routeOrigin');
