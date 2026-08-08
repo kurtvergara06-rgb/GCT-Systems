@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,7 +15,7 @@ class MechanicListController extends Controller
     public function index(Request $request)
     {
         $selectedDate = $request->filled('attendance_date')
-            ? now()->parse($request->attendance_date)->toDateString()
+            ? Carbon::parse($request->attendance_date)->toDateString()
             : today()->toDateString();
 
         $activeJobs = JobOrder::query()
@@ -74,7 +75,7 @@ class MechanicListController extends Controller
             $activeJob = $activeJobs->get(Str::lower(trim($mechanic->mechanic_name)));
             $baseStatus = $attendance?->status ?? 'No Attendance';
 
-            $mechanic->setAttribute('attendance_date', $attendance?->attendance_date ?? $selectedDate);
+            $mechanic->setAttribute('attendance_date', $attendance?->attendance_date ?? Carbon::parse($selectedDate));
             $mechanic->setAttribute('time_in', $attendance?->time_in);
             $mechanic->setAttribute('time_out', $attendance?->time_out);
             $mechanic->setAttribute('assigned_job', $attendance?->assigned_job);
@@ -100,7 +101,9 @@ class MechanicListController extends Controller
             $mechanics->setCollection($filtered);
         }
 
-        $allMechanics = Mechanic::query()->where('employment_status', '!=', 'Inactive')->get();
+        $allMechanics = Mechanic::query()
+            ->where('employment_status', '!=', 'Inactive')
+            ->get();
         $activeAssignedNames = $activeJobs->keys();
 
         $totalMechanics = $allMechanics->count();
