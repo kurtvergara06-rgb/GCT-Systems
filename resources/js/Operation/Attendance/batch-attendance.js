@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <div class="batch-time-cell">
-                            <input type="time" data-time-in value="${escapeHtml(row.time_in || '')}">
+                            <input type="time" data-time-in data-native-picker="true" value="${escapeHtml(row.time_in || '')}">
                             <button type="button" title="Use current time" data-row-now>
                                 <i class="fa-regular fa-clock"></i>
                             </button>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <div class="batch-time-cell batch-time-out-cell">
-                            <input type="time" data-time-out value="${escapeHtml(row.time_out || '')}">
+                            <input type="time" data-time-out data-native-picker="true" value="${escapeHtml(row.time_out || '')}">
                         </div>
                     </td>
                     <td>
@@ -401,14 +401,13 @@ document.addEventListener('DOMContentLoaded', () => {
             status: selectedStatus(row),
         }));
 
-        const incomplete = rows.filter((row) => ['Present', 'Late'].includes(row.status) && !row.time_in);
-        if (incomplete.length) {
-            toast(`${incomplete.length} personnel record(s) still need a time-in.`, 'warning');
+        if (!rows.length) {
+            toast('There are no attendance rows to save.', 'warning');
             return;
         }
 
         saveButton.disabled = true;
-        saveButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+        saveButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving attendance…';
 
         try {
             const response = await fetch(`/operation/attendance/batch/${type}`, {
@@ -417,20 +416,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                        || document.querySelector('input[name="_token"]')?.value
-                        || '',
+                    'X-CSRF-TOKEN': csrfToken(),
                 },
                 body: JSON.stringify({
                     attendance_date: modal.querySelector('#batchAttendanceDate').value,
                     rows,
                 }),
             });
+
             const data = await response.json();
             if (!response.ok) throw new Error(errorMessage(data));
+
             toast(data.message || 'Attendance saved successfully.', 'success');
-            closeModal();
-            window.setTimeout(() => window.location.reload(), 600);
+            await loadRoster();
         } catch (error) {
             toast(error.message || 'Unable to save attendance.', 'error');
         } finally {
@@ -439,77 +437,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateSummary() {
-        const modal = document.getElementById('batchAttendanceModal');
-        const summary = modal?.querySelector('#batchAttendanceSummary');
-        if (!summary) return;
-
-        const rows = [...modal.querySelectorAll('[data-batch-row]')];
-        const counts = { Present: 0, Late: 0, Absent: 0, 'On Leave': 0, Incomplete: 0 };
-
-        rows.forEach((row) => {
-            const status = selectedStatus(row);
-            counts[status] = (counts[status] || 0) + 1;
-            if (['Present', 'Late'].includes(status) && !row.querySelector('[data-time-in]').value) {
-                counts.Incomplete++;
-            }
-        });
-
-        summary.innerHTML = [
-            summaryCard('Present', counts.Present, 'present'),
-            summaryCard('Late', counts.Late, 'late'),
-            summaryCard('Absent', counts.Absent, 'absent'),
-            summaryCard('On Leave', counts['On Leave'], 'leave'),
-            summaryCard('Incomplete', counts.Incomplete, 'incomplete'),
-        ].join('');
-    }
-
-    function summaryCard(labelText, value, theme) {
-        return `
-            <div class="batch-summary-card ${theme}">
-                <span class="batch-summary-label"><i class="fa-solid fa-circle"></i>${labelText}</span>
-                <strong>${value}</strong>
-            </div>`;
-    }
-
     function selectedStatus(row) {
         return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || 'Present';
     }
 
-    function setSelectedStatus(row, value) {
+    function setSelectedStatus(row, status) {
         row.querySelectorAll('[data-status-btn]').forEach((button) => {
-            button.classList.toggle('is-active', button.dataset.statusValue === value);
+            button.classList.toggle('is-active', button.dataset.statusValue === status);
         });
     }
 
-    function normalizeStatus(value) {
-        return ['Present', 'Late', 'Absent', 'On Leave'].includes(value) ? value : 'Present';
+    function normalizeStatus(status) {
+        return ['Present', 'Late', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
     }
 
-    function statusThemeClass(status) {
-        switch (status) {
-        case 'Present':
-            return 'present';
-        case 'Late':
-            return 'late';
-        case 'Absent':
-            return 'absent';
-        case 'On Leave':
-            return 'leave';
-        default:
-            return '';
-        }
+    function statusThemeClass(value) {
+        return {
+            Present: 'present',
+            Late: 'late',
+            Absent: 'absent',
+            'On Leave': 'leave',
+        }[value] || '';
     }
 
     function availabilityClass(value) {
-        switch (value) {
-        case 'Available':
-            return 'available';
-        case 'Unavailable':
-            return 'unavailable';
-        default:
-            return 'busy';
-        }
+        if (value === busyLabel) return 'busy';
+        if (value === 'Unavailable') return 'unavailable';
+        return 'available';
+    }
+
+    function updateSummary() {
+        const modal = document.getElementById('batchAttendanceModal');
+        const summary = modal?.querySelector('#batchAttendanceSummary');
+        if (!modal || !summary) return;
+
+        const rows = [...modal.querySelectorAll('[data-batch-row]')];
+        const counts = {
+            Present: 0,
+            Late: 0,
+            Absent: 0,
+            'On Leave': 0,
+            Incomplete: 0,
+        };
+
+        rows.forEach((row) => {
+            const status = selectedStatus(row);
+            counts[status] = (counts[status] || 0) + 1;
+
+            if (!['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+                counts.Incomplete += 1;
+            }
+        });
+
+        summary.innerHTML = [
+            ['Present', 'present', '#2fb45e'],
+            ['Late', 'late', '#ff9518'],
+            ['Absent', 'absent', '#ef3d3d'],
+            ['On Leave', 'leave', '#7c3aed'],
+            ['Incomplete', 'incomplete', '#94a3b8'],
+        ].map(([name, className, color]) => `
+            <div class="batch-summary-card ${className}">
+                <div class="batch-summary-label"><i class="fa-solid fa-circle" style="color:${color}"></i>${name}</div>
+                <strong>${counts[name]}</strong>
+            </div>`).join('');
     }
 
     function closeModal() {
@@ -517,379 +507,62 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('batch-modal-open');
     }
 
-    function toast(message, type) {
-        if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(
-                message,
-                type,
-                type === 'success' ? 'Attendance Saved' : null,
-            );
-        } else {
-            window.alert(message);
-        }
-    }
-
     function today() {
-        return new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     }
 
     function currentTime() {
-        const d = new Date();
-        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
     function minutes(value) {
-        const [h, m] = String(value).split(':').map(Number);
-        return (h * 60) + m;
+        const [hour, minute] = String(value || '00:00').split(':').map(Number);
+        return (hour * 60) + minute;
     }
 
     function formatTime(value) {
         if (!value) return '';
-        const [hourRaw, minuteRaw] = String(value).split(':');
-        const hour = Number(hourRaw);
-        const minute = String(minuteRaw ?? '00').padStart(2, '0');
+        const [hour, minute] = String(value).slice(0, 5).split(':').map(Number);
         const suffix = hour >= 12 ? 'PM' : 'AM';
-        const twelve = ((hour + 11) % 12) + 1;
-        return `${String(twelve).padStart(2, '0')}:${minute} ${suffix}`;
+        const displayHour = hour % 12 || 12;
+        return `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${suffix}`;
     }
 
     function initials(name) {
         return String(name || '')
-            .trim()
             .split(/\s+/)
+            .filter(Boolean)
             .slice(0, 2)
-            .map((part) => part.charAt(0).toUpperCase())
-            .join('') || '--';
-    }
-
-    function errorMessage(data) {
-        return data?.message || Object.values(data?.errors || {}).flat()[0] || 'Request failed.';
+            .map((part) => part[0]?.toUpperCase() || '')
+            .join('');
     }
 
     function escapeHtml(value) {
-        const div = document.createElement('div');
-        div.textContent = String(value ?? '');
-        return div.innerHTML;
-    }
-});
-
-/* =========================================================
-   CONSOLIDATED: resources/js/Operation/Attendance/batch-attendance-availability.js
-========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const attendancePath = window.location.pathname.replace(/\/$/, '');
-
-    if (
-        !attendancePath.endsWith('/driver-attendance')
-        && !attendancePath.endsWith('/mechanic-attendance')
-    ) {
-        return;
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
     }
 
-    const initializeRows = (root = document) => {
-        root.querySelectorAll('[data-batch-row]').forEach((row) => {
-            if (row.dataset.availabilityInitialized === 'true') {
-                return;
-            }
-
-            const badge = row.querySelector('.batch-availability');
-            const status = row.querySelector('[data-status]');
-
-            if (!badge || !status) {
-                return;
-            }
-
-            row.dataset.availabilityInitialized = 'true';
-            row.dataset.baseAvailability = badge.textContent.trim() || 'Available';
-
-            const updateAvailability = () => {
-                const attendanceStatus = status.value;
-                const unavailable = ['Absent', 'On Leave'].includes(
-                    attendanceStatus
-                );
-
-                const availability = unavailable
-                    ? 'Unavailable'
-                    : row.dataset.baseAvailability || 'Available';
-
-                badge.textContent = availability;
-                badge.classList.remove(
-                    'available',
-                    'busy',
-                    'unavailable'
-                );
-
-                if (availability === 'Available') {
-                    badge.classList.add('available');
-                } else if (availability === 'Unavailable') {
-                    badge.classList.add('unavailable');
-                } else {
-                    badge.classList.add('busy');
-                }
-
-                badge.setAttribute(
-                    'title',
-                    availability === 'Available'
-                        ? 'Present and currently free for assignment.'
-                        : availability === 'On Duty'
-                            ? 'Present but currently assigned to an active trip.'
-                            : availability === 'On Job'
-                                ? 'Present but currently assigned to an active job order.'
-                                : 'Not available because the attendance status is Absent or On Leave.'
-                );
-            };
-
-            status.addEventListener('change', updateAvailability);
-            updateAvailability();
-        });
-    };
-
-    initializeRows();
-
-    const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-            for (const node of mutation.addedNodes) {
-                if (!(node instanceof Element)) {
-                    continue;
-                }
-
-                if (node.matches?.('[data-batch-row]')) {
-                    initializeRows(node.parentElement || node);
-                } else if (node.querySelector?.('[data-batch-row]')) {
-                    initializeRows(node);
-                }
-            }
-        }
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-});
-
-
-/* =========================================================
-   CONSOLIDATED: resources/js/Operation/Attendance/personnel-attendance-refactor.js
-========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const path = window.location.pathname.replace(/\/$/, '');
-
-    ensureOperationPersonnelMenu(path);
-
-    const isDriver = path.endsWith('/driver-attendance');
-    const isMechanic = path.endsWith('/mechanic-attendance');
-
-    if (!isDriver && !isMechanic) return;
-
-    /*
-    |--------------------------------------------------------------------------
-    | ATTENDANCE-ONLY PAGE
-    |--------------------------------------------------------------------------
-    |
-    | Permanent personnel creation belongs exclusively to Driver Master List
-    | and Mechanic Master List. The attendance pages only keep daily attendance
-    | import, batch recording, viewing, editing, and deletion of attendance.
-    |
-    */
-
-    const toolbar = document.querySelector('.attendance-toolbar');
-    const oldNewRecordButton = toolbar?.querySelector('.primary-btn');
-    const oldPersonnelLink = toolbar?.querySelector('.personnel-master-link');
-    const importButton = toolbar?.querySelector('.import-btn');
-
-    oldPersonnelLink?.remove();
-    oldNewRecordButton?.remove();
-
-    if (importButton) {
-        importButton.innerHTML = '<i class="fa-solid fa-file-import"></i> Import Attendance';
-        importButton.title = 'Import daily attendance records';
+    function errorMessage(data) {
+        if (data?.message) return data.message;
+        if (data?.errors) return Object.values(data.errors).flat().join(' ');
+        return 'The attendance request could not be completed.';
     }
 
-    const pageCard = document.querySelector('.attendance-card');
-    const sectionHeader = pageCard?.querySelector('.section-header');
-
-    if (sectionHeader && !sectionHeader.querySelector('.attendance-scope-note')) {
-        const note = document.createElement('div');
-        note.className = 'attendance-scope-note';
-        note.innerHTML = `
-            <i class="fa-solid fa-circle-info"></i>
-            <span>
-                This page records daily attendance only. Permanent ${isDriver ? 'driver' : 'mechanic'} profiles are managed in Personnel Management.
-            </span>`;
-        sectionHeader.appendChild(note);
+    function csrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
 
-    /* Remove the old single-record creation modal from the active page flow. */
-    const oldCreateModalId = isDriver
-        ? 'driverAttendanceModal'
-        : 'mechanicAttendanceModal';
-
-    document.getElementById(oldCreateModalId)?.remove();
-
-    /*
-    |--------------------------------------------------------------------------
-    | GCT TIME INPUT MODAL
-    |--------------------------------------------------------------------------
-    */
-
-    document.addEventListener('click', (event) => {
-        const applyButton = event.target.closest('#batchApplyTime');
-        if (!applyButton) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-
-        const attendanceModal = document.getElementById('batchAttendanceModal');
-        if (!attendanceModal) return;
-
-        const selectedRows = [...attendanceModal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.querySelector('[data-row-select]')?.checked);
-
-        if (!selectedRows.length) {
-            showToast('Select at least one personnel row.', 'warning');
-            return;
-        }
-
-        openTimeModal(selectedRows);
-    }, true);
-
-    function openTimeModal(selectedRows) {
-        document.getElementById('batchTimeModal')?.remove();
-
-        const now = new Date();
-        const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        const overlay = document.createElement('div');
-        overlay.id = 'batchTimeModal';
-        overlay.className = 'batch-time-modal-overlay';
-        overlay.innerHTML = `
-            <div class="batch-time-modal" role="dialog" aria-modal="true" aria-labelledby="batchTimeModalTitle">
-                <div class="batch-time-modal-icon"><i class="fa-regular fa-clock"></i></div>
-                <div class="batch-time-modal-copy">
-                    <h3 id="batchTimeModalTitle">Apply Time to Selected</h3>
-                    <p>This time will be applied to ${selectedRows.length} selected attendance record(s).</p>
-                </div>
-                <button type="button" class="batch-time-modal-close" data-time-modal-close>&times;</button>
-                <label class="batch-time-modal-field">
-                    <span>Time In</span>
-                    <input type="time" id="batchTimeModalInput" value="${defaultTime}">
-                    <small>Attendance status will be recalculated automatically using the shift grace period.</small>
-                </label>
-                <div class="batch-time-modal-actions">
-                    <button type="button" class="secondary-btn" data-time-modal-close>Cancel</button>
-                    <button type="button" class="primary-btn" id="confirmBatchTime"><i class="fa-solid fa-check"></i> Apply Time</button>
-                </div>
-            </div>`;
-
-        document.body.appendChild(overlay);
-        const input = overlay.querySelector('#batchTimeModalInput');
-        window.setTimeout(() => input?.focus(), 50);
-
-        overlay.querySelectorAll('[data-time-modal-close]').forEach((button) => {
-            button.addEventListener('click', () => overlay.remove());
-        });
-
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) overlay.remove();
-        });
-
-        overlay.querySelector('#confirmBatchTime').addEventListener('click', () => {
-            const time = input.value;
-            if (!time) {
-                showToast('Choose a valid time first.', 'warning');
-                return;
-            }
-
-            selectedRows.forEach((row) => {
-                const timeInput = row.querySelector('[data-time-in]');
-                if (!timeInput || timeInput.disabled) return;
-                timeInput.value = time;
-                timeInput.dispatchEvent(new Event('change', { bubbles: true }));
-            });
-
-            overlay.remove();
-            showToast(`Time applied to ${selectedRows.length} selected attendance record(s).`, 'success');
-        });
-    }
-
-    function showToast(message, type) {
+    function toast(message, type = 'info') {
         if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(
-                message,
-                type,
-                type === 'success' ? 'Attendance Updated' : 'Attendance Notice',
-            );
+            window.showSystemToast(message, type, type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Notice');
             return;
         }
-
-        console[type === 'error' ? 'error' : 'log'](message);
+        window.alert(message);
     }
 });
-
-function ensureOperationPersonnelMenu(path) {
-    const sidebar = document.getElementById('appSidebar');
-    const menu = sidebar?.querySelector('.menu');
-    const department = sidebar?.querySelector('.brand h2')?.textContent?.trim().toLowerCase();
-
-    if (!menu || department !== 'operation') return;
-
-    const dropdowns = [...menu.querySelectorAll('.menu-dropdown')];
-    const hasPersonnelMenu = dropdowns.some((dropdown) => (
-        dropdown.querySelector('.dropdown-toggle span')?.textContent?.trim() === 'Personnel Management'
-    ));
-
-    if (hasPersonnelMenu) return;
-
-    const attendanceDropdown = dropdowns.find((dropdown) => (
-        dropdown.querySelector('.dropdown-toggle span')?.textContent?.trim() === 'Attendance'
-    ));
-
-    if (!attendanceDropdown) return;
-
-    const driverActive = path === '/operation/personnel/drivers';
-    const mechanicActive = path === '/operation/personnel/mechanics';
-    const parentActive = driverActive || mechanicActive;
-    const personnelDropdown = document.createElement('div');
-
-    personnelDropdown.className = `menu-dropdown${parentActive ? ' open active' : ''}`;
-    personnelDropdown.innerHTML = `
-        <button
-            type="button"
-            class="menu-item dropdown-toggle${parentActive ? ' active' : ''}"
-            aria-expanded="${parentActive ? 'true' : 'false'}"
-            title="Personnel Management"
-        >
-            <i class="fa-solid fa-address-book"></i>
-            <span>Personnel Management</span>
-            <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
-        </button>
-        <div class="submenu">
-            <a
-                href="/operation/personnel/drivers"
-                class="submenu-item${driverActive ? ' active' : ''}"
-                title="Driver Master List"
-            >
-                <i class="fa-solid fa-id-card"></i>
-                <span>Driver Master List</span>
-            </a>
-            <a
-                href="/operation/personnel/mechanics"
-                class="submenu-item${mechanicActive ? ' active' : ''}"
-                title="Mechanic Master List"
-            >
-                <i class="fa-solid fa-users-gear"></i>
-                <span>Mechanic Master List</span>
-            </a>
-        </div>`;
-
-    const toggle = personnelDropdown.querySelector('.dropdown-toggle');
-
-    toggle?.addEventListener('click', () => {
-        const isOpen = personnelDropdown.classList.toggle('open');
-        toggle.classList.toggle('active', isOpen || parentActive);
-        toggle.setAttribute('aria-expanded', String(isOpen));
-    });
-
-    attendanceDropdown.before(personnelDropdown);
-}
