@@ -165,21 +165,23 @@
                     </div>
 
                     <div class="ui-form-actions">
-                        <a
-                            href="{{ route('trip-schedule', ['schedule_tool' => 'generate'], false) }}"
+                        <button
+                            type="button"
                             class="ui-form-btn ui-form-btn-secondary"
+                            id="openGenerateTripsModal"
                         >
                             <i class="fa-solid fa-calendar-plus"></i>
                             <span>Generate Daily Trips</span>
-                        </a>
+                        </button>
 
-                        <a
-                            href="{{ route('trip-schedule', ['schedule_tool' => 'copy'], false) }}"
+                        <button
+                            type="button"
                             class="ui-form-btn ui-form-btn-secondary"
+                            id="openCopyScheduleModal"
                         >
                             <i class="fa-solid fa-copy"></i>
                             <span>Copy Previous Day</span>
-                        </a>
+                        </button>
 
                         <button
                             type="button"
@@ -191,98 +193,6 @@
                         </button>
                     </div>
                 </div>
-
-                @if(request('schedule_tool') === 'generate')
-                    <form
-                        method="POST"
-                        action="{{ route('trip-schedule.store', [], false) }}"
-                        class="trip-toolbar"
-                    >
-                        @csrf
-                        <input type="hidden" name="schedule_action" value="generate_daily">
-
-                        <div class="trip-search">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <input
-                                type="text"
-                                value="Reuse an existing day's route and time pattern"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="trip-filter">
-                            <label>Source Date</label>
-                            <input
-                                type="date"
-                                name="source_date"
-                                value="{{ old('source_date') }}"
-                                required
-                            >
-                        </div>
-
-                        <div class="trip-filter">
-                            <label>Target Date</label>
-                            <input
-                                type="date"
-                                name="target_date"
-                                value="{{ old('target_date', now()->format('Y-m-d')) }}"
-                                required
-                            >
-                        </div>
-
-                        <button type="submit" class="ui-form-btn ui-form-btn-primary">
-                            <i class="fa-solid fa-bolt"></i>
-                            <span>Generate Trips</span>
-                        </button>
-
-                        <a
-                            href="{{ route('trip-schedule', [], false) }}"
-                            class="ui-form-btn ui-form-btn-secondary"
-                        >
-                            Cancel
-                        </a>
-                    </form>
-                @elseif(request('schedule_tool') === 'copy')
-                    <form
-                        method="POST"
-                        action="{{ route('trip-schedule.store', [], false) }}"
-                        class="trip-toolbar"
-                    >
-                        @csrf
-                        <input type="hidden" name="schedule_action" value="copy_previous_day">
-
-                        <div class="trip-search">
-                            <i class="fa-solid fa-copy"></i>
-                            <input
-                                type="text"
-                                value="Copies all non-cancelled trips from the previous calendar day"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="trip-filter">
-                            <label>Target Date</label>
-                            <input
-                                type="date"
-                                name="target_date"
-                                value="{{ old('target_date', now()->format('Y-m-d')) }}"
-                                required
-                            >
-                        </div>
-
-                        <button type="submit" class="ui-form-btn ui-form-btn-primary">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>Copy Schedule</span>
-                        </button>
-
-                        <a
-                            href="{{ route('trip-schedule', [], false) }}"
-                            class="ui-form-btn ui-form-btn-secondary"
-                        >
-                            Cancel
-                        </a>
-                    </form>
-                @endif
 
                 <form
                     method="GET"
@@ -470,6 +380,94 @@
             </section>
         </main>
     </div>
+
+    <x-ui.form-modal
+        id="generateTripsModal"
+        title="Generate Daily Trips"
+        description="Reuse the route and departure-time pattern from an existing schedule date."
+        icon="fa-wand-magic-sparkles"
+        size="medium"
+        form-id="generateTripsForm"
+        :action="route('trip-schedule.store', [], false)"
+        method="POST"
+        submit-text="Generate Trips"
+        submit-icon="fa-bolt"
+        cancel-text="Cancel"
+        cancel-id="cancelGenerateTripsModal"
+        close-id="closeGenerateTripsModal"
+    >
+        <input type="hidden" name="schedule_action" value="generate_daily">
+
+        <div class="ui-form-grid trip-ui-form-grid">
+            <x-ui.form-field
+                label="Source Date"
+                name="source_date"
+                id="generateSourceDate"
+                type="date"
+                :value="old('source_date')"
+                icon="fa-calendar"
+                :required="true"
+            />
+
+            <x-ui.form-field
+                label="Target Date"
+                name="target_date"
+                id="generateTargetDate"
+                type="date"
+                :value="old('target_date', now()->format('Y-m-d'))"
+                icon="fa-calendar-check"
+                :required="true"
+            />
+        </div>
+
+        <div class="trip-form-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Only reusable trips are copied.</strong>
+                <span>Cancelled trips are ignored, inactive routes are skipped, and matching trips already on the target date are not duplicated.</span>
+            </div>
+        </div>
+    </x-ui.form-modal>
+
+    <x-ui.form-modal
+        id="copyScheduleModal"
+        title="Copy Previous Day"
+        description="Copy the previous calendar day's reusable trips into a new target date."
+        icon="fa-copy"
+        size="medium"
+        form-id="copyScheduleForm"
+        :action="route('trip-schedule.store', [], false)"
+        method="POST"
+        submit-text="Copy Schedule"
+        submit-icon="fa-copy"
+        cancel-text="Cancel"
+        cancel-id="cancelCopyScheduleModal"
+        close-id="closeCopyScheduleModal"
+    >
+        <input type="hidden" name="schedule_action" value="copy_previous_day">
+
+        <div class="ui-form-grid trip-ui-form-grid">
+            <div class="ui-form-group ui-form-full">
+                <x-ui.form-field
+                    label="Target Date"
+                    name="target_date"
+                    id="copyTargetDate"
+                    type="date"
+                    :value="old('target_date', now()->format('Y-m-d'))"
+                    icon="fa-calendar-day"
+                    :required="true"
+                />
+            </div>
+        </div>
+
+        <div class="trip-form-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>The source date is automatic.</strong>
+                <span>For example, choosing August 8 copies reusable trips from August 7 into August 8.</span>
+            </div>
+        </div>
+    </x-ui.form-modal>
 
     <x-ui.form-modal
         id="tripModal"
