@@ -45,6 +45,41 @@ class InventoryItem extends Model
             }
         });
 
+        static::created(function (InventoryItem $item) {
+            if (! Schema::hasTable('stock_movements')) {
+                return;
+            }
+
+            $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+
+            if ($stock <= 0) {
+                return;
+            }
+
+            $route = request()?->route();
+            $routeName = $route?->getName();
+
+            if (! in_array($routeName, ['purchase-orders.update-status', 'purchase-orders.update', 'purchase-orders.store'], true)) {
+                return;
+            }
+
+            $purchaseOrder = $route?->parameter('purchaseOrder');
+
+            StockMovement::create([
+                'inventory_item_id' => $item->id,
+                'item_code' => $item->item_code,
+                'item_name' => $item->parts_name ?? $item->item_name ?? $item->item_code ?? 'Inventory Item',
+                'reference_no' => is_object($purchaseOrder) ? ($purchaseOrder->po_no ?? $item->item_code) : $item->item_code,
+                'movement_type' => 'Stock In',
+                'quantity_change' => $stock,
+                'previous_stock' => 0,
+                'new_stock' => $stock,
+                'unit' => $item->unit ?? $item->unit_of_measurement,
+                'remarks' => 'Received from Purchase Order.',
+                'created_by' => auth()->id(),
+            ]);
+        });
+
         static::updated(function (InventoryItem $item) {
             if (! Schema::hasTable('stock_movements')) {
                 return;
@@ -61,7 +96,6 @@ class InventoryItem extends Model
             $previousStock = $quantityChanged
                 ? (int) $item->getOriginal('quantity_available')
                 : (int) $item->getOriginal('on_hand');
-
             $change = $newStock - $previousStock;
 
             if ($change === 0) {
@@ -72,9 +106,7 @@ class InventoryItem extends Model
             $routeName = $route?->getName();
             $referenceNo = $item->item_code;
             $movementType = $change > 0 ? 'Stock In' : 'Stock Out';
-            $remarks = $change > 0
-                ? 'Inventory quantity increased.'
-                : 'Inventory quantity decreased.';
+            $remarks = $change > 0 ? 'Inventory quantity increased.' : 'Inventory quantity decreased.';
 
             if ($routeName === 'part-requests.issue') {
                 $purchaseRequest = $route?->parameter('purchaseRequest');
@@ -113,25 +145,14 @@ class InventoryItem extends Model
 
     public function getStockStatusAttribute(): string
     {
-        $stock = (int) (
-            $this->on_hand
-            ?? $this->quantity_available
-            ?? 0
-        );
-
-        $reorderLevel = (int) (
-            $this->reorder_level
-            ?? 0
-        );
+        $stock = (int) ($this->on_hand ?? $this->quantity_available ?? 0);
+        $reorderLevel = (int) ($this->reorder_level ?? 0);
 
         if ($stock <= 0) {
             return 'Critical';
         }
 
-        if (
-            $reorderLevel > 0
-            && $stock <= $reorderLevel
-        ) {
+        if ($reorderLevel > 0 && $stock <= $reorderLevel) {
             return 'Low Stock';
         }
 
@@ -140,24 +161,16 @@ class InventoryItem extends Model
 
     public function getPartsNameAttribute(): ?string
     {
-        return $this->attributes['parts_name']
-            ?? $this->attributes['item_name']
-            ?? null;
+        return $this->attributes['parts_name'] ?? $this->attributes['item_name'] ?? null;
     }
 
     public function getOnHandAttribute($value): int
     {
-        return (int) (
-            $value
-            ?? $this->attributes['quantity_available']
-            ?? 0
-        );
+        return (int) ($value ?? $this->attributes['quantity_available'] ?? 0);
     }
 
     public function getUnitAttribute($value): ?string
     {
-        return $value
-            ?? $this->attributes['unit_of_measurement']
-            ?? null;
+        return $value ?? $this->attributes['unit_of_measurement'] ?? null;
     }
 }
