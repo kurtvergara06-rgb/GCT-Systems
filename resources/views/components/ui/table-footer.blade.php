@@ -20,7 +20,7 @@
         data-table-loading
         hidden
     >
-        <i class="fa-solid fa-spinner fa-spin"></i>
+        <x-ui.spinner size="sm" />
         Loading all records...
     </span>
 </div>
