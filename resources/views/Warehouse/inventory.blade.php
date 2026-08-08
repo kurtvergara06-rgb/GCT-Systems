@@ -114,26 +114,25 @@
           </div>
         </div>
 
-        <form method="GET" action="/inventory" class="toolbar inventory-toolbar">
+        <div class="toolbar inventory-toolbar" data-client-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input
               type="text"
               name="search"
-              value="{{ request('search') }}"
+              value=""
+              autocomplete="off"
               placeholder="Search by item, item code, supplier, or location..."
+              aria-label="Search inventory records"
             >
           </div>
 
           <div class="filter-group">
-            
-            <select name="category" onchange="this.form.submit()">
-              <option value="All Categories" {{ request('category') == 'All Categories' ? 'selected' : '' }}>
-                All Categories
-              </option>
+            <select name="category" aria-label="Filter inventory by category">
+              <option value="All Categories" selected>All Categories</option>
 
               @foreach($categories as $category)
-                <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>
+                <option value="{{ $category }}">
                   {{ $category }}
                 </option>
               @endforeach
@@ -149,7 +148,7 @@
             <i class="fa-solid fa-plus"></i>
             Add Item
           </button>
-        </form>
+        </div>
 
         <div class="table-wrap">
           <table class="inventory-table">
@@ -179,12 +178,6 @@
                     'Low Stock' => 'warning-row',
                     default => ''
                   };
-
-                  $badgeClass = match($status) {
-                    'Critical' => 'critical',
-                    'Low Stock' => 'low-stock',
-                    default => 'in-stock'
-                  };
                 @endphp
 
                 <tr class="{{ $rowClass }}">
@@ -195,7 +188,7 @@
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
-                    <x-ui.status-badge 
+                    <x-ui.status-badge
                       :status="$status"
                       type="inventory"
                     />
@@ -240,6 +233,7 @@
                           type="submit"
                           class="action-btn delete"
                           title="Delete Item"
+                          data-no-loading
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
@@ -351,7 +345,7 @@
         data-confirm-message="Are you sure you want to update this inventory item?"
         data-confirm-button="Yes, Update Item"
         data-confirm-type="update"
-    >
+      >
         @csrf
         @method('PUT')
 
