@@ -110,12 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <option value="Days">Days</option>
         </select>
       </div>
-
-      <small>
-        ${required
-          ? 'Enter the estimated duration based on the actual maintenance assessment.'
-          : 'Enter a new value only when you want to update the current estimate.'}
-      </small>
     `;
 
     const fieldGroup = maintenanceTypeSelect.closest('.ui-form-group') || maintenanceTypeSelect.parentElement;
@@ -133,9 +127,30 @@ document.addEventListener('DOMContentLoaded', () => {
     true
   );
 
-  createDurationField(
+  const editDurationField = createDurationField(
     editMaintenanceType,
     'editJoEstimatedDuration',
     false
   );
+
+  document.querySelectorAll('.open-edit-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      window.setTimeout(() => {
+        if (!editDurationField) {
+          return;
+        }
+
+        const valueInput = editDurationField.querySelector('input[name="estimated_duration_value"]');
+        const unitSelect = editDurationField.querySelector('select[name="estimated_duration_unit"]');
+
+        if (valueInput) {
+          valueInput.value = button.dataset.estimatedDurationValue || '';
+        }
+
+        if (unitSelect) {
+          unitSelect.value = button.dataset.estimatedDurationUnit || 'Hours';
+        }
+      }, 0);
+    });
+  });
 });
