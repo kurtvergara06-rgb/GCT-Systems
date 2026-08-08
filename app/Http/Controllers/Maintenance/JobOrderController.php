@@ -141,6 +141,7 @@ class JobOrderController extends Controller
 
         $availableMechanics =
             MechanicAttendance::query()
+                ->whereDate('attendance_date', today())
                 ->whereIn(
                     'status',
                     ['Present', 'Late']
@@ -156,6 +157,7 @@ class JobOrderController extends Controller
 
         $allMechanics =
             MechanicAttendance::query()
+                ->whereDate('attendance_date', today())
                 ->orderBy(
                     'mechanic_name'
                 )
@@ -251,7 +253,8 @@ class JobOrderController extends Controller
                 ->values();
 
         $mechanics = MechanicAttendance::query()
-            ->where('status', 'Present')
+            ->whereDate('attendance_date', today())
+            ->whereIn('status', ['Present', 'Late'])
             ->whereNotIn('mechanic_name', $assignedActiveMechanics)
             ->orderBy('mechanic_name')
             ->get(['id', 'mechanic_name']);
@@ -300,10 +303,14 @@ class JobOrderController extends Controller
         $status = 'On Hold';
 
         if ($assignedMechanic) {
-            $mechanic = MechanicAttendance::where('mechanic_name', $assignedMechanic)->first();
+            $mechanic = MechanicAttendance::query()
+                ->where('mechanic_name', $assignedMechanic)
+                ->whereDate('attendance_date', today())
+                ->latest('id')
+                ->first();
 
             if (! $mechanic) {
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic was not found.');
+                return redirect()->back()->withInput()->with('error', 'Selected mechanic has no attendance record for today.');
             }
 
             $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $assignedMechanic)
@@ -389,10 +396,14 @@ class JobOrderController extends Controller
         $newMechanic = $validated['assigned_mechanic'] ?? null;
 
         if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $mechanic = MechanicAttendance::where('mechanic_name', $newMechanic)->first();
+            $mechanic = MechanicAttendance::query()
+                ->where('mechanic_name', $newMechanic)
+                ->whereDate('attendance_date', today())
+                ->latest('id')
+                ->first();
 
             if (! $mechanic) {
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic was not found.');
+                return redirect()->back()->withInput()->with('error', 'Selected mechanic has no attendance record for today.');
             }
 
             $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $newMechanic)
@@ -400,7 +411,7 @@ class JobOrderController extends Controller
                 ->where('id', '!=', $jobOrder->id)
                 ->exists();
 
-            if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {
+            if (! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
                 return redirect()->back()->withInput()->with('error', 'Selected mechanic is already on duty.');
             }
         }
@@ -637,7 +648,17 @@ class JobOrderController extends Controller
             return;
         }
 
-        MechanicAttendance::where('mechanic_name', $mechanicName)->update(['status' => $status]);
+        $attendance = MechanicAttendance::query()
+            ->where('mechanic_name', $mechanicName)
+            ->whereDate('attendance_date', today())
+            ->latest('id')
+            ->first();
+
+        if (! $attendance) {
+            return;
+        }
+
+        $attendance->update(['status' => $status]);
     }
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
