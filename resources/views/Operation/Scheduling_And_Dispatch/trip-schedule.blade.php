@@ -399,15 +399,35 @@
         <input type="hidden" name="schedule_action" value="generate_daily">
 
         <div class="ui-form-grid trip-ui-form-grid">
-            <x-ui.form-field
-                label="Source Date"
-                name="source_date"
-                id="generateSourceDate"
-                type="date"
-                :value="old('source_date')"
-                icon="fa-calendar"
-                :required="true"
-            />
+            <div class="ui-form-group">
+                <label for="generateSourceDate">
+                    Source Schedule <span class="ui-required">*</span>
+                </label>
+                <div class="ui-input-wrap has-icon">
+                    <span class="ui-input-icon"><i class="fa-solid fa-calendar"></i></span>
+                    <select
+                        name="source_date"
+                        id="generateSourceDate"
+                        required
+                        @disabled($reusableScheduleDates->isEmpty())
+                    >
+                        @if($reusableScheduleDates->isEmpty())
+                            <option value="">No reusable schedules available</option>
+                        @else
+                            <option value="">Select an existing schedule</option>
+                            @foreach($reusableScheduleDates as $scheduleDate)
+                                <option
+                                    value="{{ $scheduleDate->schedule_date }}"
+                                    @selected(old('source_date') === $scheduleDate->schedule_date)
+                                >
+                                    {{ \Carbon\Carbon::parse($scheduleDate->schedule_date)->format('M d, Y') }} — {{ $scheduleDate->trip_count }} {{ (int) $scheduleDate->trip_count === 1 ? 'trip' : 'trips' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                @error('source_date')<span class="ui-field-error">{{ $message }}</span>@enderror
+            </div>
 
             <x-ui.form-field
                 label="Target Date"
@@ -423,8 +443,8 @@
         <div class="trip-form-note">
             <i class="fa-solid fa-circle-info"></i>
             <div>
-                <strong>Only reusable trips are copied.</strong>
-                <span>Cancelled trips are ignored, inactive routes are skipped, and matching trips already on the target date are not duplicated.</span>
+                <strong>Choose from schedules that actually contain reusable trips.</strong>
+                <span>Cancelled trips are excluded, inactive routes are ignored, and matching trips already on the target date are not duplicated.</span>
             </div>
         </div>
     </x-ui.form-modal>
