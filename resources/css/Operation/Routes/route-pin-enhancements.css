@@ -72,11 +72,6 @@
 /* The autocomplete confirmation row makes the wrapper taller than the input.
    Anchor Origin/Destination icons to the actual 46px input instead of the
    total wrapper height so both icons remain perfectly centered. */
-#routeModal #routeOrigin.closest,
-#routeModal #routeDestination.closest {
-    position: relative;
-}
-
 #routeModal .ui-input-wrap:has(#routeOrigin) > .ui-input-icon,
 #routeModal .ui-input-wrap:has(#routeDestination) > .ui-input-icon {
     top: 23px;
@@ -100,10 +95,6 @@
 #routeModal .route-map-pin-mode {
     outline: 3px solid rgba(255, 196, 0, 0.3);
     outline-offset: -3px;
-}
-
-#routeModal .route-map-pin-mode::after {
-    pointer-events: none;
 }
 
 @media (max-width: 700px) {
