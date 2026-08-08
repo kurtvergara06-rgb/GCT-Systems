@@ -44,28 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const badges = Array.from(row.querySelectorAll('.badge'));
-    const partStatus = badges.find((badge) => {
-      const value = normalizeText(badge.textContent);
-      return [
-        'needs revision',
-        'requested',
-        'approved',
-        'ready for purchase',
-        'issued',
-      ].includes(value);
-    });
-
-    row.querySelectorAll('*').forEach((element) => {
-      if (normalizeText(element.textContent) !== 'locked') {
-        return;
-      }
-
-      const partValue = normalizeText(partStatus?.textContent);
-      element.textContent = partValue && partValue !== 'issued'
-        ? 'Waiting for parts'
-        : 'Pending completion';
-      element.setAttribute('title', element.textContent);
+    /*
+     * Completion Date & Time must represent the actual finish time only.
+     * Estimated work duration is just a reminder/overdue trigger and must not
+     * imply that the job will complete automatically.
+     */
+    row.querySelectorAll('.locked-finish-btn').forEach((button) => {
+      button.innerHTML = '<span aria-hidden="true">—</span>';
+      button.classList.remove('finish-btn');
+      button.setAttribute('title', 'Completion date is recorded only after the Job Order is manually finished.');
+      button.setAttribute('aria-label', 'No completion date yet');
     });
   });
 
