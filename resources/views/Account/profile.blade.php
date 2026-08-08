@@ -12,6 +12,17 @@
             ? $department . ' Head'
             : $department . ' ' . $role;
 
+        $departmentCode = match (strtolower((string) $user->department)) {
+            'maintenance' => 'MTN',
+            'operation', 'operations' => 'OPS',
+            'warehouse' => 'WHS',
+            'purchase', 'purchasing' => 'PUR',
+            'admin', 'administration' => 'ADM',
+            default => 'USR',
+        };
+
+        $displayUserId = 'GCT-' . $departmentCode . '-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT);
+
         $icon = match (strtolower((string) $user->department)) {
             'maintenance' => 'fa-truck',
             'operation', 'operations' => 'fa-route',
@@ -78,7 +89,7 @@
                     <div class="account-hero-meta">
                         <div class="account-hero-meta-item">
                             <span>User ID</span>
-                            <strong>#{{ $user->id }}</strong>
+                            <strong>{{ $displayUserId }}</strong>
                         </div>
                         <div class="account-hero-meta-item">
                             <span>Last Login</span>
@@ -168,7 +179,7 @@
                         <div class="account-detail-list">
                             <div class="account-detail-row">
                                 <span>User ID</span>
-                                <strong>#{{ $user->id }}</strong>
+                                <strong>{{ $displayUserId }}</strong>
                             </div>
                             <div class="account-detail-row">
                                 <span>Account Status</span>
