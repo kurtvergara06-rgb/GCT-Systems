@@ -46,6 +46,86 @@
   white-space: nowrap;
 }
 
+/* =========================================================
+   JOB ORDER RECOMMENDED SERVICE TIME
+========================================================= */
+
+.jo-time-recommendation {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: -2px;
+  padding: 13px 15px;
+  border: 1px solid #d9e4f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.jo-time-recommendation-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff3cd;
+  color: #b77900;
+}
+
+.jo-time-recommendation > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.jo-time-recommendation-label {
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+
+.jo-time-recommendation-value {
+  margin-top: 1px;
+  color: var(--text, #0b2344);
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.jo-time-recommendation-note {
+  margin-top: 3px;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.jo-time-recommendation.is-empty {
+  background: #fafbfc;
+}
+
+.jo-time-recommendation.is-empty .jo-time-recommendation-icon {
+  background: #eef1f6;
+  color: #64748b;
+}
+
+.jo-time-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jo-time-inline i {
+  color: #b77900;
+  font-size: 10px;
+}
+
 .fuel-chart-card.has-empty-chart .fuel-chart-container {
   min-height: 240px !important;
   height: 240px !important;
@@ -96,5 +176,11 @@
   .fuel-page .toolbar,
   .purchase-request-page .toolbar {
     align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .jo-time-recommendation {
+    grid-column: 1;
   }
 }
