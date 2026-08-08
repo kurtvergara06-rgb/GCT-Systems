@@ -167,20 +167,11 @@
                     <div class="ui-form-actions">
                         <button
                             type="button"
-                            class="ui-form-btn ui-form-btn-secondary"
+                            class="new-trip-btn"
                             id="openGenerateTripsModal"
                         >
                             <i class="fa-solid fa-calendar-plus"></i>
                             <span>Generate Daily Trips</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="ui-form-btn ui-form-btn-secondary"
-                            id="openCopyScheduleModal"
-                        >
-                            <i class="fa-solid fa-copy"></i>
-                            <span>Copy Previous Day</span>
                         </button>
 
                         <button
@@ -210,20 +201,20 @@
                     </div>
 
                     <div class="trip-filter">
-                        <label>Date</label>
                         <input
                             type="date"
                             name="trip_date"
                             value="{{ request('trip_date') }}"
                             onchange="this.form.requestSubmit()"
+                            aria-label="Date"
                         >
                     </div>
 
                     <div class="trip-filter">
-                        <label>Status</label>
                         <select
                             name="status"
                             onchange="this.form.requestSubmit()"
+                            aria-label="Status"
                         >
                             <option value="all">All Statuses</option>
                             @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled'] as $status)
@@ -445,46 +436,6 @@
             <div>
                 <strong>Choose from schedules that actually contain reusable trips.</strong>
                 <span>Cancelled trips are excluded, inactive routes are ignored, and matching trips already on the target date are not duplicated.</span>
-            </div>
-        </div>
-    </x-ui.form-modal>
-
-    <x-ui.form-modal
-        id="copyScheduleModal"
-        title="Copy Previous Day"
-        description="Copy the previous calendar day's reusable trips into a new target date."
-        icon="fa-copy"
-        size="medium"
-        form-id="copyScheduleForm"
-        :action="route('trip-schedule.store', [], false)"
-        method="POST"
-        submit-text="Copy Schedule"
-        submit-icon="fa-copy"
-        cancel-text="Cancel"
-        cancel-id="cancelCopyScheduleModal"
-        close-id="closeCopyScheduleModal"
-    >
-        <input type="hidden" name="schedule_action" value="copy_previous_day">
-
-        <div class="ui-form-grid trip-ui-form-grid">
-            <div class="ui-form-group ui-form-full">
-                <x-ui.form-field
-                    label="Target Date"
-                    name="target_date"
-                    id="copyTargetDate"
-                    type="date"
-                    :value="old('target_date', now()->format('Y-m-d'))"
-                    icon="fa-calendar-day"
-                    :required="true"
-                />
-            </div>
-        </div>
-
-        <div class="trip-form-note">
-            <i class="fa-solid fa-circle-info"></i>
-            <div>
-                <strong>The source date is automatic.</strong>
-                <span>For example, choosing August 8 copies reusable trips from August 7 into August 8.</span>
             </div>
         </div>
     </x-ui.form-modal>
