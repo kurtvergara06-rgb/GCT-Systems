@@ -11,6 +11,7 @@ import '../css/Main-styles/shared-ui-enhancements.css';
 import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
+import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
@@ -20,6 +21,7 @@ import './Main-js/scroll-table-pagination.js';
 import './Main-js/searchable-select.js';
 import './Main-js/date-time-picker.js';
 import './Maintenance/maintenance-ui-enhancements.js';
+import './Operation/Routes/route-pin-enhancements.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
 import '../css/Operation/Attendance/batch-attendance.css';
