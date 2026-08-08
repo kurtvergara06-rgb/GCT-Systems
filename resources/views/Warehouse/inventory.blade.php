@@ -44,28 +44,10 @@
 
     <main class="main">
 
-      {{-- TOP BAR --}}
-      <header class="topbar">
-        <div>
-          <h1>Warehouse Inventory</h1>
-          <p>Monitor vehicle parts stock levels, threshold alerts, and restocking needs</p>
-        </div>
-
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
+      <x-layout.topbar
+        title="Warehouse Inventory"
+        subtitle="Monitor vehicle parts stock levels, threshold alerts, and restocking needs"
+      />
 
       {{-- SUMMARY CARDS --}}
           <section class="stats-grid inventory-stats">
