@@ -9,6 +9,7 @@ import './echo';
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
 import '../css/Main-styles/searchable-select.css';
+import '../css/Main-styles/date-time-picker.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 
 import './Main-js/system-toast.js';
@@ -17,6 +18,7 @@ import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
 import './Main-js/scroll-table-pagination.js';
 import './Main-js/searchable-select.js';
+import './Main-js/date-time-picker.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
