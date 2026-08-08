@@ -28,6 +28,27 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
+/*
+ * Compatibility cleanup for rejected Maintenance Purchase Requests.
+ * An older Blade attribute was emitted as `ddata-resubmit-url`, which leaves
+ * the page-specific PR script without a resubmit URL and can make the form
+ * fall back to the normal create endpoint. Normalize it before the page's
+ * delegated click handler reads button.dataset.resubmitUrl.
+ */
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-edit-pr-modal[ddata-resubmit-url]');
+
+    if (!button || button.dataset.resubmitUrl) {
+        return;
+    }
+
+    const resubmitUrl = button.getAttribute('ddata-resubmit-url');
+
+    if (resubmitUrl) {
+        button.dataset.resubmitUrl = resubmitUrl;
+    }
+}, true);
+
 document.addEventListener('DOMContentLoaded', () => {
     /*
      * Issued inventory transactions now belong to Stock Movements.
