@@ -47,91 +47,55 @@
 }
 
 /* =========================================================
-   JOB ORDER RECOMMENDED SERVICE TIME
-   Compact companion field beside Maintenance Type.
+   JOB ORDER ESTIMATED WORK DURATION
 ========================================================= */
 
-.jo-time-recommendation {
+.jo-estimated-duration-field {
   min-width: 0;
-  min-height: 68px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  align-self: end;
-  padding: 9px 12px;
-  border: 1px solid #d9e4f2;
-  border-radius: 10px;
-  background: #f8fbff;
 }
 
-.jo-time-recommendation-icon {
+.jo-duration-control {
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  place-items: center;
-  border-radius: 9px;
-  background: #fff3cd;
-  color: #b77900;
-  font-size: 12px;
-}
-
-.jo-time-recommendation > div {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.jo-time-recommendation-label {
-  color: var(--muted, #64748b);
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.jo-time-recommendation-value {
-  margin-top: 1px;
-  color: var(--text, #0b2344);
-  font-size: 14px;
-  line-height: 1.2;
-}
-
-.jo-time-recommendation-note {
-  margin-top: 2px;
-  overflow: hidden;
-  color: var(--muted, #64748b);
-  font-size: 9px;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.jo-time-recommendation.is-empty {
-  background: #fafbfc;
-}
-
-.jo-time-recommendation.is-empty .jo-time-recommendation-icon {
-  background: #eef1f6;
-  color: #64748b;
-}
-
-.jo-time-inline {
-  display: flex;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 8px;
   align-items: center;
-  gap: 5px;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
-.jo-time-inline i {
-  color: #b77900;
+.jo-duration-control .ui-input-wrap {
+  min-width: 0;
+}
+
+.jo-duration-control input,
+.jo-duration-control select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--border, #dce5f2);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text, #0b2344);
+  outline: none;
+  font-size: 13px;
+}
+
+.jo-duration-control input {
+  padding: 0 12px 0 42px;
+}
+
+.jo-duration-control select {
+  padding: 0 10px;
+}
+
+.jo-duration-control input:focus,
+.jo-duration-control select:focus {
+  border-color: var(--yellow, #ffc400);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+}
+
+.jo-estimated-duration-field > small {
+  margin-top: 2px;
+  color: var(--muted, #64748b);
   font-size: 10px;
+  line-height: 1.4;
 }
 
 .fuel-chart-card.has-empty-chart .fuel-chart-container {
@@ -188,12 +152,7 @@
 }
 
 @media (max-width: 768px) {
-  .jo-time-recommendation {
-    width: 100%;
-    min-height: 64px;
-  }
-
-  .jo-time-recommendation-note {
-    white-space: normal;
+  .jo-duration-control {
+    grid-template-columns: minmax(0, 1fr) 104px;
   }
 }
