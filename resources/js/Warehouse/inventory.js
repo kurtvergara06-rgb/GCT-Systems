@@ -42,6 +42,132 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
+  | CLIENT-SIDE INVENTORY TOOLBAR
+  | Search and category filters work against the rows already loaded by the
+  | shared scroll-table component, without refreshing the page.
+  |--------------------------------------------------------------------------
+  */
+
+  const inventoryToolbar = document.querySelector('.inventory-toolbar');
+  const inventoryTable = document.querySelector('.inventory-table');
+  const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
+  const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
+  const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
+
+  function inventoryRows() {
+    if (!inventoryTable?.tBodies?.[0]) {
+      return [];
+    }
+
+    return Array.from(inventoryTable.tBodies[0].rows).filter(function (row) {
+      return !row.classList.contains('empty-row')
+        && !row.classList.contains('inventory-client-empty');
+    });
+  }
+
+  function updateInventoryEntryCount(visibleCount) {
+    const label = inventoryFooter?.querySelector('[data-entry-count]');
+
+    if (!label) {
+      return;
+    }
+
+    label.textContent = visibleCount
+      ? `Showing 1 to ${visibleCount} of ${visibleCount} entries`
+      : 'Showing 0 to 0 of 0 entries';
+  }
+
+  function removeClientEmptyRow() {
+    inventoryTable?.querySelector('.inventory-client-empty')?.remove();
+  }
+
+  function showClientEmptyRow() {
+    const body = inventoryTable?.tBodies?.[0];
+
+    if (!body || body.querySelector('.inventory-client-empty')) {
+      return;
+    }
+
+    const row = document.createElement('tr');
+    row.className = 'empty-row inventory-client-empty';
+    row.innerHTML = '<td colspan="11">No inventory items match the current filters.</td>';
+    body.appendChild(row);
+  }
+
+  function applyInventoryFilters() {
+    if (!inventoryTable) {
+      return;
+    }
+
+    removeClientEmptyRow();
+
+    const search = String(searchInput?.value || '').trim().toLowerCase();
+    const category = String(categorySelect?.value || 'All Categories').trim().toLowerCase();
+    let visibleCount = 0;
+
+    inventoryRows().forEach(function (row) {
+      const cells = row.cells;
+      const categoryText = String(cells[2]?.textContent || '').trim().toLowerCase();
+      const searchableText = [
+        cells[0]?.textContent,
+        cells[1]?.textContent,
+        cells[7]?.textContent,
+        cells[8]?.textContent,
+      ].join(' ').toLowerCase();
+
+      const matchesSearch = !search || searchableText.includes(search);
+      const matchesCategory = category === 'all categories' || categoryText === category;
+      const visible = matchesSearch && matchesCategory;
+
+      row.hidden = !visible;
+
+      if (visible) {
+        visibleCount += 1;
+      }
+    });
+
+    if (visibleCount === 0) {
+      showClientEmptyRow();
+    }
+
+    updateInventoryEntryCount(visibleCount);
+  }
+
+  if (inventoryToolbar) {
+    inventoryToolbar.dataset.clientFilter = 'true';
+
+    inventoryToolbar.addEventListener('submit', function (event) {
+      event.preventDefault();
+      applyInventoryFilters();
+    });
+
+    if (searchInput) {
+      searchInput.dataset.autoSearchBound = 'true';
+      searchInput.addEventListener('input', applyInventoryFilters);
+      searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          searchInput.value = '';
+          applyInventoryFilters();
+        }
+      });
+    }
+
+    if (categorySelect) {
+      categorySelect.removeAttribute('onchange');
+      categorySelect.addEventListener('change', applyInventoryFilters);
+    }
+
+    applyInventoryFilters();
+  }
+
+  document.addEventListener('system:table-rows-loaded', function (event) {
+    if (event.detail?.table === inventoryTable) {
+      applyInventoryFilters();
+    }
+  });
+
+  /*
+  |--------------------------------------------------------------------------
   | ADD ITEM MODAL
   |--------------------------------------------------------------------------
   */
@@ -107,51 +233,16 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    /*
-     * Set the PUT form destination.
-     * This does not redirect the browser.
-     */
     editForm.setAttribute('action', updateUrl);
 
-    setInputValue(
-      'edit_item_code',
-      editButton.dataset.code
-    );
-
-    setInputValue(
-      'edit_item_name',
-      editButton.dataset.name
-    );
-
-    setInputValue(
-      'edit_category',
-      editButton.dataset.category
-    );
-
-    setInputValue(
-      'edit_quantity',
-      editButton.dataset.quantity
-    );
-
-    setInputValue(
-      'edit_unit',
-      editButton.dataset.unit
-    );
-
-    setInputValue(
-      'edit_reorder',
-      editButton.dataset.reorder
-    );
-
-    setInputValue(
-      'edit_supplier',
-      editButton.dataset.supplier
-    );
-
-    setInputValue(
-      'edit_location',
-      editButton.dataset.location
-    );
+    setInputValue('edit_item_code', editButton.dataset.code);
+    setInputValue('edit_item_name', editButton.dataset.name);
+    setInputValue('edit_category', editButton.dataset.category);
+    setInputValue('edit_quantity', editButton.dataset.quantity);
+    setInputValue('edit_unit', editButton.dataset.unit);
+    setInputValue('edit_reorder', editButton.dataset.reorder);
+    setInputValue('edit_supplier', editButton.dataset.supplier);
+    setInputValue('edit_location', editButton.dataset.location);
 
     openModal(editModal);
   });
@@ -168,7 +259,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!action || action === '#') {
         event.preventDefault();
-
         console.error('The edit form action is missing.');
       }
     });
@@ -186,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
       event.stopPropagation();
 
       const modal = button.closest('.modal-overlay');
-
       closeModal(modal);
     });
   });
