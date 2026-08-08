@@ -34,9 +34,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Login/login.css',
-
-                // Add this only if login.blade.php references it.
-                // 'resources/js/Login/login.js',
+                'resources/js/Login/login.js',
 
                 // ======================================================
                 // ADMIN — DASHBOARD
