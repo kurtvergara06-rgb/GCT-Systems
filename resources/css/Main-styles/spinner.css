@@ -1,0 +1,80 @@
+/* =========================================================
+   GLOBAL SPINNER / LOADING STATES
+========================================================= */
+
+.gct-spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    color: currentColor;
+    vertical-align: middle;
+}
+
+.gct-spinner[hidden] {
+    display: none !important;
+}
+
+.gct-spinner-ring {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    box-sizing: border-box;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: gctSpinnerRotate 0.72s linear infinite;
+}
+
+.gct-spinner-sm {
+    font-size: 12px;
+}
+
+.gct-spinner-md {
+    font-size: 14px;
+}
+
+.gct-spinner-lg {
+    font-size: 18px;
+}
+
+.gct-spinner-label {
+    font-size: inherit;
+    line-height: 1;
+}
+
+@keyframes gctSpinnerRotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+button.gct-is-loading,
+input[type="submit"].gct-is-loading,
+input[type="button"].gct-is-loading {
+    cursor: wait !important;
+    pointer-events: none;
+}
+
+button.gct-is-loading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+button.gct-is-loading > i:not(.gct-loading-preserve-icon),
+button.gct-is-loading > svg:not(.gct-loading-preserve-icon) {
+    display: none;
+}
+
+button.gct-is-loading .gct-spinner {
+    display: inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gct-spinner-ring {
+        animation-duration: 1.4s;
+    }
+}
