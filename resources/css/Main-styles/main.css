@@ -431,6 +431,14 @@ a {
   white-space: nowrap;
 }
 
+/* Keep form labels accessible while removing Date/Status captions from filter toolbars. */
+[class*="toolbar"] .filter-group > label:has(~ input[type="date"]),
+[class*="toolbar"] .filter-group > label:has(~ select[name="status"]),
+[class*="toolbar"] .trip-filter > label:has(~ input[type="date"]),
+[class*="toolbar"] .trip-filter > label:has(~ select[name="status"]) {
+  display: none;
+}
+
 .filter-group select {
   height: 46px;
   min-width: 145px;
