@@ -131,7 +131,12 @@
                   <td>{{ $quantitySummary }}</td>
                   <td>{{ $delivery->po_date?->format('M d, Y') ?? '—' }}</td>
                   <td>{{ $delivery->inventory_posted_at?->format('M d, Y') ?? '—' }}</td>
-                  <td><span class="delivery-status {{ $statusClass }}">{{ $displayStatus }}</span></td>
+                  <td>
+                    <x-ui.status-badge
+                      :status="$displayStatus"
+                      class="delivery-status {{ $statusClass }}"
+                    />
+                  </td>
                   <td>
                     @if(!$received && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
                       <form
@@ -160,11 +165,12 @@
               @empty
                 <tr>
                   <td colspan="8" class="empty-deliveries">
-                    <div class="delivery-empty-state">
-                      <div class="delivery-empty-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                      <h3>No incoming deliveries</h3>
-                      <p>Purchase Orders marked For Delivery or For Pick-up will appear here automatically.</p>
-                    </div>
+                    <x-ui.empty-state
+                      class="delivery-empty-state"
+                      icon="fa-truck-ramp-box"
+                      title="No incoming deliveries"
+                      description="Purchase Orders marked For Delivery or For Pick-up will appear here automatically."
+                    />
                   </td>
                 </tr>
               @endforelse
