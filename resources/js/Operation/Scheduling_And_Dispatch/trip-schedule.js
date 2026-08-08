@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tripModal = document.getElementById('tripModal');
     const generateTripsModal = document.getElementById('generateTripsModal');
-    const copyScheduleModal = document.getElementById('copyScheduleModal');
     const viewTripModal = document.getElementById('viewTripModal');
     const deleteTripModal = document.getElementById('deleteTripModal');
 
@@ -28,19 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openTripModal = document.getElementById('openTripModal');
     const openGenerateTripsModal = document.getElementById('openGenerateTripsModal');
-    const openCopyScheduleModal = document.getElementById('openCopyScheduleModal');
 
     const closeTripModal = document.getElementById('closeTripModal');
     const cancelTripModal = document.getElementById('cancelTripModal');
     const closeGenerateTripsModal = document.getElementById('closeGenerateTripsModal');
     const cancelGenerateTripsModal = document.getElementById('cancelGenerateTripsModal');
-    const closeCopyScheduleModal = document.getElementById('closeCopyScheduleModal');
-    const cancelCopyScheduleModal = document.getElementById('cancelCopyScheduleModal');
 
     const generateTripsForm = document.getElementById('generateTripsForm');
-    const copyScheduleForm = document.getElementById('copyScheduleForm');
     const generateTargetDate = document.getElementById('generateTargetDate');
-    const copyTargetDate = document.getElementById('copyTargetDate');
 
     const createAction = '/operation/trip-schedule';
     let selectedDeleteForm = null;
@@ -216,11 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(generateTripsModal);
     });
 
-    openCopyScheduleModal?.addEventListener('click', () => {
-        resetBulkForm(copyScheduleForm, copyTargetDate);
-        openModal(copyScheduleModal);
-    });
-
     [closeTripModal, cancelTripModal]
         .filter(Boolean)
         .forEach((button) => {
@@ -231,12 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .filter(Boolean)
         .forEach((button) => {
             button.addEventListener('click', () => closeModal(generateTripsModal));
-        });
-
-    [closeCopyScheduleModal, cancelCopyScheduleModal]
-        .filter(Boolean)
-        .forEach((button) => {
-            button.addEventListener('click', () => closeModal(copyScheduleModal));
         });
 
     departureTime?.addEventListener('input', calculateArrival);
@@ -415,10 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(generateTripsModal);
     }
 
-    if (requestedTool === 'copy') {
-        openModal(copyScheduleModal);
-    }
-
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') {
             return;
@@ -426,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeModal(tripModal);
         closeModal(generateTripsModal);
-        closeModal(copyScheduleModal);
         closeModal(viewTripModal);
         closeModal(deleteTripModal);
     });
