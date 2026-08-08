@@ -9,9 +9,7 @@
 >
 
   @php
-    use App\Models\Purchase\PurchaseOrder;
-
-    $deliveryQuery = PurchaseOrder::query()
+    $deliveryQuery = \App\Models\Purchase\PurchaseOrder::query()
       ->whereIn('status', ['For Delivery', 'Delivered', 'For Pick-up', 'Picked Up']);
 
     if (request()->filled('search')) {
@@ -34,16 +32,16 @@
 
     $deliveries = $deliveryQuery->latest()->paginate(20)->withQueryString();
 
-    $totalIncoming = PurchaseOrder::whereIn('status', ['For Delivery', 'For Pick-up'])
+    $totalIncoming = \App\Models\Purchase\PurchaseOrder::whereIn('status', ['For Delivery', 'For Pick-up'])
       ->whereNull('inventory_posted_at')
       ->count();
-    $forDelivery = PurchaseOrder::where('status', 'For Delivery')
+    $forDelivery = \App\Models\Purchase\PurchaseOrder::where('status', 'For Delivery')
       ->whereNull('inventory_posted_at')
       ->count();
-    $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])
+    $delivered = \App\Models\Purchase\PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])
       ->whereNotNull('inventory_posted_at')
       ->count();
-    $receivedToday = PurchaseOrder::whereDate('inventory_posted_at', today())->count();
+    $receivedToday = \App\Models\Purchase\PurchaseOrder::whereDate('inventory_posted_at', today())->count();
   @endphp
 
   <div class="app">
