@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.addEventListener('system:table-rows-loaded', function (event) {
     if (event.detail?.table === inventoryTable) {
-      applyInventoryFilters();
+      window.setTimeout(applyInventoryFilters, 0);
     }
   });
 
