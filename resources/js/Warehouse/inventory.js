@@ -119,7 +119,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const matchesCategory = category === 'all categories' || categoryText === category;
       const visible = matchesSearch && matchesCategory;
 
-      row.hidden = !visible;
+      // Use an explicit inline display value instead of the `hidden` attribute.
+      // Some table styles can override the browser's [hidden] display rule,
+      // making filtered rows look unchanged even though `row.hidden` is true.
+      row.style.display = visible ? '' : 'none';
+      row.setAttribute('aria-hidden', visible ? 'false' : 'true');
 
       if (visible) {
         visibleCount += 1;
@@ -136,14 +140,10 @@ document.addEventListener('DOMContentLoaded', function () {
   if (inventoryToolbar) {
     inventoryToolbar.dataset.clientFilter = 'true';
 
-    inventoryToolbar.addEventListener('submit', function (event) {
-      event.preventDefault();
-      applyInventoryFilters();
-    });
-
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
       searchInput.addEventListener('input', applyInventoryFilters);
+      searchInput.addEventListener('search', applyInventoryFilters);
       searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
           searchInput.value = '';
@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (categorySelect) {
       categorySelect.removeAttribute('onchange');
       categorySelect.addEventListener('change', applyInventoryFilters);
+      categorySelect.addEventListener('input', applyInventoryFilters);
     }
 
     applyInventoryFilters();
