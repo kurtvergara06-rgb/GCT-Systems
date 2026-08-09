@@ -11,19 +11,7 @@
 
   <div class="app">
 
-    <x-layout.sidebar
-      department="Maintenance"
-      subtitle="Department Module"
-      icon="fa-truck"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
-        ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
-        ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
-        ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-      ]"
-    />
+    <x-layout.sidebar department="Maintenance" />
 
     <main class="main mechanic-page">
 
@@ -33,7 +21,7 @@
         notification-count="0"
       />
 
-      <section class="stats-grid mechanic-stats-grid">
+      <section data-ajax-region="summary" class="stats-grid mechanic-stats-grid">
         <x-ui.summary-card
           label="Total Mechanics"
           value="{{ $totalMechanics ?? 0 }}"
@@ -67,7 +55,7 @@
         />
       </section>
 
-      <section class="table-card mechanic-list-card mechanic-table-card">
+      <section data-ajax-region="records" class="table-card mechanic-list-card mechanic-table-card">
 
         <div class="availability-header">
           <div class="availability-heading">

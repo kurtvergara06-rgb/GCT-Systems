@@ -22,6 +22,7 @@ import './Main-js/scroll-table-pagination.js';
 import './Main-js/searchable-select.js';
 import './Main-js/date-time-picker.js';
 import './Main-js/loading-state.js';
+import './Main-js/ajax-regions.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */

@@ -10,19 +10,7 @@
     ]"
 >
     <div class="app">
-        <x-layout.sidebar
-            department="Maintenance"
-            subtitle="Department Module"
-            icon="fa-truck"
-            :items="[
-                ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
-                ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
-                ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
-                ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
-                ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
-                ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-            ]"
-        />
+        <x-layout.sidebar department="Maintenance" />
 
         <main class="main jo-page">
             <x-layout.topbar
@@ -31,14 +19,14 @@
                 notification-count="6"
             />
 
-            <section class="stats-grid jo-stats-grid">
+            <section data-ajax-region="summary" class="stats-grid jo-stats-grid">
                 <x-ui.summary-card label="On Hold" value="{{ $onHold ?? 0 }}" small="Job Orders" icon="fa-pause" color="yellow" />
                 <x-ui.summary-card label="In Progress" value="{{ $onGoing ?? 0 }}" small="Job Orders" icon="fa-spinner" color="blue" />
                 <x-ui.summary-card label="Completed" value="{{ $completed ?? 0 }}" small="Job Orders" icon="fa-check" color="green" />
                 <x-ui.summary-card label="Needs Parts" value="{{ $needParts ?? 0 }}" small="Pending parts" icon="fa-screwdriver-wrench" color="red" />
             </section>
 
-            <section class="table-card jo-table-card">
+            <section data-ajax-region="records" class="table-card jo-table-card">
                 <div class="section-header">
                     <div>
                         <h2>Job Orders</h2>

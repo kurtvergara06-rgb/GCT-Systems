@@ -13,86 +13,7 @@
         {{-- =====================================================
             SIDEBAR
         ====================================================== --}}
-    <x-layout.sidebar
-    department="Operation"
-    subtitle="Operation Module"
-    icon="fa-bus"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
-
-        [
-            'label' => 'Scheduling',
-            'icon' => 'fa-calendar-days',
-            'children' => [
-                [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
-                    'icon' => 'fa-calendar-days',
-                ],
-                [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
-                ],
-                [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Personnel Management',
-            'icon' => 'fa-address-book',
-            'children' => [
-                [
-                    'label' => 'Driver Master List',
-                    'route' => 'operation.personnel.drivers',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Master List',
-                    'route' => 'operation.personnel.mechanics',
-                    'icon' => 'fa-users-gear',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Attendance',
-            'icon' => 'fa-calendar-check',
-            'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-user-check',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-clipboard-user',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
-    ]"
-/>
+    <x-layout.sidebar department="Operation" />
 
         <main class="main">
 
@@ -109,7 +30,7 @@
             {{-- =====================================================
                 SUMMARY CARDS
             ====================================================== --}}
-            <section class="stats-grid operation-stats">
+            <section data-ajax-region="summary" class="stats-grid operation-stats">
 
                 <x-ui.summary-card
                     label="Total Buses"

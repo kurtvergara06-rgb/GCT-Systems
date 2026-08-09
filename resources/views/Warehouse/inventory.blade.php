@@ -9,38 +9,7 @@
 
   <div class="app">
 
-  <x-layout.sidebar
-    department="Warehouse"
-    subtitle="Warehouse Module"
-    icon="fa-warehouse"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'warehouse.dashboard',
-            'icon' => 'fa-table-cells-large',
-        ],
-        [
-            'label' => 'Inventory',
-            'route' => 'inventory',
-            'icon' => 'fa-boxes-stacked'
-        ],
-        [
-            'label' => 'Part Requests',
-            'route' => 'part-requests',
-            'icon' => 'fa-clipboard-list'
-        ],
-        [
-            'label' => 'Incoming Deliveries',
-            'route' => 'incoming-deliveries',
-            'icon' => 'fa-truck-ramp-box'
-        ],
-        [
-            'label' => 'Stock Movements',
-            'route' => 'stock-movements',
-            'icon' => 'fa-right-left'
-        ],
-    ]"
-/>
+  <x-layout.sidebar department="Warehouse" />
 
     <main class="main">
 
@@ -50,7 +19,7 @@
       />
 
       {{-- SUMMARY CARDS --}}
-          <section class="stats-grid inventory-stats">
+          <section data-ajax-region="summary" class="stats-grid inventory-stats">
 
             <x-ui.summary-card
               label="Total Items in Stock"
@@ -87,7 +56,7 @@
           </section>
 
       {{-- INVENTORY TABLE --}}
-      <section class="table-card inventory-card">
+      <section data-ajax-region="records" class="table-card inventory-card">
 
         <div class="section-header">
           <div>

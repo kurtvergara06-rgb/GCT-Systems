@@ -8,12 +8,7 @@
   ]"
 >
   <div class="app">
-    <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-cart-shopping"
-      :items="[]"
-    />
+    <x-layout.sidebar department="Purchase" />
 
     <main class="main">
       <x-layout.topbar
@@ -22,7 +17,7 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card
           label="Total Requests"
           value="{{ $totalRequests ?? 0 }}"
@@ -53,7 +48,7 @@
         />
       </section>
 
-      <section class="table-card restock-card">
+      <section data-ajax-region="records" class="table-card restock-card">
         <div class="section-header">
           <div>
             <h2>Inventory Restock Records</h2>

@@ -265,19 +265,7 @@
 
   <div class="app">
 
-    <x-layout.sidebar
-      department="Maintenance"
-      subtitle="Department Module"
-      icon="fa-truck"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
-        ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
-        ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
-        ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-      ]"
-    />
+    <x-layout.sidebar department="Maintenance" />
 
     <main
       class="main fuel-page"
@@ -313,7 +301,7 @@
       @endif
 
       {{-- SUMMARY --}}
-      <section class="stats-grid fuel-stats-grid">
+      <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">
 
         <x-ui.summary-card
           label="Total Fuel Used"
@@ -406,7 +394,7 @@
       </section>
 
       {{-- DAILY FUEL MONITORING --}}
-      <section class="table-card fuel-card daily-monitoring-card">
+      <section data-ajax-region="records" class="table-card fuel-card daily-monitoring-card">
 
         <div class="section-header daily-monitoring-header">
           <div>
@@ -600,7 +588,7 @@
 
 
       {{-- RECENT FUEL ENTRIES --}}
-      <section class="table-card fuel-card recent-fuel-card">
+      <section data-ajax-region="records" class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>

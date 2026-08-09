@@ -18,7 +18,7 @@
   }
 @endphp
 
-<article class="fuel-chart-card">
+<article class="fuel-chart-card" data-ui-component="chart-card" data-chart-id="{{ $chartId }}">
   <div class="fuel-chart-header">
     <div class="fuel-chart-heading">
       <h2>{{ $title }}</h2>
