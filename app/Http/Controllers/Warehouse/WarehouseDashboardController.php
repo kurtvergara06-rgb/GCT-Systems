@@ -11,6 +11,11 @@ class WarehouseDashboardController extends Controller
 {
     public function index()
     {
+        return view('Warehouse.dashboard-warehouse', $this->data());
+    }
+
+    public function data(): array
+    {
         $inventoryItems = InventoryItem::query()->get();
 
         $totalInventory = $inventoryItems->count();
@@ -38,7 +43,14 @@ class WarehouseDashboardController extends Controller
             ->whereDate('updated_at', today())
             ->count();
 
-        $recentInventoryItems = InventoryItem::query()->latest('updated_at')->limit(5)->get();
+        $recentInventoryItems = InventoryItem::query()
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->each(function (InventoryItem $item) {
+                $item->setAttribute('quantity', $item->on_hand ?? $item->quantity_available ?? 0);
+            });
+
         $recentPartRequests = PurchaseRequest::query()
             ->where(function ($q) {
                 $q->whereNull('job_order_no')->orWhere('job_order_no', '!=', 'RESTOCK');
@@ -50,7 +62,7 @@ class WarehouseDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('Warehouse.dashboard-warehouse', compact(
+        return compact(
             'totalInventory',
             'lowStockItems',
             'pendingPartRequests',
@@ -60,6 +72,6 @@ class WarehouseDashboardController extends Controller
             'issuedToday',
             'recentInventoryItems',
             'recentPartRequests'
-        ));
+        );
     }
 }
