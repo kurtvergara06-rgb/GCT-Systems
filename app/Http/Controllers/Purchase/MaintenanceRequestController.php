@@ -29,24 +29,11 @@ class MaintenanceRequestController extends Controller
 
     public function index(Request $request)
     {
-        $baseQuery = MaintenanceRequest::query()
-            ->where(function ($q) {
-                $q->whereNull('source_type')
-                    ->orWhere('source_type', 'Maintenance Request')
-                    ->orWhere('source_type', 'Job Order');
-            })
-            ->where(function ($q) {
-                $q->whereNull('job_order_no')
-                    ->orWhere('job_order_no', '!=', 'RESTOCK');
-            })
-            ->where(function ($q) {
-                $q->whereNull('bus_no')
-                    ->orWhere('bus_no', '!=', 'RESTOCK');
-            })
-            ->where(function ($q) {
-                $q->whereNull('pr_no')
-                    ->orWhere('pr_no', 'not like', 'RST-%');
-            });
+        if ($request->query('view') === 'history') {
+            return $this->history($request);
+        }
+
+        $baseQuery = $this->maintenanceBaseQuery();
 
         $query = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses);
@@ -78,25 +65,9 @@ class MaintenanceRequestController extends Controller
 
         $purchaseRequests
             ->getCollection()
-            ->transform(function ($purchaseRequest) {
-                return $this->prepareRequestForDisplay(
-                    $purchaseRequest
-                );
-            });
-
-        $issuedRequests = (clone $baseQuery)
-            ->where('status', 'Issued')
-            ->latest()
-            ->paginate(5, ['*'], 'history_page')
-            ->withQueryString();
-
-        $issuedRequests
-            ->getCollection()
-            ->transform(function ($purchaseRequest) {
-                return $this->prepareRequestForDisplay(
-                    $purchaseRequest
-                );
-            });
+            ->transform(fn ($purchaseRequest) =>
+                $this->prepareRequestForDisplay($purchaseRequest)
+            );
 
         $totalRequests = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses)
@@ -135,7 +106,6 @@ class MaintenanceRequestController extends Controller
             'Purchase.Requested_Purchase.maintenance-requests',
             compact(
                 'purchaseRequests',
-                'issuedRequests',
                 'totalRequests',
                 'forPurchase',
                 'ordered',
@@ -144,6 +114,132 @@ class MaintenanceRequestController extends Controller
                 'delivered',
                 'pickedUp',
                 'statuses'
+            )
+        );
+    }
+
+    private function history(Request $request)
+    {
+        $historyQuery = MaintenanceRequest::query()
+            ->where(function ($query) {
+                $query
+                    ->where(function ($maintenance) {
+                        $maintenance
+                            ->where(function ($source) {
+                                $source->whereNull('source_type')
+                                    ->orWhere('source_type', 'Maintenance Request')
+                                    ->orWhere('source_type', 'Job Order');
+                            })
+                            ->where('status', 'Issued')
+                            ->where(function ($q) {
+                                $q->whereNull('job_order_no')
+                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+                            });
+                    })
+                    ->orWhere(function ($restock) {
+                        $restock
+                            ->where('source_type', 'Auto Restock')
+                            ->whereIn('status', [
+                                'Delivered',
+                                'Picked Up',
+                                'Issued',
+                            ]);
+                    });
+            });
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->search);
+
+            $historyQuery->where(function ($q) use ($search) {
+                $q->where('pr_no', 'like', "%{$search}%")
+                    ->orWhere('job_order_no', 'like', "%{$search}%")
+                    ->orWhere('bus_no', 'like', "%{$search}%")
+                    ->orWhere('item', 'like', "%{$search}%")
+                    ->orWhere('source_type', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('source') && $request->source !== 'All Sources') {
+            if ($request->source === 'Maintenance Request') {
+                $historyQuery->where(function ($source) {
+                    $source->whereNull('source_type')
+                        ->orWhereIn('source_type', [
+                            'Maintenance Request',
+                            'Job Order',
+                        ]);
+                });
+            } elseif ($request->source === 'Inventory Restock') {
+                $historyQuery->where('source_type', 'Auto Restock');
+            }
+        }
+
+        if ($request->filled('status') && $request->status !== 'All Statuses') {
+            $historyQuery->where('status', $request->status);
+        }
+
+        $historyRecords = $historyQuery
+            ->latest('updated_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        $historyRecords
+            ->getCollection()
+            ->transform(function ($record) {
+                $record = $this->prepareRequestForDisplay($record);
+                $record->history_source_label = $record->source_type === 'Auto Restock'
+                    ? 'Inventory Restock'
+                    : 'Maintenance Request';
+
+                return $record;
+            });
+
+        $historyBase = MaintenanceRequest::query()
+            ->where(function ($query) {
+                $query
+                    ->where(function ($maintenance) {
+                        $maintenance
+                            ->where(function ($source) {
+                                $source->whereNull('source_type')
+                                    ->orWhere('source_type', 'Maintenance Request')
+                                    ->orWhere('source_type', 'Job Order');
+                            })
+                            ->where('status', 'Issued')
+                            ->where(function ($q) {
+                                $q->whereNull('job_order_no')
+                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+                            });
+                    })
+                    ->orWhere(function ($restock) {
+                        $restock
+                            ->where('source_type', 'Auto Restock')
+                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued']);
+                    });
+            });
+
+        $totalHistory = (clone $historyBase)->count();
+        $maintenanceHistory = (clone $historyBase)
+            ->where(function ($source) {
+                $source->whereNull('source_type')
+                    ->orWhereIn('source_type', ['Maintenance Request', 'Job Order']);
+            })
+            ->count();
+        $restockHistory = (clone $historyBase)
+            ->where('source_type', 'Auto Restock')
+            ->count();
+        $thisMonthHistory = (clone $historyBase)
+            ->whereYear('updated_at', now()->year)
+            ->whereMonth('updated_at', now()->month)
+            ->count();
+
+        return view(
+            'Purchase.purchase-history',
+            compact(
+                'historyRecords',
+                'totalHistory',
+                'maintenanceHistory',
+                'restockHistory',
+                'thisMonthHistory'
             )
         );
     }
@@ -182,6 +278,28 @@ class MaintenanceRequestController extends Controller
             '/purchase-orders?create_from_pr='
             . $maintenanceRequest->id
         );
+    }
+
+    private function maintenanceBaseQuery()
+    {
+        return MaintenanceRequest::query()
+            ->where(function ($q) {
+                $q->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request')
+                    ->orWhere('source_type', 'Job Order');
+            })
+            ->where(function ($q) {
+                $q->whereNull('job_order_no')
+                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('pr_no')
+                    ->orWhere('pr_no', 'not like', 'RST-%');
+            });
     }
 
     private function prepareRequestForDisplay(
