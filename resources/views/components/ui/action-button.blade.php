@@ -1,5 +1,5 @@
 @props([
-  'type' => 'view', // view, edit, delete, create-po, issue, send, approve, reject, reset, activate, deactivate
+  'type' => 'view', // view, edit, delete, create-po, issue, send, approve, reject, reset, activate, deactivate, status
   'title' => '',
   'class' => '',
   'buttonType' => 'button',
@@ -10,21 +10,7 @@
 @php
   /**
    * Action Button Component - Reusable action button with Font Awesome icons
-   * 
-   * Icon mapping:
-   * view → fa-eye
-   * edit → fa-pen-to-square
-   * delete → fa-trash
-   * create-po → fa-cart-plus
-   * issue → fa-box-open
-   * send → fa-cart-shopping
-   * approve → fa-check
-   * reject → fa-xmark
-   * reset → fa-key
-   * activate → fa-user-check
-   * deactivate → fa-user-slash
    */
-  
   $iconMap = [
     'view' => 'fa-eye',
     'edit' => 'fa-pen-to-square',
@@ -37,15 +23,16 @@
     'reset' => 'fa-key',
     'activate' => 'fa-user-check',
     'deactivate' => 'fa-user-slash',
+    'status' => 'fa-arrow-right-arrow-left',
   ];
-  
+
   $icon = $iconMap[$type] ?? 'fa-circle';
   $buttonClass = 'action-btn ' . $type;
-  
+
   if ($class) {
     $buttonClass .= ' ' . $class;
   }
-  
+
   $titleAttr = $title ? ' title="' . $title . '"' : '';
   $disabledAttr = $disabled ? ' disabled' : '';
 @endphp
