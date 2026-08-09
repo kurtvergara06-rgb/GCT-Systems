@@ -3,328 +3,237 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Admin/admin-dashboard.css'
+        'resources/css/Admin/admin-dashboard.css',
+        'resources/js/Admin/admin-dashboard.js'
     ]"
 >
-    @php
-        $authUser = auth()->user();
+    <div class="app admin-dashboard-page">
+        <x-layout.sidebar
+            department="Admin"
+            subtitle="Administration Module"
+            icon="fa-user-shield"
+            :items="[
+                ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-table-cells-large'],
+                [
+                    'label' => 'User Management',
+                    'icon' => 'fa-users',
+                    'children' => [
+                        ['label' => 'Users', 'route' => 'admin.users', 'icon' => 'fa-user'],
+                        ['label' => 'Roles & Permissions', 'route' => 'admin.roles-permissions', 'icon' => 'fa-user-lock'],
+                        ['label' => 'Account Requests', 'route' => 'admin.account-requests', 'icon' => 'fa-user-clock'],
+                    ],
+                ],
+                [
+                    'label' => 'System Monitoring',
+                    'icon' => 'fa-desktop',
+                    'children' => [
+                        ['label' => 'Activity Logs', 'route' => 'admin.activity-logs', 'icon' => 'fa-clock-rotate-left'],
+                        ['label' => 'Notifications', 'route' => 'admin.notifications', 'icon' => 'fa-bell'],
+                    ],
+                ],
+                [
+                    'label' => 'Data Management',
+                    'icon' => 'fa-database',
+                    'children' => [
+                        ['label' => 'Batch File Processing', 'route' => 'admin.batch-file-processing', 'icon' => 'fa-file-import'],
+                        ['label' => 'Import / Export', 'route' => 'admin.import-export', 'icon' => 'fa-right-left'],
+                        ['label' => 'Data History', 'route' => 'admin.data-history', 'icon' => 'fa-clock-rotate-left'],
+                    ],
+                ],
+                [
+                    'label' => 'Analytics',
+                    'icon' => 'fa-chart-line',
+                    'children' => [
+                        ['label' => 'Overview', 'route' => 'analytics.overview', 'icon' => 'fa-chart-pie'],
+                        ['label' => 'Fleet & Trip', 'route' => 'analytics.fleet-trip', 'icon' => 'fa-route'],
+                        ['label' => 'Fuel', 'route' => 'analytics.fuel', 'icon' => 'fa-gas-pump'],
+                        ['label' => 'Bus Health', 'route' => 'analytics.bus-health', 'icon' => 'fa-heart-pulse'],
+                        ['label' => 'Inventory', 'route' => 'analytics.inventory', 'icon' => 'fa-boxes-stacked'],
+                        ['label' => 'Recommendations', 'route' => 'analytics.recommendations', 'icon' => 'fa-lightbulb'],
+                    ],
+                ],
+                [
+                    'label' => 'Settings',
+                    'icon' => 'fa-gear',
+                    'children' => [
+                        ['label' => 'General Settings', 'route' => 'admin.settings.general', 'icon' => 'fa-sliders'],
+                        ['label' => 'Notification Settings', 'route' => 'admin.settings.notifications', 'icon' => 'fa-bell'],
+                        ['label' => 'Security Settings', 'route' => 'admin.settings.security', 'icon' => 'fa-shield-halved'],
+                    ],
+                ],
+            ]"
+        />
 
-        $sidebarName = $authUser?->name ?? 'System Admin';
-
-        $department = trim($authUser?->department ?? 'Admin');
-        $role = strtolower(trim($authUser?->role ?? 'head'));
-
-        if (strtolower($department) === 'admin') {
-            $sidebarRole = $role === 'head'
-                ? 'System Admin'
-                : 'Admin Staff';
-        } else {
-            $sidebarRole = $department . ' ' . ucfirst($role ?: 'Staff');
-        }
-    @endphp
-
-    <div class="app">
-
-      <x-layout.sidebar
-    department="Admin"
-    subtitle="Administration Module"
-    icon="fa-user-shield"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'admin.dashboard',
-            'icon' => 'fa-table-cells-large'
-        ],
-
-        [
-            'label' => 'User Management',
-            'icon' => 'fa-users',
-            'children' => [
-                [
-                    'label' => 'Users',
-                    'route' => 'admin.users',
-                    'icon' => 'fa-user'
-                ],
-                [
-                    'label' => 'Roles & Permissions',
-                    'route' => 'admin.roles-permissions',
-                    'icon' => 'fa-user-lock'
-                ],
-                [
-                    'label' => 'Account Requests',
-                    'route' => 'admin.account-requests',
-                    'icon' => 'fa-user-clock'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'System Monitoring',
-            'icon' => 'fa-desktop',
-            'children' => [
-                [
-                    'label' => 'Activity Logs',
-                    'route' => 'admin.activity-logs',
-                    'icon' => 'fa-clock-rotate-left'
-                ],
-                [
-                    'label' => 'Notifications',
-                    'route' => 'admin.notifications',
-                    'icon' => 'fa-bell'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Data Management',
-            'icon' => 'fa-database',
-            'children' => [
-                [
-                    'label' => 'Batch File Processing',
-                    'route' => 'admin.batch-file-processing',
-                    'icon' => 'fa-file-import'
-                ],
-                [
-                    'label' => 'Import / Export',
-                    'route' => 'admin.import-export',
-                    'icon' => 'fa-right-left'
-                ],
-                [
-                    'label' => 'Data History',
-                    'route' => 'admin.data-history',
-                    'icon' => 'fa-clock-rotate-left'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Analytics',
-            'icon' => 'fa-chart-line',
-            'children' => [
-                [
-                    'label' => 'Overview',
-                    'route' => 'analytics.overview',
-                    'icon' => 'fa-chart-pie'
-                ],
-                [
-                    'label' => 'Fleet & Trip',
-                    'route' => 'analytics.fleet-trip',
-                    'icon' => 'fa-route'
-                ],
-                [
-                    'label' => 'Fuel',
-                    'route' => 'analytics.fuel',
-                    'icon' => 'fa-gas-pump'
-                ],
-                [
-                    'label' => 'Bus Health',
-                    'route' => 'analytics.bus-health',
-                    'icon' => 'fa-heart-pulse'
-                ],
-                [
-                    'label' => 'Inventory',
-                    'route' => 'analytics.inventory',
-                    'icon' => 'fa-boxes-stacked'
-                ],
-                [
-                    'label' => 'Recommendations',
-                    'route' => 'analytics.recommendations',
-                    'icon' => 'fa-lightbulb'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Settings',
-            'icon' => 'fa-gear',
-            'children' => [
-                [
-                    'label' => 'General Settings',
-                    'route' => 'admin.settings.general',
-                    'icon' => 'fa-sliders'
-                ],
-                [
-                    'label' => 'Notification Settings',
-                    'route' => 'admin.settings.notifications',
-                    'icon' => 'fa-bell'
-                ],
-                [
-                    'label' => 'Security Settings',
-                    'route' => 'admin.settings.security',
-                    'icon' => 'fa-shield-halved'
-                ],
-            ]
-        ],
-    ]"
-/>
-
-        <main class="main">
-
+        <main class="main admin-dashboard-main">
             <x-layout.topbar
                 title="Admin Dashboard"
-                subtitle="Manage system access, departments, and overall records"
+                subtitle="Overview of system operations, department activity, and access management"
                 notification-count="6"
             />
 
-            <section class="admin-stats-grid">
-
-                <div class="admin-card">
-                    <div class="admin-card-icon blue">
-                        <i class="fa-solid fa-truck"></i>
-                    </div>
-
+            <section class="admin-kpi-grid">
+                <article class="admin-kpi-card">
+                    <span class="admin-kpi-icon blue"><i class="fa-solid fa-truck"></i></span>
                     <div>
-                        <p>Maintenance</p>
-                        <h2>Active</h2>
-                        <span>Job orders and repair monitoring</span>
+                        <span class="admin-kpi-label">Maintenance</span>
+                        <strong>{{ number_format($departmentMetrics['maintenance'] ?? 0) }}</strong>
+                        <small>Active job orders</small>
                     </div>
-                </div>
+                </article>
 
-                <div class="admin-card">
-                    <div class="admin-card-icon green">
-                        <i class="fa-solid fa-warehouse"></i>
-                    </div>
-
+                <article class="admin-kpi-card">
+                    <span class="admin-kpi-icon green"><i class="fa-solid fa-warehouse"></i></span>
                     <div>
-                        <p>Warehouse</p>
-                        <h2>Active</h2>
-                        <span>Inventory and part requests</span>
+                        <span class="admin-kpi-label">Warehouse</span>
+                        <strong>{{ number_format($departmentMetrics['warehouse'] ?? 0) }}</strong>
+                        <small>Low / critical stock items</small>
                     </div>
-                </div>
+                </article>
 
-                <div class="admin-card">
-                    <div class="admin-card-icon orange">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                    </div>
-
+                <article class="admin-kpi-card">
+                    <span class="admin-kpi-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
                     <div>
-                        <p>Purchase</p>
-                        <h2>Active</h2>
-                        <span>Purchase orders and supplier records</span>
+                        <span class="admin-kpi-label">Purchase</span>
+                        <strong>{{ number_format($departmentMetrics['purchase'] ?? 0) }}</strong>
+                        <small>Active purchase orders</small>
                     </div>
-                </div>
+                </article>
 
-                <div class="admin-card">
-                    <div class="admin-card-icon purple">
-                        <i class="fa-solid fa-users-gear"></i>
-                    </div>
-
+                <article class="admin-kpi-card">
+                    <span class="admin-kpi-icon purple"><i class="fa-solid fa-users-gear"></i></span>
                     <div>
-                        <p>Operations</p>
-                        <h2>Active</h2>
-                        <span>Attendance and operational monitoring</span>
+                        <span class="admin-kpi-label">Operations</span>
+                        <strong>{{ number_format($departmentMetrics['operations'] ?? 0) }}</strong>
+                        <small>Attendance records today</small>
                     </div>
-                </div>
-
+                </article>
             </section>
 
-            <section class="admin-section">
-
-                <div class="section-header">
-                    <div>
-                        <h2>Department Access</h2>
-                        <p>Open and monitor each department module from one admin page.</p>
+            <section class="admin-chart-grid">
+                <article class="admin-panel admin-chart-card">
+                    <div class="admin-panel-header">
+                        <div>
+                            <h2>Department Distribution</h2>
+                            <p>Share of current records across core departments.</p>
+                        </div>
                     </div>
-                </div>
+                    <div class="chart-box donut-chart-box">
+                        <canvas id="departmentDistributionChart"></canvas>
+                    </div>
+                </article>
 
-                <div class="department-grid">
-
-                    <a href="{{ route('maintenance-dashboard') }}" class="department-card">
-                        <div class="department-icon blue">
-                            <i class="fa-solid fa-truck"></i>
-                        </div>
-
+                <article class="admin-panel admin-chart-card">
+                    <div class="admin-panel-header">
                         <div>
-                            <h3>Maintenance Department</h3>
-                            <p>Manage job orders, mechanics, PMS schedules, fuel reports, and purchase requests.</p>
+                            <h2>Monthly Activity Overview</h2>
+                            <p>Requests and operational records created in the last 6 months.</p>
                         </div>
+                        <span class="chart-period">Last 6 Months</span>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="monthlyActivityChart"></canvas>
+                    </div>
+                </article>
 
-                        <span>
-                            Open
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('inventory') }}" class="department-card">
-                        <div class="department-icon green">
-                            <i class="fa-solid fa-warehouse"></i>
-                        </div>
-
+                <article class="admin-panel admin-chart-card">
+                    <div class="admin-panel-header">
                         <div>
-                            <h3>Warehouse Department</h3>
-                            <p>Monitor inventory, stock levels, reorder points, and part requests.</p>
+                            <h2>System Activity</h2>
+                            <p>Combined activity across the last 7 days.</p>
                         </div>
-
-                        <span>
-                            Open
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('purchase-orders') }}" class="department-card">
-                        <div class="department-icon orange">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                        </div>
-
-                        <div>
-                            <h3>Purchase Department</h3>
-                            <p>Manage requested purchases, purchase orders, deliveries, and supplier transactions.</p>
-                        </div>
-
-                        <span>
-                            Open
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('dashboard-operation') }}" class="department-card">
-                        <div class="department-icon purple">
-                            <i class="fa-solid fa-users-gear"></i>
-                        </div>
-
-                        <div>
-                            <h3>Operations Department</h3>
-                            <p>Track driver attendance, mechanic attendance, and available personnel.</p>
-                        </div>
-
-                        <span>
-                            Open
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('batch-file-processing') }}" class="department-card">
-                        <div class="department-icon blue">
-                            <i class="fa-solid fa-file-arrow-up"></i>
-                        </div>
-
-                        <div>
-                            <h3>Batch File Processing</h3>
-                            <p>Upload GPS files, extract trip data using NLP, and generate structured records.</p>
-                        </div>
-
-                        <span>
-                            Open
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </span>
-                    </a>
-
-                </div>
-
+                        <span class="chart-period">Last 7 Days</span>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="systemActivityChart"></canvas>
+                    </div>
+                </article>
             </section>
 
-            <section class="admin-section">
+            <section class="admin-mid-grid">
+                <article class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div>
+                            <h2>Department Access</h2>
+                            <p>Quick access to department modules and admin tools.</p>
+                        </div>
+                    </div>
 
-                <div class="section-header">
+                    <div class="admin-access-grid">
+                        <a href="{{ route('maintenance-dashboard') }}" class="admin-access-card">
+                            <span class="admin-access-icon blue"><i class="fa-solid fa-truck"></i></span>
+                            <div><strong>Maintenance</strong><small>Job orders, PMS and repairs</small></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+
+                        <a href="{{ route('inventory') }}" class="admin-access-card">
+                            <span class="admin-access-icon green"><i class="fa-solid fa-warehouse"></i></span>
+                            <div><strong>Warehouse</strong><small>Inventory and stock movement</small></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+
+                        <a href="{{ route('purchase-orders') }}" class="admin-access-card">
+                            <span class="admin-access-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
+                            <div><strong>Purchase</strong><small>Requests and purchase orders</small></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+
+                        <a href="{{ route('dashboard-operation') }}" class="admin-access-card">
+                            <span class="admin-access-icon purple"><i class="fa-solid fa-users-gear"></i></span>
+                            <div><strong>Operations</strong><small>Attendance and scheduling</small></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+
+                        <a href="{{ route('admin.batch-file-processing') }}" class="admin-access-card">
+                            <span class="admin-access-icon blue"><i class="fa-solid fa-file-arrow-up"></i></span>
+                            <div><strong>Batch Processing</strong><small>GPS files and structured records</small></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="admin-panel recent-activity-panel">
+                    <div class="admin-panel-header">
+                        <div>
+                            <h2>Recent Activity</h2>
+                            <p>Latest system-wide updates.</p>
+                        </div>
+                        <a href="{{ route('admin.activity-logs') }}" class="admin-panel-link">View All</a>
+                    </div>
+
+                    <div class="recent-activity-list">
+                        @forelse($recentActivity as $activity)
+                            <div class="recent-activity-item">
+                                <span class="activity-dot"></span>
+                                <div>
+                                    <strong>{{ $activity->message ?: 'System activity recorded.' }}</strong>
+                                    <small>{{ $activity->created_at?->diffForHumans() ?? 'Recently' }}</small>
+                                </div>
+                            </div>
+                        @empty
+                            <x-ui.empty-state
+                                icon="fa-clock-rotate-left"
+                                title="No recent activity"
+                                description="System updates will appear here."
+                            />
+                        @endforelse
+                    </div>
+                </article>
+            </section>
+
+            <section class="admin-panel admin-users-panel">
+                <div class="admin-panel-header">
                     <div>
                         <h2>User Management</h2>
-                        <p>Sample admin table for system users and department access.</p>
+                        <p>Recent system users and their current access.</p>
                     </div>
-
-                    <button type="button" class="create-btn admin-add-btn">
-                        <i class="fa-solid fa-plus"></i>
-                        New User
-                    </button>
+                    <div class="admin-user-actions">
+                        <span class="admin-user-count">{{ number_format($totalUsers ?? 0) }} users</span>
+                        <a href="{{ route('admin.users') }}" class="admin-panel-link">View All Users</a>
+                        <a href="{{ route('admin.users') }}" class="admin-add-btn">
+                            <i class="fa-solid fa-plus"></i>
+                            New User
+                        </a>
+                    </div>
                 </div>
 
                 <div class="admin-table-wrap">
@@ -335,96 +244,66 @@
                                 <th>Department</th>
                                 <th>Role</th>
                                 <th>Status</th>
+                                <th>Last Login</th>
                                 <th>Access</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar">A</div>
-                                        <div>
-                                            <strong>System Admin</strong>
-                                            <small>admin@gct-system.test</small>
+                            @forelse($recentUsers as $user)
+                                @php
+                                    $initials = collect(preg_split('/\s+/', trim($user->name ?? 'User')))
+                                        ->filter()
+                                        ->take(2)
+                                        ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                                        ->implode('');
+                                    $isAdmin = strtolower($user->department ?? '') === 'admin';
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">{{ $initials ?: 'U' }}</div>
+                                            <div>
+                                                <strong>{{ $user->name }}</strong>
+                                                <small>{{ $user->email }}</small>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td>Admin</td>
-                                <td>Administrator</td>
-                                <td>
-                                    <span class="status-badge active">Active</span>
-                                </td>
-                                <td>
-                                    <span class="access-badge full">Full Access</span>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar">M</div>
-                                        <div>
-                                            <strong>R. Lim</strong>
-                                            <small>maintenance@gct-system.test</small>
+                                    </td>
+                                    <td>{{ $user->department ?: '—' }}</td>
+                                    <td>{{ $user->role ? ucwords(str_replace('_', ' ', $user->role)) : '—' }}</td>
+                                    <td><x-ui.status-badge :status="$user->status ?: 'Active'" /></td>
+                                    <td>
+                                        <div class="admin-last-login">
+                                            @if($user->last_login_at)
+                                                <strong>{{ $user->last_login_at->format('M d, Y') }}</strong>
+                                                <small>{{ $user->last_login_at->format('h:i A') }}</small>
+                                            @else
+                                                <span>Never</span>
+                                            @endif
                                         </div>
-                                    </div>
-                                </td>
-                                <td>Maintenance</td>
-                                <td>Maintenance Admin</td>
-                                <td>
-                                    <span class="status-badge active">Active</span>
-                                </td>
-                                <td>
-                                    <span class="access-badge limited">Department Access</span>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar">W</div>
-                                        <div>
-                                            <strong>Warehouse Staff</strong>
-                                            <small>warehouse@gct-system.test</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Warehouse</td>
-                                <td>Staff</td>
-                                <td>
-                                    <span class="status-badge active">Active</span>
-                                </td>
-                                <td>
-                                    <span class="access-badge limited">Department Access</span>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar">P</div>
-                                        <div>
-                                            <strong>Purchase Staff</strong>
-                                            <small>purchase@gct-system.test</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Purchase</td>
-                                <td>Staff</td>
-                                <td>
-                                    <span class="status-badge active">Active</span>
-                                </td>
-                                <td>
-                                    <span class="access-badge limited">Department Access</span>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <span class="access-badge {{ $isAdmin ? 'full' : 'limited' }}">
+                                            {{ $isAdmin ? 'Full Access' : 'Department Access' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <x-ui.empty-row colspan="6" message="No users found." />
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
-
             </section>
-
         </main>
     </div>
+
+    <script>
+        window.adminDashboardData = @json([
+            'distribution' => $departmentDistribution ?? [],
+            'monthLabels' => $monthLabels ?? [],
+            'monthlyActivity' => $monthlyActivity ?? [],
+            'dayLabels' => $dayLabels ?? [],
+            'dailyActivity' => $dailyActivity ?? [],
+        ]);
+    </script>
 </x-layout.app>
