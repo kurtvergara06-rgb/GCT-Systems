@@ -10,6 +10,11 @@ class StockMovementController extends Controller
 {
     public function index(Request $request)
     {
+        return view('Warehouse.stock-movements', $this->data($request));
+    }
+
+    public function data(Request $request): array
+    {
         $movementQuery = StockMovement::query();
 
         if ($request->filled('search')) {
@@ -32,8 +37,7 @@ class StockMovementController extends Controller
         } elseif ($request->date_filter === 'This Week') {
             $movementQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
         } elseif ($request->date_filter === 'This Month') {
-            $movementQuery->whereYear('created_at', now()->year)
-                ->whereMonth('created_at', now()->month);
+            $movementQuery->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month);
         }
 
         $stockMovements = $movementQuery->latest()->paginate(20)->withQueryString();
@@ -42,12 +46,6 @@ class StockMovementController extends Controller
         $stockOut = StockMovement::where('movement_type', 'Stock Out')->count();
         $adjustments = StockMovement::where('movement_type', 'Adjustment')->count();
 
-        return view('Warehouse.stock-movements', compact(
-            'stockMovements',
-            'totalMovements',
-            'stockIn',
-            'stockOut',
-            'adjustments'
-        ));
+        return compact('stockMovements', 'totalMovements', 'stockIn', 'stockOut', 'adjustments');
     }
 }
