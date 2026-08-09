@@ -32,79 +32,38 @@
     subtitle="Operation Module"
     icon="fa-bus"
     :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
+        ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
         [
             'label' => 'Scheduling',
             'icon' => 'fa-calendar-days',
             'children' => [
-                [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
-                    'icon' => 'fa-calendar-days',
-                ],
-                [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
-                ],
-                [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
-                ],
+                ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
+                ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
+                ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
             ],
         ],
         [
             'label' => 'Personnel Management',
             'icon' => 'fa-address-book',
             'children' => [
-                [
-                    'label' => 'Driver Master List',
-                    'route' => 'operation.personnel.drivers',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Master List',
-                    'route' => 'operation.personnel.mechanics',
-                    'icon' => 'fa-users-gear',
-                ],
+                ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
+                ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
             ],
         ],
         [
             'label' => 'Attendance',
             'icon' => 'fa-calendar-check',
             'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-user-check',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-clipboard-user',
-                ],
+                ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
+                ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
             ],
         ],
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
+        ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
     ]"
 />
 
     <main class="main">
-
       <x-layout.topbar
         title="Mechanic Attendance"
         subtitle="Manage and track mechanic attendance and availability"
@@ -122,34 +81,10 @@
       @endif
 
       <section class="stats-grid">
-        <x-ui.summary-card
-          label="Present"
-          value="{{ $present }}"
-          small="Mechanics today"
-          icon="fa-user-check"
-          color="green"
-        />
-        <x-ui.summary-card
-          label="Absent"
-          value="{{ $absent }}"
-          small="Mechanics absent"
-          icon="fa-user-xmark"
-          color="red"
-        />
-        <x-ui.summary-card
-          label="Late"
-          value="{{ $late }}"
-          small="Mechanics who were late"
-          icon="fa-clock"
-          color="yellow"
-        />
-        <x-ui.summary-card
-          label="On Duty"
-          value="{{ $onDuty }}"
-          small="Assigned mechanics"
-          icon="fa-screwdriver-wrench"
-          color="blue"
-        />
+        <x-ui.summary-card label="Present" value="{{ $present }}" small="Mechanics today" icon="fa-user-check" color="green" />
+        <x-ui.summary-card label="Absent" value="{{ $absent }}" small="Mechanics absent" icon="fa-user-xmark" color="red" />
+        <x-ui.summary-card label="Late" value="{{ $late }}" small="Mechanics who were late" icon="fa-clock" color="yellow" />
+        <x-ui.summary-card label="On Duty" value="{{ $onDuty }}" small="Assigned mechanics" icon="fa-screwdriver-wrench" color="blue" />
       </section>
 
       <section class="table-card attendance-card">
@@ -194,6 +129,15 @@
             <i class="fa-solid fa-file-import"></i>
             Import Data
           </button>
+
+          <button
+            type="button"
+            class="primary-btn batch-attendance-open"
+            data-batch-attendance-open
+          >
+            <i class="fa-solid fa-clipboard-check"></i>
+            Record Daily Attendance
+          </button>
         </form>
 
         <div class="table-wrap">
@@ -233,9 +177,7 @@
                   <td>{{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}</td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
-                  <td>
-                    <span class="badge {{ $statusClass }}">{{ $attendance->status }}</span>
-                  </td>
+                  <td><span class="badge {{ $statusClass }}">{{ $attendance->status }}</span></td>
                   <td>
                     <div class="actions">
                       <x-ui.action-buttom-modal
@@ -287,7 +229,6 @@
     </main>
   </div>
 
-  {{-- IMPORT ATTENDANCE MODAL --}}
   <div id="importAttendanceModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-header">
@@ -317,10 +258,7 @@
           <input type="file" name="import_file" accept=".csv,.txt" required>
         </div>
         <div class="form-group full-width">
-          <small>
-            Required columns:
-            mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status
-          </small>
+          <small>Required columns: mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status</small>
         </div>
         <div class="modal-actions full-width">
           <button type="button" id="cancelImportAttendanceModal" class="cancel-btn">Cancel</button>
@@ -330,7 +268,6 @@
     </div>
   </div>
 
-  {{-- EDIT MECHANIC ATTENDANCE MODAL --}}
   <div id="editMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal">
       <div class="modal-header">
