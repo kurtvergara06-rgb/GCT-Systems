@@ -23,6 +23,19 @@ class PurchaseDashboardController extends Controller
                 $q->whereNull('pr_no')->orWhere('pr_no', 'not like', '%-P%');
             });
 
+        $maintenanceRequestBase = MaintenanceRequest::query()
+            ->where(function ($q) {
+                $q->whereNull('source_type')->orWhereIn('source_type', ['Maintenance Request', 'Job Order']);
+            })
+            ->where(function ($q) {
+                $q->whereNull('job_order_no')->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($q) {
+                $q->whereNull('pr_no')->orWhere(function ($pr) {
+                    $pr->where('pr_no', 'not like', 'RST-%')->where('pr_no', 'not like', '%-P%');
+                });
+            });
+
         $totalRequests = (clone $requestBase)->whereIn('status', $activeRequestStatuses)->count();
         $forPurchase = (clone $requestBase)->where('status', 'For Purchase')->count();
         $activePurchaseOrders = PurchaseOrder::whereIn('status', ['Ordered', 'For Pick-up', 'For Delivery'])->count();
@@ -32,7 +45,7 @@ class PurchaseDashboardController extends Controller
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
         $scheduledPurchases = ScheduledPurchase::where('status', 'Active')->count();
 
-        $recentPurchaseRequests = (clone $requestBase)
+        $recentPurchaseRequests = $maintenanceRequestBase
             ->whereIn('status', ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'])
             ->latest()
             ->limit(5)
