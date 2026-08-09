@@ -7,43 +7,6 @@
     'resources/js/Main-js/sidebar.js'
   ]"
 >
-
-  @php
-    $deliveryQuery = \App\Models\Purchase\PurchaseOrder::query()
-      ->whereIn('status', ['For Delivery', 'Delivered', 'For Pick-up', 'Picked Up']);
-
-    if (request()->filled('search')) {
-      $search = trim(request('search'));
-      $deliveryQuery->where(function ($query) use ($search) {
-        $query->where('po_no', 'like', "%{$search}%")
-          ->orWhere('supplier_name', 'like', "%{$search}%")
-          ->orWhere('purpose', 'like', "%{$search}%")
-          ->orWhere('status', 'like', "%{$search}%");
-      });
-    }
-
-    if (request()->filled('status') && request('status') !== 'All Statuses') {
-      if (request('status') === 'Received') {
-        $deliveryQuery->whereNotNull('inventory_posted_at');
-      } else {
-        $deliveryQuery->where('status', request('status'));
-      }
-    }
-
-    $deliveries = $deliveryQuery->latest()->paginate(20)->withQueryString();
-
-    $totalIncoming = \App\Models\Purchase\PurchaseOrder::whereIn('status', ['For Delivery', 'For Pick-up'])
-      ->whereNull('inventory_posted_at')
-      ->count();
-    $forDelivery = \App\Models\Purchase\PurchaseOrder::where('status', 'For Delivery')
-      ->whereNull('inventory_posted_at')
-      ->count();
-    $delivered = \App\Models\Purchase\PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])
-      ->whereNotNull('inventory_posted_at')
-      ->count();
-    $receivedToday = \App\Models\Purchase\PurchaseOrder::whereDate('inventory_posted_at', today())->count();
-  @endphp
-
   <div class="app">
     <x-layout.sidebar
       department="Warehouse"
@@ -87,7 +50,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="status" id="deliveryStatus" onchange="this.form.requestSubmit()">
+            <select name="status" id="deliveryStatus">
               @foreach(['All Statuses', 'For Delivery', 'For Pick-up', 'Delivered', 'Picked Up', 'Received'] as $status)
                 <option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>
               @endforeach
@@ -132,10 +95,7 @@
                   <td>{{ $delivery->po_date?->format('M d, Y') ?? '—' }}</td>
                   <td>{{ $delivery->inventory_posted_at?->format('M d, Y') ?? '—' }}</td>
                   <td>
-                    <x-ui.status-badge
-                      :status="$displayStatus"
-                      class="delivery-status {{ $statusClass }}"
-                    />
+                    <x-ui.status-badge :status="$displayStatus" class="delivery-status {{ $statusClass }}" />
                   </td>
                   <td>
                     @if(!$received && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
@@ -151,6 +111,7 @@
                       >
                         @csrf
                         @method('PATCH')
+                        <input type="hidden" name="warehouse_receive" value="1">
                         <input type="hidden" name="status" value="{{ $delivery->status === 'For Pick-up' ? 'Picked Up' : 'Delivered' }}">
                         <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
                           <i class="fa-solid fa-box-open"></i>
