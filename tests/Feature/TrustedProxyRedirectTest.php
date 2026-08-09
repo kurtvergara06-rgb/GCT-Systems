@@ -22,6 +22,6 @@ class TrustedProxyRedirectTest extends TestCase
             ]
         );
 
-        $response->assertRedirect('https://gct-systems.onrender.com/');
+        $response->assertRedirect('https://gct-systems.onrender.com');
     }
 }
