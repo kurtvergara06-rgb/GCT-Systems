@@ -168,13 +168,19 @@
                                     </div>
                                 </section>
 
-                                <div class="permission-edit-actions">
+                                <div class="module-access-heading permission-edit-actions">
                                     @if($isProtectedRole)
+                                        <div class="selected-role-state"><span><i class="fa-solid fa-lock"></i> Protected Role</span></div>
                                         <span class="permission-protected-note"><i class="fa-solid fa-lock"></i> System Admin permissions are protected from accidental changes.</span>
                                     @else
-                                        <button type="button" class="secondary-btn" id="cancelPermissionEdit" hidden>Cancel</button>
-                                        <button type="button" class="primary-btn" id="editPermissionsButton"><i class="fa-solid fa-pen"></i> Edit Permissions</button>
-                                        <button type="submit" class="primary-btn" id="savePermissionsButton" hidden><i class="fa-solid fa-floppy-disk"></i> Save Permissions</button>
+                                        <div class="selected-role-state" id="permissionEditStatus">
+                                            <span><i class="fa-solid fa-eye"></i> Review Mode</span>
+                                        </div>
+                                        <div class="permission-action-buttons">
+                                            <button type="button" class="secondary-btn" id="cancelPermissionEdit" hidden>Cancel</button>
+                                            <button type="button" class="primary-btn" id="editPermissionsButton"><i class="fa-solid fa-pen"></i> Edit Permissions</button>
+                                            <button type="submit" class="primary-btn" id="savePermissionsButton" hidden><i class="fa-solid fa-floppy-disk"></i> Save Permissions</button>
+                                        </div>
                                     @endif
                                 </div>
                             </form>
@@ -212,6 +218,7 @@
             const cancelButton = document.getElementById('cancelPermissionEdit');
             const saveButton = document.getElementById('savePermissionsButton');
             const modeText = document.getElementById('permissionModeText');
+            const editStatus = document.querySelector('#permissionEditStatus span');
             const inputs = Array.from(document.querySelectorAll('[data-permission-input]'));
             const initialStates = inputs.map(input => input.checked);
 
@@ -231,7 +238,16 @@
                 if (editButton) editButton.hidden = enabled;
                 if (cancelButton) cancelButton.hidden = !enabled;
                 if (saveButton) saveButton.hidden = !enabled;
-                if (modeText) modeText.textContent = enabled ? 'Editing is enabled. Choose the permissions for this role, then save.' : 'Review the permissions currently stored for this role.';
+                if (modeText) {
+                    modeText.textContent = enabled
+                        ? 'Edit mode is active. Click any permission to allow or restrict it, then save your changes.'
+                        : 'Review the permissions currently stored for this role.';
+                }
+                if (editStatus) {
+                    editStatus.innerHTML = enabled
+                        ? '<i class="fa-solid fa-pen-to-square"></i> Edit Mode Active'
+                        : '<i class="fa-solid fa-eye"></i> Review Mode';
+                }
             }
 
             editButton?.addEventListener('click', () => setEditMode(true));
