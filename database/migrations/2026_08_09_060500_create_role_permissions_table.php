@@ -20,15 +20,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        $full = [
-            'operation' => ['view' => true, 'edit' => true, 'approve' => true],
-            'maintenance' => ['view' => true, 'edit' => true, 'approve' => true],
-            'purchase' => ['view' => true, 'edit' => true, 'approve' => true],
-            'warehouse' => ['view' => true, 'edit' => true, 'approve' => true],
-            'analytics' => ['view' => true, 'analyze' => true, 'recommendations' => true],
-            'administration' => ['view' => true, 'manage' => true, 'full_control' => true],
-        ];
-
         $restricted = [
             'operation' => ['view' => false, 'edit' => false, 'approve' => false],
             'maintenance' => ['view' => false, 'edit' => false, 'approve' => false],
@@ -38,8 +29,17 @@ return new class extends Migration
             'administration' => ['view' => false, 'manage' => false, 'full_control' => false],
         ];
 
+        $adminPermissions = [
+            'operation' => ['view' => true, 'edit' => false, 'approve' => false],
+            'maintenance' => ['view' => true, 'edit' => false, 'approve' => false],
+            'purchase' => ['view' => true, 'edit' => false, 'approve' => false],
+            'warehouse' => ['view' => true, 'edit' => false, 'approve' => false],
+            'analytics' => ['view' => true, 'analyze' => true, 'recommendations' => true],
+            'administration' => ['view' => true, 'manage' => true, 'full_control' => true],
+        ];
+
         $rows = [
-            ['admin_head', 'System Admin', 'Admin', 'admin', $full],
+            ['admin_head', 'System Admin', 'Admin', 'admin', $adminPermissions],
         ];
 
         foreach (['Operation', 'Maintenance', 'Purchase', 'Warehouse'] as $department) {
