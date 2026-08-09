@@ -8,18 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!type) return;
 
-    const toolbar = document.querySelector('.attendance-toolbar');
-    const newRecordButton = toolbar?.querySelector('.primary-btn');
-    if (!toolbar || !newRecordButton) return;
+    const button = document.querySelector('[data-batch-attendance-open]');
+    if (!button) return;
 
     const label = type === 'driver' ? 'Driver' : 'Mechanic';
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'secondary-btn batch-attendance-open';
-    button.innerHTML = '<i class="fa-solid fa-clipboard-check"></i> Record Daily Attendance';
-    toolbar.insertBefore(button, newRecordButton);
 
     let shiftStarts = {};
     let graceMinutes = 10;
@@ -264,9 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const nowButton = row.querySelector('[data-row-now]');
         const statusButtons = row.querySelectorAll('[data-status-btn]');
 
-        statusButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                setSelectedStatus(row, button.dataset.statusValue);
+        statusButtons.forEach((statusButton) => {
+            statusButton.addEventListener('click', () => {
+                setSelectedStatus(row, statusButton.dataset.statusValue);
                 applyStatusRules(row);
                 detectLate(row);
                 updateAvailability(row);
@@ -317,7 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applySharedTime() {
         const modal = document.getElementById('batchAttendanceModal');
-        const selectedRows = [...modal.querySelectorAll('[data-batch-row]')].filter((row) => row.querySelector('[data-row-select]').checked);
+        const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
+            .filter((row) => row.querySelector('[data-row-select]').checked);
 
         if (!selectedRows.length) {
             toast('Select at least one personnel row.', 'warning');
@@ -463,8 +457,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setSelectedStatus(row, status) {
-        row.querySelectorAll('[data-status-btn]').forEach((button) => {
-            button.classList.toggle('is-active', button.dataset.statusValue === status);
+        row.querySelectorAll('[data-status-btn]').forEach((statusButton) => {
+            statusButton.classList.toggle('is-active', statusButton.dataset.statusValue === status);
         });
     }
 
@@ -581,7 +575,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toast(message, type = 'info') {
         if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(message, type, type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Notice');
+            window.showSystemToast(
+                message,
+                type,
+                type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Notice'
+            );
             return;
         }
         window.alert(message);
