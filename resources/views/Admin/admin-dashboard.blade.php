@@ -80,7 +80,6 @@
                         <small>Active job orders</small>
                     </div>
                 </article>
-
                 <article class="admin-kpi-card">
                     <span class="admin-kpi-icon green"><i class="fa-solid fa-warehouse"></i></span>
                     <div>
@@ -89,7 +88,6 @@
                         <small>Low / critical stock items</small>
                     </div>
                 </article>
-
                 <article class="admin-kpi-card">
                     <span class="admin-kpi-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
                     <div>
@@ -98,7 +96,6 @@
                         <small>Active purchase orders</small>
                     </div>
                 </article>
-
                 <article class="admin-kpi-card">
                     <span class="admin-kpi-icon purple"><i class="fa-solid fa-users-gear"></i></span>
                     <div>
@@ -112,109 +109,68 @@
             <section class="admin-chart-grid">
                 <article class="admin-panel admin-chart-card">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>Department Distribution</h2>
-                            <p>Share of current records across core departments.</p>
-                        </div>
+                        <div><h2>Department Distribution</h2><p>Share of current records across core departments.</p></div>
                     </div>
-                    <div class="chart-box donut-chart-box">
-                        <canvas id="departmentDistributionChart"></canvas>
-                    </div>
+                    <div class="chart-box donut-chart-box"><canvas id="departmentDistributionChart"></canvas></div>
                 </article>
-
                 <article class="admin-panel admin-chart-card">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>Monthly Activity Overview</h2>
-                            <p>Requests and operational records created in the last 6 months.</p>
-                        </div>
+                        <div><h2>Monthly Activity Overview</h2><p>Requests and operational records created in the last 6 months.</p></div>
                         <span class="chart-period">Last 6 Months</span>
                     </div>
-                    <div class="chart-box">
-                        <canvas id="monthlyActivityChart"></canvas>
-                    </div>
+                    <div class="chart-box"><canvas id="monthlyActivityChart"></canvas></div>
                 </article>
-
                 <article class="admin-panel admin-chart-card">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>System Activity</h2>
-                            <p>Combined activity across the last 7 days.</p>
-                        </div>
+                        <div><h2>System Activity</h2><p>Combined activity across the last 7 days.</p></div>
                         <span class="chart-period">Last 7 Days</span>
                     </div>
-                    <div class="chart-box">
-                        <canvas id="systemActivityChart"></canvas>
-                    </div>
+                    <div class="chart-box"><canvas id="systemActivityChart"></canvas></div>
                 </article>
             </section>
 
             <section class="admin-mid-grid">
                 <article class="admin-panel">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>Department Access</h2>
-                            <p>Quick access to department modules and admin tools.</p>
-                        </div>
+                        <div><h2>Department Access</h2><p>Quick access to department modules and admin tools.</p></div>
                     </div>
-
                     <div class="admin-access-grid">
                         <a href="{{ route('maintenance-dashboard') }}" class="admin-access-card">
                             <span class="admin-access-icon blue"><i class="fa-solid fa-truck"></i></span>
-                            <div><strong>Maintenance</strong><small>Job orders, PMS and repairs</small></div>
-                            <i class="fa-solid fa-chevron-right"></i>
+                            <div><strong>Maintenance</strong><small>Job orders, PMS and repairs</small></div><i class="fa-solid fa-chevron-right"></i>
                         </a>
-
                         <a href="{{ route('inventory') }}" class="admin-access-card">
                             <span class="admin-access-icon green"><i class="fa-solid fa-warehouse"></i></span>
-                            <div><strong>Warehouse</strong><small>Inventory and stock movement</small></div>
-                            <i class="fa-solid fa-chevron-right"></i>
+                            <div><strong>Warehouse</strong><small>Inventory and stock movement</small></div><i class="fa-solid fa-chevron-right"></i>
                         </a>
-
                         <a href="{{ route('purchase-orders') }}" class="admin-access-card">
                             <span class="admin-access-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
-                            <div><strong>Purchase</strong><small>Requests and purchase orders</small></div>
-                            <i class="fa-solid fa-chevron-right"></i>
+                            <div><strong>Purchase</strong><small>Requests and purchase orders</small></div><i class="fa-solid fa-chevron-right"></i>
                         </a>
-
                         <a href="{{ route('dashboard-operation') }}" class="admin-access-card">
                             <span class="admin-access-icon purple"><i class="fa-solid fa-users-gear"></i></span>
-                            <div><strong>Operations</strong><small>Attendance and scheduling</small></div>
-                            <i class="fa-solid fa-chevron-right"></i>
+                            <div><strong>Operations</strong><small>Attendance and scheduling</small></div><i class="fa-solid fa-chevron-right"></i>
                         </a>
-
                         <a href="{{ route('admin.batch-file-processing') }}" class="admin-access-card">
                             <span class="admin-access-icon blue"><i class="fa-solid fa-file-arrow-up"></i></span>
-                            <div><strong>Batch Processing</strong><small>GPS files and structured records</small></div>
-                            <i class="fa-solid fa-chevron-right"></i>
+                            <div><strong>Batch Processing</strong><small>GPS files and structured records</small></div><i class="fa-solid fa-chevron-right"></i>
                         </a>
                     </div>
                 </article>
 
                 <article class="admin-panel recent-activity-panel">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>Recent Activity</h2>
-                            <p>Latest system-wide updates.</p>
-                        </div>
+                        <div><h2>Recent Activity</h2><p>Latest system-wide updates.</p></div>
                         <a href="{{ route('admin.activity-logs') }}" class="admin-panel-link">View All</a>
                     </div>
-
                     <div class="recent-activity-list">
                         @forelse($recentActivity as $activity)
                             <div class="recent-activity-item">
                                 <span class="activity-dot"></span>
-                                <div>
-                                    <strong>{{ $activity->message ?: 'System activity recorded.' }}</strong>
-                                    <small>{{ $activity->created_at?->diffForHumans() ?? 'Recently' }}</small>
-                                </div>
+                                <div><strong>{{ $activity->message ?: 'System activity recorded.' }}</strong><small>{{ $activity->created_at?->diffForHumans() ?? 'Recently' }}</small></div>
                             </div>
                         @empty
-                            <x-ui.empty-state
-                                icon="fa-clock-rotate-left"
-                                title="No recent activity"
-                                description="System updates will appear here."
-                            />
+                            <x-ui.empty-state icon="fa-clock-rotate-left" title="No recent activity" description="System updates will appear here." />
                         @endforelse
                     </div>
                 </article>
@@ -222,70 +178,39 @@
 
             <section class="admin-panel admin-users-panel">
                 <div class="admin-panel-header">
-                    <div>
-                        <h2>User Management</h2>
-                        <p>Recent system users and their current access.</p>
-                    </div>
+                    <div><h2>User Management</h2><p>Recent system users and their current access.</p></div>
                     <div class="admin-user-actions">
                         <span class="admin-user-count">{{ number_format($totalUsers ?? 0) }} users</span>
                         <a href="{{ route('admin.users') }}" class="admin-panel-link">View All Users</a>
-                        <a href="{{ route('admin.users') }}" class="admin-add-btn">
-                            <i class="fa-solid fa-plus"></i>
-                            New User
-                        </a>
+                        <a href="{{ route('admin.users') }}" class="admin-add-btn"><i class="fa-solid fa-plus"></i>New User</a>
                     </div>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Department</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Last Login</th>
-                                <th>Access</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>User</th><th>Department</th><th>Role</th><th>Status</th><th>Last Login</th><th>Access</th></tr></thead>
                         <tbody>
                             @forelse($recentUsers as $user)
                                 @php
                                     $initials = collect(preg_split('/\s+/', trim($user->name ?? 'User')))
-                                        ->filter()
-                                        ->take(2)
-                                        ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
-                                        ->implode('');
+                                        ->filter()->take(2)->map(fn ($part) => strtoupper(substr($part, 0, 1)))->implode('');
                                     $isAdmin = strtolower($user->department ?? '') === 'admin';
                                 @endphp
                                 <tr>
-                                    <td>
-                                        <div class="user-cell">
-                                            <div class="user-avatar">{{ $initials ?: 'U' }}</div>
-                                            <div>
-                                                <strong>{{ $user->name }}</strong>
-                                                <small>{{ $user->email }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
+                                    <td><div class="user-cell"><div class="user-avatar">{{ $initials ?: 'U' }}</div><div><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></div></div></td>
                                     <td>{{ $user->department ?: '—' }}</td>
                                     <td>{{ $user->role ? ucwords(str_replace('_', ' ', $user->role)) : '—' }}</td>
                                     <td><x-ui.status-badge :status="$user->status ?: 'Active'" /></td>
                                     <td>
                                         <div class="admin-last-login">
                                             @if($user->last_login_at)
-                                                <strong>{{ $user->last_login_at->format('M d, Y') }}</strong>
-                                                <small>{{ $user->last_login_at->format('h:i A') }}</small>
+                                                <strong>{{ $user->last_login_at->format('M d, Y') }}</strong><small>{{ $user->last_login_at->format('h:i A') }}</small>
                                             @else
                                                 <span>Never</span>
                                             @endif
                                         </div>
                                     </td>
-                                    <td>
-                                        <span class="access-badge {{ $isAdmin ? 'full' : 'limited' }}">
-                                            {{ $isAdmin ? 'Full Access' : 'Department Access' }}
-                                        </span>
-                                    </td>
+                                    <td><span class="access-badge {{ $isAdmin ? 'full' : 'limited' }}">{{ $isAdmin ? 'Full Access' : 'Department Access' }}</span></td>
                                 </tr>
                             @empty
                                 <x-ui.empty-row colspan="6" message="No users found." />
@@ -297,13 +222,17 @@
         </main>
     </div>
 
-    <script>
-        window.adminDashboardData = @json([
+    @php
+        $adminDashboardChartData = [
             'distribution' => $departmentDistribution ?? [],
             'monthLabels' => $monthLabels ?? [],
             'monthlyActivity' => $monthlyActivity ?? [],
             'dayLabels' => $dayLabels ?? [],
             'dailyActivity' => $dailyActivity ?? [],
-        ]);
+        ];
+    @endphp
+
+    <script>
+        window.adminDashboardData = @json($adminDashboardChartData);
     </script>
 </x-layout.app>
