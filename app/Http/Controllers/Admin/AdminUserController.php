@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
+use App\Services\RolePermissionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
 
 class AdminUserController extends Controller
 {
@@ -96,6 +98,10 @@ class AdminUserController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->boolean('_permission_update')) {
+            return $this->updateRolePermissions($request);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -117,6 +123,43 @@ class AdminUserController extends Controller
         return redirect()
             ->route('admin.users')
             ->with('success', 'User account created successfully.');
+    }
+
+    private function updateRolePermissions(Request $request)
+    {
+        $modules = app(RolePermissionService::class)->modules();
+
+        $validated = $request->validate([
+            'role_key' => ['required', 'string', 'exists:role_permissions,role_key'],
+            'permissions' => ['required', 'array'],
+        ]);
+
+        $rolePermission = RolePermission::where('role_key', $validated['role_key'])->firstOrFail();
+
+        if ($rolePermission->role_key === 'admin_head') {
+            return redirect()
+                ->route('admin.roles-permissions')
+                ->with('error', 'System Admin permissions are protected.');
+        }
+
+        $normalized = [];
+
+        foreach ($modules as $moduleKey => $module) {
+            foreach (array_keys($module['capabilities']) as $capabilityKey) {
+                $normalized[$moduleKey][$capabilityKey] = $request->boolean(
+                    "permissions.{$moduleKey}.{$capabilityKey}"
+                );
+            }
+        }
+
+        $rolePermission->update([
+            'permissions' => $normalized,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()
+            ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
+            ->with('success', $rolePermission->label . ' permissions updated successfully.');
     }
 
     public function update(Request $request, User $user)
