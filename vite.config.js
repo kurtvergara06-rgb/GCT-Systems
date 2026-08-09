@@ -49,7 +49,6 @@ export default defineConfig({
 
                 'resources/css/Admin/User_Management/users.css',
                 'resources/css/Admin/User_Management/permissions.css',
-                'resources/css/Admin/User_Management/account-requests.css',
 
                 'resources/js/Admin/User_Management/users.js',
 
