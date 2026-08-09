@@ -126,7 +126,10 @@
                   <td>
                     <div class="two-line-cell">
                       <strong>{{ $schedule->schedule_name }}</strong>
-                      <small>{{ $schedule->schedule_no }}</small>
+                      <small
+                        class="schedule-id-badge"
+                        style="display:inline-flex;width:fit-content;margin-top:4px;padding:5px 9px;border:1px solid #cfdced;border-radius:7px;background:#f8fbff;color:#061f3d;font-size:10px;font-weight:800;line-height:1;letter-spacing:.02em;white-space:nowrap;"
+                      >{{ $schedule->schedule_no }}</small>
                     </div>
                   </td>
                   <td>
