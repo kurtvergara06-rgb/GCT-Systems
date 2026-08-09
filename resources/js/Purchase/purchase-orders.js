@@ -1,147 +1,117 @@
-document.addEventListener('DOMContentLoaded', function () {
-  function openModal(modal) {
-    if (!modal) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const poModal = document.getElementById('poModal');
+  const poForm = document.getElementById('poForm');
+  const itemsContainer = document.getElementById('poItemsContainer');
+  const openPoModalBtn = document.getElementById('openPoModal');
+  const closePoModalBtn = document.getElementById('closePoModal');
+  const cancelPoModalBtn = document.getElementById('cancelPoModal');
+  const closeViewPoModalBtn = document.getElementById('closeViewPoModal');
+  const addPoItemBtn = document.getElementById('addPoItemBtn');
+  const poRequestReference = document.getElementById('poRequestReference');
 
-    modal.classList.add('show');
-    modal.classList.add('active');
-    modal.style.display = 'flex';
+  if (!poModal || !poForm || !itemsContainer) {
+    return;
   }
 
-  function closeModal(modal) {
-    if (!modal) return;
+  const money = (value) => {
+    const amount = Number.parseFloat(value || 0) || 0;
 
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
-  }
-
-  function money(value) {
-    const number = parseFloat(value || 0) || 0;
-
-    return '₱' + number.toLocaleString('en-PH', {
+    return '₱' + amount.toLocaleString('en-PH', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-  }
+  };
 
-  function setValue(id, value) {
-    const input = document.getElementById(id);
+  const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 
-    if (!input) return;
+  const field = (id) => document.getElementById(id);
 
-    input.value = value ?? '';
-  }
+  const setValue = (id, value) => {
+    const target = field(id);
 
-  function getValue(id) {
-    const input = document.getElementById(id);
-
-    return input ? input.value : '';
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
-  }
-
-  function setReadonlyMode(isViewOnly) {
-    const poForm = document.getElementById('poForm');
-    const editActions = document.getElementById('poEditActions');
-    const viewActions = document.getElementById('poViewActions');
-    const addBtn = document.getElementById('addPoItemBtn');
-
-    if (!poForm) return;
-
-    poForm.querySelectorAll('input, select, textarea').forEach(function (field) {
-      if (field.type === 'hidden') return;
-
-      field.disabled = isViewOnly;
-    });
-
-    poForm.querySelectorAll('.remove-po-item-btn').forEach(function (button) {
-      button.style.display = isViewOnly ? 'none' : 'inline-flex';
-      button.disabled = isViewOnly;
-    });
-
-    if (editActions) {
-      editActions.style.display = isViewOnly ? 'none' : 'flex';
+    if (target) {
+      target.value = value ?? '';
     }
+  };
 
-    if (viewActions) {
-      viewActions.style.display = isViewOnly ? 'flex' : 'none';
-    }
+  const getValue = (id) => field(id)?.value ?? '';
 
-    if (addBtn) {
-      addBtn.style.display = isViewOnly ? 'none' : 'inline-flex';
-      addBtn.disabled = isViewOnly;
-    }
-  }
+  const openModal = (modal) => {
+    if (!modal) return;
 
-  function calculateTotals() {
-    let gross = 0;
+    modal.classList.add('show', 'active');
+    modal.style.display = 'flex';
+  };
 
-    document.querySelectorAll('.po-item-row').forEach(function (row) {
-      const qty = parseFloat(row.querySelector('.item-qty')?.value || 0) || 0;
-      const cost = parseFloat(row.querySelector('.item-cost')?.value || 0) || 0;
-      const amount = qty * cost;
+  const closeModal = (modal) => {
+    if (!modal) return;
 
-      const amountInput = row.querySelector('.item-amount');
+    modal.classList.remove('show', 'active');
+    modal.style.display = 'none';
+  };
 
-      if (amountInput) {
-        amountInput.value = money(amount);
+  const syncRequestReference = () => {
+    if (!poRequestReference) return;
+
+    const hasRequest = Boolean(String(getValue('main_pr_no')).trim());
+    poRequestReference.style.display = hasRequest ? '' : 'none';
+  };
+
+  const calculateTotal = () => {
+    let total = 0;
+
+    itemsContainer.querySelectorAll('.po-item-row').forEach((row) => {
+      const quantity = Number.parseFloat(row.querySelector('.item-qty')?.value || 0) || 0;
+      const cost = Number.parseFloat(row.querySelector('.item-cost')?.value || 0) || 0;
+      const amount = quantity * cost;
+      const amountField = row.querySelector('.item-amount');
+
+      if (amountField) {
+        amountField.value = money(amount);
       }
 
-      gross += amount;
+      total += amount;
     });
 
-    const deliveryFee = parseFloat(getValue('delivery_fee') || 0) || 0;
-    const discount = parseFloat(getValue('discount') || 0) || 0;
-    const vat = parseFloat(getValue('vat') || 0) || 0;
-    const net = gross + deliveryFee - discount + vat;
+    setValue('net_amount_display', money(total));
+  };
 
-    setValue('gross_amount_display', money(gross));
-    setValue('net_amount_display', money(net));
-  }
+  const syncRequestNoToItems = () => {
+    const requestNo = getValue('main_pr_no');
 
-  function syncHiddenAutoFields() {
-    const prNo = getValue('main_pr_no');
-    const busNo = getValue('main_bus_no');
-    const employee = getValue('main_employee');
-
-    document.querySelectorAll('.po-item-row').forEach(function (row) {
-      const prInput = row.querySelector('.item-pr-no');
-      const busInput = row.querySelector('.item-bus-no');
-      const employeeInput = row.querySelector('.item-employee');
-
-      if (prInput) prInput.value = prNo;
-      if (busInput) busInput.value = busNo;
-      if (employeeInput) employeeInput.value = employee;
+    itemsContainer.querySelectorAll('.item-pr-no').forEach((input) => {
+      input.value = requestNo;
     });
-  }
+  };
 
-  function createItemRow(item = {}, index = 0) {
-    const container = document.getElementById('poItemsContainer');
+  const reindexRows = () => {
+    itemsContainer.querySelectorAll('.po-item-row').forEach((row, index) => {
+      row.querySelectorAll('[name]').forEach((input) => {
+        const name = input.getAttribute('name');
 
-    if (!container) return;
+        if (name) {
+          input.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
+        }
+      });
+    });
+  };
 
-    const prNo = item.pr_no || getValue('main_pr_no');
-    const busNo = item.bus_no || getValue('main_bus_no');
-    const employee = item.employee || getValue('main_employee');
+  const createItemRow = (item = {}, index = 0) => {
+    const requestNo = item.pr_no || getValue('main_pr_no');
     const description = item.item_description || item.item || item.name || '';
     const quantity = item.quantity || item.qty || 1;
     const unit = item.unit || 'PC';
-    const cost = item.cost || 0;
-
+    const cost = item.cost ?? 0;
     const row = document.createElement('div');
-    row.className = 'po-item-row';
 
+    row.className = 'po-item-row';
     row.innerHTML = `
-      <input type="hidden" name="items[${index}][pr_no]" class="item-pr-no" value="${escapeHtml(prNo)}">
-      <input type="hidden" name="items[${index}][bus_no]" class="item-bus-no" value="${escapeHtml(busNo)}">
-      <input type="hidden" name="items[${index}][employee]" class="item-employee" value="${escapeHtml(employee)}">
+      <input type="hidden" name="items[${index}][pr_no]" class="item-pr-no" value="${escapeHtml(requestNo)}">
 
       <input
         type="text"
@@ -178,313 +148,200 @@ document.addEventListener('DOMContentLoaded', function () {
         value="${escapeHtml(cost)}"
         min="0"
         step="0.01"
-        placeholder="₱0.00"
+        placeholder="0.00"
         required
       >
 
-      <input
-        type="text"
-        class="item-amount"
-        value="₱0.00"
-        readonly
-      >
+      <input type="text" class="item-amount" value="₱0.00" readonly>
 
-      <button type="button" class="remove-po-item-btn">
+      <button type="button" class="remove-po-item-btn" title="Remove item" aria-label="Remove item">
         <i class="fa-solid fa-xmark"></i>
       </button>
     `;
 
-    container.appendChild(row);
+    itemsContainer.appendChild(row);
 
-    row.querySelector('.item-qty')?.addEventListener('input', calculateTotals);
-    row.querySelector('.item-cost')?.addEventListener('input', calculateTotals);
+    row.querySelector('.item-qty')?.addEventListener('input', calculateTotal);
+    row.querySelector('.item-cost')?.addEventListener('input', calculateTotal);
 
-    row.querySelector('.remove-po-item-btn')?.addEventListener('click', function () {
-      row.remove();
+    row.querySelector('.remove-po-item-btn')?.addEventListener('click', () => {
+      const rows = itemsContainer.querySelectorAll('.po-item-row');
+
+      if (rows.length <= 1) {
+        row.querySelector('.item-description').value = '';
+        row.querySelector('.item-qty').value = '1';
+        row.querySelector('.item-unit').value = 'PC';
+        row.querySelector('.item-cost').value = '0';
+      } else {
+        row.remove();
+      }
+
       reindexRows();
-      calculateTotals();
+      calculateTotal();
     });
+  };
 
-    calculateTotals();
-  }
-
-  function reindexRows() {
-    document.querySelectorAll('.po-item-row').forEach(function (row, index) {
-      row.querySelectorAll('input').forEach(function (input) {
-        const name = input.getAttribute('name');
-
-        if (!name) return;
-
-        input.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
-      });
-    });
-  }
-
-  function renderItems(items) {
-    const container = document.getElementById('poItemsContainer');
-
-    if (!container) return;
-
-    container.innerHTML = '';
+  const renderItems = (items = []) => {
+    itemsContainer.innerHTML = '';
 
     if (!Array.isArray(items) || items.length === 0) {
       createItemRow({}, 0);
-      syncHiddenAutoFields();
-      calculateTotals();
-      return;
+    } else {
+      items.forEach((item, index) => createItemRow(item, index));
     }
 
-    const first = items[0] || {};
+    syncRequestNoToItems();
+    calculateTotal();
+  };
 
-    setValue('main_pr_no', first.pr_no || getValue('main_pr_no'));
-    setValue('main_bus_no', first.bus_no || getValue('main_bus_no'));
-    setValue('main_employee', first.employee || getValue('main_employee'));
-
-    items.forEach(function (item, index) {
-      createItemRow(item, index);
+  const setViewMode = (viewOnly) => {
+    poForm.querySelectorAll('input, select, textarea').forEach((input) => {
+      if (input.type !== 'hidden') {
+        input.disabled = viewOnly;
+      }
     });
 
-    syncHiddenAutoFields();
-    calculateTotals();
-  }
+    itemsContainer.querySelectorAll('.remove-po-item-btn').forEach((button) => {
+      button.style.display = viewOnly ? 'none' : 'inline-flex';
+      button.disabled = viewOnly;
+    });
 
-  function getItemsFromButton(button) {
+    if (addPoItemBtn) {
+      addPoItemBtn.style.display = viewOnly ? 'none' : 'inline-flex';
+      addPoItemBtn.disabled = viewOnly;
+    }
+
+    const editActions = field('poEditActions');
+    const viewActions = field('poViewActions');
+
+    if (editActions) {
+      editActions.style.display = viewOnly ? 'none' : 'flex';
+    }
+
+    if (viewActions) {
+      viewActions.style.display = viewOnly ? 'flex' : 'none';
+    }
+  };
+
+  const configureCreateForm = () => {
+    poForm.action = poForm.dataset.storeUrl || '/purchase-orders';
+    poForm.reset();
+    poForm.dataset.confirmTitle = 'Create Purchase Order?';
+    poForm.dataset.confirmMessage = 'Are you sure you want to create this Purchase Order?';
+    poForm.dataset.confirmButton = 'Yes, Create PO';
+    poForm.dataset.confirmType = 'create';
+
+    setValue('poFormMethod', 'POST');
+    setValue('purchase_request_id', '');
+    setValue('supplier_name', 'N/A');
+    setValue('po_status', 'Ordered');
+    setValue('main_pr_no', '');
+    setValue('net_amount_display', money(0));
+
+    const title = field('poModalTitle');
+    if (title) {
+      title.textContent = 'New Purchase Order';
+    }
+
+    renderItems([]);
+    syncRequestReference();
+    setViewMode(false);
+  };
+
+  const configurePrefilledCreateForm = (prefill) => {
+    configureCreateForm();
+
+    setValue('purchase_request_id', prefill?.id || '');
+    setValue('main_pr_no', prefill?.pr_no || '');
+    renderItems(prefill?.items || []);
+    syncRequestReference();
+  };
+
+  const parseItems = (button) => {
     try {
       return JSON.parse(button.dataset.items || '[]');
     } catch (error) {
       return [];
     }
-  }
+  };
 
-  function resetPoFormForCreate() {
-    const poForm = document.getElementById('poForm');
-    const method = document.getElementById('poFormMethod');
-    const title = document.getElementById('poModalTitle');
-
-    if (poForm) {
-      poForm.action = poForm.dataset.storeUrl || poForm.action;
-      poForm.reset();
-      poForm.dataset.confirmTitle = 'Create Purchase Order?';
-      poForm.dataset.confirmMessage =
-        'Are you sure you want to create this Purchase Order?';
-      poForm.dataset.confirmButton = 'Yes, Create PO';
-      poForm.dataset.confirmType = 'create';
-    }
-
-    if (method) {
-      method.value = 'POST';
-    }
-
-    if (title) {
-      title.textContent = 'New Purchase Order';
-    }
-
-    setValue('purchase_request_id', '');
-    setValue('po_status', 'Ordered');
-    setValue('delivery_fee', 0);
-    setValue('discount', 0);
-    setValue('vat', 0);
-    setValue('gross_amount_display', money(0));
-    setValue('net_amount_display', money(0));
-    setValue('main_pr_no', '');
-    setValue('main_bus_no', '');
-    setValue('main_employee', '');
-
-    renderItems([]);
-    setReadonlyMode(false);
-  }
-
-  function fillPoFormFromPrefill(prefill) {
-    const poForm = document.getElementById('poForm');
-    const method = document.getElementById('poFormMethod');
-    const title = document.getElementById('poModalTitle');
-
-    if (!prefill) return;
-
-    if (poForm) {
-      poForm.action = poForm.dataset.storeUrl || poForm.action;
-      poForm.dataset.confirmTitle = 'Create Purchase Order?';
-      poForm.dataset.confirmMessage =
-        'Are you sure you want to create this Purchase Order?';
-      poForm.dataset.confirmButton = 'Yes, Create PO';
-      poForm.dataset.confirmType = 'create';
-    }
-
-    if (method) {
-      method.value = 'POST';
-    }
-
-    if (title) {
-      title.textContent = 'New Purchase Order';
-    }
-
-    setValue('purchase_request_id', prefill.id || '');
-    setValue('main_pr_no', prefill.pr_no || '');
-    setValue('main_bus_no', prefill.bus_no || '');
-    setValue('main_employee', prefill.employee || '');
-    setValue('purpose', prefill.purpose || '');
-    setValue('po_status', 'Ordered');
-    setValue('delivery_fee', 0);
-    setValue('discount', 0);
-    setValue('vat', 0);
-
-    renderItems(prefill.items || []);
-    setReadonlyMode(false);
-    calculateTotals();
-  }
-
-  function fillPoForm(button, mode) {
-    const poForm = document.getElementById('poForm');
-    const method = document.getElementById('poFormMethod');
-    const title = document.getElementById('poModalTitle');
-
+  const configureExistingForm = (button, mode) => {
     const status = button.dataset.status || 'Ordered';
     const isViewOnly = mode === 'view' || status.toLowerCase() !== 'draft';
+    const items = parseItems(button);
+    const firstItem = items[0] || {};
 
-    if (poForm) {
-      poForm.action = button.dataset.updateUrl || '#';
-      poForm.dataset.confirmTitle = 'Save Purchase Order Changes?';
-      poForm.dataset.confirmMessage =
-        'Are you sure you want to save changes to this Purchase Order?';
-      poForm.dataset.confirmButton = 'Yes, Save Changes';
-      poForm.dataset.confirmType = 'update';
-    }
+    poForm.action = button.dataset.updateUrl || '#';
+    poForm.dataset.confirmTitle = 'Save Purchase Order Changes?';
+    poForm.dataset.confirmMessage = 'Are you sure you want to save changes to this Purchase Order?';
+    poForm.dataset.confirmButton = 'Yes, Save Changes';
+    poForm.dataset.confirmType = 'update';
 
-    if (method) {
-      method.value = 'PUT';
-    }
+    setValue('poFormMethod', 'PUT');
+    setValue('po_no', button.dataset.poNo || '');
+    setValue('po_date', button.dataset.poDate || '');
+    setValue('supplier_name', button.dataset.supplierName || 'N/A');
+    setValue('po_status', status);
+    setValue('main_pr_no', firstItem.pr_no || '');
 
+    const title = field('poModalTitle');
     if (title) {
       title.textContent = isViewOnly ? 'Purchase Order Details' : 'Edit Purchase Order';
     }
 
-    setValue('po_no', button.dataset.poNo);
-    setValue('po_date', button.dataset.poDate);
-    setValue('supplier_name', button.dataset.supplierName);
-    setValue('supplier_address_tel', button.dataset.supplierAddressTel);
-    setValue('terms', button.dataset.terms);
-    setValue('terms_of_payment', button.dataset.termsOfPayment);
-    setValue('purpose', button.dataset.purpose);
-    setValue('po_status', status);
-    setValue('delivery_fee', button.dataset.deliveryFee || 0);
-    setValue('discount', button.dataset.discount || 0);
-    setValue('vat', button.dataset.vat || 0);
-
-    const items = getItemsFromButton(button);
-
     renderItems(items);
-    setReadonlyMode(isViewOnly);
-    calculateTotals();
-  }
+    syncRequestReference();
+    setViewMode(isViewOnly);
+  };
 
-  const poModal = document.getElementById('poModal');
-  const poForm = document.getElementById('poForm');
-  const openPoModal = document.getElementById('openPoModal');
-  const closePoModal = document.getElementById('closePoModal');
-  const cancelPoModal = document.getElementById('cancelPoModal');
-  const closeViewPoModal = document.getElementById('closeViewPoModal');
-  const addPoItemBtn = document.getElementById('addPoItemBtn');
+  poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
 
-  if (poForm) {
-    poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
-  }
-
-  if (openPoModal) {
-    openPoModal.addEventListener('click', function () {
-      resetPoFormForCreate();
-      openModal(poModal);
-    });
-  }
-
-  if (closePoModal) {
-    closePoModal.addEventListener('click', function () {
-      closeModal(poModal);
-    });
-  }
-
-  if (cancelPoModal) {
-    cancelPoModal.addEventListener('click', function () {
-      closeModal(poModal);
-    });
-  }
-
-  if (closeViewPoModal) {
-    closeViewPoModal.addEventListener('click', function () {
-      closeModal(poModal);
-    });
-  }
-
-  if (addPoItemBtn) {
-    addPoItemBtn.addEventListener('click', function () {
-      const index = document.querySelectorAll('.po-item-row').length;
-
-      createItemRow({}, index);
-      syncHiddenAutoFields();
-      reindexRows();
-      calculateTotals();
-    });
-  }
-
-  ['main_bus_no', 'main_pr_no', 'main_employee'].forEach(function (id) {
-    const field = document.getElementById(id);
-
-    if (field) {
-      field.addEventListener('input', syncHiddenAutoFields);
-    }
+  openPoModalBtn?.addEventListener('click', () => {
+    configureCreateForm();
+    openModal(poModal);
   });
 
-  ['delivery_fee', 'discount', 'vat'].forEach(function (id) {
-    const field = document.getElementById(id);
+  closePoModalBtn?.addEventListener('click', () => closeModal(poModal));
+  cancelPoModalBtn?.addEventListener('click', () => closeModal(poModal));
+  closeViewPoModalBtn?.addEventListener('click', () => closeModal(poModal));
 
-    if (field) {
-      field.addEventListener('input', calculateTotals);
-    }
+  addPoItemBtn?.addEventListener('click', () => {
+    createItemRow({}, itemsContainer.querySelectorAll('.po-item-row').length);
+    reindexRows();
+    syncRequestNoToItems();
+    calculateTotal();
   });
 
-  document.addEventListener('click', function (event) {
+  field('main_pr_no')?.addEventListener('input', () => {
+    syncRequestNoToItems();
+    syncRequestReference();
+  });
+
+  document.addEventListener('click', (event) => {
     const editButton = event.target.closest('.open-edit-po-modal');
-
-    if (!editButton) return;
-
-    event.preventDefault();
-
-    const status = String(editButton.dataset.status || '').toLowerCase();
-
-    if (status !== 'draft') {
-      fillPoForm(editButton, 'view');
-    } else {
-      fillPoForm(editButton, 'edit');
-    }
-
-    openModal(poModal);
-  });
-
-  document.addEventListener('click', function (event) {
     const viewButton = event.target.closest('.open-view-po-modal');
+    const button = editButton || viewButton;
 
-    if (!viewButton) return;
+    if (!button) return;
 
     event.preventDefault();
-
-    fillPoForm(viewButton, 'view');
+    configureExistingForm(button, viewButton ? 'view' : 'edit');
     openModal(poModal);
   });
 
-  const deletePoModal = document.getElementById('deletePoModal');
-  const deletePoNo = document.getElementById('deletePoNo');
-  const cancelDeletePo = document.getElementById('cancelDeletePo');
-  const confirmDeletePo = document.getElementById('confirmDeletePo');
-
+  const deletePoModal = field('deletePoModal');
+  const deletePoNo = field('deletePoNo');
+  const cancelDeletePo = field('cancelDeletePo');
+  const confirmDeletePo = field('confirmDeletePo');
   let selectedDeleteForm = null;
 
-  document.addEventListener('click', function (event) {
+  document.addEventListener('click', (event) => {
     const button = event.target.closest('.open-delete-po-modal');
 
     if (!button) return;
 
     event.preventDefault();
-
-    selectedDeleteForm = document.getElementById('deletePoForm-' + button.dataset.id);
+    selectedDeleteForm = field('deletePoForm-' + button.dataset.id);
 
     if (deletePoNo) {
       deletePoNo.textContent = button.dataset.poNo || 'this purchase order';
@@ -493,56 +350,22 @@ document.addEventListener('DOMContentLoaded', function () {
     openModal(deletePoModal);
   });
 
-  if (cancelDeletePo) {
-    cancelDeletePo.addEventListener('click', function () {
-      selectedDeleteForm = null;
-      closeModal(deletePoModal);
-    });
-  }
-
-  if (confirmDeletePo) {
-    confirmDeletePo.addEventListener('click', function () {
-      if (selectedDeleteForm) {
-        selectedDeleteForm.requestSubmit();
-      }
-    });
-  }
-
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest(
-      'button, [data-close-modal], [data-close-feedback]'
-    );
-
-    if (!button) return;
-
-    const buttonText = button.textContent.trim().toLowerCase();
-
-    const isCloseButton =
-      buttonText === 'okay' ||
-      buttonText === 'ok' ||
-      buttonText === 'close' ||
-      button.classList.contains('success-ok-btn') ||
-      button.classList.contains('error-ok-btn') ||
-      button.classList.contains('feedback-ok-btn') ||
-      button.classList.contains('btn-ok') ||
-      button.hasAttribute('data-close-modal') ||
-      button.hasAttribute('data-close-feedback');
-
-    if (!isCloseButton) return;
-
-    const modal =
-      button.closest('.modal-overlay') ||
-      button.closest('.delete-modal-overlay') ||
-      button.closest('.success-modal-overlay') ||
-      button.closest('.error-modal-overlay') ||
-      button.closest('.feedback-modal-overlay') ||
-      button.closest('.action-modal-overlay') ||
-      button.closest('[class*="modal-overlay"]');
-
-    closeModal(modal);
+  cancelDeletePo?.addEventListener('click', () => {
+    selectedDeleteForm = null;
+    closeModal(deletePoModal);
   });
 
-  document.addEventListener('keydown', function (event) {
+  confirmDeletePo?.addEventListener('click', () => {
+    selectedDeleteForm?.requestSubmit();
+  });
+
+  poModal.addEventListener('click', (event) => {
+    if (event.target === poModal) {
+      closeModal(poModal);
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeModal(poModal);
       closeModal(deletePoModal);
@@ -550,9 +373,9 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   if (window.purchaseOrderShouldOpen && window.purchaseOrderPrefill) {
-    fillPoFormFromPrefill(window.purchaseOrderPrefill);
+    configurePrefilledCreateForm(window.purchaseOrderPrefill);
     openModal(poModal);
   } else {
-    renderItems([]);
+    configureCreateForm();
   }
 });
