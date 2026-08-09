@@ -329,6 +329,114 @@ document.addEventListener('DOMContentLoaded', () => {
     openModal(poModal);
   });
 
+  /* Controlled PO status workflow */
+  const poStatusModal = field('poStatusModal');
+  const poStatusForm = field('poStatusForm');
+  const poStatusChoiceList = field('poStatusChoiceList');
+  const poStatusValue = field('poStatusValue');
+  const poStatusCurrentValue = field('poStatusCurrentValue');
+  const poStatusModalPoNo = field('poStatusModalPoNo');
+  const confirmPoStatusBtn = field('confirmPoStatusBtn');
+  const cancelPoStatusModal = field('cancelPoStatusModal');
+
+  const closePoStatusModal = () => {
+    if (poStatusForm) {
+      poStatusForm.action = '';
+      poStatusForm.dataset.confirmMessage = 'Are you sure you want to update this purchase order status?';
+    }
+
+    if (poStatusChoiceList) {
+      poStatusChoiceList.innerHTML = '';
+    }
+
+    if (poStatusValue) {
+      poStatusValue.value = '';
+    }
+
+    if (confirmPoStatusBtn) {
+      confirmPoStatusBtn.disabled = true;
+    }
+
+    closeModal(poStatusModal);
+  };
+
+  const choosePoStatus = (button, status) => {
+    if (!poStatusChoiceList || !poStatusValue || !confirmPoStatusBtn) return;
+
+    poStatusChoiceList.querySelectorAll('.po-status-choice').forEach((choice) => {
+      choice.classList.toggle('is-selected', choice === button);
+    });
+
+    poStatusValue.value = status;
+    confirmPoStatusBtn.disabled = false;
+
+    if (poStatusForm) {
+      const poNo = poStatusModalPoNo?.textContent || 'this purchase order';
+      poStatusForm.dataset.confirmMessage = `Change ${poNo} status to ${status}?`;
+    }
+  };
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-po-status-modal');
+
+    if (!button) return;
+
+    event.preventDefault();
+
+    let nextStatuses = [];
+
+    try {
+      nextStatuses = JSON.parse(button.dataset.nextStatuses || '[]');
+    } catch (error) {
+      nextStatuses = [];
+    }
+
+    if (!poStatusModal || !poStatusForm || !poStatusChoiceList || nextStatuses.length === 0) {
+      return;
+    }
+
+    poStatusForm.action = button.dataset.statusUrl || '';
+
+    if (poStatusModalPoNo) {
+      poStatusModalPoNo.textContent = button.dataset.poNo || 'this purchase order';
+    }
+
+    if (poStatusCurrentValue) {
+      poStatusCurrentValue.textContent = button.dataset.currentStatus || '—';
+    }
+
+    if (poStatusValue) {
+      poStatusValue.value = '';
+    }
+
+    if (confirmPoStatusBtn) {
+      confirmPoStatusBtn.disabled = true;
+    }
+
+    poStatusChoiceList.innerHTML = nextStatuses.map((status) => `
+      <button type="button" class="po-status-choice" data-next-po-status="${escapeHtml(status)}">
+        <span>${escapeHtml(status)}</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    `).join('');
+
+    poStatusChoiceList.querySelectorAll('[data-next-po-status]').forEach((choice) => {
+      choice.addEventListener('click', () => {
+        choosePoStatus(choice, choice.dataset.nextPoStatus || '');
+      });
+    });
+
+    openModal(poStatusModal);
+  });
+
+  cancelPoStatusModal?.addEventListener('click', closePoStatusModal);
+
+  poStatusModal?.addEventListener('click', (event) => {
+    if (event.target === poStatusModal) {
+      closePoStatusModal();
+    }
+  });
+
   const deletePoModal = field('deletePoModal');
   const deletePoNo = field('deletePoNo');
   const cancelDeletePo = field('cancelDeletePo');
@@ -368,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeModal(poModal);
+      closePoStatusModal();
       closeModal(deletePoModal);
     }
   });
