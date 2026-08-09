@@ -7,41 +7,6 @@
     'resources/js/Main-js/sidebar.js'
   ]"
 >
-
-  @php
-    $movementQuery = \App\Models\Warehouse\StockMovement::query();
-
-    if (request()->filled('search')) {
-      $search = trim(request('search'));
-      $movementQuery->where(function ($query) use ($search) {
-        $query->where('item_name', 'like', "%{$search}%")
-          ->orWhere('item_code', 'like', "%{$search}%")
-          ->orWhere('reference_no', 'like', "%{$search}%")
-          ->orWhere('movement_type', 'like', "%{$search}%")
-          ->orWhere('remarks', 'like', "%{$search}%");
-      });
-    }
-
-    if (request()->filled('type') && request('type') !== 'All Types') {
-      $movementQuery->where('movement_type', request('type'));
-    }
-
-    if (request('date_filter') === 'Today') {
-      $movementQuery->whereDate('created_at', today());
-    } elseif (request('date_filter') === 'This Week') {
-      $movementQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-    } elseif (request('date_filter') === 'This Month') {
-      $movementQuery->whereYear('created_at', now()->year)
-        ->whereMonth('created_at', now()->month);
-    }
-
-    $stockMovements = $movementQuery->latest()->paginate(20)->withQueryString();
-    $totalMovements = \App\Models\Warehouse\StockMovement::count();
-    $stockIn = \App\Models\Warehouse\StockMovement::where('movement_type', 'Stock In')->count();
-    $stockOut = \App\Models\Warehouse\StockMovement::where('movement_type', 'Stock Out')->count();
-    $adjustments = \App\Models\Warehouse\StockMovement::where('movement_type', 'Adjustment')->count();
-  @endphp
-
   <div class="app">
     <x-layout.sidebar
       department="Warehouse"
@@ -85,7 +50,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="type" id="movementTypeFilter" onchange="this.form.requestSubmit()">
+            <select name="type" id="movementTypeFilter">
               @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
                 <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
               @endforeach
@@ -93,7 +58,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="date_filter" id="movementDateFilter" onchange="this.form.requestSubmit()">
+            <select name="date_filter" id="movementDateFilter">
               @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
                 <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
               @endforeach
