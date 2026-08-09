@@ -10,6 +10,11 @@ class IncomingDeliveryController extends Controller
 {
     public function index(Request $request)
     {
+        return view('Warehouse.incoming-deliveries', $this->data($request));
+    }
+
+    public function data(Request $request): array
+    {
         $deliveryQuery = PurchaseOrder::query()
             ->whereIn('status', ['For Delivery', 'Delivered', 'For Pick-up', 'Picked Up']);
 
@@ -24,37 +29,17 @@ class IncomingDeliveryController extends Controller
         }
 
         if ($request->filled('status') && $request->status !== 'All Statuses') {
-            if ($request->status === 'Received') {
-                $deliveryQuery->whereNotNull('inventory_posted_at');
-            } else {
-                $deliveryQuery->where('status', $request->status);
-            }
+            $request->status === 'Received'
+                ? $deliveryQuery->whereNotNull('inventory_posted_at')
+                : $deliveryQuery->where('status', $request->status);
         }
 
         $deliveries = $deliveryQuery->latest()->paginate(20)->withQueryString();
+        $totalIncoming = PurchaseOrder::whereIn('status', ['For Delivery', 'For Pick-up'])->whereNull('inventory_posted_at')->count();
+        $forDelivery = PurchaseOrder::where('status', 'For Delivery')->whereNull('inventory_posted_at')->count();
+        $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->whereNotNull('inventory_posted_at')->count();
+        $receivedToday = PurchaseOrder::whereDate('inventory_posted_at', today())->count();
 
-        $totalIncoming = PurchaseOrder::query()
-            ->whereIn('status', ['For Delivery', 'For Pick-up'])
-            ->whereNull('inventory_posted_at')
-            ->count();
-        $forDelivery = PurchaseOrder::query()
-            ->where('status', 'For Delivery')
-            ->whereNull('inventory_posted_at')
-            ->count();
-        $delivered = PurchaseOrder::query()
-            ->whereIn('status', ['Delivered', 'Picked Up'])
-            ->whereNotNull('inventory_posted_at')
-            ->count();
-        $receivedToday = PurchaseOrder::query()
-            ->whereDate('inventory_posted_at', today())
-            ->count();
-
-        return view('Warehouse.incoming-deliveries', compact(
-            'deliveries',
-            'totalIncoming',
-            'forDelivery',
-            'delivered',
-            'receivedToday'
-        ));
+        return compact('deliveries', 'totalIncoming', 'forDelivery', 'delivered', 'receivedToday');
     }
 }
