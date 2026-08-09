@@ -339,6 +339,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmPoStatusBtn = field('confirmPoStatusBtn');
   const cancelPoStatusModal = field('cancelPoStatusModal');
 
+  const allowedNextStatuses = (currentStatus) => {
+    switch (currentStatus) {
+      case 'Ordered':
+        return ['For Pick-up', 'For Delivery'];
+      case 'For Pick-up':
+        return ['Picked Up'];
+      case 'For Delivery':
+        return ['Delivered'];
+      default:
+        return [];
+    }
+  };
+
   const closePoStatusModal = () => {
     if (poStatusForm) {
       poStatusForm.action = '';
@@ -382,14 +395,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!button) return;
 
     event.preventDefault();
+    event.stopPropagation();
 
-    let nextStatuses = [];
-
-    try {
-      nextStatuses = JSON.parse(button.dataset.nextStatuses || '[]');
-    } catch (error) {
-      nextStatuses = [];
-    }
+    const currentStatus = button.dataset.currentStatus || '';
+    const nextStatuses = allowedNextStatuses(currentStatus);
 
     if (!poStatusModal || !poStatusForm || !poStatusChoiceList || nextStatuses.length === 0) {
       return;
@@ -402,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (poStatusCurrentValue) {
-      poStatusCurrentValue.textContent = button.dataset.currentStatus || '—';
+      poStatusCurrentValue.textContent = currentStatus || '—';
     }
 
     if (poStatusValue) {
@@ -427,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     openModal(poStatusModal);
-  });
+  }, true);
 
   cancelPoStatusModal?.addEventListener('click', closePoStatusModal);
 
