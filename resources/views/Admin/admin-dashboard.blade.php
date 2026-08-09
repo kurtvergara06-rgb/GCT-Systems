@@ -132,29 +132,59 @@
             <section class="admin-mid-grid">
                 <article class="admin-panel">
                     <div class="admin-panel-header">
-                        <div><h2>Department Access</h2><p>Quick access to department modules and admin tools.</p></div>
+                        <div>
+                            <h2>Department Overview</h2>
+                            <p>Monitor the current workload and attention points of each department.</p>
+                        </div>
                     </div>
-                    <div class="admin-access-grid">
-                        <a href="{{ route('maintenance-dashboard') }}" class="admin-access-card">
+                    <div class="admin-access-grid admin-overview-grid">
+                        <div class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon blue"><i class="fa-solid fa-truck"></i></span>
-                            <div><strong>Maintenance</strong><small>Job orders, PMS and repairs</small></div><i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{{ route('inventory') }}" class="admin-access-card">
+                            <div>
+                                <strong>Maintenance</strong>
+                                <small>Job orders, PMS and repair activity</small>
+                            </div>
+                            <div class="admin-overview-metric">
+                                <span>{{ number_format($departmentMetrics['maintenance'] ?? 0) }}</span>
+                                <small>Active Job Orders</small>
+                            </div>
+                        </div>
+
+                        <div class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon green"><i class="fa-solid fa-warehouse"></i></span>
-                            <div><strong>Warehouse</strong><small>Inventory and stock movement</small></div><i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{{ route('purchase-orders') }}" class="admin-access-card">
+                            <div>
+                                <strong>Warehouse</strong>
+                                <small>Inventory health and stock monitoring</small>
+                            </div>
+                            <div class="admin-overview-metric">
+                                <span>{{ number_format($departmentMetrics['warehouse'] ?? 0) }}</span>
+                                <small>Low / Critical Stock</small>
+                            </div>
+                        </div>
+
+                        <div class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
-                            <div><strong>Purchase</strong><small>Requests and purchase orders</small></div><i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{{ route('dashboard-operation') }}" class="admin-access-card">
+                            <div>
+                                <strong>Purchase</strong>
+                                <small>Requests, purchase orders and procurement</small>
+                            </div>
+                            <div class="admin-overview-metric">
+                                <span>{{ number_format($departmentMetrics['purchase'] ?? 0) }}</span>
+                                <small>Active Purchase Orders</small>
+                            </div>
+                        </div>
+
+                        <div class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon purple"><i class="fa-solid fa-users-gear"></i></span>
-                            <div><strong>Operations</strong><small>Attendance and scheduling</small></div><i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{{ route('admin.batch-file-processing') }}" class="admin-access-card">
-                            <span class="admin-access-icon blue"><i class="fa-solid fa-file-arrow-up"></i></span>
-                            <div><strong>Batch Processing</strong><small>GPS files and structured records</small></div><i class="fa-solid fa-chevron-right"></i>
-                        </a>
+                            <div>
+                                <strong>Operations</strong>
+                                <small>Attendance and daily operational activity</small>
+                            </div>
+                            <div class="admin-overview-metric">
+                                <span>{{ number_format($departmentMetrics['operations'] ?? 0) }}</span>
+                                <small>Attendance Today</small>
+                            </div>
+                        </div>
                     </div>
                 </article>
 
