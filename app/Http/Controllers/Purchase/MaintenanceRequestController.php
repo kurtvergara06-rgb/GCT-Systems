@@ -34,9 +34,7 @@ class MaintenanceRequestController extends Controller
         }
 
         $baseQuery = $this->maintenanceBaseQuery();
-
-        $query = (clone $baseQuery)
-            ->whereIn('status', $this->purchaseStatuses);
+        $query = (clone $baseQuery)->whereIn('status', $this->purchaseStatuses);
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -51,10 +49,7 @@ class MaintenanceRequestController extends Controller
             });
         }
 
-        if (
-            $request->filled('status')
-            && $request->status !== 'All States'
-        ) {
+        if ($request->filled('status') && $request->status !== 'All States') {
             $query->where('status', $request->status);
         }
 
@@ -63,43 +58,21 @@ class MaintenanceRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $purchaseRequests
-            ->getCollection()
-            ->transform(fn ($purchaseRequest) =>
-                $this->prepareRequestForDisplay($purchaseRequest)
-            );
+        $purchaseRequests->getCollection()->transform(
+            fn ($purchaseRequest) => $this->prepareRequestForDisplay($purchaseRequest)
+        );
 
         $totalRequests = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses)
             ->count();
-
-        $forPurchase = (clone $baseQuery)
-            ->where('status', 'For Purchase')
-            ->count();
-
-        $ordered = (clone $baseQuery)
-            ->where('status', 'Ordered')
-            ->count();
-
-        $forPickup = (clone $baseQuery)
-            ->where('status', 'For Pick-up')
-            ->count();
-
-        $forDelivery = (clone $baseQuery)
-            ->where('status', 'For Delivery')
-            ->count();
-
+        $forPurchase = (clone $baseQuery)->where('status', 'For Purchase')->count();
+        $ordered = (clone $baseQuery)->where('status', 'Ordered')->count();
+        $forPickup = (clone $baseQuery)->where('status', 'For Pick-up')->count();
+        $forDelivery = (clone $baseQuery)->where('status', 'For Delivery')->count();
         $delivered = (clone $baseQuery)
-            ->whereIn('status', [
-                'Delivered',
-                'Picked Up',
-            ])
+            ->whereIn('status', ['Delivered', 'Picked Up'])
             ->count();
-
-        $pickedUp = (clone $baseQuery)
-            ->where('status', 'Picked Up')
-            ->count();
-
+        $pickedUp = (clone $baseQuery)->where('status', 'Picked Up')->count();
         $statuses = $this->purchaseStatuses;
 
         return view(
@@ -120,32 +93,7 @@ class MaintenanceRequestController extends Controller
 
     private function history(Request $request)
     {
-        $historyQuery = MaintenanceRequest::query()
-            ->where(function ($query) {
-                $query
-                    ->where(function ($maintenance) {
-                        $maintenance
-                            ->where(function ($source) {
-                                $source->whereNull('source_type')
-                                    ->orWhere('source_type', 'Maintenance Request')
-                                    ->orWhere('source_type', 'Job Order');
-                            })
-                            ->where('status', 'Issued')
-                            ->where(function ($q) {
-                                $q->whereNull('job_order_no')
-                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
-                            });
-                    })
-                    ->orWhere(function ($restock) {
-                        $restock
-                            ->where('source_type', 'Auto Restock')
-                            ->whereIn('status', [
-                                'Delivered',
-                                'Picked Up',
-                                'Issued',
-                            ]);
-                    });
-            });
+        $historyQuery = $this->historyBaseQuery();
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -164,10 +112,7 @@ class MaintenanceRequestController extends Controller
             if ($request->source === 'Maintenance Request') {
                 $historyQuery->where(function ($source) {
                     $source->whereNull('source_type')
-                        ->orWhereIn('source_type', [
-                            'Maintenance Request',
-                            'Job Order',
-                        ]);
+                        ->orWhereIn('source_type', ['Maintenance Request', 'Job Order']);
                 });
             } elseif ($request->source === 'Inventory Restock') {
                 $historyQuery->where('source_type', 'Auto Restock');
@@ -183,40 +128,16 @@ class MaintenanceRequestController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $historyRecords
-            ->getCollection()
-            ->transform(function ($record) {
-                $record = $this->prepareRequestForDisplay($record);
-                $record->history_source_label = $record->source_type === 'Auto Restock'
-                    ? 'Inventory Restock'
-                    : 'Maintenance Request';
+        $historyRecords->getCollection()->transform(function ($record) {
+            $record = $this->prepareRequestForDisplay($record);
+            $record->history_source_label = $record->source_type === 'Auto Restock'
+                ? 'Inventory Restock'
+                : 'Maintenance Request';
 
-                return $record;
-            });
+            return $record;
+        });
 
-        $historyBase = MaintenanceRequest::query()
-            ->where(function ($query) {
-                $query
-                    ->where(function ($maintenance) {
-                        $maintenance
-                            ->where(function ($source) {
-                                $source->whereNull('source_type')
-                                    ->orWhere('source_type', 'Maintenance Request')
-                                    ->orWhere('source_type', 'Job Order');
-                            })
-                            ->where('status', 'Issued')
-                            ->where(function ($q) {
-                                $q->whereNull('job_order_no')
-                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
-                            });
-                    })
-                    ->orWhere(function ($restock) {
-                        $restock
-                            ->where('source_type', 'Auto Restock')
-                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued']);
-                    });
-            });
-
+        $historyBase = $this->historyBaseQuery();
         $totalHistory = (clone $historyBase)->count();
         $maintenanceHistory = (clone $historyBase)
             ->where(function ($source) {
@@ -257,10 +178,7 @@ class MaintenanceRequestController extends Controller
         }
 
         $purchaseOrderExists = PurchaseOrder::query()
-            ->where(
-                'purchase_request_id',
-                $maintenanceRequest->id
-            )
+            ->where('purchase_request_id', $maintenanceRequest->id)
             ->exists();
 
         if ($purchaseOrderExists) {
@@ -275,8 +193,7 @@ class MaintenanceRequestController extends Controller
         session()->flash('open_po_modal', true);
 
         return new RedirectResponse(
-            '/purchase-orders?create_from_pr='
-            . $maintenanceRequest->id
+            '/purchase-orders?create_from_pr=' . $maintenanceRequest->id
         );
     }
 
@@ -302,67 +219,73 @@ class MaintenanceRequestController extends Controller
             });
     }
 
+    private function historyBaseQuery()
+    {
+        return MaintenanceRequest::query()
+            ->where(function ($query) {
+                $query
+                    ->where(function ($maintenance) {
+                        $maintenance
+                            ->where(function ($source) {
+                                $source->whereNull('source_type')
+                                    ->orWhere('source_type', 'Maintenance Request')
+                                    ->orWhere('source_type', 'Job Order');
+                            })
+                            ->where('status', 'Issued')
+                            ->where(function ($q) {
+                                $q->whereNull('job_order_no')
+                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+                            })
+                            // Internal purchase-side copies (e.g. PR-...-P) mirror
+                            // the original PR and must not appear as a second history row.
+                            ->where(function ($q) {
+                                $q->whereNull('pr_no')
+                                    ->orWhere('pr_no', 'not like', '%-P%');
+                            });
+                    })
+                    ->orWhere(function ($restock) {
+                        $restock
+                            ->where('source_type', 'Auto Restock')
+                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued']);
+                    });
+            });
+    }
+
     private function prepareRequestForDisplay(
         MaintenanceRequest $purchaseRequest
     ): MaintenanceRequest {
         $parts = collect(
-            $this->partParser->parsePartText(
-                $purchaseRequest->item
-            )
+            $this->partParser->parsePartText($purchaseRequest->item)
         )
             ->map(function ($part) {
-                $unit = ($part['unit'] ?? '') !== ''
-                    ? $part['unit']
-                    : '—';
+                $unit = ($part['unit'] ?? '') !== '' ? $part['unit'] : '—';
 
                 return [
                     'name' => $part['name'] ?? '',
                     'quantity' => $part['quantity'] ?? 1,
                     'unit' => $unit,
                     'quantity_display' => trim(
-                        ($part['quantity'] ?? 1)
-                        . ' '
-                        . $unit
+                        ($part['quantity'] ?? 1) . ' ' . $unit
                     ),
                 ];
             })
-            ->filter(
-                fn ($part) =>
-                    is_array($part)
-                    && ! empty($part['name'])
-            )
+            ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
             ->values()
             ->toArray();
 
         $purchaseRequest->parts_breakdown = $parts;
-
         $purchaseRequest->first_item_display =
-            $parts[0]['name']
-            ?? $purchaseRequest->item
-            ?? '—';
+            $parts[0]['name'] ?? $purchaseRequest->item ?? '—';
 
-        $firstQuantity =
-            $parts[0]['quantity']
-            ?? null;
+        $firstQuantity = $parts[0]['quantity'] ?? null;
+        $firstUnit = $parts[0]['unit'] ?? null;
 
-        $firstUnit =
-            $parts[0]['unit']
-            ?? null;
-
-        if (
-            $firstQuantity
-            && $firstUnit
-            && $firstUnit !== '—'
-        ) {
-            $purchaseRequest->first_quantity_display =
-                $firstQuantity . ' ' . $firstUnit;
+        if ($firstQuantity && $firstUnit && $firstUnit !== '—') {
+            $purchaseRequest->first_quantity_display = $firstQuantity . ' ' . $firstUnit;
         } elseif ($firstQuantity) {
-            $purchaseRequest->first_quantity_display =
-                $firstQuantity;
+            $purchaseRequest->first_quantity_display = $firstQuantity;
         } else {
-            $purchaseRequest->first_quantity_display =
-                $purchaseRequest->quantity
-                ?? '—';
+            $purchaseRequest->first_quantity_display = $purchaseRequest->quantity ?? '—';
         }
 
         return $purchaseRequest;
