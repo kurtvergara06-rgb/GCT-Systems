@@ -138,30 +138,21 @@
 
 .admin-access-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .admin-access-card {
-  min-height: 130px;
-  padding: 14px;
+  min-height: 142px;
+  padding: 15px;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   background: #fbfdff;
   color: #0f172a;
-  text-decoration: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  transition: .2s ease;
-}
-
-.admin-access-card:hover {
-  transform: translateY(-2px);
-  border-color: #ffc400;
-  background: #fff;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, .07);
 }
 
 .admin-access-icon {
@@ -171,7 +162,7 @@
   font-size: 14px;
 }
 
-.admin-access-card div {
+.admin-access-card > div:not(.admin-overview-metric) {
   flex: 1;
 }
 
@@ -189,10 +180,45 @@
   line-height: 1.45;
 }
 
-.admin-access-card > i {
-  align-self: flex-end;
-  color: #64748b;
-  font-size: 10px;
+.admin-overview-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-overview-card::after {
+  content: '';
+  position: absolute;
+  right: -24px;
+  bottom: -34px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, .08);
+  pointer-events: none;
+}
+
+.admin-overview-metric {
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid #e7edf5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-overview-metric span {
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.admin-overview-metric small {
+  margin: 0;
+  text-align: right;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .admin-panel-link {
@@ -351,7 +377,7 @@
 @media (max-width: 1250px) {
   .admin-chart-grid { grid-template-columns: 1fr 1fr; }
   .admin-chart-card:last-child { grid-column: 1 / -1; }
-  .admin-access-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-access-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1050px) {
