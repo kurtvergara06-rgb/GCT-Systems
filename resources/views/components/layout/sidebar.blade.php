@@ -146,28 +146,6 @@
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | RETIRED ADMIN NAVIGATION
-    |--------------------------------------------------------------------------
-    | Account creation is handled directly in User Management. The previous
-    | Account Requests workflow is no longer part of the Admin navigation.
-    */
-    $items = collect($items)
-        ->map(function ($item) {
-            if (isset($item['children']) && is_array($item['children'])) {
-                $item['children'] = array_values(array_filter(
-                    $item['children'],
-                    fn ($child) => ($child['route'] ?? null) !== 'admin.account-requests'
-                ));
-            }
-
-            return $item;
-        })
-        ->filter(fn ($item) => ($item['route'] ?? null) !== 'admin.account-requests')
-        ->values()
-        ->all();
-
     if ($authUser) {
         if (
             $normalizedDepartment === 'admin'
