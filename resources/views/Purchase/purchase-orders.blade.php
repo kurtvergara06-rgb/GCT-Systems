@@ -224,9 +224,14 @@
                   $requestType = ! $hasRequest
                     ? 'Manual Purchase'
                     : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance Request');
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $purchaseOrder->status));
                   $isDraft = strtolower($purchaseOrder->status ?? '') === 'draft';
                   $isFinalStatus = in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true);
+                  $nextStatuses = match($purchaseOrder->status) {
+                    'Ordered' => ['For Pick-up', 'For Delivery'],
+                    'For Pick-up' => ['Picked Up'],
+                    'For Delivery' => ['Delivered'],
+                    default => [],
+                  };
                 @endphp
 
                 <tr>
@@ -255,38 +260,8 @@
                     <div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div>
                   </td>
 
-                  <td>
-                    <form
-                      action="/purchase-orders/{{ $purchaseOrder->id }}/status"
-                      method="POST"
-                      class="status-update-form"
-                      data-confirm-form
-                      data-confirm-title="Change PO Status?"
-                      data-confirm-message="Are you sure you want to change this purchase order status?"
-                      data-confirm-button="Yes, Change Status"
-                      data-confirm-type="status"
-                    >
-                      @csrf
-                      @method('PATCH')
-
-                      <select
-                        name="status"
-                        class="po-status-select {{ $statusClass }} {{ $isFinalStatus ? 'is-final' : '' }}"
-                        onchange="
-                          this.form.dataset.confirmMessage =
-                            'Change PO {{ $purchaseOrder->po_no }} status to ' + this.value + '?';
-                          this.form.requestSubmit();
-                        "
-                        title="{{ $isFinalStatus ? 'Final status — this purchase order can no longer be changed.' : 'Change purchase order status' }}"
-                        {{ $isFinalStatus ? 'disabled' : '' }}
-                      >
-                        @foreach($statuses as $status)
-                          <option value="{{ $status }}" {{ $purchaseOrder->status === $status ? 'selected' : '' }}>
-                            {{ $status }}
-                          </option>
-                        @endforeach
-                      </select>
-                    </form>
+                  <td class="po-status-cell">
+                    <x-ui.status-badge :status="$purchaseOrder->status" type="purchase" />
                   </td>
 
                   <td>
@@ -312,6 +287,18 @@
                       >
                         <i class="fa-solid {{ $isDraft ? 'fa-pen-to-square' : 'fa-eye' }}"></i>
                       </button>
+
+                      @if(count($nextStatuses) > 0)
+                        <x-ui.action-button
+                          type="status"
+                          title="Update PO Status"
+                          class="open-po-status-modal"
+                          data-po-no="{{ $purchaseOrder->po_no }}"
+                          data-current-status="{{ $purchaseOrder->status }}"
+                          data-status-url="/purchase-orders/{{ $purchaseOrder->id }}/status"
+                          data-next-statuses='@json($nextStatuses)'
+                        />
+                      @endif
 
                       @if($isDraft)
                         <form
@@ -475,6 +462,56 @@
         <div class="po-modal-actions hidden" id="poViewActions">
           <button type="button" id="closeViewPoModal" class="secondary-btn po-cancel-btn">
             Close
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- CONTROLLED STATUS UPDATE MODAL --}}
+  <div id="poStatusModal" class="modal-overlay po-status-modal-overlay">
+    <div class="po-status-modal" role="dialog" aria-modal="true" aria-labelledby="poStatusModalTitle">
+      <div class="po-status-modal-icon">
+        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+      </div>
+
+      <div class="po-status-modal-copy">
+        <h2 id="poStatusModalTitle">Update Purchase Order Status</h2>
+        <p>
+          Select the next workflow status for
+          <strong id="poStatusModalPoNo">this purchase order</strong>.
+        </p>
+      </div>
+
+      <div class="po-status-current">
+        <span>Current Status</span>
+        <strong id="poStatusCurrentValue">—</strong>
+      </div>
+
+      <form
+        id="poStatusForm"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Update PO Status?"
+        data-confirm-message="Are you sure you want to update this purchase order status?"
+        data-confirm-button="Yes, Update Status"
+        data-confirm-type="status"
+      >
+        @csrf
+        @method('PATCH')
+
+        <div class="po-status-choice-list" id="poStatusChoiceList"></div>
+
+        <input type="hidden" name="status" id="poStatusValue">
+
+        <div class="po-status-modal-actions">
+          <button type="button" id="cancelPoStatusModal" class="secondary-btn">
+            Cancel
+          </button>
+
+          <button type="submit" id="confirmPoStatusBtn" class="primary-btn" disabled>
+            <i class="fa-solid fa-check"></i>
+            Update Status
           </button>
         </div>
       </form>
