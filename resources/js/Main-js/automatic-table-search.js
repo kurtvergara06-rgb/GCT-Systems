@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const toolbarSelector = [
+    '.toolbar',
+    '.requested-toolbar',
+    '.restock-toolbar',
+    '.po-toolbar',
+    '.schedule-toolbar',
+  ].join(', ');
+
+  const searchInputSelector = '.search-box input[type="text"], .search-box input[type="search"]';
+
   const findTableContext = (toolbar) => {
     let node = toolbar?.parentElement;
 
@@ -19,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const usesOwnClientFilter = (toolbar) => {
     return toolbar?.dataset?.clientFilter !== undefined;
   };
+
+  const closestToolbar = (element) => element?.closest?.(toolbarSelector) || null;
 
   const searchableRows = (table) => {
     if (!table?.tBodies?.[0]) {
@@ -80,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const input = toolbar.querySelector('.search-box input[type="text"], .search-box input[type="search"]');
+    const input = toolbar.querySelector(searchInputSelector);
     const context = findTableContext(toolbar);
 
     if (!context?.table) {
@@ -125,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       select.removeAttribute('onchange');
     });
 
-    const input = toolbar.querySelector('.search-box input[type="text"], .search-box input[type="search"]');
+    const input = toolbar.querySelector(searchInputSelector);
     if (input) {
       input.dataset.autoSearchBound = 'true';
       input.setAttribute('autocomplete', 'off');
@@ -134,51 +146,54 @@ document.addEventListener('DOMContentLoaded', () => {
     applyToolbarFilters(toolbar);
   };
 
-  document.querySelectorAll('.toolbar').forEach(prepareToolbar);
+  document.querySelectorAll(toolbarSelector).forEach(prepareToolbar);
 
   document.addEventListener('input', (event) => {
-    const input = event.target.closest?.('.toolbar .search-box input[type="text"], .toolbar .search-box input[type="search"]');
+    const input = event.target.closest?.(searchInputSelector);
+    const toolbar = closestToolbar(input);
 
-    if (!input) {
+    if (!input || !toolbar) {
       return;
     }
 
-    applyToolbarFilters(input.closest('.toolbar'));
+    applyToolbarFilters(toolbar);
   }, true);
 
   document.addEventListener('change', (event) => {
-    const select = event.target.closest?.('.toolbar select');
+    const select = event.target.closest?.('select');
+    const toolbar = closestToolbar(select);
 
-    if (!select) {
+    if (!select || !toolbar) {
       return;
     }
 
-    applyToolbarFilters(select.closest('.toolbar'));
+    applyToolbarFilters(toolbar);
   }, true);
 
   document.addEventListener('keydown', (event) => {
-    const input = event.target.closest?.('.toolbar .search-box input[type="text"], .toolbar .search-box input[type="search"]');
+    const input = event.target.closest?.(searchInputSelector);
+    const toolbar = closestToolbar(input);
 
-    if (!input) {
+    if (!input || !toolbar) {
       return;
     }
 
     if (event.key === 'Enter') {
       event.preventDefault();
-      applyToolbarFilters(input.closest('.toolbar'));
+      applyToolbarFilters(toolbar);
     }
 
     if (event.key === 'Escape') {
       event.preventDefault();
       input.value = '';
-      applyToolbarFilters(input.closest('.toolbar'));
+      applyToolbarFilters(toolbar);
     }
   }, true);
 
   document.addEventListener('submit', (event) => {
     const form = event.target;
 
-    if (!(form instanceof HTMLFormElement) || !form.classList.contains('toolbar')) {
+    if (!(form instanceof HTMLFormElement) || !form.matches(toolbarSelector)) {
       return;
     }
 
@@ -191,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, true);
 
   document.addEventListener('system:table-rows-loaded', (event) => {
-    document.querySelectorAll('.toolbar').forEach((toolbar) => {
+    document.querySelectorAll(toolbarSelector).forEach((toolbar) => {
       if (usesOwnClientFilter(toolbar)) {
         return;
       }
