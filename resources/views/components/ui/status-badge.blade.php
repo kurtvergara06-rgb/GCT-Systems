@@ -20,6 +20,7 @@
         'approved' => 'active',
         'issued' => 'active',
         'in-stock' => 'active',
+        'allowed' => 'active',
 
         'completed' => 'completed',
         'done' => 'completed',
@@ -63,10 +64,14 @@
         'cancelled' => 'inactive',
         'canceled' => 'inactive',
         'not-available' => 'inactive',
+        'restricted' => 'inactive',
 
         'draft' => 'draft',
         'no-attendance' => 'draft',
         'unknown' => 'draft',
+        'protected' => 'draft',
+        'review-mode' => 'draft',
+        'edit-mode-active' => 'ongoing',
     ];
 
     $statusClass = $statusMap[$statusKey] ?? ($statusKey ?: 'draft');
@@ -93,6 +98,10 @@
     }
 @endphp
 
-<span class="{{ $badgeClass }}" {{ $attributes }}>
+<span {{ $attributes->merge([
+    'class' => $badgeClass,
+    'data-ui-component' => 'status-badge',
+    'data-status' => $statusClass,
+]) }}>
     {{ $value ?: 'Unknown' }}
 </span>

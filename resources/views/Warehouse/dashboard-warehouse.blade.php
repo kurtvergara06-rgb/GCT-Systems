@@ -23,18 +23,7 @@
   @endphp
 
   <div class="app warehouse-dashboard-page">
-    <x-layout.sidebar
-      department="Warehouse"
-      subtitle="Warehouse Module"
-      icon="fa-warehouse"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-        ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
-      ]"
-    />
+    <x-layout.sidebar department="Warehouse" />
 
     <main class="main warehouse-dashboard-main">
       <x-layout.topbar
@@ -43,7 +32,7 @@
         notification-count="6"
       />
 
-      <section class="stats-grid warehouse-stats-grid">
+      <section data-ajax-region="summary" class="stats-grid warehouse-stats-grid">
         <x-ui.summary-card label="Inventory Items" value="{{ $totalInventory }}" small="Registered stock items" icon="fa-boxes-stacked" color="blue" />
         <x-ui.summary-card label="Low Stock" value="{{ $lowStockItems }}" small="Needs replenishment" icon="fa-triangle-exclamation" color="red" />
         <x-ui.summary-card label="Part Requests" value="{{ $pendingPartRequests }}" small="Waiting for warehouse action" icon="fa-clipboard-list" color="yellow" />

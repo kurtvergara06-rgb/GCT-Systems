@@ -70,26 +70,7 @@
   @endphp
 
   <div class="app">
-    <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-cart-shopping"
-      user-name="P. Admin"
-      user-role="Purchase Admin"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
-        [
-          'label' => 'Requested Purchase',
-          'icon' => 'fa-clipboard-list',
-          'children' => [
-            ['label' => 'Maintenance Requests', 'route' => 'maintenance-requests', 'icon' => 'fa-screwdriver-wrench'],
-            ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
-          ],
-        ],
-        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
-      ]"
-    />
+    <x-layout.sidebar department="Purchase" />
 
     <main class="main">
       <x-layout.topbar
@@ -98,14 +79,14 @@
         notification-count="6"
       />
 
-      <section class="stats-grid">
+      <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card label="Total Purchase Orders" value="{{ $totalOrders }}" small="All procurement records" icon="fa-file-invoice" color="gray" />
         <x-ui.summary-card label="Ordered" value="{{ $ordered }}" small="Awaiting supplier action" icon="fa-file-invoice" color="blue" />
         <x-ui.summary-card label="For Pick-up" value="{{ $forPickup }}" small="Ready for collection" icon="fa-box" color="yellow" />
         <x-ui.summary-card label="Delivered / Picked Up" value="{{ $delivered }}" small="Completed procurement" icon="fa-circle-check" color="green" />
       </section>
 
-      <section class="table-card purchase-order-card">
+      <section data-ajax-region="records" class="table-card purchase-order-card">
         <div class="section-header po-section-header">
           <div class="section-heading">
             <span class="section-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>

@@ -8,18 +8,7 @@
   ]"
 >
   <div class="app">
-    <x-layout.sidebar
-      department="Warehouse"
-      subtitle="Warehouse Module"
-      icon="fa-warehouse"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-        ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
-      ]"
-    />
+    <x-layout.sidebar department="Warehouse" />
 
     <main class="main">
       <x-layout.topbar
@@ -28,14 +17,14 @@
         notification-count="6"
       />
 
-      <section class="stats-grid inventory-stats">
+      <section data-ajax-region="summary" class="stats-grid inventory-stats">
         <x-ui.summary-card label="Approved" value="{{ $approved ?? 0 }}" small="Ready to process" icon="fa-check" color="green" />
         <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable" icon="fa-cart-shopping" color="blue" />
         <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-box" color="yellow" />
         <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released parts" icon="fa-box-open" color="gray" />
       </section>
 
-      <section class="table-card inventory-card warehouse-part-card">
+      <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header">
           <div>
             <h2>Warehouse Part Request Records</h2>

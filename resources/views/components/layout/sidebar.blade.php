@@ -4,117 +4,69 @@
     'icon' => 'fa-table-cells-large',
     'userName' => null,
     'userRole' => null,
-    'items' => []
+    'items' => [],
 ])
 
 @php
     $authUser = auth()->user();
 
-    $displayName = trim(
-        $authUser?->name
-        ?? $userName
-        ?? 'Guest User'
-    );
+    $displayName = trim($authUser?->name ?? $userName ?? 'Guest User');
+    $departmentRaw = trim($authUser?->department ?? $department ?? 'Department');
+    $roleRaw = strtolower(trim($authUser?->role ?? ''));
 
-    $departmentRaw = trim(
-        $authUser?->department
-        ?? $department
-        ?? 'Department'
-    );
+    $normalizedDepartment = strtolower(str_replace(['_', '-'], ' ', $departmentRaw));
+    $normalizedRole = strtolower(str_replace(['_', '-'], ' ', $roleRaw));
+    $componentDepartment = strtolower(trim(str_replace(['_', '-'], ' ', $department)));
 
-    $roleRaw = strtolower(trim(
-        $authUser?->role
-        ?? ''
-    ));
+    $departmentProfiles = [
+        'maintenance' => ['subtitle' => 'Department Module', 'icon' => 'fa-truck'],
+        'purchase' => ['subtitle' => 'Department Module', 'icon' => 'fa-cart-shopping'],
+        'warehouse' => ['subtitle' => 'Warehouse Module', 'icon' => 'fa-warehouse'],
+        'operation' => ['subtitle' => 'Operation Module', 'icon' => 'fa-bus'],
+        'operations' => ['subtitle' => 'Operation Module', 'icon' => 'fa-bus'],
+        'admin' => ['subtitle' => 'Administration Module', 'icon' => 'fa-user-shield'],
+    ];
 
-    $normalizedDepartment = strtolower(
-        str_replace(['_', '-'], ' ', $departmentRaw)
-    );
+    if (isset($departmentProfiles[$componentDepartment])) {
+        if ($subtitle === 'Department Module') {
+            $subtitle = $departmentProfiles[$componentDepartment]['subtitle'];
+        }
 
-    $normalizedRole = strtolower(
-        str_replace(['_', '-'], ' ', $roleRaw)
-    );
+        if ($icon === 'fa-table-cells-large') {
+            $icon = $departmentProfiles[$componentDepartment]['icon'];
+        }
+    }
 
-    $componentDepartment = strtolower(
-        trim(str_replace(['_', '-'], ' ', $department))
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAINTENANCE NAVIGATION
-    |--------------------------------------------------------------------------
-    */
     if ($componentDepartment === 'maintenance') {
         $items = [
-            [
-                'label' => 'Dashboard',
-                'route' => 'maintenance-dashboard',
-                'icon' => 'fa-table-cells-large',
-            ],
+            ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
             [
                 'label' => 'Work Management',
                 'icon' => 'fa-screwdriver-wrench',
                 'children' => [
-                    [
-                        'label' => 'Job Orders',
-                        'route' => 'job-orders',
-                        'icon' => 'fa-clipboard-list',
-                    ],
-                    [
-                        'label' => 'PMS Scheduling',
-                        'route' => 'PMS-Scheduling',
-                        'icon' => 'fa-calendar-check',
-                    ],
+                    ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
+                    ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
                 ],
             ],
             [
                 'label' => 'Resources',
                 'icon' => 'fa-toolbox',
                 'children' => [
-                    [
-                        'label' => 'Mechanic Availability',
-                        'route' => 'mechanic-list',
-                        'icon' => 'fa-user-gear',
-                    ],
-                    [
-                        'label' => 'Fuel Reports',
-                        'route' => 'fuel-reports',
-                        'icon' => 'fa-gas-pump',
-                    ],
+                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
+                    ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
                 ],
             ],
-            [
-                'label' => 'Purchase Requests',
-                'route' => 'purchase-requests',
-                'icon' => 'fa-file-invoice',
-            ],
+            ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PURCHASE NAVIGATION
-    |--------------------------------------------------------------------------
-    | Keep Purchase navigation consistent across every Purchase page. History
-    | uses the existing maintenance-requests route with a dedicated view mode,
-    | so no duplicate data or duplicate route/controller is required.
-    */
     if ($componentDepartment === 'purchase') {
-        $isPurchaseHistory =
-            request()->routeIs('maintenance-requests')
+        $isPurchaseHistory = request()->routeIs('maintenance-requests')
             && request()->query('view') === 'history';
 
         $items = [
-            [
-                'label' => 'Dashboard',
-                'route' => 'dashboard-purchase',
-                'icon' => 'fa-table-cells-large',
-            ],
-            [
-                'label' => 'Purchase Orders',
-                'route' => 'purchase-orders',
-                'icon' => 'fa-file-invoice',
-            ],
+            ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
+            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
             [
                 'label' => 'Requested Purchase',
                 'icon' => 'fa-clipboard-list',
@@ -125,11 +77,7 @@
                         'icon' => 'fa-screwdriver-wrench',
                         'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
                     ],
-                    [
-                        'label' => 'Inventory Restock',
-                        'route' => 'inventory-restock',
-                        'icon' => 'fa-boxes-stacked',
-                    ],
+                    ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
             [
@@ -138,19 +86,109 @@
                 'icon' => 'fa-clock-rotate-left',
                 'active' => $isPurchaseHistory,
             ],
+            ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
+        ];
+    }
+
+    if ($componentDepartment === 'warehouse') {
+        $items = [
+            ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
+            ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
+            ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
+            ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
+            ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
+        ];
+    }
+
+    if (in_array($componentDepartment, ['operation', 'operations'], true)) {
+        $items = [
+            ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
+            ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
             [
-                'label' => 'Scheduled Purchase',
-                'route' => 'scheduled-purchase',
+                'label' => 'Scheduling',
+                'icon' => 'fa-calendar-days',
+                'children' => [
+                    ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
+                    ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
+                    ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
+                ],
+            ],
+            [
+                'label' => 'Personnel Management',
+                'icon' => 'fa-address-book',
+                'children' => [
+                    ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
+                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
+                ],
+            ],
+            [
+                'label' => 'Attendance',
                 'icon' => 'fa-calendar-check',
+                'children' => [
+                    ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
+                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
+                ],
+            ],
+            ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
+            ['label' => 'Trip Records', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
+        ];
+    }
+
+    if ($componentDepartment === 'admin') {
+        $items = [
+            ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-table-cells-large'],
+            [
+                'label' => 'User Management',
+                'icon' => 'fa-users',
+                'children' => [
+                    ['label' => 'Users', 'route' => 'admin.users', 'icon' => 'fa-user'],
+                    ['label' => 'Roles & Permissions', 'route' => 'admin.roles-permissions', 'icon' => 'fa-user-lock'],
+                    ['label' => 'Account Requests', 'route' => 'admin.account-requests', 'icon' => 'fa-user-clock'],
+                ],
+            ],
+            [
+                'label' => 'System Monitoring',
+                'icon' => 'fa-desktop',
+                'children' => [
+                    ['label' => 'Activity Logs', 'route' => 'admin.activity-logs', 'icon' => 'fa-clock-rotate-left'],
+                    ['label' => 'Notifications', 'route' => 'admin.notifications', 'icon' => 'fa-bell'],
+                ],
+            ],
+            [
+                'label' => 'Data Management',
+                'icon' => 'fa-database',
+                'children' => [
+                    ['label' => 'Batch File Processing', 'route' => 'admin.batch-file-processing', 'icon' => 'fa-file-import'],
+                    ['label' => 'Import / Export', 'route' => 'admin.import-export', 'icon' => 'fa-right-left'],
+                    ['label' => 'Data History', 'route' => 'admin.data-history', 'icon' => 'fa-clock-rotate-left'],
+                ],
+            ],
+            [
+                'label' => 'Analytics',
+                'icon' => 'fa-chart-line',
+                'children' => [
+                    ['label' => 'Overview', 'route' => 'analytics.overview', 'icon' => 'fa-chart-pie'],
+                    ['label' => 'Fleet & Trip', 'route' => 'analytics.fleet-trip', 'icon' => 'fa-route'],
+                    ['label' => 'Fuel', 'route' => 'analytics.fuel', 'icon' => 'fa-gas-pump'],
+                    ['label' => 'Bus Health', 'route' => 'analytics.bus-health', 'icon' => 'fa-heart-pulse'],
+                    ['label' => 'Inventory', 'route' => 'analytics.inventory', 'icon' => 'fa-boxes-stacked'],
+                    ['label' => 'Recommendations', 'route' => 'analytics.recommendations', 'icon' => 'fa-lightbulb'],
+                ],
+            ],
+            [
+                'label' => 'Settings',
+                'icon' => 'fa-gear',
+                'children' => [
+                    ['label' => 'General Settings', 'route' => 'admin.settings.general', 'icon' => 'fa-sliders'],
+                    ['label' => 'Notification Settings', 'route' => 'admin.settings.notifications', 'icon' => 'fa-bell'],
+                    ['label' => 'Security Settings', 'route' => 'admin.settings.security', 'icon' => 'fa-shield-halved'],
+                ],
             ],
         ];
     }
 
     if ($authUser) {
-        if (
-            $normalizedDepartment === 'admin'
-            && $normalizedRole === 'head'
-        ) {
+        if ($normalizedDepartment === 'admin' && $normalizedRole === 'head') {
             $displayRole = 'System Admin';
         } elseif ($normalizedRole === 'head') {
             $displayRole = ucfirst($normalizedDepartment) . ' Head';
@@ -163,31 +201,17 @@
         $displayRole = $userRole ?? ucfirst($normalizedDepartment) . ' User';
     }
 
-    $nameParts = collect(
-        preg_split('/\s+/', $displayName)
-    )
-        ->filter()
-        ->values();
-
+    $nameParts = collect(preg_split('/\s+/', $displayName))->filter()->values();
     $initials = strtoupper(
         substr($nameParts->get(0, ''), 0, 1)
         . substr($nameParts->get(1, ''), 0, 1)
-    );
+    ) ?: 'U';
 
-    $initials = $initials ?: 'U';
-
-    $canOpenMaintenanceSettings =
-        $normalizedDepartment === 'maintenance'
-        || (
-            $normalizedDepartment === 'admin'
-            && $normalizedRole === 'head'
-        );
+    $canOpenMaintenanceSettings = $normalizedDepartment === 'maintenance'
+        || ($normalizedDepartment === 'admin' && $normalizedRole === 'head');
 @endphp
 
-<aside
-    class="sidebar"
-    id="appSidebar"
->
+<aside class="sidebar" id="appSidebar">
     <button
         type="button"
         class="sidebar-collapse-btn"
@@ -203,7 +227,6 @@
         <div class="brand-icon">
             <i class="fa-solid {{ $icon }}"></i>
         </div>
-
         <div class="brand-text">
             <h2>{{ $department }}</h2>
             <p>{{ $subtitle }}</p>
@@ -213,11 +236,9 @@
     <nav class="menu">
         @foreach($items as $item)
             @php
-                $hasChildren =
-                    isset($item['children'])
+                $hasChildren = isset($item['children'])
                     && is_array($item['children'])
                     && count($item['children']) > 0;
-
                 $itemRoute = $item['route'] ?? null;
                 $itemUrl = $item['url'] ?? null;
                 $isParentActive = (bool) ($item['active'] ?? false);
@@ -226,10 +247,7 @@
                     foreach ($item['children'] as $child) {
                         $childActive = array_key_exists('active', $child)
                             ? (bool) $child['active']
-                            : (
-                                isset($child['route'])
-                                && request()->routeIs($child['route'])
-                            );
+                            : (isset($child['route']) && request()->routeIs($child['route']));
 
                         if ($childActive) {
                             $isParentActive = true;
@@ -237,17 +255,12 @@
                         }
                     }
                 } elseif (! array_key_exists('active', $item)) {
-                    $isParentActive =
-                        $itemRoute
-                        ? request()->routeIs($itemRoute)
-                        : false;
+                    $isParentActive = $itemRoute ? request()->routeIs($itemRoute) : false;
                 }
             @endphp
 
             @if($hasChildren)
-                <div
-                    class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}"
-                >
+                <div class="menu-dropdown {{ $isParentActive ? 'open active' : '' }}">
                     <button
                         type="button"
                         class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
@@ -264,10 +277,7 @@
                             @php
                                 $childActive = array_key_exists('active', $child)
                                     ? (bool) $child['active']
-                                    : (
-                                        isset($child['route'])
-                                        && request()->routeIs($child['route'])
-                                    );
+                                    : (isset($child['route']) && request()->routeIs($child['route']));
                             @endphp
 
                             @if(isset($child['url']))
@@ -279,7 +289,7 @@
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
                                     <span>{{ $child['label'] ?? 'Submenu' }}</span>
                                 </a>
-                            @elseif(isset($child['route']) && Route::has($child['route']))
+                            @elseif(isset($child['route']) && \Illuminate\Support\Facades\Route::has($child['route']))
                                 <a
                                     href="{{ route($child['route'], [], false) }}"
                                     class="submenu-item {{ $childActive ? 'active' : '' }}"
@@ -288,11 +298,8 @@
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
                                     <span>{{ $child['label'] ?? 'Submenu' }}</span>
                                 </a>
-                            @elseif(!isset($child['route']))
-                                <div
-                                    class="submenu-item submenu-item-disabled"
-                                    title="{{ $child['label'] ?? 'Submenu' }}"
-                                >
+                            @elseif(! isset($child['route']))
+                                <div class="submenu-item submenu-item-disabled" title="{{ $child['label'] ?? 'Submenu' }}">
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
                                     <span>{{ $child['label'] ?? 'Submenu' }}</span>
                                 </div>
@@ -310,12 +317,9 @@
                         <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
                         <span>{{ $item['label'] ?? 'Menu' }}</span>
                     </a>
-                @elseif(
-                    $itemRoute
-                    && \Illuminate\Support\Facades\Route::has($itemRoute)
-                )
+                @elseif($itemRoute && \Illuminate\Support\Facades\Route::has($itemRoute))
                     <a
-                        href="{{ route($item['route'], [], false) }}"
+                        href="{{ route($itemRoute, [], false) }}"
                         class="menu-item {{ $isParentActive ? 'active' : '' }}"
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
@@ -335,27 +339,17 @@
             aria-expanded="false"
             title="{{ $displayName }}"
         >
-            <div class="avatar">
-                <span>{{ $initials }}</span>
-            </div>
-
+            <div class="avatar"><span>{{ $initials }}</span></div>
             <div class="user-box-text">
                 <h4>{{ $displayName }}</h4>
                 <p>{{ $displayRole }}</p>
             </div>
-
             <i class="fa-solid fa-chevron-down profile-chevron"></i>
         </button>
 
-        <div
-            class="sidebar-profile-menu"
-            id="sidebarProfileMenu"
-        >
+        <div class="sidebar-profile-menu" id="sidebarProfileMenu">
             <div class="profile-menu-header">
-                <div class="profile-menu-avatar">
-                    {{ $initials }}
-                </div>
-
+                <div class="profile-menu-avatar">{{ $initials }}</div>
                 <div>
                     <h4>{{ $displayName }}</h4>
                     <p>{{ $displayRole }}</p>
@@ -364,32 +358,18 @@
 
             <div class="profile-menu-divider"></div>
 
-            <button
-                type="button"
-                class="profile-menu-item"
-                disabled
-            >
+            <button type="button" class="profile-menu-item" disabled>
                 <i class="fa-solid fa-user"></i>
                 <span>Profile</span>
             </button>
 
-            @if(
-                $canOpenMaintenanceSettings
-                && \Illuminate\Support\Facades\Route::has('settings')
-            )
-                <a
-                    href="{{ route('settings', [], false) }}"
-                    class="profile-menu-item"
-                >
+            @if($canOpenMaintenanceSettings && \Illuminate\Support\Facades\Route::has('settings'))
+                <a href="{{ route('settings', [], false) }}" class="profile-menu-item">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
             @else
-                <button
-                    type="button"
-                    class="profile-menu-item"
-                    disabled
-                >
+                <button type="button" class="profile-menu-item" disabled>
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </button>
@@ -398,27 +378,15 @@
             <div class="profile-menu-divider"></div>
 
             @if(\Illuminate\Support\Facades\Route::has('logout'))
-                <form
-                    action="{{ route('logout', [], false) }}"
-                    method="POST"
-                    class="profile-logout-form"
-                >
+                <form action="{{ route('logout', [], false) }}" method="POST" class="profile-logout-form">
                     @csrf
-
-                    <button
-                        type="submit"
-                        class="profile-menu-item logout"
-                    >
+                    <button type="submit" class="profile-menu-item logout">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Log out</span>
                     </button>
                 </form>
             @else
-                <button
-                    type="button"
-                    class="profile-menu-item logout"
-                    disabled
-                >
+                <button type="button" class="profile-menu-item logout" disabled>
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Log out</span>
                 </button>
