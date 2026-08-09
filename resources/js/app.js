@@ -28,53 +28,7 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
-/*
- * Compatibility cleanup for rejected Maintenance Purchase Requests.
- * An older Blade attribute was emitted as `ddata-resubmit-url`, which leaves
- * the page-specific PR script without a resubmit URL and can make the form
- * fall back to the normal create endpoint. Normalize it before the page's
- * delegated click handler reads button.dataset.resubmitUrl.
- */
-document.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-edit-pr-modal[ddata-resubmit-url]');
-
-    if (!button || button.dataset.resubmitUrl) {
-        return;
-    }
-
-    const resubmitUrl = button.getAttribute('ddata-resubmit-url');
-
-    if (resubmitUrl) {
-        button.dataset.resubmitUrl = resubmitUrl;
-    }
-}, true);
-
 document.addEventListener('DOMContentLoaded', () => {
-    /*
-     * Attendance records must come from the permanent Driver / Mechanic
-     * master lists. Daily attendance is recorded through the shared batch
-     * attendance workflow, so single-record creation actions are redundant.
-     * Keep existing attendance records editable, but remove the legacy
-     * Driver "New Record" and Mechanic "Add New Mechanic" actions.
-     */
-    const attendancePath = window.location.pathname.replace(/\/$/, '');
-    if (
-        attendancePath.endsWith('/driver-attendance') ||
-        attendancePath.endsWith('/mechanic-attendance')
-    ) {
-        document.getElementById('openDriverAttendanceModal')?.remove();
-        document.getElementById('openMechanicAttendanceModal')?.remove();
-    }
-
-    /*
-     * Issued inventory transactions now belong to Stock Movements.
-     * Keep the underlying Purchase Request records, but remove the duplicate
-     * Issued Parts History panel from the Warehouse Part Requests UI.
-     */
-    if (window.location.pathname.replace(/\/$/, '').endsWith('/part-requests')) {
-        document.querySelector('.warehouse-history-card')?.remove();
-    }
-
     window.setTimeout(() => {
         const routeModal = document.getElementById('routeModal');
         const routeOrigin = document.getElementById('routeOrigin');
