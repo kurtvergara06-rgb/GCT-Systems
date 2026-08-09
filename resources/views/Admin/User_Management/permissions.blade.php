@@ -168,7 +168,7 @@
                                     </div>
                                 </section>
 
-                                <div class="module-access-heading permission-edit-actions">
+                                <div class="module-access-heading permission-edit-actions" style="align-items:center; margin:18px 0 0; padding-top:14px; border-top:1px solid #e7edf5;">
                                     @if($isProtectedRole)
                                         <div class="selected-role-state"><span><i class="fa-solid fa-lock"></i> Protected Role</span></div>
                                         <span class="permission-protected-note"><i class="fa-solid fa-lock"></i> System Admin permissions are protected from accidental changes.</span>
@@ -176,10 +176,10 @@
                                         <div class="selected-role-state" id="permissionEditStatus">
                                             <span><i class="fa-solid fa-eye"></i> Review Mode</span>
                                         </div>
-                                        <div class="permission-action-buttons">
-                                            <button type="button" class="secondary-btn" id="cancelPermissionEdit" hidden>Cancel</button>
-                                            <button type="button" class="primary-btn" id="editPermissionsButton"><i class="fa-solid fa-pen"></i> Edit Permissions</button>
-                                            <button type="submit" class="primary-btn" id="savePermissionsButton" hidden><i class="fa-solid fa-floppy-disk"></i> Save Permissions</button>
+                                        <div class="permission-action-buttons" style="display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-left:auto;">
+                                            <button type="button" class="secondary-btn" id="cancelPermissionEdit" style="display:none; width:auto; min-width:76px; min-height:34px; padding:0 12px; border-radius:8px; font-size:11px;">Cancel</button>
+                                            <button type="button" class="primary-btn" id="editPermissionsButton" style="display:inline-flex; width:auto; min-width:126px; min-height:34px; padding:0 13px; border-radius:8px; font-size:11px; align-items:center; justify-content:center; gap:7px;"><i class="fa-solid fa-pen"></i> Edit Permissions</button>
+                                            <button type="submit" class="primary-btn" id="savePermissionsButton" style="display:none; width:auto; min-width:136px; min-height:34px; padding:0 13px; border-radius:8px; font-size:11px; align-items:center; justify-content:center; gap:7px;"><i class="fa-solid fa-floppy-disk"></i> Save Permissions</button>
                                         </div>
                                     @endif
                                 </div>
@@ -235,14 +235,27 @@
 
             function setEditMode(enabled) {
                 inputs.forEach(input => input.disabled = !enabled);
-                if (editButton) editButton.hidden = enabled;
-                if (cancelButton) cancelButton.hidden = !enabled;
-                if (saveButton) saveButton.hidden = !enabled;
+
+                if (editButton) {
+                    editButton.style.display = enabled ? 'none' : 'inline-flex';
+                }
+
+                if (cancelButton) {
+                    cancelButton.style.display = enabled ? 'inline-flex' : 'none';
+                    cancelButton.style.alignItems = 'center';
+                    cancelButton.style.justifyContent = 'center';
+                }
+
+                if (saveButton) {
+                    saveButton.style.display = enabled ? 'inline-flex' : 'none';
+                }
+
                 if (modeText) {
                     modeText.textContent = enabled
                         ? 'Edit mode is active. Click any permission to allow or restrict it, then save your changes.'
                         : 'Review the permissions currently stored for this role.';
                 }
+
                 if (editStatus) {
                     editStatus.innerHTML = enabled
                         ? '<i class="fa-solid fa-pen-to-square"></i> Edit Mode Active'
