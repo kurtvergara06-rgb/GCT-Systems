@@ -10,11 +10,9 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('job_orders', 'pms_schedule_id')) {
             Schema::table('job_orders', function (Blueprint $table) {
-                $table->foreignId('pms_schedule_id')
+                $table->unsignedBigInteger('pms_schedule_id')
                     ->nullable()
-                    ->after('bus_no')
-                    ->constrained('pms_schedules')
-                    ->nullOnDelete();
+                    ->after('bus_no');
             });
         }
     }
@@ -23,7 +21,6 @@ return new class extends Migration
     {
         if (Schema::hasColumn('job_orders', 'pms_schedule_id')) {
             Schema::table('job_orders', function (Blueprint $table) {
-                $table->dropForeign(['pms_schedule_id']);
                 $table->dropColumn('pms_schedule_id');
             });
         }
