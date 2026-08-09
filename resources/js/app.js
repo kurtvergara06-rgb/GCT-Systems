@@ -13,7 +13,6 @@ import '../css/Main-styles/date-time-picker.css';
 import '../css/Main-styles/spinner.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
-import '../css/Purchase/purchase-order-form-enhancements.css';
 
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
@@ -24,7 +23,6 @@ import './Main-js/searchable-select.js';
 import './Main-js/date-time-picker.js';
 import './Main-js/loading-state.js';
 import './Maintenance/maintenance-ui-enhancements.js';
-import './Purchase/purchase-order-form-enhancements.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
 import '../css/Operation/Attendance/batch-attendance.css';
