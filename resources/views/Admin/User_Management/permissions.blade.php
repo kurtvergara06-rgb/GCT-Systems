@@ -168,11 +168,8 @@
                                     </div>
                                 </section>
 
-                                <div class="module-access-heading permission-edit-actions" style="align-items:center; margin:18px 0 0; padding-top:14px; border-top:1px solid #e7edf5;">
-                                    @if($isProtectedRole)
-                                        <div class="selected-role-state"><span><i class="fa-solid fa-lock"></i> Protected Role</span></div>
-                                        <span class="permission-protected-note"><i class="fa-solid fa-lock"></i> System Admin permissions are protected from accidental changes.</span>
-                                    @else
+                                @unless($isProtectedRole)
+                                    <div class="module-access-heading permission-edit-actions" style="align-items:center; margin:18px 0 0; padding-top:14px; border-top:1px solid #e7edf5;">
                                         <div class="selected-role-state" id="permissionEditStatus">
                                             <span><i class="fa-solid fa-eye"></i> Review Mode</span>
                                         </div>
@@ -181,8 +178,8 @@
                                             <button type="button" class="primary-btn" id="editPermissionsButton" style="display:inline-flex; width:auto; min-width:126px; min-height:34px; padding:0 13px; border-radius:8px; font-size:11px; align-items:center; justify-content:center; gap:7px;"><i class="fa-solid fa-pen"></i> Edit Permissions</button>
                                             <button type="submit" class="primary-btn" id="savePermissionsButton" style="display:none; width:auto; min-width:136px; min-height:34px; padding:0 13px; border-radius:8px; font-size:11px; align-items:center; justify-content:center; gap:7px;"><i class="fa-solid fa-floppy-disk"></i> Save Permissions</button>
                                         </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endunless
                             </form>
                         </div>
                     @endif
