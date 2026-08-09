@@ -11,6 +11,11 @@ class PurchaseDashboardController extends Controller
 {
     public function index()
     {
+        return view('Purchase.dashboard-purchase', $this->data());
+    }
+
+    public function data(): array
+    {
         $activeRequestStatuses = ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery'];
 
         $requestBase = MaintenanceRequest::query()
@@ -20,20 +25,12 @@ class PurchaseDashboardController extends Controller
 
         $totalRequests = (clone $requestBase)->whereIn('status', $activeRequestStatuses)->count();
         $forPurchase = (clone $requestBase)->where('status', 'For Purchase')->count();
-
-        $activePurchaseOrders = PurchaseOrder::query()
-            ->whereIn('status', ['Ordered', 'For Pick-up', 'For Delivery'])
-            ->count();
-        $deliveredOrders = PurchaseOrder::query()
-            ->whereIn('status', ['Delivered', 'Picked Up'])
-            ->count();
+        $activePurchaseOrders = PurchaseOrder::whereIn('status', ['Ordered', 'For Pick-up', 'For Delivery'])->count();
+        $deliveredOrders = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->count();
         $ordered = PurchaseOrder::where('status', 'Ordered')->count();
         $forPickup = PurchaseOrder::where('status', 'For Pick-up')->count();
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
-
-        $scheduledPurchases = ScheduledPurchase::query()
-            ->where('status', 'Active')
-            ->count();
+        $scheduledPurchases = ScheduledPurchase::where('status', 'Active')->count();
 
         $recentPurchaseRequests = (clone $requestBase)
             ->whereIn('status', ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'])
@@ -41,12 +38,9 @@ class PurchaseDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $recentPurchaseOrders = PurchaseOrder::query()
-            ->latest()
-            ->limit(5)
-            ->get();
+        $recentPurchaseOrders = PurchaseOrder::query()->latest()->limit(5)->get();
 
-        return view('Purchase.dashboard-purchase', compact(
+        return compact(
             'totalRequests',
             'forPurchase',
             'activePurchaseOrders',
@@ -57,6 +51,6 @@ class PurchaseDashboardController extends Controller
             'scheduledPurchases',
             'recentPurchaseRequests',
             'recentPurchaseOrders'
-        ));
+        );
     }
 }
