@@ -38,7 +38,14 @@ class PurchaseDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $recentPurchaseOrders = PurchaseOrder::query()->latest()->limit(5)->get();
+        $recentPurchaseOrders = PurchaseOrder::query()
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->each(function (PurchaseOrder $order) {
+                $order->setAttribute('supplier', $order->supplier_name);
+                $order->setAttribute('total_amount', $order->net_amount);
+            });
 
         return compact(
             'totalRequests',
