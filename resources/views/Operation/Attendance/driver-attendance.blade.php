@@ -17,79 +17,38 @@
       subtitle="Operation Module"
       icon="fa-bus"
       :items="[
-          [
-              'label' => 'Dashboard',
-              'route' => 'dashboard-operation',
-              'icon' => 'fa-table-cells-large',
-          ],
-          [
-              'label' => 'Routes',
-              'route' => 'operation.routes',
-              'icon' => 'fa-route',
-          ],
+          ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
+          ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
           [
               'label' => 'Scheduling',
               'icon' => 'fa-calendar-days',
               'children' => [
-                  [
-                      'label' => 'Trip Schedule',
-                      'route' => 'trip-schedule',
-                      'icon' => 'fa-calendar-days',
-                  ],
-                  [
-                      'label' => 'Driver & Bus Assignment',
-                      'route' => 'driver-bus-assignment',
-                      'icon' => 'fa-user-tie',
-                  ],
-                  [
-                      'label' => 'Auto Scheduling',
-                      'route' => 'auto-scheduling',
-                      'icon' => 'fa-wand-magic-sparkles',
-                  ],
+                  ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
+                  ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
+                  ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
               ],
           ],
           [
               'label' => 'Personnel Management',
               'icon' => 'fa-address-book',
               'children' => [
-                  [
-                      'label' => 'Driver Master List',
-                      'route' => 'operation.personnel.drivers',
-                      'icon' => 'fa-id-card',
-                  ],
-                  [
-                      'label' => 'Mechanic Master List',
-                      'route' => 'operation.personnel.mechanics',
-                      'icon' => 'fa-users-gear',
-                  ],
+                  ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
+                  ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
               ],
           ],
           [
               'label' => 'Attendance',
               'icon' => 'fa-calendar-check',
               'children' => [
-                  [
-                      'label' => 'Driver Attendance',
-                      'route' => 'driver-attendance',
-                      'icon' => 'fa-user-check',
-                  ],
-                  [
-                      'label' => 'Mechanic Attendance',
-                      'route' => 'mechanic-attendance',
-                      'icon' => 'fa-clipboard-user',
-                  ],
+                  ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
+                  ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
               ],
           ],
-          [
-              'label' => 'Bus Master List',
-              'route' => 'bus-master-list',
-              'icon' => 'fa-bus',
-          ],
+          ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
       ]"
     />
 
     <main class="main">
-
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="Manage and track driver attendance and availability"
@@ -107,34 +66,10 @@
       @endif
 
       <section class="stats-grid">
-        <x-ui.summary-card
-          label="Present"
-          value="{{ $present }}"
-          small="Drivers present"
-          icon="fa-user-check"
-          color="green"
-        />
-        <x-ui.summary-card
-          label="Absent"
-          value="{{ $absent }}"
-          small="Drivers absent"
-          icon="fa-user-xmark"
-          color="red"
-        />
-        <x-ui.summary-card
-          label="Late"
-          value="{{ $late }}"
-          small="Drivers who were late"
-          icon="fa-clock"
-          color="yellow"
-        />
-        <x-ui.summary-card
-          label="On Duty"
-          value="{{ $onDuty }}"
-          small="Assigned drivers"
-          icon="fa-bus"
-          color="blue"
-        />
+        <x-ui.summary-card label="Present" value="{{ $present }}" small="Drivers present" icon="fa-user-check" color="green" />
+        <x-ui.summary-card label="Absent" value="{{ $absent }}" small="Drivers absent" icon="fa-user-xmark" color="red" />
+        <x-ui.summary-card label="Late" value="{{ $late }}" small="Drivers who were late" icon="fa-clock" color="yellow" />
+        <x-ui.summary-card label="On Duty" value="{{ $onDuty }}" small="Assigned drivers" icon="fa-bus" color="blue" />
       </section>
 
       <section class="table-card attendance-card">
@@ -180,6 +115,15 @@
             <i class="fa-solid fa-file-import"></i>
             Import Data
           </button>
+
+          <button
+            type="button"
+            class="primary-btn batch-attendance-open"
+            data-batch-attendance-open
+          >
+            <i class="fa-solid fa-clipboard-check"></i>
+            Record Daily Attendance
+          </button>
         </form>
 
         <div class="table-wrap">
@@ -215,17 +159,9 @@
                     ->tripAssignments
                     ->filter(function ($assignment) {
                       $trip = $assignment->tripSchedule;
-
-                      return $trip
-                        && ! in_array(
-                          $trip->status,
-                          ['Cancelled', 'Completed'],
-                          true
-                        );
+                      return $trip && ! in_array($trip->status, ['Cancelled', 'Completed'], true);
                     })
-                    ->sortBy(function ($assignment) {
-                      return optional($assignment->tripSchedule)->departure_time;
-                    })
+                    ->sortBy(fn ($assignment) => optional($assignment->tripSchedule)->departure_time)
                     ->values();
 
                   $primaryAssignment = $activeAssignments->first();
@@ -233,11 +169,7 @@
                   $primaryBus = $primaryAssignment?->bus;
 
                   $assignmentSummary = $primaryAssignment
-                    ? trim(
-                        ($primaryBus?->bus_no ?? 'Bus unavailable')
-                        . ' | '
-                        . ($primaryTrip?->trip_code ?? 'Trip unavailable')
-                      )
+                    ? trim(($primaryBus?->bus_no ?? 'Bus unavailable') . ' | ' . ($primaryTrip?->trip_code ?? 'Trip unavailable'))
                     : 'Unassigned';
 
                   if ($activeAssignments->count() > 1) {
@@ -253,9 +185,7 @@
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
-                        <span class="current-assignment-bus">
-                          {{ $primaryBus?->bus_no ?? 'Bus unavailable' }}
-                        </span>
+                        <span class="current-assignment-bus">{{ $primaryBus?->bus_no ?? 'Bus unavailable' }}</span>
                         <span class="current-assignment-trip">
                           {{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}
                           @if($primaryTrip)
@@ -276,9 +206,7 @@
                   <td>{{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}</td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
-                  <td>
-                    <span class="badge {{ $statusClass }}">{{ $attendance->status }}</span>
-                  </td>
+                  <td><span class="badge {{ $statusClass }}">{{ $attendance->status }}</span></td>
                   <td>
                     <div class="actions">
                       <button
@@ -347,7 +275,6 @@
     </main>
   </div>
 
-  {{-- IMPORT DRIVER ATTENDANCE MODAL --}}
   <div id="importDriverAttendanceModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-header">
@@ -377,9 +304,7 @@
           <input type="file" name="import_file" accept=".csv,.txt" required>
         </div>
         <div class="form-group full-width">
-          <small>
-            Required columns: driver_name, shift, attendance_date, time_in, time_out, status
-          </small>
+          <small>Required columns: driver_name, shift, attendance_date, time_in, time_out, status</small>
         </div>
         <div class="modal-actions full-width">
           <button type="button" id="cancelImportDriverAttendanceModal" class="cancel-btn">Cancel</button>
@@ -392,7 +317,6 @@
     </div>
   </div>
 
-  {{-- EDIT DRIVER ATTENDANCE MODAL --}}
   <x-ui.form-modal
     id="driverAttendanceModal"
     title="Driver Attendance Details"
@@ -415,81 +339,28 @@
     confirm-button="Yes, Save Record"
     confirm-type="create"
   >
-    <input
-      type="hidden"
-      name="_method"
-      id="driverAttendanceFormMethod"
-      value="PUT"
-      disabled
-    >
+    <input type="hidden" name="_method" id="driverAttendanceFormMethod" value="PUT" disabled>
 
     <div class="ui-form-grid driver-attendance-form-grid">
-      <x-ui.form-field
-        label="Driver ID"
-        name="driver_id_display"
-        id="driverAttendanceDriverId"
-        :value="$nextDriverId"
-        icon="fa-hashtag"
-        :readonly="true"
-      />
-      <x-ui.form-field
-        label="Driver Name"
-        name="driver_name"
-        id="driverAttendanceDriverName"
-        :value="old('driver_name')"
-        placeholder="Example: Rowell Amano"
-        icon="fa-user"
-        :required="true"
-      />
+      <x-ui.form-field label="Driver ID" name="driver_id_display" id="driverAttendanceDriverId" :value="$nextDriverId" icon="fa-hashtag" :readonly="true" />
+      <x-ui.form-field label="Driver Name" name="driver_name" id="driverAttendanceDriverName" :value="old('driver_name')" placeholder="Example: Rowell Amano" icon="fa-user" :required="true" />
       <x-ui.form-select
         label="Shift"
         name="shift"
         id="driverAttendanceShift"
-        :options="[
-          'Morning' => 'Morning',
-          'Afternoon' => 'Afternoon',
-          'Night' => 'Night',
-        ]"
+        :options="['Morning' => 'Morning', 'Afternoon' => 'Afternoon', 'Night' => 'Night']"
         :selected="old('shift', 'Morning')"
         icon="fa-business-time"
         :required="true"
       />
-      <x-ui.form-field
-        label="Date"
-        name="attendance_date"
-        id="driverAttendanceDate"
-        type="date"
-        :value="old('attendance_date', now()->format('Y-m-d'))"
-        icon="fa-calendar-day"
-        :required="true"
-      />
-      <x-ui.form-field
-        label="Time-in"
-        name="time_in"
-        id="driverAttendanceTimeIn"
-        type="time"
-        :value="old('time_in')"
-        icon="fa-clock"
-      />
-      <x-ui.form-field
-        label="Time-out"
-        name="time_out"
-        id="driverAttendanceTimeOut"
-        type="time"
-        :value="old('time_out')"
-        icon="fa-clock-rotate-left"
-      />
+      <x-ui.form-field label="Date" name="attendance_date" id="driverAttendanceDate" type="date" :value="old('attendance_date', now()->format('Y-m-d'))" icon="fa-calendar-day" :required="true" />
+      <x-ui.form-field label="Time-in" name="time_in" id="driverAttendanceTimeIn" type="time" :value="old('time_in')" icon="fa-clock" />
+      <x-ui.form-field label="Time-out" name="time_out" id="driverAttendanceTimeOut" type="time" :value="old('time_out')" icon="fa-clock-rotate-left" />
       <x-ui.form-select
         label="Status"
         name="status"
         id="driverAttendanceStatus"
-        :options="[
-          'Present' => 'Present',
-          'Late' => 'Late',
-          'Absent' => 'Absent',
-          'On Leave' => 'On Leave',
-          'On Duty' => 'On Duty',
-        ]"
+        :options="['Present' => 'Present', 'Late' => 'Late', 'Absent' => 'Absent', 'On Leave' => 'On Leave', 'On Duty' => 'On Duty']"
         :selected="old('status', 'Present')"
         icon="fa-circle-check"
         :required="true"
@@ -500,10 +371,7 @@
       <i class="fa-solid fa-circle-info"></i>
       <div>
         <strong>Automatic assignment display</strong>
-        <span>
-          Bus and trip assignments are managed in Driver & Bus Assignment
-          or Auto Scheduling and are displayed here automatically.
-        </span>
+        <span>Bus and trip assignments are managed in Driver & Bus Assignment or Auto Scheduling and are displayed here automatically.</span>
       </div>
     </div>
   </x-ui.form-modal>
@@ -522,11 +390,7 @@
   >
     <div class="attendance-details-grid" id="viewDriverAttendanceContent"></div>
     <div class="ui-form-actions">
-      <button
-        type="button"
-        id="closeViewDriverAttendanceButton"
-        class="ui-form-btn ui-form-btn-primary"
-      >
+      <button type="button" id="closeViewDriverAttendanceButton" class="ui-form-btn ui-form-btn-primary">
         <i class="fa-solid fa-check"></i>
         <span>Close</span>
       </button>
