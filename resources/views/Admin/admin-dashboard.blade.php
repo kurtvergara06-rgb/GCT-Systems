@@ -20,7 +20,6 @@
                     'children' => [
                         ['label' => 'Users', 'route' => 'admin.users', 'icon' => 'fa-user'],
                         ['label' => 'Roles & Permissions', 'route' => 'admin.roles-permissions', 'icon' => 'fa-user-lock'],
-                        ['label' => 'Account Requests', 'route' => 'admin.account-requests', 'icon' => 'fa-user-clock'],
                     ],
                 ],
                 [
@@ -132,59 +131,29 @@
             <section class="admin-mid-grid">
                 <article class="admin-panel">
                     <div class="admin-panel-header">
-                        <div>
-                            <h2>Department Overview</h2>
-                            <p>Monitor the current workload and attention points of each department.</p>
-                        </div>
+                        <div><h2>Department Overview</h2><p>Monitor the current workload and attention points of each department.</p></div>
                     </div>
-                    <div class="admin-access-grid admin-overview-grid">
-                        <div class="admin-access-card admin-overview-card">
+                    <div class="admin-access-grid">
+                        <article class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon blue"><i class="fa-solid fa-truck"></i></span>
-                            <div>
-                                <strong>Maintenance</strong>
-                                <small>Job orders, PMS and repair activity</small>
-                            </div>
-                            <div class="admin-overview-metric">
-                                <span>{{ number_format($departmentMetrics['maintenance'] ?? 0) }}</span>
-                                <small>Active Job Orders</small>
-                            </div>
-                        </div>
-
-                        <div class="admin-access-card admin-overview-card">
+                            <div><strong>Maintenance</strong><small>Job orders, PMS and repair workload</small></div>
+                            <div class="admin-overview-metric"><span>{{ number_format($departmentMetrics['maintenance'] ?? 0) }}</span><small>Active Job Orders</small></div>
+                        </article>
+                        <article class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon green"><i class="fa-solid fa-warehouse"></i></span>
-                            <div>
-                                <strong>Warehouse</strong>
-                                <small>Inventory health and stock monitoring</small>
-                            </div>
-                            <div class="admin-overview-metric">
-                                <span>{{ number_format($departmentMetrics['warehouse'] ?? 0) }}</span>
-                                <small>Low / Critical Stock</small>
-                            </div>
-                        </div>
-
-                        <div class="admin-access-card admin-overview-card">
+                            <div><strong>Warehouse</strong><small>Inventory health and stock attention</small></div>
+                            <div class="admin-overview-metric"><span>{{ number_format($departmentMetrics['warehouse'] ?? 0) }}</span><small>Low / Critical Stock</small></div>
+                        </article>
+                        <article class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon orange"><i class="fa-solid fa-cart-shopping"></i></span>
-                            <div>
-                                <strong>Purchase</strong>
-                                <small>Requests, purchase orders and procurement</small>
-                            </div>
-                            <div class="admin-overview-metric">
-                                <span>{{ number_format($departmentMetrics['purchase'] ?? 0) }}</span>
-                                <small>Active Purchase Orders</small>
-                            </div>
-                        </div>
-
-                        <div class="admin-access-card admin-overview-card">
+                            <div><strong>Purchase</strong><small>Purchase order workload in progress</small></div>
+                            <div class="admin-overview-metric"><span>{{ number_format($departmentMetrics['purchase'] ?? 0) }}</span><small>Active Purchase Orders</small></div>
+                        </article>
+                        <article class="admin-access-card admin-overview-card">
                             <span class="admin-access-icon purple"><i class="fa-solid fa-users-gear"></i></span>
-                            <div>
-                                <strong>Operations</strong>
-                                <small>Attendance and daily operational activity</small>
-                            </div>
-                            <div class="admin-overview-metric">
-                                <span>{{ number_format($departmentMetrics['operations'] ?? 0) }}</span>
-                                <small>Attendance Today</small>
-                            </div>
-                        </div>
+                            <div><strong>Operations</strong><small>Current personnel attendance activity</small></div>
+                            <div class="admin-overview-metric"><span>{{ number_format($departmentMetrics['operations'] ?? 0) }}</span><small>Attendance Today</small></div>
+                        </article>
                     </div>
                 </article>
 
