@@ -75,6 +75,7 @@ jobs:
         shell: bash
         run: |
           cp .env.example .env
+          mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions
           cat >> .env <<EOF
           APP_ENV=testing
           DB_CONNECTION=mysql
