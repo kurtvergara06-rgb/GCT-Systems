@@ -43,10 +43,6 @@
     |--------------------------------------------------------------------------
     | MAINTENANCE NAVIGATION
     |--------------------------------------------------------------------------
-    |
-    | Keep one consistent grouped menu across every Maintenance page. Existing
-    | page-level item arrays remain supported for all other departments.
-    |
     */
     if ($componentDepartment === 'maintenance') {
         $items = [
@@ -91,6 +87,61 @@
                 'label' => 'Purchase Requests',
                 'route' => 'purchase-requests',
                 'icon' => 'fa-file-invoice',
+            ],
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PURCHASE NAVIGATION
+    |--------------------------------------------------------------------------
+    | Keep Purchase navigation consistent across every Purchase page. History
+    | uses the existing maintenance-requests route with a dedicated view mode,
+    | so no duplicate data or duplicate route/controller is required.
+    */
+    if ($componentDepartment === 'purchase') {
+        $isPurchaseHistory =
+            request()->routeIs('maintenance-requests')
+            && request()->query('view') === 'history';
+
+        $items = [
+            [
+                'label' => 'Dashboard',
+                'route' => 'dashboard-purchase',
+                'icon' => 'fa-table-cells-large',
+            ],
+            [
+                'label' => 'Purchase Orders',
+                'route' => 'purchase-orders',
+                'icon' => 'fa-file-invoice',
+            ],
+            [
+                'label' => 'Requested Purchase',
+                'icon' => 'fa-clipboard-list',
+                'children' => [
+                    [
+                        'label' => 'Maintenance Requests',
+                        'route' => 'maintenance-requests',
+                        'icon' => 'fa-screwdriver-wrench',
+                        'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
+                    ],
+                    [
+                        'label' => 'Inventory Restock',
+                        'route' => 'inventory-restock',
+                        'icon' => 'fa-boxes-stacked',
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Purchase History',
+                'url' => route('maintenance-requests', [], false) . '?view=history',
+                'icon' => 'fa-clock-rotate-left',
+                'active' => $isPurchaseHistory,
+            ],
+            [
+                'label' => 'Scheduled Purchase',
+                'route' => 'scheduled-purchase',
+                'icon' => 'fa-calendar-check',
             ],
         ];
     }
@@ -168,19 +219,24 @@
                     && count($item['children']) > 0;
 
                 $itemRoute = $item['route'] ?? null;
-                $isParentActive = false;
+                $itemUrl = $item['url'] ?? null;
+                $isParentActive = (bool) ($item['active'] ?? false);
 
                 if ($hasChildren) {
                     foreach ($item['children'] as $child) {
-                        if (
-                            isset($child['route'])
-                            && request()->routeIs($child['route'])
-                        ) {
+                        $childActive = array_key_exists('active', $child)
+                            ? (bool) $child['active']
+                            : (
+                                isset($child['route'])
+                                && request()->routeIs($child['route'])
+                            );
+
+                        if ($childActive) {
                             $isParentActive = true;
                             break;
                         }
                     }
-                } else {
+                } elseif (! array_key_exists('active', $item)) {
                     $isParentActive =
                         $itemRoute
                         ? request()->routeIs($itemRoute)
@@ -199,18 +255,34 @@
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
                         <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
-
                         <span>{{ $item['label'] ?? 'Menu' }}</span>
-
                         <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                     </button>
 
                     <div class="submenu">
                         @foreach($item['children'] as $child)
-                            @if(isset($child['route']) && Route::has($child['route']))
+                            @php
+                                $childActive = array_key_exists('active', $child)
+                                    ? (bool) $child['active']
+                                    : (
+                                        isset($child['route'])
+                                        && request()->routeIs($child['route'])
+                                    );
+                            @endphp
+
+                            @if(isset($child['url']))
+                                <a
+                                    href="{{ $child['url'] }}"
+                                    class="submenu-item {{ $childActive ? 'active' : '' }}"
+                                    title="{{ $child['label'] ?? 'Submenu' }}"
+                                >
+                                    <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
+                                    <span>{{ $child['label'] ?? 'Submenu' }}</span>
+                                </a>
+                            @elseif(isset($child['route']) && Route::has($child['route']))
                                 <a
                                     href="{{ route($child['route'], [], false) }}"
-                                    class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
+                                    class="submenu-item {{ $childActive ? 'active' : '' }}"
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
@@ -229,7 +301,16 @@
                     </div>
                 </div>
             @else
-                @if(
+                @if($itemUrl)
+                    <a
+                        href="{{ $itemUrl }}"
+                        class="menu-item {{ $isParentActive ? 'active' : '' }}"
+                        title="{{ $item['label'] ?? 'Menu' }}"
+                    >
+                        <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
+                        <span>{{ $item['label'] ?? 'Menu' }}</span>
+                    </a>
+                @elseif(
                     $itemRoute
                     && \Illuminate\Support\Facades\Route::has($itemRoute)
                 )
