@@ -12,131 +12,101 @@
 
   <div class="app">
 
-    {{-- =====================================================
-        SIDEBAR
-    ====================================================== --}}
- <x-layout.sidebar
-    department="Operation"
-    subtitle="Operation Module"
-    icon="fa-bus"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
-
-        [
-            'label' => 'Scheduling',
-            'icon' => 'fa-calendar-days',
-            'children' => [
-                [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
-                    'icon' => 'fa-calendar-days',
-                ],
-                [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
-                ],
-                [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Personnel Management',
-            'icon' => 'fa-address-book',
-            'children' => [
-                [
-                    'label' => 'Driver Master List',
-                    'route' => 'operation.personnel.drivers',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Master List',
-                    'route' => 'operation.personnel.mechanics',
-                    'icon' => 'fa-users-gear',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Attendance',
-            'icon' => 'fa-calendar-check',
-            'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-user-check',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-clipboard-user',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
-    ]"
-/>
+    <x-layout.sidebar
+      department="Operation"
+      subtitle="Operation Module"
+      icon="fa-bus"
+      :items="[
+          [
+              'label' => 'Dashboard',
+              'route' => 'dashboard-operation',
+              'icon' => 'fa-table-cells-large',
+          ],
+          [
+              'label' => 'Routes',
+              'route' => 'operation.routes',
+              'icon' => 'fa-route',
+          ],
+          [
+              'label' => 'Scheduling',
+              'icon' => 'fa-calendar-days',
+              'children' => [
+                  [
+                      'label' => 'Trip Schedule',
+                      'route' => 'trip-schedule',
+                      'icon' => 'fa-calendar-days',
+                  ],
+                  [
+                      'label' => 'Driver & Bus Assignment',
+                      'route' => 'driver-bus-assignment',
+                      'icon' => 'fa-user-tie',
+                  ],
+                  [
+                      'label' => 'Auto Scheduling',
+                      'route' => 'auto-scheduling',
+                      'icon' => 'fa-wand-magic-sparkles',
+                  ],
+              ],
+          ],
+          [
+              'label' => 'Personnel Management',
+              'icon' => 'fa-address-book',
+              'children' => [
+                  [
+                      'label' => 'Driver Master List',
+                      'route' => 'operation.personnel.drivers',
+                      'icon' => 'fa-id-card',
+                  ],
+                  [
+                      'label' => 'Mechanic Master List',
+                      'route' => 'operation.personnel.mechanics',
+                      'icon' => 'fa-users-gear',
+                  ],
+              ],
+          ],
+          [
+              'label' => 'Attendance',
+              'icon' => 'fa-calendar-check',
+              'children' => [
+                  [
+                      'label' => 'Driver Attendance',
+                      'route' => 'driver-attendance',
+                      'icon' => 'fa-user-check',
+                  ],
+                  [
+                      'label' => 'Mechanic Attendance',
+                      'route' => 'mechanic-attendance',
+                      'icon' => 'fa-clipboard-user',
+                  ],
+              ],
+          ],
+          [
+              'label' => 'Bus Master List',
+              'route' => 'bus-master-list',
+              'icon' => 'fa-bus',
+          ],
+      ]"
+    />
 
     <main class="main">
 
-      {{-- =====================================================
-          TOP BAR
-      ====================================================== --}}
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="Manage and track driver attendance and availability"
         notification-count="6"
       />
 
-
-      {{-- =====================================================
-          VALIDATION ERRORS
-      ====================================================== --}}
       @if($errors->any())
-
         <div class="alert-error">
-
           <ul>
-
             @foreach($errors->all() as $error)
-
-              <li>
-                {{ $error }}
-              </li>
-
+              <li>{{ $error }}</li>
             @endforeach
-
           </ul>
-
         </div>
-
       @endif
 
-
-      {{-- =====================================================
-          SUMMARY CARDS
-      ====================================================== --}}
       <section class="stats-grid">
-
         <x-ui.summary-card
           label="Present"
           value="{{ $present }}"
@@ -144,7 +114,6 @@
           icon="fa-user-check"
           color="green"
         />
-
         <x-ui.summary-card
           label="Absent"
           value="{{ $absent }}"
@@ -152,7 +121,6 @@
           icon="fa-user-xmark"
           color="red"
         />
-
         <x-ui.summary-card
           label="Late"
           value="{{ $late }}"
@@ -160,7 +128,6 @@
           icon="fa-clock"
           color="yellow"
         />
-
         <x-ui.summary-card
           label="On Duty"
           value="{{ $onDuty }}"
@@ -168,200 +135,80 @@
           icon="fa-bus"
           color="blue"
         />
-
       </section>
 
-
-      {{-- =====================================================
-          DRIVER ATTENDANCE TABLE
-      ====================================================== --}}
       <section class="table-card attendance-card">
-
         <div class="section-header">
-
           <div>
-
-            <h2>
-              Driver Attendance List
-            </h2>
-
-            <p>
-              Track driver attendance, bus assignment, time-in,
-              time-out, and attendance status
-            </p>
-
+            <h2>Driver Attendance List</h2>
+            <p>Track driver attendance, bus assignment, time-in, time-out, and attendance status</p>
           </div>
-
         </div>
 
-
-        {{-- =================================================
-            SEARCH / FILTER / BUTTONS
-        ================================================== --}}
         <form
           action="{{ route('driver-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
         >
-
           <div class="search-box">
-
             <i class="fa-solid fa-magnifying-glass"></i>
-
             <input
               type="text"
               name="search"
               value="{{ request('search') }}"
               placeholder="Search driver name, ID, bus, or shift..."
             >
-
           </div>
-
 
           <div class="filter-group">
-
-            <label>
-              Status
-            </label>
-
-            <select
-              name="status"
-              onchange="this.form.submit()"
-            >
-
-              <option
-                value="All Status"
-                {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}
-              >
-                All Status
-              </option>
-
-              <option
-                value="Present"
-                {{ request('status') === 'Present' ? 'selected' : '' }}
-              >
-                Present
-              </option>
-
-              <option
-                value="Late"
-                {{ request('status') === 'Late' ? 'selected' : '' }}
-              >
-                Late
-              </option>
-
-              <option
-                value="On Duty"
-                {{ request('status') === 'On Duty' ? 'selected' : '' }}
-              >
-                On Duty
-              </option>
-
-              <option
-                value="Absent"
-                {{ request('status') === 'Absent' ? 'selected' : '' }}
-              >
-                Absent
-              </option>
-
-              <option
-                value="On Leave"
-                {{ request('status') === 'On Leave' ? 'selected' : '' }}
-              >
-                On Leave
-              </option>
-
+            <label>Status</label>
+            <select name="status" onchange="this.form.submit()">
+              <option value="All Status" {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}>All Status</option>
+              <option value="Present" {{ request('status') === 'Present' ? 'selected' : '' }}>Present</option>
+              <option value="Late" {{ request('status') === 'Late' ? 'selected' : '' }}>Late</option>
+              <option value="On Duty" {{ request('status') === 'On Duty' ? 'selected' : '' }}>On Duty</option>
+              <option value="Absent" {{ request('status') === 'Absent' ? 'selected' : '' }}>Absent</option>
+              <option value="On Leave" {{ request('status') === 'On Leave' ? 'selected' : '' }}>On Leave</option>
             </select>
-
           </div>
 
-
-          {{-- IMPORT CSV --}}
           <button
             type="button"
             id="openImportDriverAttendanceModal"
             class="secondary-btn import-btn"
           >
-
             <i class="fa-solid fa-file-import"></i>
-
             Import Data
-
           </button>
-
-
-          {{-- ADD NEW --}}
-          <button
-            type="button"
-            id="openDriverAttendanceModal"
-            class="primary-btn"
-          >
-
-            <i class="fa-solid fa-plus"></i>
-
-            New Record
-
-          </button>
-
         </form>
 
-
-        {{-- =================================================
-            TABLE
-        ================================================== --}}
         <div class="table-wrap">
-
           <table class="attendance-table">
-
             <thead>
-
               <tr>
-
                 <th>ID</th>
-
                 <th>Driver</th>
-
                 <th>Role</th>
-
                 <th>Shift</th>
-
                 <th>Current Assignment</th>
-
                 <th>Date</th>
-
                 <th>Time-in</th>
-
                 <th>Time-out</th>
-
                 <th>Status</th>
-
                 <th>Actions</th>
-
               </tr>
-
             </thead>
 
-
             <tbody>
-
               @forelse($driverAttendances as $attendance)
-
                 @php
-
                   $statusClass = match($attendance->status) {
-
                     'Present' => 'present',
-
                     'Late' => 'late',
-
                     'Absent' => 'absent',
-
                     'On Leave' => 'leave',
-
                     'On Duty' => 'duty',
-
                     default => 'present',
-
                   };
 
                   $activeAssignments = $attendance
@@ -377,9 +224,7 @@
                         );
                     })
                     ->sortBy(function ($assignment) {
-                      return optional(
-                        $assignment->tripSchedule
-                      )->departure_time;
+                      return optional($assignment->tripSchedule)->departure_time;
                     })
                     ->values();
 
@@ -396,147 +241,46 @@
                     : 'Unassigned';
 
                   if ($activeAssignments->count() > 1) {
-                    $assignmentSummary .=
-                      ' | '
-                      . $activeAssignments->count()
-                      . ' assigned trips';
+                    $assignmentSummary .= ' | ' . $activeAssignments->count() . ' assigned trips';
                   }
-
                 @endphp
 
-
                 <tr>
-
+                  <td>{{ $attendance->driver_id }}</td>
+                  <td>{{ $attendance->driver_name }}</td>
+                  <td>Driver</td>
+                  <td>{{ $attendance->shift }}</td>
                   <td>
-                    {{ $attendance->driver_id }}
-                  </td>
-
-
-                  <td>
-                    {{ $attendance->driver_name }}
-                  </td>
-
-
-                  <td>
-                    Driver
-                  </td>
-
-
-                  <td>
-                    {{ $attendance->shift }}
-                  </td>
-
-
-                  <td>
-
                     @if($primaryAssignment)
-
                       <div class="current-assignment-cell">
-
                         <span class="current-assignment-bus">
                           {{ $primaryBus?->bus_no ?? 'Bus unavailable' }}
                         </span>
-
                         <span class="current-assignment-trip">
                           {{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}
-
                           @if($primaryTrip)
-                            •
-                            {{
-                              date(
-                                'h:i A',
-                                strtotime($primaryTrip->departure_time)
-                              )
-                            }}
-                            –
-                            {{
-                              date(
-                                'h:i A',
-                                strtotime(
-                                  $primaryTrip->estimated_arrival_time
-                                )
-                              )
-                            }}
+                            • {{ date('h:i A', strtotime($primaryTrip->departure_time)) }}
+                            – {{ date('h:i A', strtotime($primaryTrip->estimated_arrival_time)) }}
                           @endif
                         </span>
-
                         @if($activeAssignments->count() > 1)
                           <small class="current-assignment-more">
-                            +{{ $activeAssignments->count() - 1 }}
-                            more assignment(s)
+                            +{{ $activeAssignments->count() - 1 }} more assignment(s)
                           </small>
                         @endif
-
                       </div>
-
                     @else
-
-                      <span class="current-assignment-empty">
-                        Unassigned
-                      </span>
-
+                      <span class="current-assignment-empty">Unassigned</span>
                     @endif
-
                   </td>
-
-
+                  <td>{{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}</td>
+                  <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
+                  <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
                   <td>
-
-                    {{
-                      $attendance->attendance_date
-                        ? $attendance->attendance_date->format('m/d/y')
-                        : '—'
-                    }}
-
+                    <span class="badge {{ $statusClass }}">{{ $attendance->status }}</span>
                   </td>
-
-
                   <td>
-
-                    {{
-                      $attendance->time_in
-                        ? date(
-                            'h:i A',
-                            strtotime($attendance->time_in)
-                          )
-                        : '--:--'
-                    }}
-
-                  </td>
-
-
-                  <td>
-
-                    {{
-                      $attendance->time_out
-                        ? date(
-                            'h:i A',
-                            strtotime($attendance->time_out)
-                          )
-                        : '--:--'
-                    }}
-
-                  </td>
-
-
-                  <td>
-
-                    <span
-                      class="badge {{ $statusClass }}"
-                    >
-
-                      {{ $attendance->status }}
-
-                    </span>
-
-                  </td>
-
-
-                  <td>
-
                     <div class="actions">
-
-                      {{-- VIEW --}}
                       <button
                         type="button"
                         class="action-btn view open-view-driver-attendance-modal"
@@ -553,8 +297,6 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-
-                      {{-- EDIT --}}
                       <button
                         type="button"
                         class="action-btn edit open-edit-driver-attendance-modal"
@@ -572,8 +314,6 @@
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
 
-
-                      {{-- DELETE --}}
                       <form
                         id="deleteDriverAttendanceForm-{{ $attendance->id }}"
                         action="{{ route('driver-attendance.destroy', $attendance->id, false) }}"
@@ -581,7 +321,6 @@
                       >
                         @csrf
                         @method('DELETE')
-
                         <button
                           type="button"
                           class="action-btn delete open-delete-driver-attendance-modal"
@@ -593,74 +332,28 @@
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       </form>
-
                     </div>
-
                   </td>
-
                 </tr>
-
-
               @empty
-
-                <x-ui.empty-row
-                  colspan="10"
-                  message="No driver attendance records found."
-                />
-
+                <x-ui.empty-row colspan="10" message="No driver attendance records found." />
               @endforelse
-
             </tbody>
-
           </table>
-
         </div>
 
-
-        {{-- =================================================
-            PAGINATION
-        ================================================== --}}
-        <x-ui.table-footer
-          :items="$driverAttendances"
-        />
-
+        <x-ui.table-footer :items="$driverAttendances" />
       </section>
-
     </main>
-
   </div>
 
-
-
-  {{-- =========================================================
-      IMPORT DRIVER ATTENDANCE MODAL
-  ========================================================== --}}
-  <div
-    id="importDriverAttendanceModal"
-    class="modal-overlay"
-  >
-
+  {{-- IMPORT DRIVER ATTENDANCE MODAL --}}
+  <div id="importDriverAttendanceModal" class="modal-overlay">
     <div class="modal-box">
-
       <div class="modal-header">
-
-        <h2>
-          Import Driver Attendance Data
-        </h2>
-
-
-        <button
-          type="button"
-          id="closeImportDriverAttendanceModal"
-          class="close-btn"
-        >
-
-          &times;
-
-        </button>
-
+        <h2>Import Driver Attendance Data</h2>
+        <button type="button" id="closeImportDriverAttendanceModal" class="close-btn">&times;</button>
       </div>
-
 
       <form
         id="importDriverAttendanceForm"
@@ -674,98 +367,37 @@
         data-confirm-button="Yes, Import Data"
         data-confirm-type="warning"
       >
-
         @csrf
-
-
         <div class="form-section-title full-width">
-
-          <h3>
-            Upload CSV File
-          </h3>
-
-          <p>
-            Upload driver attendance records using a CSV file.
-          </p>
-
+          <h3>Upload CSV File</h3>
+          <p>Upload driver attendance records using a CSV file.</p>
         </div>
-
-
         <div class="form-group full-width">
-
-          <label>
-            CSV File
-          </label>
-
-          <input
-            type="file"
-            name="import_file"
-            accept=".csv,.txt"
-            required
-          >
-
+          <label>CSV File</label>
+          <input type="file" name="import_file" accept=".csv,.txt" required>
         </div>
-
-
         <div class="form-group full-width">
-
           <small>
-
-            Required columns:
-            driver_name,
-            shift,
-            attendance_date,
-            time_in,
-            time_out,
-            status
-
+            Required columns: driver_name, shift, attendance_date, time_in, time_out, status
           </small>
-
         </div>
-
-
         <div class="modal-actions full-width">
-
-          <button
-            type="button"
-            id="cancelImportDriverAttendanceModal"
-            class="cancel-btn"
-          >
-
-            Cancel
-
-          </button>
-
-
-          <button
-            type="submit"
-            class="save-btn"
-          >
-
+          <button type="button" id="cancelImportDriverAttendanceModal" class="cancel-btn">Cancel</button>
+          <button type="submit" class="save-btn">
             <i class="fa-solid fa-file-import"></i>
-
             Import Data
-
           </button>
-
         </div>
-
       </form>
-
     </div>
-
   </div>
 
-
-
-  {{-- =========================================================
-      ADD / EDIT DRIVER ATTENDANCE MODAL
-  ========================================================== --}}
+  {{-- EDIT DRIVER ATTENDANCE MODAL --}}
   <x-ui.form-modal
     id="driverAttendanceModal"
-    title="Add New Driver Attendance"
+    title="Driver Attendance Details"
     title-id="driverAttendanceModalTitle"
-    description="Enter driver attendance information."
+    description="Review and update driver attendance information."
     icon="fa-id-card"
     size="large"
     form-id="driverAttendanceForm"
@@ -800,7 +432,6 @@
         icon="fa-hashtag"
         :readonly="true"
       />
-
       <x-ui.form-field
         label="Driver Name"
         name="driver_name"
@@ -810,7 +441,6 @@
         icon="fa-user"
         :required="true"
       />
-
       <x-ui.form-select
         label="Shift"
         name="shift"
@@ -824,7 +454,6 @@
         icon="fa-business-time"
         :required="true"
       />
-
       <x-ui.form-field
         label="Date"
         name="attendance_date"
@@ -834,7 +463,6 @@
         icon="fa-calendar-day"
         :required="true"
       />
-
       <x-ui.form-field
         label="Time-in"
         name="time_in"
@@ -843,7 +471,6 @@
         :value="old('time_in')"
         icon="fa-clock"
       />
-
       <x-ui.form-field
         label="Time-out"
         name="time_out"
@@ -852,7 +479,6 @@
         :value="old('time_out')"
         icon="fa-clock-rotate-left"
       />
-
       <x-ui.form-select
         label="Status"
         name="status"
@@ -872,7 +498,6 @@
 
     <div class="attendance-form-note">
       <i class="fa-solid fa-circle-info"></i>
-
       <div>
         <strong>Automatic assignment display</strong>
         <span>
@@ -883,10 +508,6 @@
     </div>
   </x-ui.form-modal>
 
-
-  {{-- =========================================================
-      VIEW DRIVER ATTENDANCE MODAL
-  ========================================================== --}}
   <x-ui.form-modal
     id="viewDriverAttendanceModal"
     title="Driver Attendance Details"
@@ -899,11 +520,7 @@
     :show-actions="false"
     close-id="closeViewDriverAttendanceModal"
   >
-    <div
-      class="attendance-details-grid"
-      id="viewDriverAttendanceContent"
-    ></div>
-
+    <div class="attendance-details-grid" id="viewDriverAttendanceContent"></div>
     <div class="ui-form-actions">
       <button
         type="button"
@@ -911,16 +528,11 @@
         class="ui-form-btn ui-form-btn-primary"
       >
         <i class="fa-solid fa-check"></i>
-
         <span>Close</span>
       </button>
     </div>
   </x-ui.form-modal>
 
-
-  {{-- =========================================================
-      DELETE DRIVER ATTENDANCE MODAL
-  ========================================================== --}}
   <x-ui.action-buttom-modal
     mode="delete"
     id="deleteDriverAttendanceModal"
@@ -930,6 +542,5 @@
     cancel-id="cancelDeleteDriverAttendance"
     confirm-id="confirmDeleteDriverAttendance"
   />
-
 
 </x-layout.app>
