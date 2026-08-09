@@ -9,24 +9,6 @@
         'resources/js/Maintenance/job-order.js'
     ]"
 >
-    @if($errors->any())
-        <div id="validationErrorModal" class="modal-overlay delete-modal-overlay show active">
-            <div class="modal-card delete-modal-box">
-                <div class="delete-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <h2>Form Error</h2>
-                <p>Please check the form. Some required information is missing.</p>
-                <ul class="form-error-list">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <div class="delete-modal-actions">
-                    <button type="button" id="closeValidationErrorModal" class="secondary-btn cancel-delete-btn">Okay</button>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <div class="app">
         <x-layout.sidebar
             department="Maintenance"
@@ -51,7 +33,7 @@
 
             <section class="stats-grid jo-stats-grid">
                 <x-ui.summary-card label="On Hold" value="{{ $onHold ?? 0 }}" small="Job Orders" icon="fa-pause" color="yellow" />
-                <x-ui.summary-card label="On Going" value="{{ $onGoing ?? 0 }}" small="Job Orders" icon="fa-spinner" color="blue" />
+                <x-ui.summary-card label="In Progress" value="{{ $onGoing ?? 0 }}" small="Job Orders" icon="fa-spinner" color="blue" />
                 <x-ui.summary-card label="Completed" value="{{ $completed ?? 0 }}" small="Job Orders" icon="fa-check" color="green" />
                 <x-ui.summary-card label="Needs Parts" value="{{ $needParts ?? 0 }}" small="Pending parts" icon="fa-screwdriver-wrench" color="red" />
             </section>
@@ -120,7 +102,9 @@
                                     $isOnHold = $jobOrder->status === 'On Hold';
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
                                     $hasNeededParts = !empty($jobOrder->part_needed);
-                                    $joStatus = $jobOrder->status ?: 'On Going';
+                                    $joStatus = $jobOrder->status === 'On Going'
+                                        ? 'In Progress'
+                                        : ($jobOrder->status ?: 'In Progress');
                                     $isOverdue = $jobOrder->is_overdue;
 
                                     $partStatus = $jobOrder->part_status;
@@ -209,26 +193,21 @@
                                         @if($jobOrder->completion_date)
                                             <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->completion_date)) }}</span>
                                             <span class="time-value">{{ date('h:i A', strtotime($jobOrder->completion_date)) }}</span>
-                                        @else
-                                            @if($canFinish)
-                                                <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST">
-                                                    @csrf
-                                                    <button
-                                                        type="button"
-                                                        class="finish-btn open-finish-modal"
-                                                        data-id="{{ $jobOrder->id }}"
-                                                        data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                    >
-                                                        <i class="fa-solid fa-check"></i>
-                                                        Finish
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <button type="button" class="finish-btn locked-finish-btn" disabled>
-                                                    <i class="fa-solid fa-lock"></i>
-                                                    Locked
+                                        @elseif($canFinish)
+                                            <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST">
+                                                @csrf
+                                                <button
+                                                    type="button"
+                                                    class="finish-btn open-finish-modal"
+                                                    data-id="{{ $jobOrder->id }}"
+                                                    data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                >
+                                                    <i class="fa-solid fa-check"></i>
+                                                    Finish
                                                 </button>
-                                            @endif
+                                            </form>
+                                        @else
+                                            <span class="empty" title="Completion date is recorded only after the Job Order is manually finished.">—</span>
                                         @endif
                                     </td>
 
@@ -399,6 +378,34 @@
                 required
             />
 
+            <div id="newJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
+                <label>
+                    Estimated Work Duration
+                    <span class="ui-required">*</span>
+                </label>
+                <div class="jo-duration-control">
+                    <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
+                        <input
+                            type="number"
+                            name="estimated_duration_value"
+                            min="0.25"
+                            step="0.25"
+                            value="{{ old('estimated_duration_value') }}"
+                            placeholder="e.g. 4"
+                            required
+                        >
+                    </div>
+                    <select name="estimated_duration_unit" required>
+                        @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
+                            <option value="{{ $durationUnit }}" {{ old('estimated_duration_unit', 'Hours') === $durationUnit ? 'selected' : '' }}>
+                                {{ $durationUnit }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <x-ui.form-select
                 label="Assigned Mechanic"
                 name="assigned_mechanic"
@@ -517,12 +524,37 @@
                 required
             />
 
+            <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
+                <label>
+                    Estimated Work Duration
+                    <span class="ui-required">*</span>
+                </label>
+                <div class="jo-duration-control">
+                    <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
+                        <input
+                            type="number"
+                            name="estimated_duration_value"
+                            min="0.25"
+                            step="0.25"
+                            placeholder="e.g. 4"
+                            required
+                        >
+                    </div>
+                    <select name="estimated_duration_unit" required>
+                        <option value="Hours">Hours</option>
+                        <option value="Minutes">Minutes</option>
+                        <option value="Days">Days</option>
+                    </select>
+                </div>
+            </div>
+
             <x-ui.form-select
                 label="Status"
                 name="status"
                 id="edit_status"
                 icon="fa-circle-check"
-                :options="['On Hold' => 'On Hold', 'On Going' => 'On Going']"
+                :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
             />
 
             <x-ui.form-select
