@@ -9,9 +9,9 @@
     $statusKey = strtolower(str_replace([' ', '/', '_'], '-', $value));
 
     /*
-     * Generic visual aliases keep status colors consistent across modules.
-     * Purchase badges preserve their real workflow class because Purchase CSS
-     * styles individual states such as approved, rejected and for-purchase.
+     * Shared visual aliases keep status colors consistent across modules.
+     * Purchase statuses now use the same mapped visual classes instead of
+     * falling back to unstyled raw status names.
      */
     $statusMap = [
         'active' => 'active',
@@ -32,6 +32,7 @@
         'on-duty' => 'ongoing',
         'in-progress' => 'ongoing',
         'processing' => 'ongoing',
+        'for-delivery' => 'ongoing',
 
         'pending' => 'pending',
         'submitted' => 'pending',
@@ -42,7 +43,6 @@
         'in-review' => 'pending',
         'for-purchase' => 'pending',
         'for-pick-up' => 'pending',
-        'for-delivery' => 'pending',
         'not-requested' => 'pending',
 
         'upcoming' => 'upcoming',
@@ -69,9 +69,7 @@
         'unknown' => 'draft',
     ];
 
-    $statusClass = $type === 'purchase'
-        ? $statusKey
-        : ($statusMap[$statusKey] ?? ($statusKey ?: 'draft'));
+    $statusClass = $statusMap[$statusKey] ?? ($statusKey ?: 'draft');
 
     if ($type === 'user') {
         $userStatuses = ['active', 'inactive', 'pending'];
