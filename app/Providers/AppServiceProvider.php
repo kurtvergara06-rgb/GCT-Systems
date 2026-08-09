@@ -7,6 +7,7 @@ use App\Http\Controllers\Warehouse\IncomingDeliveryController;
 use App\Http\Controllers\Warehouse\StockMovementController;
 use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Maintenance\JobOrder;
+use App\Services\AdminDashboardService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        View::composer('Admin.admin-dashboard', function ($view): void {
+            $view->with(app(AdminDashboardService::class)->data());
+        });
+
         View::composer('Warehouse.dashboard-warehouse', function ($view): void {
             $view->with(app(WarehouseDashboardController::class)->data());
         });
