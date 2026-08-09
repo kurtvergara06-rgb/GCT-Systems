@@ -8,6 +8,7 @@ use App\Http\Controllers\Warehouse\StockMovementController;
 use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Maintenance\JobOrder;
 use App\Services\AdminDashboardService;
+use App\Services\RolePermissionService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('Admin.admin-dashboard', function ($view): void {
             $view->with(app(AdminDashboardService::class)->data());
+        });
+
+        View::composer('Admin.User_Management.permissions', function ($view): void {
+            $view->with(
+                app(RolePermissionService::class)->data(request()->query('role'))
+            );
         });
 
         View::composer('Warehouse.dashboard-warehouse', function ($view): void {
