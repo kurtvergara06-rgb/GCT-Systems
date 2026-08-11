@@ -8,6 +8,7 @@ import './echo';
  */
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
+import '../css/Main-styles/admin-records.css';
 import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
 import '../css/Main-styles/spinner.css';
