@@ -138,12 +138,11 @@
         $items = [
             ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-table-cells-large'],
             [
-                'label' => 'User Management',
-                'icon' => 'fa-users',
+                'label' => 'Account Management',
+                'icon' => 'fa-users-gear',
                 'children' => [
-                    ['label' => 'Users', 'route' => 'admin.users', 'icon' => 'fa-user'],
+                    ['label' => 'Accounts', 'route' => 'admin.users', 'icon' => 'fa-address-card'],
                     ['label' => 'Roles & Permissions', 'route' => 'admin.roles-permissions', 'icon' => 'fa-user-lock'],
-                    ['label' => 'Account Requests', 'route' => 'admin.account-requests', 'icon' => 'fa-user-clock'],
                 ],
             ],
             [
