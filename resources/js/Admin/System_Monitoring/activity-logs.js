@@ -2,7 +2,8 @@ import '../../../css/Admin/System_Monitoring/activity-logs-controls.css';
 
 document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('activityLogsTable');
-    const searchInput = document.getElementById('activitySearch');
+    const searchInput = document.getElementById('activitySearch')
+        || document.querySelector('#activityFilterForm input[name="search"]');
     const moduleFilter = document.getElementById('activityModuleFilter');
     const eventFilter = document.getElementById('activityEventFilter');
     const dateFilter = document.getElementById('activityDateFilter');
@@ -14,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!table || !searchInput || !moduleFilter || !eventFilter || !dateFilter) {
         return;
     }
+
+    searchInput.id = 'activitySearch';
+    searchInput.setAttribute('autocomplete', 'off');
 
     const rows = Array.from(table.querySelectorAll('tbody tr[data-activity-row]'));
     let filterTimer = null;
