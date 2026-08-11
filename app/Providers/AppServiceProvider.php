@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
 use App\Http\Controllers\Warehouse\IncomingDeliveryController;
 use App\Http\Controllers\Warehouse\StockMovementController;
@@ -35,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('Admin.System_Monitoring.activity-logs', function ($view): void {
             $view->with(app(ActivityLogController::class)->data(request()));
+        });
+
+        View::composer('Admin.System_Monitoring.notifications', function ($view): void {
+            $view->with(app(NotificationCenterController::class)->data(request()));
         });
 
         View::composer('Warehouse.dashboard-warehouse', function ($view): void {
