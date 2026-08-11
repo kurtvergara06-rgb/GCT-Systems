@@ -68,6 +68,7 @@ export default defineConfig({
 
                 'resources/css/Admin/System_Monitoring/activity-logs.css',
                 'resources/css/Admin/System_Monitoring/notifications.css',
+                'resources/js/Admin/System_Monitoring/activity-logs.js',
 
                 // ======================================================
                 // ADMIN — SETTINGS
