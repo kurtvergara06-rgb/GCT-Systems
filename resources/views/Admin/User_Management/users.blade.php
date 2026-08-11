@@ -93,11 +93,11 @@
                     button-icon="fa-user-plus"
                 >
                     <div class="filter-group">
-                        <label for="departmentFilter">Department</label>
                         <select
                             name="department"
                             id="departmentFilter"
                             onchange="this.form.submit()"
+                            aria-label="Department"
                         >
                             <option
                                 value="All Departments"
