@@ -1,0 +1,16 @@
+/* Shared toolbar cleanup across GCT/FROMS modules.
+   Department captions are redundant because the select already names its purpose.
+   Form labels outside filtering toolbars remain untouched for accessibility. */
+
+[class*="toolbar"] .filter-group:has(select[name="department"]) > label,
+[class*="toolbar"] .filter-group:has(select[id*="department" i]) > label,
+[class*="toolbar"] label[for*="department" i]:has(+ select) {
+    display: none !important;
+}
+
+/* When the only label in a filter cell is hidden, keep all controls vertically aligned. */
+[class*="toolbar"] .filter-group:has(select[name="department"]),
+[class*="toolbar"] .filter-group:has(select[id*="department" i]) {
+    justify-content: flex-end;
+    gap: 0 !important;
+}
