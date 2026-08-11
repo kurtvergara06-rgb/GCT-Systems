@@ -21,7 +21,7 @@ class ActivityLogService
     ): ActivityLog {
         return ActivityLog::create([
             'user_id' => $user->getAuthIdentifier(),
-            'user_name' => (string) ($user->name ?? 'System User'),
+            'user_name' => (string) ($user->name ?? 'System Account'),
             'user_role' => $this->formatRole($user),
             'department' => $this->normalizeDepartment((string) ($user->department ?? '')),
             'activity' => $activity,
@@ -40,6 +40,18 @@ class ActivityLogService
 
         if ($this->shouldIgnore($routeName, $request)) {
             return null;
+        }
+
+        if ($request->boolean('_permission_update')) {
+            return $this->record(
+                $user,
+                $request,
+                'Updated role permissions',
+                'Updated',
+                'Admin',
+                $request->input('role_key'),
+                'Updated access permissions for the selected system role.'
+            );
         }
 
         $eventType = $this->inferEventType($routeName, $request->method());
@@ -64,58 +76,24 @@ class ActivityLogService
             return true;
         }
 
-        return Str::startsWith($routeName, [
-            'topbar.',
-        ]);
+        return Str::startsWith($routeName, ['topbar.']);
     }
 
     private function inferEventType(string $routeName, string $method): string
     {
         $route = strtolower($routeName);
 
-        if (Str::contains($route, ['login'])) {
-            return 'Login';
-        }
-
-        if (Str::contains($route, ['logout'])) {
-            return 'Logout';
-        }
-
-        if (Str::contains($route, ['approve'])) {
-            return 'Approval';
-        }
-
-        if (Str::contains($route, ['reject'])) {
-            return 'Rejected';
-        }
-
-        if (Str::contains($route, ['delete', 'destroy', 'remove'])) {
-            return 'Deleted';
-        }
-
-        if (Str::contains($route, ['create', 'store', 'import', 'upload'])) {
-            return 'Created';
-        }
-
-        if (Str::contains($route, ['receive'])) {
-            return 'Received';
-        }
-
-        if (Str::contains($route, ['issue'])) {
-            return 'Issued';
-        }
-
-        if (Str::contains($route, ['complete', 'finish'])) {
-            return 'Completed';
-        }
-
-        if (Str::contains($route, ['assign'])) {
-            return 'Assigned';
-        }
-
-        if (Str::contains($route, ['reset-password'])) {
-            return 'Security';
-        }
+        if (Str::contains($route, ['login'])) return 'Login';
+        if (Str::contains($route, ['logout'])) return 'Logout';
+        if (Str::contains($route, ['reset-password'])) return 'Security';
+        if (Str::contains($route, ['approve'])) return 'Approval';
+        if (Str::contains($route, ['reject'])) return 'Rejected';
+        if (Str::contains($route, ['delete', 'destroy', 'remove'])) return 'Deleted';
+        if (Str::contains($route, ['receive'])) return 'Received';
+        if (Str::contains($route, ['issue'])) return 'Issued';
+        if (Str::contains($route, ['complete', 'finish'])) return 'Completed';
+        if (Str::contains($route, ['assign'])) return 'Assigned';
+        if (Str::contains($route, ['create', 'store', 'import', 'upload'])) return 'Created';
 
         return strtoupper($method) === 'POST' ? 'Created' : 'Updated';
     }
@@ -126,6 +104,10 @@ class ActivityLogService
             return $eventType . ' system record';
         }
 
+        if ($routeName === 'logout') {
+            return 'Logged out of FROMS';
+        }
+
         $segments = collect(explode('.', $routeName))
             ->reject(fn (string $segment) => in_array($segment, ['admin', 'warehouse', 'operation'], true))
             ->values();
@@ -133,10 +115,14 @@ class ActivityLogService
         $resource = $segments->first() ?: 'system record';
         $action = $segments->last() ?: $eventType;
 
-        $resourceLabel = Str::of($resource)
-            ->replace(['-', '_'], ' ')
-            ->singular()
-            ->title();
+        $resourceLabel = match ($resource) {
+            'users' => 'Account',
+            default => Str::of($resource)
+                ->replace(['-', '_'], ' ')
+                ->singular()
+                ->title()
+                ->toString(),
+        };
 
         $actionLabels = [
             'store' => 'Created',
@@ -176,6 +162,17 @@ class ActivityLogService
             return 'Admin';
         }
 
+        /* Purchase-specific paths must be evaluated before generic inventory paths. */
+        if (Str::contains($haystack, [
+            'purchase/',
+            'purchase-orders',
+            'maintenance-requests',
+            'inventory-restock',
+            'scheduled-purchase',
+        ])) {
+            return 'Purchase';
+        }
+
         if (Str::contains($haystack, [
             'warehouse/',
             'warehouse.',
@@ -185,16 +182,6 @@ class ActivityLogService
             'incoming-deliveries',
         ])) {
             return 'Warehouse';
-        }
-
-        if (Str::contains($haystack, [
-            'purchase/',
-            'purchase-orders',
-            'maintenance-requests',
-            'inventory-restock',
-            'scheduled-purchase',
-        ])) {
-            return 'Purchase';
         }
 
         if (Str::contains($haystack, [
