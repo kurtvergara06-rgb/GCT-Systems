@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TopbarNotification;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -111,6 +113,28 @@ class NotificationCenterController extends Controller
             'totalNotifications',
             'modules'
         );
+    }
+
+    public function markRead(Request $request, TopbarNotification $notification): JsonResponse
+    {
+        $current = DB::table('topbar_read_states')
+            ->where('user_id', $request->user()->id)
+            ->value('notifications_read_at');
+
+        $readAt = $current && Carbon::parse($current)->gt($notification->created_at)
+            ? Carbon::parse($current)
+            : $notification->created_at;
+
+        DB::table('topbar_read_states')->updateOrInsert(
+            ['user_id' => $request->user()->id],
+            [
+                'notifications_read_at' => $readAt,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json(['success' => true]);
     }
 
     private function typeFor(TopbarNotification $notification): string
