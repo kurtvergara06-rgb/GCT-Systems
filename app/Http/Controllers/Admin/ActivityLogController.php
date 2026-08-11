@@ -10,6 +10,14 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
+        return view(
+            'Admin.System_Monitoring.activity-logs',
+            $this->data($request)
+        );
+    }
+
+    public function data(Request $request): array
+    {
         $query = ActivityLog::query();
 
         if ($request->filled('search')) {
@@ -50,37 +58,28 @@ class ActivityLogController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $activitiesToday = ActivityLog::whereDate('created_at', today())->count();
-        $userActions = ActivityLog::whereDate('created_at', today())
-            ->whereNotIn('event_type', ['Login', 'Logout', 'Security'])
-            ->count();
-        $systemEvents = ActivityLog::whereDate('created_at', today())
-            ->whereIn('event_type', ['Created', 'Updated', 'Completed', 'Received', 'Issued', 'Assigned'])
-            ->count();
-        $securityEvents = ActivityLog::whereDate('created_at', today())
-            ->whereIn('event_type', ['Login', 'Logout', 'Security', 'Deleted'])
-            ->count();
-
-        $modules = ActivityLog::query()
-            ->select('module')
-            ->distinct()
-            ->orderBy('module')
-            ->pluck('module');
-
-        $events = ActivityLog::query()
-            ->select('event_type')
-            ->distinct()
-            ->orderBy('event_type')
-            ->pluck('event_type');
-
-        return view('Admin.System_Monitoring.activity-logs', compact(
-            'logs',
-            'activitiesToday',
-            'userActions',
-            'systemEvents',
-            'securityEvents',
-            'modules',
-            'events'
-        ));
+        return [
+            'logs' => $logs,
+            'activitiesToday' => ActivityLog::whereDate('created_at', today())->count(),
+            'userActions' => ActivityLog::whereDate('created_at', today())
+                ->whereNotIn('event_type', ['Login', 'Logout', 'Security'])
+                ->count(),
+            'systemEvents' => ActivityLog::whereDate('created_at', today())
+                ->whereIn('event_type', ['Created', 'Updated', 'Completed', 'Received', 'Issued', 'Assigned'])
+                ->count(),
+            'securityEvents' => ActivityLog::whereDate('created_at', today())
+                ->whereIn('event_type', ['Login', 'Logout', 'Security', 'Deleted'])
+                ->count(),
+            'modules' => ActivityLog::query()
+                ->select('module')
+                ->distinct()
+                ->orderBy('module')
+                ->pluck('module'),
+            'events' => ActivityLog::query()
+                ->select('event_type')
+                ->distinct()
+                ->orderBy('event_type')
+                ->pluck('event_type'),
+        ];
     }
 }
