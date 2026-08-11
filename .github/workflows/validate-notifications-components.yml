@@ -49,6 +49,7 @@ jobs:
       - name: Prepare Laravel test environment
         run: |
           cp .env.example .env
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views
           php artisan key:generate
           printf '\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_DATABASE=gct_system_test\nDB_USERNAME=gct\nDB_PASSWORD=secret\n' >> .env
 
