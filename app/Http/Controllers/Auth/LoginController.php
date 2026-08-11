@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,6 +102,22 @@ class LoginController extends Controller
         $authenticatedUser->forceFill([
             'last_login_at' => now(),
         ])->save();
+
+        try {
+            app(ActivityLogService::class)->record(
+                $authenticatedUser,
+                $request,
+                'Logged in to FROMS',
+                'Login',
+                'Admin' === ucfirst(strtolower((string) $authenticatedUser->department))
+                    ? 'Admin'
+                    : ucfirst(strtolower((string) $authenticatedUser->department)),
+                null,
+                'Successful account login.'
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
 
         /*
         |--------------------------------------------------------------------------
