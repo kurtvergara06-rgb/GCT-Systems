@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TopbarNotification;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,6 +11,11 @@ use Illuminate\Support\Str;
 class NotificationCenterController extends Controller
 {
     public function index(Request $request)
+    {
+        return view('Admin.System_Monitoring.notifications', $this->data($request));
+    }
+
+    public function data(Request $request): array
     {
         $query = TopbarNotification::query();
 
@@ -33,8 +37,7 @@ class NotificationCenterController extends Controller
         }
 
         if ($request->filled('type') && $request->input('type') !== 'all') {
-            $type = (string) $request->input('type');
-            $this->applyTypeFilter($query, $type);
+            $this->applyTypeFilter($query, (string) $request->input('type'));
         }
 
         $readAt = DB::table('topbar_read_states')
@@ -63,7 +66,7 @@ class NotificationCenterController extends Controller
 
             return [
                 'id' => $notification->id,
-                'title' => $this->titleFor($notification, $type),
+                'title' => $this->titleFor($notification),
                 'message' => $notification->message,
                 'module' => $notification->module ?: 'System',
                 'type' => $type,
@@ -100,36 +103,14 @@ class NotificationCenterController extends Controller
             ->orderBy('module')
             ->pluck('module');
 
-        return view('Admin.System_Monitoring.notifications', compact(
+        return compact(
             'notifications',
             'unreadNotifications',
             'criticalAlerts',
             'systemUpdates',
             'totalNotifications',
             'modules'
-        ));
-    }
-
-    public function markRead(Request $request, TopbarNotification $notification): JsonResponse
-    {
-        $current = DB::table('topbar_read_states')
-            ->where('user_id', $request->user()->id)
-            ->value('notifications_read_at');
-
-        $readAt = $current && now()->parse($current)->gt($notification->created_at)
-            ? $current
-            : $notification->created_at;
-
-        DB::table('topbar_read_states')->updateOrInsert(
-            ['user_id' => $request->user()->id],
-            [
-                'notifications_read_at' => $readAt,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
         );
-
-        return response()->json(['success' => true]);
     }
 
     private function typeFor(TopbarNotification $notification): string
@@ -179,7 +160,7 @@ class NotificationCenterController extends Controller
         }
     }
 
-    private function titleFor(TopbarNotification $notification, string $type): string
+    private function titleFor(TopbarNotification $notification): string
     {
         $entity = Str::of((string) ($notification->entity ?: 'System'))->headline();
         $action = Str::of((string) ($notification->action ?: 'Updated'))->headline();
