@@ -1,0 +1,289 @@
+/* =========================================================
+   GLOBAL MANAGEMENT / RECORD TABLE UI
+   Shared by Admin management screens and AJAX-ready tables.
+========================================================= */
+
+.records-page {
+  --records-primary: #0b40b5;
+  --records-navy: #061f3d;
+  --records-muted: #64748b;
+  --records-border: #dce5f2;
+  --records-border-strong: #cbd7e6;
+  --records-card: #ffffff;
+  --records-head: #f2f6fb;
+}
+
+.records-card {
+  min-height: 0;
+  height: auto;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--records-border);
+  border-radius: 16px;
+  background: var(--records-card);
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  overflow: hidden;
+}
+
+.records-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 1fr) repeat(4, auto);
+  align-items: end !important;
+  gap: 10px !important;
+  width: 100%;
+  margin-bottom: 16px !important;
+  padding: 12px !important;
+  border: 1px solid var(--records-border) !important;
+  border-radius: 12px !important;
+  background: #fbfdff !important;
+  box-shadow: none !important;
+}
+
+.records-toolbar .search-box {
+  min-width: 0;
+}
+
+.records-toolbar .search-box input,
+.records-toolbar .filter-group select,
+.records-toolbar .primary-btn {
+  height: 42px !important;
+  border-radius: 9px !important;
+}
+
+.records-toolbar .search-box input,
+.records-toolbar .filter-group select {
+  border-color: var(--records-border-strong) !important;
+}
+
+.records-toolbar .filter-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.records-toolbar .filter-group label {
+  color: var(--records-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.records-toolbar .filter-group select {
+  min-width: 126px;
+  padding: 0 32px 0 11px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.records-toolbar .primary-btn {
+  min-width: 112px;
+  padding: 0 15px;
+  white-space: nowrap;
+}
+
+.records-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--records-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.records-table {
+  width: 100%;
+  min-width: 980px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.records-table thead {
+  background: var(--records-head);
+}
+
+.records-table th {
+  height: 44px;
+  padding: 0 13px;
+  border-bottom: 1px solid var(--records-border);
+  color: #41536b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.records-table td {
+  height: 58px;
+  padding: 0 13px;
+  border-bottom: 1px solid #e7edf5;
+  color: #475569;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.records-table tbody tr {
+  transition: background-color .18s ease;
+}
+
+.records-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.records-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.record-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.record-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.record-avatar--blue { background: #0ea5e9; }
+.record-avatar--green { background: #10b981; }
+.record-avatar--violet { background: #8b5cf6; }
+.record-avatar--orange { background: #f59e0b; }
+.record-avatar--red { background: #f43f5e; }
+.record-avatar--teal { background: #14b8a6; }
+.record-avatar--sky { background: #0284c7; }
+.record-avatar--purple { background: #7c3aed; }
+.record-avatar--navy { background: #0f2747; }
+
+.record-identity__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.record-identity__text strong,
+.record-identity__text span {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-identity__text strong {
+  color: var(--records-navy, #061f3d);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.record-identity__text span {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.record-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.record-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.record-actions .action-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.record-actions .action-btn.view,
+.record-actions .action-view {
+  background: #eef4fb;
+  color: #0b2344;
+}
+
+.record-actions .action-btn.edit,
+.record-actions .action-edit {
+  background: #e8f0ff;
+  color: #0b40b5;
+}
+
+.record-actions .action-btn.reset,
+.record-actions .action-reset {
+  background: #f1f0ff;
+  color: #4f46e5;
+}
+
+.record-actions .action-btn.activate,
+.record-actions .action-activate {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.record-actions .action-btn.deactivate,
+.record-actions .action-deactivate {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.record-actions .action-btn.delete,
+.record-actions .action-delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.record-actions .action-btn:disabled,
+.record-actions button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1250px) {
+  .records-toolbar {
+    grid-template-columns: minmax(240px, 1fr) repeat(2, auto);
+  }
+
+  .records-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 820px) {
+  .records-card {
+    padding: 14px;
+  }
+
+  .records-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .records-toolbar .search-box {
+    grid-column: auto;
+  }
+
+  .records-toolbar .filter-group,
+  .records-toolbar .filter-group select,
+  .records-toolbar .primary-btn {
+    width: 100%;
+  }
+}
