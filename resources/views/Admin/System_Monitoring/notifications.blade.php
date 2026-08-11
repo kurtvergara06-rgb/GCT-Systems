@@ -4,6 +4,7 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/System_Monitoring/notifications.css',
+        'resources/css/Admin/System_Monitoring/notifications-components.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Admin/System_Monitoring/notifications.js',
     ]"
@@ -20,6 +21,7 @@
 
             <x-ui.ajax-region name="summary" class="stats-grid notification-stats-grid">
                 <x-ui.summary-card
+                    id="notificationUnreadCount"
                     label="Unread"
                     value="{{ $unreadNotifications ?? 0 }}"
                     small="Notifications requiring review"
@@ -63,6 +65,7 @@
                             class="mark-all-btn"
                             id="markAllNotificationsRead"
                             data-url="{{ route('topbar.notifications.read-all') }}"
+                            data-summary-url="{{ route('topbar.summary') }}"
                             @if(($unreadNotifications ?? 0) === 0) disabled @endif
                         >
                             <i class="fa-solid fa-check-double"></i>
@@ -120,7 +123,7 @@
                         <x-ui.empty-state
                             icon="fa-bell-slash"
                             title="No notifications"
-                            message="System notifications will appear here when new events are recorded."
+                            description="System notifications will appear here when new events are recorded."
                         />
                     @endforelse
 
@@ -128,7 +131,7 @@
                         <x-ui.empty-state
                             icon="fa-filter-circle-xmark"
                             title="No matching notifications"
-                            message="Try changing the search or filters."
+                            description="Try changing the search or filters."
                         />
                     </div>
                 </div>
