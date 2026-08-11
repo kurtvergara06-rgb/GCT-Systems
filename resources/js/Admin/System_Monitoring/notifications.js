@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('notificationListLoading');
     const empty = document.getElementById('notificationClientEmpty');
     const markAll = document.getElementById('markAllNotificationsRead');
+    const unreadCardValue = document.querySelector('#notificationUnreadCount h2');
 
     if (!form || !list) {
         return;
@@ -84,6 +85,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return response.json();
     };
 
+    const refreshUnreadCount = async () => {
+        const summaryUrl = markAll?.dataset.summaryUrl;
+        if (!summaryUrl) return;
+
+        const response = await fetch(summaryUrl, {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const unreadCount = Number(data.unread_count || 0);
+
+        if (unreadCardValue) {
+            unreadCardValue.textContent = String(unreadCount);
+        }
+
+        if (markAll) {
+            markAll.disabled = unreadCount === 0;
+        }
+    };
+
     markAll?.addEventListener('click', async () => {
         if (markAll.disabled) return;
 
@@ -93,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await post(markAll.dataset.url);
             rows().forEach(markItemRead);
+            await refreshUnreadCount();
             window.dispatchEvent(new CustomEvent('topbar-summary-refresh'));
             applyFilters();
         } catch (error) {
@@ -112,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await post(readButton.dataset.readUrl);
                 if (item) markItemRead(item);
+                await refreshUnreadCount();
                 window.dispatchEvent(new CustomEvent('topbar-summary-refresh'));
                 applyFilters();
             } catch (error) {
