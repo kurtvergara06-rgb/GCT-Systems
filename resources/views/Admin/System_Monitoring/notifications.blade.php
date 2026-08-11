@@ -4,30 +4,24 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/System_Monitoring/notifications.css',
-        'resources/js/Main-js/sidebar.js'
+        'resources/js/Main-js/sidebar.js',
+        'resources/js/Admin/System_Monitoring/notifications.js',
     ]"
 >
-
     <div class="app">
-
         <x-layout.sidebar department="Admin" />
 
-        <main class="main notifications-page">
-
+        <main class="main notifications-page records-page">
             <x-layout.topbar
                 title="Notifications"
                 subtitle="Monitor important alerts and system updates across FROMS"
-                notification-count="6"
+                notification-count="{{ $unreadNotifications ?? 0 }}"
             />
 
-            {{-- =====================================================
-                SUMMARY CARDS
-            ====================================================== --}}
-            <section data-ajax-region="summary" class="stats-grid notification-stats-grid">
-
+            <x-ui.ajax-region name="summary" class="stats-grid notification-stats-grid">
                 <x-ui.summary-card
                     label="Unread"
-                    value="6"
+                    value="{{ $unreadNotifications ?? 0 }}"
                     small="Notifications requiring review"
                     icon="fa-envelope"
                     color="blue"
@@ -35,7 +29,7 @@
 
                 <x-ui.summary-card
                     label="Critical Alerts"
-                    value="2"
+                    value="{{ $criticalAlerts ?? 0 }}"
                     small="Requires immediate attention"
                     icon="fa-triangle-exclamation"
                     color="red"
@@ -43,7 +37,7 @@
 
                 <x-ui.summary-card
                     label="System Updates"
-                    value="8"
+                    value="{{ $systemUpdates ?? 0 }}"
                     small="Recent system events"
                     icon="fa-gears"
                     color="yellow"
@@ -51,310 +45,131 @@
 
                 <x-ui.summary-card
                     label="Total Notifications"
-                    value="24"
+                    value="{{ $totalNotifications ?? 0 }}"
                     small="Recorded notifications"
                     icon="fa-bell"
                     color="green"
                 />
+            </x-ui.ajax-region>
 
-            </section>
-
-            @php
-                $notifications = [
-                    [
-                        'title' => 'Inventory stock has reached critical level',
-                        'message' => 'Brake Pad Set is currently below its reorder threshold and requires restocking.',
-                        'module' => 'Warehouse',
-                        'type' => 'Critical',
-                        'reference' => 'PART-0042',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '9:18 PM',
-                        'icon' => 'fa-box-open',
-                        'unread' => true,
-                    ],
-                    [
-                        'title' => 'Preventive maintenance is approaching',
-                        'message' => 'Bus BUS-012 is approaching its configured PMS mileage threshold.',
-                        'module' => 'Maintenance',
-                        'type' => 'Warning',
-                        'reference' => 'BUS-012',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '8:40 PM',
-                        'icon' => 'fa-screwdriver-wrench',
-                        'unread' => true,
-                    ],
-                    [
-                        'title' => 'Purchase order status updated',
-                        'message' => 'PO-2026-0015 has been marked For Delivery by the Purchase Department.',
-                        'module' => 'Purchase',
-                        'type' => 'Update',
-                        'reference' => 'PO-2026-0015',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '6:26 PM',
-                        'icon' => 'fa-cart-shopping',
-                        'unread' => true,
-                    ],
-                    [
-                        'title' => 'New account request received',
-                        'message' => 'A new Warehouse Staff account is waiting for administrator approval.',
-                        'module' => 'Admin',
-                        'type' => 'Request',
-                        'reference' => 'USR-REQ-0021',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '4:55 PM',
-                        'icon' => 'fa-user-clock',
-                        'unread' => true,
-                    ],
-                    [
-                        'title' => 'GPS batch file processed successfully',
-                        'message' => 'The uploaded GPS trip file has been processed and trip records are available for review.',
-                        'module' => 'Admin',
-                        'type' => 'Success',
-                        'reference' => 'BAT-2026-0018',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '2:12 PM',
-                        'icon' => 'fa-file-circle-check',
-                        'unread' => false,
-                    ],
-                    [
-                        'title' => 'Shuttle bus record updated',
-                        'message' => 'BUS-007 was updated from Under Maintenance to Operational.',
-                        'module' => 'Operation',
-                        'type' => 'Update',
-                        'reference' => 'BUS-007',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '11:34 AM',
-                        'icon' => 'fa-bus',
-                        'unread' => false,
-                    ],
-                ];
-            @endphp
-
-            {{-- =====================================================
-                MAIN NOTIFICATIONS CARD
-            ====================================================== --}}
-            <section data-ajax-region="records" class="table-card notification-card">
-
-                <div class="section-header">
-
-                    <div>
-                        <h2>Notification Center</h2>
-
-                        <p>
-                            Review system alerts, departmental updates, requests, and important events.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="mark-all-btn"
-                    >
-                        <i class="fa-solid fa-check-double"></i>
-                        Mark All as Read
-                    </button>
-
-                </div>
-
-                {{-- =================================================
-                    FILTERS
-                ================================================== --}}
-                <div class="notification-toolbar">
-
-                    <div class="search-box">
-
-                        <i class="fa-solid fa-magnifying-glass"></i>
-
-                        <input
-                            type="text"
-                            placeholder="Search notifications..."
-                        >
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <select>
-                            <option>All Modules</option>
-                            <option>Admin</option>
-                            <option>Maintenance</option>
-                            <option>Warehouse</option>
-                            <option>Purchase</option>
-                            <option>Operation</option>
-                        </select>
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <select>
-                            <option>All Types</option>
-                            <option>Critical</option>
-                            <option>Warning</option>
-                            <option>Update</option>
-                            <option>Request</option>
-                            <option>Success</option>
-                        </select>
-
-                    </div>
-
-                    <div class="filter-group">
-
-                        <select>
-                            <option>All Notifications</option>
-                            <option>Unread</option>
-                            <option>Read</option>
-                        </select>
-
-                    </div>
-
-                </div>
-
-                {{-- =================================================
-                    NOTIFICATION LIST
-                ================================================== --}}
-                <div class="notification-list">
-
-                    @foreach($notifications as $notification)
-
-                        @php
-                            $moduleClass = strtolower($notification['module']);
-
-                            $typeClass = match($notification['type']) {
-                                'Critical' => 'critical',
-                                'Warning' => 'warning',
-                                'Update' => 'update',
-                                'Request' => 'request',
-                                'Success' => 'success',
-                                default => 'update',
-                            };
-                        @endphp
-
-                        <article class="notification-item {{ $notification['unread'] ? 'unread' : '' }}">
-
-                            <div class="notification-icon {{ $typeClass }}">
-                                <i class="fa-solid {{ $notification['icon'] }}"></i>
-                            </div>
-
-                            <div class="notification-content">
-
-                                <div class="notification-heading">
-
-                                    <div>
-                                        <div class="notification-title-row">
-
-                                            <h3>
-                                                {{ $notification['title'] }}
-                                            </h3>
-
-                                            @if($notification['unread'])
-                                                <span class="unread-dot"></span>
-                                            @endif
-
-                                        </div>
-
-                                        <p>
-                                            {{ $notification['message'] }}
-                                        </p>
-                                    </div>
-
-                                    <div class="notification-time">
-
-                                        <strong>
-                                            {{ $notification['date'] }}
-                                        </strong>
-
-                                        <span>
-                                            {{ $notification['time'] }}
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                                <div class="notification-meta">
-
-                                    <span class="module-badge {{ $moduleClass }}">
-                                        {{ $notification['module'] }}
-                                    </span>
-
-                                    <span class="type-badge {{ $typeClass }}">
-                                        {{ $notification['type'] }}
-                                    </span>
-
-                                    <span class="reference-code">
-                                        {{ $notification['reference'] }}
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-                            <div class="notification-actions">
-
-                                <button
-                                    type="button"
-                                    class="notification-action view"
-                                    title="View Details"
-                                >
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-
-                                @if($notification['unread'])
-                                    <button
-                                        type="button"
-                                        class="notification-action read"
-                                        title="Mark as Read"
-                                    >
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                @endif
-
-                            </div>
-
-                        </article>
-
-                    @endforeach
-
-                </div>
-
-                {{-- =================================================
-                    FOOTER
-                ================================================== --}}
-                <div class="table-footer">
-
-                    <p>
-                        Showing 1 to 6 of 24 notifications
-                    </p>
-
-                    <div class="pagination">
-
+            <x-ui.ajax-region name="records" class="table-card notification-card records-card">
+                <x-ui.section-header
+                    title="Notification Center"
+                    subtitle="Review system alerts, departmental updates, requests, and important events."
+                >
+                    <x-slot:actions>
                         <button
                             type="button"
-                            class="page-btn disabled"
-                            disabled
+                            class="mark-all-btn"
+                            id="markAllNotificationsRead"
+                            data-url="{{ route('topbar.notifications.read-all') }}"
+                            @if(($unreadNotifications ?? 0) === 0) disabled @endif
                         >
-                            <i class="fa-solid fa-chevron-left"></i>
+                            <i class="fa-solid fa-check-double"></i>
+                            Mark All as Read
                         </button>
+                    </x-slot:actions>
+                </x-ui.section-header>
 
-                        <span class="page-number">
-                            1
-                        </span>
-
-                        <button
-                            type="button"
-                            class="page-btn"
-                        >
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-
+                <x-ui.table-toolbar
+                    :action="route('admin.notifications')"
+                    class="notification-toolbar records-toolbar"
+                    search-placeholder="Search notifications..."
+                    :show-button="false"
+                    id="notificationFilterForm"
+                    data-client-filter="true"
+                    data-no-loading
+                >
+                    <div class="filter-group">
+                        <select id="notificationModuleFilter" name="module" aria-label="Filter by module">
+                            <option value="all">All Modules</option>
+                            @foreach(($modules ?? []) as $module)
+                                <option value="{{ $module }}">{{ $module }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
+                    <div class="filter-group">
+                        <select id="notificationTypeFilter" name="type" aria-label="Filter by notification type">
+                            <option value="all">All Types</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Warning">Warning</option>
+                            <option value="Update">Update</option>
+                            <option value="Success">Success</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select id="notificationStateFilter" name="state" aria-label="Filter by read status">
+                            <option value="all">All Notifications</option>
+                            <option value="unread">Unread</option>
+                            <option value="read">Read</option>
+                        </select>
+                    </div>
+                </x-ui.table-toolbar>
+
+                <div id="notificationListLoading" class="notification-list-loading" hidden>
+                    <x-ui.spinner size="sm" label="Filtering notifications" />
+                    <span>Filtering notifications...</span>
                 </div>
 
-            </section>
+                <div class="notification-list" id="notificationList">
+                    @forelse(($notifications ?? []) as $notification)
+                        <x-admin.notification-item :notification="$notification" />
+                    @empty
+                        <x-ui.empty-state
+                            icon="fa-bell-slash"
+                            title="No notifications"
+                            message="System notifications will appear here when new events are recorded."
+                        />
+                    @endforelse
 
+                    <div id="notificationClientEmpty" class="notification-client-empty" hidden>
+                        <x-ui.empty-state
+                            icon="fa-filter-circle-xmark"
+                            title="No matching notifications"
+                            message="Try changing the search or filters."
+                        />
+                    </div>
+                </div>
+
+                @if(isset($notifications) && method_exists($notifications, 'links'))
+                    <x-ui.table-footer :items="$notifications" />
+                @endif
+            </x-ui.ajax-region>
         </main>
-
     </div>
 
+    <div class="activity-modal-overlay" id="notificationDetailsModal">
+        <div class="activity-modal notification-details-modal">
+            <div class="activity-modal-header">
+                <div class="modal-heading">
+                    <div class="modal-icon"><i class="fa-solid fa-bell"></i></div>
+                    <div>
+                        <h2 id="notificationModalTitle">Notification Details</h2>
+                        <p>Complete information about the selected notification.</p>
+                    </div>
+                </div>
+                <button type="button" id="closeNotificationModal" class="modal-close-btn">&times;</button>
+            </div>
+
+            <div class="activity-modal-body">
+                <div class="modal-info-grid">
+                    <div class="modal-info-item"><span>Module</span><strong id="notificationModalModule">—</strong></div>
+                    <div class="modal-info-item"><span>Type</span><strong id="notificationModalType">—</strong></div>
+                    <div class="modal-info-item"><span>Reference</span><strong id="notificationModalReference">—</strong></div>
+                    <div class="modal-info-item"><span>Date & Time</span><strong id="notificationModalDateTime">—</strong></div>
+                </div>
+
+                <div class="modal-detail-block">
+                    <span>Message</span>
+                    <p id="notificationModalMessage">—</p>
+                </div>
+            </div>
+
+            <div class="activity-modal-footer">
+                <button type="button" id="closeNotificationModalFooter" class="modal-done-btn">Close</button>
+            </div>
+        </div>
+    </div>
 </x-layout.app>
