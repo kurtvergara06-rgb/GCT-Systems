@@ -1,3 +1,5 @@
+import '../../../css/Admin/System_Monitoring/activity-logs-controls.css';
+
 document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('activityLogsTable');
     const searchInput = document.getElementById('activitySearch');
