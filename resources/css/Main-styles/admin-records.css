@@ -194,6 +194,37 @@
   font-weight: 500;
 }
 
+/* Shared role and account status badges. */
+.role-pill,
+.status-pill {
+  min-height: 27px;
+  padding: 0 11px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.role-pill.system-admin { background: #fee2e2; color: #dc2626; }
+.role-pill.admin-staff { background: #f3e8ff; color: #7e22ce; }
+.role-pill.maintenance-head,
+.role-pill.maintenance-staff { background: #fef3c7; color: #b45309; }
+.role-pill.warehouse-head,
+.role-pill.warehouse-staff { background: #dbeafe; color: #1d4ed8; }
+.role-pill.purchase-head,
+.role-pill.purchase-staff,
+.role-pill.purchasing-head,
+.role-pill.purchasing-staff { background: #dcfce7; color: #15803d; }
+.role-pill.operation-head,
+.role-pill.operation-staff { background: #ede9fe; color: #6d28d9; }
+.status-pill.active { background: #dcfce7; color: #15803d; }
+.status-pill.inactive { background: #fee2e2; color: #dc2626; }
+.status-pill.pending { background: #fef3c7; color: #b45309; }
+
 .record-actions {
   display: inline-flex;
   align-items: center;
