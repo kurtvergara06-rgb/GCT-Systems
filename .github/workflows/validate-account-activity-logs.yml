@@ -1,0 +1,90 @@
+name: Validate Account and Activity Logs
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: gct_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Prepare Laravel test environment
+        shell: bash
+        run: |
+          cp .env.example .env
+          mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions
+          cat >> .env <<EOF
+          APP_ENV=testing
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=gct_test
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          CACHE_STORE=array
+          SESSION_DRIVER=array
+          QUEUE_CONNECTION=sync
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate --force
+
+      - name: Validate fresh migrations
+        run: php artisan migrate:fresh --force
+
+      - name: Compile all Blade views
+        run: |
+          php artisan optimize:clear
+          php artisan view:cache
+
+      - name: Validate routes
+        run: php artisan route:list > /tmp/gct-routes.txt
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Run automated tests
+        run: php artisan test
