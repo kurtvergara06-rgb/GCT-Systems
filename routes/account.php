@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\NotificationCenterController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])
@@ -19,3 +20,8 @@ Route::middleware(['web', 'auth'])
         Route::put('/settings/password', 'updatePassword')
             ->name('account.password.update');
     });
+
+Route::middleware(['web', 'auth'])->post(
+    '/admin/notifications/{notification}/read',
+    [NotificationCenterController::class, 'markRead']
+)->name('admin.notifications.read');
