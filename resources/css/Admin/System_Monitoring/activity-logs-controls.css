@@ -1,0 +1,89 @@
+.activity-logs-page .activity-toolbar {
+    grid-template-columns: minmax(320px, 1fr) repeat(3, minmax(145px, 170px));
+    align-items: stretch;
+    gap: 12px;
+}
+
+.activity-logs-page .activity-toolbar .search-box,
+.activity-logs-page .activity-toolbar .filter-group {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    height: 42px;
+}
+
+.activity-logs-page .activity-toolbar .search-box input,
+.activity-logs-page .activity-toolbar .filter-group select {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.activity-logs-page .activity-toolbar .filter-group select {
+    cursor: pointer;
+}
+
+.activity-logs-page .activity-table-wrap {
+    position: relative;
+    min-height: 120px;
+}
+
+.activity-logs-page .activity-table-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(1px);
+    color: var(--al-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.activity-logs-page .activity-table-loading[hidden],
+.activity-logs-page #activityEmptyRow[hidden] {
+    display: none !important;
+}
+
+.activity-logs-page #activityEmptyRow td {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--al-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.activity-logs-page .activity-client-footer {
+    justify-content: flex-start;
+}
+
+@media (max-width: 1200px) {
+    .activity-logs-page .activity-toolbar {
+        grid-template-columns: minmax(0, 1fr) repeat(3, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .activity-logs-page .activity-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .activity-logs-page .activity-toolbar .search-box {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .activity-logs-page .activity-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-logs-page .activity-toolbar .search-box {
+        grid-column: auto;
+    }
+}
