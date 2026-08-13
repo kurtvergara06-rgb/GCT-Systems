@@ -9,6 +9,7 @@ import './echo';
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
 import '../css/Main-styles/scroll-record-lists.css';
+import '../css/Main-styles/analytics-chart-animations.css';
 import '../css/Main-styles/toolbar-cleanup.css';
 import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
