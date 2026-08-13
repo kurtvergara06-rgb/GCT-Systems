@@ -2,6 +2,7 @@
 use App\Http\Controllers\Admin\AnalyticsStageController;
 use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->prefix('analytics')->group(function (): void {
+Route::redirect('/fleet-trip','/analytics/descriptive?domain=fleet-trip');
 Route::redirect('/fuel','/analytics/descriptive?domain=fuel')->name('analytics.fuel');
 Route::redirect('/bus-health','/analytics/descriptive?domain=bus-health')->name('analytics.bus-health');
 Route::redirect('/inventory','/analytics/descriptive?domain=inventory')->name('analytics.inventory');
