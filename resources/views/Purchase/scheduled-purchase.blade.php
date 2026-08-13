@@ -7,26 +7,7 @@
     'resources/js/Purchase/scheduled-purchase.js'
   ]"
 >
-  <x-layout.sidebar
-    department="Purchase"
-    subtitle="Department Module"
-    icon="fa-cart-shopping"
-    user-name="P. Admin"
-    user-role="Purchase Admin"
-    :items="[
-      ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
-      ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
-      [
-        'label' => 'Requested Purchase',
-        'icon' => 'fa-clipboard-list',
-        'children' => [
-          ['label' => 'Maintenance Requests', 'route' => 'maintenance-requests', 'icon' => 'fa-screwdriver-wrench'],
-          ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
-        ],
-      ],
-      ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
-    ]"
-  />
+  <x-layout.sidebar department="Purchase" />
 
   <main class="main">
     <x-layout.topbar
@@ -35,14 +16,14 @@
       notification-count="6"
     />
 
-    <section class="stats-grid">
+    <section data-ajax-region="summary" class="stats-grid">
       <x-ui.summary-card label="Total Schedules" value="{{ $totalSchedules }}" small="Recurring purchase plans" icon="fa-calendar-days" color="gray" />
       <x-ui.summary-card label="Active" value="{{ $activeSchedules }}" small="Running schedules" icon="fa-play" color="green" />
       <x-ui.summary-card label="Paused" value="{{ $pausedSchedules }}" small="Temporarily stopped" icon="fa-pause" color="blue" />
       <x-ui.summary-card label="Due This Month" value="{{ $dueThisMonth }}" small="Upcoming purchases" icon="fa-clock" color="red" />
     </section>
 
-    <section class="table-card schedule-card">
+    <section data-ajax-region="records" class="table-card schedule-card">
       <div class="section-header">
         <div><h2>Recurring Purchase Schedules</h2><p>Track items, suppliers, frequency, due dates, and estimated costs.</p></div>
       </div>

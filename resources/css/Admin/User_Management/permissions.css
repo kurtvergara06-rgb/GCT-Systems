@@ -44,7 +44,7 @@
 
     color: var(--rp-blue);
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
 
     letter-spacing: 0.07em;
@@ -102,7 +102,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 12px;
+    font-size: 13px;
 
     line-height: 1.55;
 }
@@ -145,7 +145,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .overview-stat strong {
@@ -225,7 +225,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .role-count {
@@ -396,7 +396,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .directory-role-info span {
@@ -406,7 +406,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .directory-role-type {
@@ -419,7 +419,7 @@
     display: inline-flex;
     align-items: center;
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -507,7 +507,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
 
     text-transform: uppercase;
@@ -518,7 +518,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 800;
 }
 
@@ -527,7 +527,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .selected-role-state span {
@@ -546,7 +546,7 @@
 
     gap: 6px;
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
 }
 
@@ -621,7 +621,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .capability-item strong {
@@ -631,7 +631,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 11px;
+    font-size: 12px;
 }
 
 
@@ -654,7 +654,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 800;
 }
 
@@ -663,7 +663,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .access-legend {
@@ -674,7 +674,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .access-legend span {
@@ -786,7 +786,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .module-access-info span {
@@ -796,7 +796,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 
     line-height: 1.4;
 }
@@ -851,13 +851,13 @@
 
     color: #475569;
 
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .permission-option span {
     color: #475569;
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
 }
 
@@ -878,7 +878,7 @@
 }
 
 .permission-option.restricted {
-    opacity: 0.65;
+    opacity: 0.68;
 }
 
 .permission-option.restricted .option-state {
@@ -886,7 +886,7 @@
 }
 
 .option-state {
-    font-size: 11px;
+    font-size: 12px;
 }
 
 
@@ -968,7 +968,7 @@
 
     color: var(--rp-blue);
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
 }
 
@@ -977,7 +977,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .policy-step span {
@@ -987,7 +987,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 
     line-height: 1.4;
 }
@@ -1046,7 +1046,7 @@
 
     color: var(--rp-navy);
 
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .permission-note p {
@@ -1054,7 +1054,7 @@
 
     color: var(--rp-muted);
 
-    font-size: 11px;
+    font-size: 12px;
 
     line-height: 1.5;
 }

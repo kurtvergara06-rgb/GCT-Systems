@@ -1,33 +1,42 @@
 @props([
-  'label' => 'Label',
-  'value' => '0',
-  'small' => '',
-  'icon' => 'fa-chart-line',
-  'color' => 'blue',
-  'href' => null,
+    'label' => 'Label',
+    'value' => '0',
+    'small' => '',
+    'icon' => 'fa-chart-line',
+    'color' => 'blue',
+    'href' => null,
 ])
 
+@php
+    $cardAttributes = $attributes->class([
+        'stat-card',
+        'stat-card-link' => filled($href),
+    ])->merge([
+        'data-ui-component' => 'summary-card',
+    ]);
+@endphp
+
 @if($href)
-  <a href="{{ $href }}" class="stat-card stat-card-link">
+    <a href="{{ $href }}" {{ $cardAttributes }}>
 @else
-  <div class="stat-card">
+    <div {{ $cardAttributes }}>
 @endif
 
     <div class="stat-icon {{ $color }}">
-      <i class="fa-solid {{ $icon }}"></i>
+        <i class="fa-solid {{ $icon }}"></i>
     </div>
 
     <div class="stat-card-content">
-      <p>{{ $label }}</p>
-      <h2>{{ $value }}</h2>
+        <p>{{ $label }}</p>
+        <h2>{{ $value }}</h2>
 
-      @if($small)
-        <small>{{ $small }}</small>
-      @endif
+        @if($small)
+            <small>{{ $small }}</small>
+        @endif
     </div>
 
 @if($href)
-  </a>
+    </a>
 @else
-  </div>
+    </div>
 @endif

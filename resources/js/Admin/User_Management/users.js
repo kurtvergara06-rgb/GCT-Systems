@@ -35,13 +35,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function openModal(modal) {
     if (!modal) return;
-
     modal.classList.add('show');
   }
 
   function closeModal(modal) {
     if (!modal) return;
-
     modal.classList.remove('show');
   }
 
@@ -55,15 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function setInput(element, value) {
     if (!element) return;
-
     element.value = value || '';
   }
 
   function setText(id, value) {
     const element = document.getElementById(id);
-
     if (!element) return;
-
     element.textContent = value || '—';
   }
 
@@ -107,11 +102,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function resetUserForm() {
     if (userForm) {
-      userForm.action = '/admin/users';
-      userForm.dataset.confirmTitle = 'Create User?';
+      userForm.action = userForm.dataset.storeUrl || '/admin/users';
+      userForm.dataset.confirmTitle = 'Create Account?';
       userForm.dataset.confirmMessage =
-        'Are you sure you want to create this user account?';
-      userForm.dataset.confirmButton = 'Yes, Create User';
+        'Are you sure you want to create this system account?';
+      userForm.dataset.confirmButton = 'Yes, Create Account';
       userForm.dataset.confirmType = 'create';
     }
 
@@ -132,16 +127,16 @@ document.addEventListener('DOMContentLoaded', function () {
       resetUserForm();
 
       if (userFormModalTitle) {
-        userFormModalTitle.textContent = 'Add User Account';
+        userFormModalTitle.textContent = 'Add System Account';
       }
 
       if (userFormModalSubtitle) {
         userFormModalSubtitle.textContent =
-          'Create a new system account and assign role access.';
+          'Create a new account and assign department and role access.';
       }
 
       if (userFormSaveBtn) {
-        userFormSaveBtn.textContent = 'Save User';
+        userFormSaveBtn.textContent = 'Save Account';
       }
 
       if (userPasswordInput) {
@@ -160,10 +155,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (userForm) {
       userForm.action = editButton.dataset.updateUrl;
-      userForm.dataset.confirmTitle = 'Update User?';
+      userForm.dataset.confirmTitle = 'Update Account?';
       userForm.dataset.confirmMessage =
         `Are you sure you want to update ${editButton.dataset.name}?`;
-      userForm.dataset.confirmButton = 'Yes, Update User';
+      userForm.dataset.confirmButton = 'Yes, Update Account';
       userForm.dataset.confirmType = 'update';
     }
 
@@ -179,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setInput(userStatusInput, editButton.dataset.status);
 
     if (userFormModalTitle) {
-      userFormModalTitle.textContent = 'Edit User Account';
+      userFormModalTitle.textContent = 'Edit System Account';
     }
 
     if (userFormModalSubtitle) {
@@ -188,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (userFormSaveBtn) {
-      userFormSaveBtn.textContent = 'Update User';
+      userFormSaveBtn.textContent = 'Update Account';
     }
 
     if (userPasswordInput) {
@@ -237,41 +232,29 @@ document.addEventListener('DOMContentLoaded', function () {
     openModal(resetPasswordModal);
   });
 
-  if (closeUserFormModal) {
-    closeUserFormModal.addEventListener('click', function () {
-      closeModal(userFormModal);
-    });
-  }
+  closeUserFormModal?.addEventListener('click', function () {
+    closeModal(userFormModal);
+  });
 
-  if (cancelUserFormModal) {
-    cancelUserFormModal.addEventListener('click', function () {
-      closeModal(userFormModal);
-    });
-  }
+  cancelUserFormModal?.addEventListener('click', function () {
+    closeModal(userFormModal);
+  });
 
-  if (closeViewUserModal) {
-    closeViewUserModal.addEventListener('click', function () {
-      closeModal(viewUserModal);
-    });
-  }
+  closeViewUserModal?.addEventListener('click', function () {
+    closeModal(viewUserModal);
+  });
 
-  if (closeViewUserModalBottom) {
-    closeViewUserModalBottom.addEventListener('click', function () {
-      closeModal(viewUserModal);
-    });
-  }
+  closeViewUserModalBottom?.addEventListener('click', function () {
+    closeModal(viewUserModal);
+  });
 
-  if (closeResetPasswordModal) {
-    closeResetPasswordModal.addEventListener('click', function () {
-      closeModal(resetPasswordModal);
-    });
-  }
+  closeResetPasswordModal?.addEventListener('click', function () {
+    closeModal(resetPasswordModal);
+  });
 
-  if (cancelResetPasswordModal) {
-    cancelResetPasswordModal.addEventListener('click', function () {
-      closeModal(resetPasswordModal);
-    });
-  }
+  cancelResetPasswordModal?.addEventListener('click', function () {
+    closeModal(resetPasswordModal);
+  });
 
   document.addEventListener('click', function (event) {
     const okButton = event.target.closest(
@@ -281,10 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!okButton) return;
 
     const feedbackModal = okButton.closest('.feedback-modal-overlay');
-
-    if (feedbackModal) {
-      feedbackModal.classList.remove('show');
-    }
+    if (feedbackModal) feedbackModal.classList.remove('show');
   });
 
   document.addEventListener('click', function (event) {
@@ -307,32 +287,16 @@ window.addEventListener('system-data-updated', function (event) {
   const rawData = event.detail || {};
   const data = rawData.data || rawData;
 
-  const moduleName = String(data.module || '')
-    .trim()
-    .toLowerCase();
+  const moduleName = String(data.module || '').trim().toLowerCase();
+  const entityName = String(data.entity || '').trim().toLowerCase();
+  const actionName = String(data.action || '').trim().toLowerCase();
 
-  const entityName = String(data.entity || '')
-    .trim()
-    .toLowerCase();
-
-  const actionName = String(data.action || '')
-    .trim()
-    .toLowerCase();
-
-  const isUserLoginEvent =
+  const isAccountLoginEvent =
     moduleName === 'admin' &&
     entityName === 'user' &&
     actionName === 'login';
 
-  console.log('User Management Reverb event:', {
-    rawData,
-    moduleName,
-    entityName,
-    actionName,
-    isUserLoginEvent,
-  });
-
-  if (!isUserLoginEvent) {
+  if (!isAccountLoginEvent) {
     return;
   }
 

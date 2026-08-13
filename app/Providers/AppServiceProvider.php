@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
 use App\Http\Controllers\Warehouse\IncomingDeliveryController;
 use App\Http\Controllers\Warehouse\StockMovementController;
 use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Maintenance\JobOrder;
 use App\Services\AdminDashboardService;
+use App\Services\RolePermissionService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +26,20 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('Admin.admin-dashboard', function ($view): void {
             $view->with(app(AdminDashboardService::class)->data());
+        });
+
+        View::composer('Admin.User_Management.permissions', function ($view): void {
+            $view->with(
+                app(RolePermissionService::class)->data(request()->query('role'))
+            );
+        });
+
+        View::composer('Admin.System_Monitoring.activity-logs', function ($view): void {
+            $view->with(app(ActivityLogController::class)->data(request()));
+        });
+
+        View::composer('Admin.System_Monitoring.notifications', function ($view): void {
+            $view->with(app(NotificationCenterController::class)->data(request()));
         });
 
         View::composer('Warehouse.dashboard-warehouse', function ($view): void {

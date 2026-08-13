@@ -1,0 +1,48 @@
+/* Activity Log badge color coverage for all audit modules and event types. */
+
+.activity-logs-page .module-badge.system {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #dce5f2;
+}
+
+.activity-logs-page .event-badge.login {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.activity-logs-page .event-badge.logout,
+.activity-logs-page .event-badge.security,
+.activity-logs-page .event-badge.rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.activity-logs-page .event-badge.completed,
+.activity-logs-page .event-badge.received {
+    background: #ccfbf1;
+    color: #0f766e;
+    border: 1px solid #99f6e4;
+}
+
+.activity-logs-page .event-badge.issued,
+.activity-logs-page .event-badge.imported {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.activity-logs-page .event-badge.assigned,
+.activity-logs-page .event-badge.approval {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+
+.activity-logs-page .event-badge.confirmed {
+    background: #e0ecff;
+    color: #0b40b5;
+    border: 1px solid #bfd4ff;
+}

@@ -1160,10 +1160,6 @@ Route::view(
     'Admin.User_Management.permissions'
 )->name('admin.roles-permissions');
 
-Route::view(
-    '/admin/account-requests',
-    'Admin.User_Management.account-requests'
-)->name('admin.account-requests');
 /*
 |--------------------------------------------------------------------------
 | ADMIN - SYSTEM MONITORING

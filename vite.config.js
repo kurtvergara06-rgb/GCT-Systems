@@ -49,7 +49,6 @@ export default defineConfig({
 
                 'resources/css/Admin/User_Management/users.css',
                 'resources/css/Admin/User_Management/permissions.css',
-                'resources/css/Admin/User_Management/account-requests.css',
 
                 'resources/js/Admin/User_Management/users.js',
 
@@ -69,6 +68,7 @@ export default defineConfig({
 
                 'resources/css/Admin/System_Monitoring/activity-logs.css',
                 'resources/css/Admin/System_Monitoring/notifications.css',
+                'resources/js/Admin/System_Monitoring/activity-logs.js',
 
                 // ======================================================
                 // ADMIN — SETTINGS

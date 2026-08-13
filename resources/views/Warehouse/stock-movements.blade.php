@@ -8,18 +8,7 @@
   ]"
 >
   <div class="app">
-    <x-layout.sidebar
-      department="Warehouse"
-      subtitle="Warehouse Module"
-      icon="fa-warehouse"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-        ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
-      ]"
-    />
+    <x-layout.sidebar department="Warehouse" />
 
     <main class="main stock-movement-page">
       <x-layout.topbar
@@ -28,14 +17,14 @@
         notification-count="6"
       />
 
-      <section class="stats-grid stock-movement-stats">
+      <section data-ajax-region="summary" class="stats-grid stock-movement-stats">
         <x-ui.summary-card label="Total Movements" value="{{ $totalMovements }}" small="Recorded stock transactions" icon="fa-right-left" color="blue" />
         <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Inventory received" icon="fa-arrow-down" color="green" />
         <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Inventory issued" icon="fa-arrow-up" color="red" />
         <x-ui.summary-card label="Adjustments" value="{{ $adjustments }}" small="Inventory corrections" icon="fa-sliders" color="yellow" />
       </section>
 
-      <section class="table-card stock-movement-card">
+      <section data-ajax-region="records" class="table-card stock-movement-card">
         <div class="section-header">
           <div>
             <h2>Stock Movement History</h2>

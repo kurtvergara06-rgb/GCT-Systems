@@ -79,19 +79,7 @@
       @endif
 
       <div class="app">
-          <x-layout.sidebar
-              department="Maintenance"
-              subtitle="Department Module"
-              icon="fa-truck"
-              :items="[
-                  ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
-                  ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
-                  ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
-                  ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
-                  ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
-                  ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-              ]"
-          />
+          <x-layout.sidebar department="Maintenance" />
 
           <main class="main purchase-page">
               <x-layout.topbar
@@ -100,14 +88,14 @@
                   notification-count="6"
               />
 
-              <section class="stats-grid purchase-stats-grid">
+              <section data-ajax-region="summary" class="stats-grid purchase-stats-grid">
                   <x-ui.summary-card label="Submitted" value="{{ $submitted }}" small="Waiting approval" icon="fa-paper-plane" color="blue" />
                   <x-ui.summary-card label="Rejected" value="{{ $rejected }}" small="Needs revision" icon="fa-xmark" color="red" />
                   <x-ui.summary-card label="Approved" value="{{ $approved }}" small="Approved requests" icon="fa-check" color="purple" />
                   <x-ui.summary-card label="For Purchase" value="{{ $forPurchase }}" small="Ready to purchase" icon="fa-cart-shopping" color="blue" />
               </section>
 
-              <section class="table-card purchase-request-card">
+              <section data-ajax-region="records" class="table-card purchase-request-card">
                   <div class="section-header">
                       <div>
                           <h2>Purchase Request Records</h2>

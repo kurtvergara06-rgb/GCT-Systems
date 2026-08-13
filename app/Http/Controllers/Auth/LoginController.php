@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -102,6 +103,20 @@ class LoginController extends Controller
             'last_login_at' => now(),
         ])->save();
 
+        try {
+            app(ActivityLogService::class)->record(
+                $authenticatedUser,
+                $request,
+                'Logged in to FROMS',
+                'Login',
+                $this->activityModuleForDepartment($authenticatedUser->department),
+                null,
+                'Successful account login.'
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Determine Redirect Path
@@ -133,6 +148,25 @@ class LoginController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        /** @var User|null $authenticatedUser */
+        $authenticatedUser = $request->user();
+
+        if ($authenticatedUser !== null) {
+            try {
+                app(ActivityLogService::class)->record(
+                    $authenticatedUser,
+                    $request,
+                    'Logged out of FROMS',
+                    'Logout',
+                    $this->activityModuleForDepartment($authenticatedUser->department),
+                    null,
+                    'Successful account logout.'
+                );
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
@@ -233,6 +267,21 @@ class LoginController extends Controller
         Auth::logout();
 
         return route('login', [], false);
+    }
+
+    /**
+     * Return the normalized module label used by Activity Logs.
+     */
+    private function activityModuleForDepartment(?string $department): string
+    {
+        return match ($this->normalizeValue($department)) {
+            'admin', 'administration' => 'Admin',
+            'maintenance' => 'Maintenance',
+            'purchase', 'purchasing' => 'Purchase',
+            'warehouse' => 'Warehouse',
+            'operation', 'operations' => 'Operation',
+            default => 'System',
+        };
     }
 
     /**

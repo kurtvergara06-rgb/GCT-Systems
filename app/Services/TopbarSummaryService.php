@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Admin\User;
 use App\Models\TopbarNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -18,6 +19,7 @@ class TopbarSummaryService
                 ->value('notifications_read_at')
             : null;
 
+        $individuallyReadIds = $this->individuallyReadIds((int) $user->id);
         $notificationQuery = $this->notificationQueryFor($user);
 
         $notifications = (clone $notificationQuery)
@@ -25,7 +27,7 @@ class TopbarSummaryService
             ->limit(12)
             ->get()
             ->map(fn (TopbarNotification $notification) =>
-                $this->formatNotification($notification, $readAt)
+                $this->formatNotification($notification, $readAt, $individuallyReadIds)
             )
             ->values();
 
@@ -33,6 +35,10 @@ class TopbarSummaryService
 
         if ($readAt) {
             $unreadQuery->where('created_at', '>', $readAt);
+        }
+
+        if ($individuallyReadIds->isNotEmpty()) {
+            $unreadQuery->whereNotIn('id', $individuallyReadIds->all());
         }
 
         return [
@@ -46,6 +52,19 @@ class TopbarSummaryService
                 ]))
                 ->values(),
         ];
+    }
+
+    private function individuallyReadIds(int $userId): Collection
+    {
+        if (! Schema::hasTable('topbar_notification_reads')) {
+            return collect();
+        }
+
+        return DB::table('topbar_notification_reads')
+            ->where('user_id', $userId)
+            ->pluck('notification_id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
     }
 
     private function notificationQueryFor(User $user)
@@ -79,15 +98,19 @@ class TopbarSummaryService
 
     private function formatNotification(
         TopbarNotification $notification,
-        mixed $readAt
+        mixed $readAt,
+        Collection $individuallyReadIds
     ): array {
+        $coveredByMarkAll = $readAt && $notification->created_at->lte($readAt);
+        $markedIndividually = $individuallyReadIds->contains((int) $notification->id);
+
         return [
             'id' => $notification->id,
             'module' => $notification->module ?: 'System',
             'action' => $notification->action,
             'message' => $notification->message,
             'url' => $this->notificationUrl($notification),
-            'unread' => ! $readAt || $notification->created_at->gt($readAt),
+            'unread' => ! $coveredByMarkAll && ! $markedIndividually,
             'time' => $notification->created_at->diffForHumans(),
         ];
     }

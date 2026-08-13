@@ -8,18 +8,7 @@
   ]"
 >
   <div class="app">
-    <x-layout.sidebar
-      department="Warehouse"
-      subtitle="Warehouse Module"
-      icon="fa-warehouse"
-      :items="[
-        ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-        ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-        ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-        ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-        ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
-      ]"
-    />
+    <x-layout.sidebar department="Warehouse" />
 
     <main class="main incoming-delivery-page">
       <x-layout.topbar
@@ -28,14 +17,14 @@
         notification-count="6"
       />
 
-      <section class="stats-grid delivery-stats-grid">
+      <section data-ajax-region="summary" class="stats-grid delivery-stats-grid">
         <x-ui.summary-card label="Incoming" value="{{ $totalIncoming }}" small="Expected deliveries" icon="fa-truck" color="blue" />
         <x-ui.summary-card label="For Delivery" value="{{ $forDelivery }}" small="Currently in transit" icon="fa-truck-fast" color="yellow" />
         <x-ui.summary-card label="Delivered" value="{{ $delivered }}" small="Completed deliveries" icon="fa-box" color="green" />
         <x-ui.summary-card label="Received Today" value="{{ $receivedToday }}" small="Received by Warehouse" icon="fa-box-open" color="purple" />
       </section>
 
-      <section class="table-card incoming-delivery-card">
+      <section data-ajax-region="records" class="table-card incoming-delivery-card">
         <div class="section-header">
           <div>
             <h2>Delivery Records</h2>
