@@ -41,6 +41,15 @@ function buttonText(button) {
         .trim();
 }
 
+function isIconActionButton(button) {
+    return button instanceof HTMLButtonElement
+        && (
+            button.classList.contains('action-btn')
+            || button.classList.contains('icon-btn')
+            || button.dataset.iconOnly !== undefined
+        );
+}
+
 function resolveLoadingText(button) {
     const explicit = button.dataset.loadingText?.trim();
 
@@ -117,7 +126,11 @@ export function setButtonLoading(button, text = null) {
         return;
     }
 
-    if (button.dataset.noLoading !== undefined || button.getAttribute('aria-busy') === 'true') {
+    if (
+        button.dataset.noLoading !== undefined
+        || button.getAttribute('aria-busy') === 'true'
+        || isIconActionButton(button)
+    ) {
         return;
     }
 
@@ -186,7 +199,7 @@ document.addEventListener('submit', (event) => {
         : form.querySelector('button[type="submit"], input[type="submit"]');
 
     window.setTimeout(() => {
-        if (event.defaultPrevented || !submitter) {
+        if (event.defaultPrevented || !submitter || isIconActionButton(submitter)) {
             return;
         }
 

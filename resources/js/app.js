@@ -28,12 +28,6 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
-/*
- * Route pin controls are initialized here after the Routes page's own
- * DOMContentLoaded setup has had a chance to wrap the location inputs.
- * This keeps the visible Pin controls reliable without duplicating the
- * existing Leaflet/manual-pin implementation in routes-stops.js.
- */
 document.addEventListener('DOMContentLoaded', () => {
     window.setTimeout(() => {
         const routeModal = document.getElementById('routeModal');

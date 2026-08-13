@@ -50,6 +50,23 @@ class JobOrder extends Model
             $value = $request->input('estimated_duration_value');
             $unit = $request->input('estimated_duration_unit');
 
+            /*
+             * Edit forms may leave the optional estimate field blank. In that
+             * case keep the saved estimate instead of rejecting unrelated Job
+             * Order updates. A value explicitly entered as zero/invalid still
+             * fails validation below.
+             */
+            if (($value === null || $value === '') && $jobOrder->exists) {
+                $savedValue = $jobOrder->getOriginal('estimated_duration_value');
+                $savedUnit = $jobOrder->getOriginal('estimated_duration_unit');
+
+                if ($savedValue !== null && $savedValue !== '' && $savedUnit) {
+                    $jobOrder->estimated_duration_value = $savedValue;
+                    $jobOrder->estimated_duration_unit = $savedUnit;
+                    return;
+                }
+            }
+
             if ($value === null || $value === '' || ! is_numeric($value) || (float) $value <= 0) {
                 throw ValidationException::withMessages([
                     'estimated_duration_value' => 'Enter a valid estimated work duration greater than zero.',
