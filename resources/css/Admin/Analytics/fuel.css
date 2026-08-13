@@ -1,1068 +1,469 @@
-/* =========================================================
-   ADMIN - FUEL ANALYTICS
-========================================================= */
-
+/* Admin · Fuel Analytics */
 .fuel-analytics-page {
-    --fuel-blue: #0b40b5;
-    --fuel-navy: #061f3d;
-
-    --fuel-text: #0f172a;
-    --fuel-muted: #64748b;
-    --fuel-border: #dce5f2;
-
+    --fuel-blue: #1557d5;
+    --fuel-navy: #0b1f3a;
+    --fuel-text: #334155;
+    --fuel-muted: #6b7a90;
+    --fuel-border: #dfe7f2;
+    --fuel-soft: #f7faff;
     --fuel-green: #15803d;
-    --fuel-yellow: #d97706;
+    --fuel-yellow: #b77900;
     --fuel-red: #dc2626;
     --fuel-purple: #6d28d9;
-
-    --fuel-shadow:
-        0 4px 16px rgba(6, 31, 61, 0.07);
+    --fuel-shadow: 0 5px 18px rgba(11, 31, 58, .07);
 }
 
+.fuel-analytics-page .topbar { margin-bottom: 16px; }
 
-/* =========================================================
-   TOPBAR
-========================================================= */
-
-.fuel-analytics-page .topbar {
-    margin-bottom: 20px;
-}
-
-
-/* =========================================================
-   SUMMARY
-========================================================= */
-
-.fuel-summary-grid {
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.fuel-summary-grid .stat-card,
-.fuel-summary-grid .stat-card-link {
-    min-height: 112px;
-
-    padding: 18px 20px;
-
-    border: 1px solid var(--fuel-border);
-    border-radius: 16px;
-
-    background: #ffffff;
-
-    box-shadow: var(--fuel-shadow);
-
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    align-items: center;
-
-    gap: 14px;
-}
-
-.fuel-summary-grid .stat-icon {
-    width: 48px;
-    height: 48px;
-
-    border-radius: 14px;
-
-    font-size: 18px;
-}
-
-.fuel-summary-grid .stat-card p,
-.fuel-summary-grid .stat-card-link p {
-    margin: 0;
-
-    color: var(--fuel-muted);
-
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.fuel-summary-grid .stat-card h2,
-.fuel-summary-grid .stat-card-link h2 {
-    margin: 3px 0 2px;
-
-    color: var(--fuel-navy);
-
-    font-size: 25px;
-    font-weight: 800;
-
-    line-height: 1;
-}
-
-.fuel-summary-grid .stat-card small,
-.fuel-summary-grid .stat-card-link small {
-    color: var(--fuel-muted);
-
-    font-size: 11px;
-}
-
-
-/* =========================================================
-   FILTER
-========================================================= */
-
-.fuel-filter-card {
+.fuel-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    gap: 16px;
-
-    padding: 14px 16px;
+    gap: 14px;
     margin-bottom: 16px;
-
+    padding: 10px 12px;
     border: 1px solid var(--fuel-border);
-    border-radius: 14px;
-
-    background: #ffffff;
-
+    border-radius: 16px;
+    background: #fff;
     box-shadow: var(--fuel-shadow);
 }
 
-.fuel-filter-card h2 {
-    margin: 0;
-
-    color: var(--fuel-navy);
-
-    font-size: 18px;
-    font-weight: 800;
-}
-
-.fuel-filter-card p {
-    margin: 3px 0 0;
-
-    color: var(--fuel-muted);
-
-    font-size: 12px;
-}
-
-.fuel-filters {
+.fuel-tabs,
+.fuel-filters,
+.fuel-boundary-badges {
     display: flex;
     align-items: center;
+    gap: 8px;
+}
 
-    gap: 9px;
+.fuel-tabs { flex-wrap: wrap; }
+
+.fuel-tab {
+    min-height: 40px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid #e4eaf3;
+    border-radius: 10px;
+    background: #fff;
+    color: #52627a;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.fuel-tab > span { color: #8a99ad; font-size: 10px; font-weight: 800; }
+.fuel-tab small {
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: var(--fuel-blue);
+    font-size: 9px;
+}
+
+.fuel-tab:hover,
+.fuel-tab.active {
+    border-color: #9dbbfa;
+    background: #f5f9ff;
+    color: var(--fuel-blue);
+    transform: translateY(-1px);
+}
+
+.fuel-filters label { display: grid; gap: 3px; }
+.fuel-filters label > span {
+    color: #8997aa;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
 }
 
 .fuel-filters select {
     min-width: 150px;
-    height: 40px;
-
-    padding: 0 34px 0 11px;
-
+    height: 38px;
+    padding: 0 34px 0 10px;
     border: 1px solid var(--fuel-border);
     border-radius: 9px;
-
-    background: #ffffff;
-
-    color: var(--fuel-text);
-
-    font-size: 12px;
-    font-weight: 600;
-
-    outline: none;
+    background: #fff;
+    color: var(--fuel-navy);
+    font-size: 11px;
+    font-weight: 700;
 }
 
-.fuel-filters select:focus {
-    border-color: var(--fuel-blue);
-
-    box-shadow:
-        0 0 0 3px rgba(11, 64, 181, 0.12);
+.fuel-summary-grid { gap: 14px; margin-bottom: 16px; }
+.fuel-summary-grid .stat-card,
+.fuel-summary-grid .stat-card-link {
+    min-height: 110px;
+    border: 1px solid var(--fuel-border);
+    border-radius: 16px;
+    box-shadow: var(--fuel-shadow);
 }
 
-
-/* =========================================================
-   GRID / CARD
-========================================================= */
+.fuel-summary-grid .stat-card h2,
+.fuel-summary-grid .stat-card-link h2 { font-size: 28px; }
+.fuel-summary-grid .stat-card p,
+.fuel-summary-grid .stat-card-link p { font-size: 12px; }
+.fuel-summary-grid .stat-card small,
+.fuel-summary-grid .stat-card-link small { font-size: 10.5px; line-height: 1.4; }
 
 .fuel-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
-
-    margin-bottom: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
 }
+
+.fuel-grid-primary { grid-template-columns: minmax(0, 1.35fr) minmax(330px, .85fr); }
 
 .fuel-card {
-    padding: 18px;
-
+    min-width: 0;
+    padding: 16px;
     border: 1px solid var(--fuel-border);
     border-radius: 16px;
-
-    background: #ffffff;
-
+    background: #fff;
     box-shadow: var(--fuel-shadow);
+    margin-bottom: 14px;
 }
+
+.fuel-grid .fuel-card { margin-bottom: 0; }
 
 .fuel-card-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
-    gap: 14px;
-
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 14px;
 }
 
-.fuel-card-header h2 {
-    margin: 0;
-
+.fuel-card-header h2,
+.fuel-advisory-boundary h2 {
+    margin: 2px 0 0;
     color: var(--fuel-navy);
-
     font-size: 17px;
     font-weight: 800;
 }
 
-.fuel-card-header p {
-    margin: 3px 0 0;
-
+.fuel-card-header p,
+.fuel-advisory-boundary p {
+    margin: 4px 0 0;
     color: var(--fuel-muted);
-
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.45;
 }
 
+.fuel-eyebrow {
+    color: var(--fuel-blue);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
 
-/* =========================================================
-   ANALYTICS BADGES
-========================================================= */
-
-.analytics-badge {
-    min-height: 26px;
-
-    padding: 0 10px;
-
-    border-radius: 999px;
-
+.fuel-chip,
+.fuel-status,
+.fuel-boundary-badges span {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-
-    font-size: 10px;
-    font-weight: 700;
-
+    min-height: 25px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
     white-space: nowrap;
 }
 
-.analytics-badge.descriptive {
-    background: #eaf2ff;
-    color: var(--fuel-blue);
-}
+.fuel-chip.warning { background: #fff3d6; color: #9a6700; }
+.fuel-chip.ready { background: #e7f7ed; color: var(--fuel-green); }
 
-.analytics-badge.diagnostic {
-    background: #ede9fe;
-    color: var(--fuel-purple);
-}
-
-.analytics-badge.predictive {
-    background: #ecfdf5;
-    color: #047857;
-}
-
-.analytics-badge.prescriptive {
-    background: #fff7db;
-    color: #9a6700;
-}
-
-
-/* =========================================================
-   FUEL CHART
-========================================================= */
-
-.fuel-chart {
-    height: 230px;
-
+/* Descriptive bar chart */
+.fuel-bar-chart {
+    min-height: 260px;
     display: grid;
-
-    grid-template-columns:
-        48px
-        minmax(0, 1fr);
-
-    gap: 10px;
-}
-
-.chart-y-axis {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    padding-bottom: 26px;
-
-    color: #94a3b8;
-
-    font-size: 10px;
-
-    text-align: right;
-}
-
-.chart-content {
-    position: relative;
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    align-items: end;
-
-    gap: 20px;
-
-    padding: 10px 15px 0;
-
-    border-left: 1px solid #e2e8f0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.chart-line {
-    position: absolute;
-
-    left: 0;
-    right: 0;
-
-    height: 1px;
-
-    background: #eef2f7;
-}
-
-.chart-line.line-1 {
-    top: 20%;
-}
-
-.chart-line.line-2 {
-    top: 40%;
-}
-
-.chart-line.line-3 {
-    top: 60%;
-}
-
-.chart-line.line-4 {
-    top: 80%;
-}
-
-.chart-column {
-    position: relative;
-
-    z-index: 2;
-
-    height: 100%;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 7px;
-}
-
-.chart-bar {
-    width: min(44px, 80%);
-
-    min-height: 20px;
-
-    border-radius: 7px 7px 3px 3px;
-
-    background:
-        linear-gradient(
-            180deg,
-            #f6bd38,
-            #d97706
-        );
-
-    box-shadow:
-        0 6px 14px rgba(217, 119, 6, 0.17);
-}
-
-.chart-column span {
-    height: 20px;
-
-    color: var(--fuel-muted);
-
-    font-size: 10px;
-
-    white-space: nowrap;
-}
-
-.chart-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
+    grid-template-columns: repeat(var(--fuel-column-count), minmax(58px, 1fr));
     gap: 12px;
-
-    margin-top: 12px;
-    padding-top: 12px;
-
-    border-top: 1px solid #e7edf5;
+    align-items: end;
+    padding: 16px 6px 2px;
+    overflow-x: auto;
 }
 
-.chart-summary > div {
-    display: flex;
-    align-items: center;
-
-    gap: 7px;
-
-    color: var(--fuel-muted);
-
-    font-size: 11px;
-}
-
-.chart-dot {
-    width: 8px;
-    height: 8px;
-
-    border-radius: 50%;
-
-    background: var(--fuel-yellow);
-}
-
-.chart-summary strong {
-    color: var(--fuel-navy);
-
-    font-size: 12px;
-}
-
-
-/* =========================================================
-   EFFICIENCY GAUGE
-========================================================= */
-
-.efficiency-overview {
-    min-height: 230px;
-
+.fuel-bar-column {
+    min-width: 58px;
     display: grid;
-
-    grid-template-columns:
-        190px
-        minmax(0, 1fr);
-
-    align-items: center;
-
-    gap: 18px;
-}
-
-.efficiency-gauge {
-    position: relative;
-
-    width: 150px;
-    height: 150px;
-
-    margin: auto;
-
-    border-radius: 50%;
-
-    background:
-        conic-gradient(
-            #16a34a 0deg 275deg,
-            #e5e7eb 275deg 360deg
-        );
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.efficiency-gauge::before {
-    content: "";
-
-    position: absolute;
-
-    width: 98px;
-    height: 98px;
-
-    border-radius: 50%;
-
-    background: #ffffff;
-}
-
-.gauge-center {
-    position: relative;
-
-    z-index: 2;
-
+    grid-template-rows: 22px 190px auto auto;
+    gap: 5px;
+    align-items: end;
     text-align: center;
 }
 
-.gauge-center strong {
-    display: block;
-
-    color: var(--fuel-navy);
-
-    font-size: 26px;
+.fuel-bar-value {
+    color: #52627a;
+    font-size: 11px;
     font-weight: 800;
+    opacity: .82;
 }
 
-.gauge-center span {
-    color: var(--fuel-muted);
-
-    font-size: 11px;
-}
-
-.efficiency-list {
+.fuel-bar-track {
+    height: 190px;
     display: flex;
-    flex-direction: column;
-
-    gap: 9px;
-}
-
-.efficiency-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 12px;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 9px;
-
-    background: #f8fafc;
-}
-
-.efficiency-row span {
-    color: #475569;
-
-    font-size: 11px;
-}
-
-.efficiency-row strong {
-    color: var(--fuel-navy);
-
-    font-size: 12px;
-}
-
-.fuel-forecast-note {
-    margin-top: 10px;
-}
-
-
-/* =========================================================
-   HIGH CONSUMPTION
-========================================================= */
-
-.high-consumption-list {
-    display: flex;
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-.consumption-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 12px;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-
-    background: #f8fafc;
-}
-
-.consumption-main {
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
-}
-
-.consumption-icon {
-    width: 40px;
-    height: 40px;
-
-    display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-
-    border-radius: 10px;
-
-    font-size: 14px;
+    border-bottom: 1px solid #dfe7f2;
+    background: repeating-linear-gradient(to top, transparent 0 46px, #edf2f7 46px 47px);
 }
 
-.consumption-icon.critical {
-    background: #fee2e2;
-    color: var(--fuel-red);
+.fuel-bar-fill {
+    width: min(40px, 72%);
+    height: var(--bar-height);
+    min-height: 8px;
+    border-radius: 8px 8px 3px 3px;
+    background: linear-gradient(180deg, #f3bc42, #d97706);
+    box-shadow: 0 6px 14px rgba(217, 119, 6, .18);
+    transform-origin: bottom center;
 }
 
-.consumption-icon.warning {
-    background: #fff3cd;
-    color: #9a6700;
-}
+.fuel-bar-column > strong { color: var(--fuel-navy); font-size: 11px; }
+.fuel-bar-column > span { color: var(--fuel-muted); font-size: 9px; }
 
-.consumption-main strong {
-    display: block;
-
-    color: var(--fuel-navy);
-
-    font-size: 13px;
-}
-
-.consumption-main span {
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--fuel-muted);
-
-    font-size: 10px;
-}
-
-.consumption-value {
-    text-align: right;
-}
-
-.consumption-value strong {
-    display: block;
-
-    font-size: 13px;
-}
-
-.consumption-value span {
-    display: inline-flex;
-
-    margin-top: 4px;
-
-    padding: 4px 8px;
-
-    border-radius: 999px;
-
-    font-size: 9px;
-    font-weight: 700;
-}
-
-.consumption-value.critical strong,
-.consumption-value.critical span {
-    color: var(--fuel-red);
-}
-
-.consumption-value.critical span {
-    background: #fee2e2;
-}
-
-.consumption-value.warning strong,
-.consumption-value.warning span {
-    color: #9a6700;
-}
-
-.consumption-value.warning span {
-    background: #fff3cd;
-}
-
-
-/* =========================================================
-   FINDINGS
-========================================================= */
-
-.fuel-findings {
-    display: flex;
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-.fuel-finding {
+/* Efficiency / readiness rings */
+.fuel-efficiency-layout {
+    min-height: 250px;
     display: grid;
-
-    grid-template-columns:
-        40px
-        minmax(0, 1fr);
-
-    gap: 11px;
-
-    padding: 12px;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-
-    background: #f8fafc;
+    grid-template-columns: 165px minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
 }
 
-.finding-icon {
-    width: 40px;
-    height: 40px;
+.fuel-efficiency-ring,
+.fuel-readiness-ring {
+    position: relative;
+    width: 148px;
+    height: 148px;
+    margin: auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: conic-gradient(#16a34a 0deg var(--fuel-angle, 0deg), #e8eef6 var(--fuel-angle, 0deg) 360deg);
+}
 
+.fuel-readiness-ring {
+    --fuel-angle: 155deg;
+    width: 164px;
+    height: 164px;
+    background: conic-gradient(#94a3b8 0deg var(--fuel-angle), #e8eef6 var(--fuel-angle) 360deg);
+}
+.fuel-readiness-ring.ready { --fuel-angle: 310deg; background: conic-gradient(#2563eb 0deg var(--fuel-angle), #e8eef6 var(--fuel-angle) 360deg); }
+
+.fuel-efficiency-ring::after,
+.fuel-readiness-ring::after {
+    content: "";
+    position: absolute;
+    width: 102px;
+    height: 102px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.fuel-readiness-ring::after { width: 112px; height: 112px; }
+
+.fuel-efficiency-ring > div,
+.fuel-readiness-ring > div {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.fuel-efficiency-ring strong,
+.fuel-readiness-ring strong {
+    display: block;
+    color: var(--fuel-navy);
+    font-size: 28px;
+    line-height: 1;
+}
+.fuel-efficiency-ring span,
+.fuel-readiness-ring span { display: block; margin-top: 5px; color: var(--fuel-muted); font-size: 10px; }
+
+.fuel-metric-list { display: grid; gap: 8px; }
+.fuel-metric-list > div,
+.fuel-rule-list > div {
     display: flex;
     align-items: center;
-    justify-content: center;
-
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 1px solid #e5ebf4;
     border-radius: 10px;
-
-    font-size: 14px;
+    background: #f9fbfe;
 }
+.fuel-metric-list span { color: var(--fuel-muted); font-size: 10px; }
+.fuel-metric-list strong { color: var(--fuel-navy); font-size: 12px; text-align: right; }
+.fuel-metric-list.compact { margin-top: 14px; }
 
-.fuel-finding.warning .finding-icon {
-    background: #fff3cd;
-    color: #9a6700;
-}
-
-.fuel-finding.info .finding-icon {
-    background: #eaf2ff;
-    color: var(--fuel-blue);
-}
-
-.fuel-finding.critical .finding-icon {
-    background: #fee2e2;
-    color: var(--fuel-red);
-}
-
-.fuel-finding strong {
-    display: block;
-
-    color: var(--fuel-navy);
-
-    font-size: 12px;
-}
-
-.fuel-finding p {
-    margin: 4px 0 0;
-
-    color: var(--fuel-muted);
-
-    font-size: 11px;
-
-    line-height: 1.5;
-}
-
-
-/* =========================================================
-   TABLE
-========================================================= */
-
-.fuel-table-card {
-    margin-bottom: 16px;
-}
-
-.table-wrap {
+/* Table */
+.fuel-card .table-wrap {
     width: 100%;
-
-    overflow-x: auto;
-
-    border-radius: 10px;
+    max-height: 390px;
+    overflow: auto;
+    border: 1px solid #e6ecf4;
+    border-radius: 11px;
 }
 
 .fuel-table {
     width: 100%;
-    min-width: 900px;
-
+    min-width: 820px;
     border-collapse: separate;
     border-spacing: 0;
 }
 
-.fuel-table thead {
-    background: #f3f7fc;
-}
+.fuel-table thead { position: sticky; top: 0; z-index: 2; background: #f4f7fb; }
+.fuel-table th,
+.fuel-table td { padding: 11px 12px; border-bottom: 1px solid #edf1f6; text-align: left; }
+.fuel-table th { color: #68788e; font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .03em; }
+.fuel-table td { color: #475569; font-size: 11px; }
+.fuel-table td strong { color: var(--fuel-navy); font-size: 12px; }
+.fuel-table tbody tr:last-child td { border-bottom: 0; }
+.fuel-table tbody tr { transition: background .18s ease; }
+.fuel-table tbody tr:hover { background: #f8fbff; }
 
-.fuel-table th {
-    padding: 13px 14px;
+.fuel-status.efficient { background: #e7f7ed; color: var(--fuel-green); }
+.fuel-status.normal { background: #edf4ff; color: var(--fuel-blue); }
+.fuel-status.review { background: #fff4dc; color: #9a6700; }
+.fuel-status.priority-review { background: #fee9e9; color: var(--fuel-red); }
+.fuel-positive { color: var(--fuel-green) !important; font-weight: 800; }
+.fuel-negative { color: var(--fuel-red) !important; font-weight: 800; }
 
-    border-bottom: 1px solid var(--fuel-border);
-
-    color: #475569;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    letter-spacing: 0.055em;
-
-    text-transform: uppercase;
-
-    text-align: left;
-
-    white-space: nowrap;
-}
-
-.fuel-table td {
-    padding: 13px 14px;
-
-    border-bottom: 1px solid #e7edf5;
-
-    color: var(--fuel-text);
-
-    font-size: 13px;
-    font-weight: 500;
-
-    vertical-align: middle;
-}
-
-.fuel-table tbody tr:hover {
-    background: #f8fbff;
-}
-
-.fuel-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.bus-cell {
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-}
-
-.bus-icon {
-    width: 32px;
-    height: 32px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    background: #eaf2ff;
-
-    color: var(--fuel-blue);
-
-    font-size: 12px;
-}
-
-.bus-cell strong {
-    color: var(--fuel-navy);
-
-    font-size: 13px;
-}
-
-.efficiency-value {
-    color: var(--fuel-navy);
-
-    font-size: 13px;
-}
-
-.change-value {
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.change-value.positive {
-    color: var(--fuel-green);
-}
-
-.change-value.negative {
-    color: var(--fuel-red);
-}
-
-.fuel-status {
-    min-height: 26px;
-
-    padding: 0 10px;
-
-    border-radius: 999px;
-
-    display: inline-flex;
-    align-items: center;
-
-    font-size: 10px;
-    font-weight: 700;
-
-    white-space: nowrap;
-}
-
-.fuel-status.efficient {
-    background: #dcfce7;
-    color: var(--fuel-green);
-}
-
-.fuel-status.normal {
-    background: #eaf2ff;
-    color: var(--fuel-blue);
-}
-
-.fuel-status.review {
-    background: #fff3cd;
-    color: #9a6700;
-}
-
-.fuel-status.critical {
-    background: #fee2e2;
-    color: var(--fuel-red);
-}
-
-
-/* =========================================================
-   INSIGHT
-========================================================= */
-
-.fuel-insight {
+/* Diagnostic */
+.fuel-review-list { display: grid; gap: 8px; }
+.fuel-review-row {
     display: grid;
-
-    grid-template-columns:
-        46px
-        minmax(0, 1fr)
-        auto;
-
-    align-items: center;
-
-    gap: 14px;
-
-    margin-bottom: 20px;
-
-    padding: 17px 18px;
-
-    border: 1px solid #bfd4ff;
-    border-radius: 14px;
-
-    background: #f8fbff;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 11px;
+    padding: 12px;
+    border: 1px solid #e5ebf4;
+    border-radius: 12px;
+    background: #fbfdff;
 }
 
-.insight-icon {
-    width: 46px;
-    height: 46px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 11px;
-
-    background: #eaf2ff;
-
+.fuel-review-icon,
+.fuel-recommendation-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #edf4ff;
     color: var(--fuel-blue);
-
-    font-size: 16px;
 }
 
-.insight-content > span {
-    display: block;
+.fuel-review-body { min-width: 0; }
+.fuel-review-head { display: flex; justify-content: space-between; gap: 14px; }
+.fuel-review-head strong { display: block; color: var(--fuel-navy); font-size: 13px; }
+.fuel-review-head span { display: block; margin-top: 3px; color: var(--fuel-muted); font-size: 10px; }
+.fuel-review-value { text-align: right; }
+.fuel-review-value strong { font-size: 13px; }
+.fuel-review-value span { color: #a16207; }
 
-    margin-bottom: 3px;
-
-    color: var(--fuel-blue);
-
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: 0.055em;
-
-    text-transform: uppercase;
-}
-
-.insight-content h2 {
-    margin: 0;
-
-    color: var(--fuel-navy);
-
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.insight-content p {
-    margin: 5px 0 0;
-
-    color: var(--fuel-muted);
-
-    font-size: 11px;
-
-    line-height: 1.5;
-}
-
-.insight-link {
-    min-height: 38px;
-
-    padding: 0 13px;
-
-    border: 1px solid #bfd4ff;
-    border-radius: 9px;
-
-    background: #ffffff;
-
-    color: var(--fuel-blue);
-
+.fuel-signal-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.fuel-signal-list span {
     display: inline-flex;
     align-items: center;
-
-    gap: 7px;
-
-    text-decoration: none;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    white-space: nowrap;
+    gap: 5px;
+    padding: 5px 7px;
+    border-radius: 8px;
+    background: #fff7e8;
+    color: #8a6200;
+    font-size: 9px;
 }
 
-.insight-link:hover {
-    background: #eaf2ff;
+.fuel-rule-list { display: grid; gap: 8px; }
+.fuel-rule-list > div { display: grid; grid-template-columns: 30px minmax(90px, .8fr) minmax(150px, 1.3fr); }
+.fuel-rule-list i { color: var(--fuel-blue); text-align: center; }
+.fuel-rule-list span { color: var(--fuel-muted); font-size: 10px; }
+.fuel-rule-list strong { color: var(--fuel-navy); font-size: 11px; text-align: right; }
+
+.fuel-center-stat { margin-top: 16px; padding: 18px; text-align: center; border-radius: 12px; background: #f5f9ff; }
+.fuel-center-stat strong { display: block; color: var(--fuel-navy); font-size: 32px; line-height: 1; }
+.fuel-center-stat span { display: block; margin-top: 6px; color: var(--fuel-muted); font-size: 10px; }
+
+/* Predictive */
+.fuel-forecast-hero {
+    min-height: 150px;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f7faff, #edf4ff);
+}
+.fuel-forecast-hero span { color: var(--fuel-muted); font-size: 11px; font-weight: 700; }
+.fuel-forecast-hero strong { margin-top: 6px; color: var(--fuel-navy); font-size: 38px; line-height: 1; }
+.fuel-forecast-hero small { margin-top: 8px; color: #8190a5; font-size: 9px; }
+
+.fuel-note {
+    display: flex;
+    gap: 9px;
+    margin-top: 16px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: #f6f9fd;
+    color: var(--fuel-muted);
+}
+.fuel-note i { margin-top: 2px; color: var(--fuel-blue); }
+.fuel-note p { margin: 0; font-size: 10px; line-height: 1.5; }
+
+/* Prescriptive */
+.fuel-advisory-boundary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+.fuel-boundary-badges { flex-wrap: wrap; justify-content: flex-end; }
+
+.fuel-recommendation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+.fuel-recommendation-card {
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+.fuel-recommendation-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--fuel-blue);
+}
+.fuel-recommendation-card.warning::before { background: #f59e0b; }
+.fuel-recommendation-card.purple::before { background: #7c3aed; }
+.fuel-recommendation-card.green::before { background: #16a34a; }
+.fuel-recommendation-card > span { display: block; margin-top: 12px; color: #8492a6; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.fuel-recommendation-card h3 { margin: 6px 0 0; color: var(--fuel-navy); font-size: 15px; line-height: 1.25; }
+.fuel-recommendation-card p { margin: 8px 0 0; color: var(--fuel-muted); font-size: 10px; line-height: 1.5; }
 
 @media (max-width: 1100px) {
-
-    .fuel-grid {
-        grid-template-columns: 1fr;
-    }
-
+    .fuel-toolbar { align-items: flex-start; flex-direction: column; }
+    .fuel-grid,
+    .fuel-grid-primary { grid-template-columns: 1fr; }
+    .fuel-recommendation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 850px) {
-
-    .fuel-filter-card {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .fuel-filters {
-        width: 100%;
-    }
-
-    .fuel-filters select {
-        flex: 1;
-    }
-
-    .efficiency-overview {
-        grid-template-columns: 1fr;
-    }
-
-    .fuel-insight {
-        grid-template-columns:
-            46px
-            minmax(0, 1fr);
-    }
-
-    .insight-link {
-        grid-column: 2;
-
-        width: fit-content;
-    }
-
-}
-
-@media (max-width: 768px) {
-
-    .fuel-summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .fuel-filters {
-        flex-direction: column;
-    }
-
-    .fuel-filters select {
-        width: 100%;
-    }
-
-    .fuel-card-header {
-        flex-direction: column;
-    }
-
-    .consumption-item {
-        align-items: flex-start;
-    }
-
-    .fuel-insight {
-        grid-template-columns: 1fr;
-    }
-
-    .insight-link {
-        grid-column: auto;
-    }
-
+@media (max-width: 760px) {
+    .fuel-filters { width: 100%; align-items: stretch; flex-direction: column; }
+    .fuel-filters label,
+    .fuel-filters select { width: 100%; }
+    .fuel-efficiency-layout { grid-template-columns: 1fr; }
+    .fuel-review-head,
+    .fuel-advisory-boundary { align-items: flex-start; flex-direction: column; }
+    .fuel-review-value { text-align: left; }
+    .fuel-recommendation-grid { grid-template-columns: 1fr; }
+    .fuel-rule-list > div { grid-template-columns: 26px 1fr; }
+    .fuel-rule-list strong { grid-column: 2; text-align: left; }
 }

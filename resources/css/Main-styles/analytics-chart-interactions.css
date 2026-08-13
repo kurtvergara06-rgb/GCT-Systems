@@ -1,0 +1,256 @@
+/* Shared Fleet & Trip chart interaction layer.
+ * Entrance motion is triggered by the shared IntersectionObserver so charts
+ * animate when they actually enter the viewport instead of finishing before
+ * the user sees them. Hover states provide a clear second interaction cue.
+ */
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-line {
+    animation: none;
+    stroke-dasharray: 1600;
+    stroke-dashoffset: 1600;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-line-chart polygon,
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-dot,
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-value,
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-label,
+.fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-legend {
+    animation: none;
+    opacity: 0;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .metric-bar > span,
+.fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-profile-track > span,
+.fleet-trip-page.analytics-motion-ready .analytics-card .analytics-signal-track > span {
+    animation: none;
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .forecast-bar {
+    animation: none;
+    clip-path: inset(100% 0 0 0);
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .availability-ring,
+.fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-donut,
+.fleet-trip-page.analytics-motion-ready .analytics-card .predictive-readiness-ring {
+    animation: none;
+    opacity: 0;
+    transform: scale(.78) rotate(-18deg);
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-donut-legend > div,
+.fleet-trip-page.analytics-motion-ready .analytics-card .availability-breakdown > div,
+.fleet-trip-page.analytics-motion-ready .analytics-card .predictive-readiness-stats > div {
+    animation: none;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+/* Animate only once the card is visible. */
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-chart-line {
+    animation: analyticsLineDraw 1.25s cubic-bezier(.22, .61, .36, 1) .08s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-line-chart polygon {
+    animation: analyticsAreaFade .75s ease-out .46s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-chart-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: analyticsPointPop .42s ease-out .72s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-chart-value,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-chart-label,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .reference-chart-legend {
+    animation: analyticsFadeUp .45s ease-out .82s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .metric-bar > span,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-profile-track > span,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .analytics-signal-track > span {
+    animation: analyticsBarGrow .85s cubic-bezier(.22, .61, .36, 1) .14s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-bar {
+    animation: analyticsColumnReveal .8s cubic-bezier(.22, .61, .36, 1) .12s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(2) .forecast-bar { animation-delay: .20s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(3) .forecast-bar { animation-delay: .28s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(4) .forecast-bar { animation-delay: .36s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(5) .forecast-bar { animation-delay: .44s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(6) .forecast-bar { animation-delay: .52s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(7) .forecast-bar { animation-delay: .60s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .forecast-group:nth-child(8) .forecast-bar { animation-delay: .68s; }
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-ring,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .predictive-readiness-ring {
+    animation: analyticsRingReveal .82s cubic-bezier(.22, .61, .36, 1) .1s forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut-legend > div,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-breakdown > div,
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .predictive-readiness-stats > div {
+    animation: analyticsFadeUp .44s ease-out forwards;
+}
+
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut-legend > div:nth-child(1),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-breakdown > div:nth-child(1),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .predictive-readiness-stats > div:nth-child(1) { animation-delay: .38s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut-legend > div:nth-child(2),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-breakdown > div:nth-child(2),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .predictive-readiness-stats > div:nth-child(2) { animation-delay: .47s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut-legend > div:nth-child(3),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-breakdown > div:nth-child(3),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .predictive-readiness-stats > div:nth-child(3) { animation-delay: .56s; }
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .diagnostic-donut-legend > div:nth-child(4),
+.fleet-trip-page.analytics-motion-ready .analytics-card.is-chart-visible .availability-breakdown > div:nth-child(4) { animation-delay: .65s; }
+
+/* Clearly visible hover interaction for the descriptive line chart. */
+.fleet-trip-page .reference-line-chart {
+    cursor: crosshair;
+}
+
+.fleet-trip-page .reference-chart-line,
+.fleet-trip-page .reference-chart-dot,
+.fleet-trip-page .reference-line-chart polygon,
+.fleet-trip-page .reference-chart-value {
+    transition: stroke-width .22s ease, filter .22s ease, opacity .22s ease, transform .22s ease, fill .22s ease;
+}
+
+.fleet-trip-page .reference-line-chart:hover .reference-chart-line {
+    stroke-width: 4.5;
+    filter: drop-shadow(0 3px 5px rgba(37, 99, 235, .35));
+    animation: analyticsLineHoverPulse .85s ease-in-out infinite alternate;
+}
+
+.fleet-trip-page .reference-line-chart:hover polygon {
+    opacity: .88;
+}
+
+.fleet-trip-page .reference-line-chart:hover .reference-chart-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(1.22);
+    filter: drop-shadow(0 2px 4px rgba(37, 99, 235, .32));
+}
+
+.fleet-trip-page .reference-chart-dot:hover {
+    transform: scale(1.55) !important;
+    cursor: pointer;
+}
+
+.fleet-trip-page .reference-line-chart:hover .reference-chart-value {
+    fill: #1557d5;
+}
+
+/* Column chart hover: lift the exact compared bar and emphasize its value. */
+.fleet-trip-page .forecast-bar {
+    transition: transform .22s ease, filter .22s ease, box-shadow .22s ease;
+    transform-origin: bottom center;
+    cursor: pointer;
+}
+
+.fleet-trip-page .forecast-bar:hover {
+    transform: translateY(-7px) scaleX(1.12);
+    filter: saturate(1.2) brightness(1.04);
+    box-shadow: 0 9px 16px rgba(37, 99, 235, .22);
+}
+
+.fleet-trip-page .forecast-bar:hover span {
+    transform: translateX(-50%) scale(1.12);
+    color: #1557d5;
+}
+
+/* Horizontal diagnostic/ranking bars react on row hover. */
+.fleet-trip-page .diagnostic-profile-row,
+.fleet-trip-page .analytics-signal-row,
+.fleet-trip-page .refined-ranking-row {
+    transition: background .2s ease, transform .2s ease;
+}
+
+.fleet-trip-page .diagnostic-profile-row:hover,
+.fleet-trip-page .analytics-signal-row:hover,
+.fleet-trip-page .refined-ranking-row:hover {
+    transform: translateX(3px);
+}
+
+.fleet-trip-page .diagnostic-profile-row:hover .diagnostic-profile-track > span,
+.fleet-trip-page .analytics-signal-row:hover .analytics-signal-track > span,
+.fleet-trip-page .refined-ranking-row:hover .metric-bar > span {
+    filter: brightness(1.1) saturate(1.18);
+    box-shadow: 0 0 10px rgba(37, 99, 235, .22);
+}
+
+/* Donut/ring charts become visibly interactive instead of static circles. */
+.fleet-trip-page .availability-ring,
+.fleet-trip-page .diagnostic-donut,
+.fleet-trip-page .predictive-readiness-ring {
+    transition: transform .28s ease, filter .28s ease, box-shadow .28s ease;
+    cursor: pointer;
+}
+
+.fleet-trip-page .availability-ring:hover,
+.fleet-trip-page .diagnostic-donut:hover,
+.fleet-trip-page .predictive-readiness-ring:hover {
+    transform: scale(1.055) rotate(2deg);
+    filter: saturate(1.08);
+    box-shadow: 0 14px 28px rgba(15, 42, 77, .14);
+}
+
+.fleet-trip-page .availability-ring:hover strong,
+.fleet-trip-page .diagnostic-donut:hover strong,
+.fleet-trip-page .predictive-readiness-ring:hover strong {
+    transform: scale(1.08);
+}
+
+.fleet-trip-page .availability-ring strong,
+.fleet-trip-page .diagnostic-donut strong,
+.fleet-trip-page .predictive-readiness-ring strong {
+    transition: transform .22s ease, color .22s ease;
+}
+
+@keyframes analyticsLineHoverPulse {
+    from {
+        stroke-width: 3.8;
+        filter: drop-shadow(0 2px 3px rgba(37, 99, 235, .22));
+    }
+    to {
+        stroke-width: 5;
+        filter: drop-shadow(0 4px 7px rgba(37, 99, 235, .48));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-line,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-line-chart polygon,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-dot,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-value,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-label,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .reference-chart-legend,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .metric-bar > span,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-profile-track > span,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .analytics-signal-track > span,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .forecast-bar,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .availability-ring,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-donut,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .predictive-readiness-ring,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-donut-legend > div,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .availability-breakdown > div,
+    .fleet-trip-page.analytics-motion-ready .analytics-card .predictive-readiness-stats > div {
+        animation: none !important;
+        clip-path: none;
+        opacity: 1;
+        transform: none;
+        stroke-dashoffset: 0;
+    }
+
+    .fleet-trip-page .reference-line-chart:hover .reference-chart-line {
+        animation: none !important;
+    }
+}
