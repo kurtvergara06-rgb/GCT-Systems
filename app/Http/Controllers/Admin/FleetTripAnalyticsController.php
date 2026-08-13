@@ -455,7 +455,7 @@ class FleetTripAnalyticsController extends Controller
                 now()->toDateString(),
                 now()->copy()->addDays(7)->toDateString(),
             ])
-            ->where('status', 'Scheduled')
+            ->whereIn('status', ['Scheduled', 'Ready'])
             ->whereHas('shuttleRoute', fn ($query) => $query->where('status', 'Active'));
 
         if ($selectedBus !== '' && $selectedBus !== 'ALL') {
@@ -481,12 +481,15 @@ class FleetTripAnalyticsController extends Controller
                 }
 
                 $route = $schedule->shuttleRoute;
-                $routeLabel = trim((string) ($route?->origin ?? ''))
-                    . ' - '
-                    . trim((string) ($route?->destination ?? ''));
+                $routeLabel = trim((string) ($route?->route_name ?? ''));
 
-                if (trim(str_replace('-', '', $routeLabel)) === '') {
-                    $routeLabel = $route?->route_name ?: 'Unspecified Route';
+                if ($routeLabel === '') {
+                    $origin = trim((string) ($route?->origin ?? ''));
+                    $destination = trim((string) ($route?->destination ?? ''));
+
+                    $routeLabel = $origin !== '' && $destination !== ''
+                        ? "{$origin} - {$destination}"
+                        : 'Unspecified Route';
                 }
 
                 return [
@@ -527,6 +530,7 @@ class FleetTripAnalyticsController extends Controller
                 'target_count' => $targets->count(),
                 'predicted_target_count' => 0,
                 'predictions' => collect(),
+                'eligibility' => collect(),
                 'peak_periods' => collect(),
                 'message' => 'Python prediction service is currently unavailable.',
             ];
@@ -552,6 +556,18 @@ class FleetTripAnalyticsController extends Controller
                 ];
             });
 
+        $eligibility = collect($response['eligibility'] ?? [])
+            ->map(fn (array $item) => (object) [
+                'trip_code' => $item['trip_code'] ?? 'Scheduled Trip',
+                'route' => $item['route'] ?? 'Unspecified Route',
+                'normalized_route' => $item['normalized_route'] ?? '',
+                'route_history_count' => (int) ($item['route_history_count'] ?? 0),
+                'same_hour_count' => (int) ($item['same_hour_count'] ?? 0),
+                'same_weekday_hour_count' => (int) ($item['same_weekday_hour_count'] ?? 0),
+                'eligible' => (bool) ($item['eligible'] ?? false),
+                'method' => $item['method'] ?? 'unknown',
+            ]);
+
         $peakPeriods = collect($response['peak_periods'] ?? [])
             ->map(fn (array $item) => (object) [
                 'period' => $item['period'] ?? 'Unknown',
@@ -563,6 +579,20 @@ class FleetTripAnalyticsController extends Controller
                 'interpretation' => $item['interpretation'] ?? '',
             ]);
 
+        $eligibilityMessage = $eligibility
+            ->map(function ($item): string {
+                return sprintf(
+                    '%s: %s → %d route, %d hour, %d weekday+hour (%s)',
+                    $item->trip_code,
+                    $item->normalized_route !== '' ? $item->normalized_route : $item->route,
+                    $item->route_history_count,
+                    $item->same_hour_count,
+                    $item->same_weekday_hour_count,
+                    $item->method
+                );
+            })
+            ->implode(' | ');
+
         return (object) [
             'available' => true,
             'model' => $response['model'] ?? 'historical-statistical-v1',
@@ -570,10 +600,13 @@ class FleetTripAnalyticsController extends Controller
             'target_count' => (int) ($response['target_count'] ?? $targets->count()),
             'predicted_target_count' => (int) ($response['predicted_target_count'] ?? $predictions->count()),
             'predictions' => $predictions,
+            'eligibility' => $eligibility,
             'peak_periods' => $peakPeriods,
             'message' => $predictions->isNotEmpty()
                 ? 'Python historical forecasting is live.'
-                : 'Python is online, but no upcoming scheduled trip has enough comparable route history yet.',
+                : ($eligibilityMessage !== ''
+                    ? 'Forecast eligibility: ' . $eligibilityMessage
+                    : 'Python is online, but no upcoming scheduled or ready trip has enough comparable route history yet.'),
         ];
     }
 

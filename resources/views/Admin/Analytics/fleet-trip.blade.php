@@ -535,6 +535,110 @@
                 />
             </section>
 
+            @php
+                $forecastChartRows = $prediction->predictions->take(6)->values();
+                $durationChartMax = max(
+                    1,
+                    (float) ($forecastChartRows->max(fn ($forecast) => max(
+                        $forecast->predicted_duration_minutes,
+                        $forecast->baseline_duration_minutes
+                    )) ?? 0)
+                );
+            @endphp
+
+            @if($forecastChartRows->isNotEmpty())
+                <section class="trip-primary-grid">
+                    <article class="trip-panel">
+                        <div class="trip-panel-header">
+                            <div>
+                                <span class="section-kicker">Predictive Duration Chart</span>
+                                <h2>Predicted vs Historical Duration</h2>
+                                <p>Compare Python-predicted trip duration against the historical route baseline for each forecastable trip.</p>
+                            </div>
+                            <span class="period-pill">Minutes</span>
+                        </div>
+
+                        <div class="route-leaderboard">
+                            @foreach($forecastChartRows as $forecast)
+                                @php
+                                    $baselineWidth = min(100, ($forecast->baseline_duration_minutes / $durationChartMax) * 100);
+                                    $predictedWidth = min(100, ($forecast->predicted_duration_minutes / $durationChartMax) * 100);
+                                @endphp
+                                <div class="route-ranking {{ $loop->first ? 'first' : '' }}">
+                                    <div class="ranking-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="route-ranking-icon"><i class="fa-solid fa-chart-column"></i></div>
+                                    <div class="route-ranking-content">
+                                        <strong>{{ $forecast->trip_code }} · {{ $forecast->route }}</strong>
+                                        <span>Historical baseline · {{ number_format($forecast->baseline_duration_minutes, 1) }} min</span>
+                                        <div class="route-ranking-progress"><span style="width: {{ $baselineWidth }}%;"></span></div>
+                                        <span>Predicted duration · {{ number_format($forecast->predicted_duration_minutes, 1) }} min</span>
+                                        <div class="route-ranking-progress"><span style="width: {{ $predictedWidth }}%;"></span></div>
+                                    </div>
+                                    <div class="route-ranking-value">
+                                        <strong>{{ number_format($forecast->predicted_duration_minutes - $forecast->baseline_duration_minutes, 1) }}</strong>
+                                        <span>min vs baseline</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </article>
+
+                    <article class="trip-panel">
+                        <div class="trip-panel-header">
+                            <div>
+                                <span class="section-kicker">Predictive Risk Chart</span>
+                                <h2>Delay Risk by Upcoming Trip</h2>
+                                <p>Historical share of comparable trips that exceeded the diagnostic delay threshold.</p>
+                            </div>
+                            <span class="period-pill">0–100%</span>
+                        </div>
+
+                        <div class="route-leaderboard">
+                            @foreach($forecastChartRows as $forecast)
+                                <div class="route-ranking {{ $loop->first ? 'first' : '' }}">
+                                    <div class="ranking-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="route-ranking-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div class="route-ranking-content">
+                                        <strong>{{ $forecast->trip_code }}</strong>
+                                        <span>{{ $forecast->risk_level }} delay risk · {{ number_format($forecast->sample_size) }} comparable records</span>
+                                        <div class="route-ranking-progress">
+                                            <span style="width: {{ min(100, max(0, $forecast->delay_risk_percent)) }}%;"></span>
+                                        </div>
+                                    </div>
+                                    <div class="route-ranking-value">
+                                        <strong>{{ number_format($forecast->delay_risk_percent, 1) }}%</strong>
+                                        <span>delay risk</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </article>
+                </section>
+            @else
+                <section class="trip-panel route-leaderboard-panel">
+                    <div class="trip-panel-header">
+                        <div>
+                            <span class="section-kicker">Predictive Charts</span>
+                            <h2>Forecast Visualizations</h2>
+                            <p>Duration comparison and delay-risk charts will appear automatically when Python produces at least one eligible upcoming-trip forecast.</p>
+                        </div>
+                        <span class="period-pill">Awaiting Forecast</span>
+                    </div>
+
+                    <div class="route-leaderboard">
+                        <div class="route-ranking first">
+                            <div class="ranking-number">—</div>
+                            <div class="route-ranking-icon"><i class="fa-solid fa-chart-column"></i></div>
+                            <div class="route-ranking-content">
+                                <strong>No predictive chart values are fabricated.</strong>
+                                <span>The charts remain empty until a scheduled or ready trip has enough comparable historical route data.</span>
+                            </div>
+                            <div class="route-ranking-value"><strong>0</strong><span>forecast rows</span></div>
+                        </div>
+                    </div>
+                </section>
+            @endif
+
             <section class="trip-panel route-leaderboard-panel">
                 <div class="trip-panel-header">
                     <div>

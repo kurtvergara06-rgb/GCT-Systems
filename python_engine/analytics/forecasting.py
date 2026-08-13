@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timedelta
+import re
 from statistics import median
 from typing import Literal
 
@@ -43,6 +44,17 @@ class TripPrediction(BaseModel):
     baseline_duration_minutes: float
 
 
+class ForecastEligibility(BaseModel):
+    trip_code: str
+    route: str
+    normalized_route: str
+    route_history_count: int
+    same_hour_count: int
+    same_weekday_hour_count: int
+    eligible: bool
+    method: str
+
+
 class PeakPeriod(BaseModel):
     period: str
     sample_size: int
@@ -55,14 +67,35 @@ class FleetTripForecastResponse(BaseModel):
     success: bool = True
     model: str = "historical-statistical-v1"
     predictions: list[TripPrediction]
+    eligibility: list[ForecastEligibility]
     peak_periods: list[PeakPeriod]
     historical_records: int
     target_count: int
     predicted_target_count: int
 
 
+def _normalize_place(value: str) -> str:
+    normalized = value.strip().lower()
+    normalized = re.sub(r"\bcity\s+of\b", " ", normalized)
+    normalized = re.sub(r"\bcity\b", " ", normalized)
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+    return " ".join(normalized.split())
+
+
 def _route_key(route: str) -> str:
-    return " ".join(route.strip().lower().replace("–", "-").split())
+    normalized = route.strip().lower().replace("–", "-").replace("—", "-")
+    parts = re.split(
+        r"\s*(?:->|→|-|\bto\b)\s*",
+        normalized,
+        maxsplit=1,
+    )
+
+    if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+        origin = _normalize_place(parts[0])
+        destination = _normalize_place(parts[1])
+        return f"{origin} - {destination}"
+
+    return _normalize_place(normalized)
 
 
 def _moving_speed(record: HistoricalTrip) -> float | None:
@@ -83,35 +116,44 @@ def _risk_level(percent: float) -> Literal["Low", "Moderate", "High"]:
     return "Low"
 
 
-def _select_comparable_records(
+def _comparison_counts(
     records: list[HistoricalTrip],
     target: ForecastTarget,
-) -> tuple[list[HistoricalTrip], str]:
+) -> tuple[list[HistoricalTrip], list[HistoricalTrip], list[HistoricalTrip]]:
+    target_route = _route_key(target.route)
     same_route = [
         record
         for record in records
-        if _route_key(record.route) == _route_key(target.route)
+        if _route_key(record.route) == target_route
         and record.beginning_at < target.departure_at
     ]
-
-    if not same_route:
-        return [], "no route history"
-
-    same_weekday_hour = [
-        record
-        for record in same_route
-        if record.beginning_at.weekday() == target.departure_at.weekday()
-        and abs(record.beginning_at.hour - target.departure_at.hour) <= 1
-    ]
-
-    if len(same_weekday_hour) >= 3:
-        return same_weekday_hour, "route + weekday + departure hour"
 
     same_hour = [
         record
         for record in same_route
         if abs(record.beginning_at.hour - target.departure_at.hour) <= 1
     ]
+
+    same_weekday_hour = [
+        record
+        for record in same_hour
+        if record.beginning_at.weekday() == target.departure_at.weekday()
+    ]
+
+    return same_route, same_hour, same_weekday_hour
+
+
+def _select_comparable_records(
+    records: list[HistoricalTrip],
+    target: ForecastTarget,
+) -> tuple[list[HistoricalTrip], str]:
+    same_route, same_hour, same_weekday_hour = _comparison_counts(records, target)
+
+    if not same_route:
+        return [], "no route history"
+
+    if len(same_weekday_hour) >= 3:
+        return same_weekday_hour, "route + weekday + departure hour"
 
     if len(same_hour) >= 3:
         return same_hour, "route + departure hour"
@@ -120,6 +162,25 @@ def _select_comparable_records(
         return same_route, "route history fallback"
 
     return [], "insufficient route history"
+
+
+def _build_eligibility(
+    records: list[HistoricalTrip],
+    target: ForecastTarget,
+) -> ForecastEligibility:
+    same_route, same_hour, same_weekday_hour = _comparison_counts(records, target)
+    comparable, method = _select_comparable_records(records, target)
+
+    return ForecastEligibility(
+        trip_code=target.trip_code,
+        route=target.route,
+        normalized_route=_route_key(target.route),
+        route_history_count=len(same_route),
+        same_hour_count=len(same_hour),
+        same_weekday_hour_count=len(same_weekday_hour),
+        eligible=len(comparable) >= 3,
+        method=method,
+    )
 
 
 def _build_prediction(
@@ -255,9 +316,14 @@ def forecast_fleet_trips(
         for target in payload.targets
         if (prediction := _build_prediction(payload.records, target)) is not None
     ]
+    eligibility = [
+        _build_eligibility(payload.records, target)
+        for target in payload.targets
+    ]
 
     return FleetTripForecastResponse(
         predictions=predictions,
+        eligibility=eligibility,
         peak_periods=_build_peak_periods(payload.records),
         historical_records=len(payload.records),
         target_count=len(payload.targets),
