@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function (): void {
             require base_path('routes/account.php');
+            require base_path('routes/analytics.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
