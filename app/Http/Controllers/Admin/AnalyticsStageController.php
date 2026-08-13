@@ -10,10 +10,10 @@ use Illuminate\View\View;
 class AnalyticsStageController extends Controller
 {
     private const STAGES = [
-        'descriptive' => '5.1 Descriptive',
-        'diagnostic' => '5.2 Diagnostic',
-        'predictive' => '5.3 Predictive',
-        'prescriptive' => '5.4 Prescriptive',
+        'descriptive' => 'Descriptive',
+        'diagnostic' => 'Diagnostic',
+        'predictive' => 'Predictive',
+        'prescriptive' => 'Prescriptive',
     ];
 
     private const DOMAINS = [
