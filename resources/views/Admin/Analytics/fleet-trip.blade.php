@@ -10,7 +10,7 @@
         <main class="main fleet-trip-page">
             <x-layout.topbar
                 title="Fleet & Trip Analytics"
-                subtitle="Analyze distance, speed, idle time, trip duration, route activity, and operational patterns"
+                subtitle="Analyze distance, speed, idle time, trip duration, operating patterns, ETA, and delay risk"
                 notification-count="6"
             />
 
@@ -18,7 +18,7 @@
                 <div class="trip-hero-content">
                     <span class="trip-hero-label">
                         <i class="fa-solid fa-route"></i>
-                        Live Descriptive & Diagnostic Analytics
+                        {{ $prediction->available ? 'Live Descriptive, Diagnostic & Predictive Analytics' : 'Live Descriptive & Diagnostic Analytics' }}
                     </span>
 
                     <h2>
@@ -27,8 +27,8 @@
 
                     <p>
                         Fleet & Trip Analytics reads processed GPS Trip Records for mileage, motion time,
-                        idle time, duration, route activity, bus usage, and explainable operational-pattern
-                        diagnostics. Predictive logic remains a separate next phase.
+                        idle time, duration, route activity, and explainable diagnostics. Python forecasting
+                        uses historical records plus real upcoming Trip Schedules when the Python Engine is available.
                     </p>
 
                     <div class="trip-hero-stats">
@@ -43,8 +43,8 @@
                         </div>
 
                         <div>
-                            <span>Fleet Availability</span>
-                            <strong>{{ number_format($fleetAvailability, 1) }}%</strong>
+                            <span>Python Forecasts</span>
+                            <strong>{{ $prediction->available ? number_format($prediction->predicted_target_count) : 'Offline' }}</strong>
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                 <div>
                     <span class="section-kicker">Trip Analysis</span>
                     <h2>Fleet Performance</h2>
-                    <p>Filter live descriptive and diagnostic calculations by period and shuttle unit.</p>
+                    <p>Filter live descriptive, diagnostic, and historical forecasting data by period and shuttle unit.</p>
                 </div>
 
                 <form class="fleet-filters" method="GET" action="{{ route('analytics.fleet-trip') }}">
@@ -492,11 +492,154 @@
                 </div>
             </section>
 
+            <section class="section-heading diagnostic-heading">
+                <div>
+                    <span class="section-kicker">5.3 Predictive Analytics</span>
+                    <h2>Python Historical Forecasting</h2>
+                    <p>Forecast ETA, trip duration, delay risk, and historical peak/slow periods from processed GPS history.</p>
+                </div>
+                <span class="diagnostic-pill">{{ $prediction->available ? 'Python Live' : 'Python Unavailable' }}</span>
+            </section>
+
+            <section class="stats-grid fleet-summary-grid diagnostic-summary-grid">
+                <x-ui.summary-card
+                    label="Historical Sample"
+                    :value="number_format($prediction->historical_records)"
+                    small="Up to 90 days of processed GPS history"
+                    icon="fa-database"
+                    color="blue"
+                />
+
+                <x-ui.summary-card
+                    label="Upcoming Targets"
+                    :value="number_format($prediction->target_count)"
+                    small="Scheduled trips in the next 7 days"
+                    icon="fa-calendar-day"
+                    color="blue"
+                />
+
+                <x-ui.summary-card
+                    label="Predicted Trips"
+                    :value="number_format($prediction->predicted_target_count)"
+                    :small="$prediction->available ? 'Targets with enough comparable history' : 'Python Engine unavailable'"
+                    icon="fa-chart-line"
+                    :color="$prediction->available ? 'green' : 'yellow'"
+                />
+
+                <x-ui.summary-card
+                    label="Peak / Slow Periods"
+                    :value="number_format($prediction->peak_periods->count())"
+                    small="Historical 2-hour periods above route-normal travel time or below route-normal speed"
+                    icon="fa-traffic-light"
+                    color="yellow"
+                />
+            </section>
+
+            <section class="trip-panel route-leaderboard-panel">
+                <div class="trip-panel-header">
+                    <div>
+                        <span class="section-kicker">Predictive ETA & Delay Risk</span>
+                        <h2>Upcoming Trip Forecasts</h2>
+                        <p>
+                            Python first looks for at least three same-route records near the same departure hour and weekday,
+                            then falls back to broader same-route history. Delay risk is the historical share of comparable trips
+                            that exceeded the same diagnostic delay threshold.
+                        </p>
+                    </div>
+                    <span class="period-pill">{{ $prediction->model ?? 'Service Offline' }}</span>
+                </div>
+
+                <div class="route-leaderboard">
+                    @if(! $prediction->available)
+                        <div class="route-ranking first">
+                            <div class="ranking-number">—</div>
+                            <div class="route-ranking-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="route-ranking-content">
+                                <strong>Python prediction service is unavailable.</strong>
+                                <span>Descriptive and diagnostic analytics remain live; no forecast values are fabricated.</span>
+                            </div>
+                            <div class="route-ranking-value"><strong>Offline</strong><span>5.3 only</span></div>
+                        </div>
+                    @else
+                        @forelse($prediction->predictions->take(6) as $forecast)
+                            <div class="route-ranking {{ $loop->first ? 'first' : '' }}">
+                                <div class="ranking-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
+                                <div class="route-ranking-icon"><i class="fa-solid fa-clock"></i></div>
+                                <div class="route-ranking-content">
+                                    <strong>{{ $forecast->trip_code }} · {{ $forecast->route }}</strong>
+                                    <span>
+                                        Departs {{ $forecast->departure_at?->format('M j, g:i A') }} ·
+                                        predicted {{ number_format($forecast->predicted_duration_minutes, 1) }} min ·
+                                        ETA {{ $forecast->estimated_arrival_at?->format('M j, g:i A') }}
+                                    </span>
+                                    <small class="diagnostic-baseline">
+                                        {{ $forecast->method }} · {{ number_format($forecast->sample_size) }} comparable records ·
+                                        route baseline {{ number_format($forecast->baseline_duration_minutes, 1) }} min
+                                    </small>
+                                </div>
+                                <div class="route-ranking-value">
+                                    <strong>{{ number_format($forecast->delay_risk_percent, 1) }}%</strong>
+                                    <span>{{ $forecast->risk_level }} delay risk</span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="route-ranking first">
+                                <div class="ranking-number">—</div>
+                                <div class="route-ranking-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                <div class="route-ranking-content">
+                                    <strong>Python is online, but there is no forecastable upcoming trip yet.</strong>
+                                    <span>{{ $prediction->message }}</span>
+                                </div>
+                                <div class="route-ranking-value"><strong>0</strong><span>predictions</span></div>
+                            </div>
+                        @endforelse
+                    @endif
+                </div>
+            </section>
+
+            <section class="trip-findings-layout diagnostic-findings-layout">
+                <div class="trip-findings-heading diagnostic-method-heading">
+                    <span class="section-kicker">Historical Peak-Period Forecast</span>
+                    <h2>When do trips tend to slow down?</h2>
+                    <p>
+                        Each trip is normalized against its own route median before time blocks are compared.
+                        This reduces route-distance bias and describes historical slow periods rather than claiming live traffic conditions.
+                    </p>
+                </div>
+
+                <div class="trip-findings-list">
+                    @forelse($prediction->peak_periods as $peak)
+                        <article class="trip-finding warning">
+                            <div class="finding-icon"><i class="fa-solid fa-traffic-light"></i></div>
+                            <div>
+                                <span>{{ $peak->period }}</span>
+                                <strong>
+                                    Duration index {{ number_format($peak->duration_index, 2) }}×
+                                    @if($peak->speed_index !== null)
+                                        · Speed index {{ number_format($peak->speed_index, 2) }}×
+                                    @endif
+                                </strong>
+                                <p>{{ number_format($peak->sample_size) }} historical records · {{ $peak->interpretation }}</p>
+                            </div>
+                        </article>
+                    @empty
+                        <article class="trip-finding info">
+                            <div class="finding-icon"><i class="fa-solid fa-circle-info"></i></div>
+                            <div>
+                                <span>Peak-period evidence</span>
+                                <strong>No time block currently meets the historical slow-period rule.</strong>
+                                <p>More processed GPS history may be needed, or current periods are close to their route-normal performance.</p>
+                            </div>
+                        </article>
+                    @endforelse
+                </div>
+            </section>
+
             <section class="trip-findings-layout">
                 <div class="trip-findings-heading">
                     <span class="section-kicker">Live Descriptive Findings</span>
                     <h2>What the current records show</h2>
-                    <p>These observations summarize the selected processed GPS records before diagnostic interpretation.</p>
+                    <p>These observations summarize the selected processed GPS records before diagnostic and predictive interpretation.</p>
                 </div>
 
                 <div class="trip-findings-list">
@@ -538,11 +681,13 @@
             <section class="trip-panel route-leaderboard-panel">
                 <div class="trip-panel-header">
                     <div>
-                        <span class="section-kicker">Next Backend Phases</span>
-                        <h2>Predictive & Prescriptive Analytics</h2>
-                        <p>Descriptive and diagnostic outputs are now live; forecasts and recommendations remain queued until their rules are implemented.</p>
+                        <span class="section-kicker">Analytics Implementation Status</span>
+                        <h2>Fleet & Trip Analytics Pipeline</h2>
+                        <p>5.1 and 5.2 run in Laravel; 5.3 is implemented in Python and consumed by Laravel; 5.4 remains the next decision-support phase.</p>
                     </div>
-                    <span class="period-pill">2 Live · 2 Queued</span>
+                    <span class="period-pill">
+                        {{ $prediction->available ? '3 Implemented · 1 Queued' : '2 Live · Python Offline · 1 Queued' }}
+                    </span>
                 </div>
 
                 <div class="route-leaderboard">
@@ -553,7 +698,7 @@
                             <strong>Diagnostic Analytics</strong>
                             <span>Delay indicators, slow-movement patterns, high idling, baseline coverage, and evidence limitations are calculated from live records.</span>
                         </div>
-                        <div class="route-ranking-value"><strong>Live</strong><span>implemented</span></div>
+                        <div class="route-ranking-value"><strong>Live</strong><span>Laravel</span></div>
                     </div>
 
                     <div class="route-ranking">
@@ -561,9 +706,12 @@
                         <div class="route-ranking-icon"><i class="fa-solid fa-chart-line"></i></div>
                         <div class="route-ranking-content">
                             <strong>Predictive Analytics</strong>
-                            <span>ETA, delay risk, peak traffic periods, and other forecast-oriented trip indicators.</span>
+                            <span>Historical-statistical Python forecasting for trip duration, ETA, delay risk, and peak/slow time periods.</span>
                         </div>
-                        <div class="route-ranking-value"><strong>Next</strong><span>phase</span></div>
+                        <div class="route-ranking-value">
+                            <strong>{{ $prediction->available ? 'Implemented' : 'Unavailable' }}</strong>
+                            <span>Python Engine</span>
+                        </div>
                     </div>
 
                     <div class="route-ranking">
@@ -571,9 +719,9 @@
                         <div class="route-ranking-icon"><i class="fa-solid fa-lightbulb"></i></div>
                         <div class="route-ranking-content">
                             <strong>Prescriptive Analytics</strong>
-                            <span>Shuttle assignment, route adjustment, and schedule modification recommendations based on validated findings.</span>
+                            <span>Shuttle assignment, route adjustment, and schedule modification recommendations based on validated findings and predictions.</span>
                         </div>
-                        <div class="route-ranking-value"><strong>Queued</strong><span>after predictions</span></div>
+                        <div class="route-ranking-value"><strong>Next</strong><span>decision support</span></div>
                     </div>
                 </div>
             </section>
@@ -581,11 +729,11 @@
             <section class="fleet-recommendation">
                 <div class="recommendation-icon"><i class="fa-solid fa-circle-info"></i></div>
                 <div class="recommendation-content">
-                    <span>Data & Diagnostic Boundary</span>
-                    <h2>Only processed GPS records are used, and diagnostic patterns are not presented as confirmed root causes.</h2>
+                    <span>Analytics Boundary</span>
+                    <h2>Predictions use historical processed GPS records; they are not live traffic data and are not presented when Python is unavailable.</h2>
                     <p>
-                        Delay and slow-movement rules require a minimum three-record route baseline. Route deviation remains unavailable
-                        until FROMS has actual traveled-path evidence that can be compared with configured route geometry.
+                        Diagnostics still require comparable route history, route deviation still requires actual traveled-path evidence,
+                        and Python forecasts require at least three comparable historical trips before generating an ETA or delay-risk result.
                     </p>
                 </div>
                 <a href="{{ route('analytics.recommendations') }}" class="recommendation-link">

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
+use App\Models\Operation\TripSchedule;
+use App\Services\FleetTripPredictionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -12,8 +14,10 @@ use Illuminate\View\View;
 
 class FleetTripAnalyticsController extends Controller
 {
-    public function index(Request $request): View
-    {
+    public function index(
+        Request $request,
+        FleetTripPredictionService $predictionService
+    ): View {
         $period = $this->normalizePeriod((string) $request->input('period', 'this-month'));
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         [$periodStart, $periodEnd, $periodLabel] = $this->periodBounds($period);
@@ -70,6 +74,10 @@ class FleetTripAnalyticsController extends Controller
 
         $busActivity = $this->buildBusActivity($records, $busLookup);
         $diagnostics = $this->buildDiagnostics($records);
+        $prediction = $this->buildPrediction(
+            $selectedBus,
+            $predictionService
+        );
 
         return view('Admin.Analytics.fleet-trip', [
             'period' => $period,
@@ -91,6 +99,7 @@ class FleetTripAnalyticsController extends Controller
             'routes' => $routes,
             'busActivity' => $busActivity,
             'diagnostics' => $diagnostics,
+            'prediction' => $prediction,
         ]);
     }
 
@@ -417,6 +426,154 @@ class FleetTripAnalyticsController extends Controller
             'delayed_with_high_idle' => $delayedWithHighIdle,
             'top_records' => $forReview->take(6),
             'route_deviation_supported' => false,
+        ];
+    }
+
+    private function buildPrediction(
+        string $selectedBus,
+        FleetTripPredictionService $predictionService
+    ): object {
+        $historyStart = now()->copy()->subDays(90)->startOfDay();
+        $historyEnd = now()->copy();
+
+        $historicalRecords = $this->recordsQuery(
+            $historyStart,
+            $historyEnd,
+            $selectedBus
+        )
+            ->orderBy('beginning_at')
+            ->get()
+            ->filter(function (GpsTripRecord $record): bool {
+                return $record->beginning_at !== null
+                    && $this->durationMinutes($record) > 0;
+            })
+            ->values();
+
+        $scheduleQuery = TripSchedule::query()
+            ->with(['shuttleRoute', 'assignment.bus'])
+            ->whereBetween('trip_date', [
+                now()->toDateString(),
+                now()->copy()->addDays(7)->toDateString(),
+            ])
+            ->where('status', 'Scheduled')
+            ->whereHas('shuttleRoute', fn ($query) => $query->where('status', 'Active'));
+
+        if ($selectedBus !== '' && $selectedBus !== 'ALL') {
+            $scheduleQuery->whereHas('assignment.bus', function ($query) use ($selectedBus): void {
+                $query->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus]);
+            });
+        }
+
+        $targets = $scheduleQuery
+            ->orderBy('trip_date')
+            ->orderBy('departure_time')
+            ->limit(20)
+            ->get()
+            ->map(function (TripSchedule $schedule) {
+                $departureAt = Carbon::parse(
+                    $schedule->trip_date->format('Y-m-d')
+                    . ' '
+                    . $schedule->departure_time
+                );
+
+                if ($departureAt->lessThan(now())) {
+                    return null;
+                }
+
+                $route = $schedule->shuttleRoute;
+                $routeLabel = trim((string) ($route?->origin ?? ''))
+                    . ' - '
+                    . trim((string) ($route?->destination ?? ''));
+
+                if (trim(str_replace('-', '', $routeLabel)) === '') {
+                    $routeLabel = $route?->route_name ?: 'Unspecified Route';
+                }
+
+                return [
+                    'trip_code' => $schedule->trip_code,
+                    'route' => $routeLabel,
+                    'departure_at' => $departureAt->toIso8601String(),
+                    'bus_no' => $schedule->assignment?->bus?->bus_no,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        $payload = [
+            'records' => $historicalRecords
+                ->map(function (GpsTripRecord $record): array {
+                    return [
+                        'route' => $this->routeLabel($record),
+                        'bus_no' => $record->bus_no,
+                        'beginning_at' => $record->beginning_at->toIso8601String(),
+                        'duration_minutes' => $this->durationMinutes($record),
+                        'in_motion_minutes' => (float) ($record->in_motion_minutes ?? 0),
+                        'idling_minutes' => (float) ($record->idling_minutes ?? 0),
+                        'mileage_km' => (float) ($record->mileage_km ?? 0),
+                    ];
+                })
+                ->values()
+                ->all(),
+            'targets' => $targets->all(),
+        ];
+
+        $response = $predictionService->predict($payload);
+
+        if ($response === null) {
+            return (object) [
+                'available' => false,
+                'model' => null,
+                'historical_records' => $historicalRecords->count(),
+                'target_count' => $targets->count(),
+                'predicted_target_count' => 0,
+                'predictions' => collect(),
+                'peak_periods' => collect(),
+                'message' => 'Python prediction service is currently unavailable.',
+            ];
+        }
+
+        $predictions = collect($response['predictions'] ?? [])
+            ->map(function (array $item): object {
+                return (object) [
+                    'trip_code' => $item['trip_code'] ?? 'Scheduled Trip',
+                    'route' => $item['route'] ?? 'Unspecified Route',
+                    'departure_at' => ! empty($item['departure_at'])
+                        ? Carbon::parse($item['departure_at'])
+                        : null,
+                    'predicted_duration_minutes' => (float) ($item['predicted_duration_minutes'] ?? 0),
+                    'estimated_arrival_at' => ! empty($item['estimated_arrival_at'])
+                        ? Carbon::parse($item['estimated_arrival_at'])
+                        : null,
+                    'delay_risk_percent' => (float) ($item['delay_risk_percent'] ?? 0),
+                    'risk_level' => $item['risk_level'] ?? 'Low',
+                    'sample_size' => (int) ($item['sample_size'] ?? 0),
+                    'method' => $item['method'] ?? 'route history',
+                    'baseline_duration_minutes' => (float) ($item['baseline_duration_minutes'] ?? 0),
+                ];
+            });
+
+        $peakPeriods = collect($response['peak_periods'] ?? [])
+            ->map(fn (array $item) => (object) [
+                'period' => $item['period'] ?? 'Unknown',
+                'sample_size' => (int) ($item['sample_size'] ?? 0),
+                'duration_index' => (float) ($item['duration_index'] ?? 0),
+                'speed_index' => isset($item['speed_index'])
+                    ? (float) $item['speed_index']
+                    : null,
+                'interpretation' => $item['interpretation'] ?? '',
+            ]);
+
+        return (object) [
+            'available' => true,
+            'model' => $response['model'] ?? 'historical-statistical-v1',
+            'historical_records' => (int) ($response['historical_records'] ?? $historicalRecords->count()),
+            'target_count' => (int) ($response['target_count'] ?? $targets->count()),
+            'predicted_target_count' => (int) ($response['predicted_target_count'] ?? $predictions->count()),
+            'predictions' => $predictions,
+            'peak_periods' => $peakPeriods,
+            'message' => $predictions->isNotEmpty()
+                ? 'Python historical forecasting is live.'
+                : 'Python is online, but no upcoming scheduled trip has enough comparable route history yet.',
         ];
     }
 
