@@ -7,103 +7,34 @@
     'resources/js/Warehouse/part-requests.js'
   ]"
 >
-
   <div class="app">
+    <x-layout.sidebar department="Warehouse" />
 
-  <x-layout.sidebar
-    department="Warehouse"
-    subtitle="Warehouse Module"
-    icon="fa-warehouse"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'warehouse.dashboard',
-            'icon' => 'fa-table-cells-large',
-        ],
-        [
-            'label' => 'Inventory',
-            'route' => 'inventory',
-            'icon' => 'fa-boxes-stacked'
-        ],
-        [
-            'label' => 'Part Requests',
-            'route' => 'part-requests',
-            'icon' => 'fa-clipboard-list'
-        ],
-        [
-            'label' => 'Incoming Deliveries',
-            'route' => 'incoming-deliveries',
-            'icon' => 'fa-truck-ramp-box'
-        ],
-        [
-            'label' => 'Stock Movements',
-            'route' => 'stock-movements',
-            'icon' => 'fa-right-left'
-        ],
-    ]"
-/>
     <main class="main">
-
       <x-layout.topbar
         title="Part Requests"
         subtitle="Approved purchase requests from Maintenance for warehouse processing"
         notification-count="6"
       />
 
-      <section class="stats-grid inventory-stats">
-
-        <x-ui.summary-card
-          label="Approved"
-          value="{{ $approved ?? 0 }}"
-          small="Ready to process"
-          icon="fa-check"
-          color="green"
-        />
-
-        <x-ui.summary-card
-          label="For Purchase"
-          value="{{ $forPurchase ?? 0 }}"
-          small="Parts unavailable"
-          icon="fa-cart-shopping"
-          color="blue"
-        />
-
-        <x-ui.summary-card
-          label="Delivered"
-          value="{{ $delivered ?? 0 }}"
-          small="Supplier delivered"
-          icon="fa-box"
-          color="yellow"
-        />
-
-        <x-ui.summary-card
-          label="Issued"
-          value="{{ $issued ?? 0 }}"
-          small="Released parts"
-          icon="fa-box-open"
-          color="gray"
-        />
-
+      <section data-ajax-region="summary" class="stats-grid inventory-stats">
+        <x-ui.summary-card label="Approved" value="{{ $approved ?? 0 }}" small="Ready to process" icon="fa-check" color="green" />
+        <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable" icon="fa-cart-shopping" color="blue" />
+        <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-box" color="yellow" />
+        <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released parts" icon="fa-box-open" color="gray" />
       </section>
 
-      {{-- ACTIVE REQUESTS TABLE --}}
-      <section class="table-card inventory-card warehouse-part-card">
-
+      <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header">
           <div>
             <h2>Warehouse Part Request Records</h2>
-            <p>Track approved PRs, unavailable parts, inventory availability, and issued parts</p>
+            <p>Track active approved requests, unavailable parts, and inventory availability.</p>
           </div>
         </div>
 
-        <form
-          action="{{ route('part-requests') }}"
-          method="GET"
-          class="toolbar inventory-toolbar warehouse-part-toolbar"
-        >
+        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-
             <input
               type="text"
               name="search"
@@ -113,22 +44,15 @@
           </div>
 
           <div class="filter-group">
-            <label for="warehouseStatusFilter">Status</label>
-
             <select
               name="status"
               id="warehouseStatusFilter"
               class="warehouse-status-select"
               onchange="this.form.requestSubmit()"
             >
-              <option value="All Statuses" {{ request('status', 'All Statuses') == 'All Statuses' ? 'selected' : '' }}>
-                All Statuses
-              </option>
-
+              <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
               @foreach(($statuses ?? []) as $status)
-                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                  {{ $status }}
-                </option>
+                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
               @endforeach
             </select>
           </div>
@@ -148,80 +72,34 @@
                 <th class="actions-col">Actions</th>
               </tr>
             </thead>
-
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
-                  $status = $partRequest->purchase_progress_status
-                    ?? $partRequest->status
-                    ?? 'Approved';
-
+                  $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
                   $itemName = $partRequest->first_item_display ?? '—';
                   $quantity = $partRequest->first_quantity_display ?? '0';
                   $onHand = $partRequest->first_on_hand_display ?? '0';
-
-                  $inventoryStatus = $partRequest->first_inventory_status
-                    ?? $partRequest->inventory_label
-                    ?? 'Not Available';
-
-                  $onHandClass = $inventoryStatus === 'Available'
-                    ? 'enough'
-                    : 'low';
-
-                  $rawCanIssue = $partRequest->can_issue ?? false;
-
+                  $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
+                  $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
                   $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
-
                   $canSendToPurchase = ($partRequest->needs_purchase ?? false)
                     && !$missingPrAlreadyCreated
                     && $status === 'Approved';
-
-                  $canIssue = $rawCanIssue
+                  $canIssue = ($partRequest->can_issue ?? false)
                     && $inventoryStatus === 'Available'
-                    && in_array($status, ['Approved', 'Delivered'], true);
+                    && in_array($status, ['Approved', 'Delivered', 'Picked Up'], true);
                 @endphp
 
                 <tr>
-                  <td>
-                    <strong>{{ $partRequest->pr_no ?? '—' }}</strong>
-                  </td>
-
-                  <td class="item-col">
-                    {{ $itemName }}
-                  </td>
-
-                  <td class="qty-col">
-                    {{ $quantity }}
-                  </td>
-
-                  <td class="qty-col">
-                    <span class="on-hand-pill {{ $onHandClass }}">
-                      {{ $onHand }}
-                    </span>
-                  </td>
-
-                  <td class="status-col">
-                    <x-ui.status-badge
-                      :status="$inventoryStatus"
-                      type="inventory"
-                    />
-                  </td>
-
-                  <td class="status-col">
-                    <x-ui.status-badge
-                      :status="$status"
-                      type="purchase"
-                    />
-                  </td>
-
-                  <td>
-                    {{ $partRequest->created_at ? $partRequest->created_at->format('M d, Y') : '—' }}
-                  </td>
-
+                  <td><strong>{{ $partRequest->pr_no ?? '—' }}</strong></td>
+                  <td class="item-col">{{ $itemName }}</td>
+                  <td class="qty-col">{{ $quantity }}</td>
+                  <td class="qty-col"><span class="on-hand-pill {{ $onHandClass }}">{{ $onHand }}</span></td>
+                  <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
+                  <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
+                  <td>{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}</td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
-
-                      {{-- VIEW BUTTON: ALWAYS ACTIVE --}}
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
@@ -235,13 +113,12 @@
                         data-inventory-status="{{ $inventoryStatus }}"
                         data-status="{{ $status }}"
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
-                        data-created="{{ $partRequest->created_at ? $partRequest->created_at->format('M d, Y') : '—' }}"
+                        data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
                         data-parts='@json($partRequest->parts_breakdown ?? [])'
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      {{-- SEND TO PURCHASE BUTTON --}}
                       @if($canSendToPurchase)
                         <form
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
@@ -254,33 +131,16 @@
                           data-confirm-type="warning"
                         >
                           @csrf
-
-                          <button
-                            type="submit"
-                            class="send-purchase-btn icon-only-btn"
-                            title="Send Missing Parts to Purchase"
-                          >
+                          <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
                             <i class="fa-solid fa-cart-shopping"></i>
                           </button>
                         </form>
                       @else
-                        <button
-                          type="button"
-                          class="send-purchase-btn icon-only-btn disabled-action-btn"
-                          title="{{
-                            $status === 'For Purchase'
-                              ? 'This request was already sent to Purchase'
-                              : ($missingPrAlreadyCreated
-                                ? 'Missing parts request was already sent to Purchase'
-                                : 'All parts are available or request is already processed')
-                          }}"
-                          disabled
-                        >
+                        <button type="button" class="send-purchase-btn icon-only-btn disabled-action-btn" title="No purchase action available" disabled>
                           <i class="fa-solid fa-cart-shopping"></i>
                         </button>
                       @endif
 
-                      {{-- ISSUE PARTS BUTTON --}}
                       @if($canIssue)
                         <form
                           action="{{ route('part-requests.issue', $partRequest->id) }}"
@@ -293,230 +153,75 @@
                           data-confirm-type="issue"
                         >
                           @csrf
-
-                          <button
-                            type="submit"
-                            class="issue-part-btn icon-only-btn"
-                            title="Issue Parts"
-                          >
+                          <button type="submit" class="issue-part-btn icon-only-btn" title="Issue Parts">
                             <i class="fa-solid fa-box-open"></i>
                           </button>
                         </form>
                       @else
-                        <button
-                          type="button"
-                          class="issue-part-btn icon-only-btn disabled-action-btn"
-                          title="{{
-                            $inventoryStatus !== 'Available'
-                              ? 'Parts cannot be issued because inventory is not available'
-                              : ($status === 'For Purchase'
-                                ? 'Parts cannot be issued while this request is For Purchase'
-                                : 'Parts cannot be issued until the request is delivered')
-                          }}"
-                          disabled
-                        >
+                        <button type="button" class="issue-part-btn icon-only-btn disabled-action-btn" title="Parts are not ready to issue" disabled>
                           <i class="fa-solid fa-box-open"></i>
                         </button>
                       @endif
-
                     </div>
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row
-                  colspan="8"
-                  message="No active part requests found."
-                />
+                <x-ui.empty-row colspan="8" message="No active part requests found." />
               @endforelse
             </tbody>
           </table>
         </div>
 
         <x-ui.table-footer :items="$purchaseRequests" />
-
       </section>
-
-      {{-- ISSUED HISTORY TABLE --}}
-      <section class="table-card inventory-card warehouse-history-card">
-
-        <div class="section-header">
-          <div>
-            <h2>Issued Parts History</h2>
-            <p>Completed warehouse part requests that were already issued.</p>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="inventory-table warehouse-part-table">
-            <thead>
-              <tr>
-                <th>PR #</th>
-                <th>JO No.</th>
-                <th>Bus #</th>
-                <th>Item</th>
-                <th class="qty-col">Quantity</th>
-                <th class="status-col">Status</th>
-                <th>Date Issued</th>
-                <th class="actions-col">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              @forelse(($issuedRequests ?? []) as $history)
-                @php
-                  $itemName = $history->first_item_display ?? $history->item ?? '—';
-                  $quantity = $history->first_quantity_display ?? $history->quantity ?? '—';
-                @endphp
-
-                <tr>
-                  <td>
-                    <strong>{{ $history->pr_no ?? '—' }}</strong>
-                  </td>
-
-                  <td>{{ $history->job_order_no ?? '—' }}</td>
-
-                  <td>{{ $history->bus_no ?? '—' }}</td>
-
-                  <td>{{ $itemName }}</td>
-
-                  <td class="qty-col">
-                    {{ $quantity }}
-                  </td>
-
-                  <td class="status-col">
-                    <x-ui.status-badge
-                      status="Issued"
-                      type="purchase"
-                    />
-                  </td>
-
-                  <td>
-                    {{ $history->updated_at ? $history->updated_at->format('M d, Y') : '—' }}
-                  </td>
-
-                  <td class="actions-col">
-                    <div class="actions warehouse-actions">
-
-                      <button
-                        type="button"
-                        class="view-btn open-view-pr-modal"
-                        title="View Details"
-                        data-pr-no="{{ $history->pr_no }}"
-                        data-job-order-no="{{ $history->job_order_no }}"
-                        data-bus-no="{{ $history->bus_no }}"
-                        data-item="{{ $history->item }}"
-                        data-quantity="{{ $quantity }}"
-                        data-on-hand="{{ $history->first_on_hand_display ?? '0' }}"
-                        data-inventory-status="{{ $history->first_inventory_status ?? 'Available' }}"
-                        data-status="Issued"
-                        data-remarks="{{ $history->remarks ?? 'No remarks' }}"
-                        data-created="{{ $history->updated_at ? $history->updated_at->format('M d, Y') : '—' }}"
-                        data-parts='@json($history->parts_breakdown ?? [])'
-                      >
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
-
-                      <button
-                        type="button"
-                        class="send-purchase-btn icon-only-btn disabled-action-btn"
-                        title="Request was already issued"
-                        disabled
-                      >
-                        <i class="fa-solid fa-cart-shopping"></i>
-                      </button>
-
-                      <button
-                        type="button"
-                        class="issue-part-btn icon-only-btn disabled-action-btn"
-                        title="Parts were already issued"
-                        disabled
-                      >
-                        <i class="fa-solid fa-box-open"></i>
-                      </button>
-
-                    </div>
-                  </td>
-                </tr>
-              @empty
-                <x-ui.empty-row
-                  colspan="8"
-                  message="No issued history yet."
-                />
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-
-        @if(isset($issuedRequests))
-          <x-ui.table-footer :items="$issuedRequests" />
-        @endif
-
-      </section>
-
     </main>
-
   </div>
 
-  {{-- VIEW MODAL --}}
   <div id="viewPrModal" class="modal-overlay warehouse-view-overlay">
     <div class="warehouse-edit-style-modal">
-
       <div class="warehouse-edit-header">
         <div>
           <h2>Purchase Request Details</h2>
           <h3>PR Information</h3>
           <p>This is a read-only view of the selected purchase request.</p>
         </div>
-
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div class="warehouse-edit-form-grid">
-
         <div class="warehouse-field">
           <label>PR No.</label>
           <input id="view_pr_no" type="text" value="—" readonly>
         </div>
-
         <div class="warehouse-field">
           <label>JO No.</label>
           <input id="view_job_order_no" type="text" value="—" readonly>
         </div>
-
         <div class="warehouse-field">
           <label>Bus #</label>
           <input id="view_bus_no" type="text" value="—" readonly>
         </div>
-
         <div class="warehouse-field">
           <label>Date Created</label>
           <input id="view_created" type="text" value="—" readonly>
         </div>
-
         <div class="warehouse-field full">
           <label>Requested Parts Breakdown</label>
-
           <div id="view_parts_breakdown" class="parts-breakdown-box">
             <div class="parts-breakdown-empty">No parts found.</div>
           </div>
         </div>
-
         <div class="warehouse-field full">
           <label>Remarks</label>
           <input id="view_remarks" type="text" value="No remarks" readonly>
         </div>
-
       </div>
 
       <div class="warehouse-edit-footer">
-        <button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">
-          Close
-        </button>
+        <button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button>
       </div>
-
     </div>
   </div>
-
 </x-layout.app>

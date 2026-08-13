@@ -1,0 +1,259 @@
+/* =========================================================
+   IMPORT / EXPORT ACTIVITY MODAL
+   Modal-only styles. Status and validation presentation live
+   in uploading-data.css, the canonical Import / Export stylesheet.
+========================================================= */
+
+.transfer-activity-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(6, 31, 61, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.transfer-activity-modal-overlay.show {
+    display: flex;
+}
+
+.transfer-activity-modal {
+    width: min(920px, 96vw);
+    max-height: 88vh;
+    overflow: hidden;
+    border: 1px solid #dce5f2;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 64px rgba(6, 31, 61, 0.24);
+    display: flex;
+    flex-direction: column;
+}
+
+.transfer-activity-modal-header {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid #e7edf5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.transfer-activity-modal-header h2 {
+    margin: 0;
+    color: #061f3d;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.transfer-activity-modal-header p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.transfer-activity-modal-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #dce5f2;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #061f3d;
+    cursor: pointer;
+}
+
+.transfer-activity-modal-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+}
+
+.transfer-activity-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.transfer-activity-status {
+    min-height: 28px;
+    padding: 0 11px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.transfer-activity-status.completed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #b7efca;
+}
+
+.transfer-activity-status.for-review {
+    background: #fff3cd;
+    color: #9a6700;
+    border: 1px solid #f8dd82;
+}
+
+.transfer-activity-status.needs-correction,
+.transfer-activity-status.failed {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.transfer-activity-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.transfer-activity-item {
+    min-height: 76px;
+    padding: 12px;
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.transfer-activity-item.wide {
+    grid-column: span 2;
+}
+
+.transfer-activity-item span {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.transfer-activity-item strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.transfer-validation-panel {
+    margin-top: 16px;
+    border: 1px solid #fecaca;
+    border-radius: 11px;
+    background: #fff7f7;
+    overflow: hidden;
+}
+
+.transfer-validation-title {
+    padding: 11px 13px;
+    border-bottom: 1px solid #fecaca;
+    color: #991b1b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.transfer-validation-list {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.transfer-validation-row {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 13px;
+    border-bottom: 1px solid #fee2e2;
+    font-size: 12px;
+}
+
+.transfer-validation-row:last-child {
+    border-bottom: 0;
+}
+
+.transfer-validation-row strong {
+    color: #991b1b;
+}
+
+.transfer-validation-row span {
+    color: #475569;
+}
+
+.transfer-review-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid #f8dd82;
+    border-radius: 10px;
+    background: #fffdf3;
+    color: #7c5b00;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.transfer-activity-modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid #e7edf5;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.transfer-modal-btn {
+    min-height: 40px;
+    padding: 0 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.transfer-modal-btn.secondary {
+    border: 1px solid #dce5f2;
+    background: #fff;
+    color: #334155;
+}
+
+.transfer-modal-btn.approve {
+    border: 1px solid #e0aa00;
+    background: #ffc400;
+    color: #061f3d;
+}
+
+.transfer-modal-btn.approve:hover {
+    background: #eab308;
+}
+
+.transfer-modal-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+body.transfer-activity-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 800px) {
+    .transfer-activity-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .transfer-activity-modal-overlay {
+        padding: 10px;
+    }
+
+    .transfer-activity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .transfer-activity-item.wide {
+        grid-column: auto;
+    }
+}

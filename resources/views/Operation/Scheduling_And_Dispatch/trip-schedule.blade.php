@@ -10,86 +10,7 @@
     ]"
 >
     <div class="app">
-       <x-layout.sidebar
-    department="Operation"
-    subtitle="Operation Module"
-    icon="fa-bus"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-operation',
-            'icon' => 'fa-table-cells-large',
-        ],
-
-        [
-            'label' => 'Routes',
-            'route' => 'operation.routes',
-            'icon' => 'fa-route',
-        ],
-
-        [
-            'label' => 'Scheduling',
-            'icon' => 'fa-calendar-days',
-            'children' => [
-                [
-                    'label' => 'Trip Schedule',
-                    'route' => 'trip-schedule',
-                    'icon' => 'fa-calendar-days',
-                ],
-                [
-                    'label' => 'Driver & Bus Assignment',
-                    'route' => 'driver-bus-assignment',
-                    'icon' => 'fa-user-tie',
-                ],
-                [
-                    'label' => 'Auto Scheduling',
-                    'route' => 'auto-scheduling',
-                    'icon' => 'fa-wand-magic-sparkles',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Personnel Management',
-            'icon' => 'fa-address-book',
-            'children' => [
-                [
-                    'label' => 'Driver Master List',
-                    'route' => 'operation.personnel.drivers',
-                    'icon' => 'fa-id-card',
-                ],
-                [
-                    'label' => 'Mechanic Master List',
-                    'route' => 'operation.personnel.mechanics',
-                    'icon' => 'fa-users-gear',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Attendance',
-            'icon' => 'fa-calendar-check',
-            'children' => [
-                [
-                    'label' => 'Driver Attendance',
-                    'route' => 'driver-attendance',
-                    'icon' => 'fa-user-check',
-                ],
-                [
-                    'label' => 'Mechanic Attendance',
-                    'route' => 'mechanic-attendance',
-                    'icon' => 'fa-clipboard-user',
-                ],
-            ],
-        ],
-
-        [
-            'label' => 'Bus Master List',
-            'route' => 'bus-master-list',
-            'icon' => 'fa-bus',
-        ],
-    ]"
-/>
+       <x-layout.sidebar department="Operation" />
 
         <main class="main trip-schedule-page">
             <x-layout.topbar
@@ -164,14 +85,25 @@
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        class="new-trip-btn"
-                        id="openTripModal"
-                    >
-                        <i class="fa-solid fa-plus"></i>
-                        New Trip
-                    </button>
+                    <div class="ui-form-actions">
+                        <button
+                            type="button"
+                            class="new-trip-btn"
+                            id="openGenerateTripsModal"
+                        >
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            <span>Generate Daily Trips</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="new-trip-btn"
+                            id="openTripModal"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            New Trip
+                        </button>
+                    </div>
                 </div>
 
                 <form
@@ -190,20 +122,20 @@
                     </div>
 
                     <div class="trip-filter">
-                        <label>Date</label>
                         <input
                             type="date"
                             name="trip_date"
                             value="{{ request('trip_date') }}"
                             onchange="this.form.requestSubmit()"
+                            aria-label="Date"
                         >
                     </div>
 
                     <div class="trip-filter">
-                        <label>Status</label>
                         <select
                             name="status"
                             onchange="this.form.requestSubmit()"
+                            aria-label="Status"
                         >
                             <option value="all">All Statuses</option>
                             @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled'] as $status)
@@ -360,6 +292,74 @@
             </section>
         </main>
     </div>
+
+    <x-ui.form-modal
+        id="generateTripsModal"
+        title="Generate Daily Trips"
+        description="Reuse the route and departure-time pattern from an existing schedule date."
+        icon="fa-wand-magic-sparkles"
+        size="medium"
+        form-id="generateTripsForm"
+        :action="route('trip-schedule.store', [], false)"
+        method="POST"
+        submit-text="Generate Trips"
+        submit-icon="fa-bolt"
+        cancel-text="Cancel"
+        cancel-id="cancelGenerateTripsModal"
+        close-id="closeGenerateTripsModal"
+    >
+        <input type="hidden" name="schedule_action" value="generate_daily">
+
+        <div class="ui-form-grid trip-ui-form-grid">
+            <div class="ui-form-group">
+                <label for="generateSourceDate">
+                    Source Schedule <span class="ui-required">*</span>
+                </label>
+                <div class="ui-input-wrap has-icon">
+                    <span class="ui-input-icon"><i class="fa-solid fa-calendar"></i></span>
+                    <select
+                        name="source_date"
+                        id="generateSourceDate"
+                        required
+                        @disabled($reusableScheduleDates->isEmpty())
+                    >
+                        @if($reusableScheduleDates->isEmpty())
+                            <option value="">No reusable schedules available</option>
+                        @else
+                            <option value="">Select an existing schedule</option>
+                            @foreach($reusableScheduleDates as $scheduleDate)
+                                <option
+                                    value="{{ $scheduleDate->schedule_date }}"
+                                    @selected(old('source_date') === $scheduleDate->schedule_date)
+                                >
+                                    {{ \Carbon\Carbon::parse($scheduleDate->schedule_date)->format('M d, Y') }} — {{ $scheduleDate->trip_count }} {{ (int) $scheduleDate->trip_count === 1 ? 'trip' : 'trips' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                @error('source_date')<span class="ui-field-error">{{ $message }}</span>@enderror
+            </div>
+
+            <x-ui.form-field
+                label="Target Date"
+                name="target_date"
+                id="generateTargetDate"
+                type="date"
+                :value="old('target_date', now()->format('Y-m-d'))"
+                icon="fa-calendar-check"
+                :required="true"
+            />
+        </div>
+
+        <div class="trip-form-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Choose from schedules that actually contain reusable trips.</strong>
+                <span>Cancelled trips are excluded, inactive routes are ignored, and matching trips already on the target date are not duplicated.</span>
+            </div>
+        </div>
+    </x-ui.form-modal>
 
     <x-ui.form-modal
         id="tripModal"

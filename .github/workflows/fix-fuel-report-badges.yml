@@ -1,0 +1,234 @@
+name: Fix Fuel Report Badges
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-fuel-report-badges.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Standardize Fuel Reports badges and icons
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          blade_path = Path('resources/views/Maintenance/fuel-reports.blade.php')
+          blade = blade_path.read_text(encoding='utf-8')
+
+          old_top = '''                    <span class="badge {{ $statusClass }}">
+
+                      @if($vehicle->status === 'Inefficient')
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                      @elseif($vehicle->status === 'Efficient')
+                        <i class="fa-solid fa-circle-check"></i>
+                      @endif
+
+                      {{ $vehicle->status }}
+
+                    </span>'''
+
+          new_top = '''                    <span class="badge {{ $statusClass }}">
+                      <i class="fa-solid {{
+                        match($vehicle->status) {
+                          'Efficient' => 'fa-circle-check',
+                          'Normal' => 'fa-circle-minus',
+                          'Inefficient' => 'fa-triangle-exclamation',
+                          default => 'fa-circle-info',
+                        }
+                      }}"></i>
+
+                      {{ $vehicle->status }}
+                    </span>'''
+
+          if old_top in blade:
+              blade = blade.replace(old_top, new_top)
+
+          old_recent = '''                  <td>
+                    <span class="badge {{ $recordStatusClass }}">
+                      {{ $record->status }}
+                    </span>
+                  </td>'''
+
+          new_recent = '''                  <td>
+                    <span class="badge {{ $recordStatusClass }}">
+                      <i class="fa-solid {{
+                        match($record->status) {
+                          'Efficient' => 'fa-circle-check',
+                          'Normal' => 'fa-circle-minus',
+                          'Inefficient' => 'fa-triangle-exclamation',
+                          default => 'fa-circle-info',
+                        }
+                      }}"></i>
+
+                      {{ $record->status }}
+                    </span>
+                  </td>'''
+
+          if old_recent in blade:
+              blade = blade.replace(old_recent, new_recent)
+
+          blade_path.write_text(blade, encoding='utf-8')
+
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = 'FUEL TABLE BADGE AND ACTION CONSISTENCY'
+
+          if marker not in css:
+              css += r'''
+
+/* =========================================================
+   FUEL TABLE BADGE AND ACTION CONSISTENCY
+========================================================= */
+
+.fuel-page .fuel-table,
+.fuel-page .fuel-table th,
+.fuel-page .fuel-table td,
+.fuel-page .badge,
+.fuel-page .source-badge,
+.fuel-page .fuel-action-btn {
+  font-family: "Poppins", sans-serif;
+}
+
+.fuel-page .fuel-table .badge,
+.fuel-page #efficiencyStatus {
+  width: 104px;
+  min-width: 104px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-table .badge i,
+.fuel-page #efficiencyStatus i {
+  flex: 0 0 auto;
+  width: 11px;
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.fuel-page .fuel-table .badge.efficient,
+.fuel-page #efficiencyStatus.efficient {
+  border-color: #bbf7d0;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.fuel-page .fuel-table .badge.normal,
+.fuel-page #efficiencyStatus.normal {
+  border-color: #bfdbfe;
+  background: #dbeafe;
+  color: #0b40b5;
+}
+
+.fuel-page .fuel-table .badge.inefficient,
+.fuel-page #efficiencyStatus.inefficient {
+  border-color: #fecaca;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.fuel-page .fuel-table .badge.no-data,
+.fuel-page #efficiencyStatus.no-data {
+  border-color: #dbe4f0;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.fuel-page .source-badge {
+  width: 84px;
+  min-width: 84px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.fuel-page .source-badge i {
+  width: 11px;
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.fuel-page .fuel-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-action-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.fuel-page .fuel-action-btn i {
+  width: 13px;
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+}
+'''
+
+          css_path.write_text(css.rstrip() + '\n', encoding='utf-8')
+
+          workflow = Path('.github/workflows/fix-fuel-report-badges.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit Fuel Reports badge consistency
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Standardize Fuel Reports badges and action icons"
+          git push origin HEAD:main

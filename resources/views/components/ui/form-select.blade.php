@@ -17,10 +17,44 @@
 @php
     $fieldId = $id ?? $name;
 
-    $currentValue = old(
-        $name,
-        $selected
-    );
+    /*
+    |--------------------------------------------------------------------------
+    | PMS JOB ORDER BUS PREFILL
+    |--------------------------------------------------------------------------
+    |
+    | A Job Order opened from PMS Scheduling already belongs to one bus.
+    | Ensure that bus exists in the select options, select it automatically,
+    | lock the dropdown, and submit its value through a hidden input.
+    |
+    */
+    $isPmsJobOrderBus =
+        $name === 'bus_no'
+        && request()->routeIs('job-orders')
+        && request()->boolean('create_pms')
+        && request()->filled('bus_no');
+
+    $pmsBusNo = $isPmsJobOrderBus
+        ? trim((string) request('bus_no'))
+        : null;
+
+    $fieldOptions = is_array($options)
+        ? $options
+        : collect($options)->toArray();
+
+    if (
+        $isPmsJobOrderBus
+        && $pmsBusNo !== ''
+        && ! array_key_exists($pmsBusNo, $fieldOptions)
+    ) {
+        $fieldOptions[$pmsBusNo] = $pmsBusNo;
+    }
+
+    $currentValue = $isPmsJobOrderBus
+        ? $pmsBusNo
+        : old($name, $selected);
+
+    $isEffectivelyDisabled =
+        $disabled || $isPmsJobOrderBus;
 @endphp
 
 <div class="ui-form-group {{ $full ? 'ui-form-full' : '' }}">
@@ -53,7 +87,7 @@
                 required
             @endif
 
-            @if($disabled)
+            @if($isEffectivelyDisabled)
                 disabled
             @endif
 
@@ -71,7 +105,7 @@
             @endif
 
 
-            @foreach($options as $key => $option)
+            @foreach($fieldOptions as $key => $option)
 
                 @php
                     $optionValue =
@@ -90,6 +124,15 @@
             @endforeach
 
         </select>
+
+
+        @if($isPmsJobOrderBus)
+            <input
+                type="hidden"
+                name="{{ $name }}"
+                value="{{ $pmsBusNo }}"
+            >
+        @endif
 
     </div>
 

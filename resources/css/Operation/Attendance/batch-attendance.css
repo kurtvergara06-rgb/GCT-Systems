@@ -1,1 +1,282 @@
 .batch-attendance-open{white-space:nowrap}.batch-modal-open{overflow:hidden}.batch-attendance-overlay{display:flex!important;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:1200}.batch-attendance-modal{width:min(1680px,97vw);max-height:94vh;overflow:hidden;border:1px solid #dbe3ef;border-radius:18px;background:#fff;box-shadow:0 30px 80px rgba(15,23,42,.18)}.batch-attendance-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:18px 22px 12px}.batch-title-row{display:flex;align-items:flex-start;gap:12px}.batch-title-row i{margin-top:4px;color:#1f4fbf;font-size:18px}.batch-attendance-header h2{margin:0 0 4px;color:#12284c;font-size:29px;font-weight:800;line-height:1.1}.batch-attendance-header p{margin:0;color:#7b8798;font-size:12px;line-height:1.5}.batch-close-btn{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border:0;background:transparent;color:#56657f;font-size:28px;cursor:pointer}.batch-close-btn:hover{color:#12284c}.batch-attendance-controls{display:grid;grid-template-columns:180px 140px minmax(0,1fr);gap:14px;align-items:end;padding:0 22px 14px}.batch-attendance-controls label{display:grid;gap:5px}.batch-attendance-controls label span{color:#536178;font-size:12px;font-weight:700}.batch-input-wrap{position:relative}.batch-attendance-controls input,.batch-attendance-controls select{width:100%;min-height:42px;padding:10px 12px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#12284c;font-size:13px;font-weight:600}.batch-action-row{display:flex;flex-wrap:wrap;gap:10px}.batch-control-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 14px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#2e4469;font-size:12px;font-weight:700;cursor:pointer;transition:all .18s ease}.batch-control-btn:hover{border-color:#bfd0ee;background:#f7faff}.batch-control-btn.success{border-color:#d8efd9;color:#1b7f3a}.batch-control-btn.success:hover{background:#effaf1}.batch-control-btn.danger{border-color:#f3d1d1;color:#d13838}.batch-control-btn.danger:hover{background:#fff5f5}.batch-table-shell{padding:0 22px 12px}.batch-table-wrap{border:1px solid #e3eaf4;border-radius:12px 12px 0 0;overflow:auto}.batch-attendance-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}.batch-attendance-table thead th{position:sticky;top:0;z-index:2;padding:12px 12px;border-bottom:1px solid #e4ebf5;background:#f7faff;color:#45546d;font-size:11px;font-weight:800;text-align:left}.batch-attendance-table thead th.select-col,.batch-attendance-table td.select-col{width:40px;text-align:center}.batch-attendance-table tbody td{padding:12px;border-bottom:1px solid #edf2f8;vertical-align:middle;background:#fff}.batch-attendance-table tbody tr:last-child td{border-bottom:0}.batch-person-cell{display:flex;align-items:center;gap:10px;min-width:160px}.batch-avatar{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:999px;background:#eaf0ff;color:#2b5ec8;font-size:11px;font-weight:800}.batch-person-meta strong{display:block;color:#12284c;font-size:13px;font-weight:800}.batch-person-meta small{display:block;margin-top:2px;color:#7b8798;font-size:10px}.batch-shift-meta strong{display:block;color:#12284c;font-size:12px;font-weight:700}.batch-shift-meta small{display:block;margin-top:2px;color:#7b8798;font-size:10px}.batch-scheduled-time{display:inline-block;color:#344b70;font-size:12px;font-weight:700}.batch-time-cell{display:flex;align-items:center;gap:6px;min-width:120px}.batch-time-cell input{width:100%;min-width:88px;min-height:34px;padding:8px 10px;border:1px solid #dbe3ef;border-radius:8px;background:#fff;color:#12284c;font-size:12px;font-weight:700}.batch-time-cell button{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid #dbe3ef;border-radius:8px;background:#fff;color:#64748b;cursor:pointer}.batch-time-cell button:hover{background:#f8fbff;color:#2b5ec8}.batch-status-group{display:flex;flex-wrap:nowrap;gap:6px;min-width:300px}.batch-status-btn{display:inline-flex;align-items:center;justify-content:center;min-width:60px;min-height:30px;padding:6px 10px;border:1px solid #dbe3ef;border-radius:6px;background:#fff;color:#56657f;font-size:11px;font-weight:700;cursor:pointer;transition:all .18s ease}.batch-status-btn.present.is-active{border-color:#2fb45e;background:#2fb45e;color:#fff}.batch-status-btn.late.is-active{border-color:#ff9518;background:#ff9518;color:#fff}.batch-status-btn.absent.is-active{border-color:#ef3d3d;background:#ef3d3d;color:#fff}.batch-status-btn.leave.is-active{border-color:#7c3aed;background:#7c3aed;color:#fff}.batch-status-btn:hover:not(.is-active){background:#f8fbff;border-color:#bfd0ee;color:#2e4469}.batch-availability-badge{display:inline-flex;align-items:center;justify-content:center;min-width:104px;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800}.batch-availability-badge.available{background:#eaf9ef;color:#1c8a48}.batch-availability-badge.busy{background:#eef4ff;color:#2b5ec8}.batch-availability-badge.unavailable{background:#fff0f0;color:#d13838}.batch-attendance-table tr.is-unavailable td{background:#fcfcfd}.batch-attendance-table tr.is-unavailable input{background:#f4f6f9;color:#94a3b8}.batch-attendance-note{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e3eaf4;border-top:0;border-radius:0 0 12px 12px;background:#f7faff;color:#3d65c4;font-size:11px;font-weight:600}.batch-attendance-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:0 22px 18px}.batch-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(105px,1fr));gap:0;width:100%;border:1px solid #e3eaf4;border-radius:12px;background:#fff;overflow:hidden}.batch-summary-card{display:flex;flex-direction:column;gap:8px;min-height:58px;padding:12px 16px;border-right:1px solid #edf2f8}.batch-summary-card:last-child{border-right:0}.batch-summary-label{display:flex;align-items:center;gap:8px;color:#526078;font-size:11px;font-weight:700}.batch-summary-label i{font-size:8px}.batch-summary-card strong{color:#12284c;font-size:16px;font-weight:800;line-height:1}.batch-summary-card.present .batch-summary-label i{color:#2fb45e}.batch-summary-card.late .batch-summary-label i{color:#ff9518}.batch-summary-card.absent .batch-summary-label i{color:#ef3d3d}.batch-summary-card.leave .batch-summary-label i{color:#7c3aed}.batch-summary-card.incomplete .batch-summary-label i{color:#94a3b8}.batch-footer-actions{display:flex;gap:12px;align-items:center}.batch-footer-actions .secondary-btn,.batch-footer-actions .primary-btn{min-height:42px;padding:10px 18px;border-radius:9px;font-size:12px;font-weight:700}.batch-loading,.batch-empty,.batch-error{padding:42px!important;text-align:center;color:#64748b;font-size:13px}.batch-error{color:#b42318}@media(max-width:1280px){.batch-attendance-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.batch-action-row{grid-column:1/-1}.batch-summary-grid{grid-template-columns:repeat(5,minmax(90px,1fr))}}@media(max-width:1080px){.batch-attendance-modal{width:min(98vw,98vw);max-height:96vh}.batch-attendance-header h2{font-size:24px}.batch-attendance-footer{flex-direction:column;align-items:stretch}.batch-footer-actions{justify-content:flex-end}.batch-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:780px){.batch-attendance-overlay{padding:10px}.batch-attendance-controls{grid-template-columns:1fr}.batch-action-row{flex-direction:column}.batch-control-btn{width:100%}.batch-status-group{flex-wrap:wrap;min-width:260px}.batch-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.batch-footer-actions{flex-direction:column}.batch-footer-actions .secondary-btn,.batch-footer-actions .primary-btn{width:100%}}
+
+/* =========================================================
+   CONSOLIDATED: resources/css/Operation/Attendance/batch-attendance-scroll-fix.css
+========================================================= */
+/* Keep batch attendance controls visible while the roster scrolls. */
+.batch-attendance-modal {
+  display: flex;
+  max-height: 94vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.batch-attendance-header,
+.batch-attendance-controls,
+.batch-attendance-footer {
+  flex: 0 0 auto;
+}
+
+.batch-table-shell {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.batch-table-wrap {
+  min-height: 0;
+  max-height: calc(94vh - 310px);
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.batch-attendance-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+@media (max-height: 760px) {
+  .batch-table-wrap {
+    max-height: calc(96vh - 275px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .batch-attendance-modal {
+    max-height: 96vh;
+  }
+
+  .batch-table-wrap {
+    max-height: calc(96vh - 350px);
+  }
+}
+
+@media (max-width: 780px) {
+  .batch-attendance-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .batch-attendance-modal {
+    max-height: none;
+  }
+
+  .batch-table-wrap {
+    max-height: 55vh;
+  }
+}
+
+
+/* =========================================================
+   CONSOLIDATED: resources/css/Operation/Attendance/batch-attendance-availability.css
+========================================================= */
+.batch-availability {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 92px;
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.batch-availability.available {
+    border-color: #bde9ca;
+    background: #eaf9ef;
+    color: #198447;
+}
+
+.batch-availability.busy {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.batch-availability.unavailable {
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   CONSOLIDATED: resources/css/Operation/Attendance/personnel-attendance-refactor.css
+========================================================= */
+.attendance-scope-note{display:flex;align-items:flex-start;gap:9px;max-width:520px;padding:10px 12px;border:1px solid #dbe7f8;border-radius:10px;background:#f6f9ff;color:#41628f;font-size:11px;font-weight:600;line-height:1.5}.attendance-scope-note i{margin-top:2px;color:#2b5ec8}.batch-time-modal-overlay{position:fixed;inset:0;z-index:1450;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px)}.batch-time-modal{position:relative;width:min(460px,94vw);padding:24px;border:1px solid #dbe3ef;border-radius:16px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.24)}.batch-time-modal-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#eef4ff;color:#245bc3;font-size:18px}.batch-time-modal-copy{margin-top:14px}.batch-time-modal-copy h3{margin:0;color:#12284c;font-size:21px}.batch-time-modal-copy p{margin:6px 0 0;color:#6f7d92;font-size:12px;line-height:1.55}.batch-time-modal-close{position:absolute;top:14px;right:16px;border:0;background:transparent;color:#64748b;font-size:26px;cursor:pointer}.batch-time-modal-field{display:grid;gap:7px;margin-top:20px;color:#45546d;font-size:12px;font-weight:800}.batch-time-modal-field input{min-height:46px;padding:10px 12px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#12284c;font-size:16px;font-weight:800}.batch-time-modal-field small{color:#7a879a;font-size:10px;font-weight:500;line-height:1.5}.batch-time-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.batch-time-modal-actions button{min-height:42px;padding:10px 16px;border-radius:9px}@media(max-width:760px){.attendance-scope-note{max-width:none}.batch-time-modal-actions{flex-direction:column-reverse}.batch-time-modal-actions button{width:100%}}
+
+
+/* =========================================================
+   CONSOLIDATED: resources/css/Operation/Attendance/personnel-master-bus-alignment.css
+========================================================= */
+/* Keep Personnel Management visually consistent with the Bus Master List. */
+
+.personnel-master-panel {
+  padding: 16px;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+}
+
+.personnel-section-header {
+  margin-bottom: 12px;
+}
+
+.personnel-module-label {
+  display: none;
+}
+
+.personnel-section-header h2 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.personnel-section-header p {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.attendance-toolbar.personnel-master-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+  align-items: end;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.personnel-master-toolbar .search-box {
+  min-width: 0;
+}
+
+.personnel-master-toolbar .search-box input {
+  width: 100%;
+  height: 40px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-master-toolbar .search-box input:focus {
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.personnel-master-toolbar .search-box > i {
+  color: #0b40b5;
+}
+
+.personnel-master-toolbar .filter-group {
+  min-width: 150px;
+}
+
+.personnel-master-toolbar .filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.personnel-master-toolbar .filter-group select {
+  height: 40px;
+  min-width: 150px;
+  padding: 0 34px 0 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-search-btn {
+  display: none !important;
+}
+
+.personnel-add-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #ffc400;
+  color: #061b3a;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.personnel-add-btn:hover {
+  background: #f5a800;
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.28);
+}
+
+.personnel-master-table-wrap {
+  border-radius: 10px;
+}
+
+.personnel-master-table thead {
+  background: #f3f7fc;
+}
+
+.personnel-master-table th {
+  padding: 13px 14px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+}
+
+.personnel-master-table td {
+  padding: 13px 14px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.personnel-master-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+@media (max-width: 900px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: 1fr 160px;
+  }
+
+  .personnel-add-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .personnel-master-toolbar .filter-group,
+  .personnel-master-toolbar .filter-group select,
+  .personnel-add-btn {
+    width: 100%;
+  }
+}

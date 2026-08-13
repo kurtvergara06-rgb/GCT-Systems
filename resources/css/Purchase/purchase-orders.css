@@ -306,74 +306,8 @@
   font-weight: 500;
 }
 
-/* Status */
-.status-update-form {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-.po-status-select {
-  min-width: 110px;
-  min-height: 26px;
-  padding: 0 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+.po-status-cell {
   text-align: center;
-  text-align-last: center;
-  outline: none;
-  cursor: pointer;
-}
-
-.po-status-select:focus {
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
-}
-
-.po-status-select:disabled,
-.po-status-select.is-final {
-  cursor: not-allowed;
-  opacity: 1;
-}
-
-.po-status-select.draft {
-  background: #f1f5f9;
-  color: #475569;
-  border-color: #dce5f2;
-}
-
-.po-status-select.ordered {
-  background: #ede9fe;
-  color: #6d28d9;
-  border-color: #ddd6fe;
-}
-
-.po-status-select.for-pick-up {
-  background: #fff3cd;
-  color: #9a6700;
-  border-color: #f8dd82;
-}
-
-.po-status-select.for-delivery {
-  background: #ffedd5;
-  color: #c2410c;
-  border-color: #fed7aa;
-}
-
-.po-status-select.delivered {
-  background: #dcfce7;
-  color: #15803d;
-  border-color: #b7efca;
-}
-
-.po-status-select.picked-up {
-  background: #dff6ff;
-  color: #0369a1;
-  border-color: #bae6fd;
 }
 
 /* Actions */
@@ -408,7 +342,14 @@
   box-shadow: none;
 }
 
-.purchase-order-card .action-btn:hover {
+.purchase-order-card .action-btn.status {
+  border-color: #fde68a;
+  background: #fff8db;
+  color: #a16207;
+}
+
+.purchase-order-card .action-btn:hover,
+.purchase-order-card .action-btn.status:hover {
   background: #0b40b5;
   color: #ffffff;
   transform: translateY(-1px);
@@ -507,10 +448,6 @@
   background: #cbd5e1;
 }
 
-/* =====================================================
-   MODAL HEADER
-===================================================== */
-
 .po-modal-header {
   display: flex;
   align-items: center;
@@ -544,10 +481,6 @@
   color: #dc2626;
 }
 
-/* =====================================================
-   COMPANY TITLE
-===================================================== */
-
 .po-company-title {
   padding-bottom: 16px;
   margin: 8px 0 18px;
@@ -570,10 +503,6 @@
   font-weight: 900;
   letter-spacing: 2px;
 }
-
-/* =====================================================
-   PO FORM
-===================================================== */
 
 .po-form {
   width: 100%;
@@ -654,20 +583,12 @@
   cursor: not-allowed;
 }
 
-/* =====================================================
-   REQUEST INFORMATION
-===================================================== */
-
 .po-request-info {
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr !important;
   gap: 12px !important;
   margin-top: 18px !important;
 }
-
-/* =====================================================
-   ITEMS SECTION
-===================================================== */
 
 .po-items-section {
   width: 100%;
@@ -703,10 +624,6 @@
   flex-direction: column;
   gap: 10px;
 }
-
-/* =====================================================
-   ITEM BUTTONS
-===================================================== */
 
 .remove-po-item-btn {
   width: 42px;
@@ -746,10 +663,6 @@
   background: #f8fafc;
 }
 
-/* =====================================================
-   BOTTOM GRID AND TOTALS
-===================================================== */
-
 .po-bottom-grid {
   display: grid !important;
   grid-template-columns: 1fr 360px !important;
@@ -770,10 +683,6 @@
   align-items: center;
   gap: 10px;
 }
-
-/* =====================================================
-   MODAL ACTIONS
-===================================================== */
 
 .po-modal-actions {
   display: flex;
@@ -806,17 +715,128 @@
   background: var(--yellow-dark);
 }
 
-/* =====================================================
-   HIDDEN ELEMENT
-===================================================== */
+/* Controlled status modal */
+.po-status-modal {
+  width: min(460px, 94vw);
+  padding: 28px;
+  border: 1px solid #dce5f2;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.po-status-modal-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 14px;
+  background: #fff5cc;
+  color: #a16207;
+  font-size: 18px;
+}
+
+.po-status-modal-copy h2 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.po-status-modal-copy p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.po-status-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.po-status-current span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.po-status-current strong {
+  color: #061f3d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.po-status-choice-list {
+  display: grid;
+  gap: 9px;
+}
+
+.po-status-choice {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  color: #061f3d;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.po-status-choice:hover {
+  border-color: #93b4f5;
+  background: #f5f8ff;
+}
+
+.po-status-choice.is-selected {
+  border-color: #0b40b5;
+  background: #edf4ff;
+  color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+.po-status-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.po-status-modal-actions .secondary-btn,
+.po-status-modal-actions .primary-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.po-status-modal-actions .primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
 .hidden {
   display: none !important;
 }
-
-/* =====================================================
-   PAGINATION
-===================================================== */
 
 .pagination svg {
   width: 18px !important;
@@ -826,10 +846,6 @@
 .pagination p {
   display: none;
 }
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
 
 @media (max-width: 1200px) {
   .po-toolbar {
@@ -884,10 +900,6 @@
   }
 }
 
-
-/* =========================================================
-   PAGE RESPONSIVE OVERRIDES
-========================================================= */
 @media (max-width: 1200px) {
   .po-toolbar {
     grid-template-columns: 1fr 1fr;
@@ -928,5 +940,18 @@
 
   .purchase-order-card table {
     min-width: 980px;
+  }
+
+  .po-status-modal {
+    padding: 22px;
+  }
+
+  .po-status-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .po-status-modal-actions .secondary-btn,
+  .po-status-modal-actions .primary-btn {
+    width: 100%;
   }
 }

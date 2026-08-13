@@ -1,0 +1,471 @@
+/* =========================================================
+   ADMIN SHARED RECORD UI
+   Visual reference: Maintenance > Job Orders
+
+   Canonical shared styling for Admin record pages.
+   Values intentionally mirror Main-styles/main.css and
+   Maintenance/job-order.css instead of layering overrides.
+========================================================= */
+
+.records-page {
+  --records-primary: #0b40b5;
+  --records-navy: #061f3d;
+  --records-text: #0b2344;
+  --records-muted: #697892;
+  --records-border: #dce5f2;
+  --records-card: #ffffff;
+  --records-head: #f0f5fc;
+  --records-yellow: #ffc400;
+}
+
+/* =========================================================
+   CARD / SECTION — JOB ORDER VALUES
+========================================================= */
+
+.records-page .records-card {
+  min-height: 0;
+  height: auto;
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid var(--records-border);
+  border-radius: 16px;
+  background: var(--records-card);
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  overflow: hidden;
+}
+
+.records-page .section-header {
+  margin-bottom: 12px;
+}
+
+.records-page .section-header h2 {
+  margin: 0;
+  color: var(--records-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.records-page .section-header p {
+  margin: 3px 0 0;
+  color: var(--records-muted);
+  font-size: 12px;
+}
+
+/* =========================================================
+   TOOLBAR — EXACT JOB ORDER PROPORTIONS
+========================================================= */
+
+.records-page .records-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+  margin-bottom: 18px !important;
+  padding: 12px 16px !important;
+  border: 1px solid var(--records-border) !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.records-page .records-toolbar .search-box {
+  min-width: 0;
+  flex: 1;
+}
+
+.records-page .records-toolbar .search-box input,
+.records-page .records-toolbar .filter-group select,
+.records-page .records-toolbar .primary-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  border-radius: 9px !important;
+  box-sizing: border-box;
+  font-size: 13px !important;
+}
+
+.records-page .records-toolbar .search-box input,
+.records-page .records-toolbar .filter-group select {
+  border: 1px solid var(--records-border) !important;
+  background: #ffffff !important;
+  color: var(--records-text) !important;
+}
+
+.records-page .records-toolbar .search-box input {
+  padding-left: 40px !important;
+}
+
+.records-page .records-toolbar .search-box i {
+  left: 14px;
+  font-size: 13px;
+}
+
+.records-page .records-toolbar .filter-group {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.records-page .records-toolbar .filter-group > label {
+  display: none;
+}
+
+.records-page .records-toolbar .filter-group select {
+  min-width: 120px;
+  padding: 0 12px;
+  font-weight: 600;
+}
+
+.records-page .records-toolbar .primary-btn {
+  padding: 0 14px !important;
+  gap: 7px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.records-page .records-toolbar .search-box input:focus,
+.records-page .records-toolbar .filter-group select:focus {
+  border-color: #0057f8 !important;
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12) !important;
+  outline: none;
+}
+
+/* =========================================================
+   TABLE — JOB ORDER TYPOGRAPHY / DENSITY
+========================================================= */
+
+.records-page .records-table-wrap {
+  width: 100%;
+  max-height: 470px;
+  overflow: auto;
+  border: 0;
+  background: #ffffff;
+  scrollbar-gutter: stable;
+}
+
+.records-page .records-table {
+  width: 100%;
+  min-width: 1050px;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.records-page .records-table thead {
+  background: var(--records-head);
+}
+
+.records-page .records-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 15px;
+  border-bottom: 0;
+  background: var(--records-head);
+  color: var(--records-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.records-page .records-table td {
+  padding: 15px;
+  border-bottom: 1px solid var(--records-border);
+  color: var(--records-text);
+  font-size: 14px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.records-page .records-table tbody tr {
+  background: #ffffff;
+  transition: background-color .18s ease;
+}
+
+.records-page .records-table tbody tr:hover {
+  background: #f7faff;
+}
+
+.records-page .records-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.records-page .records-table th:last-child,
+.records-page .records-table td:last-child,
+.records-page .records-table .actions-cell,
+.records-page .records-table .status-cell {
+  text-align: center;
+}
+
+/* =========================================================
+   IDENTITY
+========================================================= */
+
+.records-page .record-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.records-page .record-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.record-avatar--blue { background: #0ea5e9; }
+.record-avatar--green { background: #10b981; }
+.record-avatar--violet { background: #8b5cf6; }
+.record-avatar--orange { background: #f59e0b; }
+.record-avatar--red { background: #f43f5e; }
+.record-avatar--teal { background: #14b8a6; }
+.record-avatar--sky { background: #0284c7; }
+.record-avatar--purple { background: #7c3aed; }
+.record-avatar--navy { background: #0f2747; }
+
+.records-page .record-identity__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.records-page .record-identity__text strong,
+.records-page .record-identity__text span {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.records-page .record-identity__text strong {
+  color: var(--records-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.records-page .record-identity__text span {
+  margin-top: 2px;
+  color: var(--records-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   ROLE / STATUS BADGES — BORDERED LIKE JOB ORDER STATUS PILLS
+========================================================= */
+
+.records-page .role-pill,
+.records-page .status-pill {
+  min-width: 86px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.records-page .role-pill.system-admin {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.records-page .role-pill.admin-staff {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+  color: #7e22ce;
+}
+
+.records-page .role-pill.maintenance-head,
+.records-page .role-pill.maintenance-staff {
+  background: #fff3cd;
+  border-color: #f7cf63;
+  color: #b77900;
+}
+
+.records-page .role-pill.warehouse-head,
+.records-page .role-pill.warehouse-staff {
+  background: #e7f0ff;
+  border-color: #b8d2ff;
+  color: #0057f8;
+}
+
+.records-page .role-pill.purchase-head,
+.records-page .role-pill.purchase-staff,
+.records-page .role-pill.purchasing-head,
+.records-page .role-pill.purchasing-staff {
+  background: #ddf8e7;
+  border-color: #9fdfb7;
+  color: #16a34a;
+}
+
+.records-page .role-pill.operation-head,
+.records-page .role-pill.operation-staff {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.records-page .status-pill.active {
+  background: #ddf8e7;
+  border-color: #86d8a5;
+  color: #16a34a;
+}
+
+.records-page .status-pill.pending {
+  background: #fff3cd;
+  border-color: #f3cb5f;
+  color: #b77900;
+}
+
+.records-page .status-pill.inactive {
+  background: #ffe2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* =========================================================
+   ACTIONS — JOB ORDER BLUE VIEW / EDIT TREATMENT
+========================================================= */
+
+.records-page .record-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.records-page .record-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.records-page .record-actions .action-btn {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  font-weight: 700;
+  transition: .2s ease;
+}
+
+.records-page .record-actions .action-btn.view,
+.records-page .record-actions .action-view,
+.records-page .record-actions .action-btn.edit,
+.records-page .record-actions .action-edit {
+  background: #edf3fb;
+  border-color: #cfe0ff;
+  color: #0057f8;
+}
+
+.records-page .record-actions .action-btn.reset,
+.records-page .record-actions .action-reset {
+  background: #f1f0ff;
+  border-color: #ddd6fe;
+  color: #4f46e5;
+}
+
+.records-page .record-actions .action-btn.activate,
+.records-page .record-actions .action-activate {
+  background: #ddf8e7;
+  border-color: #9fdfb7;
+  color: #16a34a;
+}
+
+.records-page .record-actions .action-btn.deactivate,
+.records-page .record-actions .action-deactivate {
+  background: #fff3cd;
+  border-color: #f3cb5f;
+  color: #b77900;
+}
+
+.records-page .record-actions .action-btn.delete,
+.records-page .record-actions .action-delete {
+  background: #fff0f0;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.records-page .record-actions .action-btn:not(:disabled):hover,
+.records-page .record-actions button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.records-page .record-actions .action-btn:disabled,
+.records-page .record-actions button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.records-page .table-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--records-border);
+  color: var(--records-muted);
+  font-size: 12px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1250px) {
+  .records-page .records-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .records-page .records-toolbar .search-box {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 820px) {
+  .records-page .records-card {
+    padding: 14px;
+  }
+
+  .records-page .records-toolbar {
+    align-items: stretch !important;
+    flex-direction: column;
+    padding: 12px !important;
+  }
+
+  .records-page .records-toolbar .filter-group,
+  .records-page .records-toolbar .filter-group select,
+  .records-page .records-toolbar .primary-btn {
+    width: 100%;
+  }
+
+  .records-page .records-table-wrap {
+    max-height: 430px;
+  }
+}

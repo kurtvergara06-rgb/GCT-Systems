@@ -1,0 +1,193 @@
+name: Align Daily Fuel Monitoring With Job Orders
+
+on:
+  push:
+    paths:
+      - '.github/workflows/align-daily-fuel-with-jo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Align existing Fuel Reports CSS with Job Orders UI
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          css_path = Path('resources/css/Maintenance/fuel-reports.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = 'DAILY FUEL MONITORING - JO VISUAL ALIGNMENT'
+
+          if marker not in css:
+              css += r'''
+
+/* =========================================================
+   DAILY FUEL MONITORING - JO VISUAL ALIGNMENT
+   Matches Job Orders ID and status language.
+========================================================= */
+
+/* BUS ID: same compact system ID badge used in Job Orders */
+.fuel-page .daily-monitoring-table td:first-child strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 1px solid #d6e0ee !important;
+  border-radius: 7px !important;
+  background: #f8fbff !important;
+  color: #163b6c !important;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, .03) !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: .04em !important;
+  white-space: nowrap !important;
+}
+
+.fuel-page .daily-monitoring-table td:first-child small {
+  margin-top: 5px !important;
+  color: #64748b !important;
+  font-size: 9px !important;
+  font-weight: 400 !important;
+}
+
+/* GPS distance keeps emphasis without competing with the Bus ID */
+.fuel-page .daily-monitoring-table td:nth-child(2) strong {
+  display: block !important;
+  color: #17233f !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* Workflow statuses: same compact JO status-pill sizing */
+.fuel-page .workflow-badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  border-radius: 999px !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.fuel-page .workflow-badge i {
+  width: 11px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+/* JO-like yellow pending state */
+.fuel-page .workflow-badge.for-fuel-entry {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
+}
+
+/* JO-like green completed state */
+.fuel-page .workflow-badge.completed {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+/* JO-like red review/error state */
+.fuel-page .workflow-badge.missing-gps,
+.fuel-page .workflow-badge.needs-review {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+/* Neutral monitoring state */
+.fuel-page .workflow-badge.monitoring {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+/* Efficiency badges use the exact same status-pill footprint */
+.fuel-page .daily-monitoring-table .badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  border-radius: 999px !important;
+  font-family: "Poppins", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.efficient {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.normal {
+  border-color: #a9c8ff !important;
+  background: #dceaff !important;
+  color: #0644b8 !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.inefficient {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+.fuel-page .daily-monitoring-table .badge.no-data {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+/* Table density closer to Job Orders */
+.fuel-page .daily-monitoring-table th,
+.fuel-page .daily-monitoring-table td {
+  height: 50px !important;
+  padding: 10px 14px !important;
+}
+
+.fuel-page .daily-monitoring-table th {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+}
+'''
+
+          css_path.write_text(css.rstrip() + '\n', encoding='utf-8')
+
+          workflow = Path('.github/workflows/align-daily-fuel-with-jo.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit alignment
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Align Daily Fuel Monitoring IDs and statuses with Job Orders"
+          git push origin HEAD:main

@@ -24,6 +24,20 @@ class MaintenanceRequest extends Model
         'quantity' => 'integer',
     ];
 
+    public function getDisplayPrNoAttribute(): string
+    {
+        $prNo = trim((string) ($this->pr_no ?? ''));
+
+        if ($prNo === '') {
+            return '—';
+        }
+
+        // Warehouse may create an internal purchase-side copy such as
+        // PR-2026-0010-P. Keep that internal key intact for relationships,
+        // but never expose the implementation suffix in the user-facing ID.
+        return preg_replace('/-P(?:\d+)?$/i', '', $prNo) ?: $prNo;
+    }
+
     public function getFirstItemNameAttribute()
     {
         $parts = $this->parseItemParts();

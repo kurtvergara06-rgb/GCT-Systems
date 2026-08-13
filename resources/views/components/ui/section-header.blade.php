@@ -8,6 +8,7 @@
 <div
     {{ $attributes->merge([
         'class' => trim('section-header ' . $class),
+        'data-ui-component' => 'section-header',
     ]) }}
 >
     <div class="section-header-content">

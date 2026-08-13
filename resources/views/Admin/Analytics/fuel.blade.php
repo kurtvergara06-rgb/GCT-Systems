@@ -1,702 +1,399 @@
 <x-layout.app
     title="FROMS - Fuel Analytics"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Analytics/fuel.css',
-        'resources/js/Main-js/sidebar.js'
     ]"
 >
+    @php
+        $sections = [
+            'descriptive' => ['number' => '5.1', 'label' => 'Descriptive'],
+            'diagnostic' => ['number' => '5.2', 'label' => 'Diagnostic'],
+            'predictive' => ['number' => '5.3', 'label' => 'Predictive'],
+            'prescriptive' => ['number' => '5.4', 'label' => 'Prescriptive'],
+        ];
+        $section = strtolower((string) request('section', 'descriptive'));
+        $section = array_key_exists($section, $sections) ? $section : 'descriptive';
+        $trendMax = max(1, (float) ($trend->max('fuel_liters') ?? 0));
+        $bestUnit = $busSummaries->first();
+        $lowestUnit = $busSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortBy('km_per_liter')->first();
+        $gaugeAngle = $bestUnit && $bestUnit->km_per_liter > 0
+            ? min(330, max(24, ($fleetAverage / $bestUnit->km_per_liter) * 300))
+            : 0;
+    @endphp
+
     <div class="app">
-
-        <x-layout.sidebar
-            department="Admin"
-            subtitle="Administration Module"
-            icon="fa-user-shield"
-            :items="[
-                [
-                    'label' => 'Dashboard',
-                    'route' => 'admin.dashboard',
-                    'icon' => 'fa-table-cells-large'
-                ],
-
-                [
-                    'label' => 'User Management',
-                    'icon' => 'fa-users',
-                    'children' => [
-                        [
-                            'label' => 'Users',
-                            'route' => 'admin.users',
-                            'icon' => 'fa-user'
-                        ],
-                        [
-                            'label' => 'Roles & Permissions',
-                            'route' => 'admin.roles-permissions',
-                            'icon' => 'fa-user-lock'
-                        ],
-                        [
-                            'label' => 'Account Requests',
-                            'route' => 'admin.account-requests',
-                            'icon' => 'fa-user-clock'
-                        ],
-                    ]
-                ],
-
-                [
-                    'label' => 'System Monitoring',
-                    'icon' => 'fa-desktop',
-                    'children' => [
-                        [
-                            'label' => 'Activity Logs',
-                            'route' => 'admin.activity-logs',
-                            'icon' => 'fa-clock-rotate-left'
-                        ],
-                        [
-                            'label' => 'Notifications',
-                            'route' => 'admin.notifications',
-                            'icon' => 'fa-bell'
-                        ],
-                    ]
-                ],
-
-                [
-                    'label' => 'Data Management',
-                    'icon' => 'fa-database',
-                    'children' => [
-                        [
-                            'label' => 'Batch File Processing',
-                            'route' => 'admin.batch-file-processing',
-                            'icon' => 'fa-file-import'
-                        ],
-                        [
-                            'label' => 'Import / Export',
-                            'route' => 'admin.import-export',
-                            'icon' => 'fa-right-left'
-                        ],
-                        [
-                            'label' => 'Data History',
-                            'route' => 'admin.data-history',
-                            'icon' => 'fa-clock-rotate-left'
-                        ],
-                    ]
-                ],
-
-                [
-                    'label' => 'Analytics',
-                    'icon' => 'fa-chart-line',
-                    'children' => [
-                        [
-                            'label' => 'Overview',
-                            'route' => 'analytics.overview',
-                            'icon' => 'fa-chart-pie'
-                        ],
-                        [
-                            'label' => 'Fleet & Trip',
-                            'route' => 'analytics.fleet-trip',
-                            'icon' => 'fa-route'
-                        ],
-                        [
-                            'label' => 'Fuel',
-                            'route' => 'analytics.fuel',
-                            'icon' => 'fa-gas-pump'
-                        ],
-                        [
-                            'label' => 'Bus Health',
-                            'route' => 'analytics.bus-health',
-                            'icon' => 'fa-heart-pulse'
-                        ],
-                        [
-                            'label' => 'Inventory',
-                            'route' => 'analytics.inventory',
-                            'icon' => 'fa-boxes-stacked'
-                        ],
-                        [
-                            'label' => 'Recommendations',
-                            'route' => 'analytics.recommendations',
-                            'icon' => 'fa-lightbulb'
-                        ],
-                    ]
-                ],
-
-                [
-                    'label' => 'Settings',
-                    'icon' => 'fa-gear',
-                    'children' => [
-                        [
-                            'label' => 'General Settings',
-                            'route' => 'admin.settings.general',
-                            'icon' => 'fa-sliders'
-                        ],
-                        [
-                            'label' => 'Notification Settings',
-                            'route' => 'admin.settings.notifications',
-                            'icon' => 'fa-bell'
-                        ],
-                        [
-                            'label' => 'Security Settings',
-                            'route' => 'admin.settings.security',
-                            'icon' => 'fa-shield-halved'
-                        ],
-                    ]
-                ],
-            ]"
-        />
+        <x-layout.sidebar department="Admin" />
 
         <main class="main fuel-analytics-page">
-
             <x-layout.topbar
                 title="Fuel Analytics"
-                subtitle="Analyze fuel consumption, efficiency, mileage, and high-consumption shuttle units"
+                subtitle="Analyze recorded fuel use, efficiency signals, short-term demand, and advisory actions"
                 notification-count="6"
             />
 
-            {{-- SUMMARY CARDS --}}
-            <section class="stats-grid fuel-summary-grid">
+            <section class="fuel-toolbar">
+                <nav class="fuel-tabs" aria-label="Fuel analytics views">
+                    @foreach($sections as $key => $meta)
+                        <a
+                            href="{{ route('analytics.fuel', ['section' => $key, 'period' => $period, 'bus' => $selectedBus]) }}"
+                            class="fuel-tab {{ $section === $key ? 'active' : '' }}"
+                            @if($section === $key) aria-current="page" @endif
+                        >
+                            <span>{{ $meta['number'] }}</span>
+                            {{ $meta['label'] }}
+                            @if($key === 'diagnostic' && $reviewUnits->isNotEmpty())
+                                <small>{{ $reviewUnits->count() }}</small>
+                            @elseif($key === 'predictive' && $forecast->available)
+                                <small>Ready</small>
+                            @endif
+                        </a>
+                    @endforeach
+                </nav>
 
+                <form class="fuel-filters" method="GET" action="{{ route('analytics.fuel') }}">
+                    <input type="hidden" name="section" value="{{ $section }}">
+                    <label>
+                        <span>Period</span>
+                        <select name="period" onchange="this.form.submit()">
+                            <option value="this-month" @selected($period === 'this-month')>This Month</option>
+                            <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
+                            <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
+                            <option value="this-year" @selected($period === 'this-year')>This Year</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Bus</span>
+                        <select name="bus" onchange="this.form.submit()">
+                            <option value="all" @selected($selectedBus === 'all')>All Buses</option>
+                            @foreach($buses as $bus)
+                                <option value="{{ $bus->bus_no }}" @selected($selectedBus === $bus->bus_no)>
+                                    {{ $bus->bus_no }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+                </form>
+            </section>
+
+            <section class="stats-grid fuel-summary-grid">
                 <x-ui.summary-card
-                    label="Fuel Used This Month"
-                    value="3,842 L"
-                    small="Recorded fleet fuel consumption"
+                    label="Fuel Used"
+                    :value="number_format($totalFuel, 1) . ' L'"
+                    small="Recorded fuel volume in the selected period"
                     icon="fa-gas-pump"
                     color="blue"
                 />
-
-                <x-ui.summary-card
-                    label="Average Efficiency"
-                    value="6.8 km/L"
-                    small="Fleet average fuel efficiency"
-                    icon="fa-gauge-high"
-                    color="green"
-                />
-
-                <x-ui.summary-card
-                    label="High Consumption"
-                    value="3"
-                    small="Buses requiring review"
-                    icon="fa-triangle-exclamation"
-                    color="yellow"
-                />
-
                 <x-ui.summary-card
                     label="Distance Traveled"
-                    value="26,126 km"
-                    small="Recorded fleet distance this month"
+                    :value="number_format($totalDistance, 1) . ' km'"
+                    small="Distance linked to selected fuel reports"
                     icon="fa-road"
                     color="blue"
                 />
-
+                <x-ui.summary-card
+                    label="Average Efficiency"
+                    :value="number_format($fleetAverage, 2) . ' km/L'"
+                    small="Weighted distance divided by recorded fuel"
+                    icon="fa-gauge-high"
+                    color="green"
+                />
+                <x-ui.summary-card
+                    label="Units for Review"
+                    :value="number_format($reviewUnits->count())"
+                    small="Evidence-based efficiency or idling review signals"
+                    icon="fa-triangle-exclamation"
+                    color="yellow"
+                />
             </section>
 
-
-            {{-- FILTERS --}}
-            <section class="fuel-filter-card">
-
-                <div>
-                    <h2>Fuel Performance</h2>
-                    <p>Review fuel usage from recorded fuel reports and mileage data.</p>
-                </div>
-
-                <div class="fuel-filters">
-
-                    <select>
-                        <option>This Month</option>
-                        <option>Last 30 Days</option>
-                        <option>Last 3 Months</option>
-                        <option>This Year</option>
-                    </select>
-
-                    <select>
-                        <option>All Buses</option>
-                        <option>BUS-001</option>
-                        <option>BUS-003</option>
-                        <option>BUS-007</option>
-                        <option>BUS-012</option>
-                        <option>BUS-015</option>
-                    </select>
-
-                </div>
-
-            </section>
-
-
-            {{-- FIRST ROW --}}
-            <section class="fuel-grid">
-
-                {{-- FUEL TREND --}}
-                <article class="fuel-card">
-
-                    <div class="fuel-card-header">
-
-                        <div>
-                            <h2>Fuel Consumption Trend</h2>
-                            <p>Recorded fuel usage throughout the current month.</p>
-                        </div>
-
-                        <span class="analytics-badge descriptive">
-                            Descriptive
-                        </span>
-
-                    </div>
-
-                    <div class="fuel-chart">
-
-                        <div class="chart-y-axis">
-                            <span>1,200 L</span>
-                            <span>900 L</span>
-                            <span>600 L</span>
-                            <span>300 L</span>
-                            <span>0 L</span>
-                        </div>
-
-                        <div class="chart-content">
-
-                            <div class="chart-line line-1"></div>
-                            <div class="chart-line line-2"></div>
-                            <div class="chart-line line-3"></div>
-                            <div class="chart-line line-4"></div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar" style="height: 72%;"></div>
-                                <span>Week 1</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar" style="height: 78%;"></div>
-                                <span>Week 2</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar" style="height: 86%;"></div>
-                                <span>Week 3</span>
-                            </div>
-
-                            <div class="chart-column">
-                                <div class="chart-bar" style="height: 84%;"></div>
-                                <span>Week 4</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="chart-summary">
-
-                        <div>
-                            <span class="chart-dot"></span>
-                            Fuel Used
-                        </div>
-
-                        <strong>3,842 L Total</strong>
-
-                    </div>
-
-                </article>
-
-
-                {{-- EFFICIENCY OVERVIEW --}}
-                <article class="fuel-card">
-
-                    <div class="fuel-card-header">
-
-                        <div>
-                            <h2>Fuel Efficiency Overview</h2>
-                            <p>Fleet efficiency compared with the current average.</p>
-                        </div>
-
-                        <span class="analytics-badge diagnostic">
-                            Diagnostic
-                        </span>
-
-                    </div>
-
-                    <div class="efficiency-overview">
-
-                        <div class="efficiency-gauge">
-
-                            <div class="gauge-center">
-                                <strong>6.8</strong>
-                                <span>km/L</span>
-                            </div>
-
-                        </div>
-
-                        <div class="efficiency-list">
-
-                            <div class="efficiency-row">
-                                <span>Best Performing</span>
-                                <strong>7.6 km/L</strong>
-                            </div>
-
-                            <div class="efficiency-row">
-                                <span>Fleet Average</span>
-                                <strong>6.8 km/L</strong>
-                            </div>
-
-                            <div class="efficiency-row">
-                                <span>Lowest Efficiency</span>
-                                <strong>5.7 km/L</strong>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-            </section>
-
-
-            {{-- SECOND ROW --}}
-            <section class="fuel-grid">
-
-                {{-- HIGH CONSUMPTION --}}
-                <article class="fuel-card">
-
-                    <div class="fuel-card-header">
-
-                        <div>
-                            <h2>High Consumption Buses</h2>
-                            <p>Buses currently below the fleet's average fuel efficiency.</p>
-                        </div>
-
-                        <span class="analytics-badge diagnostic">
-                            Diagnostic
-                        </span>
-
-                    </div>
-
-                    <div class="high-consumption-list">
-
-                        <div class="consumption-item">
-
-                            <div class="consumption-main">
-
-                                <div class="consumption-icon critical">
-                                    <i class="fa-solid fa-bus"></i>
-                                </div>
-
-                                <div>
-                                    <strong>BUS-012</strong>
-                                    <span>Fuel Used: 312 L · Distance: 1,778 km</span>
-                                </div>
-
-                            </div>
-
-                            <div class="consumption-value critical">
-                                <strong>5.7 km/L</strong>
-                                <span>Review</span>
-                            </div>
-
-                        </div>
-
-
-                        <div class="consumption-item">
-
-                            <div class="consumption-main">
-
-                                <div class="consumption-icon warning">
-                                    <i class="fa-solid fa-bus"></i>
-                                </div>
-
-                                <div>
-                                    <strong>BUS-007</strong>
-                                    <span>Fuel Used: 286 L · Distance: 1,687 km</span>
-                                </div>
-
-                            </div>
-
-                            <div class="consumption-value warning">
-                                <strong>5.9 km/L</strong>
-                                <span>Below Average</span>
-                            </div>
-
-                        </div>
-
-
-                        <div class="consumption-item">
-
-                            <div class="consumption-main">
-
-                                <div class="consumption-icon warning">
-                                    <i class="fa-solid fa-bus"></i>
-                                </div>
-
-                                <div>
-                                    <strong>BUS-015</strong>
-                                    <span>Fuel Used: 224 L · Distance: 1,366 km</span>
-                                </div>
-
-                            </div>
-
-                            <div class="consumption-value warning">
-                                <strong>6.1 km/L</strong>
-                                <span>Below Average</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-
-                {{-- FUEL FINDINGS --}}
-                <article class="fuel-card">
-
-                    <div class="fuel-card-header">
-
-                        <div>
-                            <h2>Fuel Findings</h2>
-                            <p>Key observations from current fuel and mileage records.</p>
-                        </div>
-
-                        <span class="analytics-badge diagnostic">
-                            Diagnostic
-                        </span>
-
-                    </div>
-
-                    <div class="fuel-findings">
-
-                        <div class="fuel-finding warning">
-
-                            <div class="finding-icon">
-                                <i class="fa-solid fa-gas-pump"></i>
-                            </div>
-
+            @if($section === 'descriptive')
+                <section class="fuel-grid fuel-grid-primary">
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
                             <div>
-                                <strong>Fuel consumption increased by 5.4%</strong>
-                                <p>
-                                    Total recorded fuel usage is higher than the previous period.
-                                </p>
+                                <span class="fuel-eyebrow">5.1 Descriptive</span>
+                                <h2>Fuel Consumption Trend</h2>
+                                <p>Actual recorded fuel totals grouped across the selected period.</p>
                             </div>
-
+                            <span class="fuel-chip">{{ $records->count() }} reports</span>
                         </div>
 
-
-                        <div class="fuel-finding info">
-
-                            <div class="finding-icon">
-                                <i class="fa-solid fa-route"></i>
-                            </div>
-
-                            <div>
-                                <strong>Higher usage aligns with increased trip activity</strong>
-                                <p>
-                                    Compare route distance and trip volume before classifying usage as abnormal.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        <div class="fuel-finding critical">
-
-                            <div class="finding-icon">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                            </div>
-
-                            <div>
-                                <strong>3 buses remain below the fleet efficiency average</strong>
-                                <p>
-                                    Review mileage, maintenance condition, and historical fuel reports.
-                                </p>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-            </section>
-
-
-            {{-- BUS TABLE --}}
-            @php
-                $fuelRecords = [
-                    [
-                        'bus' => 'BUS-003',
-                        'distance' => '1,520 km',
-                        'fuel' => '200 L',
-                        'efficiency' => '7.6 km/L',
-                        'change' => '+3.2%',
-                        'status' => 'Efficient',
-                    ],
-                    [
-                        'bus' => 'BUS-018',
-                        'distance' => '1,404 km',
-                        'fuel' => '195 L',
-                        'efficiency' => '7.2 km/L',
-                        'change' => '+1.4%',
-                        'status' => 'Normal',
-                    ],
-                    [
-                        'bus' => 'BUS-009',
-                        'distance' => '1,368 km',
-                        'fuel' => '198 L',
-                        'efficiency' => '6.9 km/L',
-                        'change' => '+0.5%',
-                        'status' => 'Normal',
-                    ],
-                    [
-                        'bus' => 'BUS-015',
-                        'distance' => '1,366 km',
-                        'fuel' => '224 L',
-                        'efficiency' => '6.1 km/L',
-                        'change' => '-4.8%',
-                        'status' => 'Review',
-                    ],
-                    [
-                        'bus' => 'BUS-007',
-                        'distance' => '1,687 km',
-                        'fuel' => '286 L',
-                        'efficiency' => '5.9 km/L',
-                        'change' => '-6.2%',
-                        'status' => 'Review',
-                    ],
-                    [
-                        'bus' => 'BUS-012',
-                        'distance' => '1,778 km',
-                        'fuel' => '312 L',
-                        'efficiency' => '5.7 km/L',
-                        'change' => '-8.1%',
-                        'status' => 'High Consumption',
-                    ],
-                ];
-            @endphp
-
-            <section class="fuel-card fuel-table-card">
-
-                <div class="fuel-card-header">
-
-                    <div>
-                        <h2>Bus Fuel Efficiency Analysis</h2>
-                        <p>Compare recorded mileage and fuel usage across shuttle units.</p>
-                    </div>
-
-                    <span class="analytics-badge diagnostic">
-                        Diagnostic
-                    </span>
-
-                </div>
-
-                <div class="table-wrap">
-
-                    <table class="fuel-table">
-
-                        <thead>
-                            <tr>
-                                <th>Bus</th>
-                                <th>Distance Traveled</th>
-                                <th>Fuel Used</th>
-                                <th>Fuel Efficiency</th>
-                                <th>Change</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            @foreach($fuelRecords as $record)
-
-                                @php
-                                    $statusClass = match($record['status']) {
-                                        'Efficient' => 'efficient',
-                                        'Normal' => 'normal',
-                                        'High Consumption' => 'critical',
-                                        default => 'review',
-                                    };
-
-                                    $changeClass = str_starts_with($record['change'], '-')
-                                        ? 'negative'
-                                        : 'positive';
-                                @endphp
-
-                                <tr>
-
-                                    <td>
-                                        <div class="bus-cell">
-
-                                            <div class="bus-icon">
-                                                <i class="fa-solid fa-bus"></i>
-                                            </div>
-
-                                            <strong>{{ $record['bus'] }}</strong>
-
+                        @if($trend->isNotEmpty())
+                            <div class="fuel-bar-chart" style="--fuel-column-count: {{ max(1, $trend->count()) }};">
+                                @foreach($trend as $point)
+                                    @php $height = max(8, ($point->fuel_liters / $trendMax) * 100); @endphp
+                                    <div class="fuel-bar-column">
+                                        <div class="fuel-bar-value">{{ number_format($point->fuel_liters, 0) }} L</div>
+                                        <div class="fuel-bar-track">
+                                            <div class="fuel-bar-fill" style="--bar-height: {{ $height }}%;"></div>
                                         </div>
-                                    </td>
+                                        <strong>{{ $point->label }}</strong>
+                                        <span>{{ number_format($point->efficiency, 2) }} km/L</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <x-ui.empty-state
+                                icon="fa-chart-column"
+                                title="No fuel trend yet"
+                                message="No fuel reports match the selected period and bus filter."
+                            />
+                        @endif
+                    </article>
 
-                                    <td>{{ $record['distance'] }}</td>
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
+                            <div>
+                                <span class="fuel-eyebrow">Weighted efficiency</span>
+                                <h2>Fuel Efficiency Overview</h2>
+                                <p>Distance per liter across all selected fuel records.</p>
+                            </div>
+                        </div>
 
-                                    <td>{{ $record['fuel'] }}</td>
+                        <div class="fuel-efficiency-layout">
+                            <div class="fuel-efficiency-ring" style="--fuel-angle: {{ $gaugeAngle }}deg;">
+                                <div>
+                                    <strong>{{ number_format($fleetAverage, 2) }}</strong>
+                                    <span>km/L</span>
+                                </div>
+                            </div>
 
-                                    <td>
-                                        <strong class="efficiency-value">
-                                            {{ $record['efficiency'] }}
-                                        </strong>
-                                    </td>
+                            <div class="fuel-metric-list">
+                                <div>
+                                    <span>Best recorded unit</span>
+                                    <strong>{{ $bestUnit ? $bestUnit->bus_no . ' · ' . number_format($bestUnit->km_per_liter, 2) . ' km/L' : 'No data' }}</strong>
+                                </div>
+                                <div>
+                                    <span>Fleet weighted average</span>
+                                    <strong>{{ number_format($fleetAverage, 2) }} km/L</strong>
+                                </div>
+                                <div>
+                                    <span>Lowest recorded unit</span>
+                                    <strong>{{ $lowestUnit ? $lowestUnit->bus_no . ' · ' . number_format($lowestUnit->km_per_liter, 2) . ' km/L' : 'No data' }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
 
-                                    <td>
-                                        <span class="change-value {{ $changeClass }}">
-                                            {{ $record['change'] }}
-                                        </span>
-                                    </td>
+                <section class="fuel-card analytics-card">
+                    <div class="fuel-card-header">
+                        <div>
+                            <h2>Bus Fuel Efficiency Comparison</h2>
+                            <p>Real distance, fuel volume, weighted efficiency, and comparison with the selected fleet average.</p>
+                        </div>
+                        <span class="fuel-chip">{{ $busSummaries->count() }} units</span>
+                    </div>
 
-                                    <td>
-                                        <span class="fuel-status {{ $statusClass }}">
-                                            {{ $record['status'] }}
-                                        </span>
-                                    </td>
-
+                    <div class="table-wrap">
+                        <table class="fuel-table">
+                            <thead>
+                                <tr>
+                                    <th>Bus</th>
+                                    <th>Distance</th>
+                                    <th>Fuel</th>
+                                    <th>Efficiency</th>
+                                    <th>Vs Avg</th>
+                                    <th>Reports</th>
+                                    <th>Status</th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($busSummaries as $row)
+                                    <tr>
+                                        <td><strong>{{ $row->bus_no }}</strong></td>
+                                        <td>{{ number_format($row->distance_km, 1) }} km</td>
+                                        <td>{{ number_format($row->fuel_liters, 1) }} L</td>
+                                        <td><strong>{{ number_format($row->km_per_liter, 2) }} km/L</strong></td>
+                                        <td class="{{ $row->vs_average < 0 ? 'fuel-negative' : 'fuel-positive' }}">
+                                            {{ $row->vs_average >= 0 ? '+' : '' }}{{ number_format($row->vs_average, 1) }}%
+                                        </td>
+                                        <td>{{ $row->entries }}</td>
+                                        <td><span class="fuel-status {{ str($row->status)->slug() }}">{{ $row->status }}</span></td>
+                                    </tr>
+                                @empty
+                                    <x-ui.empty-row colspan="7" message="No fuel records match the current filters." />
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            @elseif($section === 'diagnostic')
+                <section class="fuel-grid">
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
+                            <div>
+                                <span class="fuel-eyebrow">5.2 Diagnostic</span>
+                                <h2>Units Requiring Review</h2>
+                                <p>Signals identify records for investigation; they do not prove fuel wastage.</p>
+                            </div>
+                            <span class="fuel-chip warning">{{ $reviewUnits->count() }} flagged</span>
+                        </div>
 
-                            @endforeach
+                        <div class="fuel-review-list" data-scroll-records>
+                            @forelse($reviewUnits as $row)
+                                <article class="fuel-review-row" data-scroll-record>
+                                    <div class="fuel-review-icon"><i class="fa-solid fa-bus"></i></div>
+                                    <div class="fuel-review-body">
+                                        <div class="fuel-review-head">
+                                            <div>
+                                                <strong>{{ $row->bus_no }}</strong>
+                                                <span>{{ number_format($row->distance_km, 1) }} km · {{ number_format($row->fuel_liters, 1) }} L</span>
+                                            </div>
+                                            <div class="fuel-review-value">
+                                                <strong>{{ number_format($row->km_per_liter, 2) }} km/L</strong>
+                                                <span>{{ $row->status }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="fuel-signal-list">
+                                            @foreach($row->signals as $signal)
+                                                <span><i class="fa-solid fa-circle-exclamation"></i>{{ $signal }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </article>
+                            @empty
+                                <x-ui.empty-state icon="fa-circle-check" title="No review signals" message="No selected bus currently crosses the diagnostic review rules." />
+                            @endforelse
+                        </div>
+                    </article>
 
-                        </tbody>
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
+                            <div>
+                                <h2>Diagnostic Evidence Rules</h2>
+                                <p>Transparent rules used before a unit appears in the review list.</p>
+                            </div>
+                        </div>
 
-                    </table>
+                        <div class="fuel-rule-list">
+                            <div>
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>Low efficiency</span>
+                                <strong>&gt;10% below selected fleet average</strong>
+                            </div>
+                            <div>
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span>High idling candidate</span>
+                                <strong>&gt;25% above fleet median and ≥15 min</strong>
+                            </div>
+                            <div>
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>GPS source</span>
+                                <strong>Processed GPS records only</strong>
+                            </div>
+                            <div>
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>Interpretation</span>
+                                <strong>Review signal, not confirmed cause</strong>
+                            </div>
+                        </div>
 
-                </div>
+                        <div class="fuel-center-stat">
+                            <strong>{{ number_format($idlingMedian, 1) }}</strong>
+                            <span>median idling minutes per 100 km</span>
+                        </div>
+                    </article>
+                </section>
+            @elseif($section === 'predictive')
+                <section class="fuel-grid">
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
+                            <div>
+                                <span class="fuel-eyebrow">5.3 Predictive</span>
+                                <h2>7-Day Fuel Demand Baseline</h2>
+                                <p>Explainable short-term projection from recent recorded operating days.</p>
+                            </div>
+                            <span class="fuel-chip {{ $forecast->available ? 'ready' : '' }}">{{ $forecast->available ? 'Ready' : 'Needs data' }}</span>
+                        </div>
 
-            </section>
+                        @if($forecast->available)
+                            <div class="fuel-forecast-hero">
+                                <span>Projected next 7 days</span>
+                                <strong>{{ number_format($forecast->projected_liters, 1) }} L</strong>
+                                <small>{{ $forecast->method }} · {{ $forecast->sample_days }} recent recorded days</small>
+                            </div>
 
+                            <div class="fuel-metric-list compact">
+                                <div><span>Recent recorded-day average</span><strong>{{ number_format($forecast->recent_average, 1) }} L/day</strong></div>
+                                <div><span>Previous recorded-day average</span><strong>{{ number_format($forecast->previous_average, 1) }} L/day</strong></div>
+                                <div>
+                                    <span>Baseline change</span>
+                                    <strong class="{{ ($forecast->change_percent ?? 0) > 0 ? 'fuel-negative' : 'fuel-positive' }}">
+                                        {{ $forecast->change_percent === null ? 'No comparison' : (($forecast->change_percent >= 0 ? '+' : '') . number_format($forecast->change_percent, 1) . '%') }}
+                                    </strong>
+                                </div>
+                            </div>
+                        @else
+                            <x-ui.empty-state
+                                icon="fa-chart-line"
+                                title="Forecast needs more recent coverage"
+                                message="At least four recorded fuel days in the latest seven-day window are required for this baseline forecast."
+                            />
+                        @endif
+                    </article>
 
-            {{-- PRESCRIPTIVE INSIGHT --}}
-            <section class="fuel-insight">
+                    <article class="fuel-card analytics-card">
+                        <div class="fuel-card-header">
+                            <div>
+                                <h2>Forecast Readiness</h2>
+                                <p>The forecast is statistical and intentionally conservative; it is not presented as machine learning.</p>
+                            </div>
+                        </div>
 
-                <div class="insight-icon">
-                    <i class="fa-solid fa-lightbulb"></i>
-                </div>
+                        <div class="fuel-readiness-ring {{ $forecast->available ? 'ready' : '' }}">
+                            <div>
+                                <strong>{{ $forecast->sample_days }}/7</strong>
+                                <span>recent days</span>
+                            </div>
+                        </div>
 
-                <div class="insight-content">
+                        <div class="fuel-note">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <p>Projection assumes the recent recorded-day fuel baseline continues for the next seven days. It does not yet model route mix, passenger demand, or fuel price.</p>
+                        </div>
+                    </article>
+                </section>
+            @else
+                <section class="fuel-card fuel-advisory-boundary">
+                    <div>
+                        <span class="fuel-eyebrow">5.4 Prescriptive</span>
+                        <h2>Advisory decision support only</h2>
+                        <p>Recommendations explain what to review next. They never create maintenance work, change routes, or authorize fuel automatically.</p>
+                    </div>
+                    <div class="fuel-boundary-badges">
+                        <span>Decision Mode: Advisory</span>
+                        <span>Auto-execute: No</span>
+                    </div>
+                </section>
 
-                    <span>Fuel Efficiency Insight</span>
+                <section class="fuel-recommendation-grid">
+                    @foreach($recommendations as $recommendation)
+                        <article class="fuel-recommendation-card {{ $recommendation->tone }} analytics-card">
+                            <div class="fuel-recommendation-icon"><i class="fa-solid {{ $recommendation->icon }}"></i></div>
+                            <span>Recommended review</span>
+                            <h3>{{ $recommendation->title }}</h3>
+                            <p>{{ $recommendation->reason }}</p>
+                        </article>
+                    @endforeach
+                </section>
 
-                    <h2>
-                        Review BUS-012, BUS-007, and BUS-015 before assuming excessive fuel use is caused by the vehicle alone.
-                    </h2>
-
-                    <p>
-                        Compare their route distance, trip volume, accumulated mileage,
-                        maintenance condition, and previous fuel reports. This helps separate
-                        legitimate high fuel usage from possible efficiency issues.
-                    </p>
-
-                </div>
-
-                <a
-                    href="{{ route('analytics.recommendations') }}"
-                    class="insight-link"
-                >
-                    View Recommendations
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </section>
-
+                <section class="fuel-card analytics-card">
+                    <div class="fuel-card-header">
+                        <div>
+                            <h2>Evidence Used for Recommendations</h2>
+                            <p>Prescriptive output only uses analytics already visible in the preceding sections.</p>
+                        </div>
+                    </div>
+                    <div class="fuel-rule-list">
+                        <div><i class="fa-solid fa-gas-pump"></i><span>Fuel reports</span><strong>{{ $records->count() }} selected records</strong></div>
+                        <div><i class="fa-solid fa-gauge-high"></i><span>Efficiency baseline</span><strong>{{ number_format($fleetAverage, 2) }} km/L</strong></div>
+                        <div><i class="fa-solid fa-triangle-exclamation"></i><span>Diagnostic review</span><strong>{{ $reviewUnits->count() }} unit(s)</strong></div>
+                        <div><i class="fa-solid fa-chart-line"></i><span>Forecast layer</span><strong>{{ $forecast->available ? 'Available' : 'Insufficient recent data' }}</strong></div>
+                    </div>
+                </section>
+            @endif
         </main>
-
     </div>
-
 </x-layout.app>

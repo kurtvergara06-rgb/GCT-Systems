@@ -3,36 +3,24 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class DriverAttendanceController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX
-    |--------------------------------------------------------------------------
-    */
-
     public function index(Request $request)
     {
-        $query = DriverAttendance::query()
-            ->with([
-                'tripAssignments.bus',
-                'tripAssignments.tripSchedule.shuttleRoute',
-            ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEARCH
-        |--------------------------------------------------------------------------
-        */
+        $query = DriverAttendance::query()->with([
+            'tripAssignments.bus',
+            'tripAssignments.tripSchedule.shuttleRoute',
+        ]);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -42,109 +30,48 @@ class DriverAttendanceController extends Controller
                     ->orWhere('driver_name', 'like', "%{$search}%")
                     ->orWhere('shift', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereHas(
-                        'tripAssignments.bus',
-                        function ($busQuery) use ($search) {
-                            $busQuery->where(
-                                'bus_no',
-                                'like',
-                                "%{$search}%"
-                            );
-                        }
+                    ->orWhereHas('tripAssignments.bus', fn ($busQuery) =>
+                        $busQuery->where('bus_no', 'like', "%{$search}%")
                     )
-                    ->orWhereHas(
-                        'tripAssignments.tripSchedule',
-                        function ($tripQuery) use ($search) {
-                            $tripQuery->where(
-                                'trip_code',
-                                'like',
-                                "%{$search}%"
-                            );
-                        }
+                    ->orWhereHas('tripAssignments.tripSchedule', fn ($tripQuery) =>
+                        $tripQuery->where('trip_code', 'like', "%{$search}%")
                     );
             });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS FILTER
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $request->filled('status')
-            && $request->status !== 'All Status'
-        ) {
-            $query->where(
-                'status',
-                $request->status
-            );
+        if ($request->filled('status') && $request->status !== 'All Status') {
+            $query->where('status', $request->status);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | TABLE DATA
-        |--------------------------------------------------------------------------
-        */
-
         $driverAttendances = $query
-            ->latest()
+            ->latest('attendance_date')
+            ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        /*
-        |--------------------------------------------------------------------------
-        | SUMMARY CARDS
-        |--------------------------------------------------------------------------
-        */
+        $summaryDate = $request->filled('attendance_date')
+            ? Carbon::parse($request->attendance_date)->toDateString()
+            : today()->toDateString();
 
-        $present = DriverAttendance::where(
-            'status',
-            'Present'
-        )->count();
+        $summaryQuery = DriverAttendance::query()
+            ->whereDate('attendance_date', $summaryDate);
 
-        $absent = DriverAttendance::where(
-            'status',
-            'Absent'
-        )->count();
+        $present = (clone $summaryQuery)->where('status', 'Present')->count();
+        $absent = (clone $summaryQuery)->where('status', 'Absent')->count();
+        $late = (clone $summaryQuery)->where('status', 'Late')->count();
+        $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
 
-        $late = DriverAttendance::where(
-            'status',
-            'Late'
-        )->count();
+        $nextDriverId = 'From Driver Master List';
 
-        $onDuty = DriverAttendance::where(
-            'status',
-            'On Duty'
-        )->count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | NEXT DRIVER ID
-        |--------------------------------------------------------------------------
-        */
-
-        $nextDriverId =
-            $this->generateDriverId();
-
-        return view(
-            'Operation.Attendance.driver-attendance',
-            compact(
-                'driverAttendances',
-                'present',
-                'absent',
-                'late',
-                'onDuty',
-                'nextDriverId'
-            )
-        );
+        return view('Operation.Attendance.driver-attendance', compact(
+            'driverAttendances',
+            'present',
+            'absent',
+            'late',
+            'onDuty',
+            'nextDriverId'
+        ));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STORE
-    |--------------------------------------------------------------------------
-    */
 
     public function store(Request $request): RedirectResponse
     {
@@ -157,13 +84,19 @@ class DriverAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $validated['driver_id'] =
-            $this->generateDriverId();
+        $driver = Driver::query()
+            ->where('driver_name', $validated['driver_name'])
+            ->first();
 
-        $attendance =
-            DriverAttendance::create(
-                $validated
-            );
+        if (! $driver) {
+            return back()->withInput()->with('error', 'Select an existing driver from the Driver Master List.');
+        }
+
+        $validated['driver_id'] = $driver->driver_id;
+        $validated['driver_name'] = $driver->driver_name;
+        $validated['shift'] = $driver->shift ?: $validated['shift'];
+
+        $attendance = DriverAttendance::create($validated);
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -173,24 +106,12 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was created.'
         );
 
-        session()->flash(
-            'success',
-            'Driver attendance record created successfully.'
-        );
-
-        return new RedirectResponse('/driver-attendance');
+        return redirect()->route('driver-attendance')
+            ->with('success', 'Driver attendance record created successfully.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    */
-
-    public function update(
-        Request $request,
-        DriverAttendance $driverAttendance
-    ): RedirectResponse {
+    public function update(Request $request, DriverAttendance $driverAttendance): RedirectResponse
+    {
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
@@ -200,9 +121,19 @@ class DriverAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $driverAttendance->update(
-            $validated
-        );
+        $driver = Driver::query()
+            ->where('driver_name', $validated['driver_name'])
+            ->first();
+
+        if (! $driver) {
+            return back()->withInput()->with('error', 'Select an existing driver from the Driver Master List.');
+        }
+
+        $validated['driver_id'] = $driver->driver_id;
+        $validated['driver_name'] = $driver->driver_name;
+        $validated['shift'] = $driver->shift ?: $validated['shift'];
+
+        $driverAttendance->update($validated);
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -212,35 +143,18 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was updated.'
         );
 
-        session()->flash(
-            'success',
-            'Driver attendance record updated successfully.'
-        );
-
-        return new RedirectResponse('/driver-attendance');
+        return redirect()->route('driver-attendance')
+            ->with('success', 'Driver attendance record updated successfully.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
-
-    public function destroy(
-        DriverAttendance $driverAttendance
-    ): RedirectResponse {
+    public function destroy(DriverAttendance $driverAttendance): RedirectResponse
+    {
         if ($driverAttendance->tripAssignments()->exists()) {
-            session()->flash(
-                'error',
-                'This attendance record cannot be deleted because it has a trip assignment.'
-            );
-
-            return new RedirectResponse('/driver-attendance');
+            return redirect()->route('driver-attendance')
+                ->with('error', 'This attendance record cannot be deleted because it has a trip assignment.');
         }
 
-        $attendanceId =
-            $driverAttendance->id;
-
+        $attendanceId = $driverAttendance->id;
         $driverAttendance->delete();
 
         $this->broadcastSystemDataUpdated(
@@ -251,326 +165,99 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was deleted.'
         );
 
-        session()->flash(
-            'success',
-            'Driver attendance record deleted successfully.'
-        );
-
-        return new RedirectResponse('/driver-attendance');
+        return redirect()->route('driver-attendance')
+            ->with('success', 'Driver attendance record deleted successfully.');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMPORT CSV
-    |--------------------------------------------------------------------------
-    */
 
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'import_file' =>
-                'required|file|mimes:csv,txt',
+            'import_file' => 'required|file|mimes:csv,txt',
         ]);
 
-        $file =
-            $request->file(
-                'import_file'
-            );
-
-        $handle =
-            fopen(
-                $file->getRealPath(),
-                'r'
-            );
+        $handle = fopen($request->file('import_file')->getRealPath(), 'r');
 
         if (! $handle) {
-            session()->flash(
-                'error',
-                'Unable to read the uploaded CSV file.'
-            );
-
-            return new RedirectResponse('/driver-attendance');
+            return redirect()->route('driver-attendance')
+                ->with('error', 'Unable to read the uploaded CSV file.');
         }
 
         try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | READ HEADER
-            |--------------------------------------------------------------------------
-            */
-
-            $header =
-                fgetcsv($handle);
+            $header = fgetcsv($handle);
 
             if (! $header) {
-                session()->flash(
-                    'error',
-                    'CSV file is empty.'
-                );
-
-                return new RedirectResponse('/driver-attendance');
+                return redirect()->route('driver-attendance')->with('error', 'CSV file is empty.');
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | NORMALIZE HEADER
-            |--------------------------------------------------------------------------
-            */
 
             $header = array_map(function ($value) {
-
-                $value = trim((string) $value);
-
-                // Remove UTF-8 BOM from the first CSV header
-                $value = preg_replace('/^\xEF\xBB\xBF/', '', $value);
-
+                $value = preg_replace('/^\xEF\xBB\xBF/', '', trim((string) $value));
                 return strtolower($value);
-
             }, $header);
 
-            /*
-            |--------------------------------------------------------------------------
-            | REQUIRED COLUMNS
-            |--------------------------------------------------------------------------
-            */
-
             $requiredColumns = [
-                'driver_name',
-                'shift',
-                'attendance_date',
-                'time_in',
-                'time_out',
-                'status',
+                'driver_name', 'shift', 'attendance_date', 'time_in', 'time_out', 'status',
             ];
 
-            foreach (
-                $requiredColumns as $column
-            ) {
-                if (
-                    ! in_array(
-                        $column,
-                        $header,
-                        true
-                    )
-                ) {
-                    session()->flash(
-                        'error',
-                        "Invalid CSV format. Missing required column: {$column}"
-                    );
-
-                    return new RedirectResponse('/driver-attendance');
+            foreach ($requiredColumns as $column) {
+                if (! in_array($column, $header, true)) {
+                    return redirect()->route('driver-attendance')
+                        ->with('error', "Invalid CSV format. Missing required column: {$column}");
                 }
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | IMPORT DATA
-            |--------------------------------------------------------------------------
-            */
 
             $imported = 0;
             $skipped = 0;
-            $rowNumber = 1;
 
-            while (
-                ($row = fgetcsv($handle))
-                !== false
-            ) {
-                $rowNumber++;
-
-                /*
-                |--------------------------------------------------------------------------
-                | SKIP EMPTY ROW
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    count(
-                        array_filter(
-                            $row,
-                            fn ($value) =>
-                                trim(
-                                    (string) $value
-                                ) !== ''
-                        )
-                    ) === 0
-                ) {
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) !== count($header)) {
+                    $skipped++;
                     continue;
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | COLUMN COUNT CHECK
-                |--------------------------------------------------------------------------
-                */
+                $data = array_combine($header, $row);
+                $name = trim($data['driver_name'] ?? '');
 
-                if (
-                    count($row)
-                    !== count($header)
-                ) {
+                if ($name === '') {
                     $skipped++;
-
                     continue;
                 }
 
-                $data =
-                    array_combine(
-                        $header,
-                        $row
-                    );
+                $driver = Driver::query()->where('driver_name', $name)->first();
 
-                if (
-                    ! $data
-                    || empty(
-                        trim(
-                            $data['driver_name']
-                            ?? ''
-                        )
-                    )
-                ) {
+                if (! $driver) {
                     $skipped++;
-
                     continue;
                 }
 
                 try {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | STATUS
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $status =
-                        trim(
-                            $data['status']
-                            ?? 'Present'
-                        );
-
-                    if (
-                        ! in_array(
-                            $status,
-                            [
-                                'Present',
-                                'Late',
-                                'Absent',
-                                'On Leave',
-                                'On Duty',
-                            ],
-                            true
-                        )
-                    ) {
+                    $status = trim($data['status'] ?? 'Present');
+                    if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DATE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $attendanceDate =
-                        $this->parseCsvDate(
-                            $data[
-                                'attendance_date'
-                            ] ?? null
-                        );
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | TIME
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $timeIn =
-                        $this->parseCsvTime(
-                            $data[
-                                'time_in'
-                            ] ?? null
-                        );
-
-                    $timeOut =
-                        $this->parseCsvTime(
-                            $data[
-                                'time_out'
-                            ] ?? null
-                        );
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | CREATE RECORD
-                    |--------------------------------------------------------------------------
-                    */
-
-                    DriverAttendance::create([
-                        'driver_id' =>
-                            $this->generateDriverId(),
-
-                        'driver_name' =>
-                            trim(
-                                $data[
-                                    'driver_name'
-                                ]
-                            ),
-
-                        'shift' =>
-                            trim(
-                                $data[
-                                    'shift'
-                                ] ?? 'Morning'
-                            ),
-
-                        'attendance_date' =>
-                            $attendanceDate,
-
-                        'time_in' =>
-                            $timeIn,
-
-                        'time_out' =>
-                            $timeOut,
-
-                        'status' =>
-                            $status,
-                    ]);
-
-                    $imported++;
-
-                } catch (
-                    Throwable $error
-                ) {
-                    $skipped++;
-
-                    session()->flash(
-                        'error',
-                        "Invalid CSV format on row {$rowNumber}. "
-                        . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
+                    DriverAttendance::updateOrCreate(
+                        [
+                            'driver_id' => $driver->driver_id,
+                            'attendance_date' => $this->parseCsvDate($data['attendance_date'] ?? null),
+                        ],
+                        [
+                            'driver_name' => $driver->driver_name,
+                            'shift' => $driver->shift ?: trim($data['shift'] ?? 'Morning'),
+                            'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
+                            'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
+                            'status' => $status,
+                        ]
                     );
-
-                    return new RedirectResponse('/driver-attendance');
+                    $imported++;
+                } catch (Throwable) {
+                    $skipped++;
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | NO DATA IMPORTED
-            |--------------------------------------------------------------------------
-            */
-
             if ($imported === 0) {
-                session()->flash(
-                    'error',
-                    'No driver attendance records were imported. Please check your CSV format.'
-                );
-
-                return new RedirectResponse('/driver-attendance');
+                return redirect()->route('driver-attendance')
+                    ->with('error', 'No driver attendance records were imported. Check that driver names exist in the Driver Master List.');
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | BROADCAST UPDATE
-            |--------------------------------------------------------------------------
-            */
 
             $this->broadcastSystemDataUpdated(
                 'Operation',
@@ -580,211 +267,50 @@ class DriverAttendanceController extends Controller
                 "{$imported} driver attendance record(s) imported successfully."
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | SUCCESS MESSAGE
-            |--------------------------------------------------------------------------
-            */
-
-            $message =
-                "{$imported} driver attendance record(s) imported successfully.";
-
+            $message = "{$imported} driver attendance record(s) imported successfully.";
             if ($skipped > 0) {
-                $message .=
-                    " {$skipped} row(s) were skipped.";
+                $message .= " {$skipped} row(s) were skipped.";
             }
 
-            session()->flash(
-                'success',
-                $message
-            );
-
-            return new RedirectResponse('/driver-attendance');
-
-        } catch (
-            Throwable $error
-        ) {
-
-            session()->flash(
-                'error',
-                'Unable to import the CSV file. Please check the file format and try again.'
-            );
-
-            return new RedirectResponse('/driver-attendance');
-
+            return redirect()->route('driver-attendance')->with('success', $message);
         } finally {
-
-            if (
-                is_resource($handle)
-            ) {
+            if (is_resource($handle)) {
                 fclose($handle);
             }
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PARSE CSV DATE
-    |--------------------------------------------------------------------------
-    */
-
-    private function parseCsvDate(
-        ?string $date
-    ): string {
-        $date =
-            trim(
-                $date ?? ''
-            );
-
+    private function parseCsvDate(?string $date): string
+    {
+        $date = trim($date ?? '');
         if ($date === '') {
-            return now()
-                ->format('Y-m-d');
+            return today()->toDateString();
         }
 
-        $formats = [
-            'Y-m-d',
-            'm/d/Y',
-            'm/d/y',
-            'd/m/Y',
-        ];
-
-        foreach (
-            $formats as $format
-        ) {
+        foreach (['Y-m-d', 'm/d/Y', 'm/d/y', 'd/m/Y'] as $format) {
             try {
-                return Carbon::createFromFormat(
-                    $format,
-                    $date
-                )->format('Y-m-d');
-
-            } catch (
-                Throwable $error
-            ) {
-                continue;
+                return Carbon::createFromFormat($format, $date)->toDateString();
+            } catch (Throwable) {
             }
         }
 
-        throw new \Exception(
-            'Invalid attendance date.'
-        );
+        throw new \InvalidArgumentException('Invalid attendance date.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PARSE CSV TIME
-    |--------------------------------------------------------------------------
-    */
-
-    private function parseCsvTime(
-        ?string $time
-    ): ?string {
-        $time =
-            trim(
-                $time ?? ''
-            );
-
+    private function parseCsvTime(?string $time): ?string
+    {
+        $time = trim($time ?? '');
         if ($time === '') {
             return null;
         }
 
-        $formats = [
-            'H:i:s',
-            'H:i',
-            'h:i A',
-            'h:i:s A',
-        ];
-
-        foreach (
-            $formats as $format
-        ) {
+        foreach (['H:i:s', 'H:i', 'h:i A', 'h:i:s A'] as $format) {
             try {
-                return Carbon::createFromFormat(
-                    $format,
-                    $time
-                )->format('H:i:s');
-
-            } catch (
-                Throwable $error
-            ) {
-                continue;
+                return Carbon::createFromFormat($format, $time)->format('H:i:s');
+            } catch (Throwable) {
             }
         }
 
-        throw new \Exception(
-            'Invalid time format.'
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | GENERATE DRIVER ID
-    |--------------------------------------------------------------------------
-    */
-
-    private function generateDriverId(): string
-    {
-        $year =
-            now()->format('Y');
-
-        $lastDriverAttendance =
-            DriverAttendance::where(
-                'driver_id',
-                'like',
-                "D-{$year}-%"
-            )
-                ->orderByDesc('id')
-                ->first();
-
-        if (! $lastDriverAttendance) {
-            return "D-{$year}-0001";
-        }
-
-        preg_match(
-            '/D-' . $year . '-(\d+)/',
-            $lastDriverAttendance
-                ->driver_id,
-            $matches
-        );
-
-        $lastNumber =
-            isset($matches[1])
-                ? (int) $matches[1]
-                : 0;
-
-        $nextNumber =
-            $lastNumber + 1;
-
-        $newDriverId =
-            'D-'
-            . $year
-            . '-'
-            . str_pad(
-                $nextNumber,
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-
-        while (
-            DriverAttendance::where(
-                'driver_id',
-                $newDriverId
-            )->exists()
-        ) {
-            $nextNumber++;
-
-            $newDriverId =
-                'D-'
-                . $year
-                . '-'
-                . str_pad(
-                    $nextNumber,
-                    4,
-                    '0',
-                    STR_PAD_LEFT
-                );
-        }
-
-        return $newDriverId;
+        throw new \InvalidArgumentException('Invalid time format.');
     }
 }

@@ -71,6 +71,20 @@ window.showSystemToast = function (message, type = 'info', title = null, options
         info: 'Info',
     }[typeName];
 
+    const duplicateToast = Array.from(root.querySelectorAll(toastSelector)).find((existingToast) => {
+        const existingType = existingToast.getAttribute('data-type') || 'info';
+        const existingMessage = existingToast.querySelector('.system-toast-message')?.textContent?.trim() || '';
+
+        return !existingToast.classList.contains('is-removing')
+            && existingType === typeName
+            && existingMessage === safeMessage.trim();
+    });
+
+    if (duplicateToast) {
+        duplicateToast.classList.add('is-visible');
+        return duplicateToast;
+    }
+
     const toast = document.createElement('div');
     toast.className = `system-toast-notification system-toast-notification--${typeName}`;
     toast.setAttribute('data-system-toast', 'true');

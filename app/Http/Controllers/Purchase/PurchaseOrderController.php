@@ -128,18 +128,10 @@ class PurchaseOrderController extends Controller
         $items = $this->cleanItems($request->items);
 
         if (count($items) === 0) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Please add at least one valid item.');
+            return redirect()->back()->withInput()->with('error', 'Please add at least one valid item.');
         }
 
-        $totals = $this->calculateTotals(
-            $items,
-            $request->delivery_fee,
-            $request->discount,
-            $request->vat
-        );
+        $totals = $this->calculateTotals($items, $request->delivery_fee, $request->discount, $request->vat);
 
         $maintenanceRequest = null;
 
@@ -173,26 +165,13 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, $validated['status']);
-
-            if ($this->isInventoryPostingStatus($validated['status'])) {
-                $this->postPurchaseOrderToInventory($newPurchaseOrder);
-            }
         });
 
         if ($newPurchaseOrder) {
-            $this->broadcastSystemDataUpdated(
-                'Purchase',
-                'PurchaseOrder',
-                'created',
-                $newPurchaseOrder->id,
-                'A new purchase order was created.'
-            );
+            $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'created', $newPurchaseOrder->id, 'A new purchase order was created.');
         }
 
-        session()->flash(
-            'success',
-            'Purchase order created successfully.'
-        );
+        session()->flash('success', 'Purchase order created successfully.');
 
         return new RedirectResponse('/purchase-orders');
     }
@@ -225,18 +204,10 @@ class PurchaseOrderController extends Controller
         $items = $this->cleanItems($request->items);
 
         if (count($items) === 0) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Please add at least one valid item.');
+            return redirect()->back()->withInput()->with('error', 'Please add at least one valid item.');
         }
 
-        $totals = $this->calculateTotals(
-            $items,
-            $request->delivery_fee,
-            $request->discount,
-            $request->vat
-        );
+        $totals = $this->calculateTotals($items, $request->delivery_fee, $request->discount, $request->vat);
 
         $maintenanceRequest = null;
 
@@ -271,24 +242,10 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
-
-            if ($this->isInventoryPostingStatus($validated['status'])) {
-                $this->postPurchaseOrderToInventory($purchaseOrder);
-            }
         });
 
-        $this->broadcastSystemDataUpdated(
-            'Purchase',
-            'PurchaseOrder',
-            'updated',
-            $purchaseOrder->id,
-            'A purchase order was updated.'
-        );
-
-        session()->flash(
-            'success',
-            'Purchase order updated successfully.'
-        );
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'updated', $purchaseOrder->id, 'A purchase order was updated.');
+        session()->flash('success', 'Purchase order updated successfully.');
 
         return new RedirectResponse('/purchase-orders');
     }
@@ -296,35 +253,47 @@ class PurchaseOrderController extends Controller
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
+            'status' => 'required|string|in:For Pick-up,For Delivery,Delivered,Picked Up',
+            'warehouse_receive' => 'nullable|boolean',
         ]);
 
-        DB::transaction(function () use ($purchaseOrder, $validated) {
-            $purchaseOrder->update([
-                'status' => $validated['status'],
-            ]);
+        $warehouseReceive = $request->boolean('warehouse_receive');
+        $allowedTransitions = $warehouseReceive
+            ? [
+                'For Delivery' => ['Delivered'],
+                'For Pick-up' => ['Picked Up'],
+            ]
+            : [
+                'Ordered' => ['For Pick-up', 'For Delivery'],
+            ];
 
+        if (! in_array($validated['status'], $allowedTransitions[$purchaseOrder->status] ?? [], true)) {
+            return redirect()->back()->with('error', 'That purchase order status change is not allowed from the current workflow state.');
+        }
+
+        DB::transaction(function () use ($purchaseOrder, $validated, $warehouseReceive) {
+            $purchaseOrder->update(['status' => $validated['status']]);
             $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
 
-            if ($this->isInventoryPostingStatus($validated['status'])) {
+            if ($warehouseReceive) {
                 $this->postPurchaseOrderToInventory($purchaseOrder);
             }
         });
 
         $this->broadcastSystemDataUpdated(
-            'Purchase',
+            $warehouseReceive ? 'Warehouse' : 'Purchase',
             'PurchaseOrder',
-            'status_updated',
+            $warehouseReceive ? 'received' : 'status_updated',
             $purchaseOrder->id,
-            'A purchase order status was updated.'
+            $warehouseReceive ? 'Warehouse received a purchase order.' : 'A purchase order status was updated.'
         );
 
         session()->flash(
             'success',
-            'Purchase order status updated successfully.'
+            $warehouseReceive ? 'Delivery received and inventory updated successfully.' : 'Purchase order status updated successfully.'
         );
 
-        return new RedirectResponse('/purchase-orders');
+        return new RedirectResponse($warehouseReceive ? '/warehouse/incoming-deliveries' : '/purchase-orders');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
@@ -333,37 +302,18 @@ class PurchaseOrderController extends Controller
 
         DB::transaction(function () use ($purchaseOrder) {
             $maintenanceRequest = $purchaseOrder->maintenanceRequest;
-
             $purchaseOrder->delete();
 
             if ($maintenanceRequest && in_array($maintenanceRequest->status, $this->statuses, true)) {
-                $maintenanceRequest->update([
-                    'status' => 'For Purchase',
-                ]);
-
+                $maintenanceRequest->update(['status' => 'For Purchase']);
                 $this->updateRelatedJobOrderPartStatus($maintenanceRequest, 'For Purchase');
             }
         });
 
-        $this->broadcastSystemDataUpdated(
-            'Purchase',
-            'PurchaseOrder',
-            'deleted',
-            $purchaseOrderId,
-            'A purchase order was deleted.'
-        );
-
-        session()->flash(
-            'success',
-            'Purchase order deleted successfully.'
-        );
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'deleted', $purchaseOrderId, 'A purchase order was deleted.');
+        session()->flash('success', 'Purchase order deleted successfully.');
 
         return new RedirectResponse('/purchase-orders');
-    }
-
-    private function isInventoryPostingStatus(string $status): bool
-    {
-        return in_array($status, ['Delivered', 'Picked Up'], true);
     }
 
     private function postPurchaseOrderToInventory(PurchaseOrder $purchaseOrder): void
@@ -391,14 +341,11 @@ class PurchaseOrderController extends Controller
             $unit = trim($item['unit'] ?? 'PC');
             $supplier = $purchaseOrder->supplier_name ?: 'N/A';
 
-            $itemNames = $this->splitItemNames($rawItemName);
-
-            foreach ($itemNames as $itemName) {
+            foreach ($this->splitItemNames($rawItemName) as $itemName) {
                 $inventoryItem = $this->findInventoryItem($itemName);
 
                 if ($inventoryItem) {
                     $newOnHand = (int) ($inventoryItem->on_hand ?? $inventoryItem->quantity_available ?? 0) + $quantity;
-
                     $updateData = [
                         'quantity_available' => $newOnHand,
                         'supplier' => $inventoryItem->supplier ?: $supplier,
@@ -407,20 +354,14 @@ class PurchaseOrderController extends Controller
                     if (array_key_exists('on_hand', $inventoryItem->getAttributes())) {
                         $updateData['on_hand'] = $newOnHand;
                     }
-
                     if (array_key_exists('unit', $inventoryItem->getAttributes())) {
                         $updateData['unit'] = $inventoryItem->unit ?: $unit;
                     }
-
                     if (array_key_exists('unit_of_measurement', $inventoryItem->getAttributes())) {
                         $updateData['unit_of_measurement'] = $inventoryItem->unit_of_measurement ?: $unit;
                     }
-
                     if (array_key_exists('status', $inventoryItem->getAttributes())) {
-                        $updateData['status'] = $this->inventoryStatus(
-                            $newOnHand,
-                            (int) ($inventoryItem->reorder_level ?? 0)
-                        );
+                        $updateData['status'] = $this->inventoryStatus($newOnHand, (int) ($inventoryItem->reorder_level ?? 0));
                     }
 
                     $inventoryItem->forceFill($updateData)->save();
@@ -439,9 +380,7 @@ class PurchaseOrderController extends Controller
             }
         }
 
-        $purchaseOrder->update([
-            'inventory_posted_at' => now(),
-        ]);
+        $purchaseOrder->update(['inventory_posted_at' => now()]);
     }
 
     private function splitItemNames(string $itemName): array
@@ -479,7 +418,6 @@ class PurchaseOrderController extends Controller
         if ($onHand <= 0) {
             return 'Critical';
         }
-
         if ($reorderLevel > 0 && $onHand <= $reorderLevel) {
             return 'Low Stock';
         }
@@ -496,12 +434,9 @@ class PurchaseOrderController extends Controller
         return $code;
     }
 
-    private function syncRelatedMaintenanceRequestsAndJobOrders(
-        PurchaseOrder $purchaseOrder,
-        string $status
-    ): void {
+    private function syncRelatedMaintenanceRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
+    {
         $maintenanceRequests = collect();
-
         $purchaseOrder->refresh();
 
         if ($purchaseOrder->maintenanceRequest) {
@@ -516,28 +451,19 @@ class PurchaseOrderController extends Controller
             }
 
             $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)->first();
-
             if ($maintenanceRequest) {
                 $maintenanceRequests->push($maintenanceRequest);
             }
         }
 
-        $maintenanceRequests
-            ->unique('id')
-            ->each(function (MaintenanceRequest $maintenanceRequest) use ($status) {
-                if ($maintenanceRequest->status === 'Issued') {
-                    return;
-                }
+        $maintenanceRequests->unique('id')->each(function (MaintenanceRequest $maintenanceRequest) use ($status) {
+            if ($maintenanceRequest->status === 'Issued') {
+                return;
+            }
 
-                $maintenanceRequest->update([
-                    'status' => $status,
-                ]);
-
-                $this->updateRelatedJobOrderPartStatus(
-                    $maintenanceRequest,
-                    $status
-                );
-            });
+            $maintenanceRequest->update(['status' => $status]);
+            $this->updateRelatedJobOrderPartStatus($maintenanceRequest, $status);
+        });
     }
 
     private function updateRelatedJobOrderPartStatus(MaintenanceRequest $maintenanceRequest, string $partStatus): void
@@ -552,9 +478,7 @@ class PurchaseOrderController extends Controller
             return;
         }
 
-        $jobOrder->update([
-            'part_status' => $partStatus,
-        ]);
+        $jobOrder->update(['part_status' => $partStatus]);
     }
 
     private function findFirstMaintenanceRequest(array $items): ?MaintenanceRequest
@@ -567,7 +491,6 @@ class PurchaseOrderController extends Controller
             }
 
             $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)->first();
-
             if ($maintenanceRequest) {
                 return $maintenanceRequest;
             }
@@ -579,7 +502,6 @@ class PurchaseOrderController extends Controller
     private function normalizePrNo(?string $prNo): ?string
     {
         $prNo = trim((string) $prNo);
-
         if ($prNo === '') {
             return null;
         }
@@ -621,7 +543,6 @@ class PurchaseOrderController extends Controller
     private function calculateTotals(array $items, $deliveryFee, $discount, $vat): array
     {
         $grossAmount = 0;
-
         foreach ($items as $item) {
             $grossAmount += (float) $item['amount'];
         }
@@ -642,14 +563,12 @@ class PurchaseOrderController extends Controller
     private function cleanCurrency($value): float
     {
         $cleaned = preg_replace('/[^\d.]/', '', (string) $value);
-
         return $cleaned !== '' ? (float) $cleaned : 0;
     }
 
     private function generatePoNo(): string
     {
         $year = now()->format('Y');
-
         $lastPurchaseOrder = PurchaseOrder::where('po_no', 'like', "PO-{$year}-%")
             ->orderByDesc('id')
             ->first();
@@ -659,7 +578,6 @@ class PurchaseOrderController extends Controller
         }
 
         preg_match('/PO-' . $year . '-(\d+)/', $lastPurchaseOrder->po_no, $matches);
-
         $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
         $newPoNo = 'PO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 

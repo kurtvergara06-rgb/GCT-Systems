@@ -7,6 +7,7 @@ use App\Services\TopbarSummaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class TopbarController extends Controller
 {
@@ -22,14 +23,25 @@ class TopbarController extends Controller
 
     public function markAllNotificationsRead(Request $request): JsonResponse
     {
-        DB::table('topbar_read_states')->updateOrInsert(
-            ['user_id' => $request->user()->id],
-            [
-                'notifications_read_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+        $userId = (int) $request->user()->id;
+        $readAt = now();
+
+        DB::transaction(function () use ($userId, $readAt): void {
+            DB::table('topbar_read_states')->updateOrInsert(
+                ['user_id' => $userId],
+                [
+                    'notifications_read_at' => $readAt,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            if (Schema::hasTable('topbar_notification_reads')) {
+                DB::table('topbar_notification_reads')
+                    ->where('user_id', $userId)
+                    ->delete();
+            }
+        });
 
         return response()->json([
             'success' => true,

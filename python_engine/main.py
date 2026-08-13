@@ -13,6 +13,7 @@ from NLP.pdf_extractor import (
     extract_pdf_text,
 )
 from NLP.text_cleaner import clean_text
+from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
 
 
@@ -25,6 +26,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+app.include_router(
+    analytics_router,
+    prefix="/analytics",
+    tags=["Business Analytics"],
+)
 
 # Register the Operation AI router during application startup.
 app.include_router(

@@ -30,46 +30,7 @@
     {{-- =====================================================
         SIDEBAR
     ====================================================== --}}
-    <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-cart-shopping"
-      user-name="P. Admin"
-      user-role="Purchase Admin"
-      :items="[
-        [
-          'label' => 'Dashboard',
-          'route' => 'dashboard-purchase',
-          'icon' => 'fa-table-cells-large'
-        ],
-        [
-          'label' => 'Purchase Orders',
-          'route' => 'purchase-orders',
-          'icon' => 'fa-file-invoice'
-        ],
-        [
-          'label' => 'Requested Purchase',
-          'icon' => 'fa-clipboard-list',
-          'children' => [
-            [
-              'label' => 'Maintenance Requests',
-              'route' => 'maintenance-requests',
-              'icon' => 'fa-screwdriver-wrench'
-            ],
-            [
-              'label' => 'Inventory Restock',
-              'route' => 'inventory-restock',
-              'icon' => 'fa-boxes-stacked'
-            ],
-          ],
-        ],
-        [
-          'label' => 'Scheduled Purchase',
-          'route' => 'scheduled-purchase',
-          'icon' => 'fa-calendar-check'
-        ],
-      ]"
-    />
+    <x-layout.sidebar department="Purchase" />
 
 
     <main class="main purchase-dashboard-main">
@@ -87,7 +48,7 @@
       {{-- =====================================================
           SUMMARY CARDS
       ====================================================== --}}
-      <section class="stats-grid purchase-dashboard-stats">
+      <section data-ajax-region="summary" class="stats-grid purchase-dashboard-stats">
 
         <x-ui.summary-card
           label="Purchase Requests"

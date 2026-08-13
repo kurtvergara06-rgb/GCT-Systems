@@ -91,3 +91,5 @@ python_engine/**/__pycache__/
 python_engine/**/*.pyc
 python_engine/uploads/*
 !python_engine/uploads/.gitkeep
+
+server_command

@@ -1,0 +1,289 @@
+/* Shared, restrained motion for analytics charts and graph-like indicators. */
+
+.fleet-trip-page .reference-chart-line {
+    stroke-dasharray: 1600;
+    stroke-dashoffset: 1600;
+    animation: analyticsLineDraw 1s cubic-bezier(.22, .61, .36, 1) .12s forwards;
+}
+
+.fleet-trip-page .reference-line-chart polygon {
+    opacity: 0;
+    animation: analyticsAreaFade .7s ease-out .45s forwards;
+}
+
+.fleet-trip-page .reference-chart-dot {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: analyticsPointPop .38s ease-out .72s forwards;
+}
+
+.fleet-trip-page .reference-chart-value,
+.fleet-trip-page .reference-chart-label,
+.fleet-trip-page .reference-chart-legend {
+    opacity: 0;
+    animation: analyticsFadeUp .42s ease-out .78s forwards;
+}
+
+.fleet-trip-page .metric-bar > span,
+.fleet-trip-page .diagnostic-profile-track > span,
+.fleet-trip-page .analytics-signal-track > span {
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: analyticsBarGrow .72s cubic-bezier(.22, .61, .36, 1) .2s forwards;
+}
+
+.fleet-trip-page .forecast-bar {
+    clip-path: inset(100% 0 0 0);
+    animation: analyticsColumnReveal .7s cubic-bezier(.22, .61, .36, 1) .18s forwards;
+}
+
+.fleet-trip-page .forecast-group:nth-child(2) .forecast-bar { animation-delay: .24s; }
+.fleet-trip-page .forecast-group:nth-child(3) .forecast-bar { animation-delay: .30s; }
+.fleet-trip-page .forecast-group:nth-child(4) .forecast-bar { animation-delay: .36s; }
+.fleet-trip-page .forecast-group:nth-child(5) .forecast-bar { animation-delay: .42s; }
+.fleet-trip-page .forecast-group:nth-child(6) .forecast-bar { animation-delay: .48s; }
+.fleet-trip-page .forecast-group:nth-child(7) .forecast-bar { animation-delay: .54s; }
+.fleet-trip-page .forecast-group:nth-child(8) .forecast-bar { animation-delay: .60s; }
+
+.fleet-trip-page .availability-ring,
+.fleet-trip-page .diagnostic-donut,
+.fleet-trip-page .predictive-readiness-ring {
+    opacity: 0;
+    transform: scale(.82) rotate(-14deg);
+    animation: analyticsRingReveal .7s cubic-bezier(.22, .61, .36, 1) .14s forwards;
+}
+
+.fleet-trip-page .diagnostic-donut-legend > div,
+.fleet-trip-page .availability-breakdown > div,
+.fleet-trip-page .predictive-readiness-stats > div {
+    opacity: 0;
+    transform: translateY(7px);
+    animation: analyticsFadeUp .4s ease-out forwards;
+}
+
+.fleet-trip-page .diagnostic-donut-legend > div:nth-child(1),
+.fleet-trip-page .availability-breakdown > div:nth-child(1),
+.fleet-trip-page .predictive-readiness-stats > div:nth-child(1) { animation-delay: .38s; }
+
+.fleet-trip-page .diagnostic-donut-legend > div:nth-child(2),
+.fleet-trip-page .availability-breakdown > div:nth-child(2),
+.fleet-trip-page .predictive-readiness-stats > div:nth-child(2) { animation-delay: .45s; }
+
+.fleet-trip-page .diagnostic-donut-legend > div:nth-child(3),
+.fleet-trip-page .availability-breakdown > div:nth-child(3),
+.fleet-trip-page .predictive-readiness-stats > div:nth-child(3) { animation-delay: .52s; }
+
+.fleet-trip-page .diagnostic-donut-legend > div:nth-child(4),
+.fleet-trip-page .availability-breakdown > div:nth-child(4) { animation-delay: .59s; }
+
+/* Fleet & Trip readability: keep the dashboard compact while making chart values easier to scan. */
+.fleet-trip-page .analytics-kpi strong {
+    font-size: 28px;
+}
+
+.fleet-trip-page .analytics-kpi span {
+    font-size: 12px;
+}
+
+.fleet-trip-page .analytics-kpi small {
+    font-size: 10.5px;
+    line-height: 1.4;
+}
+
+.fleet-trip-page .analytics-card-header h3 {
+    font-size: 17px;
+}
+
+.fleet-trip-page .analytics-card-header p,
+.fleet-trip-page .predictive-summary-note {
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.fleet-trip-page .analytics-card-badge {
+    font-size: 10px;
+}
+
+.fleet-trip-page .reference-chart-label {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.fleet-trip-page .reference-chart-value {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.fleet-trip-page .reference-chart-legend,
+.fleet-trip-page .forecast-chart-legend {
+    font-size: 11px;
+}
+
+.fleet-trip-page .diagnostic-profile-row strong,
+.fleet-trip-page .diagnostic-profile-row b,
+.fleet-trip-page .analytics-signal-row strong,
+.fleet-trip-page .analytics-signal-row b {
+    font-size: 12px;
+}
+
+.fleet-trip-page .diagnostic-donut-center strong {
+    font-size: 34px;
+}
+
+.fleet-trip-page .diagnostic-donut-center span,
+.fleet-trip-page .diagnostic-donut-legend > div {
+    font-size: 11px;
+}
+
+.fleet-trip-page .diagnostic-donut-legend strong {
+    font-size: 13px;
+}
+
+.fleet-trip-page .forecast-y-axis {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.fleet-trip-page .forecast-bar span {
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.fleet-trip-page .forecast-group > strong {
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.fleet-trip-page .predictive-readiness-ring strong,
+.fleet-trip-page .availability-ring-center strong {
+    font-size: 24px;
+}
+
+.fleet-trip-page .predictive-readiness-ring span,
+.fleet-trip-page .availability-ring-center span {
+    font-size: 10px;
+}
+
+.fleet-trip-page .predictive-readiness-stats span,
+.fleet-trip-page .availability-row,
+.fleet-trip-page .availability-total {
+    font-size: 11px;
+}
+
+.fleet-trip-page .predictive-readiness-stats strong,
+.fleet-trip-page .availability-row strong,
+.fleet-trip-page .availability-total strong {
+    font-size: 13px;
+}
+
+.fleet-trip-page .refined-rank-number,
+.fleet-trip-page .flagged-review-index,
+.fleet-trip-page .predictive-forecast-index,
+.fleet-trip-page .analytics-rank-index {
+    font-size: 11px;
+}
+
+.fleet-trip-page .refined-ranking-title-row strong,
+.fleet-trip-page .flagged-review-title-row strong,
+.fleet-trip-page .predictive-forecast-head strong,
+.fleet-trip-page .analytics-rank-row strong {
+    font-size: 13px;
+}
+
+.fleet-trip-page .refined-ranking-title-row > span,
+.fleet-trip-page .flagged-review-time strong,
+.fleet-trip-page .predictive-forecast-risk > strong,
+.fleet-trip-page .analytics-rank-value {
+    font-size: 12px;
+}
+
+.fleet-trip-page .refined-ranking-meta,
+.fleet-trip-page .flagged-review-evidence,
+.fleet-trip-page .predictive-forecast-evidence,
+.fleet-trip-page .analytics-rank-row small {
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.fleet-trip-page .predictive-forecast-metrics span {
+    font-size: 9px;
+}
+
+.fleet-trip-page .predictive-forecast-metrics strong {
+    font-size: 11px;
+}
+
+.fleet-trip-page .prescriptive-candidate-card > strong {
+    font-size: 30px;
+}
+
+@keyframes analyticsLineDraw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes analyticsAreaFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes analyticsPointPop {
+    from { opacity: 0; transform: scale(.45); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes analyticsBarGrow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes analyticsColumnReveal {
+    from { clip-path: inset(100% 0 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes analyticsRingReveal {
+    from { opacity: 0; transform: scale(.82) rotate(-14deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes analyticsFadeUp {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 800px) {
+    .fleet-trip-page .analytics-kpi strong {
+        font-size: 26px;
+    }
+
+    .fleet-trip-page .reference-chart-label,
+    .fleet-trip-page .reference-chart-value {
+        font-size: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fleet-trip-page .reference-chart-line,
+    .fleet-trip-page .reference-line-chart polygon,
+    .fleet-trip-page .reference-chart-dot,
+    .fleet-trip-page .reference-chart-value,
+    .fleet-trip-page .reference-chart-label,
+    .fleet-trip-page .reference-chart-legend,
+    .fleet-trip-page .metric-bar > span,
+    .fleet-trip-page .diagnostic-profile-track > span,
+    .fleet-trip-page .analytics-signal-track > span,
+    .fleet-trip-page .forecast-bar,
+    .fleet-trip-page .availability-ring,
+    .fleet-trip-page .diagnostic-donut,
+    .fleet-trip-page .predictive-readiness-ring,
+    .fleet-trip-page .diagnostic-donut-legend > div,
+    .fleet-trip-page .availability-breakdown > div,
+    .fleet-trip-page .predictive-readiness-stats > div {
+        animation: none !important;
+        clip-path: none;
+        opacity: 1;
+        transform: none;
+        stroke-dashoffset: 0;
+    }
+}

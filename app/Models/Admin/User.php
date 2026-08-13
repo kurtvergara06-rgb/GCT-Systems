@@ -32,6 +32,38 @@ class User extends Authenticatable
         return UserFactory::new();
     }
 
+    public function permissionRoleKey(): string
+    {
+        $department = strtolower(trim((string) $this->department));
+        $role = strtolower(trim((string) $this->role));
+
+        if ($department === 'admin' && $role === 'head') {
+            return 'admin_head';
+        }
+
+        return str_replace(' ', '_', $department) . '_' . $role;
+    }
+
+    public function rolePermission(): ?RolePermission
+    {
+        return RolePermission::where('role_key', $this->permissionRoleKey())->first();
+    }
+
+    public function hasSystemPermission(string $module, string $capability): bool
+    {
+        $rolePermission = $this->rolePermission();
+
+        if (! $rolePermission) {
+            return false;
+        }
+
+        return (bool) data_get(
+            $rolePermission->permissions,
+            $module . '.' . $capability,
+            false
+        );
+    }
+
     protected function casts(): array
     {
         return [

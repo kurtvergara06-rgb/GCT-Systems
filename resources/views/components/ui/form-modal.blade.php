@@ -230,6 +230,7 @@
                                 {{ $submitClass }}
                             "
                         >
+                            <x-ui.spinner size="sm" hidden />
 
                             @if($submitIcon)
 
@@ -239,6 +240,7 @@
 
 
                             <span
+                                data-loading-label
                                 @if($submitTextId)
                                     id="{{ $submitTextId }}"
                                 @endif

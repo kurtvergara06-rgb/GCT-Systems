@@ -23,6 +23,7 @@ export default defineConfig({
                 'resources/css/Main-styles/sidebar.css',
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/system-toast.css',
+                'resources/css/Account/account.css',
 
                 'resources/js/Main-js/sidebar.js',
                 'resources/js/Main-js/confirmation-modal.js',
@@ -33,9 +34,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Login/login.css',
-
-                // Add this only if login.blade.php references it.
-                // 'resources/js/Login/login.js',
+                'resources/js/Login/login.js',
 
                 // ======================================================
                 // ADMIN — DASHBOARD
@@ -50,7 +49,6 @@ export default defineConfig({
 
                 'resources/css/Admin/User_Management/users.css',
                 'resources/css/Admin/User_Management/permissions.css',
-                'resources/css/Admin/User_Management/account-requests.css',
 
                 'resources/js/Admin/User_Management/users.js',
 
@@ -59,6 +57,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Admin/Data_Management/batch-file-processing.css',
+                'resources/css/Admin/Data_Management/generic-batch-review.css',
                 'resources/css/Admin/Data_Management/data-history.css',
                 'resources/css/Admin/Data_Management/uploading-data.css',
 
@@ -70,6 +69,7 @@ export default defineConfig({
 
                 'resources/css/Admin/System_Monitoring/activity-logs.css',
                 'resources/css/Admin/System_Monitoring/notifications.css',
+                'resources/js/Admin/System_Monitoring/activity-logs.js',
 
                 // ======================================================
                 // ADMIN — SETTINGS
@@ -85,6 +85,9 @@ export default defineConfig({
 
                 'resources/css/Admin/Analytics/overview.css',
                 'resources/css/Admin/Analytics/fleet-trip.css',
+                'resources/css/Admin/Analytics/fleet-trip-tabs.css',
+                'resources/css/Admin/Analytics/fleet-trip-redesign.css',
+                'resources/css/Admin/Analytics/fleet-trip-rankings.css',
                 'resources/css/Admin/Analytics/fuel.css',
                 'resources/css/Admin/Analytics/bus-health.css',
                 'resources/css/Admin/Analytics/inventory.css',
