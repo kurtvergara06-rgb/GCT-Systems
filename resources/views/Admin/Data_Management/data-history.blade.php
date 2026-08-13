@@ -1,10 +1,7 @@
 <x-layout.app
     title="FROMS - Data History"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Data_Management/data-history.css',
-        'resources/js/Main-js/sidebar.js'
     ]"
 >
     <div class="app">
@@ -96,7 +93,7 @@
 
                     <div class="filter-group">
                         <select name="status" onchange="this.form.submit()">
-                            @foreach(['All Status', 'Completed', 'For Review', 'Failed', 'Processing', 'Deleted'] as $status)
+                            @foreach(['All Status', 'Completed', 'For Review', 'Needs Correction', 'Failed', 'Processing', 'Deleted'] as $status)
                                 <option value="{{ $status }}" {{ request('status', 'All Status') === $status ? 'selected' : '' }}>
                                     {{ $status }}
                                 </option>
@@ -133,7 +130,7 @@
                                     $moduleClass = strtolower($item->module ?: 'admin');
                                     $statusClass = match($item->status) {
                                         'Completed' => 'completed',
-                                        'Failed' => 'failed',
+                                        'Failed', 'Needs Correction' => 'failed',
                                         default => 'processing',
                                     };
 
@@ -207,9 +204,9 @@
 
                                     <td>
                                         <div class="actions">
-                                            <button
-                                                type="button"
-                                                class="action-btn view open-history-modal"
+                                            <x-ui.action-button
+                                                type="view"
+                                                class="open-history-modal"
                                                 title="View Details"
                                                 data-file="{{ $item->file_name ?: 'System Data Activity' }}"
                                                 data-type="{{ $item->activity_type }}"
@@ -225,9 +222,7 @@
                                                 data-date="{{ $activityDate?->format('M d, Y') ?? '—' }}"
                                                 data-time="{{ $activityDate?->format('g:i A') ?? '' }}"
                                                 data-error="{{ $item->error_message ?: 'None' }}"
-                                            >
-                                                <i class="fa-solid fa-eye"></i>
-                                            </button>
+                                            />
                                         </div>
                                     </td>
                                 </tr>
@@ -291,7 +286,9 @@
                     </div>
                 </div>
 
-                <button type="button" id="closeHistoryModal" class="history-modal-close">&times;</button>
+                <button type="button" id="closeHistoryModal" class="history-modal-close" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
             <div class="history-modal-body">
@@ -317,57 +314,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('historyDetailsModal');
-            const closeTop = document.getElementById('closeHistoryModal');
-            const closeFooter = document.getElementById('closeHistoryModalFooter');
-
-            function setText(id, value) {
-                const element = document.getElementById(id);
-                if (element) element.textContent = value || '—';
-            }
-
-            function openModal(button) {
-                setText('historyModalFile', button.dataset.file);
-                setText('historyModalType', button.dataset.type);
-                setText('historyModalModule', button.dataset.module);
-                setText('historyModalDataType', button.dataset.dataType);
-                setText('historyModalSource', button.dataset.source);
-                setText('historyModalRecords', button.dataset.records);
-                setText('historyModalSuccessful', button.dataset.successful);
-                setText('historyModalFailed', button.dataset.failed);
-                setText('historyModalSkipped', button.dataset.skipped);
-                setText('historyModalStatus', button.dataset.status);
-                setText('historyModalUser', button.dataset.user);
-                setText('historyModalDateTime', `${button.dataset.date || '—'} ${button.dataset.time || ''}`);
-                setText('historyModalError', button.dataset.error);
-
-                modal?.classList.add('show');
-                document.body.classList.add('history-modal-open');
-            }
-
-            function closeModal() {
-                modal?.classList.remove('show');
-                document.body.classList.remove('history-modal-open');
-            }
-
-            document.addEventListener('click', function (event) {
-                const button = event.target.closest('.open-history-modal');
-                if (button) openModal(button);
-            });
-
-            closeTop?.addEventListener('click', closeModal);
-            closeFooter?.addEventListener('click', closeModal);
-
-            modal?.addEventListener('click', function (event) {
-                if (event.target === modal) closeModal();
-            });
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && modal?.classList.contains('show')) closeModal();
-            });
-        });
-    </script>
 </x-layout.app>

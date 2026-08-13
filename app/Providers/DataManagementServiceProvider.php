@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Admin\AdminImportExportController;
+use App\Http\Controllers\Admin\StructuredImportReviewController;
+use App\Http\Controllers\Admin\TransferActivityController;
 use App\Models\Admin\BatchUpload;
 use App\Models\Admin\DataActivity;
 use App\Observers\BatchUploadObserver;
@@ -24,8 +26,23 @@ class DataManagementServiceProvider extends ServiceProvider
         Route::middleware(['web', 'auth'])->group(function () {
             Route::post(
                 '/admin/import-export/import',
-                [AdminImportExportController::class, 'import']
+                [StructuredImportReviewController::class, 'stage']
             )->name('admin.import-export.import');
+
+            Route::get(
+                '/admin/import-export/activity/{activity}',
+                [StructuredImportReviewController::class, 'details']
+            )->name('admin.import-export.activity.details');
+
+            Route::post(
+                '/admin/import-export/activity/{activity}/approve',
+                [StructuredImportReviewController::class, 'approve']
+            )->name('admin.import-export.activity.approve');
+
+            Route::get(
+                '/admin/import-export/recent-activities',
+                [TransferActivityController::class, 'recent']
+            )->name('admin.import-export.activities.recent');
 
             Route::post(
                 '/admin/import-export/export',
@@ -74,7 +91,7 @@ class DataManagementServiceProvider extends ServiceProvider
                     'Batch Processing',
                     'Import',
                 ])->where('status', 'Completed')->count(),
-                'failed' => DataActivity::where('status', 'Failed')->count(),
+                'failed' => DataActivity::whereIn('status', ['Failed', 'Needs Correction'])->count(),
             ];
 
             $view->with(compact('history', 'stats'));
@@ -85,7 +102,13 @@ class DataManagementServiceProvider extends ServiceProvider
 
             $recentTransferActivities = DataActivity::query()
                 ->with('processor')
-                ->whereIn('activity_type', ['Import', 'Export'])
+                ->where(function ($query) {
+                    $query->where('activity_type', 'Import')
+                        ->orWhere(function ($exportQuery) {
+                            $exportQuery->where('activity_type', 'Export')
+                                ->where('total_records', '>', 0);
+                        });
+                })
                 ->latest()
                 ->limit(6)
                 ->get();
@@ -95,13 +118,14 @@ class DataManagementServiceProvider extends ServiceProvider
                     ->where('created_at', '>=', $monthStart)
                     ->count(),
                 'exports' => DataActivity::where('activity_type', 'Export')
+                    ->where('total_records', '>', 0)
                     ->where('created_at', '>=', $monthStart)
                     ->count(),
                 'imported_records' => DataActivity::where('activity_type', 'Import')
                     ->where('status', 'Completed')
                     ->sum('successful_records'),
                 'review' => DataActivity::whereIn('activity_type', ['Import', 'Export'])
-                    ->whereIn('status', ['For Review', 'Failed'])
+                    ->whereIn('status', ['For Review', 'Needs Correction', 'Failed'])
                     ->count(),
             ];
 
