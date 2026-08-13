@@ -1502,6 +1502,210 @@
 
 
 /* =========================================================
+   PREDICTIVE CHARTS
+========================================================= */
+
+.predictive-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.predictive-chart-panel {
+    min-width: 0;
+}
+
+.predictive-chart-shell {
+    height: 300px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+}
+
+.predictive-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px 0 48px;
+    color: #94a3b8;
+    font-size: 10px;
+    text-align: right;
+}
+
+.predictive-plot {
+    position: relative;
+    min-width: 0;
+    border-left: 1px solid #dce5ef;
+    border-bottom: 1px solid #dce5ef;
+}
+
+.predictive-grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #edf2f7;
+}
+
+.predictive-grid-line.grid-25 {
+    bottom: 25%;
+}
+
+.predictive-grid-line.grid-50 {
+    bottom: 50%;
+}
+
+.predictive-grid-line.grid-75 {
+    bottom: 75%;
+}
+
+.predictive-grid-line.grid-100 {
+    top: 0;
+}
+
+.predictive-groups {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--forecast-columns, 1), minmax(76px, 1fr));
+    align-items: stretch;
+    gap: 16px;
+    padding: 12px 18px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.predictive-bar-group {
+    min-width: 76px;
+    height: 100%;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 20px 28px;
+    gap: 4px;
+    text-align: center;
+}
+
+.predictive-bars-pair {
+    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+}
+
+.predictive-bars-pair.single {
+    gap: 0;
+}
+
+.predictive-bar-wrap {
+    position: relative;
+    width: min(38px, 42%);
+    height: calc(100% - 24px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.predictive-bar-wrap.risk-wrap {
+    width: min(48px, 60%);
+}
+
+.predictive-bar-value {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--bar-height, 0%) + 3px);
+    transform: translateX(-50%);
+    color: var(--ft-navy);
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.predictive-bar {
+    width: 100%;
+    min-height: 3px;
+    border-radius: 7px 7px 2px 2px;
+}
+
+.predictive-bar.baseline {
+    background: #94a3b8;
+}
+
+.predictive-bar.predicted {
+    background: linear-gradient(180deg, #3b75e6, #0b40b5);
+    box-shadow: 0 6px 14px rgba(11, 64, 181, 0.18);
+}
+
+.predictive-bar.risk.low {
+    background: var(--ft-green);
+}
+
+.predictive-bar.risk.moderate {
+    background: var(--ft-yellow);
+}
+
+.predictive-bar.risk.high {
+    background: var(--ft-red);
+}
+
+.predictive-bar.risk.zero {
+    height: 3px !important;
+}
+
+.predictive-bar-group > strong {
+    align-self: end;
+    overflow: hidden;
+    color: var(--ft-navy);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.predictive-bar-group > span {
+    overflow: hidden;
+    color: var(--ft-muted);
+    font-size: 9px;
+    line-height: 1.25;
+}
+
+.predictive-chart-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid #e7edf5;
+    color: var(--ft-muted);
+    font-size: 10px;
+}
+
+.predictive-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.legend-swatch.baseline {
+    background: #94a3b8;
+}
+
+.legend-swatch.predicted {
+    background: var(--ft-blue);
+}
+
+.risk-legend {
+    line-height: 1.4;
+}
+
+
+/* =========================================================
    RESPONSIVE
 ========================================================= */
 
@@ -1518,7 +1722,8 @@
 @media (max-width: 1100px) {
 
     .trip-hero,
-    .trip-primary-grid {
+    .trip-primary-grid,
+    .predictive-chart-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1594,6 +1799,15 @@
 
     .fleet-recommendation {
         grid-template-columns: 1fr;
+    }
+
+    .predictive-chart-shell {
+        height: 260px;
+        grid-template-columns: 36px minmax(0, 1fr);
+    }
+
+    .predictive-groups {
+        padding-inline: 12px;
     }
 
 }
