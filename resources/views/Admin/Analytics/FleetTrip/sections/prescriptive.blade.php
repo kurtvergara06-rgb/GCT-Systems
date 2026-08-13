@@ -1,7 +1,7 @@
 @php
     $predictiveEvidenceReady = $prediction->available && $prediction->predicted_target_count > 0;
-    $readyLayers = 2 + ($predictiveEvidenceReady ? 1 : 0);
-    $readinessPercent = ($readyLayers / 3) * 100;
+    $availableLayers = 2 + ($predictiveEvidenceReady ? 1 : 0);
+    $layerCoverage = ($availableLayers / 3) * 100;
     $routeReviewSignals = (int) $diagnostics->delayed_with_slow_movement;
     $scheduleSignals = (int) $prediction->peak_periods->count();
     $primaryPeak = $prediction->peak_periods->first();
@@ -9,15 +9,15 @@
 
 <section class="analytics-stage analytics-stage-clean">
     <section class="analytics-kpi-strip">
-        <article class="analytics-kpi"><div class="analytics-kpi-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div><div><span>Diagnostic Inputs</span><strong>{{ number_format($diagnostics->review_count) }}</strong><small>Trips currently requiring review</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon green"><i class="fa-solid fa-chart-line"></i></div><div><span>Predictive Inputs</span><strong>{{ number_format($prediction->predicted_target_count) }}</strong><small>{{ $prediction->available ? 'Upcoming trips with forecasts' : 'Python service unavailable' }}</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon purple"><i class="fa-solid fa-diagram-project"></i></div><div><span>Rule Families</span><strong>4</strong><small>Shuttle, route, schedule, and maintenance decision support</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon yellow"><i class="fa-solid fa-user-check"></i></div><div><span>Decision Mode</span><strong>Advisory</strong><small>Operator approval remains required</small></div></article>
+        <x-analytics.kpi label="Diagnostic Inputs" :value="number_format($diagnostics->review_count)" small="Trips currently requiring review" icon="fa-magnifying-glass-chart" />
+        <x-analytics.kpi label="Predictive Inputs" :value="number_format($prediction->predicted_target_count)" :small="$prediction->available ? 'Upcoming trips with forecasts' : 'Python service unavailable'" icon="fa-chart-line" tone="green" />
+        <x-analytics.kpi label="Rule Families" value="4" small="Shuttle, route, schedule, and maintenance decision support" icon="fa-diagram-project" tone="purple" />
+        <x-analytics.kpi label="Decision Mode" value="Advisory" small="Operator approval remains required" icon="fa-user-check" tone="yellow" />
     </section>
 
     <section class="analytics-main-grid analytics-main-grid-balanced">
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Recommendation Pipeline</h3><p>Planned decision-support outputs and the evidence each rule family will consume.</p></div><span class="analytics-card-badge">5.4 next phase</span></div>
+            <x-analytics.card-header title="Recommendation Pipeline" description="Planned decision-support outputs and the evidence each rule family will consume." badge="5.4 next phase" />
             <div class="prescriptive-pipeline-list">
                 <div class="prescriptive-pipeline-row">
                     <span class="prescriptive-pipeline-icon"><i class="fa-solid fa-bus"></i></span>
@@ -43,20 +43,20 @@
         </article>
 
         <article class="analytics-card prescriptive-readiness-card">
-            <div class="analytics-card-header"><div><h3>Evidence Readiness</h3><p>Analytics inputs available before 5.4 recommendation rules are implemented.</p></div><span class="analytics-card-badge">{{ $readyLayers }}/3 inputs ready</span></div>
+            <x-analytics.card-header title="Evidence Layers Available" description="Analytics inputs currently available before 5.4 recommendation rules are implemented." :badge="$availableLayers . '/3 layers available'" />
             <div class="analytics-availability-layout">
                 <div class="availability-score">
-                    <div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $readinessPercent * 3.6)) }}deg;">
-                        <div class="availability-ring-center"><strong>{{ number_format($readinessPercent, 0) }}%</strong><span>Inputs ready</span></div>
+                    <div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $layerCoverage * 3.6)) }}deg;">
+                        <div class="availability-ring-center"><strong>{{ $availableLayers }}/3</strong><span>Evidence layers</span></div>
                     </div>
                 </div>
                 <div class="availability-breakdown">
-                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Descriptive Evidence</span></div><strong>Ready</strong></div>
-                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Diagnostic Evidence</span></div><strong>Ready</strong></div>
-                    <div class="availability-row"><div><span class="availability-dot {{ $predictiveEvidenceReady ? 'operational' : 'maintenance' }}"></span><span>Predictive Evidence</span></div><strong>{{ $predictiveEvidenceReady ? 'Ready' : 'Waiting' }}</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Descriptive Evidence</span></div><strong>Available</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Diagnostic Evidence</span></div><strong>Available</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot {{ $predictiveEvidenceReady ? 'operational' : 'maintenance' }}"></span><span>Predictive Evidence</span></div><strong>{{ $predictiveEvidenceReady ? 'Available' : 'Waiting' }}</strong></div>
                 </div>
             </div>
-            <div class="prescriptive-readiness-note"><i class="fa-solid fa-circle-info"></i> Evidence readiness does not mean 5.4 is live. Recommendation rules still remain to be implemented and validated.</div>
+            <div class="prescriptive-readiness-note"><i class="fa-solid fa-circle-info"></i> Available evidence does not mean 5.4 is live. Recommendation rules still remain to be implemented and validated.</div>
         </article>
     </section>
 
@@ -92,7 +92,7 @@
 
     <section class="analytics-list-grid prescriptive-queue-grid">
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Diagnostic Queue</h3><p>Current evidence that can later trigger recommendation rules.</p></div><span class="analytics-card-badge">{{ number_format($diagnostics->review_count) }} trips</span></div>
+            <x-analytics.card-header title="Diagnostic Queue" description="Current evidence that can later trigger recommendation rules." :badge="number_format($diagnostics->review_count) . ' trips'" />
             <div class="analytics-rank-list">
                 <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-clock-rotate-left"></i></span><div><strong>{{ number_format($diagnostics->delay_count) }} delay indicators</strong><small>Trips above the route delay threshold.</small></div><div class="analytics-rank-value">Delay</div></div>
                 <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-gauge-simple-low"></i></span><div><strong>{{ number_format($diagnostics->slow_movement_count) }} slow-movement records</strong><small>Trips below 80% of their route-speed baseline.</small></div><div class="analytics-rank-value">Slow</div></div>
@@ -101,7 +101,7 @@
         </article>
 
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Forecast Queue</h3><p>Upcoming trips and historical periods available to future prescriptive rules.</p></div><span class="analytics-card-badge">{{ number_format($prediction->predicted_target_count) }} forecasted</span></div>
+            <x-analytics.card-header title="Forecast Queue" description="Upcoming trips and historical periods available to future prescriptive rules." :badge="number_format($prediction->predicted_target_count) . ' forecasted'" />
             <div class="analytics-rank-list">
                 <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-bullseye"></i></span><div><strong>{{ number_format($prediction->target_count) }} upcoming targets</strong><small>Scheduled or ready trips reviewed by the prediction service.</small></div><div class="analytics-rank-value">Targets</div></div>
                 <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-chart-line"></i></span><div><strong>{{ number_format($prediction->predicted_target_count) }} forecastable trips</strong><small>Upcoming trips with enough comparable route history.</small></div><div class="analytics-rank-value">Forecast</div></div>

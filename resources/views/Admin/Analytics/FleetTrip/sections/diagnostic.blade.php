@@ -1,9 +1,9 @@
 <section class="analytics-stage analytics-stage-clean">
     <section class="analytics-kpi-strip">
-        <article class="analytics-kpi"><div class="analytics-kpi-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div><div><span>Trips Requiring Review</span><strong>{{ number_format($diagnostics->review_count) }}</strong><small>Records with at least one review indicator</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon yellow"><i class="fa-solid fa-gauge-simple-low"></i></div><div><span>Slow Movement</span><strong>{{ number_format($diagnostics->slow_movement_count) }}</strong><small>Below 80% of route median speed</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon purple"><i class="fa-solid fa-hourglass-half"></i></div><div><span>High Idling</span><strong>{{ number_format($diagnostics->high_idle_count) }}</strong><small>15+ idle min and 20%+ of trip time</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon red"><i class="fa-solid fa-clock-rotate-left"></i></div><div><span>Delay Indicators</span><strong>{{ number_format($diagnostics->delay_count) }}</strong><small>Above the route delay threshold</small></div></article>
+        <x-analytics.kpi label="Trips Requiring Review" :value="number_format($diagnostics->review_count)" small="Records with at least one review indicator" icon="fa-magnifying-glass-chart" />
+        <x-analytics.kpi label="Slow Movement" :value="number_format($diagnostics->slow_movement_count)" small="Below 80% of route median speed" icon="fa-gauge-simple-low" tone="yellow" />
+        <x-analytics.kpi label="High Idling" :value="number_format($diagnostics->high_idle_count)" small="15+ idle min and 20%+ of trip time" icon="fa-hourglass-half" tone="purple" />
+        <x-analytics.kpi label="Delay Indicators" :value="number_format($diagnostics->delay_count)" small="Above the route delay threshold" icon="fa-clock-rotate-left" tone="red" />
     </section>
 
     @php
@@ -15,7 +15,7 @@
 
     <section class="analytics-main-grid analytics-main-grid-balanced">
         <article class="analytics-card diagnostic-reference-panel">
-            <div class="analytics-card-header"><div><h3>Diagnostic Indicator Profile</h3><p>Relative volume of current review indicators. Counts may overlap across trips.</p></div><span class="analytics-card-badge">{{ number_format($diagnostics->baseline_coverage_percent, 1) }}% baseline coverage</span></div>
+            <x-analytics.card-header title="Diagnostic Indicator Profile" description="Relative volume of current review indicators. Counts may overlap across trips." :badge="number_format($diagnostics->baseline_coverage_percent, 1) . '% baseline coverage'" />
             <div class="diagnostic-profile-bars">
                 <div class="diagnostic-profile-row"><div><span class="signal-dot red"></span><strong>Delay Indicators</strong></div><div class="diagnostic-profile-track"><span class="red" style="width: {{ ($diagnostics->delay_count / $indicatorMax) * 100 }}%"></span></div><b>{{ number_format($diagnostics->delay_count) }}</b></div>
                 <div class="diagnostic-profile-row"><div><span class="signal-dot blue"></span><strong>Slow Movement</strong></div><div class="diagnostic-profile-track"><span class="blue" style="width: {{ ($diagnostics->slow_movement_count / $indicatorMax) * 100 }}%"></span></div><b>{{ number_format($diagnostics->slow_movement_count) }}</b></div>
@@ -25,7 +25,7 @@
         </article>
 
         <article class="analytics-card diagnostic-donut-panel">
-            <div class="analytics-card-header"><div><h3>Issue Breakdown</h3><p>Share of diagnostic indicator occurrences.</p></div></div>
+            <x-analytics.card-header title="Issue Breakdown" description="Share of diagnostic indicator occurrences." />
             <div class="diagnostic-donut-layout">
                 <div class="diagnostic-donut" style="--delay-angle: {{ $delayAngle }}deg; --slow-angle: {{ $slowAngle }}deg;">
                     <div class="diagnostic-donut-center"><strong>{{ number_format($indicatorTotal) }}</strong><span>Indicator<br>occurrences</span></div>
@@ -42,15 +42,9 @@
 
     <section class="analytics-list-grid">
         <article class="analytics-card flagged-review-card">
-            <div class="analytics-card-header">
-                <div>
-                    <h3>Flagged Trips</h3>
-                    <p>{{ number_format($diagnostics->review_count) }} trips currently require diagnostic review.</p>
-                </div>
-                <span class="analytics-card-badge">Top {{ number_format($diagnostics->top_records->count()) }} priority records</span>
-            </div>
+            <x-analytics.card-header title="Flagged Trips" :description="number_format($diagnostics->review_count) . ' trips currently require diagnostic review.'" :badge="'Top ' . number_format($diagnostics->top_records->count()) . ' priority records'" />
 
-            <div class="flagged-review-list">
+            <div class="flagged-review-list" data-scroll-record-list data-record-selector="[data-scroll-record]">
                 @forelse($diagnostics->top_records as $diagnostic)
                     @php
                         $indicatorCount = $diagnostic->factors->count();
@@ -59,27 +53,18 @@
                         $busNo = $diagnostic->record->bus_no ?: 'Unknown Bus';
                         $occurred = $diagnostic->record->beginning_at?->format('M j · g:i A');
                     @endphp
-                    <div class="flagged-review-row {{ $priorityClass }}">
+                    <div class="flagged-review-row {{ $priorityClass }}" data-scroll-record>
                         <div class="flagged-review-index">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
-
                         <div class="flagged-review-body">
                             <div class="flagged-review-title-row">
-                                <div>
-                                    <strong>{{ $recordNo }}</strong>
-                                    <span>{{ $busNo }} · {{ $diagnostic->route }}</span>
-                                </div>
-                                <div class="flagged-review-time">
-                                    <strong>{{ $diagnostic->duration > 0 ? number_format($diagnostic->duration, 1) . ' min' : '—' }}</strong>
-                                    <span>{{ $occurred ?: 'Time unavailable' }}</span>
-                                </div>
+                                <div><strong>{{ $recordNo }}</strong><span>{{ $busNo }} · {{ $diagnostic->route }}</span></div>
+                                <div class="flagged-review-time"><strong>{{ $diagnostic->duration > 0 ? number_format($diagnostic->duration, 1) . ' min' : '—' }}</strong><span>{{ $occurred ?: 'Time unavailable' }}</span></div>
                             </div>
-
                             <div class="flagged-review-indicators">
                                 @foreach($diagnostic->factors as $factor)
                                     <span class="issue-pill {{ $factor === 'Delay' ? 'red' : ($factor === 'Slow movement' ? 'blue' : 'yellow') }}">{{ $factor }}</span>
                                 @endforeach
                             </div>
-
                             <div class="flagged-review-evidence">
                                 <span><i class="fa-solid fa-gauge-high"></i>{{ $diagnostic->speed > 0 ? number_format($diagnostic->speed, 1) . ' km/h' : 'Speed unavailable' }}</span>
                                 <span><i class="fa-solid fa-hourglass-half"></i>{{ $diagnostic->idle_minutes > 0 ? number_format($diagnostic->idle_minutes, 1) . ' min idle' : 'No recorded idling' }}</span>
@@ -95,14 +80,12 @@
             </div>
 
             @if($diagnostics->review_count > $diagnostics->top_records->count())
-                <div class="flagged-review-footer">
-                    Showing the {{ number_format($diagnostics->top_records->count()) }} highest-priority records from {{ number_format($diagnostics->review_count) }} flagged trips.
-                </div>
+                <div class="flagged-review-footer">Showing the {{ number_format($diagnostics->top_records->count()) }} highest-priority records from {{ number_format($diagnostics->review_count) }} flagged trips.</div>
             @endif
         </article>
 
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Evidence Signals</h3><p>Patterns that can guide investigation without claiming a confirmed cause.</p></div></div>
+            <x-analytics.card-header title="Evidence Signals" description="Patterns that can guide investigation without claiming a confirmed cause." />
             <div class="analytics-rank-list">
                 <div class="analytics-rank-row"><span class="analytics-rank-index">1</span><div><strong>Delay + Slow Movement</strong><small>Possible congestion or slow-movement pattern for review.</small></div><div class="analytics-rank-value">{{ number_format($diagnostics->delayed_with_slow_movement) }}</div></div>
                 <div class="analytics-rank-row"><span class="analytics-rank-index">2</span><div><strong>Delay + High Idling</strong><small>Review stops, dispatch, loading, waiting, and traffic context.</small></div><div class="analytics-rank-value">{{ number_format($diagnostics->delayed_with_high_idle) }}</div></div>
@@ -113,7 +96,7 @@
 
     <section class="analytics-list-grid">
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>High Idle Alerts</h3><p>Trips meeting the strict high-idling rule.</p></div><span class="analytics-card-badge">Top review records</span></div>
+            <x-analytics.card-header title="High Idle Alerts" description="Trips meeting the strict high-idling rule." badge="Top review records" />
             <div class="analytics-rank-list">
                 @forelse($diagnostics->top_records->where('is_high_idle', true)->take(3) as $item)
                     <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>{{ $item->record->bus_no ?: 'Unknown Bus' }}</strong><small>{{ $item->route }} · {{ $item->record->beginning_at?->format('M j, g:i A') }}</small></div><div class="analytics-rank-value">{{ number_format($item->idle_minutes, 1) }} min</div></div>
@@ -124,18 +107,10 @@
         </article>
 
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Combined Delay Patterns</h3><p>How often a delay indicator appears together with another measurable pattern.</p></div><span class="analytics-card-badge">Supporting evidence</span></div>
+            <x-analytics.card-header title="Combined Delay Patterns" description="How often a delay indicator appears together with another measurable pattern." badge="Supporting evidence" />
             <div class="analytics-rank-list">
-                <div class="analytics-rank-row">
-                    <span class="analytics-rank-index"><i class="fa-solid fa-gauge-simple-low"></i></span>
-                    <div><strong>Delayed + Slow Movement</strong><small>Delayed records that also fall below their route-speed baseline.</small><div class="metric-bar"><span style="width: {{ $diagnostics->delay_count > 0 ? min(100, ($diagnostics->delayed_with_slow_movement / $diagnostics->delay_count) * 100) : 0 }}%"></span></div></div>
-                    <div class="analytics-rank-value"><strong>{{ number_format($diagnostics->delayed_with_slow_movement) }}</strong><small>of {{ number_format($diagnostics->delay_count) }} delays</small></div>
-                </div>
-                <div class="analytics-rank-row">
-                    <span class="analytics-rank-index"><i class="fa-solid fa-hourglass-half"></i></span>
-                    <div><strong>Delayed + High Idling</strong><small>Delayed records that also meet the strict high-idling rule.</small><div class="metric-bar"><span style="width: {{ $diagnostics->delay_count > 0 ? min(100, ($diagnostics->delayed_with_high_idle / $diagnostics->delay_count) * 100) : 0 }}%"></span></div></div>
-                    <div class="analytics-rank-value"><strong>{{ number_format($diagnostics->delayed_with_high_idle) }}</strong><small>of {{ number_format($diagnostics->delay_count) }} delays</small></div>
-                </div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-gauge-simple-low"></i></span><div><strong>Delayed + Slow Movement</strong><small>Delayed records that also fall below their route-speed baseline.</small><div class="metric-bar"><span style="width: {{ $diagnostics->delay_count > 0 ? min(100, ($diagnostics->delayed_with_slow_movement / $diagnostics->delay_count) * 100) : 0 }}%"></span></div></div><div class="analytics-rank-value"><strong>{{ number_format($diagnostics->delayed_with_slow_movement) }}</strong><small>of {{ number_format($diagnostics->delay_count) }} delays</small></div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-hourglass-half"></i></span><div><strong>Delayed + High Idling</strong><small>Delayed records that also meet the strict high-idling rule.</small><div class="metric-bar"><span style="width: {{ $diagnostics->delay_count > 0 ? min(100, ($diagnostics->delayed_with_high_idle / $diagnostics->delay_count) * 100) : 0 }}%"></span></div></div><div class="analytics-rank-value"><strong>{{ number_format($diagnostics->delayed_with_high_idle) }}</strong><small>of {{ number_format($diagnostics->delay_count) }} delays</small></div></div>
             </div>
         </article>
     </section>

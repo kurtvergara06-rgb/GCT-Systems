@@ -1,21 +1,9 @@
 <section class="analytics-stage analytics-stage-clean">
     <section class="analytics-kpi-strip">
-        <article class="analytics-kpi">
-            <div class="analytics-kpi-icon"><i class="fa-solid fa-road"></i></div>
-            <div><span>Distance Traveled</span><strong>{{ number_format($totalDistance, 1) }} km</strong><small>Sum of processed GPS mileage</small></div>
-        </article>
-        <article class="analytics-kpi">
-            <div class="analytics-kpi-icon green"><i class="fa-solid fa-gauge-high"></i></div>
-            <div><span>Average Speed</span><strong>{{ number_format($averageSpeed, 1) }} km/h</strong><small>Distance divided by recorded motion time</small></div>
-        </article>
-        <article class="analytics-kpi">
-            <div class="analytics-kpi-icon yellow"><i class="fa-solid fa-hourglass-half"></i></div>
-            <div><span>Idle Time</span><strong>{{ number_format($totalIdleMinutes / 60, 1) }} hrs</strong><small>Total recorded idling time</small></div>
-        </article>
-        <article class="analytics-kpi">
-            <div class="analytics-kpi-icon purple"><i class="fa-solid fa-clock"></i></div>
-            <div><span>Avg. Trip Duration</span><strong>{{ number_format($averageTripDuration, 1) }} min</strong><small>Average recorded trip duration</small></div>
-        </article>
+        <x-analytics.kpi label="Distance Traveled" :value="number_format($totalDistance, 1) . ' km'" small="Sum of processed GPS mileage" icon="fa-road" />
+        <x-analytics.kpi label="Average Speed" :value="number_format($averageSpeed, 1) . ' km/h'" small="Distance divided by recorded motion time" icon="fa-gauge-high" tone="green" />
+        <x-analytics.kpi label="Idle Time" :value="number_format($totalIdleMinutes / 60, 1) . ' hrs'" small="Total recorded idling time" icon="fa-hourglass-half" tone="yellow" />
+        <x-analytics.kpi label="Avg. Trip Duration" :value="number_format($averageTripDuration, 1) . ' min'" small="Average recorded trip duration" icon="fa-clock" tone="purple" />
     </section>
 
     @php
@@ -32,14 +20,11 @@
 
     <section class="analytics-main-grid analytics-main-grid-balanced">
         <article class="analytics-card analytics-reference-chart-card">
-            <div class="analytics-card-header">
-                <div><h3>Processed Trip Activity</h3><p>Trip-record volume across the selected analysis window.</p></div>
-                @if($tripGrowth !== null)
-                    <span class="analytics-card-badge">{{ $tripGrowth >= 0 ? '+' : '' }}{{ number_format($tripGrowth, 1) }}% vs prior period</span>
-                @else
-                    <span class="analytics-card-badge">No prior baseline</span>
-                @endif
-            </div>
+            <x-analytics.card-header
+                title="Processed Trip Activity"
+                description="Trip-record volume across the selected analysis window."
+                :badge="$tripGrowth !== null ? (($tripGrowth >= 0 ? '+' : '') . number_format($tripGrowth, 1) . '% vs prior period') : 'No prior baseline'"
+            />
 
             <div class="reference-line-chart" role="img" aria-label="Processed trip activity trend">
                 <svg viewBox="0 0 720 230" preserveAspectRatio="none">
@@ -67,7 +52,7 @@
         </article>
 
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Fleet Availability</h3><p>Current Bus Master List status.</p></div><span class="analytics-card-badge">{{ number_format($totalBuses) }} buses</span></div>
+            <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="number_format($totalBuses) . ' buses'" />
             <div class="analytics-availability-layout">
                 <div class="availability-score"><div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $fleetAvailability * 3.6)) }}deg;"><div class="availability-ring-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div></div></div>
                 <div class="availability-breakdown">
@@ -82,25 +67,15 @@
 
     <section class="analytics-list-grid descriptive-ranking-grid">
         <article class="analytics-card ranking-card">
-            <div class="analytics-card-header">
-                <div><h3>Top Routes by Trips</h3><p>{{ $periodLabel }} · highest-volume corridors</p></div>
-                <span class="analytics-card-badge">Top {{ $routes->count() }}</span>
-            </div>
-
+            <x-analytics.card-header title="Top Routes by Trips" :description="$periodLabel . ' · highest-volume corridors'" :badge="'Top ' . $routes->count()" />
             <div class="ranking-list refined-ranking-list">
                 @forelse($routes as $route)
                     <div class="refined-ranking-row">
                         <span class="refined-rank-number">{{ $loop->iteration }}</span>
                         <div class="refined-ranking-main">
-                            <div class="refined-ranking-title-row">
-                                <strong>{{ $route->label }}</strong>
-                                <span>{{ number_format($route->trips) }} trips</span>
-                            </div>
+                            <div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ number_format($route->trips) }} trips</span></div>
                             <div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div>
-                            <div class="refined-ranking-meta">
-                                <span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span>
-                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span>
-                            </div>
+                            <div class="refined-ranking-meta"><span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span></div>
                         </div>
                     </div>
                 @empty
@@ -110,25 +85,15 @@
         </article>
 
         <article class="analytics-card ranking-card">
-            <div class="analytics-card-header">
-                <div><h3>Busiest Buses</h3><p>{{ $periodLabel }} · highest recorded trip activity</p></div>
-                <span class="analytics-card-badge">Top {{ $busActivity->count() }}</span>
-            </div>
-
+            <x-analytics.card-header title="Busiest Buses" :description="$periodLabel . ' · highest recorded trip activity'" :badge="'Top ' . $busActivity->count()" />
             <div class="ranking-list refined-ranking-list">
                 @forelse($busActivity as $bus)
                     <div class="refined-ranking-row">
                         <span class="refined-rank-number">{{ $loop->iteration }}</span>
                         <div class="refined-ranking-main">
-                            <div class="refined-ranking-title-row">
-                                <strong>{{ $bus->bus }}</strong>
-                                <span>{{ number_format($bus->trips) }} trips</span>
-                            </div>
+                            <div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ number_format($bus->trips) }} trips</span></div>
                             <div class="metric-bar refined-metric-bar"><span style="width: {{ min(100, max(4, $bus->share * 6)) }}%"></span></div>
-                            <div class="refined-ranking-meta">
-                                <span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span>
-                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span>
-                            </div>
+                            <div class="refined-ranking-meta"><span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span></div>
                         </div>
                     </div>
                 @empty
