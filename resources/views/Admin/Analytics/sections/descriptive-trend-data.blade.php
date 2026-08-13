@@ -1,0 +1,3 @@
+@php
+$trend=collect($fleet['trend']??[]);$max=max(1,(int)$trend->max('count'));$count=max(1,$trend->count());$points=$trend->map(function($b,$i)use($max,$count){$x=$count>1?42+(($i/($count-1))*636):360;$y=194-(($b->count/$max)*150);return ['x'=>round($x,1),'y'=>round($y,1),'label'=>$b->label,'count'=>$b->count];});$poly=$points->map(fn($p)=>$p['x'].','.$p['y'])->implode(' ');$area=$poly.' 678,194 42,194';
+@endphp

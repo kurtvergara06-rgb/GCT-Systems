@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Warehouse\InventoryItem;
 use App\Services\FleetTripPredictionService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -43,6 +44,22 @@ class AnalyticsStageController extends Controller
         $fleet = $fleetView->getData();
         $fuel = app(FuelAnalyticsController::class)->data($request);
 
+        $inventoryTotal = InventoryItem::query()->count();
+        $inventoryLow = InventoryItem::query()
+            ->whereColumn('on_hand', '<=', 'reorder_level')
+            ->where('on_hand', '>', 0)
+            ->count();
+        $inventoryCritical = InventoryItem::query()
+            ->where('on_hand', '<=', 0)
+            ->count();
+
+        $inventory = (object) [
+            'total' => $inventoryTotal,
+            'healthy' => max(0, $inventoryTotal - $inventoryLow - $inventoryCritical),
+            'low' => $inventoryLow,
+            'critical' => $inventoryCritical,
+        ];
+
         $busOptions = collect($fleet['busOptions'] ?? [])
             ->pluck('bus_no')
             ->merge(collect($fuel['buses'] ?? [])->pluck('bus_no'))
@@ -58,6 +75,7 @@ class AnalyticsStageController extends Controller
             'domain' => $domain,
             'fleet' => $fleet,
             'fuel' => $fuel,
+            'inventory' => $inventory,
             'busOptions' => $busOptions,
             'period' => $fuel['period'] ?? ($fleet['period'] ?? 'this-month'),
             'selectedBus' => strtolower((string) ($fuel['selectedBus'] ?? 'all')),
