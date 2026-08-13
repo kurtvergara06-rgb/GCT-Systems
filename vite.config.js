@@ -23,6 +23,7 @@ export default defineConfig({
                 'resources/css/Main-styles/sidebar.css',
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/system-toast.css',
+                'resources/css/Account/account.css',
 
                 'resources/js/Main-js/sidebar.js',
                 'resources/js/Main-js/confirmation-modal.js',
@@ -33,9 +34,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Login/login.css',
-
-                // Add this only if login.blade.php references it.
-                // 'resources/js/Login/login.js',
+                'resources/js/Login/login.js',
 
                 // ======================================================
                 // ADMIN — DASHBOARD
@@ -50,7 +49,6 @@ export default defineConfig({
 
                 'resources/css/Admin/User_Management/users.css',
                 'resources/css/Admin/User_Management/permissions.css',
-                'resources/css/Admin/User_Management/account-requests.css',
 
                 'resources/js/Admin/User_Management/users.js',
 
@@ -70,6 +68,7 @@ export default defineConfig({
 
                 'resources/css/Admin/System_Monitoring/activity-logs.css',
                 'resources/css/Admin/System_Monitoring/notifications.css',
+                'resources/js/Admin/System_Monitoring/activity-logs.js',
 
                 // ======================================================
                 // ADMIN — SETTINGS

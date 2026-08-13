@@ -7,166 +7,28 @@
         'resources/js/Main-js/sidebar.js'
     ]"
 >
-
     <div class="app">
-
-      <x-layout.sidebar
-    department="Admin"
-    subtitle="Administration Module"
-    icon="fa-user-shield"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'admin.dashboard',
-            'icon' => 'fa-table-cells-large'
-        ],
-
-        [
-            'label' => 'User Management',
-            'icon' => 'fa-users',
-            'children' => [
-                [
-                    'label' => 'Users',
-                    'route' => 'admin.users',
-                    'icon' => 'fa-user'
-                ],
-                [
-                    'label' => 'Roles & Permissions',
-                    'route' => 'admin.roles-permissions',
-                    'icon' => 'fa-user-lock'
-                ],
-                [
-                    'label' => 'Account Requests',
-                    'route' => 'admin.account-requests',
-                    'icon' => 'fa-user-clock'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'System Monitoring',
-            'icon' => 'fa-desktop',
-            'children' => [
-                [
-                    'label' => 'Activity Logs',
-                    'route' => 'admin.activity-logs',
-                    'icon' => 'fa-clock-rotate-left'
-                ],
-                [
-                    'label' => 'Notifications',
-                    'route' => 'admin.notifications',
-                    'icon' => 'fa-bell'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Data Management',
-            'icon' => 'fa-database',
-            'children' => [
-                [
-                    'label' => 'Batch File Processing',
-                    'route' => 'admin.batch-file-processing',
-                    'icon' => 'fa-file-import'
-                ],
-                [
-                    'label' => 'Import / Export',
-                    'route' => 'admin.import-export',
-                    'icon' => 'fa-right-left'
-                ],
-                [
-                    'label' => 'Data History',
-                    'route' => 'admin.data-history',
-                    'icon' => 'fa-clock-rotate-left'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Analytics',
-            'icon' => 'fa-chart-line',
-            'children' => [
-                [
-                    'label' => 'Overview',
-                    'route' => 'analytics.overview',
-                    'icon' => 'fa-chart-pie'
-                ],
-                [
-                    'label' => 'Fleet & Trip',
-                    'route' => 'analytics.fleet-trip',
-                    'icon' => 'fa-route'
-                ],
-                [
-                    'label' => 'Fuel',
-                    'route' => 'analytics.fuel',
-                    'icon' => 'fa-gas-pump'
-                ],
-                [
-                    'label' => 'Bus Health',
-                    'route' => 'analytics.bus-health',
-                    'icon' => 'fa-heart-pulse'
-                ],
-                [
-                    'label' => 'Inventory',
-                    'route' => 'analytics.inventory',
-                    'icon' => 'fa-boxes-stacked'
-                ],
-                [
-                    'label' => 'Recommendations',
-                    'route' => 'analytics.recommendations',
-                    'icon' => 'fa-lightbulb'
-                ],
-            ]
-        ],
-
-        [
-            'label' => 'Settings',
-            'icon' => 'fa-gear',
-            'children' => [
-                [
-                    'label' => 'General Settings',
-                    'route' => 'admin.settings.general',
-                    'icon' => 'fa-sliders'
-                ],
-                [
-                    'label' => 'Notification Settings',
-                    'route' => 'admin.settings.notifications',
-                    'icon' => 'fa-bell'
-                ],
-                [
-                    'label' => 'Security Settings',
-                    'route' => 'admin.settings.security',
-                    'icon' => 'fa-shield-halved'
-                ],
-            ]
-        ],
-    ]"
-/>
+        <x-layout.sidebar department="Admin" />
 
         <main class="main data-history-page">
-
             <x-layout.topbar
                 title="Data History"
-                subtitle="Review processed files, imports, exports, and historical data activity"
+                subtitle="Review batch processing, imports, exports, and their recorded results"
                 notification-count="6"
             />
 
-            {{-- =====================================================
-                SUMMARY CARDS
-            ====================================================== --}}
-            <section class="stats-grid history-stats-grid">
-
+            <section data-ajax-region="summary" class="stats-grid history-stats-grid">
                 <x-ui.summary-card
                     label="Total Data Activities"
-                    value="28"
-                    small="Logged import, export, and batch activities"
+                    :value="$stats['total'] ?? 0"
+                    small="Recorded batch, import, and export activities"
                     icon="fa-database"
                     color="blue"
                 />
 
                 <x-ui.summary-card
                     label="Successful"
-                    value="23"
+                    :value="$stats['successful'] ?? 0"
                     small="Completed operations"
                     icon="fa-circle-check"
                     color="green"
@@ -174,171 +36,77 @@
 
                 <x-ui.summary-card
                     label="Processed Files"
-                    value="18"
-                    small="Imported or processed files"
+                    :value="$stats['processed_files'] ?? 0"
+                    small="Batch processed or imported files"
                     icon="fa-file-circle-check"
                     color="yellow"
                 />
 
                 <x-ui.summary-card
                     label="Failed"
-                    value="2"
-                    small="Requires review"
+                    :value="$stats['failed'] ?? 0"
+                    small="Operations requiring review"
                     icon="fa-triangle-exclamation"
                     color="red"
                 />
-
             </section>
 
-            @php
-                $history = [
-                    [
-                        'file' => 'gps_trip_records_july.csv',
-                        'type' => 'Batch Processing',
-                        'module' => 'Operation',
-                        'source' => 'GPS Raw Data',
-                        'records' => '1,248',
-                        'status' => 'Completed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '9:12 PM',
-                    ],
-                    [
-                        'file' => 'inventory_items.xlsx',
-                        'type' => 'Import',
-                        'module' => 'Warehouse',
-                        'source' => 'External File',
-                        'records' => '126',
-                        'status' => 'Completed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '8:14 PM',
-                    ],
-                    [
-                        'file' => 'bus_master_list.xlsx',
-                        'type' => 'Import',
-                        'module' => 'Operation',
-                        'source' => 'Legacy Records',
-                        'records' => '18',
-                        'status' => 'Completed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 25, 2026',
-                        'time' => '5:48 PM',
-                    ],
-                    [
-                        'file' => 'driver_records.csv',
-                        'type' => 'Import',
-                        'module' => 'Operation',
-                        'source' => 'External File',
-                        'records' => '34',
-                        'status' => 'Completed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 24, 2026',
-                        'time' => '4:08 PM',
-                    ],
-                    [
-                        'file' => 'fuel_report_july.pdf',
-                        'type' => 'Export',
-                        'module' => 'Maintenance',
-                        'source' => 'FROMS Database',
-                        'records' => '74',
-                        'status' => 'Completed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 24, 2026',
-                        'time' => '2:26 PM',
-                    ],
-                    [
-                        'file' => 'gps_raw_data_0719.txt',
-                        'type' => 'Batch Processing',
-                        'module' => 'Operation',
-                        'source' => 'GPS Raw Data',
-                        'records' => '0',
-                        'status' => 'Failed',
-                        'user' => 'System Admin',
-                        'date' => 'Jul 23, 2026',
-                        'time' => '10:42 AM',
-                    ],
-                ];
-            @endphp
-
-            {{-- =====================================================
-                HISTORY TABLE
-            ====================================================== --}}
-            <section class="table-card data-history-card">
-
+            <section data-ajax-region="records" class="table-card data-history-card">
                 <div class="section-header">
-
                     <div>
                         <h2>Data Activity History</h2>
-
-                        <p>
-                            Track imported files, generated exports, batch processing, and their results.
-                        </p>
+                        <p>One audit trail for Batch Processing, Import, and Export activities.</p>
                     </div>
 
                     <span class="history-count">
-                        28 Records
+                        {{ number_format($history->total()) }} Records
                     </span>
-
                 </div>
 
-                {{-- =================================================
-                    FILTERS
-                ================================================== --}}
-                <div class="history-toolbar">
-
+                <form method="GET" action="{{ route('admin.data-history') }}" class="history-toolbar">
                     <div class="search-box">
-
                         <i class="fa-solid fa-magnifying-glass"></i>
-
                         <input
                             type="text"
-                            placeholder="Search file, module, source..."
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Search file, module, data type, source..."
                         >
-
                     </div>
 
                     <div class="filter-group">
-
-                        <select>
-                            <option>All Types</option>
-                            <option>Batch Processing</option>
-                            <option>Import</option>
-                            <option>Export</option>
+                        <select name="type" onchange="this.form.submit()">
+                            @foreach(['All Types', 'Batch Processing', 'Import', 'Export'] as $type)
+                                <option value="{{ $type }}" {{ request('type', 'All Types') === $type ? 'selected' : '' }}>
+                                    {{ $type }}
+                                </option>
+                            @endforeach
                         </select>
-
                     </div>
 
                     <div class="filter-group">
-
-                        <select>
-                            <option>All Modules</option>
-                            <option>Admin</option>
-                            <option>Operation</option>
-                            <option>Maintenance</option>
-                            <option>Warehouse</option>
-                            <option>Purchase</option>
+                        <select name="module" onchange="this.form.submit()">
+                            @foreach(['All Modules', 'Admin', 'Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $module)
+                                <option value="{{ $module }}" {{ request('module', 'All Modules') === $module ? 'selected' : '' }}>
+                                    {{ $module }}
+                                </option>
+                            @endforeach
                         </select>
-
                     </div>
 
                     <div class="filter-group">
-
-                        <select>
-                            <option>All Status</option>
-                            <option>Completed</option>
-                            <option>Failed</option>
-                            <option>Processing</option>
+                        <select name="status" onchange="this.form.submit()">
+                            @foreach(['All Status', 'Completed', 'For Review', 'Failed', 'Processing', 'Deleted'] as $status)
+                                <option value="{{ $status }}" {{ request('status', 'All Status') === $status ? 'selected' : '' }}>
+                                    {{ $status }}
+                                </option>
+                            @endforeach
                         </select>
-
                     </div>
-
-                </div>
+                </form>
 
                 <div class="table-wrap">
-
                     <table class="data-history-table">
-
                         <thead>
                             <tr>
                                 <th>File</th>
@@ -354,355 +122,252 @@
                         </thead>
 
                         <tbody>
-
-                            @foreach($history as $index => $item)
-
+                            @forelse($history as $item)
                                 @php
-                                    $typeClass = match($item['type']) {
+                                    $typeClass = match($item->activity_type) {
                                         'Import' => 'import',
                                         'Export' => 'export',
-                                        'Batch Processing' => 'batch',
                                         default => 'batch',
                                     };
 
-                                    $moduleClass = strtolower($item['module']);
-                                    $statusClass = strtolower($item['status']);
+                                    $moduleClass = strtolower($item->module ?: 'admin');
+                                    $statusClass = match($item->status) {
+                                        'Completed' => 'completed',
+                                        'Failed' => 'failed',
+                                        default => 'processing',
+                                    };
+
+                                    $processorName = $item->processor?->name ?? 'System';
+                                    $activityDate = $item->created_at;
                                 @endphp
 
                                 <tr>
-
                                     <td>
-
                                         <div class="history-file-cell">
-
                                             <div class="history-file-icon {{ $typeClass }}">
-
-                                                @if($item['type'] === 'Import')
+                                                @if($item->activity_type === 'Import')
                                                     <i class="fa-solid fa-file-arrow-up"></i>
-                                                @elseif($item['type'] === 'Export')
+                                                @elseif($item->activity_type === 'Export')
                                                     <i class="fa-solid fa-file-arrow-down"></i>
                                                 @else
                                                     <i class="fa-solid fa-file-import"></i>
                                                 @endif
-
                                             </div>
 
-                                            <strong>
-                                                {{ $item['file'] }}
-                                            </strong>
-
+                                            <div>
+                                                <strong>{{ $item->file_name ?: 'System Data Activity' }}</strong>
+                                                @if($item->data_type)
+                                                    <small style="display:block;margin-top:3px;color:var(--muted);font-size:10px;">
+                                                        {{ $item->data_type }}
+                                                    </small>
+                                                @endif
+                                            </div>
                                         </div>
-
                                     </td>
 
                                     <td>
                                         <span class="history-type {{ $typeClass }}">
-                                            {{ $item['type'] }}
+                                            {{ $item->activity_type }}
                                         </span>
                                     </td>
 
                                     <td>
                                         <span class="module-badge {{ $moduleClass }}">
-                                            {{ $item['module'] }}
+                                            {{ $item->module ?: '—' }}
                                         </span>
                                     </td>
 
                                     <td>
                                         <span class="source-badge">
-                                            {{ $item['source'] }}
+                                            {{ $item->source ?: '—' }}
                                         </span>
                                     </td>
 
-                                    <td>
-                                        {{ $item['records'] }}
-                                    </td>
+                                    <td>{{ number_format($item->total_records) }}</td>
 
                                     <td>
                                         <span class="history-status {{ $statusClass }}">
-                                            {{ $item['status'] }}
+                                            {{ $item->status }}
                                         </span>
                                     </td>
 
                                     <td>
                                         <div class="processed-by">
                                             <i class="fa-solid fa-user"></i>
-
-                                            <span>
-                                                {{ $item['user'] }}
-                                            </span>
+                                            <span>{{ $processorName }}</span>
                                         </div>
                                     </td>
 
                                     <td>
-
                                         <div class="date-time-cell">
-
-                                            <span class="date-value">
-                                                {{ $item['date'] }}
-                                            </span>
-
-                                            <span class="time-value">
-                                                {{ $item['time'] }}
-                                            </span>
-
+                                            <span class="date-value">{{ $activityDate?->format('M d, Y') ?? '—' }}</span>
+                                            <span class="time-value">{{ $activityDate?->format('g:i A') ?? '' }}</span>
                                         </div>
-
                                     </td>
 
                                     <td>
-
                                         <div class="actions">
-
                                             <button
                                                 type="button"
                                                 class="action-btn view open-history-modal"
                                                 title="View Details"
-                                                data-file="{{ $item['file'] }}"
-                                                data-type="{{ $item['type'] }}"
-                                                data-module="{{ $item['module'] }}"
-                                                data-source="{{ $item['source'] }}"
-                                                data-records="{{ $item['records'] }}"
-                                                data-status="{{ $item['status'] }}"
-                                                data-user="{{ $item['user'] }}"
-                                                data-date="{{ $item['date'] }}"
-                                                data-time="{{ $item['time'] }}"
+                                                data-file="{{ $item->file_name ?: 'System Data Activity' }}"
+                                                data-type="{{ $item->activity_type }}"
+                                                data-module="{{ $item->module ?: '—' }}"
+                                                data-data-type="{{ $item->data_type ?: '—' }}"
+                                                data-source="{{ $item->source ?: '—' }}"
+                                                data-records="{{ $item->total_records }}"
+                                                data-successful="{{ $item->successful_records }}"
+                                                data-failed="{{ $item->failed_records }}"
+                                                data-skipped="{{ $item->skipped_records }}"
+                                                data-status="{{ $item->status }}"
+                                                data-user="{{ $processorName }}"
+                                                data-date="{{ $activityDate?->format('M d, Y') ?? '—' }}"
+                                                data-time="{{ $activityDate?->format('g:i A') ?? '' }}"
+                                                data-error="{{ $item->error_message ?: 'None' }}"
                                             >
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
-
                                         </div>
-
                                     </td>
-
                                 </tr>
-
-                            @endforeach
-
+                            @empty
+                                <tr>
+                                    <td colspan="9" style="text-align:center;padding:36px;color:var(--muted);">
+                                        No Data Management activity has been recorded yet.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
-
                     </table>
-
                 </div>
 
                 <div class="table-footer">
-
                     <p>
-                        Showing 1 to 6 of 28 records
+                        Showing {{ $history->firstItem() ?? 0 }} to {{ $history->lastItem() ?? 0 }} of {{ $history->total() }} records
                     </p>
 
-                    <div class="pagination">
+                    @if($history->hasPages())
+                        <div class="pagination">
+                            @if($history->onFirstPage())
+                                <button type="button" class="page-btn disabled" disabled>
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                            @else
+                                <a class="page-btn" href="{{ $history->previousPageUrl() }}">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </a>
+                            @endif
 
-                        <button
-                            type="button"
-                            class="page-btn disabled"
-                            disabled
-                        >
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
+                            <span class="page-number">{{ $history->currentPage() }}</span>
 
-                        <span class="page-number">
-                            1
-                        </span>
-
-                        <button
-                            type="button"
-                            class="page-btn"
-                        >
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-
-                    </div>
-
+                            @if($history->hasMorePages())
+                                <a class="page-btn" href="{{ $history->nextPageUrl() }}">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <button type="button" class="page-btn disabled" disabled>
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
-
             </section>
-
         </main>
-
     </div>
 
-
-    {{-- =============================================================
-        DETAILS MODAL
-    ============================================================== --}}
-    <div
-        id="historyDetailsModal"
-        class="history-modal-overlay"
-    >
-
+    <div id="historyDetailsModal" class="history-modal-overlay">
         <div class="history-modal">
-
             <div class="history-modal-header">
-
                 <div class="history-modal-title">
-
                     <div class="history-modal-icon">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </div>
 
                     <div>
                         <h2>Data History Details</h2>
-
-                        <p>
-                            Complete information about the selected data activity.
-                        </p>
+                        <p>Recorded result of the selected Data Management activity.</p>
                     </div>
-
                 </div>
 
-                <button
-                    type="button"
-                    id="closeHistoryModal"
-                    class="history-modal-close"
-                >
-                    &times;
-                </button>
-
+                <button type="button" id="closeHistoryModal" class="history-modal-close">&times;</button>
             </div>
 
             <div class="history-modal-body">
-
                 <div class="history-modal-grid">
-
-                    <div class="history-detail-item">
-                        <span>File</span>
-                        <strong id="historyModalFile">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Activity Type</span>
-                        <strong id="historyModalType">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Module</span>
-                        <strong id="historyModalModule">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Data Source</span>
-                        <strong id="historyModalSource">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Records</span>
-                        <strong id="historyModalRecords">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Status</span>
-                        <strong id="historyModalStatus">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Processed By</span>
-                        <strong id="historyModalUser">—</strong>
-                    </div>
-
-                    <div class="history-detail-item">
-                        <span>Date & Time</span>
-                        <strong id="historyModalDateTime">—</strong>
-                    </div>
-
+                    <div class="history-detail-item"><span>File</span><strong id="historyModalFile">—</strong></div>
+                    <div class="history-detail-item"><span>Activity Type</span><strong id="historyModalType">—</strong></div>
+                    <div class="history-detail-item"><span>Module</span><strong id="historyModalModule">—</strong></div>
+                    <div class="history-detail-item"><span>Data Type</span><strong id="historyModalDataType">—</strong></div>
+                    <div class="history-detail-item"><span>Data Source</span><strong id="historyModalSource">—</strong></div>
+                    <div class="history-detail-item"><span>Total Records</span><strong id="historyModalRecords">—</strong></div>
+                    <div class="history-detail-item"><span>Successful</span><strong id="historyModalSuccessful">—</strong></div>
+                    <div class="history-detail-item"><span>Failed</span><strong id="historyModalFailed">—</strong></div>
+                    <div class="history-detail-item"><span>Skipped</span><strong id="historyModalSkipped">—</strong></div>
+                    <div class="history-detail-item"><span>Status</span><strong id="historyModalStatus">—</strong></div>
+                    <div class="history-detail-item"><span>Processed By</span><strong id="historyModalUser">—</strong></div>
+                    <div class="history-detail-item"><span>Date & Time</span><strong id="historyModalDateTime">—</strong></div>
+                    <div class="history-detail-item" style="grid-column:1 / -1;"><span>Error / Notes</span><strong id="historyModalError">—</strong></div>
                 </div>
-
             </div>
 
             <div class="history-modal-footer">
-
-                <button
-                    type="button"
-                    id="closeHistoryModalFooter"
-                    class="history-close-btn"
-                >
-                    Close
-                </button>
-
+                <button type="button" id="closeHistoryModalFooter" class="history-close-btn">Close</button>
             </div>
-
         </div>
-
     </div>
-
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const modal = document.getElementById('historyDetailsModal');
-            const buttons = document.querySelectorAll('.open-history-modal');
-
             const closeTop = document.getElementById('closeHistoryModal');
             const closeFooter = document.getElementById('closeHistoryModalFooter');
 
+            function setText(id, value) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value || '—';
+            }
+
             function openModal(button) {
+                setText('historyModalFile', button.dataset.file);
+                setText('historyModalType', button.dataset.type);
+                setText('historyModalModule', button.dataset.module);
+                setText('historyModalDataType', button.dataset.dataType);
+                setText('historyModalSource', button.dataset.source);
+                setText('historyModalRecords', button.dataset.records);
+                setText('historyModalSuccessful', button.dataset.successful);
+                setText('historyModalFailed', button.dataset.failed);
+                setText('historyModalSkipped', button.dataset.skipped);
+                setText('historyModalStatus', button.dataset.status);
+                setText('historyModalUser', button.dataset.user);
+                setText('historyModalDateTime', `${button.dataset.date || '—'} ${button.dataset.time || ''}`);
+                setText('historyModalError', button.dataset.error);
 
-                document.getElementById('historyModalFile').textContent =
-                    button.dataset.file || '—';
-
-                document.getElementById('historyModalType').textContent =
-                    button.dataset.type || '—';
-
-                document.getElementById('historyModalModule').textContent =
-                    button.dataset.module || '—';
-
-                document.getElementById('historyModalSource').textContent =
-                    button.dataset.source || '—';
-
-                document.getElementById('historyModalRecords').textContent =
-                    button.dataset.records || '—';
-
-                document.getElementById('historyModalStatus').textContent =
-                    button.dataset.status || '—';
-
-                document.getElementById('historyModalUser').textContent =
-                    button.dataset.user || '—';
-
-                document.getElementById('historyModalDateTime').textContent =
-                    `${button.dataset.date || '—'} ${button.dataset.time || ''}`;
-
-                modal.classList.add('show');
-
+                modal?.classList.add('show');
                 document.body.classList.add('history-modal-open');
             }
 
             function closeModal() {
-
-                modal.classList.remove('show');
-
+                modal?.classList.remove('show');
                 document.body.classList.remove('history-modal-open');
             }
 
-            buttons.forEach(function (button) {
-
-                button.addEventListener('click', function () {
-                    openModal(button);
-                });
-
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('.open-history-modal');
+                if (button) openModal(button);
             });
 
-            closeTop.addEventListener('click', closeModal);
-            closeFooter.addEventListener('click', closeModal);
+            closeTop?.addEventListener('click', closeModal);
+            closeFooter?.addEventListener('click', closeModal);
 
-            modal.addEventListener('click', function (event) {
-
-                if (event.target === modal) {
-                    closeModal();
-                }
-
+            modal?.addEventListener('click', function (event) {
+                if (event.target === modal) closeModal();
             });
 
             document.addEventListener('keydown', function (event) {
-
-                if (
-                    event.key === 'Escape' &&
-                    modal.classList.contains('show')
-                ) {
-                    closeModal();
-                }
-
+                if (event.key === 'Escape' && modal?.classList.contains('show')) closeModal();
             });
-
         });
     </script>
-
 </x-layout.app>

@@ -8,23 +8,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!type) return;
 
-    const toolbar = document.querySelector('.attendance-toolbar');
-    const newRecordButton = toolbar?.querySelector('.primary-btn');
-    if (!toolbar || !newRecordButton) return;
+    const button = document.querySelector('[data-batch-attendance-open]');
+    if (!button) return;
 
     const label = type === 'driver' ? 'Driver' : 'Mechanic';
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'secondary-btn batch-attendance-open';
-    button.innerHTML = '<i class="fa-solid fa-clipboard-check"></i> Record Daily Attendance';
-    toolbar.insertBefore(button, newRecordButton);
 
     let shiftStarts = {};
     let graceMinutes = 10;
 
     button.addEventListener('click', openModal);
+
+    function spinnerMarkup() {
+        return '<span class="gct-spinner gct-spinner-sm" aria-hidden="true"><span class="gct-spinner-ring"></span></span>';
+    }
 
     function openModal() {
         closeModal();
@@ -90,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tr>
                             </thead>
                             <tbody id="batchAttendanceBody">
-                                <tr><td colspan="8" class="batch-loading">Loading attendance roster…</td></tr>
+                                <tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -104,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="batchAttendanceSummary" class="batch-summary-grid"></div>
                     <div class="batch-footer-actions">
                         <button type="button" class="secondary-btn" data-batch-close>Cancel</button>
-                        <button type="button" class="primary-btn" id="batchSaveAttendance"><i class="fa-solid fa-floppy-disk"></i> Save All Attendance</button>
+                        <button type="button" class="primary-btn" id="batchSaveAttendance" data-loading-text="Saving attendance..."><i class="fa-solid fa-floppy-disk"></i> Save All Attendance</button>
                     </div>
                 </div>
             </div>`;
@@ -152,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = modal.querySelector('#batchAttendanceDate').value;
         const shift = modal.querySelector('#batchAttendanceShift').value;
         const body = modal.querySelector('#batchAttendanceBody');
-        body.innerHTML = '<tr><td colspan="8" class="batch-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading attendance roster…</td></tr>';
+        body.innerHTML = `<tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>`;
 
         try {
             const response = await fetch(`/operation/attendance/batch/${type}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
@@ -219,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <div class="batch-time-cell">
-                            <input type="time" data-time-in value="${escapeHtml(row.time_in || '')}">
+                            <input type="time" data-time-in data-native-picker="true" value="${escapeHtml(row.time_in || '')}">
                             <button type="button" title="Use current time" data-row-now>
                                 <i class="fa-regular fa-clock"></i>
                             </button>
@@ -227,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <div class="batch-time-cell batch-time-out-cell">
-                            <input type="time" data-time-out value="${escapeHtml(row.time_out || '')}">
+                            <input type="time" data-time-out data-native-picker="true" value="${escapeHtml(row.time_out || '')}">
                         </div>
                     </td>
                     <td>
@@ -260,9 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const nowButton = row.querySelector('[data-row-now]');
         const statusButtons = row.querySelectorAll('[data-status-btn]');
 
-        statusButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                setSelectedStatus(row, button.dataset.statusValue);
+        statusButtons.forEach((statusButton) => {
+            statusButton.addEventListener('click', () => {
+                setSelectedStatus(row, statusButton.dataset.statusValue);
                 applyStatusRules(row);
                 detectLate(row);
                 updateAvailability(row);
@@ -313,7 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applySharedTime() {
         const modal = document.getElementById('batchAttendanceModal');
-        const selectedRows = [...modal.querySelectorAll('[data-batch-row]')].filter((row) => row.querySelector('[data-row-select]').checked);
+        const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
+            .filter((row) => row.querySelector('[data-row-select]').checked);
 
         if (!selectedRows.length) {
             toast('Select at least one personnel row.', 'warning');
@@ -401,14 +399,19 @@ document.addEventListener('DOMContentLoaded', () => {
             status: selectedStatus(row),
         }));
 
-        const incomplete = rows.filter((row) => ['Present', 'Late'].includes(row.status) && !row.time_in);
-        if (incomplete.length) {
-            toast(`${incomplete.length} personnel record(s) still need a time-in.`, 'warning');
+        if (!rows.length) {
+            toast('There are no attendance rows to save.', 'warning');
             return;
         }
 
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+        if (window.GCTLoading?.set) {
+            window.GCTLoading.set(saveButton, 'Saving attendance...');
+        } else {
+            saveButton.disabled = true;
+            saveButton.innerHTML = `${spinnerMarkup()} <span>Saving attendance...</span>`;
+        }
+
+        let saved = false;
 
         try {
             const response = await fetch(`/operation/attendance/batch/${type}`, {
@@ -417,99 +420,101 @@ document.addEventListener('DOMContentLoaded', () => {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                        || document.querySelector('input[name="_token"]')?.value
-                        || '',
+                    'X-CSRF-TOKEN': csrfToken(),
                 },
                 body: JSON.stringify({
                     attendance_date: modal.querySelector('#batchAttendanceDate').value,
                     rows,
                 }),
             });
+
             const data = await response.json();
             if (!response.ok) throw new Error(errorMessage(data));
+
+            saved = true;
             toast(data.message || 'Attendance saved successfully.', 'success');
             closeModal();
-            window.setTimeout(() => window.location.reload(), 600);
+
+            window.setTimeout(() => {
+                window.location.reload();
+            }, 450);
         } catch (error) {
             toast(error.message || 'Unable to save attendance.', 'error');
         } finally {
-            saveButton.disabled = false;
-            saveButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All Attendance';
-        }
-    }
-
-    function updateSummary() {
-        const modal = document.getElementById('batchAttendanceModal');
-        const summary = modal?.querySelector('#batchAttendanceSummary');
-        if (!summary) return;
-
-        const rows = [...modal.querySelectorAll('[data-batch-row]')];
-        const counts = { Present: 0, Late: 0, Absent: 0, 'On Leave': 0, Incomplete: 0 };
-
-        rows.forEach((row) => {
-            const status = selectedStatus(row);
-            counts[status] = (counts[status] || 0) + 1;
-            if (['Present', 'Late'].includes(status) && !row.querySelector('[data-time-in]').value) {
-                counts.Incomplete++;
+            if (!saved) {
+                if (window.GCTLoading?.reset) {
+                    window.GCTLoading.reset(saveButton);
+                } else {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All Attendance';
+                }
             }
-        });
-
-        summary.innerHTML = [
-            summaryCard('Present', counts.Present, 'present'),
-            summaryCard('Late', counts.Late, 'late'),
-            summaryCard('Absent', counts.Absent, 'absent'),
-            summaryCard('On Leave', counts['On Leave'], 'leave'),
-            summaryCard('Incomplete', counts.Incomplete, 'incomplete'),
-        ].join('');
-    }
-
-    function summaryCard(labelText, value, theme) {
-        return `
-            <div class="batch-summary-card ${theme}">
-                <span class="batch-summary-label"><i class="fa-solid fa-circle"></i>${labelText}</span>
-                <strong>${value}</strong>
-            </div>`;
+        }
     }
 
     function selectedStatus(row) {
         return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || 'Present';
     }
 
-    function setSelectedStatus(row, value) {
-        row.querySelectorAll('[data-status-btn]').forEach((button) => {
-            button.classList.toggle('is-active', button.dataset.statusValue === value);
+    function setSelectedStatus(row, status) {
+        row.querySelectorAll('[data-status-btn]').forEach((statusButton) => {
+            statusButton.classList.toggle('is-active', statusButton.dataset.statusValue === status);
         });
     }
 
-    function normalizeStatus(value) {
-        return ['Present', 'Late', 'Absent', 'On Leave'].includes(value) ? value : 'Present';
+    function normalizeStatus(status) {
+        return ['Present', 'Late', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
     }
 
-    function statusThemeClass(status) {
-        switch (status) {
-        case 'Present':
-            return 'present';
-        case 'Late':
-            return 'late';
-        case 'Absent':
-            return 'absent';
-        case 'On Leave':
-            return 'leave';
-        default:
-            return '';
-        }
+    function statusThemeClass(value) {
+        return {
+            Present: 'present',
+            Late: 'late',
+            Absent: 'absent',
+            'On Leave': 'leave',
+        }[value] || '';
     }
 
     function availabilityClass(value) {
-        switch (value) {
-        case 'Available':
-            return 'available';
-        case 'Unavailable':
-            return 'unavailable';
-        default:
-            return 'busy';
-        }
+        if (value === busyLabel) return 'busy';
+        if (value === 'Unavailable') return 'unavailable';
+        return 'available';
+    }
+
+    function updateSummary() {
+        const modal = document.getElementById('batchAttendanceModal');
+        const summary = modal?.querySelector('#batchAttendanceSummary');
+        if (!modal || !summary) return;
+
+        const rows = [...modal.querySelectorAll('[data-batch-row]')];
+        const counts = {
+            Present: 0,
+            Late: 0,
+            Absent: 0,
+            'On Leave': 0,
+            Incomplete: 0,
+        };
+
+        rows.forEach((row) => {
+            const status = selectedStatus(row);
+            counts[status] = (counts[status] || 0) + 1;
+
+            if (!['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+                counts.Incomplete += 1;
+            }
+        });
+
+        summary.innerHTML = [
+            ['Present', 'present', '#2fb45e'],
+            ['Late', 'late', '#ff9518'],
+            ['Absent', 'absent', '#ef3d3d'],
+            ['On Leave', 'leave', '#7c3aed'],
+            ['Incomplete', 'incomplete', '#94a3b8'],
+        ].map(([name, className, color]) => `
+            <div class="batch-summary-card ${className}">
+                <div class="batch-summary-label"><i class="fa-solid fa-circle" style="color:${color}"></i>${name}</div>
+                <strong>${counts[name]}</strong>
+            </div>`).join('');
     }
 
     function closeModal() {
@@ -517,58 +522,66 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('batch-modal-open');
     }
 
-    function toast(message, type) {
-        if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(
-                message,
-                type,
-                type === 'success' ? 'Attendance Saved' : null,
-            );
-        } else {
-            window.alert(message);
-        }
-    }
-
     function today() {
-        return new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     }
 
     function currentTime() {
-        const d = new Date();
-        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
     function minutes(value) {
-        const [h, m] = String(value).split(':').map(Number);
-        return (h * 60) + m;
+        const [hour, minute] = String(value || '00:00').split(':').map(Number);
+        return (hour * 60) + minute;
     }
 
     function formatTime(value) {
         if (!value) return '';
-        const [hourRaw, minuteRaw] = String(value).split(':');
-        const hour = Number(hourRaw);
-        const minute = String(minuteRaw ?? '00').padStart(2, '0');
+        const [hour, minute] = String(value).slice(0, 5).split(':').map(Number);
         const suffix = hour >= 12 ? 'PM' : 'AM';
-        const twelve = ((hour + 11) % 12) + 1;
-        return `${String(twelve).padStart(2, '0')}:${minute} ${suffix}`;
+        const displayHour = hour % 12 || 12;
+        return `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${suffix}`;
     }
 
     function initials(name) {
         return String(name || '')
-            .trim()
             .split(/\s+/)
+            .filter(Boolean)
             .slice(0, 2)
-            .map((part) => part.charAt(0).toUpperCase())
-            .join('') || '--';
-    }
-
-    function errorMessage(data) {
-        return data?.message || Object.values(data?.errors || {}).flat()[0] || 'Request failed.';
+            .map((part) => part[0]?.toUpperCase() || '')
+            .join('');
     }
 
     function escapeHtml(value) {
-        const div = document.createElement('div');
-        div.textContent = String(value ?? '');
-        return div.innerHTML;
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function errorMessage(data) {
+        if (data?.message) return data.message;
+        if (data?.errors) return Object.values(data.errors).flat().join(' ');
+        return 'The attendance request could not be completed.';
+    }
+
+    function csrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
+    function toast(message, type = 'info') {
+        if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(
+                message,
+                type,
+                type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Notice'
+            );
+            return;
+        }
+        window.alert(message);
     }
 });

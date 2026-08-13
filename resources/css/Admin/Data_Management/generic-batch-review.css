@@ -1,0 +1,306 @@
+.generic-batch-review-overlay {
+    padding: 28px;
+}
+
+.generic-batch-review-modal {
+    width: min(1420px, 94vw);
+    max-width: 1420px;
+    max-height: 88vh;
+    padding: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.generic-review-modal-header {
+    flex: 0 0 auto;
+    margin-bottom: 14px;
+}
+
+.generic-review-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.generic-review-title-row h2 {
+    margin: 0;
+    color: #0b2347;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.generic-review-modal-header p {
+    margin: 4px 0 0;
+    color: #687995;
+    font-size: 12px;
+}
+
+.generic-batch-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #fff3cd;
+    color: #9a6700;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.generic-batch-status.processed {
+    background: #ddf8e7;
+    color: #16803b;
+}
+
+.generic-review-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.generic-review-modal-meta {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+}
+
+.generic-meta-item {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #e0e8f3;
+    border-radius: 10px;
+    background: #f8fbff;
+}
+
+.generic-meta-item span {
+    display: block;
+    margin-bottom: 3px;
+    color: #77859c;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.generic-meta-item strong {
+    display: block;
+    overflow: hidden;
+    color: #0b2347;
+    font-size: 12px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.generic-review-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid #cfe0f7;
+    border-radius: 9px;
+    background: #f4f8ff;
+    color: #435a79;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.generic-review-modal-note {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+}
+
+#genericBatchReviewForm {
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.generic-record-table-wrap {
+    width: 100%;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid #dce6f3;
+    border-radius: 11px;
+    background: #fff;
+}
+
+.generic-review-modal-table-wrap {
+    flex: 1;
+    max-height: 48vh;
+}
+
+.generic-record-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+}
+
+.generic-record-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 11px 10px;
+    background: #f0f5fc;
+    color: #122b50;
+    font-size: 10px;
+    font-weight: 900;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.generic-record-table td {
+    padding: 8px 9px;
+    border-top: 1px solid #e7edf6;
+    vertical-align: middle;
+}
+
+.generic-record-table tbody tr:hover {
+    background: #fbfdff;
+}
+
+.generic-record-table input,
+.generic-record-table textarea {
+    width: 100%;
+    min-width: 120px;
+    border: 1px solid #d8e2ef;
+    border-radius: 8px;
+    outline: none;
+    background: #fff;
+    padding: 8px 9px;
+    color: #1d3557;
+    font: inherit;
+    font-size: 11px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.generic-record-table input:focus,
+.generic-record-table textarea:focus {
+    border-color: #0b40b5;
+    box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.08);
+}
+
+.generic-record-table textarea {
+    min-height: 58px;
+    resize: vertical;
+}
+
+.generic-record-table input:disabled,
+.generic-record-table textarea:disabled {
+    background: #f7f9fc;
+    color: #52627a;
+}
+
+.generic-review-modal-footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.generic-review-modal-footer p {
+    margin: 0;
+    color: #6c7a91;
+    font-size: 11px;
+}
+
+.generic-save-review-btn,
+.generic-publish-btn {
+    min-height: 38px;
+    padding: 0 15px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 900;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.generic-save-review-btn {
+    border-color: #0b40b5;
+    background: #0b40b5;
+    color: #fff;
+}
+
+.generic-save-review-btn:hover {
+    background: #082f83;
+    box-shadow: 0 6px 14px rgba(11, 64, 181, 0.18);
+    transform: translateY(-1px);
+}
+
+.generic-publish-form {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.generic-publish-btn {
+    border-color: #15803d;
+    background: #16a34a;
+    color: #fff;
+}
+
+.generic-publish-btn:hover {
+    background: #15803d;
+    box-shadow: 0 6px 14px rgba(22, 163, 74, 0.18);
+    transform: translateY(-1px);
+}
+
+/* Processed Fuel / Inventory / Purchase tables */
+.generic-processed-table {
+    min-width: 100%;
+}
+
+.generic-processed-table th {
+    height: 48px;
+    padding: 0 15px;
+    font-size: 12px;
+    letter-spacing: 0.025em;
+}
+
+.generic-processed-table td {
+    height: 58px;
+    padding: 0 15px;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.generic-processed-table td:first-child {
+    color: #0b2347;
+    font-weight: 800;
+}
+
+@media (max-width: 900px) {
+    .generic-batch-review-overlay {
+        padding: 14px;
+    }
+
+    .generic-batch-review-modal {
+        width: 96vw;
+        max-height: 92vh;
+        padding: 14px;
+    }
+
+    .generic-review-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .generic-review-modal-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .generic-save-review-btn,
+    .generic-publish-btn {
+        width: 100%;
+    }
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\PreferredAiResolutionMiddleware;
+use App\Http\Middleware\RecordSystemActivity;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            require base_path('routes/account.php');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
@@ -37,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             PreferredAiResolutionMiddleware::class,
+            RecordSystemActivity::class,
         ]);
 
         /*

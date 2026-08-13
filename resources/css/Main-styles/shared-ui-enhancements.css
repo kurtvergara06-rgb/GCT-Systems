@@ -1,0 +1,406 @@
+/* Shared UI enhancements used across department modules. */
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Poppins", sans-serif;
+}
+
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  font-weight: 400;
+}
+
+.topbar h1,
+.page-title,
+.dashboard-title {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.section-header h2,
+.table-header h2,
+.card-title {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.menu-item,
+.submenu-item,
+.user-box h4,
+.profile-menu-item {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+th,
+.table-card th {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+td,
+.table-card td {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+td strong,
+.table-card td strong,
+.date-main,
+.time-main {
+  font-weight: 700;
+}
+
+button,
+.primary-btn,
+.secondary-btn,
+.action-btn {
+  font-weight: 700;
+}
+
+.system-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid #d6e0ee;
+  border-radius: 7px;
+  background: #f8fbff;
+  color: #163b6c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, .03);
+}
+
+.system-id-badge--small {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.system-id-badge--large {
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.system-id-badge--neutral {
+  border-color: #d6e0ee;
+  background: #f8fbff;
+  color: #163b6c;
+}
+
+/* Operation aliases use the same visual language as Maintenance IDs. */
+.personnel-id,
+.driver-id,
+.mechanic-id,
+.bus-id,
+.route-code,
+.trip-code,
+.assignment-reference {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  max-width: 100% !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d6e0ee !important;
+  border-radius: 7px !important;
+  background: #f8fbff !important;
+  color: #163b6c !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  box-shadow: 0 1px 2px rgba(15, 45, 85, .03) !important;
+}
+
+.system-id-empty {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Stronger shared status pills for Poppins. */
+.badge,
+.bus-status,
+.status-badge,
+.attendance-status,
+.jo-status,
+.part-status,
+.workflow-badge {
+  min-width: 92px;
+  min-height: 28px;
+  padding: 6px 13px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.badge.ongoing,
+.badge.normal,
+.badge.open,
+.badge.issued,
+.badge.for-purchase,
+.status-badge.ongoing,
+.status-badge.in-progress {
+  border-color: #a9c8ff;
+  background: #dceaff;
+  color: #0644b8;
+}
+
+.badge.hold,
+.badge.submitted,
+.badge.pending,
+.badge.pending-purchase,
+.badge.high,
+.badge.progress,
+.status-badge.hold,
+.status-badge.pending,
+.workflow-badge.for-fuel-entry {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
+}
+
+.badge.completed,
+.badge.approved,
+.badge.available,
+.badge.low,
+.badge.delivered,
+.badge.in-stock,
+.status-badge.completed,
+.status-badge.approved,
+.workflow-badge.completed {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+.badge.critical,
+.badge.not-available,
+.badge.rejected,
+.badge.urgent,
+.status-badge.rejected,
+.status-badge.urgent,
+.workflow-badge.missing-gps,
+.workflow-badge.needs-review {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+.badge.draft,
+.status-badge.draft,
+.status-badge.locked,
+.workflow-badge.monitoring {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+.workflow-badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  gap: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+.workflow-badge i {
+  display: none !important;
+}
+
+.badge.delivering {
+  border-color: #c4b5fd;
+  background: #ebe7ff;
+  color: #5b21b6;
+}
+
+.record-reference {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.record-reference__secondary {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.record-reference__secondary i {
+  color: #0b40b5;
+  font-size: 10px;
+}
+
+.search-box.is-searching::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 15px;
+  height: 15px;
+  margin-top: -8px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #0057f8;
+  border-radius: 50%;
+  animation: sharedSearchSpin .7s linear infinite;
+}
+
+.search-box.is-searching input {
+  padding-right: 42px;
+}
+
+@keyframes sharedSearchSpin {
+  to { transform: rotate(360deg); }
+}
+
+.topbar-action-item .dynamic-action-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  z-index: 2;
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.topbar-action-item .dynamic-action-badge[hidden] {
+  display: none;
+}
+
+/* =========================================================
+   GLOBAL SCROLLABLE TABLES
+   Normal page tables scroll after more than 8 visible rows.
+   Modal and popup tables retain their own behavior.
+========================================================= */
+
+.table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap),
+.table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap) {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)),
+.table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)) {
+  max-height: 520px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.table-wrap table thead th,
+.table-container table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--table-head, #f3f7fb);
+  box-shadow: 0 1px 0 var(--border, #dce5f0);
+}
+
+.pms-popup-table-wrap table thead th,
+.modal-table-wrap table thead th,
+.modal-overlay .table-wrap table thead th,
+.ui-modal-overlay .table-wrap table thead th {
+  position: static;
+  box-shadow: none;
+}
+
+.table-wrap::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.table-wrap::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+  background: #c5d1df;
+  border: 2px solid #f1f5f9;
+  border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #9fb0c4;
+}
+
+@media (max-width: 1200px) {
+  .table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)),
+  .table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(9)) {
+    max-height: 470px;
+  }
+}
+
+@media (max-width: 768px) {
+  .system-id-badge,
+  .personnel-id,
+  .driver-id,
+  .mechanic-id,
+  .bus-id,
+  .route-code,
+  .trip-code,
+  .assignment-reference {
+    max-width: 190px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .table-wrap:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(7)),
+  .table-container:not(.pms-popup-table-wrap):not(.modal-table-wrap):has(tbody > tr:nth-child(7)) {
+    max-height: 420px;
+    overflow: auto;
+  }
+}

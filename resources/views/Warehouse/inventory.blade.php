@@ -9,66 +9,17 @@
 
   <div class="app">
 
-  <x-layout.sidebar
-    department="Warehouse"
-    subtitle="Warehouse Module"
-    icon="fa-warehouse"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'warehouse.dashboard',
-            'icon' => 'fa-table-cells-large',
-        ],
-        [
-            'label' => 'Inventory',
-            'route' => 'inventory',
-            'icon' => 'fa-boxes-stacked'
-        ],
-        [
-            'label' => 'Part Requests',
-            'route' => 'part-requests',
-            'icon' => 'fa-clipboard-list'
-        ],
-        [
-            'label' => 'Incoming Deliveries',
-            'route' => 'incoming-deliveries',
-            'icon' => 'fa-truck-ramp-box'
-        ],
-        [
-            'label' => 'Stock Movements',
-            'route' => 'stock-movements',
-            'icon' => 'fa-right-left'
-        ],
-    ]"
-/>
+  <x-layout.sidebar department="Warehouse" />
 
     <main class="main">
 
-      {{-- TOP BAR --}}
-      <header class="topbar">
-        <div>
-          <h1>Warehouse Inventory</h1>
-          <p>Monitor vehicle parts stock levels, threshold alerts, and restocking needs</p>
-        </div>
-
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
+      <x-layout.topbar
+        title="Warehouse Inventory"
+        subtitle="Monitor vehicle parts stock levels, threshold alerts, and restocking needs"
+      />
 
       {{-- SUMMARY CARDS --}}
-          <section class="stats-grid inventory-stats">
+          <section data-ajax-region="summary" class="stats-grid inventory-stats">
 
             <x-ui.summary-card
               label="Total Items in Stock"
@@ -105,7 +56,7 @@
           </section>
 
       {{-- INVENTORY TABLE --}}
-      <section class="table-card inventory-card">
+      <section data-ajax-region="records" class="table-card inventory-card">
 
         <div class="section-header">
           <div>
@@ -114,26 +65,25 @@
           </div>
         </div>
 
-        <form method="GET" action="/inventory" class="toolbar inventory-toolbar">
+        <div class="toolbar inventory-toolbar" data-client-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input
               type="text"
               name="search"
-              value="{{ request('search') }}"
+              value=""
+              autocomplete="off"
               placeholder="Search by item, item code, supplier, or location..."
+              aria-label="Search inventory records"
             >
           </div>
 
           <div class="filter-group">
-            
-            <select name="category" onchange="this.form.submit()">
-              <option value="All Categories" {{ request('category') == 'All Categories' ? 'selected' : '' }}>
-                All Categories
-              </option>
+            <select name="category" aria-label="Filter inventory by category">
+              <option value="All Categories" selected>All Categories</option>
 
               @foreach($categories as $category)
-                <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>
+                <option value="{{ $category }}">
                   {{ $category }}
                 </option>
               @endforeach
@@ -149,7 +99,7 @@
             <i class="fa-solid fa-plus"></i>
             Add Item
           </button>
-        </form>
+        </div>
 
         <div class="table-wrap">
           <table class="inventory-table">
@@ -179,12 +129,6 @@
                     'Low Stock' => 'warning-row',
                     default => ''
                   };
-
-                  $badgeClass = match($status) {
-                    'Critical' => 'critical',
-                    'Low Stock' => 'low-stock',
-                    default => 'in-stock'
-                  };
                 @endphp
 
                 <tr class="{{ $rowClass }}">
@@ -195,7 +139,7 @@
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
-                    <x-ui.status-badge 
+                    <x-ui.status-badge
                       :status="$status"
                       type="inventory"
                     />
@@ -240,6 +184,7 @@
                           type="submit"
                           class="action-btn delete"
                           title="Delete Item"
+                          data-no-loading
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
@@ -258,53 +203,7 @@
           </table>
         </div>
 
-        {{-- CUSTOM PAGINATION --}}
-<div class="table-footer">
-    <p>
-        Showing {{ $inventoryItems->firstItem() ?? 0 }}
-        to {{ $inventoryItems->lastItem() ?? 0 }}
-        of {{ $inventoryItems->total() }} entries
-    </p>
-
-    <div class="custom-pagination">
-        @if ($inventoryItems->onFirstPage())
-            <span class="page-btn disabled">
-                Previous
-            </span>
-        @else
-            <a
-                href="/inventory?{{ http_build_query(array_merge(
-                    request()->except('page'),
-                    ['page' => $inventoryItems->currentPage() - 1]
-                )) }}"
-                class="page-btn"
-            >
-                Previous
-            </a>
-        @endif
-
-        <span class="page-number">
-            Page {{ $inventoryItems->currentPage() }}
-            of {{ $inventoryItems->lastPage() }}
-        </span>
-
-        @if ($inventoryItems->hasMorePages())
-            <a
-                href="/inventory?{{ http_build_query(array_merge(
-                    request()->except('page'),
-                    ['page' => $inventoryItems->currentPage() + 1]
-                )) }}"
-                class="page-btn"
-            >
-                Next
-            </a>
-        @else
-            <span class="page-btn disabled">
-                Next
-            </span>
-        @endif
-    </div>
-</div>
+        <x-ui.table-footer :items="$inventoryItems" />
 
   {{-- ADD MODAL --}}
   <div class="modal-overlay" id="addModal">
@@ -397,7 +296,7 @@
         data-confirm-message="Are you sure you want to update this inventory item?"
         data-confirm-button="Yes, Update Item"
         data-confirm-type="update"
-    >
+      >
         @csrf
         @method('PUT')
 

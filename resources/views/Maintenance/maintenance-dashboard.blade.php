@@ -34,43 +34,7 @@
     {{-- =====================================================
         SIDEBAR
     ====================================================== --}}
-    <x-layout.sidebar
-      department="Maintenance"
-      subtitle="Department Module"
-      icon="fa-truck"
-      :items="[
-        [
-          'label' => 'Dashboard',
-          'route' => 'maintenance-dashboard',
-          'icon' => 'fa-table-cells-large'
-        ],
-        [
-          'label' => 'Job Orders',
-          'route' => 'job-orders',
-          'icon' => 'fa-clipboard-list'
-        ],
-        [
-          'label' => 'Mechanic List',
-          'route' => 'mechanic-list',
-          'icon' => 'fa-bus'
-        ],
-        [
-          'label' => 'PMS Scheduling',
-          'route' => 'PMS-Scheduling',
-          'icon' => 'fa-calendar-check'
-        ],
-        [
-          'label' => 'Purchase Requests',
-          'route' => 'purchase-requests',
-          'icon' => 'fa-file-invoice'
-        ],
-        [
-          'label' => 'Fuel Reports',
-          'route' => 'fuel-reports',
-          'icon' => 'fa-gas-pump'
-        ],
-      ]"
-    />
+    <x-layout.sidebar department="Maintenance" />
 
 
     <main class="main maintenance-dashboard-main">
@@ -88,7 +52,7 @@
       {{-- =====================================================
           SUMMARY CARDS
       ====================================================== --}}
-      <section class="stats-grid maintenance-stats-grid">
+      <section data-ajax-region="summary" class="stats-grid maintenance-stats-grid">
 
         <x-ui.summary-card
           label="Total Job Orders"
