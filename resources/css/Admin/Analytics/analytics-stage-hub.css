@@ -9,6 +9,10 @@
     --stage-blue: #1557d5;
 }
 
+.analytics-stage-switcher {
+    display: none;
+}
+
 .analytics-stage-switcher,
 .analytics-domain-toolbar {
     border: 1px solid var(--stage-border);
@@ -18,7 +22,6 @@
 }
 
 .analytics-stage-switcher {
-    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     padding: 9px;
@@ -306,10 +309,6 @@
 }
 
 @media (max-width: 760px) {
-    .analytics-stage-switcher {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .analytics-domain-tabs {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
