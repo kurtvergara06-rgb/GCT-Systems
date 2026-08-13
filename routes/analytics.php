@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')
     ->prefix('analytics')
     ->group(function (): void {
+        Route::redirect('/fuel', '/analytics/descriptive?domain=fuel');
+        Route::redirect('/bus-health', '/analytics/descriptive?domain=bus-health');
+        Route::redirect('/inventory', '/analytics/descriptive?domain=inventory');
+        Route::redirect('/recommendations', '/analytics/prescriptive');
+
         Route::get(
             '/{stage}',
             [AnalyticsStageController::class, 'show']
