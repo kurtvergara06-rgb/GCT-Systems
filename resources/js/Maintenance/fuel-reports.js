@@ -1546,285 +1546,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* =========================================================
-   CONSOLIDATED: resources/js/Maintenance/fuel-report-chart-refinement.js
-========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
-  window.setTimeout(() => {
-    const page = document.querySelector('.fuel-page');
-    const dataElement = document.getElementById('fuelAnalyticsData');
-
-    if (!page || !dataElement) {
-      return;
-    }
-
-    let analytics;
-
-    try {
-      analytics = JSON.parse(dataElement.textContent.trim());
-    } catch (error) {
-      console.error('Unable to read Fuel Reports chart data.', error);
-      return;
-    }
-
-    const labels = Array.isArray(analytics.labels) ? analytics.labels : [];
-    const efficiency = Array.isArray(analytics.efficiency)
-      ? analytics.efficiency.map((value) => Number(value) || 0)
-      : [];
-    const distance = Array.isArray(analytics.distance)
-      ? analytics.distance.map((value) => Number(value) || 0)
-      : [];
-    const fuel = Array.isArray(analytics.fuel)
-      ? analytics.fuel.map((value) => Number(value) || 0)
-      : [];
-    const fleetAverage = Number(analytics.fleetAverage) || 0;
-
-    const removeEmptyState = (canvas) => {
-      const card = canvas?.closest('.fuel-chart-card');
-      card?.querySelector('.fuel-chart-empty-state')?.remove();
-      card?.classList.remove('has-empty-chart');
-    };
-
-    const showEmptyState = (canvas, message) => {
-      const card = canvas?.closest('.fuel-chart-card');
-      const container = canvas?.closest('.fuel-chart-container');
-
-      if (!card || !container || container.querySelector('.fuel-chart-empty-state')) {
-        return;
-      }
-
-      const state = document.createElement('div');
-      state.className = 'fuel-chart-empty-state';
-      state.innerHTML = `
-        <i class="fa-solid fa-chart-line"></i>
-        <strong>No chart data yet</strong>
-        <p>${message}</p>
-      `;
-      container.appendChild(state);
-      card.classList.add('has-empty-chart');
-    };
-
-    const commonOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      normalized: true,
-      animation: {
-        duration: 450,
-      },
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            usePointStyle: true,
-            boxWidth: 8,
-            padding: 18,
-            color: '#475569',
-            font: {
-              family: 'Poppins',
-              size: 11,
-              weight: '600',
-            },
-          },
-        },
-      },
-    };
-
-    const efficiencyCanvas = document.getElementById('fuelEfficiencyChart');
-
-    if (efficiencyCanvas) {
-      Chart.getChart(efficiencyCanvas)?.destroy();
-      removeEmptyState(efficiencyCanvas);
-
-      if (labels.length && efficiency.some((value) => value > 0)) {
-        new Chart(efficiencyCanvas, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Vehicle Efficiency',
-                data: efficiency,
-                borderColor: '#0b40b5',
-                backgroundColor: 'rgba(11, 64, 181, 0.10)',
-                borderWidth: 2.25,
-                pointRadius: labels.length > 35 ? 0 : 3,
-                pointHoverRadius: 5,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#0b40b5',
-                pointBorderWidth: 2,
-                tension: 0.28,
-                fill: true,
-              },
-              {
-                label: 'Fleet Average',
-                data: labels.map(() => fleetAverage),
-                borderColor: '#e2a900',
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderDash: [7, 5],
-                pointRadius: 0,
-                tension: 0,
-              },
-            ],
-          },
-          options: {
-            ...commonOptions,
-            plugins: {
-              ...commonOptions.plugins,
-              tooltip: {
-                callbacks: {
-                  label(context) {
-                    return `${context.dataset.label}: ${Number(context.raw || 0).toFixed(2)} km/L`;
-                  },
-                },
-              },
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: {
-                  autoSkip: true,
-                  maxTicksLimit: 14,
-                  maxRotation: 0,
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 10 },
-                },
-              },
-              y: {
-                beginAtZero: true,
-                suggestedMax: Math.max(8, ...efficiency) + 1,
-                title: {
-                  display: true,
-                  text: 'KM/L',
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 11, weight: '600' },
-                },
-                ticks: {
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 10 },
-                },
-                grid: { color: 'rgba(148, 163, 184, 0.18)' },
-              },
-            },
-          },
-        });
-      } else {
-        showEmptyState(
-          efficiencyCanvas,
-          'Add fuel records for the selected reporting period to generate the efficiency trend.'
-        );
-      }
-    }
-
-    const usageCanvas = document.getElementById('fuelUsageChart');
-
-    if (usageCanvas) {
-      Chart.getChart(usageCanvas)?.destroy();
-      removeEmptyState(usageCanvas);
-
-      if (labels.length && (distance.some((value) => value > 0) || fuel.some((value) => value > 0))) {
-        new Chart(usageCanvas, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Distance',
-                data: distance,
-                borderColor: '#0b40b5',
-                backgroundColor: 'rgba(11, 64, 181, 0.08)',
-                borderWidth: 2.25,
-                pointRadius: labels.length > 35 ? 0 : 3,
-                pointHoverRadius: 5,
-                tension: 0.28,
-                fill: false,
-                yAxisID: 'distanceAxis',
-              },
-              {
-                label: 'Fuel Used',
-                data: fuel,
-                borderColor: '#e2a900',
-                backgroundColor: 'rgba(255, 196, 0, 0.10)',
-                borderWidth: 2.25,
-                pointRadius: labels.length > 35 ? 0 : 3,
-                pointHoverRadius: 5,
-                tension: 0.28,
-                fill: false,
-                yAxisID: 'fuelAxis',
-              },
-            ],
-          },
-          options: {
-            ...commonOptions,
-            plugins: {
-              ...commonOptions.plugins,
-              tooltip: {
-                callbacks: {
-                  label(context) {
-                    const value = Number(context.raw || 0).toFixed(2);
-                    return context.dataset.label === 'Distance'
-                      ? `Distance: ${value} km`
-                      : `Fuel Used: ${value} L`;
-                  },
-                },
-              },
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: {
-                  autoSkip: true,
-                  maxTicksLimit: 14,
-                  maxRotation: 0,
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 10 },
-                },
-              },
-              distanceAxis: {
-                type: 'linear',
-                position: 'left',
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Distance (km)',
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 11, weight: '600' },
-                },
-                ticks: { color: '#64748b', font: { family: 'Poppins', size: 10 } },
-                grid: { color: 'rgba(148, 163, 184, 0.18)' },
-              },
-              fuelAxis: {
-                type: 'linear',
-                position: 'right',
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Fuel (L)',
-                  color: '#64748b',
-                  font: { family: 'Poppins', size: 11, weight: '600' },
-                },
-                ticks: { color: '#64748b', font: { family: 'Poppins', size: 10 } },
-                grid: { drawOnChartArea: false },
-              },
-            },
-          },
-        });
-      } else {
-        showEmptyState(
-          usageCanvas,
-          'Add fuel records for the selected reporting period to compare distance and fuel usage.'
-        );
-      }
-    }
-  }, 150);
-});
-
-
-/* =========================================================
-   CONSOLIDATED: resources/js/Maintenance/fuel-reports-line-enhancements.js
+   FUEL ANALYTICS - TOP 10 READABLE CHARTS
 ========================================================= */
 const parseFuelAnalytics = () => {
   const source = document.getElementById('fuelAnalyticsData');
@@ -1841,123 +1563,163 @@ const parseFuelAnalytics = () => {
   }
 };
 
-const prepareScrollableCanvas = (canvas, itemCount) => {
+const fuelChartFont = {
+  family: 'Poppins',
+  size: 10,
+};
+
+const fuelLegendOptions = {
+  position: 'bottom',
+  labels: {
+    usePointStyle: true,
+    boxWidth: 8,
+    padding: 16,
+    color: '#475569',
+    font: {
+      family: 'Poppins',
+      size: 10,
+      weight: '600',
+    },
+  },
+};
+
+const getFuelRows = data => {
+  const labels = Array.isArray(data.labels) ? data.labels : [];
+  const efficiency = Array.isArray(data.efficiency) ? data.efficiency : [];
+  const distance = Array.isArray(data.distance) ? data.distance : [];
+  const fuel = Array.isArray(data.fuel) ? data.fuel : [];
+
+  return labels.map((label, index) => ({
+    label,
+    efficiency: Number(efficiency[index] || 0),
+    distance: Number(distance[index] || 0),
+    fuel: Number(fuel[index] || 0),
+  }));
+};
+
+const showFuelChartEmptyState = (canvas, message) => {
   const container = canvas?.closest('.fuel-chart-container');
 
-  if (!container) {
+  if (!container || container.querySelector('.fuel-chart-empty-state')) {
     return;
   }
 
-  let inner = container.querySelector('.fuel-chart-scroll-inner');
-
-  if (!inner) {
-    inner = document.createElement('div');
-    inner.className = 'fuel-chart-scroll-inner';
-    canvas.parentNode.insertBefore(inner, canvas);
-    inner.appendChild(canvas);
-  }
-
-  const minimumWidth = Math.max(container.clientWidth || 640, itemCount * 52);
-  inner.style.width = `${minimumWidth}px`;
-  inner.style.height = '100%';
+  const state = document.createElement('div');
+  state.className = 'fuel-chart-empty-state';
+  state.innerHTML = `
+    <i class="fa-solid fa-chart-line"></i>
+    <strong>No chart data yet</strong>
+    <p>${message}</p>
+  `;
+  container.appendChild(state);
 };
 
-const sharedOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  normalized: true,
-  animation: {
-    duration: 450,
-  },
-  interaction: {
-    mode: 'index',
-    intersect: false,
-  },
-  plugins: {
-    legend: {
-      position: 'bottom',
-      labels: {
-        usePointStyle: true,
-        boxWidth: 8,
-        padding: 18,
-      },
-    },
+const clearFuelChartEmptyState = canvas => {
+  canvas?.closest('.fuel-chart-container')
+    ?.querySelector('.fuel-chart-empty-state')
+    ?.remove();
+};
+
+const fleetAverageReferencePlugin = {
+  id: 'fuelFleetAverageReference',
+  afterDraw(chart, args, options) {
+    const average = Number(options?.value || 0);
+    const xScale = chart.scales.x;
+    const area = chart.chartArea;
+
+    if (!average || !xScale || !area) {
+      return;
+    }
+
+    const x = xScale.getPixelForValue(average);
+    const ctx = chart.ctx;
+
+    ctx.save();
+    ctx.strokeStyle = '#d89b00';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(x, area.top);
+    ctx.lineTo(x, area.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
   },
 };
 
 const renderEfficiencyChart = data => {
   const canvas = document.getElementById('fuelEfficiencyChart');
-  const labels = Array.isArray(data.labels) ? data.labels : [];
-  const efficiency = Array.isArray(data.efficiency) ? data.efficiency.map(Number) : [];
-  const fleetAverage = Number(data.fleetAverage || 0);
 
-  if (!canvas || labels.length === 0) {
+  if (!canvas) {
     return;
   }
 
-  prepareScrollableCanvas(canvas, labels.length);
   Chart.getChart(canvas)?.destroy();
+  clearFuelChartEmptyState(canvas);
+
+  const fleetAverage = Number(data.fleetAverage || 0);
+  const rows = getFuelRows(data)
+    .filter(row => row.efficiency > 0)
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .slice(0, 10);
+
+  if (!rows.length) {
+    showFuelChartEmptyState(canvas, 'Save fuel entries to generate vehicle efficiency rankings.');
+    return;
+  }
 
   new Chart(canvas, {
-    type: 'line',
+    type: 'bar',
+    plugins: [fleetAverageReferencePlugin],
     data: {
-      labels,
-      datasets: [
-        {
-          label: 'Vehicle Efficiency',
-          data: efficiency,
-          borderColor: '#0b40b5',
-          backgroundColor: 'rgba(11, 64, 181, 0.12)',
-          borderWidth: 2.5,
-          pointRadius: labels.length > 40 ? 0 : 3,
-          pointHoverRadius: 5,
-          pointHitRadius: 12,
-          fill: true,
-          tension: 0.28,
-        },
-        {
-          label: 'Fleet Average',
-          data: labels.map(() => fleetAverage),
-          borderColor: '#d89b00',
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          borderDash: [7, 5],
-          pointRadius: 0,
-          pointHoverRadius: 0,
-          tension: 0,
-        },
-      ],
+      labels: rows.map(row => row.label),
+      datasets: [{
+        label: 'Efficiency (km/L)',
+        data: rows.map(row => row.efficiency),
+        backgroundColor: 'rgba(11, 64, 181, 0.82)',
+        borderColor: '#0b40b5',
+        borderWidth: 1,
+        borderRadius: 5,
+        barThickness: 14,
+      }],
     },
     options: {
-      ...sharedOptions,
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      interaction: { mode: 'nearest', intersect: false },
+      layout: { padding: { right: 18 } },
       plugins: {
-        ...sharedOptions.plugins,
+        legend: fuelLegendOptions,
+        fuelFleetAverageReference: { value: fleetAverage },
         tooltip: {
-          callbacks: {
-            label(context) {
-              return `${context.dataset.label}: ${Number(context.raw || 0).toFixed(2)} km/L`;
-            },
-          },
+callbacks: {
+  label(context) {
+    return `Efficiency: ${Number(context.raw || 0).toFixed(2)} km/L`;
+  },
+},
         },
       },
       scales: {
         x: {
-          grid: { display: false },
-          ticks: {
-            autoSkip: labels.length > 24,
-            maxTicksLimit: 24,
-            maxRotation: 0,
-          },
+beginAtZero: true,
+suggestedMax: Math.max(7, ...rows.map(row => row.efficiency)) + 0.5,
+title: {
+  display: true,
+  text: 'km/L',
+  color: '#64748b',
+  font: { ...fuelChartFont, weight: '600' },
+},
+ticks: { color: '#64748b', font: fuelChartFont },
+grid: { color: 'rgba(148, 163, 184, 0.18)' },
         },
         y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Fuel efficiency (km/L)',
-          },
-          grid: {
-            color: 'rgba(148, 163, 184, 0.18)',
-          },
+grid: { display: false },
+ticks: {
+  color: '#334155',
+  font: { family: 'Poppins', size: 10, weight: '600' },
+},
         },
       },
     },
@@ -1966,95 +1728,110 @@ const renderEfficiencyChart = data => {
 
 const renderUsageChart = data => {
   const canvas = document.getElementById('fuelUsageChart');
-  const labels = Array.isArray(data.labels) ? data.labels : [];
-  const distance = Array.isArray(data.distance) ? data.distance.map(Number) : [];
-  const fuel = Array.isArray(data.fuel) ? data.fuel.map(Number) : [];
 
-  if (!canvas || labels.length === 0) {
+  if (!canvas) {
     return;
   }
 
-  prepareScrollableCanvas(canvas, labels.length);
   Chart.getChart(canvas)?.destroy();
+  clearFuelChartEmptyState(canvas);
+
+  const rows = getFuelRows(data)
+    .filter(row => row.distance > 0 || row.fuel > 0)
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, 10);
+
+  if (!rows.length) {
+    showFuelChartEmptyState(canvas, 'Save fuel entries to compare distance and fuel usage.');
+    return;
+  }
 
   new Chart(canvas, {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels,
+      labels: rows.map(row => row.label),
       datasets: [
         {
-          label: 'Distance',
-          data: distance,
-          borderColor: '#0b40b5',
-          backgroundColor: 'rgba(11, 64, 181, 0.08)',
-          borderWidth: 2.5,
-          pointRadius: labels.length > 40 ? 0 : 3,
-          pointHoverRadius: 5,
-          pointHitRadius: 12,
-          tension: 0.28,
-          yAxisID: 'distanceAxis',
+type: 'bar',
+label: 'Distance (km)',
+data: rows.map(row => row.distance),
+backgroundColor: 'rgba(11, 64, 181, 0.82)',
+borderColor: '#0b40b5',
+borderWidth: 1,
+borderRadius: 5,
+barThickness: 18,
+yAxisID: 'distanceAxis',
         },
         {
-          label: 'Fuel Used',
-          data: fuel,
-          borderColor: '#d89b00',
-          backgroundColor: 'rgba(255, 196, 0, 0.08)',
-          borderWidth: 2.5,
-          pointRadius: labels.length > 40 ? 0 : 3,
-          pointHoverRadius: 5,
-          pointHitRadius: 12,
-          tension: 0.28,
-          yAxisID: 'fuelAxis',
+type: 'line',
+label: 'Fuel Used (L)',
+data: rows.map(row => row.fuel),
+borderColor: '#e2a900',
+backgroundColor: '#ffc400',
+borderWidth: 2.25,
+pointRadius: 3,
+pointHoverRadius: 5,
+pointBackgroundColor: '#ffc400',
+pointBorderColor: '#d89b00',
+tension: 0.25,
+yAxisID: 'fuelAxis',
         },
       ],
     },
     options: {
-      ...sharedOptions,
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      interaction: { mode: 'index', intersect: false },
       plugins: {
-        ...sharedOptions.plugins,
+        legend: fuelLegendOptions,
         tooltip: {
-          callbacks: {
-            label(context) {
-              const value = Number(context.raw || 0).toFixed(2);
-              return context.dataset.label === 'Distance'
-                ? `Distance: ${value} km`
-                : `Fuel Used: ${value} L`;
-            },
-          },
+callbacks: {
+  label(context) {
+    const value = Number(context.raw || 0).toFixed(2);
+    return context.dataset.label.startsWith('Distance')
+      ? `Distance: ${value} km`
+      : `Fuel Used: ${value} L`;
+  },
+},
         },
       },
       scales: {
         x: {
-          grid: { display: false },
-          ticks: {
-            autoSkip: labels.length > 24,
-            maxTicksLimit: 24,
-            maxRotation: 0,
-          },
+grid: { display: false },
+ticks: {
+  color: '#475569',
+  autoSkip: false,
+  maxRotation: 38,
+  minRotation: 38,
+  font: { family: 'Poppins', size: 9, weight: '600' },
+},
         },
         distanceAxis: {
-          type: 'linear',
-          position: 'left',
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Distance (km)',
-          },
-          grid: {
-            color: 'rgba(148, 163, 184, 0.18)',
-          },
+type: 'linear',
+position: 'left',
+beginAtZero: true,
+title: {
+  display: true,
+  text: 'Distance (km)',
+  color: '#64748b',
+  font: { ...fuelChartFont, weight: '600' },
+},
+ticks: { color: '#64748b', font: fuelChartFont },
+grid: { color: 'rgba(148, 163, 184, 0.18)' },
         },
         fuelAxis: {
-          type: 'linear',
-          position: 'right',
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Fuel used (L)',
-          },
-          grid: {
-            drawOnChartArea: false,
-          },
+type: 'linear',
+position: 'right',
+beginAtZero: true,
+title: {
+  display: true,
+  text: 'Fuel Used (L)',
+  color: '#64748b',
+  font: { ...fuelChartFont, weight: '600' },
+},
+ticks: { color: '#64748b', font: fuelChartFont },
+grid: { drawOnChartArea: false },
         },
       },
     },

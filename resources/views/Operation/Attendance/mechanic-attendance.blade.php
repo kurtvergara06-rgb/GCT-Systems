@@ -189,9 +189,7 @@
           </div>
 
           <div class="filter-group">
-            <label>Status</label>
-
-            <select name="status" onchange="this.form.submit()">
+            <select name="status" onchange="this.form.submit()" aria-label="Status">
               <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>
                 All Status
               </option>

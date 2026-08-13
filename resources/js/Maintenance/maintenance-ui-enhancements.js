@@ -64,4 +64,93 @@ document.addEventListener('DOMContentLoaded', () => {
       element.setAttribute('title', element.textContent);
     });
   });
+
+  /* =========================================================
+     JOB ORDER ESTIMATED WORK DURATION
+     Maintenance staff enters the estimate after assessing the
+     actual work instead of using an automatic repair assumption.
+  ========================================================= */
+  const createDurationField = (maintenanceTypeSelect, id, required = false) => {
+    if (!maintenanceTypeSelect) {
+      return null;
+    }
+
+    const existing = document.getElementById(id);
+    if (existing) {
+      return existing;
+    }
+
+    const group = document.createElement('div');
+    group.id = id;
+    group.className = 'ui-form-group jo-estimated-duration-field';
+    group.innerHTML = `
+      <label>
+        Estimated Work Duration
+        ${required ? '<span class="ui-required">*</span>' : ''}
+      </label>
+
+      <div class="jo-duration-control">
+        <div class="ui-input-wrap has-icon">
+          <span class="ui-input-icon">
+            <i class="fa-solid fa-clock"></i>
+          </span>
+          <input
+            type="number"
+            name="estimated_duration_value"
+            min="0.25"
+            step="0.25"
+            placeholder="e.g. 4"
+            ${required ? 'required' : ''}
+          >
+        </div>
+
+        <select name="estimated_duration_unit" ${required ? 'required' : ''}>
+          <option value="Hours">Hours</option>
+          <option value="Minutes">Minutes</option>
+          <option value="Days">Days</option>
+        </select>
+      </div>
+    `;
+
+    const fieldGroup = maintenanceTypeSelect.closest('.ui-form-group') || maintenanceTypeSelect.parentElement;
+    fieldGroup?.insertAdjacentElement('afterend', group);
+
+    return group;
+  };
+
+  const newMaintenanceType = document.getElementById('jobMaintenanceType');
+  const editMaintenanceType = document.getElementById('edit_maintenance_type');
+
+  createDurationField(
+    newMaintenanceType,
+    'newJoEstimatedDuration',
+    true
+  );
+
+  const editDurationField = createDurationField(
+    editMaintenanceType,
+    'editJoEstimatedDuration',
+    false
+  );
+
+  document.querySelectorAll('.open-edit-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      window.setTimeout(() => {
+        if (!editDurationField) {
+          return;
+        }
+
+        const valueInput = editDurationField.querySelector('input[name="estimated_duration_value"]');
+        const unitSelect = editDurationField.querySelector('select[name="estimated_duration_unit"]');
+
+        if (valueInput) {
+          valueInput.value = button.dataset.estimatedDurationValue || '';
+        }
+
+        if (unitSelect) {
+          unitSelect.value = button.dataset.estimatedDurationUnit || 'Hours';
+        }
+      }, 0);
+    });
+  });
 });

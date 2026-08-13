@@ -144,11 +144,16 @@ button,
 .status-badge,
 .attendance-status,
 .jo-status,
-.part-status {
+.part-status,
+.workflow-badge {
   min-width: 92px;
   min-height: 28px;
   padding: 6px 13px;
   border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -176,10 +181,11 @@ button,
 .badge.high,
 .badge.progress,
 .status-badge.hold,
-.status-badge.pending {
-  border-color: #f3ce65;
-  background: #fff0bd;
-  color: #8a5600;
+.status-badge.pending,
+.workflow-badge.for-fuel-entry {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
 }
 
 .badge.completed,
@@ -189,10 +195,11 @@ button,
 .badge.delivered,
 .badge.in-stock,
 .status-badge.completed,
-.status-badge.approved {
-  border-color: #8bdcab;
-  background: #d7f7e3;
-  color: #087332;
+.status-badge.approved,
+.workflow-badge.completed {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
 }
 
 .badge.critical,
@@ -200,18 +207,35 @@ button,
 .badge.rejected,
 .badge.urgent,
 .status-badge.rejected,
-.status-badge.urgent {
-  border-color: #ffaaaa;
-  background: #ffe0e0;
-  color: #b20f1b;
+.status-badge.urgent,
+.workflow-badge.missing-gps,
+.workflow-badge.needs-review {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
 }
 
 .badge.draft,
 .status-badge.draft,
-.status-badge.locked {
-  border-color: #cbd5e1;
-  background: #edf2f7;
-  color: #475569;
+.status-badge.locked,
+.workflow-badge.monitoring {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+.workflow-badge {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  gap: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+.workflow-badge i {
+  display: none !important;
 }
 
 .badge.delivering {

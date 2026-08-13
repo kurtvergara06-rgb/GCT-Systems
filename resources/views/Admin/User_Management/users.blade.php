@@ -23,13 +23,6 @@
             $sidebarRole = $sidebarDepartment . ' ' . ucfirst($sidebarRoleValue ?: 'staff');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Department Options
-        |--------------------------------------------------------------------------
-        | Controller sends $departments. This creates $departmentOptions safely
-        | for the filter and Add User modal.
-        */
         $departmentOptions = $departments ?? [
             'Maintenance',
             'Warehouse',
@@ -37,11 +30,6 @@
             'Operation',
         ];
 
-        /*
-        |--------------------------------------------------------------------------
-        | Role Display Formatter
-        |--------------------------------------------------------------------------
-        */
         $formatRole = function ($user) {
             $department = trim($user->department ?? '');
             $role = strtolower(trim($user->role ?? ''));
@@ -308,12 +296,11 @@
                     </div>
 
                     <div class="filter-group">
-                        <label for="statusFilter">Status</label>
-
                         <select
                             name="status"
                             id="statusFilter"
                             onchange="this.form.submit()"
+                            aria-label="Status"
                         >
                             <option
                                 value="All Status"
