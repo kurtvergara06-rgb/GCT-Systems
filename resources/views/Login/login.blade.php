@@ -17,6 +17,40 @@
     'resources/css/Login/login.css',
     'resources/js/Login/login.js',
   ])
+
+  <style>
+    .fleet-composite {
+      position: absolute;
+      left: -2%;
+      bottom: 0;
+      width: min(50vw, 760px);
+      max-width: 98%;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.34));
+    }
+
+    @media (max-width: 1180px) {
+      .fleet-composite {
+        left: -1%;
+        width: min(52vw, 620px);
+      }
+    }
+
+    @media (max-width: 960px) {
+      .fleet-composite {
+        left: 0;
+        width: min(82vw, 520px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .fleet-composite {
+        left: -3%;
+        width: min(94vw, 360px);
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -80,29 +114,11 @@
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
 
-          <div class="vehicle vehicle-car-one">
-            <img
-              src="{{ asset('img/GCT_bus2.png') }}"
-              alt=""
-              style="display:block;width:min(14vw,170px);height:auto;object-fit:contain;"
-            >
-          </div>
-
-          <div class="vehicle vehicle-van">
-            <img
-              src="{{ asset('img/GCT_bus1.png') }}"
-              alt=""
-              style="display:block;width:min(19vw,230px);height:auto;object-fit:contain;"
-            >
-          </div>
-
-          <div class="vehicle vehicle-bus">
-            <img
-              src="{{ asset('img/GCT_bus.png') }}"
-              alt=""
-              style="display:block;width:min(38vw,500px);height:auto;object-fit:contain;"
-            >
-          </div>
+          <img
+            src="{{ asset('img/GCT-bus.png') }}"
+            alt=""
+            class="fleet-composite"
+          >
         </div>
 
         <div class="security-note">
