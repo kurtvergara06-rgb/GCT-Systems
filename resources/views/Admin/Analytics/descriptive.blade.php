@@ -36,7 +36,6 @@
         'resources/css/Admin/Analytics/fleet-trip-redesign.css',
         'resources/css/Admin/Analytics/fleet-trip-rankings.css',
         'resources/css/Admin/Analytics/analytics-stage-hub.css',
-        'resources/css/Admin/Analytics/analytics.css',
     ]"
 >
     <div class="app">
@@ -225,24 +224,14 @@
                 @if($domain === 'all')
                     <section class="descriptive-bottom-grid">
                         <article class="analytics-card ranking-card descriptive-ranking-card">
-                            <x-analytics.card-header
-                                title="Top Routes by Trips"
-                                :description="$periodLabel . ' · highest-volume routes'"
-                            />
-
+                            <x-analytics.card-header title="Top Routes by Trips" :description="$periodLabel . ' · highest-volume routes'" />
                             <div class="ranking-list refined-ranking-list">
                                 @forelse($routes as $route)
                                     <div class="refined-ranking-row">
                                         <span class="refined-rank-number">{{ $loop->iteration }}</span>
                                         <div class="refined-ranking-main">
-                                            <div class="refined-ranking-title-row">
-                                                <strong>{{ $route->label }}</strong>
-                                                <span>{{ $route->trips }} trips</span>
-                                            </div>
-                                            <div class="refined-ranking-meta">
-                                                <span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span>
-                                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span>
-                                            </div>
+                                            <div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ $route->trips }} trips</span></div>
+                                            <div class="refined-ranking-meta"><span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span></div>
                                             <div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div>
                                         </div>
                                     </div>
@@ -253,24 +242,14 @@
                         </article>
 
                         <article class="analytics-card ranking-card descriptive-ranking-card">
-                            <x-analytics.card-header
-                                title="Busiest Buses"
-                                :description="$periodLabel . ' · highest recorded trip activity'"
-                            />
-
+                            <x-analytics.card-header title="Busiest Buses" :description="$periodLabel . ' · highest recorded trip activity'" />
                             <div class="ranking-list refined-ranking-list">
                                 @forelse($busActivity as $bus)
                                     <div class="refined-ranking-row">
                                         <span class="refined-rank-number">{{ $loop->iteration }}</span>
                                         <div class="refined-ranking-main">
-                                            <div class="refined-ranking-title-row">
-                                                <strong>{{ $bus->bus }}</strong>
-                                                <span>{{ $bus->trips }} trips</span>
-                                            </div>
-                                            <div class="refined-ranking-meta">
-                                                <span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span>
-                                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span>
-                                            </div>
+                                            <div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ $bus->trips }} trips</span></div>
+                                            <div class="refined-ranking-meta"><span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span></div>
                                             <div class="metric-bar refined-metric-bar"><span style="width: {{ $bus->progress }}%"></span></div>
                                         </div>
                                     </div>
@@ -282,48 +261,20 @@
 
                         <div class="descriptive-summary-stack">
                             <article class="analytics-card descriptive-summary-card">
-                                <x-analytics.card-header
-                                    title="Bus Health"
-                                    description="Current condition overview"
-                                    :badge="$totalBuses . ' buses'"
-                                />
-
+                                <x-analytics.card-header title="Bus Health" description="Current condition overview" :badge="$totalBuses . ' buses'" />
                                 <div class="availability-breakdown">
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot operational"></span><span>Active / Good</span></div>
-                                        <strong>{{ $activeBuses }}</strong>
-                                    </div>
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot maintenance"></span><span>Needs Attention</span></div>
-                                        <strong>{{ $underMaintenance }}</strong>
-                                    </div>
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot inactive"></span><span>Unavailable</span></div>
-                                        <strong>{{ $inactiveBuses }}</strong>
-                                    </div>
+                                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active / Good</span></div><strong>{{ $activeBuses }}</strong></div>
+                                    <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Needs Attention</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                    <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Unavailable</span></div><strong>{{ $inactiveBuses }}</strong></div>
                                 </div>
                             </article>
 
                             <article class="analytics-card descriptive-summary-card">
-                                <x-analytics.card-header
-                                    title="Inventory Overview"
-                                    description="Current stock-level summary"
-                                    :badge="$inventoryTotal . ' items'"
-                                />
-
+                                <x-analytics.card-header title="Inventory Overview" description="Current stock-level summary" :badge="$inventoryTotal . ' items'" />
                                 <div class="availability-breakdown">
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot operational"></span><span>Well Stocked</span></div>
-                                        <strong>{{ $inventoryHealthy }} ({{ number_format($healthyPct) }}%)</strong>
-                                    </div>
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot maintenance"></span><span>Low Stock</span></div>
-                                        <strong>{{ $inventoryLow }} ({{ number_format($lowPct) }}%)</strong>
-                                    </div>
-                                    <div class="availability-row">
-                                        <div><span class="availability-dot inactive"></span><span>Out of Stock</span></div>
-                                        <strong>{{ $inventoryCritical }} ({{ number_format($criticalPct) }}%)</strong>
-                                    </div>
+                                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} ({{ number_format($healthyPct) }}%)</strong></div>
+                                    <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} ({{ number_format($lowPct) }}%)</strong></div>
+                                    <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} ({{ number_format($criticalPct) }}%)</strong></div>
                                 </div>
                             </article>
                         </div>
