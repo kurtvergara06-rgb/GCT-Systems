@@ -11,6 +11,7 @@ import '../css/Main-styles/shared-ui-enhancements.css';
 import '../css/Main-styles/scroll-record-lists.css';
 import '../css/Main-styles/analytics-chart-animations.css';
 import '../css/Main-styles/analytics-chart-interactions.css';
+import '../css/Main-styles/analytics-domain-panels.css';
 import '../css/Main-styles/toolbar-cleanup.css';
 import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
@@ -30,6 +31,7 @@ import './Main-js/loading-state.js';
 import './Main-js/ajax-regions.js';
 import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
+import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
