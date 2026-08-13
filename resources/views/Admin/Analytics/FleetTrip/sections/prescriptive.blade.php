@@ -1,28 +1,111 @@
+@php
+    $predictiveEvidenceReady = $prediction->available && $prediction->predicted_target_count > 0;
+    $readyLayers = 2 + ($predictiveEvidenceReady ? 1 : 0);
+    $readinessPercent = ($readyLayers / 3) * 100;
+    $routeReviewSignals = (int) $diagnostics->delayed_with_slow_movement;
+    $scheduleSignals = (int) $prediction->peak_periods->count();
+    $primaryPeak = $prediction->peak_periods->first();
+@endphp
+
 <section class="analytics-stage analytics-stage-clean">
     <section class="analytics-kpi-strip">
         <article class="analytics-kpi"><div class="analytics-kpi-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div><div><span>Diagnostic Inputs</span><strong>{{ number_format($diagnostics->review_count) }}</strong><small>Trips currently requiring review</small></div></article>
         <article class="analytics-kpi"><div class="analytics-kpi-icon green"><i class="fa-solid fa-chart-line"></i></div><div><span>Predictive Inputs</span><strong>{{ number_format($prediction->predicted_target_count) }}</strong><small>{{ $prediction->available ? 'Upcoming trips with forecasts' : 'Python service unavailable' }}</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon purple"><i class="fa-solid fa-route"></i></div><div><span>Route Actions</span><strong>Planned</strong><small>Route and schedule decision support</small></div></article>
-        <article class="analytics-kpi"><div class="analytics-kpi-icon yellow"><i class="fa-solid fa-bus"></i></div><div><span>Shuttle Actions</span><strong>Planned</strong><small>Assignment decision support</small></div></article>
+        <article class="analytics-kpi"><div class="analytics-kpi-icon purple"><i class="fa-solid fa-diagram-project"></i></div><div><span>Rule Families</span><strong>4</strong><small>Shuttle, route, schedule, and maintenance decision support</small></div></article>
+        <article class="analytics-kpi"><div class="analytics-kpi-icon yellow"><i class="fa-solid fa-user-check"></i></div><div><span>Decision Mode</span><strong>Advisory</strong><small>Operator approval remains required</small></div></article>
     </section>
 
     <section class="analytics-main-grid analytics-main-grid-balanced">
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Planned Prescriptive Outputs</h3><p>Decision-support rules to be implemented after the supporting analytics are validated.</p></div><span class="analytics-card-badge">Next Phase</span></div>
+            <div class="analytics-card-header"><div><h3>Recommendation Pipeline</h3><p>Planned decision-support outputs and the evidence each rule family will consume.</p></div><span class="analytics-card-badge">5.4 next phase</span></div>
+            <div class="prescriptive-pipeline-list">
+                <div class="prescriptive-pipeline-row">
+                    <span class="prescriptive-pipeline-icon"><i class="fa-solid fa-bus"></i></span>
+                    <div><strong>Shuttle Assignment</strong><small>Active bus pool + recent activity + upcoming workload + maintenance runway.</small></div>
+                    <div class="prescriptive-pipeline-status"><span class="issue-pill blue">Rule pending</span><small>{{ number_format($activeBuses) }} active buses in master list</small></div>
+                </div>
+                <div class="prescriptive-pipeline-row">
+                    <span class="prescriptive-pipeline-icon"><i class="fa-solid fa-route"></i></span>
+                    <div><strong>Route Adjustment</strong><small>Repeated delay and slow-movement evidence supported by historical route patterns.</small></div>
+                    <div class="prescriptive-pipeline-status"><span class="issue-pill {{ $routeReviewSignals > 0 ? 'yellow' : 'green' }}">{{ $routeReviewSignals > 0 ? 'Evidence present' : 'No current signal' }}</span><small>{{ number_format($routeReviewSignals) }} delay + slow records</small></div>
+                </div>
+                <div class="prescriptive-pipeline-row">
+                    <span class="prescriptive-pipeline-icon"><i class="fa-solid fa-calendar-check"></i></span>
+                    <div><strong>Schedule Modification</strong><small>Historical slow periods + upcoming delay-risk forecasts for better departure windows.</small></div>
+                    <div class="prescriptive-pipeline-status"><span class="issue-pill {{ $scheduleSignals > 0 ? 'yellow' : 'green' }}">{{ $scheduleSignals > 0 ? 'Evidence present' : 'No current signal' }}</span><small>{{ number_format($scheduleSignals) }} historical slow-period indicators</small></div>
+                </div>
+                <div class="prescriptive-pipeline-row">
+                    <span class="prescriptive-pipeline-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+                    <div><strong>Maintenance Handoff</strong><small>Mileage + PMS thresholds + recurring maintenance evidence from the Maintenance domain.</small></div>
+                    <div class="prescriptive-pipeline-status"><span class="issue-pill purple">Cross-domain</span><small>{{ number_format($underMaintenance) }} buses currently under maintenance</small></div>
+                </div>
+            </div>
+        </article>
+
+        <article class="analytics-card prescriptive-readiness-card">
+            <div class="analytics-card-header"><div><h3>Evidence Readiness</h3><p>Analytics inputs available before 5.4 recommendation rules are implemented.</p></div><span class="analytics-card-badge">{{ $readyLayers }}/3 inputs ready</span></div>
+            <div class="analytics-availability-layout">
+                <div class="availability-score">
+                    <div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $readinessPercent * 3.6)) }}deg;">
+                        <div class="availability-ring-center"><strong>{{ number_format($readinessPercent, 0) }}%</strong><span>Inputs ready</span></div>
+                    </div>
+                </div>
+                <div class="availability-breakdown">
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Descriptive Evidence</span></div><strong>Ready</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Diagnostic Evidence</span></div><strong>Ready</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot {{ $predictiveEvidenceReady ? 'operational' : 'maintenance' }}"></span><span>Predictive Evidence</span></div><strong>{{ $predictiveEvidenceReady ? 'Ready' : 'Waiting' }}</strong></div>
+                </div>
+            </div>
+            <div class="prescriptive-readiness-note"><i class="fa-solid fa-circle-info"></i> Evidence readiness does not mean 5.4 is live. Recommendation rules still remain to be implemented and validated.</div>
+        </article>
+    </section>
+
+    <section class="prescriptive-candidate-grid">
+        <article class="prescriptive-candidate-card {{ $routeReviewSignals > 0 ? 'attention' : 'clear' }}">
+            <div class="prescriptive-candidate-head"><span><i class="fa-solid fa-route"></i></span><small>Route review signal</small></div>
+            <strong>{{ number_format($routeReviewSignals) }}</strong>
+            <p>Delayed trips also showing slow movement.</p>
+            <span class="prescriptive-candidate-state">{{ $routeReviewSignals > 0 ? 'Candidate evidence available' : 'No current candidate signal' }}</span>
+        </article>
+
+        <article class="prescriptive-candidate-card {{ $scheduleSignals > 0 ? 'attention' : 'clear' }}">
+            <div class="prescriptive-candidate-head"><span><i class="fa-solid fa-clock"></i></span><small>Schedule-window signal</small></div>
+            <strong>{{ number_format($scheduleSignals) }}</strong>
+            <p>{{ $primaryPeak ? 'Top historical slow period: ' . $primaryPeak->period . '.' : 'No historical slow period currently meets the rule.' }}</p>
+            <span class="prescriptive-candidate-state">Historical evidence only</span>
+        </article>
+
+        <article class="prescriptive-candidate-card clear">
+            <div class="prescriptive-candidate-head"><span><i class="fa-solid fa-bus-simple"></i></span><small>Active shuttle pool</small></div>
+            <strong>{{ number_format($activeBuses) }}</strong>
+            <p>Active buses in the Bus Master List before assignment-specific checks.</p>
+            <span class="prescriptive-candidate-state">Input available</span>
+        </article>
+
+        <article class="prescriptive-candidate-card cross-domain">
+            <div class="prescriptive-candidate-head"><span><i class="fa-solid fa-screwdriver-wrench"></i></span><small>Maintenance handoff</small></div>
+            <strong>{{ number_format($underMaintenance) }}</strong>
+            <p>Buses currently under maintenance; PMS and maintenance rules remain cross-domain.</p>
+            <span class="prescriptive-candidate-state">Cross-domain input</span>
+        </article>
+    </section>
+
+    <section class="analytics-list-grid prescriptive-queue-grid">
+        <article class="analytics-card">
+            <div class="analytics-card-header"><div><h3>Diagnostic Queue</h3><p>Current evidence that can later trigger recommendation rules.</p></div><span class="analytics-card-badge">{{ number_format($diagnostics->review_count) }} trips</span></div>
             <div class="analytics-rank-list">
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-bus"></i></span><div><strong>Shuttle Assignment</strong><small>Recommend an available shuttle using status, activity, workload, and maintenance runway.</small></div><div class="analytics-rank-value"><span class="issue-pill blue">Planned</span></div></div>
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-route"></i></span><div><strong>Route Adjustment</strong><small>Recommend route review when repeated delay or slow-movement patterns are supported by history.</small></div><div class="analytics-rank-value"><span class="issue-pill blue">Planned</span></div></div>
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-calendar-check"></i></span><div><strong>Schedule Modification</strong><small>Recommend departure-time changes when slow periods and delay-risk forecasts support a better window.</small></div><div class="analytics-rank-value"><span class="issue-pill blue">Planned</span></div></div>
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-screwdriver-wrench"></i></span><div><strong>Maintenance Handoff</strong><small>Later combine mileage, PMS thresholds, and recurring maintenance evidence.</small></div><div class="analytics-rank-value"><span class="issue-pill purple">Cross-domain</span></div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-clock-rotate-left"></i></span><div><strong>{{ number_format($diagnostics->delay_count) }} delay indicators</strong><small>Trips above the route delay threshold.</small></div><div class="analytics-rank-value">Delay</div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-gauge-simple-low"></i></span><div><strong>{{ number_format($diagnostics->slow_movement_count) }} slow-movement records</strong><small>Trips below 80% of their route-speed baseline.</small></div><div class="analytics-rank-value">Slow</div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-hourglass-half"></i></span><div><strong>{{ number_format($diagnostics->high_idle_count) }} high-idling records</strong><small>Strict idle-duration and idle-share rule.</small></div><div class="analytics-rank-value">Idle</div></div>
             </div>
         </article>
 
         <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Current Readiness</h3><p>What is already available to support future recommendations.</p></div></div>
+            <div class="analytics-card-header"><div><h3>Forecast Queue</h3><p>Upcoming trips and historical periods available to future prescriptive rules.</p></div><span class="analytics-card-badge">{{ number_format($prediction->predicted_target_count) }} forecasted</span></div>
             <div class="analytics-rank-list">
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-check"></i></span><div><strong>Descriptive Evidence</strong><small>Distance, speed, idling, duration, route performance, and bus activity are live.</small></div><div class="analytics-rank-value"><span class="issue-pill green">Ready</span></div></div>
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-check"></i></span><div><strong>Diagnostic Evidence</strong><small>Delay, slow movement, and high idling indicators are available for explainable review.</small></div><div class="analytics-rank-value"><span class="issue-pill green">Ready</span></div></div>
-                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-chart-line"></i></span><div><strong>Predictive Evidence</strong><small>{{ $prediction->available ? number_format($prediction->predicted_target_count) . ' upcoming trips currently have a forecast.' : 'Python forecasting is currently unavailable.' }}</small></div><div class="analytics-rank-value"><span class="issue-pill {{ $prediction->available ? 'green' : 'yellow' }}">{{ $prediction->available ? 'Ready' : 'Offline' }}</span></div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-bullseye"></i></span><div><strong>{{ number_format($prediction->target_count) }} upcoming targets</strong><small>Scheduled or ready trips reviewed by the prediction service.</small></div><div class="analytics-rank-value">Targets</div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-chart-line"></i></span><div><strong>{{ number_format($prediction->predicted_target_count) }} forecastable trips</strong><small>Upcoming trips with enough comparable route history.</small></div><div class="analytics-rank-value">Forecast</div></div>
+                <div class="analytics-rank-row"><span class="analytics-rank-index"><i class="fa-solid fa-traffic-light"></i></span><div><strong>{{ number_format($prediction->peak_periods->count()) }} slow-period indicators</strong><small>Historical time blocks outside route-normal performance.</small></div><div class="analytics-rank-value">History</div></div>
             </div>
         </article>
     </section>
@@ -31,7 +114,7 @@
         <div>
             <span class="section-kicker">Recommendation Boundary</span>
             <h3>Recommendations will support decisions, not automatically execute them.</h3>
-            <p>The operator remains responsible for accepting, modifying, or rejecting a suggested route, schedule, shuttle, PMS, maintenance, or restocking action.</p>
+            <p>Any future route, schedule, shuttle, PMS, maintenance, or restocking suggestion will remain explainable and require operator review before action.</p>
         </div>
         <a href="{{ route('analytics.recommendations') }}" class="recommendation-link">Open Recommendations <i class="fa-solid fa-arrow-right"></i></a>
     </section>

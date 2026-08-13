@@ -4,6 +4,7 @@
         'resources/css/Admin/Analytics/fleet-trip.css',
         'resources/css/Admin/Analytics/fleet-trip-tabs.css',
         'resources/css/Admin/Analytics/fleet-trip-redesign.css',
+        'resources/css/Admin/Analytics/fleet-trip-rankings.css',
     ]"
 >
     @php

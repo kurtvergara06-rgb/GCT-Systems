@@ -391,12 +391,365 @@
     max-width: 860px;
 }
 
+/* Reference-style descriptive line chart */
+.analytics-reference-chart-card {
+    min-height: 330px;
+}
+
+.reference-line-chart {
+    height: 245px;
+    padding: 4px 2px 0;
+}
+
+.reference-line-chart svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.reference-chart-grid {
+    stroke: #e8eef6;
+    stroke-width: 1;
+}
+
+.reference-chart-line {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 3;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.reference-chart-dot {
+    fill: #2563eb;
+    stroke: #ffffff;
+    stroke-width: 3;
+}
+
+.reference-chart-label,
+.reference-chart-value {
+    fill: #718096;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.reference-chart-value {
+    fill: #0b1f3a;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.reference-chart-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: -2px;
+    color: #66758b;
+    font-size: 10px;
+}
+
+.reference-chart-legend i {
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    display: inline-block;
+    border-radius: 2px;
+    background: #2563eb;
+}
+
+/* Reference-style diagnostic profile + donut */
+.diagnostic-reference-panel,
+.diagnostic-donut-panel {
+    min-height: 300px;
+}
+
+.diagnostic-profile-bars {
+    display: grid;
+    gap: 22px;
+    padding: 12px 4px 14px;
+}
+
+.diagnostic-profile-row {
+    display: grid;
+    grid-template-columns: minmax(130px, .8fr) minmax(180px, 1.5fr) 42px;
+    align-items: center;
+    gap: 14px;
+}
+
+.diagnostic-profile-row > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diagnostic-profile-row strong,
+.diagnostic-profile-row b {
+    color: var(--ft-ink);
+    font-size: 11px;
+}
+
+.diagnostic-profile-row b {
+    text-align: right;
+}
+
+.diagnostic-profile-track {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf2f7;
+}
+
+.diagnostic-profile-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.diagnostic-profile-track .red { background: #ef4444; }
+.diagnostic-profile-track .blue { background: #2563eb; }
+.diagnostic-profile-track .yellow { background: #f59e0b; }
+
+.diagnostic-donut-layout {
+    min-height: 220px;
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+}
+
+.diagnostic-donut {
+    position: relative;
+    width: 178px;
+    height: 178px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: conic-gradient(
+        #ef4444 0deg var(--delay-angle),
+        #2563eb var(--delay-angle) var(--slow-angle),
+        #f59e0b var(--slow-angle) 360deg
+    );
+    display: grid;
+    place-items: center;
+}
+
+.diagnostic-donut::after {
+    content: "";
+    position: absolute;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.diagnostic-donut-center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.diagnostic-donut-center strong {
+    display: block;
+    color: var(--ft-ink);
+    font-size: 30px;
+}
+
+.diagnostic-donut-center span {
+    display: block;
+    margin-top: 4px;
+    color: var(--ft-subtle);
+    font-size: 10px;
+    line-height: 1.25;
+}
+
+.diagnostic-donut-legend {
+    display: grid;
+    gap: 4px;
+}
+
+.diagnostic-donut-legend > div {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid #edf2f7;
+    color: #475569;
+    font-size: 10px;
+}
+
+.diagnostic-donut-legend > div span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diagnostic-donut-legend i {
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.diagnostic-donut-legend i.red { background: #ef4444; }
+.diagnostic-donut-legend i.blue { background: #2563eb; }
+.diagnostic-donut-legend i.yellow { background: #f59e0b; }
+
+.diagnostic-donut-legend strong {
+    color: var(--ft-ink);
+    font-size: 12px;
+}
+
+.diagnostic-donut-total {
+    margin-top: 5px;
+    border-bottom: 0 !important;
+    font-weight: 700;
+}
+
+/* Reference-style predictive grouped chart */
+.predictive-reference-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(420px, .95fr);
+}
+
+.forecast-comparison-chart {
+    height: 280px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+}
+
+.forecast-y-axis {
+    padding: 5px 0 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #718096;
+    font-size: 9px;
+    text-align: right;
+}
+
+.forecast-plot {
+    position: relative;
+    min-width: 0;
+}
+
+.forecast-grid-lines {
+    position: absolute;
+    inset: 5px 0 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.forecast-grid-lines i {
+    width: 100%;
+    height: 1px;
+    background: #e8eef6;
+}
+
+.forecast-groups {
+    position: absolute;
+    inset: 5px 6px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 12px;
+}
+
+.forecast-group {
+    min-width: 62px;
+    flex: 1 1 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 24px;
+    align-items: end;
+    text-align: center;
+}
+
+.forecast-bars {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 7px;
+}
+
+.forecast-bar {
+    position: relative;
+    width: 24px;
+    min-height: 8px;
+    border-radius: 5px 5px 2px 2px;
+}
+
+.forecast-bar.baseline { background: #b9cff6; }
+.forecast-bar.predicted { background: #2563eb; }
+
+.forecast-bar span {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 5px);
+    transform: translateX(-50%);
+    color: #52627a;
+    font-size: 8px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.forecast-group > strong {
+    align-self: end;
+    color: #475569;
+    font-size: 9px;
+}
+
+.forecast-chart-legend {
+    margin-top: 6px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    color: #66758b;
+    font-size: 9px;
+}
+
+.forecast-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forecast-chart-legend i {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border-radius: 3px;
+}
+
+.forecast-chart-legend i.baseline { background: #b9cff6; }
+.forecast-chart-legend i.predicted { background: #2563eb; }
+
+.predictive-risk-table td {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.risk-score-cell {
+    min-width: 105px;
+}
+
+.risk-score-cell > strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 10px;
+}
+
+.risk-fill.red { background: #ef4444; }
+.risk-fill.yellow { background: #f59e0b; }
+.risk-fill.green { background: #16a34a; }
+
 @media (max-width: 1200px) {
     .analytics-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .analytics-kpi:nth-child(2) { border-right: 0; }
     .analytics-kpi:nth-child(-n+2) { border-bottom: 1px solid var(--ft-line); }
     .analytics-main-grid,
-    .analytics-main-grid-balanced { grid-template-columns: 1fr; }
+    .analytics-main-grid-balanced,
+    .predictive-reference-grid { grid-template-columns: 1fr; }
     .analytics-list-grid-three { grid-template-columns: 1fr; }
 }
 
@@ -405,8 +758,13 @@
     .analytics-list-grid { grid-template-columns: 1fr; }
     .analytics-kpi { border-right: 0; border-bottom: 1px solid var(--ft-line); }
     .analytics-kpi:last-child { border-bottom: 0; }
-    .analytics-availability-layout { grid-template-columns: 1fr; }
-    .analytics-signal-row { grid-template-columns: 1fr; gap: 6px; }
-    .analytics-signal-row b { text-align: left; }
+    .analytics-availability-layout,
+    .diagnostic-donut-layout { grid-template-columns: 1fr; }
+    .analytics-signal-row,
+    .diagnostic-profile-row { grid-template-columns: 1fr; gap: 6px; }
+    .analytics-signal-row b,
+    .diagnostic-profile-row b { text-align: left; }
     .prescriptive-boundary-card { align-items: flex-start; flex-direction: column; }
+    .forecast-comparison-chart { overflow-x: auto; }
+    .forecast-plot { min-width: 480px; }
 }

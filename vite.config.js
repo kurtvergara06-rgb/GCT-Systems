@@ -87,6 +87,7 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/fleet-trip.css',
                 'resources/css/Admin/Analytics/fleet-trip-tabs.css',
                 'resources/css/Admin/Analytics/fleet-trip-redesign.css',
+                'resources/css/Admin/Analytics/fleet-trip-rankings.css',
                 'resources/css/Admin/Analytics/fuel.css',
                 'resources/css/Admin/Analytics/bus-health.css',
                 'resources/css/Admin/Analytics/inventory.css',

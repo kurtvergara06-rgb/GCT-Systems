@@ -18,8 +18,20 @@
         </article>
     </section>
 
+    @php
+        $trendMax = max(1, (int) $trend->max('count'));
+        $trendCount = max(1, $trend->count());
+        $linePoints = $trend->map(function ($bucket, $index) use ($trendMax, $trendCount) {
+            $x = $trendCount > 1 ? 42 + (($index / ($trendCount - 1)) * 636) : 360;
+            $y = 194 - (($bucket->count / $trendMax) * 150);
+            return ['x' => round($x, 1), 'y' => round($y, 1), 'label' => $bucket->label, 'count' => $bucket->count];
+        });
+        $polyline = $linePoints->map(fn ($point) => $point['x'] . ',' . $point['y'])->implode(' ');
+        $areaPoints = $polyline . ' 678,194 42,194';
+    @endphp
+
     <section class="analytics-main-grid analytics-main-grid-balanced">
-        <article class="analytics-card analytics-chart-card">
+        <article class="analytics-card analytics-reference-chart-card">
             <div class="analytics-card-header">
                 <div><h3>Processed Trip Activity</h3><p>Trip-record volume across the selected analysis window.</p></div>
                 @if($tripGrowth !== null)
@@ -28,19 +40,30 @@
                     <span class="analytics-card-badge">No prior baseline</span>
                 @endif
             </div>
-            @php
-                $trendMax = max(1, (int) $trend->max('count'));
-                $scale = [$trendMax, (int) round($trendMax * .75), (int) round($trendMax * .5), (int) round($trendMax * .25), 0];
-            @endphp
-            <div class="trip-chart-area">
-                <div class="chart-scale">@foreach($scale as $scaleValue)<span>{{ $scaleValue }}</span>@endforeach</div>
-                <div class="trip-bars">
-                    <div class="chart-grid-line grid-1"></div><div class="chart-grid-line grid-2"></div><div class="chart-grid-line grid-3"></div><div class="chart-grid-line grid-4"></div>
-                    @foreach($trend as $bucket)
-                        <div class="trip-bar-column"><span class="bar-value">{{ $bucket->count }}</span><div class="trip-bar" style="height: {{ $bucket->height }}%;"></div><small>{{ $bucket->label }}</small></div>
+
+            <div class="reference-line-chart" role="img" aria-label="Processed trip activity trend">
+                <svg viewBox="0 0 720 230" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="tripActivityFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#2f6ee5" stop-opacity="0.24" />
+                            <stop offset="100%" stop-color="#2f6ee5" stop-opacity="0.02" />
+                        </linearGradient>
+                    </defs>
+                    @foreach([44, 81.5, 119, 156.5, 194] as $gridY)
+                        <line x1="42" y1="{{ $gridY }}" x2="678" y2="{{ $gridY }}" class="reference-chart-grid" />
                     @endforeach
-                </div>
+                    <polygon points="{{ $areaPoints }}" fill="url(#tripActivityFill)" />
+                    @if($linePoints->count() > 1)
+                        <polyline points="{{ $polyline }}" class="reference-chart-line" />
+                    @endif
+                    @foreach($linePoints as $point)
+                        <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" class="reference-chart-dot" />
+                        <text x="{{ $point['x'] }}" y="{{ max(18, $point['y'] - 12) }}" text-anchor="middle" class="reference-chart-value">{{ $point['count'] }}</text>
+                        <text x="{{ $point['x'] }}" y="218" text-anchor="middle" class="reference-chart-label">{{ $point['label'] }}</text>
+                    @endforeach
+                </svg>
             </div>
+            <div class="reference-chart-legend"><span><i></i> Trips Processed</span></div>
         </article>
 
         <article class="analytics-card">
@@ -57,36 +80,60 @@
         </article>
     </section>
 
-    <section class="analytics-list-grid">
-        <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Top Routes by Trips</h3><p>{{ $periodLabel }}</p></div></div>
-            <div class="table-responsive">
-                <table class="analytics-table analytics-ranking-table">
-                    <thead><tr><th>#</th><th>Route</th><th>Trips</th><th>Avg. Duration</th><th>Share</th></tr></thead>
-                    <tbody>
-                        @forelse($routes as $route)
-                            <tr><td><span class="analytics-rank-index">{{ $loop->iteration }}</span></td><td><strong>{{ $route->label }}</strong><div class="metric-bar"><span style="width: {{ $route->progress }}%"></span></div></td><td>{{ number_format($route->trips) }}</td><td>{{ number_format($route->average_duration, 1) }} min</td><td>{{ number_format($route->share, 1) }}%</td></tr>
-                        @empty
-                            <tr><td colspan="5">No route records match the current filter.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    <section class="analytics-list-grid descriptive-ranking-grid">
+        <article class="analytics-card ranking-card">
+            <div class="analytics-card-header">
+                <div><h3>Top Routes by Trips</h3><p>{{ $periodLabel }} · highest-volume corridors</p></div>
+                <span class="analytics-card-badge">Top {{ $routes->count() }}</span>
+            </div>
+
+            <div class="ranking-list refined-ranking-list">
+                @forelse($routes as $route)
+                    <div class="refined-ranking-row">
+                        <span class="refined-rank-number">{{ $loop->iteration }}</span>
+                        <div class="refined-ranking-main">
+                            <div class="refined-ranking-title-row">
+                                <strong>{{ $route->label }}</strong>
+                                <span>{{ number_format($route->trips) }} trips</span>
+                            </div>
+                            <div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div>
+                            <div class="refined-ranking-meta">
+                                <span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span>
+                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="ranking-empty">No route records match the current filter.</p>
+                @endforelse
             </div>
         </article>
 
-        <article class="analytics-card">
-            <div class="analytics-card-header"><div><h3>Busiest Buses</h3><p>{{ $periodLabel }}</p></div></div>
-            <div class="table-responsive">
-                <table class="analytics-table analytics-ranking-table">
-                    <thead><tr><th>#</th><th>Bus</th><th>Trips</th><th>Distance</th><th>Trip Share</th></tr></thead>
-                    <tbody>
-                        @forelse($busActivity as $bus)
-                            <tr><td><span class="analytics-rank-index">{{ $loop->iteration }}</span></td><td><strong>{{ $bus->bus }}</strong></td><td>{{ number_format($bus->trips) }}</td><td>{{ number_format($bus->distance, 1) }} km</td><td>{{ number_format($bus->share, 1) }}%</td></tr>
-                        @empty
-                            <tr><td colspan="5">No bus activity matches the current filter.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <article class="analytics-card ranking-card">
+            <div class="analytics-card-header">
+                <div><h3>Busiest Buses</h3><p>{{ $periodLabel }} · highest recorded trip activity</p></div>
+                <span class="analytics-card-badge">Top {{ $busActivity->count() }}</span>
+            </div>
+
+            <div class="ranking-list refined-ranking-list">
+                @forelse($busActivity as $bus)
+                    <div class="refined-ranking-row">
+                        <span class="refined-rank-number">{{ $loop->iteration }}</span>
+                        <div class="refined-ranking-main">
+                            <div class="refined-ranking-title-row">
+                                <strong>{{ $bus->bus }}</strong>
+                                <span>{{ number_format($bus->trips) }} trips</span>
+                            </div>
+                            <div class="metric-bar refined-metric-bar"><span style="width: {{ min(100, max(4, $bus->share * 6)) }}%"></span></div>
+                            <div class="refined-ranking-meta">
+                                <span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span>
+                                <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="ranking-empty">No bus activity matches the current filter.</p>
+                @endforelse
             </div>
         </article>
     </section>
