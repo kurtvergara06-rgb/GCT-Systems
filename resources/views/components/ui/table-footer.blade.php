@@ -2,80 +2,25 @@
     'items',
 ])
 
-@php
-    $currentPage = $items->currentPage();
-    $lastPage = $items->lastPage();
-
-    $queryParameters = request()->except([
-        'page',
-        $items->getPageName(),
-    ]);
-
-    $pageName = $items->getPageName();
-
-    $previousQuery = http_build_query(array_merge(
-        $queryParameters,
-        [
-            $pageName => max(
-                $currentPage - 1,
-                1
-            ),
-        ]
-    ));
-
-    $nextQuery = http_build_query(array_merge(
-        $queryParameters,
-        [
-            $pageName => min(
-                $currentPage + 1,
-                $lastPage
-            ),
-        ]
-    ));
-
-    $path = '/' . ltrim(
-        request()->path(),
-        '/'
-    );
-@endphp
-
-<div class="table-footer">
-    <p>
+<div
+    class="table-footer"
+    data-scroll-pagination
+    data-page-name="{{ $items->getPageName() }}"
+    data-next-url="{{ $items->nextPageUrl() }}"
+    data-total="{{ $items->total() }}"
+>
+    <p data-entry-count>
         Showing {{ $items->firstItem() ?? 0 }}
         to {{ $items->lastItem() ?? 0 }}
         of {{ $items->total() }} entries
     </p>
 
-    <div class="custom-pagination">
-        @if ($items->onFirstPage())
-            <span class="page-btn disabled">
-                Previous
-            </span>
-        @else
-            <a
-                href="{{ $path }}?{{ $previousQuery }}"
-                class="page-btn"
-            >
-                Previous
-            </a>
-        @endif
-
-        <span class="page-number">
-            Page {{ $currentPage }}
-            of {{ $lastPage }}
-        </span>
-
-        @if ($items->hasMorePages())
-            <a
-                href="{{ $path }}?{{ $nextQuery }}"
-                class="page-btn"
-            >
-                Next
-            </a>
-        @else
-            <span class="page-btn disabled">
-                Next
-            </span>
-        @endif
-    </div>
+    <span
+        class="table-loading-all"
+        data-table-loading
+        hidden
+    >
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading all records...
+    </span>
 </div>

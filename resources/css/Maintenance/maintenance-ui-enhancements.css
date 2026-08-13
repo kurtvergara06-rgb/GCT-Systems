@@ -1,0 +1,100 @@
+/* Shared visual refinements for Maintenance pages. */
+
+.jo-page .table-card,
+.fuel-page .table-card,
+.purchase-request-page .table-card,
+.maintenance-dashboard-page .dashboard-card {
+  margin-top: 20px;
+}
+
+.jo-page .table-wrap,
+.fuel-page .table-wrap,
+.purchase-request-page .table-wrap {
+  position: relative;
+}
+
+.jo-page table thead,
+.fuel-page table thead,
+.purchase-request-page table thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.jo-page tbody tr,
+.fuel-page tbody tr,
+.purchase-request-page tbody tr {
+  min-height: 64px;
+}
+
+.jo-page tbody td,
+.fuel-page tbody td,
+.purchase-request-page tbody td {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.maintenance-secondary-text {
+  display: block;
+  max-width: 240px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fuel-chart-card.has-empty-chart .fuel-chart-container {
+  min-height: 240px !important;
+  height: 240px !important;
+}
+
+.fuel-chart-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  padding: 28px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.fuel-chart-empty-state i {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  place-items: center;
+  border-radius: 14px;
+  background: #edf4ff;
+  color: #0b40b5;
+  font-size: 20px;
+}
+
+.fuel-chart-empty-state strong {
+  color: var(--text, #0b2344);
+  font-size: 15px;
+}
+
+.fuel-chart-empty-state p {
+  max-width: 320px;
+  margin: 7px 0 0;
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.fuel-chart-card.has-empty-chart canvas {
+  visibility: hidden;
+}
+
+@media (max-width: 1200px) {
+  .jo-page .toolbar,
+  .fuel-page .toolbar,
+  .purchase-request-page .toolbar {
+    align-items: stretch;
+  }
+}

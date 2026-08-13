@@ -292,47 +292,16 @@ select {
   pointer-events: none;
 }
 
-.vehicle {
+.fleet-composite {
   position: absolute;
+  right: -2%;
   bottom: 0;
   display: block;
-  transform-origin: center bottom;
-  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.34));
-}
-
-.vehicle img,
-.fleet-asset-small,
-.fleet-asset-medium,
-.fleet-asset-large {
-  display: block;
-  width: 100%;
-  max-width: 100%;
+  width: min(47vw, 700px);
+  max-width: 92%;
   height: auto;
   object-fit: contain;
-}
-
-/* Front-left small vehicle */
-.vehicle-car-one {
-  left: 1%;
-  bottom: 14px;
-  z-index: 1;
-  width: clamp(120px, 11vw, 165px);
-}
-
-/* Mid-left van */
-.vehicle-van {
-  left: 8%;
-  bottom: 20px;
-  z-index: 2;
-  width: clamp(175px, 16vw, 235px);
-}
-
-/* Large hero coach bus */
-.vehicle-bus {
-  left: 22%;
-  bottom: 0;
-  z-index: 3;
-  width: clamp(360px, 35vw, 500px);
+  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.34));
 }
 
 .light-trail {
@@ -860,19 +829,11 @@ select {
     height: 360px;
   }
 
-  .vehicle-car-one {
-    left: 0;
-    width: 120px;
-  }
-
-  .vehicle-van {
-    left: 8%;
-    width: 180px;
-  }
-
-  .vehicle-bus {
-    left: 22%;
-    width: 360px;
+  .fleet-composite {
+    left: auto;
+    right: -2%;
+    width: min(48vw, 590px);
+    max-width: 92%;
   }
 }
 
@@ -909,19 +870,11 @@ select {
     height: 280px;
   }
 
-  .vehicle-car-one {
-    left: 0;
-    width: 90px;
-  }
-
-  .vehicle-van {
-    left: 8%;
-    width: 135px;
-  }
-
-  .vehicle-bus {
-    left: 22%;
-    width: 275px;
+  .fleet-composite {
+    left: auto;
+    right: 1%;
+    width: min(82vw, 500px);
+    max-width: 92%;
   }
 
   .gct-form-panel {
@@ -983,19 +936,11 @@ select {
     opacity: 0.96;
   }
 
-  .vehicle-car-one {
-    left: 0;
-    width: 66px;
-  }
-
-  .vehicle-van {
-    left: 9%;
-    width: 96px;
-  }
-
-  .vehicle-bus {
-    left: 23%;
-    width: 180px;
+  .fleet-composite {
+    left: auto;
+    right: 0;
+    width: min(92vw, 340px);
+    max-width: 94%;
   }
 
   .security-note {
@@ -1068,16 +1013,11 @@ select {
     height: 300px;
   }
 
-  .vehicle-car-one {
-    width: 100px;
-  }
-
-  .vehicle-van {
-    width: 150px;
-  }
-
-  .vehicle-bus {
-    width: 310px;
+  .fleet-composite {
+    left: auto;
+    right: -2%;
+    width: min(46vw, 560px);
+    max-width: 92%;
   }
 
   .security-note {

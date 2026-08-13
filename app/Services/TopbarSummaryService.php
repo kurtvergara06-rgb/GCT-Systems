@@ -18,7 +18,9 @@ class TopbarSummaryService
                 ->value('notifications_read_at')
             : null;
 
-        $notifications = TopbarNotification::query()
+        $notificationQuery = $this->notificationQueryFor($user);
+
+        $notifications = (clone $notificationQuery)
             ->latest()
             ->limit(12)
             ->get()
@@ -27,7 +29,7 @@ class TopbarSummaryService
             )
             ->values();
 
-        $unreadQuery = TopbarNotification::query();
+        $unreadQuery = clone $notificationQuery;
 
         if ($readAt) {
             $unreadQuery->where('created_at', '>', $readAt);
@@ -46,13 +48,42 @@ class TopbarSummaryService
         ];
     }
 
+    private function notificationQueryFor(User $user)
+    {
+        $query = TopbarNotification::query();
+        $department = $this->normalizedDepartment($user);
+
+        if (in_array($department, ['admin', 'administration'], true)) {
+            return $query;
+        }
+
+        $module = match ($department) {
+            'maintenance' => 'Maintenance',
+            'operation', 'operations' => 'Operation',
+            'warehouse' => 'Warehouse',
+            'purchase', 'purchasing' => 'Purchase',
+            default => null,
+        };
+
+        if ($module) {
+            $query->where(function ($builder) use ($module) {
+                $builder
+                    ->where('module', $module)
+                    ->orWhereNull('module')
+                    ->orWhere('module', 'System');
+            });
+        }
+
+        return $query;
+    }
+
     private function formatNotification(
         TopbarNotification $notification,
         mixed $readAt
     ): array {
         return [
             'id' => $notification->id,
-            'module' => $notification->module,
+            'module' => $notification->module ?: 'System',
             'action' => $notification->action,
             'message' => $notification->message,
             'url' => $this->notificationUrl($notification),
@@ -63,13 +94,14 @@ class TopbarSummaryService
 
     private function pendingActions(User $user): array
     {
-        $department = strtolower(trim((string) $user->department));
-        $department = str_replace(['_', '-'], ' ', $department);
+        $department = $this->normalizedDepartment($user);
 
         $actionsByDepartment = [
             'maintenance' => [
-                ['job_orders', 'status', ['On Going'], 'Open job orders', 'job-orders', 'fa-screwdriver-wrench'],
-                ['purchase_requests', 'status', ['Submitted'], 'Purchase requests for review', 'purchase-requests', 'fa-file-circle-question'],
+                ['job_orders', 'status', ['On Going'], 'Job orders in progress', 'job-orders', 'fa-screwdriver-wrench'],
+                ['job_orders', 'status', ['On Hold'], 'Job orders on hold', 'job-orders', 'fa-pause'],
+                ['purchase_requests', 'status', ['Rejected'], 'Purchase requests needing revision', 'purchase-requests', 'fa-rotate'],
+                ['purchase_requests', 'status', ['Submitted'], 'Purchase requests pending review', 'purchase-requests', 'fa-file-circle-question'],
             ],
             'warehouse' => [
                 ['purchase_requests', 'status', ['Approved'], 'Approved part requests', 'part-requests', 'fa-box-open'],
@@ -115,7 +147,7 @@ class TopbarSummaryService
                         '<=',
                         'reorder_level'
                     );
-                } elseif ($column) {
+                } elseif ($column && Schema::hasColumn($table, $column)) {
                     $query->whereIn($column, $statuses);
                 }
 
@@ -129,6 +161,15 @@ class TopbarSummaryService
             ->filter(fn (array $action) => $action['count'] > 0)
             ->values()
             ->all();
+    }
+
+    private function normalizedDepartment(User $user): string
+    {
+        return strtolower(trim(str_replace(
+            ['_', '-'],
+            ' ',
+            (string) $user->department
+        )));
     }
 
     private function notificationUrl(TopbarNotification $notification): ?string
