@@ -72,25 +72,7 @@ For the configured development runner:
 
 ```bash
 composer run dev
-```
 
-## Updating a Deployed Checkout
-
-For normal code changes:
-
-```bash
-git pull origin main
-npm run build
-php artisan optimize:clear
-```
-
-When a migration is included:
-
-```bash
-git pull origin main
-php artisan migrate
-npm run build
-php artisan optimize:clear
 ```
 
 ## Project Conventions

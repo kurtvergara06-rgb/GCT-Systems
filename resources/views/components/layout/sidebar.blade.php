@@ -27,6 +27,28 @@
         'admin' => ['subtitle' => 'Administration Module', 'icon' => 'fa-user-shield'],
     ];
 
+    $routeMatches = function ($patterns): bool {
+        foreach ((array) $patterns as $pattern) {
+            if ($pattern && request()->routeIs($pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    $menuItemIsActive = function (array $item) use ($routeMatches): bool {
+        if (array_key_exists('active', $item)) {
+            return (bool) $item['active'];
+        }
+
+        if (! empty($item['active_routes'])) {
+            return $routeMatches($item['active_routes']);
+        }
+
+        return ! empty($item['route']) && $routeMatches($item['route']);
+    };
+
     if (isset($departmentProfiles[$componentDepartment])) {
         if ($subtitle === 'Department Module') {
             $subtitle = $departmentProfiles[$componentDepartment]['subtitle'];
@@ -136,51 +158,140 @@
 
     if ($componentDepartment === 'admin') {
         $items = [
-            ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-table-cells-large'],
+            [
+                'label' => 'Dashboard',
+                'route' => 'admin.dashboard',
+                'icon' => 'fa-table-cells-large',
+                'active_routes' => ['admin.dashboard'],
+            ],
             [
                 'label' => 'Account Management',
                 'icon' => 'fa-users-gear',
                 'children' => [
-                    ['label' => 'Accounts', 'route' => 'admin.users', 'icon' => 'fa-address-card'],
-                    ['label' => 'Roles & Permissions', 'route' => 'admin.roles-permissions', 'icon' => 'fa-user-lock'],
+                    [
+                        'label' => 'Accounts',
+                        'route' => 'admin.users',
+                        'icon' => 'fa-address-card',
+                        'active_routes' => ['admin.users', 'admin.users.*'],
+                    ],
+                    [
+                        'label' => 'Roles & Permissions',
+                        'route' => 'admin.roles-permissions',
+                        'icon' => 'fa-user-lock',
+                        'active_routes' => ['admin.roles-permissions', 'admin.roles-permissions.*'],
+                    ],
                 ],
             ],
             [
                 'label' => 'System Monitoring',
                 'icon' => 'fa-desktop',
                 'children' => [
-                    ['label' => 'Activity Logs', 'route' => 'admin.activity-logs', 'icon' => 'fa-clock-rotate-left'],
-                    ['label' => 'Notifications', 'route' => 'admin.notifications', 'icon' => 'fa-bell'],
+                    [
+                        'label' => 'Activity Logs',
+                        'route' => 'admin.activity-logs',
+                        'icon' => 'fa-clock-rotate-left',
+                        'active_routes' => ['admin.activity-logs', 'admin.activity-logs.*'],
+                    ],
+                    [
+                        'label' => 'Notifications',
+                        'route' => 'admin.notifications',
+                        'icon' => 'fa-bell',
+                        'active_routes' => ['admin.notifications', 'admin.notifications.*'],
+                    ],
                 ],
             ],
             [
                 'label' => 'Data Management',
                 'icon' => 'fa-database',
                 'children' => [
-                    ['label' => 'Batch File Processing', 'route' => 'admin.batch-file-processing', 'icon' => 'fa-file-import'],
-                    ['label' => 'Import / Export', 'route' => 'admin.import-export', 'icon' => 'fa-right-left'],
-                    ['label' => 'Data History', 'route' => 'admin.data-history', 'icon' => 'fa-clock-rotate-left'],
+                    [
+                        'label' => 'Batch File Processing',
+                        'route' => 'admin.batch-file-processing',
+                        'icon' => 'fa-file-import',
+                        'active_routes' => [
+                            'admin.batch-file-processing',
+                            'batch-file-processing',
+                            'batch-file-processing.*',
+                        ],
+                    ],
+                    [
+                        'label' => 'Import / Export',
+                        'route' => 'admin.import-export',
+                        'icon' => 'fa-right-left',
+                        'active_routes' => ['admin.import-export', 'admin.import-export.*'],
+                    ],
+                    [
+                        'label' => 'Data History',
+                        'route' => 'admin.data-history',
+                        'icon' => 'fa-clock-rotate-left',
+                        'active_routes' => ['admin.data-history', 'admin.data-history.*'],
+                    ],
                 ],
             ],
             [
                 'label' => 'Analytics',
                 'icon' => 'fa-chart-line',
                 'children' => [
-                    ['label' => 'Overview', 'route' => 'analytics.overview', 'icon' => 'fa-chart-pie'],
-                    ['label' => 'Fleet & Trip', 'route' => 'analytics.fleet-trip', 'icon' => 'fa-route'],
-                    ['label' => 'Fuel', 'route' => 'analytics.fuel', 'icon' => 'fa-gas-pump'],
-                    ['label' => 'Bus Health', 'route' => 'analytics.bus-health', 'icon' => 'fa-heart-pulse'],
-                    ['label' => 'Inventory', 'route' => 'analytics.inventory', 'icon' => 'fa-boxes-stacked'],
-                    ['label' => 'Recommendations', 'route' => 'analytics.recommendations', 'icon' => 'fa-lightbulb'],
+                    [
+                        'label' => 'Overview',
+                        'route' => 'analytics.overview',
+                        'icon' => 'fa-chart-pie',
+                        'active_routes' => ['analytics.overview', 'analytics.overview.*'],
+                    ],
+                    [
+                        'label' => 'Fleet & Trip',
+                        'route' => 'analytics.fleet-trip',
+                        'icon' => 'fa-route',
+                        'active_routes' => ['analytics.fleet-trip', 'analytics.fleet-trip.*'],
+                    ],
+                    [
+                        'label' => 'Fuel',
+                        'route' => 'analytics.fuel',
+                        'icon' => 'fa-gas-pump',
+                        'active_routes' => ['analytics.fuel', 'analytics.fuel.*'],
+                    ],
+                    [
+                        'label' => 'Bus Health',
+                        'route' => 'analytics.bus-health',
+                        'icon' => 'fa-heart-pulse',
+                        'active_routes' => ['analytics.bus-health', 'analytics.bus-health.*'],
+                    ],
+                    [
+                        'label' => 'Inventory',
+                        'route' => 'analytics.inventory',
+                        'icon' => 'fa-boxes-stacked',
+                        'active_routes' => ['analytics.inventory', 'analytics.inventory.*'],
+                    ],
+                    [
+                        'label' => 'Recommendations',
+                        'route' => 'analytics.recommendations',
+                        'icon' => 'fa-lightbulb',
+                        'active_routes' => ['analytics.recommendations', 'analytics.recommendations.*'],
+                    ],
                 ],
             ],
             [
                 'label' => 'Settings',
                 'icon' => 'fa-gear',
                 'children' => [
-                    ['label' => 'General Settings', 'route' => 'admin.settings.general', 'icon' => 'fa-sliders'],
-                    ['label' => 'Notification Settings', 'route' => 'admin.settings.notifications', 'icon' => 'fa-bell'],
-                    ['label' => 'Security Settings', 'route' => 'admin.settings.security', 'icon' => 'fa-shield-halved'],
+                    [
+                        'label' => 'General Settings',
+                        'route' => 'admin.settings.general',
+                        'icon' => 'fa-sliders',
+                        'active_routes' => ['admin.settings.general', 'admin.settings.general.*'],
+                    ],
+                    [
+                        'label' => 'Notification Settings',
+                        'route' => 'admin.settings.notifications',
+                        'icon' => 'fa-bell',
+                        'active_routes' => ['admin.settings.notifications', 'admin.settings.notifications.*'],
+                    ],
+                    [
+                        'label' => 'Security Settings',
+                        'route' => 'admin.settings.security',
+                        'icon' => 'fa-shield-halved',
+                        'active_routes' => ['admin.settings.security', 'admin.settings.security.*'],
+                    ],
                 ],
             ],
         ];
@@ -240,21 +351,15 @@
                     && count($item['children']) > 0;
                 $itemRoute = $item['route'] ?? null;
                 $itemUrl = $item['url'] ?? null;
-                $isParentActive = (bool) ($item['active'] ?? false);
+                $isParentActive = $menuItemIsActive($item);
 
                 if ($hasChildren) {
                     foreach ($item['children'] as $child) {
-                        $childActive = array_key_exists('active', $child)
-                            ? (bool) $child['active']
-                            : (isset($child['route']) && request()->routeIs($child['route']));
-
-                        if ($childActive) {
+                        if ($menuItemIsActive($child)) {
                             $isParentActive = true;
                             break;
                         }
                     }
-                } elseif (! array_key_exists('active', $item)) {
-                    $isParentActive = $itemRoute ? request()->routeIs($itemRoute) : false;
                 }
             @endphp
 
@@ -274,9 +379,7 @@
                     <div class="submenu">
                         @foreach($item['children'] as $child)
                             @php
-                                $childActive = array_key_exists('active', $child)
-                                    ? (bool) $child['active']
-                                    : (isset($child['route']) && request()->routeIs($child['route']));
+                                $childActive = $menuItemIsActive($child);
                             @endphp
 
                             @if(isset($child['url']))

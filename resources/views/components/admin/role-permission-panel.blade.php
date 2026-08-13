@@ -70,6 +70,30 @@
             </div>
         </div>
 
+        @unless($isProtectedRole)
+            <div
+                id="permissionEditBanner"
+                class="permission-edit-banner"
+                role="status"
+                aria-live="polite"
+                hidden
+            >
+                <div class="permission-edit-banner-icon">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+
+                <div class="permission-edit-banner-copy">
+                    <strong>EDIT MODE ACTIVE</strong>
+                    <span>You are editing {{ $selectedRolePermission->label }} permissions. Changes are not saved yet.</span>
+                </div>
+
+                <span class="permission-edit-unsaved">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    Unsaved Changes
+                </span>
+            </div>
+        @endunless
+
         <section class="module-access-section">
             <div class="module-access-heading">
                 <div>
@@ -143,7 +167,13 @@
                 </div>
 
                 <div class="permission-action-buttons">
-                    <button type="button" class="secondary-btn" id="cancelPermissionEdit" hidden>
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        id="cancelPermissionEdit"
+                        hidden
+                        style="display: none;"
+                    >
                         Cancel
                     </button>
 
@@ -152,7 +182,13 @@
                         Edit Permissions
                     </button>
 
-                    <button type="submit" class="primary-btn" id="savePermissionsButton" hidden>
+                    <button
+                        type="submit"
+                        class="primary-btn"
+                        id="savePermissionsButton"
+                        hidden
+                        style="display: none;"
+                    >
                         <i class="fa-solid fa-floppy-disk"></i>
                         Save Permissions
                     </button>

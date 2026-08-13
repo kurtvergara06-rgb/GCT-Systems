@@ -124,11 +124,14 @@
                 });
             });
 
+            const panel = document.getElementById('rolePermissionPanel');
+            const form = document.getElementById('rolePermissionForm');
             const editButton = document.getElementById('editPermissionsButton');
             const cancelButton = document.getElementById('cancelPermissionEdit');
             const saveButton = document.getElementById('savePermissionsButton');
             const modeText = document.getElementById('permissionModeText');
             const editStatus = document.querySelector('#permissionEditStatus span');
+            const editBanner = document.getElementById('permissionEditBanner');
             const inputs = Array.from(document.querySelectorAll('[data-permission-input]'));
             const initialStates = inputs.map(input => input.checked);
 
@@ -145,12 +148,26 @@
                 }
             }
 
+            function setButtonVisibility(button, visible, displayMode = 'inline-flex') {
+                if (!button) return;
+
+                button.hidden = !visible;
+                button.style.display = visible ? displayMode : 'none';
+            }
+
             function setEditMode(enabled) {
                 inputs.forEach(input => input.disabled = !enabled);
 
-                if (editButton) editButton.hidden = enabled;
-                if (cancelButton) cancelButton.hidden = !enabled;
-                if (saveButton) saveButton.hidden = !enabled;
+                panel?.classList.toggle('is-editing', enabled);
+                form?.classList.toggle('is-editing', enabled);
+
+                if (editBanner) {
+                    editBanner.hidden = !enabled;
+                }
+
+                setButtonVisibility(editButton, !enabled);
+                setButtonVisibility(cancelButton, enabled);
+                setButtonVisibility(saveButton, enabled);
 
                 if (modeText) {
                     modeText.textContent = enabled
@@ -160,10 +177,12 @@
 
                 if (editStatus) {
                     editStatus.innerHTML = enabled
-                        ? '<i class="fa-solid fa-pen-to-square"></i> Edit Mode Active'
+                        ? '<i class="fa-solid fa-pen-to-square"></i> EDIT MODE ACTIVE'
                         : '<i class="fa-solid fa-eye"></i> Review Mode';
                 }
             }
+
+            setEditMode(false);
 
             editButton?.addEventListener('click', () => setEditMode(true));
 

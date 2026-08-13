@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const userNameInput = document.getElementById('userNameInput');
   const userEmailInput = document.getElementById('userEmailInput');
   const userPasswordInput = document.getElementById('userPasswordInput');
+  const userPasswordGroup = userPasswordInput?.closest('.form-group');
   const userDepartmentInput = document.getElementById('userDepartmentInput');
   const userRoleInput = document.getElementById('userRoleInput');
   const userStatusInput = document.getElementById('userStatusInput');
@@ -60,6 +61,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const element = document.getElementById(id);
     if (!element) return;
     element.textContent = value || '—';
+  }
+
+  function setPasswordFieldVisible(visible) {
+    if (userPasswordGroup) {
+      userPasswordGroup.style.display = visible ? '' : 'none';
+    }
+
+    if (userPasswordInput) {
+      userPasswordInput.disabled = !visible;
+      userPasswordInput.required = visible;
+      userPasswordInput.value = '';
+    }
   }
 
   function normalizeRole(role) {
@@ -100,6 +113,63 @@ document.addEventListener('DOMContentLoaded', function () {
     return role;
   }
 
+  function configureStatusActions(root = document) {
+    root.querySelectorAll('.users-table tbody tr').forEach(function (row) {
+      const status = row.querySelector('.status-pill')?.textContent.trim();
+      const activateButton = row.querySelector('.action-activate');
+
+      if (!activateButton) return;
+
+      const form = activateButton.closest('form');
+      const icon = activateButton.querySelector('i');
+
+      if (status === 'Pending') {
+        activateButton.title = 'Approve Account';
+        activateButton.setAttribute('aria-label', 'Approve Account');
+
+        if (icon) {
+          icon.className = 'fa-solid fa-check';
+        }
+
+        if (form) {
+          form.dataset.confirmTitle = 'Approve Account?';
+          form.dataset.confirmMessage = 'Approve this pending account and allow the user to sign in?';
+          form.dataset.confirmButton = 'Yes, Approve Account';
+          form.dataset.confirmType = 'approve';
+        }
+
+        return;
+      }
+
+      activateButton.title = 'Activate Account';
+      activateButton.setAttribute('aria-label', 'Activate Account');
+
+      if (icon) {
+        icon.className = 'fa-solid fa-user-check';
+      }
+    });
+  }
+
+  function configureProtectedAccounts(root = document) {
+    root.querySelectorAll('.users-table tbody tr').forEach(function (row) {
+      const role = row.querySelector('.role-pill')?.textContent.trim().toLowerCase();
+
+      if (role !== 'system admin') return;
+
+      row.querySelectorAll('.open-edit-user-modal, .action-activate, .action-deactivate, .action-delete')
+        .forEach(function (button) {
+          button.disabled = true;
+          button.title = 'Protected System Admin';
+          button.setAttribute('aria-label', 'Protected System Admin');
+        });
+    });
+  }
+
+  function refreshAccountActions(root = document) {
+    configureStatusActions(root);
+    configureProtectedAccounts(root);
+  }
+
   function resetUserForm() {
     if (userForm) {
       userForm.action = userForm.dataset.storeUrl || '/admin/users';
@@ -116,11 +186,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setInput(userNameInput, '');
     setInput(userEmailInput, '');
-    setInput(userPasswordInput, '');
     setInput(userDepartmentInput, '');
     setInput(userRoleInput, '');
     setInput(userStatusInput, 'Active');
+    setPasswordFieldVisible(true);
   }
+
+  refreshAccountActions();
+
+  document.addEventListener('system:region-replaced', function (event) {
+    refreshAccountActions(event.target || document);
+  });
 
   if (openAddUserModal) {
     openAddUserModal.addEventListener('click', function () {
@@ -140,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (userPasswordInput) {
-        userPasswordInput.required = true;
         userPasswordInput.placeholder = 'Enter password';
       }
 
@@ -151,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('click', function (event) {
     const editButton = event.target.closest('.open-edit-user-modal');
 
-    if (!editButton) return;
+    if (!editButton || editButton.disabled) return;
 
     if (userForm) {
       userForm.action = editButton.dataset.updateUrl;
@@ -168,10 +243,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setInput(userNameInput, editButton.dataset.name);
     setInput(userEmailInput, editButton.dataset.email);
-    setInput(userPasswordInput, '');
     setInput(userDepartmentInput, editButton.dataset.department);
     setInput(userRoleInput, normalizeRole(editButton.dataset.role));
     setInput(userStatusInput, editButton.dataset.status);
+    setPasswordFieldVisible(false);
 
     if (userFormModalTitle) {
       userFormModalTitle.textContent = 'Edit System Account';
@@ -184,11 +259,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (userFormSaveBtn) {
       userFormSaveBtn.textContent = 'Update Account';
-    }
-
-    if (userPasswordInput) {
-      userPasswordInput.required = false;
-      userPasswordInput.placeholder = 'Leave blank to keep current password';
     }
 
     openModal(userFormModal);
@@ -300,5 +370,7 @@ window.addEventListener('system-data-updated', function (event) {
     return;
   }
 
-  window.location.reload();
+  if (window.GCTRegions?.replace) {
+    window.GCTRegions.replace(['summary', 'records']);
+  }
 });

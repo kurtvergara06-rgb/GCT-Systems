@@ -31,6 +31,12 @@ class AdminUserController extends Controller
         'Pending',
     ];
 
+    private function isProtectedSystemAdmin(User $user): bool
+    {
+        return strtolower(trim((string) $user->department)) === 'admin'
+            && strtolower(trim((string) $user->role)) === 'head';
+    }
+
     public function index(Request $request)
     {
         $query = User::query();
@@ -164,6 +170,12 @@ class AdminUserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if ($this->isProtectedSystemAdmin($user)) {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'The protected System Admin account cannot be edited from Account Management.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -175,22 +187,21 @@ class AdminUserController extends Controller
             'department' => ['required', 'string', Rule::in($this->departments)],
             'role' => ['required', 'string', Rule::in(array_keys($this->roles))],
             'status' => ['required', 'string', Rule::in($this->statuses)],
-            'password' => ['nullable', 'string', 'min:6'],
         ]);
 
-        $updateData = [
+        if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'You cannot deactivate or place your own account in Pending status.');
+        }
+
+        $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'department' => $validated['department'],
             'role' => $validated['role'],
             'status' => $validated['status'],
-        ];
-
-        if (! empty($validated['password'])) {
-            $updateData['password'] = Hash::make($validated['password']);
-        }
-
-        $user->update($updateData);
+        ]);
 
         return redirect()
             ->route('admin.users')
@@ -199,17 +210,39 @@ class AdminUserController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
+        if ($this->isProtectedSystemAdmin($user)) {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'The protected System Admin account must remain Active.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'string', Rule::in($this->statuses)],
         ]);
 
+        if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'You cannot deactivate your own account.');
+        }
+
+        $previousStatus = $user->status;
+        $newStatus = $validated['status'];
+
         $user->update([
-            'status' => $validated['status'],
+            'status' => $newStatus,
         ]);
+
+        $message = match ([$previousStatus, $newStatus]) {
+            ['Pending', 'Active'] => 'Account approved and activated successfully.',
+            ['Inactive', 'Active'] => 'Account activated successfully.',
+            ['Active', 'Inactive'] => 'Account deactivated successfully.',
+            default => 'User status updated successfully.',
+        };
 
         return redirect()
             ->route('admin.users')
-            ->with('success', 'User status updated successfully.');
+            ->with('success', $message);
     }
 
     public function resetPassword(Request $request, User $user)
@@ -229,6 +262,12 @@ class AdminUserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($this->isProtectedSystemAdmin($user)) {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'The protected System Admin account cannot be deleted.');
+        }
+
         if (Auth::id() === $user->id) {
             return redirect()
                 ->route('admin.users')

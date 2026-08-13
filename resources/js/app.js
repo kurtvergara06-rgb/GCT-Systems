@@ -8,7 +8,6 @@ import './echo';
  */
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
-import '../css/Main-styles/admin-records.css';
 import '../css/Main-styles/toolbar-cleanup.css';
 import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
@@ -33,9 +32,17 @@ import './Maintenance/maintenance-ui-enhancements.js';
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
-/* Route-only controls are lazy-loaded only when the Routes modal exists. */
+/* Page-only controls are lazy-loaded only when their page root exists. */
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('routeModal')) {
         import('./Operation/Routes/route-pin-controls.js');
+    }
+
+    if (document.getElementById('gpsUploadForm')) {
+        import('./Admin/Data_Management/batch-profile-selector.js');
+    }
+
+    if (document.getElementById('importModule') && document.getElementById('exportModule')) {
+        import('./Admin/Data_Management/import-export.js');
     }
 });

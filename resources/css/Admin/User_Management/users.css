@@ -41,14 +41,6 @@
   text-align: center;
 }
 
-.users-main .record-identity__text strong {
-  font-size: 13px;
-}
-
-.users-main .record-identity__text span {
-  font-size: 11px;
-}
-
 .admin-footer {
   margin-top: 18px;
   padding: 12px 0;
