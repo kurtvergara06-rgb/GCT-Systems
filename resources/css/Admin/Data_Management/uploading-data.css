@@ -1,9 +1,6 @@
 /* =========================================================
    ADMIN - IMPORT / EXPORT
-
-   Shared:
-   - Main-styles/main.css
-   - Main-styles/sidebar.css
+   Canonical page stylesheet
 ========================================================= */
 
 .import-export-page {
@@ -11,169 +8,118 @@
     --ie-blue-dark: #07338f;
     --ie-navy: #061f3d;
     --ie-yellow: #ffc400;
-
-    --ie-card: #ffffff;
-    --ie-text: #0f172a;
-    --ie-muted: #64748b;
-
-    --ie-border: #dce5f2;
-
+    --ie-yellow-dark: #b77900;
     --ie-green: #15803d;
     --ie-red: #dc2626;
-    --ie-orange: #c2410c;
     --ie-purple: #6d28d9;
-
-    --ie-soft-shadow:
-        0 4px 16px rgba(6, 31, 61, 0.07);
-
-    --ie-hover-shadow:
-        0 10px 24px rgba(6, 31, 61, 0.11);
+    --ie-text: #0f172a;
+    --ie-muted: #64748b;
+    --ie-border: #dce5f2;
+    --ie-soft: #f8fbff;
+    --ie-card: #ffffff;
+    --ie-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
 }
 
-
 /* =========================================================
-   TOPBAR
+   PAGE HEADER
 ========================================================= */
 
 .import-export-page .topbar {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .import-export-page .topbar h1 {
     color: var(--ie-navy);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
 }
 
 .import-export-page .topbar p {
     color: var(--ie-muted);
+    font-size: 13px;
 }
-
 
 /* =========================================================
    SUMMARY CARDS
 ========================================================= */
 
 .import-export-page .import-export-stats {
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
 .import-export-page .import-export-stats .stat-card,
 .import-export-page .import-export-stats .stat-card-link {
-    min-height: 112px;
-
-    padding: 18px 20px;
-
+    min-height: 104px;
+    padding: 16px 18px;
     border: 1px solid var(--ie-border);
     border-radius: 16px;
-
     background: var(--ie-card);
-
-    box-shadow: var(--ie-soft-shadow);
-
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    align-items: center;
-
-    gap: 14px;
-
-    transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
-}
-
-.import-export-page .import-export-stats .stat-card:hover,
-.import-export-page .import-export-stats .stat-card-link:hover {
-    transform: translateY(-2px);
-
-    box-shadow: var(--ie-hover-shadow);
+    box-shadow: var(--ie-shadow);
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 13px;
 }
 
 .import-export-page .import-export-stats .stat-icon {
-    width: 48px;
-    height: 48px;
-
-    border-radius: 14px;
-
-    font-size: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 17px;
 }
 
 .import-export-page .import-export-stats .stat-card p,
 .import-export-page .import-export-stats .stat-card-link p {
     margin: 0;
-
     color: var(--ie-muted);
-
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 .import-export-page .import-export-stats .stat-card h2,
 .import-export-page .import-export-stats .stat-card-link h2 {
-    margin: 3px 0 2px;
-
+    margin: 3px 0;
     color: var(--ie-navy);
-
     font-size: 25px;
     font-weight: 800;
-
     line-height: 1;
 }
 
 .import-export-page .import-export-stats .stat-card small,
 .import-export-page .import-export-stats .stat-card-link small {
     color: var(--ie-muted);
-
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
 }
 
-
 /* =========================================================
-   DATA FLOW GUIDE
+   FLOW GUIDE
 ========================================================= */
 
 .data-flow-guide {
     display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
-
-    margin-bottom: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
 .flow-card {
     display: grid;
-
-    grid-template-columns:
-        50px
-        minmax(0, 1fr);
-
-    gap: 14px;
-
-    padding: 18px;
-
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 13px;
+    padding: 16px 18px;
     border: 1px solid var(--ie-border);
     border-radius: 16px;
-
-    background: #ffffff;
-
-    box-shadow: var(--ie-soft-shadow);
+    background: #fff;
+    box-shadow: var(--ie-shadow);
 }
 
 .flow-icon {
-    width: 50px;
-    height: 50px;
-
+    width: 46px;
+    height: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 13px;
-
-    font-size: 18px;
+    border-radius: 12px;
+    font-size: 17px;
 }
 
 .flow-icon.import {
@@ -188,120 +134,90 @@
 
 .flow-label {
     display: block;
-
-    margin-bottom: 4px;
-
+    margin-bottom: 3px;
     color: var(--ie-blue);
-
     font-size: 10px;
     font-weight: 800;
-
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
 }
 
 .flow-card h2 {
     margin: 0;
-
     color: var(--ie-navy);
-
     font-size: 16px;
     font-weight: 800;
 }
 
 .flow-card p {
-    margin: 5px 0 12px;
-
+    margin: 4px 0 10px;
     color: var(--ie-muted);
-
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.45;
 }
 
 .flow-steps {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-
-    gap: 7px;
+    gap: 6px;
 }
 
 .flow-steps span {
-    min-height: 26px;
-
-    padding: 0 9px;
-
+    min-height: 24px;
+    padding: 0 8px;
     border: 1px solid #dce5f2;
     border-radius: 7px;
-
     background: #f8fafc;
-
     color: #334155;
-
     display: inline-flex;
     align-items: center;
-
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
 }
 
 .flow-steps i {
     color: #94a3b8;
-
-    font-size: 9px;
+    font-size: 8px;
 }
 
-
 /* =========================================================
-   TRANSFER GRID
+   TRANSFER CARDS
 ========================================================= */
 
 .transfer-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
-
-    margin-bottom: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+    align-items: start;
 }
 
 .transfer-card {
-    padding: 20px;
-
+    padding: 18px;
     border: 1px solid var(--ie-border);
     border-radius: 16px;
-
-    background: #ffffff;
-
-    box-shadow: var(--ie-soft-shadow);
+    background: #fff;
+    box-shadow: var(--ie-shadow);
 }
 
 .transfer-card-header {
     display: flex;
     align-items: center;
-
-    gap: 13px;
-
-    padding-bottom: 16px;
-    margin-bottom: 17px;
-
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #e7edf5;
 }
 
 .transfer-icon {
-    width: 46px;
-    height: 46px;
-
-    flex: 0 0 46px;
-
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 12px;
-
-    font-size: 17px;
+    border-radius: 11px;
+    font-size: 16px;
 }
 
 .transfer-icon.import {
@@ -316,162 +232,146 @@
 
 .transfer-card-header h2 {
     margin: 0;
-
     color: var(--ie-navy);
-
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
 }
 
 .transfer-card-header p {
-    margin: 4px 0 0;
-
+    margin: 3px 0 0;
     color: var(--ie-muted);
-
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.45;
 }
-
-
-/* =========================================================
-   FORMS
-========================================================= */
 
 .transfer-form {
     display: flex;
     flex-direction: column;
-
-    gap: 14px;
+    gap: 12px;
 }
 
 .form-row {
     display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
 }
 
 .transfer-form .form-group {
     display: flex;
     flex-direction: column;
-
     gap: 6px;
 }
 
 .transfer-form .form-group label {
     color: #334155;
-
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .transfer-form select,
 .transfer-form input[type="date"] {
     width: 100%;
     height: 40px;
-
     padding: 0 12px;
-
     border: 1px solid var(--ie-border);
     border-radius: 9px;
-
-    background: #ffffff;
-
+    background: #fff;
     color: var(--ie-text);
-
     font-size: 12px;
-    font-weight: 500;
-
+    font-weight: 600;
     outline: none;
 }
 
 .transfer-form select:focus,
 .transfer-form input[type="date"]:focus {
     border-color: var(--ie-blue);
-
-    box-shadow:
-        0 0 0 3px rgba(11, 64, 181, 0.12);
+    box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.10);
 }
 
-
 /* =========================================================
-   IMPORT SOURCE NOTE
+   NOTES / SOURCE PANELS
 ========================================================= */
 
-.import-source-note {
+.import-source-note,
+.export-source-preview {
     display: flex;
     align-items: flex-start;
-
     gap: 10px;
-
-    padding: 13px 14px;
-
-    border: 1px solid #dbeafe;
+    padding: 12px 13px;
     border-radius: 10px;
+}
 
+.import-source-note {
+    border: 1px solid #dbeafe;
     background: #f8fbff;
 }
 
-.note-icon {
-    width: 32px;
-    height: 32px;
+.export-source-preview {
+    align-items: center;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+}
 
-    flex: 0 0 32px;
-
+.note-icon,
+.database-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 8px;
-
-    background: #eaf2ff;
-
-    color: var(--ie-blue);
-
+    border-radius: 9px;
     font-size: 13px;
 }
 
-.import-source-note strong {
+.note-icon {
+    background: #eaf2ff;
+    color: var(--ie-blue);
+}
+
+.database-icon {
+    background: #dcfce7;
+    color: var(--ie-green);
+}
+
+.import-source-note strong,
+.export-source-preview strong {
     display: block;
-
-    margin-bottom: 4px;
-
-    color: var(--ie-navy);
-
-    font-size: 12px;
-}
-
-.import-source-note p {
-    margin: 0;
-
-    color: #475569;
-
+    margin-bottom: 3px;
     font-size: 11px;
-    line-height: 1.55;
+    font-weight: 800;
 }
 
+.import-source-note strong {
+    color: var(--ie-navy);
+}
+
+.export-source-preview strong {
+    color: #14532d;
+}
+
+.import-source-note p,
+.export-source-preview p {
+    margin: 0;
+    color: #475569;
+    font-size: 10px;
+    line-height: 1.5;
+}
 
 /* =========================================================
    UPLOAD ZONE
 ========================================================= */
 
 .upload-zone {
-    min-height: 215px;
-
-    padding: 24px;
-
-    border: 2px dashed #bfd4ff;
+    min-height: 185px;
+    padding: 20px;
+    border: 2px dashed #b9cdf4;
     border-radius: 14px;
-
     background: #f8fbff;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     text-align: center;
 }
 
@@ -480,69 +380,50 @@
 }
 
 .upload-zone-icon {
-    width: 52px;
-    height: 52px;
-
-    margin-bottom: 11px;
-
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 14px;
-
+    border-radius: 13px;
     background: #eaf2ff;
-
     color: var(--ie-blue);
-
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .upload-zone h3 {
     margin: 0;
-
     color: var(--ie-text);
-
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
 }
 
 .upload-zone p {
-    margin: 6px 0 3px;
-
+    margin: 5px 0 2px;
     color: var(--ie-muted);
-
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .upload-zone > span {
     color: #94a3b8;
-
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .choose-file-btn {
     height: 38px;
-
-    margin-top: 14px;
+    margin-top: 12px;
     padding: 0 14px;
-
     border: 1px solid #bfd4ff;
     border-radius: 9px;
-
-    background: #ffffff;
-
+    background: #fff;
     color: var(--ie-blue);
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     gap: 7px;
-
-    font-size: 12px;
-    font-weight: 700;
-
+    font-size: 11px;
+    font-weight: 800;
     cursor: pointer;
 }
 
@@ -551,25 +432,20 @@
 }
 
 .selected-file-name {
-    margin-top: 10px;
-
+    margin-top: 9px;
     color: #475569;
-
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
 }
 
-
 /* =========================================================
-   VALIDATION PREVIEW
+   VALIDATION
 ========================================================= */
 
 .validation-preview {
-    padding: 14px;
-
+    padding: 13px;
     border: 1px solid #e2e8f0;
     border-radius: 11px;
-
     background: #f8fafc;
 }
 
@@ -577,230 +453,189 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
     gap: 12px;
-
-    margin-bottom: 12px;
+    margin-bottom: 11px;
 }
 
 .validation-header h3 {
     margin: 0;
-
     color: var(--ie-navy);
-
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
 }
 
 .validation-header p {
-    margin: 4px 0 0;
-
+    margin: 3px 0 0;
     color: var(--ie-muted);
-
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.45;
 }
 
 .validation-status {
-    min-height: 26px;
-
-    padding: 0 10px;
-
+    min-height: 25px;
+    padding: 0 9px;
     border-radius: 999px;
-
     display: inline-flex;
     align-items: center;
-
-    font-size: 10px;
-    font-weight: 700;
-
+    font-size: 9px;
+    font-weight: 800;
     white-space: nowrap;
 }
 
 .validation-status.waiting {
     border: 1px solid #dce5f2;
-
-    background: #ffffff;
-
+    background: #fff;
     color: #64748b;
+}
+
+.validation-status.success {
+    border: 1px solid #b7efca;
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.validation-status.review {
+    border: 1px solid #f8dd82;
+    background: #fff3cd;
+    color: #9a6700;
+}
+
+.validation-status.failed {
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #dc2626;
 }
 
 .validation-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
 }
 
 .validation-item {
-    padding: 11px;
-
+    padding: 10px;
     border: 1px solid #e2e8f0;
     border-radius: 9px;
-
-    background: #ffffff;
+    background: #fff;
 }
 
 .validation-item span {
     display: block;
-
-    margin-bottom: 4px;
-
+    margin-bottom: 3px;
     color: var(--ie-muted);
-
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .validation-item strong {
     color: var(--ie-navy);
-
     font-size: 15px;
+    font-weight: 800;
 }
 
+.import-validation-errors {
+    margin-top: 10px;
+    padding: 10px 11px;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    background: #fff7f7;
+}
+
+.import-validation-errors-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 7px;
+    color: var(--ie-red);
+    font-size: 10px;
+}
+
+.import-validation-error-list {
+    display: grid;
+    gap: 5px;
+}
+
+.import-validation-error-item {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 8px;
+    color: #7f1d1d;
+    font-size: 10px;
+}
 
 /* =========================================================
    EXPORT OPTIONS
 ========================================================= */
 
 .export-options {
-    padding: 13px 14px;
-
+    padding: 12px 13px;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-
     background: #f8fafc;
 }
 
 .options-title {
-    margin: 0 0 9px;
-
+    margin: 0 0 7px;
     color: #334155;
-
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
 }
 
 .option-item {
     display: flex;
     align-items: center;
-
     gap: 8px;
-
-    padding: 5px 0;
-
+    padding: 4px 0;
     color: #475569;
-
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .option-item input {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
+    accent-color: var(--ie-blue);
 }
-
 
 /* =========================================================
-   EXPORT SOURCE
-========================================================= */
-
-.export-source-preview {
-    display: flex;
-    align-items: center;
-
-    gap: 11px;
-
-    padding: 13px 14px;
-
-    border: 1px solid #bbf7d0;
-    border-radius: 10px;
-
-    background: #f0fdf4;
-}
-
-.database-icon {
-    width: 38px;
-    height: 38px;
-
-    flex: 0 0 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 9px;
-
-    background: #dcfce7;
-
-    color: var(--ie-green);
-
-    font-size: 14px;
-}
-
-.export-source-preview strong {
-    display: block;
-
-    margin-bottom: 3px;
-
-    color: #14532d;
-
-    font-size: 12px;
-}
-
-.export-source-preview p {
-    margin: 0;
-
-    color: #475569;
-
-    font-size: 11px;
-    line-height: 1.5;
-}
-
-
-/* =========================================================
-   BUTTONS
+   PRIMARY ACTIONS
 ========================================================= */
 
 .primary-transfer-btn {
-    height: 42px;
-
-    border: none;
+    min-height: 42px;
+    padding: 0 15px;
+    border: 1px solid #e0ac00;
     border-radius: 9px;
-
-    background: var(--ie-blue);
-
-    color: #ffffff;
-
+    background: var(--ie-yellow);
+    color: #14213d;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     gap: 8px;
-
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
-
     cursor: pointer;
-
-    transition:
-        transform 0.18s ease,
-        background-color 0.18s ease;
+    transition: transform .16s ease, filter .16s ease;
 }
 
-.primary-transfer-btn:hover {
-    background: var(--ie-blue-dark);
-
+.primary-transfer-btn:hover:not(:disabled) {
+    filter: brightness(.97);
     transform: translateY(-1px);
 }
 
 .primary-transfer-btn.export-btn {
+    border-color: #15803d;
     background: #15803d;
+    color: #fff;
 }
 
-.primary-transfer-btn.export-btn:hover {
+.primary-transfer-btn.export-btn:hover:not(:disabled) {
     background: #166534;
 }
 
+.primary-transfer-btn:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+    transform: none;
+}
 
 /* =========================================================
    BATCH PROCESSING NOTE
@@ -808,83 +643,56 @@
 
 .batch-processing-note {
     display: grid;
-
-    grid-template-columns:
-        44px
-        minmax(0, 1fr)
-        auto;
-
+    grid-template-columns: 42px minmax(0, 1fr) auto;
     align-items: center;
-
-    gap: 14px;
-
-    margin-bottom: 20px;
-
-    padding: 16px 18px;
-
-    border: 1px solid #f8dd82;
+    gap: 13px;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid #f2d164;
     border-radius: 14px;
-
     background: #fffdf3;
 }
 
 .batch-note-icon {
-    width: 44px;
-    height: 44px;
-
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 11px;
-
+    border-radius: 10px;
     background: #fff3cd;
-
     color: #9a6700;
-
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .batch-processing-note h2 {
     margin: 0;
-
     color: var(--ie-navy);
-
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
 }
 
 .batch-processing-note p {
-    margin: 5px 0 0;
-
+    margin: 4px 0 0;
     color: #64748b;
-
-    font-size: 11px;
-    line-height: 1.5;
+    font-size: 10px;
+    line-height: 1.45;
 }
 
 .batch-processing-link {
-    min-height: 38px;
-
-    padding: 0 14px;
-
-    border: 1px solid #f8dd82;
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid #edc84c;
     border-radius: 9px;
-
-    background: #ffffff;
-
+    background: #fff;
     color: #9a6700;
-
     display: inline-flex;
     align-items: center;
-
+    justify-content: center;
     gap: 7px;
-
     text-decoration: none;
-
-    font-size: 11px;
-    font-weight: 700;
-
+    font-size: 10px;
+    font-weight: 800;
     white-space: nowrap;
 }
 
@@ -892,128 +700,93 @@
     background: #fff3cd;
 }
 
-
 /* =========================================================
    RECENT ACTIVITY
 ========================================================= */
 
 .recent-transfer-card {
-    padding: 16px;
-
+    padding: 18px;
     border: 1px solid var(--ie-border);
     border-radius: 16px;
-
-    background: #ffffff;
-
-    box-shadow: var(--ie-soft-shadow);
+    background: #fff;
+    box-shadow: var(--ie-shadow);
 }
 
 .recent-transfer-card .section-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
     gap: 16px;
-
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .recent-transfer-card .section-header h2 {
     margin: 0;
-
     color: var(--ie-navy);
-
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
 }
 
 .recent-transfer-card .section-header p {
     margin: 3px 0 0;
-
     color: var(--ie-muted);
-
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .record-count {
     min-height: 28px;
-
-    padding: 0 11px;
-
+    padding: 0 10px;
     border: 1px solid #bfd4ff;
     border-radius: 999px;
-
-    background: #e0ecff;
-
+    background: #eaf2ff;
     color: var(--ie-blue);
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 800;
 }
-
-
-/* =========================================================
-   TABLE
-========================================================= */
 
 .recent-transfer-card .table-wrap {
     width: 100%;
-
     overflow-x: auto;
-
-    border-radius: 10px;
+    border: 1px solid var(--ie-border);
+    border-radius: 12px;
 }
 
 .transfer-table {
     width: 100%;
-    min-width: 1120px;
-
+    min-width: 1100px;
     border-collapse: separate;
     border-spacing: 0;
 }
 
 .transfer-table thead {
-    background: #f3f7fc;
+    background: #f0f5fc;
 }
 
 .transfer-table th {
-    padding: 13px 14px;
-
+    padding: 14px 15px;
     border-bottom: 1px solid var(--ie-border);
-
-    color: #475569;
-
+    color: #334155;
     font-size: 11px;
-    font-weight: 700;
-
-    letter-spacing: 0.055em;
-
+    font-weight: 800;
+    letter-spacing: .045em;
     text-transform: uppercase;
-
     text-align: left;
-
     white-space: nowrap;
 }
 
-.transfer-table th:last-child {
-    text-align: center;
-}
-
 .transfer-table td {
-    padding: 13px 14px;
-
+    padding: 14px 15px;
     border-bottom: 1px solid #e7edf5;
-
     color: var(--ie-text);
-
     font-size: 13px;
     font-weight: 500;
+    vertical-align: middle;
 }
 
+.transfer-table th:last-child,
 .transfer-table td:last-child {
     text-align: center;
 }
@@ -1026,31 +799,21 @@
     border-bottom: none;
 }
 
-
-/* =========================================================
-   FILE CELL
-========================================================= */
-
 .file-cell {
     display: flex;
     align-items: center;
-
     gap: 10px;
 }
 
 .file-icon {
-    width: 34px;
-    height: 34px;
-
-    flex: 0 0 34px;
-
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 8px;
-
-    font-size: 12px;
+    border-radius: 9px;
+    font-size: 13px;
 }
 
 .file-icon.import {
@@ -1065,126 +828,110 @@
 
 .file-cell strong {
     color: var(--ie-text);
-
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
-
-
-/* =========================================================
-   BADGES
-========================================================= */
 
 .transfer-type,
 .module-badge,
 .source-badge,
 .status-badge {
-    min-height: 26px;
-
+    min-height: 27px;
     padding: 0 10px;
-
     border-radius: 999px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 11px;
-    font-weight: 700;
-
+    font-size: 10px;
+    font-weight: 800;
     white-space: nowrap;
 }
 
 .transfer-type.import {
     border: 1px solid #bfd4ff;
-
-    background: #e0ecff;
-
+    background: #eaf2ff;
     color: var(--ie-blue);
 }
 
 .transfer-type.export {
     border: 1px solid #b7efca;
-
     background: #dcfce7;
-
     color: #15803d;
 }
 
 .module-badge.admin {
-    background: #e0ecff;
+    border: 1px solid #bfd4ff;
+    background: #eaf2ff;
     color: var(--ie-blue);
 }
 
 .module-badge.maintenance {
+    border: 1px solid #f8dd82;
     background: #fff3cd;
     color: #9a6700;
 }
 
 .module-badge.warehouse {
+    border: 1px solid #b7efca;
     background: #dcfce7;
     color: #15803d;
 }
 
 .module-badge.purchase {
+    border: 1px solid #fed7aa;
     background: #ffedd5;
     color: #c2410c;
 }
 
 .module-badge.operation {
+    border: 1px solid #ddd6fe;
     background: #ede9fe;
     color: #6d28d9;
 }
 
 .source-badge {
     border: 1px solid #dce5f2;
-
     background: #f8fafc;
-
     color: #475569;
 }
 
 .status-badge.completed {
+    border: 1px solid #86efac;
     background: #dcfce7;
     color: #15803d;
 }
 
-.status-badge.failed {
+.status-badge.for-review,
+.status-badge.processing {
+    border: 1px solid #f8dd82;
+    background: #fff3cd;
+    color: #9a6700;
+}
+
+.status-badge.failed,
+.status-badge.needs-correction {
+    border: 1px solid #fecaca;
     background: #fee2e2;
     color: #dc2626;
 }
 
-
-/* =========================================================
-   DATE
-========================================================= */
-
 .date-time-cell .date-value,
 .date-time-cell .time-value {
     display: block;
-
     white-space: nowrap;
 }
 
 .date-time-cell .date-value {
     color: var(--ie-text);
-
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .date-time-cell .time-value {
-    margin-top: 3px;
-
+    margin-top: 2px;
     color: var(--ie-muted);
-
-    font-size: 11px;
+    font-size: 10px;
 }
-
-
-/* =========================================================
-   ACTION
-========================================================= */
 
 .actions {
     display: inline-flex;
@@ -1194,130 +941,59 @@
 .action-btn {
     width: 34px;
     height: 34px;
-
     border: 1px solid #d4e3ff;
     border-radius: 8px;
-
-    background: #eaf2ff;
-
+    background: #edf3fb;
     color: var(--ie-blue);
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 13px;
-
+    font-size: 12px;
     cursor: pointer;
 }
 
 .action-btn:hover {
     background: var(--ie-blue);
-
-    color: #ffffff;
+    color: #fff;
 }
-
-
-/* =========================================================
-   FOOTER
-========================================================= */
 
 .recent-transfer-card .table-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 16px;
-
-    margin-top: 14px;
-    padding-top: 14px;
-
+    margin-top: 13px;
+    padding-top: 13px;
     border-top: 1px solid #e7edf5;
 }
 
-.recent-transfer-card .table-footer p,
-.recent-transfer-card .page-number {
+.recent-transfer-card .table-footer p {
     margin: 0;
-
     color: var(--ie-muted);
-
-    font-size: 12px;
+    font-size: 11px;
 }
-
-.pagination {
-    display: flex;
-    align-items: center;
-
-    gap: 7px;
-}
-
-.page-number {
-    width: 34px;
-    height: 34px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    background: var(--ie-blue);
-
-    color: #ffffff;
-}
-
-.page-btn {
-    width: 34px;
-    height: 34px;
-
-    padding: 0;
-
-    border: 1px solid var(--ie-border);
-    border-radius: 8px;
-
-    background: #ffffff;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    color: var(--ie-navy);
-}
-
-.page-btn.disabled {
-    background: #f8fafc;
-
-    color: #94a3b8;
-}
-
 
 /* =========================================================
    RESPONSIVE
 ========================================================= */
 
 @media (max-width: 1150px) {
-
     .data-flow-guide,
     .transfer-grid {
         grid-template-columns: 1fr;
     }
 
     .batch-processing-note {
-        grid-template-columns:
-            44px
-            minmax(0, 1fr);
+        grid-template-columns: 42px minmax(0, 1fr);
     }
 
     .batch-processing-link {
         grid-column: 2;
         width: fit-content;
     }
-
 }
 
-
 @media (max-width: 768px) {
-
     .import-export-page .import-export-stats {
         grid-template-columns: 1fr;
     }
@@ -1343,5 +1019,4 @@
     .transfer-table {
         min-width: 980px;
     }
-
 }

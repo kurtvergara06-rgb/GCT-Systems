@@ -1,10 +1,7 @@
 <x-layout.app
     title="FROMS - Import / Export"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Data_Management/uploading-data.css',
-        'resources/js/Main-js/sidebar.js'
     ]"
 >
     <div class="app">
@@ -384,13 +381,11 @@
 
                                     <td>
                                         <div class="actions">
-                                            <a
-                                                href="{{ route('admin.data-history', ['search' => $activity->file_name]) }}"
-                                                class="action-btn view"
+                                            <x-ui.action-button
+                                                type="view"
+                                                :href="route('admin.data-history', ['search' => $activity->file_name])"
                                                 title="View in Data History"
-                                            >
-                                                <i class="fa-solid fa-eye"></i>
-                                            </a>
+                                            />
                                         </div>
                                     </td>
                                 </tr>
@@ -416,19 +411,4 @@
             </section>
         </main>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const fileInput = document.getElementById('importFile');
-            const selectedFileName = document.getElementById('selectedFileName');
-
-            if (fileInput && selectedFileName) {
-                fileInput.addEventListener('change', function () {
-                    selectedFileName.textContent = fileInput.files.length
-                        ? fileInput.files[0].name
-                        : 'No file selected';
-                });
-            }
-        });
-    </script>
 </x-layout.app>

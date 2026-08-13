@@ -57,6 +57,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Admin/Data_Management/batch-file-processing.css',
+                'resources/css/Admin/Data_Management/generic-batch-review.css',
                 'resources/css/Admin/Data_Management/data-history.css',
                 'resources/css/Admin/Data_Management/uploading-data.css',
 

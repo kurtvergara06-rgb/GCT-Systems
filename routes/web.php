@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\BatchFileProcessingController;
+use App\Http\Controllers\Admin\FleetTripAnalyticsController;
 
 use App\Http\Controllers\Auth\LoginController;
 
@@ -269,25 +270,12 @@ Route::middleware('auth')->group(function () {
         ->prefix('purchase-requests')
         ->group(function () {
 
-            /*
-            |--------------------------------------------------------------------------
-            | LIST
-            |--------------------------------------------------------------------------
-            */
-
             Route::get(
                 '/',
                 'index'
             )->name(
                 'purchase-requests'
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CREATE
-            |--------------------------------------------------------------------------
-            */
 
             Route::post(
                 '/',
@@ -296,31 +284,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-requests.store'
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | NORMAL EDIT
-            |
-            | Only Submitted PRs use this.
-            |--------------------------------------------------------------------------
-            */
-
             Route::put(
                 '/{purchaseRequest}',
                 'update'
             )->name(
                 'purchase-requests.update'
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | REVISE + RESUBMIT
-            |
-            | Only Rejected PRs use this.
-            | Same PR record and same PR number.
-            |--------------------------------------------------------------------------
-            */
 
             Route::post(
                 '/{purchaseRequest}/resubmit',
@@ -329,26 +298,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-requests.resubmit'
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE
-            |--------------------------------------------------------------------------
-            */
-
             Route::delete(
                 '/{purchaseRequest}',
                 'destroy'
             )->name(
                 'purchase-requests.destroy'
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | APPROVE
-            |--------------------------------------------------------------------------
-            */
 
             Route::post(
                 '/{purchaseRequest}/approve',
@@ -357,26 +312,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-requests.approve'
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | REJECT
-            |--------------------------------------------------------------------------
-            */
-
             Route::post(
                 '/{purchaseRequest}/reject',
                 'reject'
             )->name(
                 'purchase-requests.reject'
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | FOR PURCHASE
-            |--------------------------------------------------------------------------
-            */
 
             Route::post(
                 '/{purchaseRequest}/for-purchase',
@@ -385,26 +326,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-requests.for-purchase'
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELIVERED
-            |--------------------------------------------------------------------------
-            */
-
             Route::post(
                 '/{purchaseRequest}/delivered',
                 'markDelivered'
             )->name(
                 'purchase-requests.delivered'
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | ISSUED
-            |--------------------------------------------------------------------------
-            */
 
             Route::post(
                 '/{purchaseRequest}/issue',
@@ -424,23 +351,10 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Warehouse Dashboard
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
     '/warehouse/dashboard',
     'Warehouse.dashboard-warehouse'
     )->name('warehouse.dashboard');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Inventory
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(InventoryController::class)
         ->prefix('inventory')
@@ -483,13 +397,6 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Warehouse Part Requests
-    |--------------------------------------------------------------------------
-    */
-
     Route::controller(
         WarehousePartRequestController::class
     )
@@ -519,26 +426,12 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Stock Movements
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
         '/warehouse/stock-movements',
         'Warehouse.stock-movements'
     )->name(
         'stock-movements'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Incoming Deliveries
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/warehouse/incoming-deliveries',
@@ -556,26 +449,12 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Dashboard
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
         '/purchase/dashboard',
         'Purchase.dashboard-purchase'
     )->name(
         'dashboard-purchase'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Requested Purchase - Maintenance Requests
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         MaintenanceRequestController::class
@@ -590,7 +469,6 @@ Route::middleware('auth')->group(function () {
                 'maintenance-requests'
             );
 
-
             Route::post(
                 '/{maintenanceRequest}/create-po',
                 'createPo'
@@ -599,13 +477,6 @@ Route::middleware('auth')->group(function () {
             );
 
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Requested Purchase - Inventory Restock
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         InventoryRestockController::class
@@ -622,13 +493,6 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Orders
-    |--------------------------------------------------------------------------
-    */
-
     Route::controller(
         PurchaseOrderController::class
     )
@@ -642,14 +506,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-orders'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'purchase-orders.store'
             );
-
 
             Route::put(
                 '/{purchaseOrder}',
@@ -658,14 +520,12 @@ Route::middleware('auth')->group(function () {
                 'purchase-orders.update'
             );
 
-
             Route::patch(
                 '/{purchaseOrder}/status',
                 'updateStatus'
             )->name(
                 'purchase-orders.update-status'
             );
-
 
             Route::delete(
                 '/{purchaseOrder}',
@@ -675,13 +535,6 @@ Route::middleware('auth')->group(function () {
             );
 
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Scheduled Purchase
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         ScheduledPurchaseController::class
@@ -696,14 +549,12 @@ Route::middleware('auth')->group(function () {
                 'scheduled-purchase'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'scheduled-purchase.store'
             );
-
 
             Route::put(
                 '/{scheduledPurchase}',
@@ -712,14 +563,12 @@ Route::middleware('auth')->group(function () {
                 'scheduled-purchase.update'
             );
 
-
             Route::patch(
                 '/{scheduledPurchase}/toggle-status',
                 'toggleStatus'
             )->name(
                 'scheduled-purchase.toggle-status'
             );
-
 
             Route::patch(
                 '/{scheduledPurchase}/complete',
@@ -728,14 +577,12 @@ Route::middleware('auth')->group(function () {
                 'scheduled-purchase.complete'
             );
 
-
             Route::post(
                 '/{scheduledPurchase}/create-po',
                 'createPo'
             )->name(
                 'scheduled-purchase.create-po'
             );
-
 
             Route::delete(
                 '/{scheduledPurchase}',
@@ -753,26 +600,12 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Operation Dashboard
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
         '/operation/dashboard',
         'Operation.dashboard-operation'
     )->name(
         'dashboard-operation'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Bus Master List
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(BusController::class)
         ->prefix('bus-master-list')
@@ -785,14 +618,12 @@ Route::middleware('auth')->group(function () {
                 'bus-master-list'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'bus-master-list.store'
             );
-
 
             Route::post(
                 '/import',
@@ -801,14 +632,12 @@ Route::middleware('auth')->group(function () {
                 'bus-master-list.import'
             );
 
-
             Route::put(
                 '/{bus}',
                 'update'
             )->name(
                 'bus-master-list.update'
             );
-
 
             Route::delete(
                 '/{bus}',
@@ -818,13 +647,6 @@ Route::middleware('auth')->group(function () {
             );
 
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Driver Attendance
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         DriverAttendanceController::class
@@ -839,14 +661,12 @@ Route::middleware('auth')->group(function () {
                 'driver-attendance'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'driver-attendance.store'
             );
-
 
             Route::post(
                 '/import',
@@ -855,14 +675,12 @@ Route::middleware('auth')->group(function () {
                 'driver-attendance.import'
             );
 
-
             Route::put(
                 '/{driverAttendance}',
                 'update'
             )->name(
                 'driver-attendance.update'
             );
-
 
             Route::delete(
                 '/{driverAttendance}',
@@ -873,20 +691,12 @@ Route::middleware('auth')->group(function () {
 
         });
 
-
     Route::redirect(
         '/attendance',
         '/driver-attendance'
     )->name(
         'attendance'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Mechanic Attendance
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         MechanicAttendanceController::class
@@ -901,14 +711,12 @@ Route::middleware('auth')->group(function () {
                 'mechanic-attendance'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'mechanic-attendance.store'
             );
-
 
             Route::put(
                 '/{mechanicAttendance}',
@@ -917,14 +725,12 @@ Route::middleware('auth')->group(function () {
                 'mechanic-attendance.update'
             );
 
-
             Route::delete(
                 '/{mechanicAttendance}',
                 'destroy'
             )->name(
                 'mechanic-attendance.destroy'
             );
-
 
             Route::post(
                 '/import',
@@ -934,7 +740,6 @@ Route::middleware('auth')->group(function () {
             );
 
         });
-
 
     Route::redirect(
         '/available-mechanics',
@@ -970,12 +775,6 @@ Route::delete(
     [RouteController::class, 'destroy']
 )->name('operation.routes.destroy');
 
-/*
-    |--------------------------------------------------------------------------
-    | Geoapify
-    |--------------------------------------------------------------------------
-    */
-
 Route::get('/operation/routes/location-search', [\App\Http\Controllers\Operation\RouteController::class, 'searchLocations'])
     ->middleware('throttle:60,1')
     ->name('operation.routes.location-search');
@@ -984,14 +783,7 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
     ->middleware('throttle:60,1')
     ->name('operation.routes.calculate');
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Trip Schedule
-    |--------------------------------------------------------------------------
-    */
-
-   Route::controller(TripScheduleController::class)
+    Route::controller(TripScheduleController::class)
     ->prefix('operation/trip-schedule')
     ->group(function () {
 
@@ -1016,13 +808,6 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
         )->name('trip-schedule.destroy');
 
     });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Driver & Bus Assignment
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(TripAssignmentController::class)
         ->prefix('operation/driver-bus-assignment')
@@ -1050,14 +835,6 @@ Route::post('/operation/routes/calculate', [\App\Http\Controllers\Operation\Rout
 
         });
 
-
-   /*
-|--------------------------------------------------------------------------
-| Auto Scheduling
-|--------------------------------------------------------------------------
-*/
-
-    
 Route::controller(AutoSchedulingController::class)
     ->prefix('operation/auto-scheduling')
     ->group(function () {
@@ -1074,20 +851,12 @@ Route::controller(AutoSchedulingController::class)
             ->name('auto-scheduling.resolve');
     });
 
-
     Route::redirect(
         '/operation/auto-dispatch',
         '/operation/auto-scheduling'
     )->name(
         'auto-dispatch'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Trip Records
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/operation/trip-records',
@@ -1096,34 +865,12 @@ Route::controller(AutoSchedulingController::class)
         'trip-records'
     );
 
-
-    /*use
-    |--------------------------------------------------------------------------
-    | ADMIN DEPARTMENT
-    |--------------------------------------------------------------------------
-    */
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Dashboard
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
         '/admin/dashboard',
         'Admin.admin-dashboard'
     )->name(
         'admin.dashboard'
     );
-
-
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN - USER MANAGEMENT
-|--------------------------------------------------------------------------
-*/
 
 Route::get(
     '/admin/users',
@@ -1160,29 +907,15 @@ Route::view(
     'Admin.User_Management.permissions'
 )->name('admin.roles-permissions');
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN - SYSTEM MONITORING
-|--------------------------------------------------------------------------
-*/
-
 Route::view(
     '/admin/activity-logs',
     'Admin.System_Monitoring.activity-logs'
 )->name('admin.activity-logs');
 
-
 Route::view(
     '/admin/notifications',
     'Admin.System_Monitoring.notifications'
 )->name('admin.notifications');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Batch File Processing
-    |--------------------------------------------------------------------------
-    */
 
     Route::controller(
         BatchFileProcessingController::class
@@ -1197,14 +930,12 @@ Route::view(
                 'batch-file-processing'
             );
 
-
             Route::post(
                 '/upload',
                 'upload'
             )->name(
                 'batch-file-processing.upload'
             );
-
 
             Route::get(
                 '/export',
@@ -1213,14 +944,12 @@ Route::view(
                 'batch-file-processing.export'
             );
 
-
             Route::delete(
                 '/{batchUpload}',
                 'destroy'
             )->name(
                 'batch-file-processing.destroy'
             );
-
 
             Route::patch(
                 '/{batchUpload}/confirm',
@@ -1229,14 +958,12 @@ Route::view(
                 'batch-file-processing.confirm'
             );
 
-
             Route::put(
                 '/records/{gpsTripRecord}',
                 'updateRecord'
             )->name(
                 'batch-file-processing.records.update'
             );
-
 
             Route::put(
                 '/{batchUpload}/records/bulk-update',
@@ -1247,26 +974,12 @@ Route::view(
 
         });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Batch File Processing Shortcut
-    |--------------------------------------------------------------------------
-    */
-
     Route::get(
         '/admin/batch-file-processing',
         [BatchFileProcessingController::class, 'index']
     )->name(
         'admin.batch-file-processing'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Data Management - Import / Export
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/admin/import-export',
@@ -1275,26 +988,12 @@ Route::view(
         'admin.import-export'
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Data Management - History
-    |--------------------------------------------------------------------------
-    */
-
     Route::view(
         '/admin/data-history',
         'Admin.Data_Management.data-history'
     )->name(
         'admin.data-history'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Analytics
-    |--------------------------------------------------------------------------
-    */
 
     Route::redirect(
         '/analytics',
@@ -1303,7 +1002,6 @@ Route::view(
         'analytics'
     );
 
-
     Route::view(
         '/analytics/overview',
         'Admin.Analytics.overview'
@@ -1311,14 +1009,12 @@ Route::view(
         'analytics.overview'
     );
 
-
-    Route::view(
+    Route::get(
         '/analytics/fleet-trip',
-        'Admin.Analytics.fleet-trip'
+        [FleetTripAnalyticsController::class, 'index']
     )->name(
         'analytics.fleet-trip'
     );
-
 
     Route::view(
         '/analytics/fuel',
@@ -1327,14 +1023,12 @@ Route::view(
         'analytics.fuel'
     );
 
-
     Route::view(
         '/analytics/bus-health',
         'Admin.Analytics.bus-health'
     )->name(
         'analytics.bus-health'
     );
-
 
     Route::view(
         '/analytics/inventory',
@@ -1343,20 +1037,12 @@ Route::view(
         'analytics.inventory'
     );
 
-
     Route::view(
         '/analytics/recommendations',
         'Admin.Analytics.recommendations'
     )->name(
         'analytics.recommendations'
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Settings
-    |--------------------------------------------------------------------------
-    */
 
     Route::view(
         '/admin/settings/general',
@@ -1365,14 +1051,12 @@ Route::view(
         'admin.settings.general'
     );
 
-
     Route::view(
         '/admin/settings/notifications',
         'Admin.Settings.notification-settings'
     )->name(
         'admin.settings.notifications'
     );
-
 
     Route::view(
         '/admin/settings/security',

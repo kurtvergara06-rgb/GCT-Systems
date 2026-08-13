@@ -255,6 +255,16 @@
     color: var(--fuel-purple);
 }
 
+.analytics-badge.predictive {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.analytics-badge.prescriptive {
+    background: #fff7db;
+    color: #9a6700;
+}
+
 
 /* =========================================================
    FUEL CHART
@@ -521,6 +531,10 @@
     color: var(--fuel-navy);
 
     font-size: 12px;
+}
+
+.fuel-forecast-note {
+    margin-top: 10px;
 }
 
 

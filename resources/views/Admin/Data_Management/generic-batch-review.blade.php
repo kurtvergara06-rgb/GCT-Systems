@@ -1,8 +1,6 @@
 <x-layout.app
     title="FROMS - Batch Review"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Data_Management/batch-file-processing.css',
         'resources/css/Admin/Data_Management/generic-batch-review.css',
     ]"

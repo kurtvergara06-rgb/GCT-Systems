@@ -451,6 +451,34 @@
         0 0 0 3px rgba(11, 64, 181, 0.12);
 }
 
+.fleet-filter-button {
+    min-height: 40px;
+
+    padding: 0 13px;
+
+    border: 1px solid var(--ft-blue);
+    border-radius: 9px;
+
+    background: var(--ft-blue);
+
+    color: #ffffff;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.fleet-filter-button:hover {
+    background: var(--ft-blue-dark);
+}
+
 
 /* =========================================================
    GENERIC PANEL
@@ -535,6 +563,16 @@
 .trend-badge.positive {
     background: #dcfce7;
     color: var(--ft-green);
+}
+
+.trend-badge.negative {
+    background: #fee2e2;
+    color: var(--ft-red);
+}
+
+.trend-badge.neutral {
+    background: #eef2f7;
+    color: var(--ft-muted);
 }
 
 
@@ -722,8 +760,8 @@
 
     background:
         conic-gradient(
-            #16a34a 0deg 295deg,
-            #e5ebf3 295deg 360deg
+            #16a34a 0deg var(--availability-angle, 295deg),
+            #e5ebf3 var(--availability-angle, 295deg) 360deg
         );
 
     display: flex;
@@ -1526,7 +1564,8 @@
         flex-direction: column;
     }
 
-    .fleet-filters select {
+    .fleet-filters select,
+    .fleet-filter-button {
         width: 100%;
     }
 

@@ -42,4 +42,33 @@ class DataActivity extends Model
     {
         return $this->belongsTo(User::class, 'processed_by');
     }
+
+    public function getStatusAttribute(?string $value): string
+    {
+        if (! $this->isStructuredImportActivity()) {
+            return (string) $value;
+        }
+
+        $details = $this->details ?? [];
+        $validationErrors = $details['validation_errors'] ?? [];
+
+        if ($this->failed_records > 0 || (is_array($validationErrors) && $validationErrors !== [])) {
+            return 'Needs Correction';
+        }
+
+        return (string) $value;
+    }
+
+    public function isStructuredImportActivity(): bool
+    {
+        if ($this->activity_type !== 'Import') {
+            return false;
+        }
+
+        $details = $this->details ?? [];
+
+        return $this->source === 'Structured File Import'
+            || array_key_exists('validation_errors', $details)
+            || array_key_exists('staged_payloads', $details);
+    }
 }

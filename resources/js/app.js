@@ -45,4 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('importModule') && document.getElementById('exportModule')) {
         import('./Admin/Data_Management/import-export.js');
     }
+
+    if (document.getElementById('historyDetailsModal')) {
+        import('./Admin/Data_Management/data-history.js');
+    }
 });
