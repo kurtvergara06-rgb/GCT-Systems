@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
@@ -29,13 +30,31 @@ class LoginController extends Controller
         ]);
 
         $remember = $request->boolean('remember');
+        $loginKey = sprintf(
+            'login:%s|%s',
+            strtolower(trim($credentials['email'])),
+            (string) $request->ip()
+        );
+
+        if (RateLimiter::tooManyAttempts($loginKey, 5)) {
+            return back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'email' => sprintf(
+                        'Too many login attempts. Please try again in %d seconds.',
+                        RateLimiter::availableIn($loginKey)
+                    ),
+                ]);
+        }
 
         /** @var User|null $user */
         $user = User::query()
             ->where('email', $credentials['email'])
             ->first();
 
-        if ($user === null) {
+        if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
+            RateLimiter::hit($loginKey, 60);
+
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->withErrors([
@@ -43,13 +62,7 @@ class LoginController extends Controller
                 ]);
         }
 
-        if (! Hash::check($credentials['password'], $user->password)) {
-            return back()
-                ->withInput($request->only('email', 'remember'))
-                ->withErrors([
-                    'password' => 'Wrong password.',
-                ]);
-        }
+        RateLimiter::clear($loginKey);
 
         Auth::login($user, $remember);
 
