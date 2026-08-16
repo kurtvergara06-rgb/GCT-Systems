@@ -30,6 +30,11 @@ class DepartmentRouteRegistrationTest extends TestCase
             'analytics',
             'analytics.overview',
             'analytics.descriptive',
+            'analytics.fleet-trip',
+            'analytics.fuel',
+            'analytics.bus-health',
+            'analytics.inventory',
+            'analytics.recommendations',
         ];
 
         foreach ($routeNames as $routeName) {
