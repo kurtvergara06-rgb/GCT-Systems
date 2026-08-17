@@ -31,6 +31,19 @@
         (object) ['label' => 'Low Stock', 'value' => $inventoryLow],
         (object) ['label' => 'Out of Stock', 'value' => $inventoryCritical],
     ]);
+
+    $fleetSegmentOffset = 0;
+    $fleetStatusSegments = collect([
+        ['label' => 'Active', 'value' => $activeBuses, 'color' => '#16a34a'],
+        ['label' => 'Under Maintenance', 'value' => $underMaintenance, 'color' => '#f59e0b'],
+        ['label' => 'Inactive', 'value' => $inactiveBuses, 'color' => '#94a3b8'],
+    ])->map(function ($segment) use ($totalBuses, &$fleetSegmentOffset) {
+        $percentage = $totalBuses > 0 ? ($segment['value'] / $totalBuses) * 100 : 0;
+        $segment['percentage'] = $percentage;
+        $segment['offset'] = $fleetSegmentOffset;
+        $fleetSegmentOffset += $percentage;
+        return $segment;
+    });
 @endphp
 
 <x-layout.app
@@ -205,7 +218,32 @@
                         <div class="reference-chart-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="reference-chart-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
                     </article>
 
-                    <article class="analytics-card descriptive-availability-card"><x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" /><div class="analytics-availability-layout"><div class="availability-score"><div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $fleetAvailability * 3.6)) }}deg"><div class="availability-ring-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div></div></div><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div><div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div></div></div></article>
+                    <article class="analytics-card descriptive-availability-card">
+                        <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
+                        <div class="analytics-availability-layout">
+                            <div class="availability-score">
+                                <div class="availability-ring is-interactive-donut fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active">
+                                    <svg class="fleet-donut-svg" viewBox="0 0 180 180" role="img" aria-label="Fleet availability status distribution">
+                                        <circle cx="90" cy="90" r="59" pathLength="100" class="fleet-donut-track" />
+                                        @foreach($fleetStatusSegments as $segment)
+                                            <g class="fleet-donut-group" tabindex="0" role="button" data-donut-index="{{ $loop->index }}" data-label="{{ $segment['label'] }}" data-value="{{ $segment['value'] }}" data-percentage="{{ number_format($segment['percentage'], 1, '.', '') }}" aria-label="{{ $segment['label'] }}: {{ $segment['value'] }} buses, {{ number_format($segment['percentage'], 1) }} percent">
+                                                <circle cx="90" cy="90" r="59" pathLength="100" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-main" style="stroke: {{ $segment['color'] }}; --segment-length: {{ number_format($segment['percentage'], 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
+                                                <circle cx="90" cy="90" r="75" pathLength="100" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-outer" style="stroke: {{ $segment['color'] }}; --segment-length: {{ number_format($segment['percentage'], 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
+                                            </g>
+                                        @endforeach
+                                    </svg>
+                                    <div class="availability-ring-center fleet-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
+                                    <div class="fleet-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
+                                </div>
+                            </div>
+                            <div class="availability-breakdown">
+                                <div class="availability-row" data-donut-index="0"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="1"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                <div class="availability-row" data-donut-index="2"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                                <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
+                            </div>
+                        </div>
+                    </article>
                 </section>
 
                 @if($domain === 'all')
