@@ -174,7 +174,7 @@ class DescriptiveAnalyticsController extends Controller
                 ];
             })
             ->sortByDesc('trips')
-            ->take(4)
+            ->take(5)
             ->values();
 
         $maxTrips = max(1, (int) ($routes->max('trips') ?? 0));
