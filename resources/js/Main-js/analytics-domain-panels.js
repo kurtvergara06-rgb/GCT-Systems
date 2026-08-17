@@ -12,11 +12,29 @@ const bindFleetAvailabilityDonut = (card) => {
         return;
     }
 
-    ring.querySelectorAll('.fleet-donut-track, .fleet-donut-segment').forEach((circle) => {
-        circle.setAttribute('fill', 'none');
+    const track = ring.querySelector('.fleet-donut-track');
+    if (track) {
+        track.setAttribute('fill', 'none');
+        track.style.fill = 'none';
+    }
+
+    groups.forEach((group) => {
+        const percentage = Math.max(0, Math.min(100, Number.parseFloat(group.dataset.percentage || '0') || 0));
+        const offset = Math.max(0, Math.min(100, groups
+            .slice(0, Number(group.dataset.donutIndex) || 0)
+            .reduce((sum, previous) => sum + (Number.parseFloat(previous.dataset.percentage || '0') || 0), 0)));
+        const gap = Math.max(0, 100 - percentage);
+
+        group.querySelectorAll('.fleet-donut-segment').forEach((circle) => {
+            circle.setAttribute('fill', 'none');
+            circle.style.fill = 'none';
+            circle.style.strokeDasharray = `${percentage} ${gap}`;
+            circle.style.strokeDashoffset = `${-offset}`;
+        });
     });
 
     ring.dataset.fleetDonutBound = 'true';
+    ring.classList.add('is-ready');
 
     const defaultValue = ring.dataset.defaultValue || centerValue?.textContent?.trim() || '0%';
     const defaultLabel = ring.dataset.defaultLabel || centerLabel?.textContent?.trim() || 'Active';
