@@ -12,9 +12,6 @@ const bindFleetAvailabilityDonut = (card) => {
         return;
     }
 
-    ring.classList.remove('availability-ring', 'is-interactive-donut');
-    ring.classList.add('fleet-availability-donut');
-
     ring.querySelectorAll('.fleet-donut-track, .fleet-donut-segment').forEach((circle) => {
         circle.setAttribute('fill', 'none');
     });
