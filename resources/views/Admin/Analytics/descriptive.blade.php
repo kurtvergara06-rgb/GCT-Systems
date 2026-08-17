@@ -7,42 +7,15 @@
         'inventory' => ['Inventory', 'fa-boxes-stacked'],
     ];
 
-    $max = max(1, (int) ($trend->max('count') ?? 0));
-    $n = max(1, $trend->count());
-    $points = $trend->map(function ($bucket, $index) use ($max, $n) {
-        $x = $n > 1 ? 42 + (($index / ($n - 1)) * 636) : 360;
-        $y = 194 - (($bucket->count / $max) * 150);
-        return ['x' => round($x, 1), 'y' => round($y, 1), 'label' => $bucket->label, 'count' => $bucket->count, 'partial' => $index === $n - 1];
+    $trendCount = max(1, $trend->count());
+    $tripChartData = $trend->values()->map(function ($bucket, $index) use ($trendCount) {
+        return [
+            'label' => $bucket->label,
+            'value' => (int) $bucket->count,
+            'partial' => $index === $trendCount - 1,
+        ];
     });
-    $completedPoints = $points->reject(fn ($point) => $point['partial'])->values();
-    $hasPartialBucket = $points->contains(fn ($point) => $point['partial']);
-
-    $smoothPath = '';
-    if ($completedPoints->count() > 1) {
-        $tension = 0.16;
-        $smoothPath = 'M ' . $completedPoints[0]['x'] . ' ' . $completedPoints[0]['y'];
-
-        for ($index = 0; $index < $completedPoints->count() - 1; $index++) {
-            $previous = $completedPoints[$index - 1] ?? $completedPoints[$index];
-            $current = $completedPoints[$index];
-            $next = $completedPoints[$index + 1];
-            $following = $completedPoints[$index + 2] ?? $next;
-            $minY = min($current['y'], $next['y']);
-            $maxY = max($current['y'], $next['y']);
-
-            $control1X = $current['x'] + (($next['x'] - $previous['x']) * $tension);
-            $control1Y = max($minY, min($maxY, $current['y'] + (($next['y'] - $previous['y']) * $tension)));
-            $control2X = $next['x'] - (($following['x'] - $current['x']) * $tension);
-            $control2Y = max($minY, min($maxY, $next['y'] - (($following['y'] - $current['y']) * $tension)));
-
-            $smoothPath .= ' C '
-                . number_format($control1X, 2, '.', '') . ' '
-                . number_format($control1Y, 2, '.', '') . ', '
-                . number_format($control2X, 2, '.', '') . ' '
-                . number_format($control2Y, 2, '.', '') . ', '
-                . $next['x'] . ' ' . $next['y'];
-        }
-    }
+    $hasPartialBucket = $tripChartData->contains(fn ($point) => $point['partial']);
 
     $healthyPct = $inventoryTotal > 0 ? ($inventoryHealthy / $inventoryTotal) * 100 : 0;
     $lowPct = $inventoryTotal > 0 ? ($inventoryLow / $inventoryTotal) * 100 : 0;
@@ -57,18 +30,43 @@
         (object) ['label' => 'Out of Stock', 'value' => $inventoryCritical],
     ]);
 
-    $fleetSegmentOffset = 0;
-    $fleetStatusSegments = collect([
-        ['label' => 'Active', 'value' => $activeBuses, 'color' => '#16a34a'],
-        ['label' => 'Under Maintenance', 'value' => $underMaintenance, 'color' => '#f59e0b'],
-        ['label' => 'Inactive', 'value' => $inactiveBuses, 'color' => '#94a3b8'],
-    ])->map(function ($segment) use ($totalBuses, &$fleetSegmentOffset) {
-        $percentage = $totalBuses > 0 ? ($segment['value'] / $totalBuses) * 100 : 0;
-        $segment['percentage'] = $percentage;
-        $segment['offset'] = $fleetSegmentOffset;
-        $fleetSegmentOffset += $percentage;
-        return $segment;
-    });
+    $activePct = $totalBuses > 0 ? ($activeBuses / $totalBuses) * 100 : 0;
+    $maintenancePct = $totalBuses > 0 ? ($underMaintenance / $totalBuses) * 100 : 0;
+    $inactivePct = $totalBuses > 0 ? ($inactiveBuses / $totalBuses) * 100 : 0;
+    $maintenanceEndPct = $activePct + $maintenancePct;
+
+    $fuelSummaries = collect($fuel['busSummaries'] ?? [])->values();
+    $fuelRecords = collect($fuel['records'] ?? [])->values();
+    $fuelUsageRows = $fuelSummaries->sortByDesc('fuel_liters')->take(10)->values();
+    $fuelBusChartData = $fuelUsageRows->map(fn ($row) => [
+        'label' => $row->bus_no,
+        'fuel' => (float) $row->fuel_liters,
+        'distance' => (float) $row->distance_km,
+        'efficiency' => (float) $row->km_per_liter,
+        'entries' => (int) $row->entries,
+    ]);
+    $highestFuelBus = $fuelSummaries->sortByDesc('fuel_liters')->first();
+    $lowestFuelBus = $fuelSummaries->filter(fn ($row) => $row->fuel_liters > 0)->sortBy('fuel_liters')->first();
+    $mostEfficientBus = $fuelSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortByDesc('km_per_liter')->first();
+    $leastEfficientBus = $fuelSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortBy('km_per_liter')->first();
+    $averageFuelPerBus = $fuelSummaries->count() > 0 ? ((float) ($fuel['totalFuel'] ?? 0) / $fuelSummaries->count()) : 0;
+    $averageDistancePerBus = $fuelSummaries->count() > 0 ? ((float) ($fuel['totalDistance'] ?? 0) / $fuelSummaries->count()) : 0;
+
+    $validFuelRecords = $fuelRecords->filter(fn ($row) => (float) ($row->fuel_liters ?? 0) > 0 && (float) ($row->distance_km ?? 0) > 0)->count();
+    $incompleteFuelRecords = max(0, $fuelRecords->count() - $validFuelRecords);
+    $fuelQualityPct = $fuelRecords->count() > 0 ? ($validFuelRecords / $fuelRecords->count()) * 100 : 0;
+
+    $fuelReviewUnits = collect($fuel['reviewUnits'] ?? [])->values();
+    $highIdlingUnits = collect($fuel['highIdlingUnits'] ?? [])->values();
+    $priorityFuelUnits = $fuelSummaries->where('status', 'Priority Review')->count();
+    $reviewFuelUnits = $fuelSummaries->where('status', 'Review')->count();
+    $efficientFuelUnits = $fuelSummaries->where('status', 'Efficient')->count();
+    $normalFuelUnits = $fuelSummaries->where('status', 'Normal')->count();
+    $fuelStatusTotal = max(1, $fuelSummaries->count());
+    $efficientFuelPct = ($efficientFuelUnits / $fuelStatusTotal) * 100;
+    $normalFuelPct = ($normalFuelUnits / $fuelStatusTotal) * 100;
+    $reviewFuelPct = ($reviewFuelUnits / $fuelStatusTotal) * 100;
+    $priorityFuelPct = ($priorityFuelUnits / $fuelStatusTotal) * 100;
 @endphp
 
 <x-layout.app
@@ -108,38 +106,112 @@
                     <x-analytics.kpi label="Fuel Used" :value="number_format($fuel['totalFuel'] ?? 0, 1) . ' L'" small="Recorded fuel volume" icon="fa-gas-pump" />
                     <x-analytics.kpi label="Linked Distance" :value="number_format($fuel['totalDistance'] ?? 0, 1) . ' km'" small="Distance attached to fuel reports" icon="fa-road" tone="green" />
                     <x-analytics.kpi label="Weighted Efficiency" :value="number_format($fuel['fleetAverage'] ?? 0, 2) . ' km/L'" small="Distance divided by recorded fuel" icon="fa-gauge-high" tone="purple" />
-                    <x-analytics.kpi label="Recorded Units" :value="collect($fuel['busSummaries'] ?? [])->count()" small="Buses represented in reports" icon="fa-bus" tone="yellow" />
+                    <x-analytics.kpi label="Recorded Units" :value="$fuelSummaries->count()" small="Buses represented in reports" icon="fa-bus" tone="yellow" />
                 </section>
 
-                <section class="analytics-domain-content">
-                    <div class="analytics-domain-grid">
-                        <x-analytics.panel title="Fuel Consumption Trend" :description="$periodLabel . ' · recorded fuel volume by period'">
-                            <x-analytics.line-chart :items="$fuel['trend'] ?? collect()" value-key="fuel_liters" label-key="label" suffix=" L" empty-text="No fuel reports match the selected filters." />
-                        </x-analytics.panel>
+                <section class="analytics-domain-content fuel-dashboard-content">
+                    <div class="fuel-dashboard-layout">
+                        <div class="fuel-dashboard-main-column">
+                            <x-analytics.panel title="Fuel Usage by Bus" :description="$periodLabel . ' · highest recorded fuel volume by unit'">
+                                @if($fuelBusChartData->isNotEmpty())
+                                    <div class="fuel-usage-chart fuel-usage-chart-large" data-fuel-points='@json($fuelBusChartData)'>
+                                        <canvas class="fuel-usage-canvas" role="img" aria-label="Fuel usage by bus chart"></canvas>
+                                        <div class="fuel-usage-tooltip" aria-hidden="true">
+                                            <strong></strong>
+                                            <span><i class="fa-solid fa-gas-pump"></i> Fuel <b data-fuel-value></b></span>
+                                            <span><i class="fa-solid fa-road"></i> Distance <b data-distance-value></b></span>
+                                            <span><i class="fa-solid fa-gauge-high"></i> Efficiency <b data-efficiency-value></b></span>
+                                        </div>
+                                    </div>
+                                    <div class="fuel-usage-caption">Top {{ $fuelUsageRows->count() }} unit{{ $fuelUsageRows->count() === 1 ? '' : 's' }} by recorded fuel volume</div>
+                                @else
+                                    <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No fuel reports match the selected filters.</span></div>
+                                @endif
+                            </x-analytics.panel>
 
-                        <x-analytics.panel title="Bus Efficiency Comparison" description="Highest recorded distance per liter for the selected period">
-                            <x-analytics.horizontal-bars :items="$fuel['busSummaries'] ?? collect()" value-key="km_per_liter" label-key="bus_no" empty-text="No bus-level fuel efficiency records are available." />
-                        </x-analytics.panel>
-                    </div>
-
-                    <div class="analytics-domain-grid equal">
-                        <x-analytics.panel title="Fuel Reporting Coverage" description="Recorded evidence behind the descriptive totals">
-                            <div class="analytics-record-list">
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-file-lines"></i></span><div class="analytics-record-copy"><strong>Fuel reports</strong><span>Records included in the selected period</span></div><span class="analytics-record-value">{{ collect($fuel['records'] ?? [])->count() }}</span></div>
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-bus"></i></span><div class="analytics-record-copy"><strong>Units represented</strong><span>Buses with recorded fuel activity</span></div><span class="analytics-record-value">{{ collect($fuel['busSummaries'] ?? [])->count() }}</span></div>
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-road"></i></span><div class="analytics-record-copy"><strong>Linked distance</strong><span>Distance stored on fuel reports</span></div><span class="analytics-record-value">{{ number_format($fuel['totalDistance'] ?? 0, 1) }} km</span></div>
+                            <div class="fuel-summary-strip">
+                                <div class="fuel-summary-cell"><span class="fuel-summary-icon blue"><i class="fa-solid fa-gas-pump"></i></span><div><span>Avg. Fuel per Bus</span><strong>{{ number_format($averageFuelPerBus, 1) }} L</strong><small>Per recorded unit</small></div></div>
+                                <div class="fuel-summary-cell"><span class="fuel-summary-icon green"><i class="fa-solid fa-road"></i></span><div><span>Avg. Distance per Bus</span><strong>{{ number_format($averageDistancePerBus, 1) }} km</strong><small>Per recorded unit</small></div></div>
+                                <div class="fuel-summary-cell"><span class="fuel-summary-icon purple"><i class="fa-solid fa-gauge-high"></i></span><div><span>Best Efficiency</span><strong>{{ $mostEfficientBus ? number_format($mostEfficientBus->km_per_liter, 2) . ' km/L' : '—' }}</strong><small>{{ $mostEfficientBus?->bus_no ?? 'No data' }}</small></div></div>
+                                <div class="fuel-summary-cell"><span class="fuel-summary-icon orange"><i class="fa-solid fa-arrow-trend-down"></i></span><div><span>Lowest Efficiency</span><strong>{{ $leastEfficientBus ? number_format($leastEfficientBus->km_per_liter, 2) . ' km/L' : '—' }}</strong><small>{{ $leastEfficientBus?->bus_no ?? 'No data' }}</small></div></div>
                             </div>
-                        </x-analytics.panel>
 
-                        <x-analytics.panel title="Efficiency Context" description="Descriptive comparison only; no causal claim is made">
-                            <div class="analytics-record-list">
-                                @forelse(collect($fuel['busSummaries'] ?? [])->take(4) as $row)
-                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-gauge-high"></i></span><div class="analytics-record-copy"><strong>{{ $row->bus_no }}</strong><span>{{ $row->entries }} fuel report{{ $row->entries === 1 ? '' : 's' }} · {{ number_format($row->fuel_liters, 1) }} L</span></div><span class="analytics-record-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></div>
-                                @empty
-                                    <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus efficiency comparison is available.</span></div>
-                                @endforelse
-                            </div>
-                        </x-analytics.panel>
+                            <x-analytics.panel title="Fuel Usage Details" description="Recorded distance, fuel usage, efficiency, and review status by bus">
+                                @if($fuelSummaries->isNotEmpty())
+                                    <div class="fuel-table-tools">
+                                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus..." data-fuel-table-search></label>
+                                        <span>{{ $fuelSummaries->count() }} recorded unit{{ $fuelSummaries->count() === 1 ? '' : 's' }}</span>
+                                    </div>
+                                    <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Scrollable fuel usage details table">
+                                        <table class="analytics-fuel-table" data-fuel-details-table>
+                                            <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
+                                            <tbody>
+                                                @foreach($fuelSummaries as $row)
+                                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}">
+                                                        <td><strong>{{ $row->bus_no }}</strong></td>
+                                                        <td>{{ $row->entries }}</td>
+                                                        <td>{{ number_format($row->fuel_liters, 1) }} L</td>
+                                                        <td>{{ number_format($row->distance_km, 1) }} km</td>
+                                                        <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
+                                                        <td><span class="fuel-status-pill fuel-status-{{ str($row->status)->slug() }}">{{ $row->status }}</span></td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus-level fuel records are available.</span></div>
+                                @endif
+                            </x-analytics.panel>
+                        </div>
+
+                        <aside class="fuel-dashboard-side-column">
+                            <article class="analytics-card descriptive-availability-card fuel-side-card fuel-fleet-card">
+                                <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
+                                <div class="analytics-availability-layout fuel-availability-layout">
+                                    <div class="availability-score">
+                                        <div class="fleet-css-donut fuel-fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;">
+                                            <div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
+                                            <div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
+                                        </div>
+                                    </div>
+                                    <div class="availability-breakdown">
+                                        <div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
+                                        <div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                        <div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                                        <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="analytics-card fuel-side-card">
+                                <x-analytics.card-header title="Fuel Data Quality" :description="$periodLabel . ' · completeness of recorded fuel entries'" />
+                                <div class="fuel-quality-body">
+                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-check"></i></span>
+                                    <div class="fuel-quality-score"><strong>{{ number_format($fuelQualityPct, 1) }}%</strong><span>Complete records</span></div>
+                                    <div class="fuel-quality-counts"><div><span class="availability-dot operational"></span><span>Complete</span><strong>{{ $validFuelRecords }}</strong></div><div><span class="availability-dot inactive"></span><span>Incomplete</span><strong>{{ $incompleteFuelRecords }}</strong></div></div>
+                                </div>
+                            </article>
+
+                            <article class="analytics-card fuel-side-card fuel-review-card">
+                                <x-analytics.card-header title="Review Signals" :description="$periodLabel . ' · units flagged by recorded efficiency or idling signals'" />
+                                <div class="fuel-review-summary"><span class="fuel-review-alert"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>{{ $fuelReviewUnits->count() }}</strong><span>Units needing review</span></div></div>
+                                <div class="fuel-review-lines"><div><span>Priority efficiency</span><strong>{{ $priorityFuelUnits }}</strong></div><div><span>Review efficiency</span><strong>{{ $reviewFuelUnits }}</strong></div><div><span>High idling</span><strong>{{ $highIdlingUnits->count() }}</strong></div></div>
+                            </article>
+
+                            <article class="analytics-card fuel-side-card">
+                                <x-analytics.card-header title="Efficiency Distribution" description="Bus-level status from the selected fuel records" />
+                                <div class="fuel-efficiency-distribution">
+                                    <div class="fuel-distribution-bar"><span class="efficient" style="width: {{ $efficientFuelPct }}%"></span><span class="normal" style="width: {{ $normalFuelPct }}%"></span><span class="review" style="width: {{ $reviewFuelPct }}%"></span><span class="priority" style="width: {{ $priorityFuelPct }}%"></span></div>
+                                    <div class="fuel-distribution-legend"><div><strong>{{ $efficientFuelUnits }}</strong><span>Efficient</span></div><div><strong>{{ $normalFuelUnits }}</strong><span>Normal</span></div><div><strong>{{ $reviewFuelUnits }}</strong><span>Review</span></div><div><strong>{{ $priorityFuelUnits }}</strong><span>Priority</span></div></div>
+                                </div>
+                            </article>
+
+                            <article class="analytics-card fuel-side-card fuel-trend-card">
+                                <x-analytics.card-header title="Fuel Consumption Trend" :description="$periodLabel . ' · recorded fuel volume by period'" />
+                                <x-analytics.line-chart :items="$fuel['trend'] ?? collect()" value-key="fuel_liters" label-key="label" suffix=" L" empty-text="No fuel trend is available for the selected filters." />
+                            </article>
+                        </aside>
                     </div>
                 </section>
 
@@ -239,32 +311,26 @@
                 <section class="analytics-main-grid analytics-main-grid-balanced descriptive-main-grid">
                     <article class="analytics-card analytics-reference-chart-card descriptive-trip-card">
                         <x-analytics.card-header title="Processed Trip Activity" description="Trip-record volume across the selected period." />
-                        <div class="reference-line-chart"><svg viewBox="0 0 720 230" preserveAspectRatio="none" role="img" aria-label="Processed trip activity chart">@foreach([44,81.5,119,156.5,194] as $y)<line x1="42" y1="{{ $y }}" x2="678" y2="{{ $y }}" class="reference-chart-grid" />@endforeach @if($smoothPath !== '')<path d="{{ $smoothPath }}" class="reference-chart-line" aria-hidden="true" />@endif @foreach($points as $point)<circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" class="reference-chart-dot{{ $point['partial'] ? ' is-partial' : '' }}" /><text x="{{ $point['x'] }}" y="{{ max(18, $point['y'] - 12) }}" text-anchor="middle" class="reference-chart-value{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['count'] }}</text><text x="{{ $point['x'] }}" y="218" text-anchor="middle" class="reference-chart-label{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>@endforeach</svg></div>
-                        <div class="reference-chart-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="reference-chart-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
+                        <div class="trip-canvas-chart" data-trip-points='@json($tripChartData)'>
+                            <canvas class="trip-canvas" role="img" aria-label="Processed trip activity chart"></canvas>
+                            <div class="trip-canvas-tooltip" aria-hidden="true"><strong></strong><span><i></i> Trips Processed <b></b></span></div>
+                        </div>
+                        <div class="trip-canvas-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="trip-canvas-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
                     </article>
 
                     <article class="analytics-card descriptive-availability-card">
                         <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
                         <div class="analytics-availability-layout">
                             <div class="availability-score">
-                                <div class="fleet-availability-donut fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active">
-                                    <svg class="fleet-donut-svg" viewBox="0 0 180 180" role="img" aria-label="Fleet availability status distribution">
-                                        <circle cx="90" cy="90" r="59" pathLength="100" fill="none" class="fleet-donut-track" />
-                                        @foreach($fleetStatusSegments as $segment)
-                                            <g class="fleet-donut-group" tabindex="0" role="button" data-donut-index="{{ $loop->index }}" data-label="{{ $segment['label'] }}" data-value="{{ $segment['value'] }}" data-percentage="{{ number_format($segment['percentage'], 1, '.', '') }}" aria-label="{{ $segment['label'] }}: {{ $segment['value'] }} buses, {{ number_format($segment['percentage'], 1) }} percent">
-                                                <circle cx="90" cy="90" r="59" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-main" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
-                                                <circle cx="90" cy="90" r="75" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-outer" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
-                                            </g>
-                                        @endforeach
-                                    </svg>
-                                    <div class="fleet-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
-                                    <div class="fleet-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
+                                <div class="fleet-css-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;">
+                                    <div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
+                                    <div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
                                 </div>
                             </div>
                             <div class="availability-breakdown">
-                                <div class="availability-row" data-donut-index="0"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
-                                <div class="availability-row" data-donut-index="1"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
-                                <div class="availability-row" data-donut-index="2"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                <div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
                                 <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
                             </div>
                         </div>
