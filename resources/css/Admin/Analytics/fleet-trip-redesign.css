@@ -768,3 +768,64 @@
     .forecast-comparison-chart { overflow-x: auto; }
     .forecast-plot { min-width: 480px; }
 }
+
+/* Final descriptive Fleet Availability containment: one SVG donut, one box. */
+.descriptive-analytics-page .descriptive-availability-card .availability-score {
+    position: relative;
+    width: 190px;
+    height: 190px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut {
+    position: relative !important;
+    width: 190px !important;
+    height: 190px !important;
+    min-width: 190px;
+    min-height: 190px;
+    margin: 0 !important;
+    display: block !important;
+    overflow: hidden !important;
+    border-radius: 50%;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut::before,
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut::after {
+    content: none !important;
+    display: none !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut-svg {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 190px !important;
+    height: 190px !important;
+    max-width: 190px !important;
+    max-height: 190px !important;
+    display: block !important;
+    overflow: hidden !important;
+    transform: none !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut-track,
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut-segment {
+    fill: none !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut-center {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 3;
+    width: 190px;
+    height: 190px;
+    display: grid !important;
+    place-content: center;
+    text-align: center;
+    pointer-events: none;
+}
