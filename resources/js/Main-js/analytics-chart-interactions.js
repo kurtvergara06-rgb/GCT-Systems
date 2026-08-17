@@ -117,45 +117,76 @@ const bindFuelHoverInteractions = (page) => {
     });
 };
 
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const buildSmoothPath = (points, tension = 0.16) => {
+    if (points.length < 2) {
+        return '';
+    }
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+
+    for (let index = 0; index < points.length - 1; index += 1) {
+        const previous = points[index - 1] || points[index];
+        const current = points[index];
+        const next = points[index + 1];
+        const following = points[index + 2] || next;
+        const minY = Math.min(current.y, next.y);
+        const maxY = Math.max(current.y, next.y);
+
+        const control1X = current.x + ((next.x - previous.x) * tension);
+        const control1Y = clamp(current.y + ((next.y - previous.y) * tension), minY, maxY);
+        const control2X = next.x - ((following.x - current.x) * tension);
+        const control2Y = clamp(next.y - ((following.y - current.y) * tension), minY, maxY);
+
+        path += ` C ${control1X.toFixed(2)} ${control1Y.toFixed(2)}, ${control2X.toFixed(2)} ${control2Y.toFixed(2)}, ${next.x} ${next.y}`;
+    }
+
+    return path;
+};
+
 const ensureReferenceChartStyles = () => {
-    if (document.getElementById('referenceChartNuxtStyles')) {
+    if (document.getElementById('referenceChartStyles')) {
         return;
     }
 
     const style = document.createElement('style');
-    style.id = 'referenceChartNuxtStyles';
+    style.id = 'referenceChartStyles';
     style.textContent = `
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired {
+        .fleet-trip-page .reference-line-chart.is-enhanced {
             position: relative;
             cursor: default;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-grid {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-grid {
             stroke: #dce5f0;
             stroke-width: 1;
             stroke-dasharray: 4 7;
-            opacity: .78;
+            opacity: .68;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-area,
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired polygon {
-            opacity: 0 !important;
-            pointer-events: none;
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-area,
+        .fleet-trip-page .reference-line-chart.is-enhanced polygon {
+            display: none !important;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-line,
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired:hover .reference-chart-line {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-line {
+            fill: none;
+            stroke: #2563eb;
             stroke-width: 2.7 !important;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
             filter: none !important;
-            animation-iteration-count: 1 !important;
+            animation: none !important;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-value {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-value {
             opacity: 0 !important;
             pointer-events: none;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-dot {
             fill: #ffffff;
             stroke: #2563eb;
             stroke-width: 2.35;
@@ -164,12 +195,7 @@ const ensureReferenceChartStyles = () => {
             transition: transform .24s cubic-bezier(.22,.61,.36,1), fill .2s ease, stroke-width .2s ease, opacity .2s ease, filter .2s ease;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired:hover .reference-chart-dot {
-            transform: none;
-            filter: none;
-        }
-
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot.is-active {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-dot.is-active {
             fill: #2563eb;
             stroke: #ffffff;
             stroke-width: 3;
@@ -177,34 +203,35 @@ const ensureReferenceChartStyles = () => {
             filter: drop-shadow(0 3px 6px rgba(37, 99, 235, .25));
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot.is-partial {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-dot.is-partial {
             fill: #ffffff;
             stroke: #94a3b8;
             stroke-dasharray: 2 2;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot.is-partial.is-active {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-dot.is-partial.is-active {
             fill: #94a3b8;
             stroke: #ffffff;
             stroke-dasharray: none;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-label {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-label {
             fill: #64748b;
             font-size: 10.5px;
             font-weight: 650;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-y-label {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-y-label {
             fill: #94a3b8;
             font-size: 9px;
             font-weight: 600;
         }
 
-        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-crosshair {
+        .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-crosshair {
             stroke: #64748b;
             stroke-width: 1;
-            opacity: .58;
+            stroke-dasharray: 3 4;
+            opacity: .48;
             pointer-events: none;
         }
 
@@ -271,7 +298,7 @@ const ensureReferenceChartStyles = () => {
 
         @media (prefers-reduced-motion: reduce) {
             .reference-chart-hover-tooltip,
-            .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot {
+            .fleet-trip-page .reference-line-chart.is-enhanced .reference-chart-dot {
                 transition: none;
             }
         }
@@ -280,8 +307,29 @@ const ensureReferenceChartStyles = () => {
     document.head.appendChild(style);
 };
 
+const animateReferencePath = (path) => {
+    if (!path || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    const length = path.getTotalLength();
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${length}`;
+
+    requestAnimationFrame(() => {
+        path.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.22,.61,.36,1)';
+        path.style.strokeDashoffset = '0';
+
+        window.setTimeout(() => {
+            path.style.strokeDasharray = '';
+            path.style.strokeDashoffset = '';
+            path.style.transition = '';
+        }, 1200);
+    });
+};
+
 const bindReferenceLineChart = (chart) => {
-    if (chart.dataset.nuxtChartBound === 'true') {
+    if (chart.dataset.analyticsChartBound === 'true') {
         return;
     }
 
@@ -289,28 +337,42 @@ const bindReferenceLineChart = (chart) => {
     const dots = Array.from(chart.querySelectorAll('.reference-chart-dot'));
     const labels = Array.from(chart.querySelectorAll('.reference-chart-label'));
     const values = Array.from(chart.querySelectorAll('.reference-chart-value'));
+    const originalLine = svg?.querySelector('.reference-chart-line');
 
-    if (!svg || !dots.length) {
+    if (!svg || !dots.length || !originalLine) {
         return;
     }
 
-    chart.dataset.nuxtChartBound = 'true';
-    chart.classList.add('is-nuxt-inspired');
-    ensureReferenceChartStyles();
-
     const namespace = 'http://www.w3.org/2000/svg';
-    const line = svg.querySelector('.reference-chart-line');
     const points = dots.map((dot, index) => ({
         dot,
         label: (labels[index]?.textContent || '').trim(),
         value: (values[index]?.textContent || '0').trim(),
         numericValue: Number((values[index]?.textContent || '0').trim()) || 0,
+        partial: dot.classList.contains('is-partial'),
         x: Number(dot.getAttribute('cx') || 0),
         y: Number(dot.getAttribute('cy') || 0),
     }));
 
+    const completedPoints = points.filter((point) => !point.partial);
+    const smoothPathData = buildSmoothPath(completedPoints);
+
+    if (smoothPathData) {
+        const smoothPath = document.createElementNS(namespace, 'path');
+        smoothPath.setAttribute('d', smoothPathData);
+        smoothPath.setAttribute('class', 'reference-chart-line');
+        smoothPath.setAttribute('aria-hidden', 'true');
+        originalLine.replaceWith(smoothPath);
+        animateReferencePath(smoothPath);
+    }
+
+    chart.dataset.analyticsChartBound = 'true';
+    chart.classList.add('is-enhanced');
+    ensureReferenceChartStyles();
+
     const gridY = [44, 81.5, 119, 156.5, 194];
     const maxValue = Math.max(1, ...points.map((point) => point.numericValue));
+
     gridY.forEach((y, index) => {
         const axisLabel = document.createElementNS(namespace, 'text');
         const ratio = 1 - (index / (gridY.length - 1));
@@ -330,8 +392,9 @@ const bindReferenceLineChart = (chart) => {
     crosshair.setAttribute('y2', '194');
     crosshair.style.display = 'none';
 
-    if (line) {
-        svg.insertBefore(crosshair, line);
+    const renderedLine = svg.querySelector('.reference-chart-line');
+    if (renderedLine) {
+        svg.insertBefore(crosshair, renderedLine);
     } else {
         svg.appendChild(crosshair);
     }
@@ -357,9 +420,9 @@ const bindReferenceLineChart = (chart) => {
     chart.appendChild(tooltip);
 
     dots.forEach((dot, index) => {
-        dot.style.animationDelay = `${0.46 + (index * 0.075)}s`;
+        dot.style.animationDelay = `${0.38 + (index * 0.06)}s`;
         if (labels[index]) {
-            labels[index].style.animationDelay = `${0.58 + (index * 0.055)}s`;
+            labels[index].style.animationDelay = `${0.48 + (index * 0.05)}s`;
         }
     });
 
@@ -530,5 +593,6 @@ const initializeAnalyticsChartInteractions = () => {
         .forEach(bindReferenceLineChart);
 };
 
+initializeAnalyticsChartInteractions();
 document.addEventListener('DOMContentLoaded', initializeAnalyticsChartInteractions);
 document.addEventListener('ajax:content-updated', initializeAnalyticsChartInteractions);
