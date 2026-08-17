@@ -7,42 +7,15 @@
         'inventory' => ['Inventory', 'fa-boxes-stacked'],
     ];
 
-    $max = max(1, (int) ($trend->max('count') ?? 0));
-    $n = max(1, $trend->count());
-    $points = $trend->map(function ($bucket, $index) use ($max, $n) {
-        $x = $n > 1 ? 42 + (($index / ($n - 1)) * 636) : 360;
-        $y = 194 - (($bucket->count / $max) * 150);
-        return ['x' => round($x, 1), 'y' => round($y, 1), 'label' => $bucket->label, 'count' => $bucket->count, 'partial' => $index === $n - 1];
+    $trendCount = max(1, $trend->count());
+    $tripChartData = $trend->values()->map(function ($bucket, $index) use ($trendCount) {
+        return [
+            'label' => $bucket->label,
+            'value' => (int) $bucket->count,
+            'partial' => $index === $trendCount - 1,
+        ];
     });
-    $completedPoints = $points->reject(fn ($point) => $point['partial'])->values();
-    $hasPartialBucket = $points->contains(fn ($point) => $point['partial']);
-
-    $smoothPath = '';
-    if ($completedPoints->count() > 1) {
-        $tension = 0.16;
-        $smoothPath = 'M ' . $completedPoints[0]['x'] . ' ' . $completedPoints[0]['y'];
-
-        for ($index = 0; $index < $completedPoints->count() - 1; $index++) {
-            $previous = $completedPoints[$index - 1] ?? $completedPoints[$index];
-            $current = $completedPoints[$index];
-            $next = $completedPoints[$index + 1];
-            $following = $completedPoints[$index + 2] ?? $next;
-            $minY = min($current['y'], $next['y']);
-            $maxY = max($current['y'], $next['y']);
-
-            $control1X = $current['x'] + (($next['x'] - $previous['x']) * $tension);
-            $control1Y = max($minY, min($maxY, $current['y'] + (($next['y'] - $previous['y']) * $tension)));
-            $control2X = $next['x'] - (($following['x'] - $current['x']) * $tension);
-            $control2Y = max($minY, min($maxY, $next['y'] - (($following['y'] - $current['y']) * $tension)));
-
-            $smoothPath .= ' C '
-                . number_format($control1X, 2, '.', '') . ' '
-                . number_format($control1Y, 2, '.', '') . ', '
-                . number_format($control2X, 2, '.', '') . ' '
-                . number_format($control2Y, 2, '.', '') . ', '
-                . $next['x'] . ' ' . $next['y'];
-        }
-    }
+    $hasPartialBucket = $tripChartData->contains(fn ($point) => $point['partial']);
 
     $healthyPct = $inventoryTotal > 0 ? ($inventoryHealthy / $inventoryTotal) * 100 : 0;
     $lowPct = $inventoryTotal > 0 ? ($inventoryLow / $inventoryTotal) * 100 : 0;
@@ -57,18 +30,10 @@
         (object) ['label' => 'Out of Stock', 'value' => $inventoryCritical],
     ]);
 
-    $fleetSegmentOffset = 0;
-    $fleetStatusSegments = collect([
-        ['label' => 'Active', 'value' => $activeBuses, 'color' => '#16a34a'],
-        ['label' => 'Under Maintenance', 'value' => $underMaintenance, 'color' => '#f59e0b'],
-        ['label' => 'Inactive', 'value' => $inactiveBuses, 'color' => '#94a3b8'],
-    ])->map(function ($segment) use ($totalBuses, &$fleetSegmentOffset) {
-        $percentage = $totalBuses > 0 ? ($segment['value'] / $totalBuses) * 100 : 0;
-        $segment['percentage'] = $percentage;
-        $segment['offset'] = $fleetSegmentOffset;
-        $fleetSegmentOffset += $percentage;
-        return $segment;
-    });
+    $activePct = $totalBuses > 0 ? ($activeBuses / $totalBuses) * 100 : 0;
+    $maintenancePct = $totalBuses > 0 ? ($underMaintenance / $totalBuses) * 100 : 0;
+    $inactivePct = $totalBuses > 0 ? ($inactiveBuses / $totalBuses) * 100 : 0;
+    $maintenanceEndPct = $activePct + $maintenancePct;
 @endphp
 
 <x-layout.app
@@ -239,32 +204,34 @@
                 <section class="analytics-main-grid analytics-main-grid-balanced descriptive-main-grid">
                     <article class="analytics-card analytics-reference-chart-card descriptive-trip-card">
                         <x-analytics.card-header title="Processed Trip Activity" description="Trip-record volume across the selected period." />
-                        <div class="reference-line-chart"><svg viewBox="0 0 720 230" preserveAspectRatio="none" role="img" aria-label="Processed trip activity chart">@foreach([44,81.5,119,156.5,194] as $y)<line x1="42" y1="{{ $y }}" x2="678" y2="{{ $y }}" class="reference-chart-grid" />@endforeach @if($smoothPath !== '')<path d="{{ $smoothPath }}" class="reference-chart-line" aria-hidden="true" />@endif @foreach($points as $point)<circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" class="reference-chart-dot{{ $point['partial'] ? ' is-partial' : '' }}" /><text x="{{ $point['x'] }}" y="{{ max(18, $point['y'] - 12) }}" text-anchor="middle" class="reference-chart-value{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['count'] }}</text><text x="{{ $point['x'] }}" y="218" text-anchor="middle" class="reference-chart-label{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>@endforeach</svg></div>
-                        <div class="reference-chart-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="reference-chart-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
+                        <div class="trip-canvas-chart" data-trip-points='@json($tripChartData)'>
+                            <canvas class="trip-canvas" role="img" aria-label="Processed trip activity chart"></canvas>
+                            <div class="trip-canvas-tooltip" aria-hidden="true"><strong></strong><span><i></i> Trips Processed <b></b></span></div>
+                        </div>
+                        <div class="trip-canvas-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="trip-canvas-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
                     </article>
 
                     <article class="analytics-card descriptive-availability-card">
                         <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
                         <div class="analytics-availability-layout">
                             <div class="availability-score">
-                                <div class="fleet-availability-donut fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active">
-                                    <svg class="fleet-donut-svg" viewBox="0 0 180 180" role="img" aria-label="Fleet availability status distribution">
-                                        <circle cx="90" cy="90" r="59" pathLength="100" fill="none" class="fleet-donut-track" />
-                                        @foreach($fleetStatusSegments as $segment)
-                                            <g class="fleet-donut-group" tabindex="0" role="button" data-donut-index="{{ $loop->index }}" data-label="{{ $segment['label'] }}" data-value="{{ $segment['value'] }}" data-percentage="{{ number_format($segment['percentage'], 1, '.', '') }}" aria-label="{{ $segment['label'] }}: {{ $segment['value'] }} buses, {{ number_format($segment['percentage'], 1) }} percent">
-                                                <circle cx="90" cy="90" r="59" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-main" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
-                                                <circle cx="90" cy="90" r="75" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-outer" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
-                                            </g>
-                                        @endforeach
-                                    </svg>
-                                    <div class="fleet-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
-                                    <div class="fleet-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
+                                <div
+                                    class="fleet-css-donut"
+                                    data-default-value="{{ number_format($fleetAvailability, 1) }}%"
+                                    data-default-label="Active"
+                                    data-active="{{ number_format($activePct, 2, '.', '') }}"
+                                    data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}"
+                                    data-inactive="{{ number_format($inactivePct, 2, '.', '') }}"
+                                    style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;"
+                                >
+                                    <div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
+                                    <div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
                                 </div>
                             </div>
                             <div class="availability-breakdown">
-                                <div class="availability-row" data-donut-index="0"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
-                                <div class="availability-row" data-donut-index="1"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
-                                <div class="availability-row" data-donut-index="2"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                <div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
                                 <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
                             </div>
                         </div>
