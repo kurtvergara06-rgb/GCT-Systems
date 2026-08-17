@@ -1,5 +1,27 @@
 /* Shared, restrained motion for analytics charts and graph-like indicators. */
 
+/* Descriptive charts never expose their legacy first frame while JavaScript binds. */
+.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) .reference-chart-line,
+.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) .reference-chart-area,
+.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) polygon {
+    opacity: 0 !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut {
+    opacity: 0 !important;
+    visibility: hidden;
+    animation: none !important;
+    transform: none !important;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .fleet-donut[data-fleet-donut-bound="true"] {
+    opacity: 1 !important;
+    visibility: visible;
+    animation: none !important;
+    transform: none !important;
+    transition: opacity .18s ease;
+}
+
 .fleet-trip-page .reference-chart-line {
     stroke-dasharray: 1600;
     stroke-dashoffset: 1600;
@@ -46,7 +68,7 @@
 .fleet-trip-page .forecast-group:nth-child(7) .forecast-bar { animation-delay: .54s; }
 .fleet-trip-page .forecast-group:nth-child(8) .forecast-bar { animation-delay: .60s; }
 
-.fleet-trip-page .availability-ring,
+.fleet-trip-page .analytics-card:not(.descriptive-availability-card) .availability-ring,
 .fleet-trip-page .diagnostic-donut,
 .fleet-trip-page .predictive-readiness-ring {
     opacity: 0;
@@ -274,7 +296,7 @@
     .fleet-trip-page .diagnostic-profile-track > span,
     .fleet-trip-page .analytics-signal-track > span,
     .fleet-trip-page .forecast-bar,
-    .fleet-trip-page .availability-ring,
+    .fleet-trip-page .analytics-card:not(.descriptive-availability-card) .availability-ring,
     .fleet-trip-page .diagnostic-donut,
     .fleet-trip-page .predictive-readiness-ring,
     .fleet-trip-page .diagnostic-donut-legend > div,
