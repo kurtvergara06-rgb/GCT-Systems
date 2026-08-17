@@ -15,9 +15,34 @@
         return ['x' => round($x, 1), 'y' => round($y, 1), 'label' => $bucket->label, 'count' => $bucket->count, 'partial' => $index === $n - 1];
     });
     $completedPoints = $points->reject(fn ($point) => $point['partial'])->values();
-    $poly = $completedPoints->map(fn ($point) => $point['x'] . ',' . $point['y'])->implode(' ');
-    $area = $completedPoints->count() > 1 ? $poly . ' ' . $completedPoints->last()['x'] . ',194 ' . $completedPoints->first()['x'] . ',194' : '';
     $hasPartialBucket = $points->contains(fn ($point) => $point['partial']);
+
+    $smoothPath = '';
+    if ($completedPoints->count() > 1) {
+        $tension = 0.16;
+        $smoothPath = 'M ' . $completedPoints[0]['x'] . ' ' . $completedPoints[0]['y'];
+
+        for ($index = 0; $index < $completedPoints->count() - 1; $index++) {
+            $previous = $completedPoints[$index - 1] ?? $completedPoints[$index];
+            $current = $completedPoints[$index];
+            $next = $completedPoints[$index + 1];
+            $following = $completedPoints[$index + 2] ?? $next;
+            $minY = min($current['y'], $next['y']);
+            $maxY = max($current['y'], $next['y']);
+
+            $control1X = $current['x'] + (($next['x'] - $previous['x']) * $tension);
+            $control1Y = max($minY, min($maxY, $current['y'] + (($next['y'] - $previous['y']) * $tension)));
+            $control2X = $next['x'] - (($following['x'] - $current['x']) * $tension);
+            $control2Y = max($minY, min($maxY, $next['y'] - (($following['y'] - $current['y']) * $tension)));
+
+            $smoothPath .= ' C '
+                . number_format($control1X, 2, '.', '') . ' '
+                . number_format($control1Y, 2, '.', '') . ', '
+                . number_format($control2X, 2, '.', '') . ' '
+                . number_format($control2Y, 2, '.', '') . ', '
+                . $next['x'] . ' ' . $next['y'];
+        }
+    }
 
     $healthyPct = $inventoryTotal > 0 ? ($inventoryHealthy / $inventoryTotal) * 100 : 0;
     $lowPct = $inventoryTotal > 0 ? ($inventoryLow / $inventoryTotal) * 100 : 0;
@@ -31,6 +56,19 @@
         (object) ['label' => 'Low Stock', 'value' => $inventoryLow],
         (object) ['label' => 'Out of Stock', 'value' => $inventoryCritical],
     ]);
+
+    $fleetSegmentOffset = 0;
+    $fleetStatusSegments = collect([
+        ['label' => 'Active', 'value' => $activeBuses, 'color' => '#16a34a'],
+        ['label' => 'Under Maintenance', 'value' => $underMaintenance, 'color' => '#f59e0b'],
+        ['label' => 'Inactive', 'value' => $inactiveBuses, 'color' => '#94a3b8'],
+    ])->map(function ($segment) use ($totalBuses, &$fleetSegmentOffset) {
+        $percentage = $totalBuses > 0 ? ($segment['value'] / $totalBuses) * 100 : 0;
+        $segment['percentage'] = $percentage;
+        $segment['offset'] = $fleetSegmentOffset;
+        $fleetSegmentOffset += $percentage;
+        return $segment;
+    });
 @endphp
 
 <x-layout.app
@@ -201,11 +239,36 @@
                 <section class="analytics-main-grid analytics-main-grid-balanced descriptive-main-grid">
                     <article class="analytics-card analytics-reference-chart-card descriptive-trip-card">
                         <x-analytics.card-header title="Processed Trip Activity" description="Trip-record volume across the selected period." />
-                        <div class="reference-line-chart"><svg viewBox="0 0 720 230" preserveAspectRatio="none" role="img" aria-label="Processed trip activity chart"><defs><linearGradient id="tripFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2f6ee5" stop-opacity=".22" /><stop offset="100%" stop-color="#2f6ee5" stop-opacity=".02" /></linearGradient></defs>@foreach([44,81.5,119,156.5,194] as $y)<line x1="42" y1="{{ $y }}" x2="678" y2="{{ $y }}" class="reference-chart-grid" />@endforeach @if($area !== '')<polygon points="{{ $area }}" fill="url(#tripFill)" class="reference-chart-area" />@endif @if($completedPoints->count() > 1)<polyline points="{{ $poly }}" class="reference-chart-line" />@endif @foreach($points as $point)<circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" class="reference-chart-dot{{ $point['partial'] ? ' is-partial' : '' }}" /><text x="{{ $point['x'] }}" y="{{ max(18, $point['y'] - 12) }}" text-anchor="middle" class="reference-chart-value{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['count'] }}</text><text x="{{ $point['x'] }}" y="218" text-anchor="middle" class="reference-chart-label{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>@endforeach</svg></div>
+                        <div class="reference-line-chart"><svg viewBox="0 0 720 230" preserveAspectRatio="none" role="img" aria-label="Processed trip activity chart">@foreach([44,81.5,119,156.5,194] as $y)<line x1="42" y1="{{ $y }}" x2="678" y2="{{ $y }}" class="reference-chart-grid" />@endforeach @if($smoothPath !== '')<path d="{{ $smoothPath }}" class="reference-chart-line" aria-hidden="true" />@endif @foreach($points as $point)<circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" class="reference-chart-dot{{ $point['partial'] ? ' is-partial' : '' }}" /><text x="{{ $point['x'] }}" y="{{ max(18, $point['y'] - 12) }}" text-anchor="middle" class="reference-chart-value{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['count'] }}</text><text x="{{ $point['x'] }}" y="218" text-anchor="middle" class="reference-chart-label{{ $point['partial'] ? ' is-partial' : '' }}">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>@endforeach</svg></div>
                         <div class="reference-chart-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="reference-chart-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
                     </article>
 
-                    <article class="analytics-card descriptive-availability-card"><x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" /><div class="analytics-availability-layout"><div class="availability-score"><div class="availability-ring" style="--availability-angle: {{ min(360, max(0, $fleetAvailability * 3.6)) }}deg"><div class="availability-ring-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div></div></div><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div><div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div></div></div></article>
+                    <article class="analytics-card descriptive-availability-card">
+                        <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
+                        <div class="analytics-availability-layout">
+                            <div class="availability-score">
+                                <div class="fleet-availability-donut fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active">
+                                    <svg class="fleet-donut-svg" viewBox="0 0 180 180" role="img" aria-label="Fleet availability status distribution">
+                                        <circle cx="90" cy="90" r="59" pathLength="100" fill="none" class="fleet-donut-track" />
+                                        @foreach($fleetStatusSegments as $segment)
+                                            <g class="fleet-donut-group" tabindex="0" role="button" data-donut-index="{{ $loop->index }}" data-label="{{ $segment['label'] }}" data-value="{{ $segment['value'] }}" data-percentage="{{ number_format($segment['percentage'], 1, '.', '') }}" aria-label="{{ $segment['label'] }}: {{ $segment['value'] }} buses, {{ number_format($segment['percentage'], 1) }} percent">
+                                                <circle cx="90" cy="90" r="59" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-main" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
+                                                <circle cx="90" cy="90" r="75" pathLength="100" fill="none" transform="rotate(-90 90 90)" class="fleet-donut-segment fleet-donut-segment-outer" style="stroke: {{ $segment['color'] }}; stroke-dasharray: {{ number_format($segment['percentage'], 4, '.', '') }} {{ number_format(max(0, 100 - $segment['percentage']), 4, '.', '') }}; stroke-dashoffset: -{{ number_format($segment['offset'], 4, '.', '') }};" />
+                                            </g>
+                                        @endforeach
+                                    </svg>
+                                    <div class="fleet-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
+                                    <div class="fleet-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
+                                </div>
+                            </div>
+                            <div class="availability-breakdown">
+                                <div class="availability-row" data-donut-index="0"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
+                                <div class="availability-row" data-donut-index="1"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                                <div class="availability-row" data-donut-index="2"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                                <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
+                            </div>
+                        </div>
+                    </article>
                 </section>
 
                 @if($domain === 'all')

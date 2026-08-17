@@ -46,7 +46,7 @@
 .fleet-trip-page .forecast-group:nth-child(7) .forecast-bar { animation-delay: .54s; }
 .fleet-trip-page .forecast-group:nth-child(8) .forecast-bar { animation-delay: .60s; }
 
-.fleet-trip-page .availability-ring,
+.fleet-trip-page .analytics-card:not(.descriptive-availability-card) .availability-ring,
 .fleet-trip-page .diagnostic-donut,
 .fleet-trip-page .predictive-readiness-ring {
     opacity: 0;
@@ -155,13 +155,11 @@
     font-weight: 800;
 }
 
-.fleet-trip-page .predictive-readiness-ring strong,
-.fleet-trip-page .availability-ring-center strong {
+.fleet-trip-page .predictive-readiness-ring strong {
     font-size: 24px;
 }
 
-.fleet-trip-page .predictive-readiness-ring span,
-.fleet-trip-page .availability-ring-center span {
+.fleet-trip-page .predictive-readiness-ring span {
     font-size: 10px;
 }
 
@@ -274,7 +272,7 @@
     .fleet-trip-page .diagnostic-profile-track > span,
     .fleet-trip-page .analytics-signal-track > span,
     .fleet-trip-page .forecast-bar,
-    .fleet-trip-page .availability-ring,
+    .fleet-trip-page .analytics-card:not(.descriptive-availability-card) .availability-ring,
     .fleet-trip-page .diagnostic-donut,
     .fleet-trip-page .predictive-readiness-ring,
     .fleet-trip-page .diagnostic-donut-legend > div,
