@@ -1,27 +1,5 @@
 /* Shared, restrained motion for analytics charts and graph-like indicators. */
 
-/* Descriptive charts never expose their legacy first frame while JavaScript binds. */
-.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) .reference-chart-line,
-.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) .reference-chart-area,
-.descriptive-analytics-page .reference-line-chart:not(.is-enhanced) polygon {
-    opacity: 0 !important;
-}
-
-.descriptive-analytics-page .descriptive-availability-card .fleet-donut {
-    opacity: 0 !important;
-    visibility: hidden;
-    animation: none !important;
-    transform: none !important;
-}
-
-.descriptive-analytics-page .descriptive-availability-card .fleet-donut[data-fleet-donut-bound="true"] {
-    opacity: 1 !important;
-    visibility: visible;
-    animation: none !important;
-    transform: none !important;
-    transition: opacity .18s ease;
-}
-
 .fleet-trip-page .reference-chart-line {
     stroke-dasharray: 1600;
     stroke-dashoffset: 1600;
@@ -177,13 +155,11 @@
     font-weight: 800;
 }
 
-.fleet-trip-page .predictive-readiness-ring strong,
-.fleet-trip-page .availability-ring-center strong {
+.fleet-trip-page .predictive-readiness-ring strong {
     font-size: 24px;
 }
 
-.fleet-trip-page .predictive-readiness-ring span,
-.fleet-trip-page .availability-ring-center span {
+.fleet-trip-page .predictive-readiness-ring span {
     font-size: 10px;
 }
 
