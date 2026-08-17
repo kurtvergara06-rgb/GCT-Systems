@@ -215,6 +215,228 @@
     transition: transform .22s ease, color .22s ease;
 }
 
+/* Descriptive Fleet Availability: one in-place MUI-inspired two-ring donut. */
+.fleet-trip-page .descriptive-availability-card .availability-ring {
+    width: 190px;
+    height: 190px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    background: #eef2f7 !important;
+    box-shadow: none;
+}
+
+.fleet-trip-page .descriptive-availability-card .availability-ring.is-interactive-donut {
+    overflow: visible;
+    border-radius: 50%;
+    background: transparent !important;
+    transform: none;
+    filter: none;
+    box-shadow: none;
+    cursor: default;
+}
+
+.fleet-trip-page .descriptive-availability-card .availability-ring.is-interactive-donut:hover {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+}
+
+.fleet-donut-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.fleet-donut-track,
+.fleet-donut-segment {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+}
+
+.fleet-donut-track {
+    stroke: #e8eef6;
+    stroke-width: 18;
+}
+
+.fleet-donut-segment {
+    stroke-dasharray: var(--segment-length) 100;
+    stroke-linecap: round;
+    transform-origin: 90px 90px;
+    transition: stroke-dasharray .82s cubic-bezier(.22,.61,.36,1), opacity .2s ease, stroke-width .2s ease, filter .2s ease;
+}
+
+.fleet-donut-segment-main {
+    stroke-width: 18;
+}
+
+.fleet-donut-segment-outer {
+    stroke-width: 5;
+    opacity: .32;
+}
+
+.fleet-donut-group {
+    cursor: pointer;
+    outline: none;
+}
+
+.fleet-donut-group.is-muted .fleet-donut-segment {
+    opacity: .2;
+}
+
+.fleet-donut-group.is-active .fleet-donut-segment-main {
+    stroke-width: 23;
+    filter: drop-shadow(0 4px 6px rgba(15, 42, 77, .16));
+}
+
+.fleet-donut-group.is-active .fleet-donut-segment-outer {
+    stroke-width: 7;
+    opacity: .7;
+}
+
+.fleet-donut-center {
+    position: absolute !important;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    pointer-events: none;
+    text-align: center;
+}
+
+.fleet-donut-center strong {
+    display: block;
+    color: #0b1f3a;
+    font-size: 25px;
+    line-height: 1;
+    letter-spacing: -.02em;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.fleet-donut-center span {
+    display: block;
+    max-width: 92px;
+    margin: 6px auto 0;
+    color: #718096;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.fleet-donut-tooltip {
+    position: absolute;
+    z-index: 8;
+    left: 50%;
+    top: -4px;
+    min-width: 132px;
+    padding: 8px 10px;
+    border: 1px solid rgba(148, 163, 184, .2);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, .96);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .16);
+    color: #fff;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -8px) scale(.98);
+    transition: opacity .16s ease, visibility .16s ease, transform .18s ease;
+    text-align: left;
+}
+
+.fleet-donut-tooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0) scale(1);
+}
+
+.fleet-donut-tooltip strong {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.fleet-donut-tooltip span {
+    display: block;
+    margin-top: 3px;
+    color: #cbd5e1;
+    font-size: 9px;
+}
+
+.fleet-trip-page .descriptive-availability-card .availability-row {
+    border-radius: 10px;
+    transition: background .18s ease, transform .18s ease, border-color .18s ease;
+    cursor: default;
+}
+
+.fleet-trip-page .descriptive-availability-card .availability-row:hover,
+.fleet-trip-page .descriptive-availability-card .availability-row.is-donut-active {
+    background: #f7faff;
+    transform: translateX(2px);
+}
+
+/* Descriptive Top 5 ranking cards: cleaner hierarchy and matching structure. */
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-list {
+    gap: 3px;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 11px 8px;
+    border-bottom: 0;
+    border-radius: 11px;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-row:hover {
+    background: #f8fbff;
+    transform: translateY(-1px);
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-rank-number {
+    width: 30px;
+    height: 30px;
+    background: #edf4ff;
+    color: #1557d5;
+    font-size: 10px;
+    box-shadow: inset 0 0 0 1px rgba(21, 87, 213, .05);
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-row:first-child .refined-rank-number {
+    background: #dceaff;
+    color: #0f4ec8;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-title-row strong {
+    font-size: 12.5px;
+    letter-spacing: -.01em;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-title-row > span {
+    font-size: 11.5px;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-meta {
+    gap: 18px;
+    margin-top: 6px;
+    color: #77869a;
+    font-size: 9px;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-ranking-meta i {
+    color: #9aa9bc;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-metric-bar {
+    height: 4px;
+    margin-top: 8px;
+    background: #e9eef5;
+}
+
+.fleet-trip-page .descriptive-ranking-card .refined-metric-bar > span {
+    background: #2563eb;
+    box-shadow: none;
+}
+
 @keyframes analyticsLineHoverPulse {
     from {
         stroke-width: 3.8;
@@ -252,5 +474,11 @@
 
     .fleet-trip-page .reference-line-chart:hover .reference-chart-line {
         animation: none !important;
+    }
+
+    .fleet-donut-segment,
+    .fleet-donut-tooltip,
+    .fleet-trip-page .descriptive-ranking-card .refined-ranking-row {
+        transition: none !important;
     }
 }
