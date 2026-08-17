@@ -15,24 +15,60 @@ const bindFleetAvailabilityDonut = (card) => {
     const track = ring.querySelector('.fleet-donut-track');
     if (track) {
         track.setAttribute('fill', 'none');
+        track.setAttribute('stroke', '#e8eef6');
+        track.setAttribute('stroke-width', '18');
         track.style.fill = 'none';
+        track.style.stroke = '#e8eef6';
+        track.style.strokeWidth = '18px';
+        track.style.opacity = '1';
+        track.style.visibility = 'visible';
     }
+
+    let runningOffset = 0;
 
     groups.forEach((group) => {
         const percentage = Math.max(0, Math.min(100, Number.parseFloat(group.dataset.percentage || '0') || 0));
-        const offset = Math.max(0, Math.min(100, groups
-            .slice(0, Number(group.dataset.donutIndex) || 0)
-            .reduce((sum, previous) => sum + (Number.parseFloat(previous.dataset.percentage || '0') || 0), 0)));
         const gap = Math.max(0, 100 - percentage);
+        const main = group.querySelector('.fleet-donut-segment-main');
+        const outer = group.querySelector('.fleet-donut-segment-outer');
+        const color = main?.style.stroke || main?.getAttribute('stroke') || '#16a34a';
 
-        group.querySelectorAll('.fleet-donut-segment').forEach((circle) => {
+        group.style.display = 'inline';
+        group.style.opacity = '1';
+        group.style.visibility = 'visible';
+        group.style.transform = 'none';
+
+        [
+            [main, '18px', '1'],
+            [outer, '5px', '.32'],
+        ].forEach(([circle, strokeWidth, opacity]) => {
+            if (!circle) {
+                return;
+            }
+
             circle.setAttribute('fill', 'none');
+            circle.setAttribute('stroke', color);
+            circle.setAttribute('stroke-width', strokeWidth.replace('px', ''));
+            circle.setAttribute('stroke-linecap', 'round');
+            circle.setAttribute('stroke-dasharray', `${percentage} ${gap}`);
+            circle.setAttribute('stroke-dashoffset', `${-runningOffset}`);
+
+            circle.style.display = 'inline';
             circle.style.fill = 'none';
+            circle.style.stroke = color;
+            circle.style.strokeWidth = strokeWidth;
+            circle.style.strokeLinecap = 'round';
             circle.style.strokeDasharray = `${percentage} ${gap}`;
-            circle.style.strokeDashoffset = `${-offset}`;
+            circle.style.strokeDashoffset = `${-runningOffset}`;
+            circle.style.opacity = opacity;
+            circle.style.visibility = 'visible';
         });
+
+        runningOffset += percentage;
     });
 
+    ring.style.opacity = '1';
+    ring.style.visibility = 'visible';
     ring.dataset.fleetDonutBound = 'true';
     ring.classList.add('is-ready');
 
