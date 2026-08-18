@@ -248,13 +248,13 @@
 .fuel-summary-icon,
 .fuel-quality-icon,
 .fuel-review-alert {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 11px;
+    font-size: 18px;
 }
 
 .fuel-summary-icon.blue { background: #edf4ff; color: #2563eb; }
@@ -377,9 +377,9 @@
 .fuel-status-priority-review { background: #ffe0e0; border-color: #ffaaaa; color: #b20f1b; }
 
 .fuel-side-card { padding-bottom: 16px; }
-.fuel-side-card .analytics-card-header { margin-bottom: 12px; }
+.fuel-side-card .analytics-card-header { margin-bottom: 14px; }
 .fuel-side-card .analytics-card-header h3 { font-size: 16px; line-height: 1.25; }
-.fuel-side-card .analytics-card-header p { margin-top: 5px; color: #64748b; font-size: 11.5px; line-height: 1.5; }
+.fuel-side-card .analytics-card-header p { margin-top: 6px; color: #526277; font-size: 12px; font-weight: 500; line-height: 1.5; }
 
 .fuel-availability-layout {
     grid-template-columns: 132px minmax(0, 1fr) !important;
@@ -399,14 +399,14 @@
 
 .fuel-quality-body {
     display: grid;
-    grid-template-columns: 46px 108px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 48px 112px minmax(0, 1fr);
+    gap: 13px;
     align-items: center;
 }
 
-.fuel-quality-icon { width: 46px; height: 46px; color: #2563eb; background: #edf4ff; font-size: 18px; }
-.fuel-quality-score strong { display: block; color: #0b2347; font-size: 21px; line-height: 1; }
-.fuel-quality-score span { display: block; margin-top: 5px; color: #64748b; font-size: 11px; font-weight: 500; }
+.fuel-quality-icon { width: 48px; height: 48px; color: #2563eb; background: #edf4ff; font-size: 20px; }
+.fuel-quality-score strong { display: block; color: #0b2347; font-size: 22px; line-height: 1; }
+.fuel-quality-score span { display: block; margin-top: 6px; color: #526277; font-size: 11.5px; font-weight: 500; }
 .fuel-quality-counts { display: grid; gap: 7px; }
 .fuel-quality-counts > div,
 .fuel-review-lines > div {
@@ -414,47 +414,77 @@
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 8px;
+    min-height: 34px;
     padding: 8px 10px;
     border: 1px solid #e4ebf3;
     border-radius: 8px;
-    color: #526277;
-    font-size: 11px;
+    color: #42546c;
+    font-size: 11.5px;
     font-weight: 500;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 .fuel-quality-counts strong,
-.fuel-review-lines strong { color: #0b2347; font-size: 11.5px; font-weight: 700; }
+.fuel-review-lines strong { color: #0b2347; font-size: 12px; font-weight: 700; }
 
 .fuel-review-summary {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 11px;
+    gap: 13px;
+    margin-bottom: 12px;
 }
 
-.fuel-review-alert { background: #fff0ed; color: #ef4444; font-size: 17px; }
-.fuel-review-summary strong { display: block; color: #0b2347; font-size: 21px; line-height: 1; }
-.fuel-review-summary span { display: block; margin-top: 5px; color: #64748b; font-size: 11px; font-weight: 500; }
-.fuel-review-lines { display: grid; gap: 6px; }
+.fuel-review-alert { background: #fff0ed; color: #ef4444; font-size: 19px; }
+.fuel-review-summary strong { display: block; color: #0b2347; font-size: 22px; line-height: 1; }
+.fuel-review-summary > div > span { display: block; margin-top: 6px; color: #526277; font-size: 11.5px; font-weight: 500; }
+.fuel-review-lines { display: grid; gap: 7px; }
 .fuel-review-lines > div { grid-template-columns: 1fr auto; }
 
-.fuel-efficiency-distribution { display: grid; gap: 12px; }
-.fuel-distribution-bar { display: flex; width: 100%; height: 10px; overflow: hidden; border-radius: 999px; background: #edf1f5; }
+.fuel-efficiency-distribution { display: grid; gap: 14px; }
+.fuel-distribution-bar { display: flex; width: 100%; height: 11px; overflow: hidden; border-radius: 999px; background: #edf1f5; }
 .fuel-distribution-bar > span { min-width: 0; }
 .fuel-distribution-bar .efficient { background: #16a34a; }
 .fuel-distribution-bar .normal { background: #3b82f6; }
 .fuel-distribution-bar .review { background: #f59e0b; }
 .fuel-distribution-bar .priority { background: #ef4444; }
-.fuel-distribution-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
-.fuel-distribution-legend strong { display: block; color: #0b2347; font-size: 13px; line-height: 1.1; }
-.fuel-distribution-legend span { display: block; margin-top: 4px; color: #64748b; font-size: 10px; font-weight: 500; line-height: 1.25; }
+.fuel-distribution-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; text-align: center; }
+.fuel-distribution-legend strong { display: block; color: #0b2347; font-size: 14px; line-height: 1.1; }
+.fuel-distribution-legend span { display: block; margin-top: 5px; color: #526277; font-size: 11px; font-weight: 500; line-height: 1.25; }
 
+.fuel-trend-card .analytics-line-chart { min-height: 205px; }
 .fuel-trend-card .analytics-line-chart,
 .fuel-trend-card .line-chart,
-.fuel-trend-card svg { max-height: 185px; }
+.fuel-trend-card svg { max-height: 205px; }
 .fuel-trend-card .analytics-chart-label,
-.fuel-trend-card .analytics-chart-value { font-size: 11px; font-weight: 700; }
-.fuel-trend-card .analytics-chart-tooltip { font-size: 11px; }
+.fuel-trend-card .analytics-chart-value,
+.fuel-trend-card .analytics-chart-y-label {
+    font-family: "Poppins", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+}
+.fuel-trend-card .analytics-chart-y-label { fill: #64748b; font-size: 10.5px; font-weight: 600; }
+.fuel-trend-card .analytics-chart-grid-line { stroke: #dfe7f2; }
+.fuel-trend-card .analytics-chart-line { stroke-width: 3.4; }
+.fuel-trend-card .analytics-chart-area { opacity: .52; }
+.fuel-trend-card .analytics-chart-point circle { r: 5.5; }
+.fuel-trend-card .analytics-chart-point.is-active circle { fill: #2563eb; transform: scale(1.32); }
+.fuel-trend-card .analytics-chart-crosshair {
+    stroke: rgba(100, 116, 139, .72);
+    stroke-width: 1;
+    stroke-dasharray: 4 5;
+    pointer-events: none;
+}
+.fuel-trend-card .analytics-chart-tooltip {
+    min-width: 132px;
+    padding: 10px 12px;
+    border-color: rgba(148, 163, 184, .24);
+    background: rgba(15, 23, 42, .97);
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+    font-size: 11px;
+    transform: translate(-50%, calc(-100% - 10px));
+}
+.fuel-trend-card .analytics-chart-tooltip strong { font-size: 11.5px; font-weight: 800; }
+.fuel-trend-card .analytics-chart-tooltip span { margin-top: 4px; color: #dbeafe; font-size: 11px; font-weight: 600; }
 
 /* Fleet Availability: CSS-only donut. */
 .fleet-css-donut {
