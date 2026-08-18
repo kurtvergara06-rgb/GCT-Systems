@@ -25,6 +25,16 @@ class FuelAnalyticsController extends Controller
             ? $request->string('period')->toString()
             : 'this-month';
 
+        $allowedTrendWindows = ['7-days', '14-days', '30-days'];
+        $trendWindow = in_array($request->string('fuel_trend')->toString(), $allowedTrendWindows, true)
+            ? $request->string('fuel_trend')->toString()
+            : '7-days';
+        $trendLabel = match ($trendWindow) {
+            '14-days' => 'Last 14 Days',
+            '30-days' => 'Last 30 Days',
+            default => 'Last 7 Days',
+        };
+
         [$start, $end] = $this->periodBounds($period);
         $selectedBus = trim((string) $request->input('bus', 'all')) ?: 'all';
 
@@ -112,7 +122,7 @@ class FuelAnalyticsController extends Controller
             ->filter(fn ($row) => $row->signals->contains(fn ($signal) => str_contains($signal, 'Idling intensity')))
             ->values();
 
-        $trend = $this->buildTrend($records, $period);
+        $trend = $this->buildTrend($selectedBus, $end, $trendWindow);
         $forecast = $this->buildForecast($selectedBus, $end);
         $recommendations = $this->buildRecommendations($reviewUnits, $highIdlingUnits, $forecast);
         $buses = Bus::query()->orderBy('bus_no')->get(['bus_no']);
@@ -131,6 +141,8 @@ class FuelAnalyticsController extends Controller
             'highIdlingUnits',
             'idlingMedian',
             'trend',
+            'trendWindow',
+            'trendLabel',
             'forecast',
             'recommendations',
             'buses'
@@ -150,33 +162,56 @@ class FuelAnalyticsController extends Controller
         return [$start, $end];
     }
 
-    private function buildTrend(Collection $records, string $period): Collection
+    private function buildTrend(string $selectedBus, Carbon $end, string $trendWindow): Collection
     {
-        $monthly = in_array($period, ['last-3-months', 'this-year'], true);
+        $days = match ($trendWindow) {
+            '14-days' => 14,
+            '30-days' => 30,
+            default => 7,
+        };
 
-        return $records
-            ->groupBy(function ($row) use ($monthly): string {
-                $date = Carbon::parse($row->report_date);
-                return $monthly
-                    ? $date->startOfMonth()->toDateString()
-                    : $date->startOfWeek()->toDateString();
-            })
-            ->map(function (Collection $rows, string $key) use ($monthly): object {
+        $latestReportDate = FuelReport::query()
+            ->whereDate('report_date', '<=', $end->toDateString())
+            ->when($selectedBus !== 'all', fn ($query) => $query->where('bus_no', $selectedBus))
+            ->max('report_date');
+
+        $trendEnd = $latestReportDate
+            ? Carbon::parse($latestReportDate)->endOfDay()
+            : $end->copy();
+        $trendStart = $trendEnd->copy()->subDays($days - 1)->startOfDay();
+
+        $records = FuelReport::query()
+            ->whereBetween('report_date', [$trendStart->toDateString(), $trendEnd->toDateString()])
+            ->when($selectedBus !== 'all', fn ($query) => $query->where('bus_no', $selectedBus))
+            ->orderBy('report_date')
+            ->get();
+
+        $daily = $records
+            ->groupBy(fn ($row) => Carbon::parse($row->report_date)->toDateString())
+            ->map(function (Collection $rows): object {
                 $fuel = (float) $rows->sum('fuel_liters');
                 $distance = (float) $rows->sum('distance_km');
 
                 return (object) [
-                    'key' => $key,
-                    'label' => Carbon::parse($key)->format($monthly ? 'M Y' : 'M j'),
                     'fuel_liters' => $fuel,
                     'distance_km' => $distance,
                     'efficiency' => $fuel > 0 ? $distance / $fuel : 0.0,
                 ];
-            })
-            ->sortBy('key')
-            ->values()
-            ->take(-8)
-            ->values();
+            });
+
+        return collect(range(0, $days - 1))->map(function (int $offset) use ($trendStart, $daily): object {
+            $date = $trendStart->copy()->addDays($offset);
+            $key = $date->toDateString();
+            $summary = $daily->get($key);
+
+            return (object) [
+                'key' => $key,
+                'label' => $date->format('M j'),
+                'fuel_liters' => (float) ($summary?->fuel_liters ?? 0),
+                'distance_km' => (float) ($summary?->distance_km ?? 0),
+                'efficiency' => (float) ($summary?->efficiency ?? 0),
+            ];
+        });
     }
 
     private function buildForecast(string $selectedBus, Carbon $end): object
