@@ -23,6 +23,7 @@
     }
 
     $count = $rows->count();
+    $labelStep = $count > 14 ? (int) ceil($count / 7) : ($count > 8 ? 2 : 1);
     $plotLeft = 72.0;
     $plotRight = 648.0;
     $plotTop = 42.0;
@@ -102,7 +103,9 @@
             @foreach($points as $point)
                 <g class="analytics-chart-point{{ $point['partial'] ? ' is-partial' : '' }}" data-chart-label="{{ $point['label'] }}" data-chart-value="{{ number_format($point['value'], 1) }}{{ $suffix }}" data-chart-x="{{ $point['x'] }}" data-chart-y="{{ $point['y'] }}" tabindex="0">
                     <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="4.5" />
-                    <text x="{{ $point['x'] }}" y="212" text-anchor="middle" class="analytics-chart-label">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>
+                    @if(($loop->index % $labelStep) === 0 || $loop->last)
+                        <text x="{{ $point['x'] }}" y="212" text-anchor="middle" class="analytics-chart-label">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>
+                    @endif
                 </g>
             @endforeach
         </svg>
