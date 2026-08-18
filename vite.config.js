@@ -90,6 +90,11 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/fleet-trip-tabs.css',
                 'resources/css/Admin/Analytics/fleet-trip-redesign.css',
                 'resources/css/Admin/Analytics/fleet-trip-rankings.css',
+                'resources/css/Admin/Analytics/descriptive/all.css',
+                'resources/css/Admin/Analytics/descriptive/fleet-trip.css',
+                'resources/css/Admin/Analytics/descriptive/fuel.css',
+                'resources/css/Admin/Analytics/descriptive/bus-health.css',
+                'resources/css/Admin/Analytics/descriptive/inventory.css',
 
                 // ======================================================
                 // MAINTENANCE
@@ -150,7 +155,6 @@ export default defineConfig({
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
-                                
 
                 // ======================================================
                 // OPERATION — TRIP RECORDS

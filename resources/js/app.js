@@ -19,7 +19,6 @@ import '../css/Main-styles/spinner.css';
 import '../css/Main-styles/topbar.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
-import '../css/Admin/Analytics/descriptive-overview.css';
 
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
