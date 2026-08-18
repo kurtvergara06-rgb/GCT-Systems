@@ -97,7 +97,7 @@ const bindTripCanvasChart = (chart) => {
         }));
 
         context.clearRect(0, 0, width, height);
-        context.font = '600 10px system-ui, sans-serif';
+        context.font = '600 10px Poppins, sans-serif';
         context.textBaseline = 'middle';
         context.setLineDash([4, 6]);
         context.lineWidth = 1;
@@ -263,7 +263,7 @@ const bindFuelUsageCanvas = (chart) => {
     const render = () => {
         if (!metrics) resizeCanvas();
         const { context, width, height } = metrics;
-        const padding = { left: 50, right: 20, top: 34, bottom: 54 };
+        const padding = { left: 56, right: 20, top: 38, bottom: 58 };
         const plotWidth = width - padding.left - padding.right;
         const plotHeight = height - padding.top - padding.bottom;
         const maxFuel = Math.max(1, ...data.map((point) => point.fuel));
@@ -271,10 +271,10 @@ const bindFuelUsageCanvas = (chart) => {
         const barWidth = clamp(slot * 0.56, 18, 44);
 
         context.clearRect(0, 0, width, height);
-        context.font = '600 10px system-ui, sans-serif';
+        context.font = '600 11px Poppins, sans-serif';
         context.textBaseline = 'middle';
         context.strokeStyle = '#e4eaf2';
-        context.fillStyle = '#94a3b8';
+        context.fillStyle = '#718096';
         context.lineWidth = 1;
         context.setLineDash([4, 6]);
         context.textAlign = 'left';
@@ -309,12 +309,12 @@ const bindFuelUsageCanvas = (chart) => {
 
             if (progress > 0.62) {
                 context.fillStyle = '#203553';
-                context.font = '800 9px system-ui, sans-serif';
-                context.fillText(`${point.fuel.toFixed(1)} L`, x + (barWidth / 2), Math.max(12, y - 10));
+                context.font = '800 10.5px Poppins, sans-serif';
+                context.fillText(`${point.fuel.toFixed(1)} L`, x + (barWidth / 2), Math.max(14, y - 11));
             }
 
             context.fillStyle = '#526277';
-            context.font = `${isActive ? '800' : '700'} 9px system-ui, sans-serif`;
+            context.font = `${isActive ? '800' : '700'} 10.5px Poppins, sans-serif`;
             const label = point.label.length > 9 ? `${point.label.slice(0, 8)}…` : point.label;
             context.fillText(label, x + (barWidth / 2), height - 18);
 
