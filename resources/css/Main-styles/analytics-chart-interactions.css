@@ -354,14 +354,14 @@
 }
 
 .analytics-fuel-table-wrap {
-    max-height: 302px;
+    max-height: 255px;
     overflow: auto;
     border: 1px solid #e0e8f2;
     border-radius: 10px;
     background: #fff;
     scrollbar-gutter: stable;
 }
-.fuel-details-table-wrap { max-height: 315px; }
+.fuel-details-table-wrap { max-height: 255px; }
 .analytics-fuel-table-wrap:focus-visible { outline: 2px solid rgba(37, 99, 235, .28); outline-offset: 2px; }
 .analytics-fuel-table {
     width: 100%;
@@ -495,23 +495,23 @@
 .fuel-distribution-legend strong { display: block; color: #0b2347; font-size: 11.5px; line-height: 1.05; }
 .fuel-distribution-legend span { display: block; margin-top: 3px; color: #526277; font-size: 9px; font-weight: 500; line-height: 1.15; }
 
-.fuel-trend-card { min-height: 220px; }
-.fuel-trend-card .analytics-line-chart { min-height: 158px; }
+.fuel-trend-card { min-height: 250px; }
+.fuel-trend-card .analytics-line-chart { min-height: 188px; }
 .fuel-trend-card .analytics-line-chart,
 .fuel-trend-card .line-chart,
-.fuel-trend-card svg { max-height: 158px; }
+.fuel-trend-card svg { max-height: 188px; }
 .fuel-trend-card .analytics-chart-label,
 .fuel-trend-card .analytics-chart-value,
 .fuel-trend-card .analytics-chart-y-label {
     font-family: "Poppins", sans-serif;
-    font-size: 9px;
+    font-size: 10.5px;
     font-weight: 700;
 }
-.fuel-trend-card .analytics-chart-y-label { fill: #64748b; font-size: 8.5px; font-weight: 600; }
+.fuel-trend-card .analytics-chart-y-label { fill: #64748b; font-size: 10px; font-weight: 650; }
 .fuel-trend-card .analytics-chart-grid-line { stroke: #dfe7f2; }
-.fuel-trend-card .analytics-chart-line { stroke-width: 2.8; }
+.fuel-trend-card .analytics-chart-line { stroke-width: 3.2; }
 .fuel-trend-card .analytics-chart-area { opacity: .44; }
-.fuel-trend-card .analytics-chart-point circle { r: 4.5; }
+.fuel-trend-card .analytics-chart-point circle { r: 5.5; }
 .fuel-trend-card .analytics-chart-point.is-active circle { fill: #2563eb; transform: scale(1.25); }
 .fuel-trend-card .analytics-chart-crosshair {
     stroke: rgba(100, 116, 139, .72);
@@ -520,17 +520,17 @@
     pointer-events: none;
 }
 .fuel-trend-card .analytics-chart-tooltip {
-    min-width: 126px;
-    padding: 9px 11px;
+    min-width: 136px;
+    padding: 10px 12px;
     border-color: rgba(148, 163, 184, .24);
     background: rgba(15, 23, 42, .97);
     color: #fff;
     font-family: "Poppins", sans-serif;
-    font-size: 10px;
+    font-size: 11px;
     transform: translate(-50%, calc(-100% - 10px));
 }
-.fuel-trend-card .analytics-chart-tooltip strong { font-size: 10.5px; font-weight: 800; }
-.fuel-trend-card .analytics-chart-tooltip span { margin-top: 4px; color: #dbeafe; font-size: 10px; font-weight: 600; }
+.fuel-trend-card .analytics-chart-tooltip strong { font-size: 11.5px; font-weight: 800; }
+.fuel-trend-card .analytics-chart-tooltip span { margin-top: 4px; color: #dbeafe; font-size: 11px; font-weight: 600; }
 
 /* Fleet Availability: CSS-only donut. */
 .fleet-css-donut {
