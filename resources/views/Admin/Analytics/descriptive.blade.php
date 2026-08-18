@@ -34,6 +34,20 @@
     $maintenancePct = $totalBuses > 0 ? ($underMaintenance / $totalBuses) * 100 : 0;
     $inactivePct = $totalBuses > 0 ? ($inactiveBuses / $totalBuses) * 100 : 0;
     $maintenanceEndPct = $activePct + $maintenancePct;
+
+    $fuelSummaries = collect($fuel['busSummaries'] ?? [])->values();
+    $fuelUsageRows = $fuelSummaries->sortByDesc('fuel_liters')->take(10)->values();
+    $fuelBusChartData = $fuelUsageRows->map(fn ($row) => [
+        'label' => $row->bus_no,
+        'fuel' => (float) $row->fuel_liters,
+        'distance' => (float) $row->distance_km,
+        'efficiency' => (float) $row->km_per_liter,
+        'entries' => (int) $row->entries,
+    ]);
+    $highestFuelBus = $fuelSummaries->sortByDesc('fuel_liters')->first();
+    $lowestFuelBus = $fuelSummaries->filter(fn ($row) => $row->fuel_liters > 0)->sortBy('fuel_liters')->first();
+    $mostEfficientBus = $fuelSummaries->sortByDesc('km_per_liter')->first();
+    $leastEfficientBus = $fuelSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortBy('km_per_liter')->first();
 @endphp
 
 <x-layout.app
@@ -73,17 +87,57 @@
                     <x-analytics.kpi label="Fuel Used" :value="number_format($fuel['totalFuel'] ?? 0, 1) . ' L'" small="Recorded fuel volume" icon="fa-gas-pump" />
                     <x-analytics.kpi label="Linked Distance" :value="number_format($fuel['totalDistance'] ?? 0, 1) . ' km'" small="Distance attached to fuel reports" icon="fa-road" tone="green" />
                     <x-analytics.kpi label="Weighted Efficiency" :value="number_format($fuel['fleetAverage'] ?? 0, 2) . ' km/L'" small="Distance divided by recorded fuel" icon="fa-gauge-high" tone="purple" />
-                    <x-analytics.kpi label="Recorded Units" :value="collect($fuel['busSummaries'] ?? [])->count()" small="Buses represented in reports" icon="fa-bus" tone="yellow" />
+                    <x-analytics.kpi label="Recorded Units" :value="$fuelSummaries->count()" small="Buses represented in reports" icon="fa-bus" tone="yellow" />
                 </section>
 
                 <section class="analytics-domain-content">
-                    <div class="analytics-domain-grid">
-                        <x-analytics.panel title="Fuel Consumption Trend" :description="$periodLabel . ' · recorded fuel volume by period'">
-                            <x-analytics.line-chart :items="$fuel['trend'] ?? collect()" value-key="fuel_liters" label-key="label" suffix=" L" empty-text="No fuel reports match the selected filters." />
+                    <div class="analytics-domain-grid fuel-analytics-primary-grid">
+                        <x-analytics.panel title="Fuel Usage by Bus" :description="$periodLabel . ' · highest recorded fuel volume by unit'">
+                            @if($fuelBusChartData->isNotEmpty())
+                                <div class="fuel-usage-chart" data-fuel-points='@json($fuelBusChartData)'>
+                                    <canvas class="fuel-usage-canvas" role="img" aria-label="Fuel usage by bus chart"></canvas>
+                                    <div class="fuel-usage-tooltip" aria-hidden="true">
+                                        <strong></strong>
+                                        <span><i class="fa-solid fa-gas-pump"></i> Fuel <b data-fuel-value></b></span>
+                                        <span><i class="fa-solid fa-road"></i> Distance <b data-distance-value></b></span>
+                                        <span><i class="fa-solid fa-gauge-high"></i> Efficiency <b data-efficiency-value></b></span>
+                                    </div>
+                                </div>
+                                <div class="fuel-usage-caption">Top {{ $fuelUsageRows->count() }} unit{{ $fuelUsageRows->count() === 1 ? '' : 's' }} by recorded fuel volume</div>
+                            @else
+                                <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No fuel reports match the selected filters.</span></div>
+                            @endif
                         </x-analytics.panel>
 
-                        <x-analytics.panel title="Bus Efficiency Comparison" description="Highest recorded distance per liter for the selected period">
-                            <x-analytics.horizontal-bars :items="$fuel['busSummaries'] ?? collect()" value-key="km_per_liter" label-key="bus_no" empty-text="No bus-level fuel efficiency records are available." />
+                        <x-analytics.panel title="Bus Efficiency Comparison" description="Recorded distance, fuel usage, and calculated efficiency">
+                            @if($fuelSummaries->isNotEmpty())
+                                <div class="table-wrap analytics-fuel-table-wrap" tabindex="0" aria-label="Scrollable bus efficiency table">
+                                    <table class="analytics-fuel-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Bus</th>
+                                                <th>Reports</th>
+                                                <th>Fuel Used</th>
+                                                <th>Distance</th>
+                                                <th>Efficiency</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($fuelSummaries as $row)
+                                                <tr>
+                                                    <td><strong>{{ $row->bus_no }}</strong></td>
+                                                    <td>{{ $row->entries }}</td>
+                                                    <td>{{ number_format($row->fuel_liters, 1) }} L</td>
+                                                    <td>{{ number_format($row->distance_km, 1) }} km</td>
+                                                    <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus-level fuel efficiency records are available.</span></div>
+                            @endif
                         </x-analytics.panel>
                     </div>
 
@@ -91,18 +145,28 @@
                         <x-analytics.panel title="Fuel Reporting Coverage" description="Recorded evidence behind the descriptive totals">
                             <div class="analytics-record-list">
                                 <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-file-lines"></i></span><div class="analytics-record-copy"><strong>Fuel reports</strong><span>Records included in the selected period</span></div><span class="analytics-record-value">{{ collect($fuel['records'] ?? [])->count() }}</span></div>
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-bus"></i></span><div class="analytics-record-copy"><strong>Units represented</strong><span>Buses with recorded fuel activity</span></div><span class="analytics-record-value">{{ collect($fuel['busSummaries'] ?? [])->count() }}</span></div>
+                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-bus"></i></span><div class="analytics-record-copy"><strong>Units represented</strong><span>Buses with recorded fuel activity</span></div><span class="analytics-record-value">{{ $fuelSummaries->count() }}</span></div>
                                 <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-road"></i></span><div class="analytics-record-copy"><strong>Linked distance</strong><span>Distance stored on fuel reports</span></div><span class="analytics-record-value">{{ number_format($fuel['totalDistance'] ?? 0, 1) }} km</span></div>
                             </div>
                         </x-analytics.panel>
 
-                        <x-analytics.panel title="Efficiency Context" description="Descriptive comparison only; no causal claim is made">
-                            <div class="analytics-record-list">
-                                @forelse(collect($fuel['busSummaries'] ?? [])->take(4) as $row)
-                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-gauge-high"></i></span><div class="analytics-record-copy"><strong>{{ $row->bus_no }}</strong><span>{{ $row->entries }} fuel report{{ $row->entries === 1 ? '' : 's' }} · {{ number_format($row->fuel_liters, 1) }} L</span></div><span class="analytics-record-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></div>
-                                @empty
-                                    <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus efficiency comparison is available.</span></div>
-                                @endforelse
+                        <x-analytics.panel title="Fuel Highlights" description="Fast descriptive takeaways from the selected records">
+                            <div class="analytics-record-list fuel-highlight-list">
+                                @if($highestFuelBus)
+                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-gas-pump"></i></span><div class="analytics-record-copy"><strong>Highest fuel usage · {{ $highestFuelBus->bus_no }}</strong><span>Largest recorded fuel volume in the selected period</span></div><span class="analytics-record-value">{{ number_format($highestFuelBus->fuel_liters, 1) }} L</span></div>
+                                @endif
+                                @if($lowestFuelBus)
+                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-droplet"></i></span><div class="analytics-record-copy"><strong>Lowest fuel usage · {{ $lowestFuelBus->bus_no }}</strong><span>Smallest positive recorded fuel volume</span></div><span class="analytics-record-value">{{ number_format($lowestFuelBus->fuel_liters, 1) }} L</span></div>
+                                @endif
+                                @if($mostEfficientBus)
+                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-arrow-trend-up"></i></span><div class="analytics-record-copy"><strong>Highest efficiency · {{ $mostEfficientBus->bus_no }}</strong><span>Highest recorded distance per liter</span></div><span class="analytics-record-value">{{ number_format($mostEfficientBus->km_per_liter, 2) }} km/L</span></div>
+                                @endif
+                                @if($leastEfficientBus)
+                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-arrow-trend-down"></i></span><div class="analytics-record-copy"><strong>Lowest efficiency · {{ $leastEfficientBus->bus_no }}</strong><span>Lowest positive recorded distance per liter</span></div><span class="analytics-record-value">{{ number_format($leastEfficientBus->km_per_liter, 2) }} km/L</span></div>
+                                @endif
+                                @if(!$highestFuelBus)
+                                    <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No fuel highlights are available.</span></div>
+                                @endif
                             </div>
                         </x-analytics.panel>
                     </div>
