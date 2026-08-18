@@ -141,7 +141,14 @@
                                     <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Scrollable fuel usage details table">
                                         <table class="analytics-fuel-table" data-fuel-details-table>
                                             <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
-                                            <tbody>@foreach($fuelSummaries as $row)@php($fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status))<tr data-fuel-bus="{{ strtolower($row->bus_no) }}"><td><strong>{{ $row->bus_no }}</strong></td><td>{{ $row->entries }}</td><td>{{ number_format($row->fuel_liters, 1) }} L</td><td>{{ number_format($row->distance_km, 1) }} km</td><td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td><td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td></tr>@endforeach</tbody>
+                                            <tbody>
+                                                @foreach($fuelSummaries as $row)
+                                                    @php
+                                                        $fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status);
+                                                    @endphp
+                                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}"><td><strong>{{ $row->bus_no }}</strong></td><td>{{ $row->entries }}</td><td>{{ number_format($row->fuel_liters, 1) }} L</td><td>{{ number_format($row->distance_km, 1) }} km</td><td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td><td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td></tr>
+                                                @endforeach
+                                            </tbody>
                                         </table>
                                     </div>
                                 @else
