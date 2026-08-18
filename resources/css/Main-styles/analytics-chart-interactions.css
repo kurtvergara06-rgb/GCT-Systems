@@ -163,6 +163,156 @@
     color: #94a3b8;
 }
 
+/* Fuel descriptive canvas + reusable scroll-table pattern. */
+.fuel-analytics-primary-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(430px, 1fr);
+}
+
+.fuel-usage-chart {
+    position: relative;
+    width: 100%;
+    height: 286px;
+    min-height: 286px;
+}
+
+.fuel-usage-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+.fuel-usage-tooltip {
+    position: absolute;
+    z-index: 20;
+    min-width: 176px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, .22);
+    border-radius: 11px;
+    background: rgba(15, 23, 42, .96);
+    color: #fff;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .20);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, calc(-100% - 12px)) translateY(5px) scale(.985);
+    transition: left .16s cubic-bezier(.22,.61,.36,1), top .16s cubic-bezier(.22,.61,.36,1), opacity .14s ease, transform .16s ease, visibility .14s ease;
+}
+
+.fuel-usage-tooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, calc(-100% - 12px)) translateY(0) scale(1);
+}
+
+.fuel-usage-tooltip strong {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.fuel-usage-tooltip span {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    color: #cbd5e1;
+    font-size: 9.5px;
+}
+
+.fuel-usage-tooltip span i {
+    color: #60a5fa;
+    text-align: center;
+}
+
+.fuel-usage-tooltip b {
+    color: #fff;
+    font-size: 10px;
+}
+
+.fuel-usage-caption {
+    margin-top: 2px;
+    color: #7a889b;
+    font-size: 9px;
+    text-align: center;
+}
+
+.analytics-fuel-table-wrap {
+    max-height: 302px;
+    overflow: auto;
+    border: 1px solid #e0e8f2;
+    border-radius: 11px;
+    background: #fff;
+    scrollbar-gutter: stable;
+}
+
+.analytics-fuel-table-wrap:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, .28);
+    outline-offset: 2px;
+}
+
+.analytics-fuel-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 10px;
+}
+
+.analytics-fuel-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 11px;
+    border-bottom: 1px solid #dce5f0;
+    background: #f7faff;
+    color: #718096;
+    font-size: 8.5px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.analytics-fuel-table tbody td {
+    padding: 10px 11px;
+    border-bottom: 1px solid #edf2f7;
+    color: #526277;
+    white-space: nowrap;
+    transition: background .16s ease;
+}
+
+.analytics-fuel-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.analytics-fuel-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+.analytics-fuel-table td strong {
+    color: #0b2347;
+    font-weight: 900;
+}
+
+.fuel-efficiency-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #edf5ff;
+    color: #1557d5;
+    font-weight: 900;
+}
+
+.fuel-highlight-list .analytics-record-row {
+    min-height: 58px;
+}
+
 /* Fleet Availability: CSS-only donut. */
 .fleet-css-donut {
     position: relative;
@@ -181,7 +331,8 @@
     transform: scale(.86) rotate(-10deg);
     opacity: 0;
     animation: fleetCssDonutIn .72s cubic-bezier(.22,.61,.36,1) .08s forwards;
-    transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+    transition: transform .2s ease, filter .2s ease, box-shadow .2s ease, background .18s ease;
+    cursor: pointer;
 }
 
 .fleet-css-donut::after {
@@ -236,32 +387,32 @@
     position: absolute;
     z-index: 8;
     left: 50%;
-    top: -8px;
-    min-width: 132px;
-    padding: 8px 10px;
+    top: 50%;
+    min-width: 138px;
+    padding: 9px 11px;
     border: 1px solid rgba(148, 163, 184, .2);
     border-radius: 10px;
-    background: rgba(15, 23, 42, .96);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, .16);
+    background: rgba(15, 23, 42, .97);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .18);
     color: #fff;
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
-    transform: translate(-50%, -8px) scale(.98);
-    transition: opacity .16s ease, visibility .16s ease, transform .18s ease;
+    transform: translate(14px, -50%) scale(.97);
+    transition: left .12s linear, top .12s linear, opacity .16s ease, visibility .16s ease, transform .18s ease;
     text-align: left;
 }
 
 .fleet-css-donut-tooltip.is-visible {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(14px, -50%) scale(1);
 }
 
 .fleet-css-donut-tooltip strong {
     display: block;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .fleet-css-donut-tooltip span {
@@ -273,7 +424,7 @@
 
 .fleet-trip-page .descriptive-availability-card .availability-row {
     border-radius: 10px;
-    transition: background .18s ease, transform .18s ease, border-color .18s ease;
+    transition: background .18s ease, transform .18s ease, border-color .18s ease, opacity .18s ease;
     cursor: default;
 }
 
@@ -281,6 +432,10 @@
 .fleet-trip-page .descriptive-availability-card .availability-row.is-donut-active {
     background: #f7faff;
     transform: translateX(2px);
+}
+
+.fleet-trip-page .descriptive-availability-card .availability-row.is-donut-active {
+    box-shadow: inset 3px 0 0 rgba(21, 87, 213, .52);
 }
 
 /* Column chart hover. */
@@ -406,6 +561,12 @@
     to { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
+@media (max-width: 1050px) {
+    .fuel-analytics-primary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .fleet-trip-page.analytics-motion-ready .analytics-card .metric-bar > span,
     .fleet-trip-page.analytics-motion-ready .analytics-card .diagnostic-profile-track > span,
@@ -425,6 +586,7 @@
 
     .fleet-css-donut,
     .trip-canvas-tooltip,
+    .fuel-usage-tooltip,
     .fleet-css-donut-tooltip,
     .fleet-trip-page .descriptive-ranking-card .refined-ranking-row {
         animation: none !important;
