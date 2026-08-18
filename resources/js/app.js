@@ -19,7 +19,6 @@ import '../css/Main-styles/spinner.css';
 import '../css/Main-styles/topbar.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
-import '../css/Admin/Analytics/descriptive-overview.css';
 
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
@@ -41,13 +40,6 @@ import './Operation/Attendance/batch-attendance.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.descriptive-overview-kpi em, .descriptive-insight-card strong').forEach((node) => {
-        if (node.textContent.trim() === 'New') {
-            node.textContent = 'No prior data';
-            node.classList.add('no-prior-data');
-        }
-    });
-
     if (document.getElementById('routeModal')) {
         import('./Operation/Routes/route-pin-controls.js');
     }
