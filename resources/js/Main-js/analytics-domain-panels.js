@@ -418,7 +418,7 @@ const bindFleetCssDonut = (card) => {
         const stops = segments.map((segment, index) => {
             const start = offset;
             offset += segment.percentage;
-            const color = focusedIndex === null || focusedIndex === index ? segment.color : hexToRgba(segment.color, .24);
+            const color = focusedIndex === null || focusedIndex === index ? segment.color : hexToRgba(segment.color, .62);
             return `${color} ${start.toFixed(2)}% ${offset.toFixed(2)}%`;
         });
         donut.style.background = `conic-gradient(from -90deg, ${stops.join(', ')})`;
