@@ -10,6 +10,20 @@ const parseTripPoints = (chart) => {
     }
 };
 
+const parseFuelPoints = (chart) => {
+    try {
+        return JSON.parse(chart.dataset.fuelPoints || '[]').map((point) => ({
+            label: String(point.label || ''),
+            fuel: Number(point.fuel || 0),
+            distance: Number(point.distance || 0),
+            efficiency: Number(point.efficiency || 0),
+            entries: Number(point.entries || 0),
+        }));
+    } catch {
+        return [];
+    }
+};
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const drawSmoothCurve = (context, points) => {
@@ -245,6 +259,171 @@ const bindTripCanvasChart = (chart) => {
     }
 };
 
+const bindFuelUsageCanvas = (chart) => {
+    if (chart.dataset.fuelCanvasBound === 'true') {
+        return;
+    }
+
+    const canvas = chart.querySelector('.fuel-usage-canvas');
+    const tooltip = chart.querySelector('.fuel-usage-tooltip');
+    const tooltipTitle = tooltip?.querySelector('strong');
+    const tooltipFuel = tooltip?.querySelector('[data-fuel-value]');
+    const tooltipDistance = tooltip?.querySelector('[data-distance-value]');
+    const tooltipEfficiency = tooltip?.querySelector('[data-efficiency-value]');
+    const data = parseFuelPoints(chart).slice(0, 10);
+
+    if (!canvas || !data.length) {
+        return;
+    }
+
+    chart.dataset.fuelCanvasBound = 'true';
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let progress = reducedMotion ? 1 : 0;
+    let activeIndex = -1;
+    let metrics = null;
+    let bars = [];
+    let resizeFrame = null;
+
+    const resizeCanvas = () => {
+        const rect = chart.getBoundingClientRect();
+        const width = Math.max(360, rect.width);
+        const height = Math.max(250, rect.height);
+        const ratio = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        const context = canvas.getContext('2d');
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        metrics = { context, width, height };
+    };
+
+    const roundedRect = (context, x, y, width, height, radius) => {
+        const safeRadius = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.roundRect(x, y, width, height, safeRadius);
+    };
+
+    const render = () => {
+        if (!metrics) {
+            resizeCanvas();
+        }
+
+        const { context, width, height } = metrics;
+        const padding = { left: 48, right: 18, top: 18, bottom: 52 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+        const maxFuel = Math.max(1, ...data.map((point) => point.fuel));
+        const slot = plotWidth / data.length;
+        const barWidth = clamp(slot * 0.56, 18, 42);
+
+        context.clearRect(0, 0, width, height);
+        context.font = '600 10px system-ui, sans-serif';
+        context.textBaseline = 'middle';
+        context.strokeStyle = '#e4eaf2';
+        context.fillStyle = '#94a3b8';
+        context.lineWidth = 1;
+        context.setLineDash([4, 6]);
+        context.textAlign = 'left';
+
+        for (let index = 0; index < 5; index += 1) {
+            const ratio = index / 4;
+            const y = padding.top + plotHeight * ratio;
+            const value = maxFuel * (1 - ratio);
+            context.beginPath();
+            context.moveTo(padding.left, y);
+            context.lineTo(width - padding.right, y);
+            context.stroke();
+            context.fillText(`${value.toFixed(value >= 100 ? 0 : 1)} L`, 5, y);
+        }
+
+        context.setLineDash([]);
+        context.textAlign = 'center';
+        bars = data.map((point, index) => {
+            const x = padding.left + (slot * index) + ((slot - barWidth) / 2);
+            const finalHeight = (point.fuel / maxFuel) * plotHeight;
+            const drawnHeight = finalHeight * progress;
+            const y = padding.top + plotHeight - drawnHeight;
+            const isActive = index === activeIndex;
+
+            context.save();
+            context.fillStyle = isActive ? '#1557d5' : '#3b82f6';
+            context.shadowColor = isActive ? 'rgba(21, 87, 213, .22)' : 'transparent';
+            context.shadowBlur = isActive ? 10 : 0;
+            roundedRect(context, x, y, barWidth, Math.max(2, drawnHeight), 7);
+            context.fill();
+            context.restore();
+
+            context.fillStyle = '#526277';
+            context.font = `${isActive ? '800' : '700'} 9px system-ui, sans-serif`;
+            const label = point.label.length > 9 ? `${point.label.slice(0, 8)}…` : point.label;
+            context.fillText(label, x + (barWidth / 2), height - 18);
+
+            return { ...point, x, y, width: barWidth, height: drawnHeight, centerX: x + (barWidth / 2) };
+        });
+    };
+
+    const animate = (start) => {
+        const elapsed = Math.min(1, (performance.now() - start) / 760);
+        progress = 1 - Math.pow(1 - elapsed, 3);
+        render();
+        if (elapsed < 1) {
+            requestAnimationFrame(() => animate(start));
+        }
+    };
+
+    const showTooltip = (index) => {
+        const bar = bars[index];
+        if (!bar || !tooltip) {
+            return;
+        }
+        activeIndex = index;
+        if (tooltipTitle) tooltipTitle.textContent = bar.label;
+        if (tooltipFuel) tooltipFuel.textContent = `${bar.fuel.toFixed(1)} L`;
+        if (tooltipDistance) tooltipDistance.textContent = `${bar.distance.toFixed(1)} km`;
+        if (tooltipEfficiency) tooltipEfficiency.textContent = `${bar.efficiency.toFixed(2)} km/L`;
+        tooltip.style.left = `${clamp(bar.centerX, 94, chart.clientWidth - 94)}px`;
+        tooltip.style.top = `${Math.max(72, bar.y)}px`;
+        tooltip.classList.add('is-visible');
+        tooltip.setAttribute('aria-hidden', 'false');
+        render();
+    };
+
+    const hideTooltip = () => {
+        activeIndex = -1;
+        tooltip?.classList.remove('is-visible');
+        tooltip?.setAttribute('aria-hidden', 'true');
+        render();
+    };
+
+    canvas.addEventListener('pointermove', (event) => {
+        if (!bars.length) return;
+        const rect = canvas.getBoundingClientRect();
+        const localX = event.clientX - rect.left;
+        const index = bars.reduce((closest, bar, barIndex) => {
+            const distance = Math.abs(bar.centerX - localX);
+            return distance < closest.distance ? { index: barIndex, distance } : closest;
+        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
+        showTooltip(index);
+    });
+    canvas.addEventListener('pointerleave', hideTooltip);
+
+    const resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(resizeFrame);
+        resizeFrame = requestAnimationFrame(() => {
+            resizeCanvas();
+            render();
+        });
+    });
+    resizeObserver.observe(chart);
+
+    resizeCanvas();
+    render();
+    if (progress < 1) {
+        requestAnimationFrame((time) => animate(time));
+    }
+};
+
 const hexToRgba = (hex, alpha) => {
     const value = hex.replace('#', '');
     const normalized = value.length === 3
@@ -277,6 +456,7 @@ const bindFleetCssDonut = (card) => {
     const defaultLabel = donut.dataset.defaultLabel || centerLabel?.textContent?.trim() || 'Active';
     const colors = ['#16a34a', '#f59e0b', '#94a3b8'];
     let centerTransitionToken = 0;
+    let activeIndex = null;
 
     const segments = rows.map((row, index) => ({
         row,
@@ -286,14 +466,14 @@ const bindFleetCssDonut = (card) => {
         percentage: Math.max(0, Number.parseFloat(row.dataset.percentage || '0') || 0),
     }));
 
-    const renderGradient = (activeIndex = null) => {
+    const renderGradient = (focusedIndex = null) => {
         let offset = 0;
         const stops = segments.map((segment, index) => {
             const start = offset;
             offset += segment.percentage;
-            const color = activeIndex === null || activeIndex === index
+            const color = focusedIndex === null || focusedIndex === index
                 ? segment.color
-                : hexToRgba(segment.color, .28);
+                : hexToRgba(segment.color, .24);
             return `${color} ${start.toFixed(2)}% ${offset.toFixed(2)}%`;
         });
 
@@ -317,9 +497,7 @@ const bindFleetCssDonut = (card) => {
         );
 
         fadeOut.finished.then(() => {
-            if (token !== centerTransitionToken) {
-                return;
-            }
+            if (token !== centerTransitionToken) return;
             if (centerValue) centerValue.textContent = value;
             if (centerLabel) centerLabel.textContent = label;
             center.animate(
@@ -332,14 +510,17 @@ const bindFleetCssDonut = (card) => {
         }).catch(() => {});
     };
 
-    renderGradient();
+    const positionTooltip = (x, y) => {
+        if (!tooltip) return;
+        tooltip.style.left = `${clamp(x, 34, donut.clientWidth - 34)}px`;
+        tooltip.style.top = `${clamp(y, 30, donut.clientHeight - 30)}px`;
+    };
 
-    const showItem = (index) => {
+    const showItem = (index, pointer = null) => {
         const segment = segments[index];
-        if (!segment) {
-            return;
-        }
+        if (!segment) return;
 
+        activeIndex = index;
         rows.forEach((row, rowIndex) => row.classList.toggle('is-donut-active', rowIndex === index));
         donut.classList.add('is-active');
         renderGradient(index);
@@ -347,11 +528,13 @@ const bindFleetCssDonut = (card) => {
 
         if (tooltipLabel) tooltipLabel.textContent = segment.label;
         if (tooltipMeta) tooltipMeta.textContent = `${segment.value} bus${segment.value === 1 ? '' : 'es'} · ${segment.percentage.toFixed(1)}%`;
+        if (pointer) positionTooltip(pointer.x, pointer.y);
         tooltip?.classList.add('is-visible');
         tooltip?.setAttribute('aria-hidden', 'false');
     };
 
     const clearItem = () => {
+        activeIndex = null;
         rows.forEach((row) => row.classList.remove('is-donut-active'));
         donut.classList.remove('is-active');
         renderGradient();
@@ -359,6 +542,35 @@ const bindFleetCssDonut = (card) => {
         tooltip?.classList.remove('is-visible');
         tooltip?.setAttribute('aria-hidden', 'true');
     };
+
+    const indexFromPointer = (event) => {
+        const rect = donut.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt((dx * dx) + (dy * dy));
+        const outerRadius = rect.width / 2;
+        const innerRadius = outerRadius - 31;
+
+        if (distance < innerRadius || distance > outerRadius + 3) {
+            return { index: null, x, y };
+        }
+
+        const degrees = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
+        const percentage = (degrees / 360) * 100;
+        let offset = 0;
+        const index = segments.findIndex((segment) => {
+            offset += segment.percentage;
+            return percentage <= offset + 0.001;
+        });
+
+        return { index: index < 0 ? segments.length - 1 : index, x, y };
+    };
+
+    renderGradient();
 
     rows.forEach((row, index) => {
         row.setAttribute('tabindex', '0');
@@ -368,13 +580,15 @@ const bindFleetCssDonut = (card) => {
         row.addEventListener('blur', clearItem);
     });
 
-    donut.addEventListener('pointerenter', () => donut.classList.add('is-active'));
-    donut.addEventListener('pointerleave', () => {
-        donut.classList.remove('is-active');
-        if (!rows.some((row) => row.matches(':hover') || row === document.activeElement)) {
-            renderGradient();
+    donut.addEventListener('pointermove', (event) => {
+        const pointer = indexFromPointer(event);
+        if (pointer.index === null) {
+            if (activeIndex !== null) clearItem();
+            return;
         }
+        showItem(pointer.index, pointer);
     });
+    donut.addEventListener('pointerleave', clearItem);
 };
 
 const initializeAnalyticsDomainPanels = () => {
@@ -383,6 +597,7 @@ const initializeAnalyticsDomainPanels = () => {
     });
 
     document.querySelectorAll('.trip-canvas-chart').forEach(bindTripCanvasChart);
+    document.querySelectorAll('.fuel-usage-chart').forEach(bindFuelUsageCanvas);
     document.querySelectorAll('.descriptive-availability-card').forEach(bindFleetCssDonut);
 };
 
