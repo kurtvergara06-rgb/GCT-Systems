@@ -67,6 +67,10 @@
     $normalFuelPct = ($normalFuelUnits / $fuelStatusTotal) * 100;
     $reviewFuelPct = ($reviewFuelUnits / $fuelStatusTotal) * 100;
     $priorityFuelPct = ($priorityFuelUnits / $fuelStatusTotal) * 100;
+
+    $deltaText = function (?float $value): string {
+        return $value === null ? 'New' : (($value > 0 ? '+' : '') . number_format($value, 1) . '%');
+    };
 @endphp
 
 <x-layout.app
@@ -116,12 +120,7 @@
                                 @if($fuelBusChartData->isNotEmpty())
                                     <div class="fuel-usage-chart fuel-usage-chart-large" data-fuel-points='@json($fuelBusChartData)'>
                                         <canvas class="fuel-usage-canvas" role="img" aria-label="Fuel usage by bus chart"></canvas>
-                                        <div class="fuel-usage-tooltip" aria-hidden="true">
-                                            <strong></strong>
-                                            <span><i class="fa-solid fa-gas-pump"></i> Fuel <b data-fuel-value></b></span>
-                                            <span><i class="fa-solid fa-road"></i> Distance <b data-distance-value></b></span>
-                                            <span><i class="fa-solid fa-gauge-high"></i> Efficiency <b data-efficiency-value></b></span>
-                                        </div>
+                                        <div class="fuel-usage-tooltip" aria-hidden="true"><strong></strong><span><i class="fa-solid fa-gas-pump"></i> Fuel <b data-fuel-value></b></span><span><i class="fa-solid fa-road"></i> Distance <b data-distance-value></b></span><span><i class="fa-solid fa-gauge-high"></i> Efficiency <b data-efficiency-value></b></span></div>
                                     </div>
                                     <div class="fuel-usage-caption">Top {{ $fuelUsageRows->count() }} unit{{ $fuelUsageRows->count() === 1 ? '' : 's' }} by recorded fuel volume</div>
                                 @else
@@ -138,28 +137,11 @@
 
                             <x-analytics.panel title="Fuel Usage Details" description="Recorded distance, fuel usage, efficiency, and review status by bus">
                                 @if($fuelSummaries->isNotEmpty())
-                                    <div class="fuel-table-tools">
-                                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus..." data-fuel-table-search></label>
-                                        <span>{{ $fuelSummaries->count() }} recorded unit{{ $fuelSummaries->count() === 1 ? '' : 's' }}</span>
-                                    </div>
+                                    <div class="fuel-table-tools"><label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus..." data-fuel-table-search></label><span>{{ $fuelSummaries->count() }} recorded unit{{ $fuelSummaries->count() === 1 ? '' : 's' }}</span></div>
                                     <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Scrollable fuel usage details table">
                                         <table class="analytics-fuel-table" data-fuel-details-table>
                                             <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
-                                            <tbody>
-                                                @foreach($fuelSummaries as $row)
-                                                    @php
-                                                        $fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status);
-                                                    @endphp
-                                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}">
-                                                        <td><strong>{{ $row->bus_no }}</strong></td>
-                                                        <td>{{ $row->entries }}</td>
-                                                        <td>{{ number_format($row->fuel_liters, 1) }} L</td>
-                                                        <td>{{ number_format($row->distance_km, 1) }} km</td>
-                                                        <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
-                                                        <td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
+                                            <tbody>@foreach($fuelSummaries as $row)@php($fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status))<tr data-fuel-bus="{{ strtolower($row->bus_no) }}"><td><strong>{{ $row->bus_no }}</strong></td><td>{{ $row->entries }}</td><td>{{ number_format($row->fuel_liters, 1) }} L</td><td>{{ number_format($row->distance_km, 1) }} km</td><td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td><td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td></tr>@endforeach</tbody>
                                         </table>
                                     </div>
                                 @else
@@ -172,48 +154,15 @@
                             <article class="analytics-card descriptive-availability-card fuel-side-card fuel-fleet-card">
                                 <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
                                 <div class="analytics-availability-layout fuel-availability-layout">
-                                    <div class="availability-score">
-                                        <div class="fleet-css-donut fuel-fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;">
-                                            <div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
-                                            <div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
-                                        </div>
-                                    </div>
-                                    <div class="availability-breakdown">
-                                        <div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
-                                        <div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
-                                        <div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
-                                        <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
-                                    </div>
+                                    <div class="availability-score"><div class="fleet-css-donut fuel-fleet-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;"><div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div><div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div></div></div>
+                                    <div class="availability-breakdown"><div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div><div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div><div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div><div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div></div>
                                 </div>
                             </article>
 
-                            <article class="analytics-card fuel-side-card">
-                                <x-analytics.card-header title="Fuel Data Quality" :description="$periodLabel . ' · completeness of recorded fuel entries'" />
-                                <div class="fuel-quality-body">
-                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-halved"></i></span>
-                                    <div class="fuel-quality-score"><strong>{{ number_format($fuelQualityPct, 1) }}%</strong><span>Complete records</span></div>
-                                    <div class="fuel-quality-counts"><div><span class="availability-dot operational"></span><span>Complete</span><strong>{{ $validFuelRecords }}</strong></div><div><span class="availability-dot inactive"></span><span>Incomplete</span><strong>{{ $incompleteFuelRecords }}</strong></div></div>
-                                </div>
-                            </article>
-
-                            <article class="analytics-card fuel-side-card fuel-review-card">
-                                <x-analytics.card-header title="Review Signals" :description="$periodLabel . ' · units flagged by recorded efficiency or idling signals'" />
-                                <div class="fuel-review-summary"><span class="fuel-review-alert"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>{{ $fuelReviewUnits->count() }}</strong><span>Units needing review</span></div></div>
-                                <div class="fuel-review-lines"><div><span>Priority efficiency</span><strong>{{ $priorityFuelUnits }}</strong></div><div><span>Review efficiency</span><strong>{{ $reviewFuelUnits }}</strong></div><div><span>High idling</span><strong>{{ $highIdlingUnits->count() }}</strong></div></div>
-                            </article>
-
-                            <article class="analytics-card fuel-side-card">
-                                <x-analytics.card-header title="Efficiency Distribution" description="Bus-level status from the selected fuel records" />
-                                <div class="fuel-efficiency-distribution">
-                                    <div class="fuel-distribution-bar"><span class="efficient" style="width: {{ $efficientFuelPct }}%"></span><span class="normal" style="width: {{ $normalFuelPct }}%"></span><span class="review" style="width: {{ $reviewFuelPct }}%"></span><span class="priority" style="width: {{ $priorityFuelPct }}%"></span></div>
-                                    <div class="fuel-distribution-legend"><div><strong>{{ $efficientFuelUnits }}</strong><span>Efficient</span></div><div><strong>{{ $normalFuelUnits }}</strong><span>Normal</span></div><div><strong>{{ $reviewFuelUnits }}</strong><span>Review</span></div><div><strong>{{ $priorityFuelUnits }}</strong><span>Priority</span></div></div>
-                                </div>
-                            </article>
-
-                            <article class="analytics-card fuel-side-card fuel-trend-card">
-                                <x-analytics.card-header title="Fuel Consumption Trend" :description="$periodLabel . ' · recorded fuel volume by period'" />
-                                <x-analytics.line-chart :items="$fuel['trend'] ?? collect()" value-key="fuel_liters" label-key="label" suffix=" L" empty-text="No fuel trend is available for the selected filters." />
-                            </article>
+                            <article class="analytics-card fuel-side-card"><x-analytics.card-header title="Fuel Data Quality" :description="$periodLabel . ' · completeness of recorded fuel entries'" /><div class="fuel-quality-body"><span class="fuel-quality-icon"><i class="fa-solid fa-shield-halved"></i></span><div class="fuel-quality-score"><strong>{{ number_format($fuelQualityPct, 1) }}%</strong><span>Complete records</span></div><div class="fuel-quality-counts"><div><span class="availability-dot operational"></span><span>Complete</span><strong>{{ $validFuelRecords }}</strong></div><div><span class="availability-dot inactive"></span><span>Incomplete</span><strong>{{ $incompleteFuelRecords }}</strong></div></div></div></article>
+                            <article class="analytics-card fuel-side-card fuel-review-card"><x-analytics.card-header title="Review Signals" :description="$periodLabel . ' · units flagged by recorded efficiency or idling signals'" /><div class="fuel-review-summary"><span class="fuel-review-alert"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>{{ $fuelReviewUnits->count() }}</strong><span>Units needing review</span></div></div><div class="fuel-review-lines"><div><span>Priority efficiency</span><strong>{{ $priorityFuelUnits }}</strong></div><div><span>Review efficiency</span><strong>{{ $reviewFuelUnits }}</strong></div><div><span>High idling</span><strong>{{ $highIdlingUnits->count() }}</strong></div></div></article>
+                            <article class="analytics-card fuel-side-card"><x-analytics.card-header title="Efficiency Distribution" description="Bus-level status from the selected fuel records" /><div class="fuel-efficiency-distribution"><div class="fuel-distribution-bar"><span class="efficient" style="width: {{ $efficientFuelPct }}%"></span><span class="normal" style="width: {{ $normalFuelPct }}%"></span><span class="review" style="width: {{ $reviewFuelPct }}%"></span><span class="priority" style="width: {{ $priorityFuelPct }}%"></span></div><div class="fuel-distribution-legend"><div><strong>{{ $efficientFuelUnits }}</strong><span>Efficient</span></div><div><strong>{{ $normalFuelUnits }}</strong><span>Normal</span></div><div><strong>{{ $reviewFuelUnits }}</strong><span>Review</span></div><div><strong>{{ $priorityFuelUnits }}</strong><span>Priority</span></div></div></div></article>
+                            <article class="analytics-card fuel-side-card fuel-trend-card"><x-analytics.card-header title="Fuel Consumption Trend" :description="$periodLabel . ' · recorded fuel volume by period'" /><x-analytics.line-chart :items="$fuel['trend'] ?? collect()" value-key="fuel_liters" label-key="label" suffix=" L" empty-text="No fuel trend is available for the selected filters." /></article>
                         </aside>
                     </div>
                 </section>
@@ -225,37 +174,12 @@
                     <x-analytics.kpi label="Inactive" :value="$inactiveBuses" small="Unavailable buses" icon="fa-circle-pause" tone="red" />
                     <x-analytics.kpi label="Fleet Availability" :value="number_format($fleetAvailability, 1) . '%'" small="Active share of Bus Master List" icon="fa-chart-pie" />
                 </section>
-
                 <section class="analytics-domain-content">
                     <div class="analytics-domain-grid">
-                        <x-analytics.panel title="Fleet Status Distribution" description="Current operational status from the Bus Master List" :badge="$totalBuses . ' buses'">
-                            <div class="analytics-status-overview">
-                                <div class="analytics-status-ring" style="--ring-active: {{ $activeAngle }}deg; --ring-maintenance: {{ $maintenanceAngle }}deg;"><div><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>currently active</span></div></div>
-                                <div class="analytics-status-legend">
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot green"></i>Active</span><strong>{{ $activeBuses }}</strong></div>
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot yellow"></i>Under Maintenance</span><strong>{{ $underMaintenance }}</strong></div>
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot red"></i>Inactive</span><strong>{{ $inactiveBuses }}</strong></div>
-                                </div>
-                            </div>
-                        </x-analytics.panel>
-
-                        <x-analytics.panel title="Current Fleet Units" description="Status snapshot; this is not a mechanical diagnosis">
-                            <div class="analytics-record-list">
-                                @forelse($buses->take(8) as $bus)
-                                    <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-bus"></i></span><div class="analytics-record-copy"><strong>{{ $bus->bus_no }}</strong><span>{{ $bus->bus_model ?: 'Model not recorded' }}{{ $bus->plate_no ? ' · ' . $bus->plate_no : '' }}</span></div><span class="analytics-record-value">{{ $bus->status ?: 'Unspecified' }}</span></div>
-                                @empty
-                                    <div class="analytics-compact-empty"><i class="fa-solid fa-bus"></i><span>No buses are recorded in the Bus Master List.</span></div>
-                                @endforelse
-                            </div>
-                        </x-analytics.panel>
+                        <x-analytics.panel title="Fleet Status Distribution" description="Current operational status from the Bus Master List" :badge="$totalBuses . ' buses'"><div class="analytics-status-overview"><div class="analytics-status-ring" style="--ring-active: {{ $activeAngle }}deg; --ring-maintenance: {{ $maintenanceAngle }}deg;"><div><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>currently active</span></div></div><div class="analytics-status-legend"><div class="analytics-status-legend-row"><span><i class="analytics-status-dot green"></i>Active</span><strong>{{ $activeBuses }}</strong></div><div class="analytics-status-legend-row"><span><i class="analytics-status-dot yellow"></i>Under Maintenance</span><strong>{{ $underMaintenance }}</strong></div><div class="analytics-status-legend-row"><span><i class="analytics-status-dot red"></i>Inactive</span><strong>{{ $inactiveBuses }}</strong></div></div></div></x-analytics.panel>
+                        <x-analytics.panel title="Current Fleet Units" description="Status snapshot; this is not a mechanical diagnosis"><div class="analytics-record-list">@forelse($buses->take(8) as $bus)<div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-bus"></i></span><div class="analytics-record-copy"><strong>{{ $bus->bus_no }}</strong><span>{{ $bus->bus_model ?: 'Model not recorded' }}{{ $bus->plate_no ? ' · ' . $bus->plate_no : '' }}</span></div><span class="analytics-record-value">{{ $bus->status ?: 'Unspecified' }}</span></div>@empty<div class="analytics-compact-empty"><i class="fa-solid fa-bus"></i><span>No buses are recorded in the Bus Master List.</span></div>@endforelse</div></x-analytics.panel>
                     </div>
-
-                    <x-analytics.panel title="Bus Health Data Boundary" description="What this descriptive view can verify from current records">
-                        <div class="analytics-record-list">
-                            <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-circle-check"></i></span><div class="analytics-record-copy"><strong>Operational status is available</strong><span>Active, Under Maintenance, and Inactive come directly from the Bus Master List.</span></div><span class="analytics-record-value">Verified</span></div>
-                            <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-shield-heart"></i></span><div class="analytics-record-copy"><strong>Mechanical condition is not inferred</strong><span>This page does not label a bus mechanically healthy without PMS or maintenance-condition evidence.</span></div><span class="analytics-record-value">No assumption</span></div>
-                        </div>
-                    </x-analytics.panel>
+                    <x-analytics.panel title="Bus Health Data Boundary" description="What this descriptive view can verify from current records"><div class="analytics-record-list"><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-circle-check"></i></span><div class="analytics-record-copy"><strong>Operational status is available</strong><span>Active, Under Maintenance, and Inactive come directly from the Bus Master List.</span></div><span class="analytics-record-value">Verified</span></div><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-shield-heart"></i></span><div class="analytics-record-copy"><strong>Mechanical condition is not inferred</strong><span>This page does not label a bus mechanically healthy without PMS or maintenance-condition evidence.</span></div><span class="analytics-record-value">No assumption</span></div></div></x-analytics.panel>
                 </section>
 
             @elseif($domain === 'inventory')
@@ -265,90 +189,85 @@
                     <x-analytics.kpi label="Low Stock" :value="$inventoryLow" small="At or below reorder level" icon="fa-triangle-exclamation" tone="yellow" />
                     <x-analytics.kpi label="Out of Stock" :value="$inventoryCritical" small="No on-hand stock" icon="fa-circle-exclamation" tone="red" />
                 </section>
-
                 <section class="analytics-domain-content">
                     <div class="analytics-domain-grid">
-                        <x-analytics.panel title="Stock-Level Distribution" description="Current stock status across inventory records" :badge="$inventoryTotal . ' items'">
-                            <div class="analytics-status-overview">
-                                <div class="analytics-status-ring" style="--ring-active: {{ $inventoryHealthyAngle }}deg; --ring-maintenance: {{ $inventoryLowAngle }}deg;"><div><strong>{{ number_format($healthyPct) }}%</strong><span>well stocked</span></div></div>
-                                <div class="analytics-status-legend">
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot green"></i>Well Stocked</span><strong>{{ $inventoryHealthy }} ({{ number_format($healthyPct) }}%)</strong></div>
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot yellow"></i>Low Stock</span><strong>{{ $inventoryLow }} ({{ number_format($lowPct) }}%)</strong></div>
-                                    <div class="analytics-status-legend-row"><span><i class="analytics-status-dot red"></i>Out of Stock</span><strong>{{ $inventoryCritical }} ({{ number_format($criticalPct) }}%)</strong></div>
-                                </div>
-                            </div>
-                        </x-analytics.panel>
-
-                        <x-analytics.panel title="Stock Status Comparison" description="Relative item counts by current stock state">
-                            <x-analytics.horizontal-bars :items="$inventoryStatusBars" value-key="value" label-key="label" />
-                        </x-analytics.panel>
+                        <x-analytics.panel title="Stock-Level Distribution" description="Current stock status across inventory records" :badge="$inventoryTotal . ' items'"><div class="analytics-status-overview"><div class="analytics-status-ring" style="--ring-active: {{ $inventoryHealthyAngle }}deg; --ring-maintenance: {{ $inventoryLowAngle }}deg;"><div><strong>{{ number_format($healthyPct) }}%</strong><span>well stocked</span></div></div><div class="analytics-status-legend"><div class="analytics-status-legend-row"><span><i class="analytics-status-dot green"></i>Well Stocked</span><strong>{{ $inventoryHealthy }} ({{ number_format($healthyPct) }}%)</strong></div><div class="analytics-status-legend-row"><span><i class="analytics-status-dot yellow"></i>Low Stock</span><strong>{{ $inventoryLow }} ({{ number_format($lowPct) }}%)</strong></div><div class="analytics-status-legend-row"><span><i class="analytics-status-dot red"></i>Out of Stock</span><strong>{{ $inventoryCritical }} ({{ number_format($criticalPct) }}%)</strong></div></div></div></x-analytics.panel>
+                        <x-analytics.panel title="Stock Status Comparison" description="Relative item counts by current stock state"><x-analytics.horizontal-bars :items="$inventoryStatusBars" value-key="value" label-key="label" /></x-analytics.panel>
                     </div>
-
                     <div class="analytics-domain-grid equal">
-                        <x-analytics.panel title="Restock Exposure" description="Items currently at or below the reorder threshold">
-                            <div class="analytics-record-list">
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-triangle-exclamation"></i></span><div class="analytics-record-copy"><strong>Items requiring stock attention</strong><span>Low-stock plus out-of-stock inventory records</span></div><span class="analytics-record-value">{{ $inventoryLow + $inventoryCritical }}</span></div>
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-ban"></i></span><div class="analytics-record-copy"><strong>Unavailable inventory records</strong><span>Items with no on-hand stock</span></div><span class="analytics-record-value">{{ $inventoryCritical }}</span></div>
-                            </div>
-                        </x-analytics.panel>
-
-                        <x-analytics.panel title="Inventory Interpretation" description="Snapshot derived from current warehouse stock fields">
-                            <div class="analytics-record-list">
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-database"></i></span><div class="analytics-record-copy"><strong>Source</strong><span>Inventory items, on-hand quantity, and reorder level</span></div><span class="analytics-record-value">Current snapshot</span></div>
-                                <div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-scale-balanced"></i></span><div class="analytics-record-copy"><strong>Category totals reconcile</strong><span>Well Stocked + Low Stock + Out of Stock</span></div><span class="analytics-record-value">{{ $inventoryHealthy + $inventoryLow + $inventoryCritical }} / {{ $inventoryTotal }}</span></div>
-                            </div>
-                        </x-analytics.panel>
+                        <x-analytics.panel title="Restock Exposure" description="Items currently at or below the reorder threshold"><div class="analytics-record-list"><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-triangle-exclamation"></i></span><div class="analytics-record-copy"><strong>Items requiring stock attention</strong><span>Low-stock plus out-of-stock inventory records</span></div><span class="analytics-record-value">{{ $inventoryLow + $inventoryCritical }}</span></div><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-ban"></i></span><div class="analytics-record-copy"><strong>Unavailable inventory records</strong><span>Items with no on-hand stock</span></div><span class="analytics-record-value">{{ $inventoryCritical }}</span></div></div></x-analytics.panel>
+                        <x-analytics.panel title="Inventory Interpretation" description="Snapshot derived from current warehouse stock fields"><div class="analytics-record-list"><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-database"></i></span><div class="analytics-record-copy"><strong>Source</strong><span>Inventory items, on-hand quantity, and reorder level</span></div><span class="analytics-record-value">Current snapshot</span></div><div class="analytics-record-row"><span class="analytics-record-icon"><i class="fa-solid fa-scale-balanced"></i></span><div class="analytics-record-copy"><strong>Category totals reconcile</strong><span>Well Stocked + Low Stock + Out of Stock</span></div><span class="analytics-record-value">{{ $inventoryHealthy + $inventoryLow + $inventoryCritical }} / {{ $inventoryTotal }}</span></div></div></x-analytics.panel>
                     </div>
                 </section>
 
             @else
-                <section class="analytics-kpi-strip descriptive-kpi-row">
-                    <x-analytics.kpi label="Distance Traveled" :value="number_format($totalDistance, 1) . ' km'" small="Total distance" icon="fa-location-dot" />
-                    <x-analytics.kpi label="Average Speed" :value="number_format($averageSpeed, 1) . ' km/h'" small="Average while in motion" icon="fa-gauge-high" tone="green" />
-                    <x-analytics.kpi label="Idle Time" :value="number_format($totalIdleMinutes / 60, 1) . ' hrs'" small="Total recorded idle time" icon="fa-hourglass-half" tone="yellow" />
-                    <x-analytics.kpi label="Avg. Trip Duration" :value="number_format($averageTripDuration, 1) . ' min'" small="Average per trip" icon="fa-clock" tone="purple" />
-                    <x-analytics.kpi label="Trips Processed" :value="$tripCount" small="Total trips recorded" icon="fa-route" />
-                    <x-analytics.kpi label="Buses Active" :value="$activeBuses" :small="'Out of ' . $totalBuses . ' buses'" icon="fa-bus" tone="green" />
+                <section class="descriptive-overview-kpis">
+                    @php
+                        $overviewKpis = [
+                            ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total distance', 'fa-location-dot', 'blue', $comparison['distance']],
+                            ['Average Speed', number_format($averageSpeed, 1) . ' km/h', 'Average while in motion', 'fa-gauge-high', 'green', $comparison['speed']],
+                            ['Idle Time', number_format($totalIdleMinutes / 60, 1) . ' hrs', 'Total recorded idle time', 'fa-hourglass-half', 'yellow', $comparison['idle']],
+                            ['Avg. Trip Duration', number_format($averageTripDuration, 1) . ' min', 'Average per trip', 'fa-clock', 'purple', $comparison['duration']],
+                            ['Trips Processed', number_format($tripCount), 'Total trips recorded', 'fa-route', 'blue', $comparison['trips']],
+                            ['Buses Active', number_format($activeBuses), 'Out of ' . number_format($totalBuses) . ' buses', 'fa-bus', 'green', null],
+                        ];
+                    @endphp
+                    @foreach($overviewKpis as [$label, $value, $small, $icon, $tone, $delta])
+                        <article class="descriptive-overview-kpi">
+                            <span class="descriptive-overview-kpi-icon {{ $tone }}"><i class="fa-solid {{ $icon }}"></i></span>
+                            <div><span>{{ $label }}</span><strong>{{ $value }}</strong><small>{{ $small }}</small>@if($label === 'Buses Active')<em class="positive">{{ number_format($fleetAvailability, 1) }}% utilization</em>@else<em class="{{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">{{ $deltaText($delta) }} <small>{{ $comparison['label'] }}</small></em>@endif</div>
+                        </article>
+                    @endforeach
                 </section>
 
-                <section class="analytics-main-grid analytics-main-grid-balanced descriptive-main-grid">
-                    <article class="analytics-card analytics-reference-chart-card descriptive-trip-card">
-                        <x-analytics.card-header title="Processed Trip Activity" description="Trip-record volume across the selected period." />
-                        <div class="trip-canvas-chart" data-trip-points='@json($tripChartData)'>
-                            <canvas class="trip-canvas" role="img" aria-label="Processed trip activity chart"></canvas>
-                            <div class="trip-canvas-tooltip" aria-hidden="true"><strong></strong><span><i></i> Trips Processed <b></b></span></div>
-                        </div>
+                <section class="descriptive-overview-main-grid">
+                    <article class="analytics-card analytics-reference-chart-card descriptive-trip-card descriptive-overview-trip-card">
+                        <div class="descriptive-overview-card-heading"><div><h3>Processed Trip Activity <i class="fa-regular fa-circle-info"></i></h3><p>Trip-record volume across the selected period.</p></div><span>{{ $periodLabel }}</span></div>
+                        <div class="trip-canvas-chart" data-trip-points='@json($tripChartData)'><canvas class="trip-canvas" role="img" aria-label="Processed trip activity chart"></canvas><div class="trip-canvas-tooltip" aria-hidden="true"><strong></strong><span><i></i> Trips Processed <b></b></span></div></div>
                         <div class="trip-canvas-legend"><span><i></i> Trips Processed</span>@if($hasPartialBucket)<span class="trip-canvas-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>@endif</div>
                     </article>
 
-                    <article class="analytics-card descriptive-availability-card">
-                        <x-analytics.card-header title="Fleet Availability" description="Current Bus Master List status." :badge="$totalBuses . ' buses'" />
-                        <div class="analytics-availability-layout">
-                            <div class="availability-score">
-                                <div class="fleet-css-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;">
-                                    <div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div>
-                                    <div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div>
-                                </div>
-                            </div>
-                            <div class="availability-breakdown">
-                                <div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div>
-                                <div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
-                                <div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div>
-                                <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
-                            </div>
-                        </div>
+                    <article class="analytics-card descriptive-availability-card descriptive-overview-fleet-card">
+                        <div class="descriptive-overview-card-heading"><div><h3>Fleet Availability <i class="fa-regular fa-circle-info"></i></h3><p>Current Bus Master List status.</p></div><span>{{ $totalBuses }} buses</span></div>
+                        <div class="analytics-availability-layout"><div class="availability-score"><div class="fleet-css-donut" data-default-value="{{ number_format($fleetAvailability, 1) }}%" data-default-label="Active" data-active="{{ number_format($activePct, 2, '.', '') }}" data-maintenance="{{ number_format($maintenancePct, 2, '.', '') }}" data-inactive="{{ number_format($inactivePct, 2, '.', '') }}" style="--fleet-active: {{ number_format($activePct, 2, '.', '') }}%; --fleet-maintenance-end: {{ number_format($maintenanceEndPct, 2, '.', '') }}%;"><div class="fleet-css-donut-center"><strong>{{ number_format($fleetAvailability, 1) }}%</strong><span>Active</span></div><div class="fleet-css-donut-tooltip" aria-hidden="true"><strong></strong><span></span></div></div></div><div class="availability-breakdown"><div class="availability-row" data-donut-index="0" data-label="Active" data-value="{{ $activeBuses }}" data-percentage="{{ number_format($activePct, 1, '.', '') }}"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }} <small>{{ number_format($activePct, 1) }}%</small></strong></div><div class="availability-row" data-donut-index="1" data-label="Under Maintenance" data-value="{{ $underMaintenance }}" data-percentage="{{ number_format($maintenancePct, 1, '.', '') }}"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }} <small>{{ number_format($maintenancePct, 1) }}%</small></strong></div><div class="availability-row" data-donut-index="2" data-label="Inactive" data-value="{{ $inactiveBuses }}" data-percentage="{{ number_format($inactivePct, 1, '.', '') }}"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }} <small>{{ number_format($inactivePct, 1) }}%</small></strong></div><div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div></div></div>
                     </article>
                 </section>
 
-                @if($domain === 'all')
-                    <section class="descriptive-bottom-grid">
-                        <article class="analytics-card ranking-card descriptive-ranking-card"><x-analytics.card-header title="Top Routes by Trips" :description="$periodLabel . ' · highest-volume routes'" /><div class="ranking-list refined-ranking-list">@forelse($routes as $route)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ $route->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No route records match the selected filters.</p>@endforelse</div></article>
-                        <article class="analytics-card ranking-card descriptive-ranking-card"><x-analytics.card-header title="Busiest Buses" :description="$periodLabel . ' · highest recorded trip activity'" /><div class="ranking-list refined-ranking-list">@forelse($busActivity as $bus)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ $bus->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $bus->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No bus activity matches the selected filters.</p>@endforelse</div></article>
-                        <div class="descriptive-summary-stack"><article class="analytics-card descriptive-summary-card"><x-analytics.card-header title="Fleet Status" description="Current Bus Master List operational status" :badge="$totalBuses . ' buses'" /><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }}</strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }}</strong></div></div></article><article class="analytics-card descriptive-summary-card"><x-analytics.card-header title="Inventory Overview" description="Current stock-level summary" :badge="$inventoryTotal . ' items'" /><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} ({{ number_format($healthyPct) }}%)</strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} ({{ number_format($lowPct) }}%)</strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} ({{ number_format($criticalPct) }}%)</strong></div></div></article></div>
-                    </section>
-                @else
-                    <section class="analytics-list-grid descriptive-ranking-only-grid"><article class="analytics-card ranking-card"><x-analytics.card-header title="Top Routes by Trips" :description="$periodLabel . ' · highest-volume routes'" /><div class="ranking-list refined-ranking-list">@forelse($routes as $route)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ $route->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}%</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No route records match the selected filters.</p>@endforelse</div></article><article class="analytics-card ranking-card"><x-analytics.card-header title="Busiest Buses" :description="$periodLabel . ' · highest recorded trip activity'" /><div class="ranking-list refined-ranking-list">@forelse($busActivity as $bus)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ $bus->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}%</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $bus->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No bus activity matches the selected filters.</p>@endforelse</div></article></section>
-                @endif
+                <section class="descriptive-overview-lower-grid">
+                    <article class="analytics-card ranking-card descriptive-ranking-card"><div class="descriptive-overview-card-heading"><div><h3>Top Routes by Trips <i class="fa-regular fa-circle-info"></i></h3><p>{{ $periodLabel }} · highest-volume routes</p></div></div><div class="ranking-list refined-ranking-list">@forelse($routes as $route)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ $route->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No route records match the selected filters.</p>@endforelse</div></article>
+                    <article class="analytics-card ranking-card descriptive-ranking-card"><div class="descriptive-overview-card-heading"><div><h3>Busiest Buses <i class="fa-regular fa-circle-info"></i></h3><p>{{ $periodLabel }} · highest recorded trip activity</p></div></div><div class="ranking-list refined-ranking-list">@forelse($busActivity as $bus)<div class="refined-ranking-row"><span class="refined-rank-number">{{ $loop->iteration }}</span><div class="refined-ranking-main"><div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ $bus->trips }} trips</span></div><div class="refined-ranking-meta"><span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span><span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span></div><div class="metric-bar refined-metric-bar"><span style="width: {{ $bus->progress }}%"></span></div></div></div>@empty<p class="ranking-empty">No bus activity matches the selected filters.</p>@endforelse</div></article>
+                    <div class="descriptive-overview-side-stack">
+                        <article class="analytics-card descriptive-summary-card"><div class="descriptive-overview-card-heading"><div><h3>Fleet Status <i class="fa-regular fa-circle-info"></i></h3><p>Current Bus Master List operational status</p></div><span>{{ $totalBuses }} buses</span></div><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }} <small>{{ number_format($activePct, 1) }}%</small></strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }} <small>{{ number_format($maintenancePct, 1) }}%</small></strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }} <small>{{ number_format($inactivePct, 1) }}%</small></strong></div></div></article>
+                        <article class="analytics-card descriptive-summary-card"><div class="descriptive-overview-card-heading"><div><h3>Inventory Overview <i class="fa-regular fa-circle-info"></i></h3><p>Current stock-level summary</p></div><span>{{ $inventoryTotal }} items</span></div><div class="availability-breakdown"><div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} <small>({{ number_format($healthyPct) }}%)</small></strong></div><div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} <small>({{ number_format($lowPct) }}%)</small></strong></div><div class="availability-row"><div><span class="availability-dot inactive"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} <small>({{ number_format($criticalPct) }}%)</small></strong></div></div></article>
+                    </div>
+                </section>
+
+                <section class="descriptive-overview-footer-grid">
+                    <article class="analytics-card descriptive-recent-alerts-card">
+                        <div class="descriptive-overview-card-heading"><div><h3>Recent Alerts <i class="fa-regular fa-circle-info"></i></h3></div><a href="{{ route('admin.notifications') }}">View all alerts <i class="fa-solid fa-arrow-right"></i></a></div>
+                        @if($recentAlerts->isNotEmpty())
+                            <div class="descriptive-alerts-table-wrap"><table class="descriptive-alerts-table"><thead><tr><th>Time</th><th>Type</th><th>Message</th><th>Entity</th><th>Status</th></tr></thead><tbody>@foreach($recentAlerts as $alert)<tr><td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td><td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td><td>{{ $alert['message'] }}</td><td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td><td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td></tr>@endforeach</tbody></table></div>
+                        @else
+                            <div class="analytics-compact-empty"><i class="fa-regular fa-bell-slash"></i><span>No recorded notifications are available.</span></div>
+                        @endif
+                    </article>
+
+                    <article class="analytics-card descriptive-quick-insights-card">
+                        <div class="descriptive-overview-card-heading"><div><h3>Quick Insights <i class="fa-regular fa-circle-info"></i></h3></div><span>{{ $comparison['label'] }}</span></div>
+                        <div class="descriptive-insight-grid">
+                            @php
+                                $insights = [
+                                    ['trips', 'More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips']],
+                                    ['idle', 'Idle time change', number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
+                                    ['distance', 'Distance traveled', number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
+                                ];
+                            @endphp
+                            @foreach($insights as [$key, $label, $detail, $icon, $delta])
+                                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}"><span><i class="fa-solid {{ $icon }}"></i></span><div><strong>{{ $deltaText($delta) }}</strong><b>{{ $label }}</b><small>{{ $detail }}</small></div></div>
+                            @endforeach
+                        </div>
+                    </article>
+                </section>
             @endif
         </main>
     </div>
