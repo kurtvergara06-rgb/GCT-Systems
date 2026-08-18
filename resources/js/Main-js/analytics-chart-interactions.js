@@ -117,8 +117,79 @@ const bindFuelHoverInteractions = (page) => {
     });
 };
 
+const bindSharedLineChart = (chart) => {
+    if (!chart || chart.dataset.lineHoverBound === 'true') {
+        return;
+    }
+
+    const svg = chart.querySelector('svg');
+    const points = Array.from(chart.querySelectorAll('.analytics-chart-point'));
+    const crosshair = chart.querySelector('.analytics-chart-crosshair');
+    const tooltip = chart.querySelector('.analytics-chart-tooltip');
+    const tooltipTitle = tooltip?.querySelector('strong');
+    const tooltipValue = tooltip?.querySelector('span');
+
+    if (!svg || !points.length || !tooltip) {
+        return;
+    }
+
+    chart.dataset.lineHoverBound = 'true';
+
+    const showPoint = (point) => {
+        const x = Number(point.dataset.chartX || 0);
+        const y = Number(point.dataset.chartY || 0);
+        const svgRect = svg.getBoundingClientRect();
+        const scaleX = svgRect.width / 720;
+        const scaleY = svgRect.height / 224;
+        const localX = x * scaleX;
+        const localY = y * scaleY;
+
+        points.forEach((item) => item.classList.toggle('is-active', item === point));
+
+        if (crosshair) {
+            crosshair.hidden = false;
+            crosshair.setAttribute('x1', String(x));
+            crosshair.setAttribute('x2', String(x));
+        }
+
+        if (tooltipTitle) tooltipTitle.textContent = point.dataset.chartLabel || 'Recorded value';
+        if (tooltipValue) tooltipValue.textContent = point.dataset.chartValue || '';
+
+        const tooltipHalfWidth = Math.max(70, tooltip.offsetWidth / 2);
+        tooltip.style.left = `${Math.max(tooltipHalfWidth + 6, Math.min(chart.clientWidth - tooltipHalfWidth - 6, localX))}px`;
+        tooltip.style.top = `${Math.max(18, localY - 8)}px`;
+        tooltip.hidden = false;
+    };
+
+    const clearPoint = () => {
+        points.forEach((point) => point.classList.remove('is-active'));
+        if (crosshair) crosshair.hidden = true;
+        tooltip.hidden = true;
+    };
+
+    points.forEach((point) => {
+        point.addEventListener('pointerenter', () => showPoint(point));
+        point.addEventListener('focus', () => showPoint(point));
+        point.addEventListener('pointerleave', clearPoint);
+        point.addEventListener('blur', clearPoint);
+    });
+
+    svg.addEventListener('pointermove', (event) => {
+        const rect = svg.getBoundingClientRect();
+        const viewX = ((event.clientX - rect.left) / Math.max(1, rect.width)) * 720;
+        const nearest = points.reduce((best, point) => {
+            const distance = Math.abs(Number(point.dataset.chartX || 0) - viewX);
+            return distance < best.distance ? { point, distance } : best;
+        }, { point: points[0], distance: Number.POSITIVE_INFINITY }).point;
+        showPoint(nearest);
+    });
+
+    svg.addEventListener('pointerleave', clearPoint);
+};
+
 const initializeAnalyticsPage = (page) => {
     if (page.dataset.analyticsMotionInitialized === 'true') {
+        page.querySelectorAll('[data-analytics-chart]').forEach(bindSharedLineChart);
         return;
     }
 
@@ -131,6 +202,8 @@ const initializeAnalyticsPage = (page) => {
     if (isFuelPage) {
         bindFuelHoverInteractions(page);
     }
+
+    page.querySelectorAll('[data-analytics-chart]').forEach(bindSharedLineChart);
 
     if (!cards.length) {
         return;
