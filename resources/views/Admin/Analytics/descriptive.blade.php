@@ -147,7 +147,9 @@
                                             <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
                                             <tbody>
                                                 @foreach($fuelSummaries as $row)
-                                                    @php($fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status))
+                                                    @php
+                                                        $fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status);
+                                                    @endphp
                                                     <tr data-fuel-bus="{{ strtolower($row->bus_no) }}">
                                                         <td><strong>{{ $row->bus_no }}</strong></td>
                                                         <td>{{ $row->entries }}</td>
