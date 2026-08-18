@@ -2,27 +2,79 @@
 
 @php
     $rows = collect($items)->values();
-    $max = max(1, (float) ($rows->max(fn ($row) => (float) data_get($row, $valueKey, 0)) ?? 0));
+    $rawMax = max(0, (float) ($rows->max(fn ($row) => (float) data_get($row, $valueKey, 0)) ?? 0));
+
+    if ($rawMax <= 0) {
+        $axisMax = 1.0;
+    } else {
+        $magnitude = pow(10, floor(log10($rawMax)));
+        $normalized = $rawMax / $magnitude;
+        $niceNormalized = match (true) {
+            $normalized <= 1 => 1,
+            $normalized <= 2 => 2,
+            $normalized <= 2.5 => 2.5,
+            $normalized <= 5 => 5,
+            default => 10,
+        };
+        $axisMax = $niceNormalized * $magnitude;
+        if ($axisMax <= $rawMax) {
+            $axisMax += $magnitude;
+        }
+    }
+
     $count = $rows->count();
-    $points = $rows->map(function ($row, $index) use ($count, $max, $valueKey, $labelKey, $partialLast) {
-        $x = $count > 1 ? 72 + (($index / ($count - 1)) * 576) : 360;
-        $value = (float) data_get($row, $valueKey, 0);
+    $plotLeft = 72.0;
+    $plotRight = 648.0;
+    $plotTop = 42.0;
+    $plotBottom = 182.0;
+    $plotWidth = $plotRight - $plotLeft;
+    $plotHeight = $plotBottom - $plotTop;
+
+    $points = $rows->map(function ($row, $index) use ($count, $axisMax, $valueKey, $labelKey, $partialLast, $plotLeft, $plotWidth, $plotTop, $plotHeight) {
+        $x = $count > 1 ? $plotLeft + (($index / ($count - 1)) * $plotWidth) : $plotLeft + ($plotWidth / 2);
+        $value = max(0, (float) data_get($row, $valueKey, 0));
+        $y = $plotTop + $plotHeight - (($value / max(1, $axisMax)) * $plotHeight);
+
         return [
             'x' => round($x, 1),
-            'y' => round(184 - (($value / $max) * 132), 1),
+            'y' => round($y, 1),
             'value' => $value,
             'label' => (string) data_get($row, $labelKey, ''),
             'partial' => $partialLast && $index === $count - 1,
         ];
     });
+
     $completed = $points->reject(fn ($point) => $point['partial'])->values();
-    $polyline = $completed->map(fn ($point) => $point['x'] . ',' . $point['y'])->implode(' ');
-    $area = $completed->count() > 1 ? $polyline . ' ' . $completed->last()['x'] . ',184 ' . $completed->first()['x'] . ',184' : '';
-    $gridRows = collect([0, 1, 2, 3, 4])->map(function ($index) use ($max) {
+    $smoothPath = '';
+
+    if ($completed->isNotEmpty()) {
+        $first = $completed->first();
+        $smoothPath = 'M ' . $first['x'] . ' ' . $first['y'];
+
+        for ($index = 0; $index < $completed->count() - 1; $index++) {
+            $p0 = $completed->get(max(0, $index - 1));
+            $p1 = $completed->get($index);
+            $p2 = $completed->get($index + 1);
+            $p3 = $completed->get(min($completed->count() - 1, $index + 2));
+
+            $cp1x = $p1['x'] + (($p2['x'] - $p0['x']) / 6);
+            $cp1y = $p1['y'] + (($p2['y'] - $p0['y']) / 6);
+            $cp2x = $p2['x'] - (($p3['x'] - $p1['x']) / 6);
+            $cp2y = $p2['y'] - (($p3['y'] - $p1['y']) / 6);
+
+            $smoothPath .= sprintf(' C %.1f %.1f, %.1f %.1f, %.1f %.1f', $cp1x, $cp1y, $cp2x, $cp2y, $p2['x'], $p2['y']);
+        }
+    }
+
+    $areaPath = $completed->count() > 1
+        ? $smoothPath . ' L ' . $completed->last()['x'] . ' ' . $plotBottom . ' L ' . $completed->first()['x'] . ' ' . $plotBottom . ' Z'
+        : '';
+
+    $gridRows = collect([0, 1, 2, 3, 4])->map(function ($index) use ($axisMax, $plotTop, $plotHeight) {
         $ratio = $index / 4;
         return [
-            'y' => round(52 + (132 * $ratio), 1),
-            'value' => $max * (1 - $ratio),
+            'y' => round($plotTop + ($plotHeight * $ratio), 1),
+            'value' => $axisMax * (1 - $ratio),
         ];
     });
 @endphp
@@ -34,21 +86,29 @@
         <svg viewBox="0 0 720 224" preserveAspectRatio="none" role="img">
             @foreach($gridRows as $grid)
                 <line x1="72" y1="{{ $grid['y'] }}" x2="648" y2="{{ $grid['y'] }}" class="analytics-chart-grid-line" stroke-dasharray="4 6" />
-                <text x="60" y="{{ $grid['y'] + 3 }}" text-anchor="end" class="analytics-chart-y-label">{{ number_format($grid['value'], $grid['value'] >= 100 ? 0 : 1) }}{{ $suffix }}</text>
+                <text x="58" y="{{ $grid['y'] + 3 }}" text-anchor="end" class="analytics-chart-label">{{ number_format($grid['value'], $grid['value'] >= 100 ? 0 : 1) }}{{ $suffix }}</text>
             @endforeach
-            @if($area !== '')<polygon points="{{ $area }}" class="analytics-chart-area" />@endif
-            @if($completed->count() > 1)<polyline points="{{ $polyline }}" class="analytics-chart-line" />@endif
-            <line x1="72" y1="52" x2="72" y2="184" class="analytics-chart-crosshair" hidden />
+
+            @if($areaPath !== '')
+                <path d="{{ $areaPath }}" class="analytics-chart-area" />
+            @endif
+
+            @if($completed->count() > 1)
+                <path d="{{ $smoothPath }}" class="analytics-chart-line" />
+            @endif
+
+            <line x1="72" y1="42" x2="72" y2="182" class="analytics-chart-crosshair" hidden />
+
             @foreach($points as $point)
                 <g class="analytics-chart-point{{ $point['partial'] ? ' is-partial' : '' }}" data-chart-label="{{ $point['label'] }}" data-chart-value="{{ number_format($point['value'], 1) }}{{ $suffix }}" data-chart-x="{{ $point['x'] }}" data-chart-y="{{ $point['y'] }}" tabindex="0">
-                    <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="5" />
-                    @if($count <= 4)
-                        <text x="{{ $point['x'] }}" y="{{ max(24, $point['y'] - 12) }}" text-anchor="middle" class="analytics-chart-value">{{ number_format($point['value'], $point['value'] == round($point['value']) ? 0 : 1) }}</text>
-                    @endif
-                    <text x="{{ $point['x'] }}" y="214" text-anchor="middle" class="analytics-chart-label">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>
+                    <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="4.5" />
+                    <text x="{{ $point['x'] }}" y="212" text-anchor="middle" class="analytics-chart-label">{{ $point['label'] }}{{ $point['partial'] ? '*' : '' }}</text>
                 </g>
             @endforeach
         </svg>
         <div class="analytics-chart-tooltip" hidden><strong></strong><span></span></div>
+        @if($suffix === ' L')
+            <div class="trip-canvas-legend"><span><i></i> Fuel Used (L)</span></div>
+        @endif
     </div>
 @endif
