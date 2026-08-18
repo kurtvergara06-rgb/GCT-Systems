@@ -147,13 +147,16 @@
                                             <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
                                             <tbody>
                                                 @foreach($fuelSummaries as $row)
+                                                    @php
+                                                        $fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status);
+                                                    @endphp
                                                     <tr data-fuel-bus="{{ strtolower($row->bus_no) }}">
                                                         <td><strong>{{ $row->bus_no }}</strong></td>
                                                         <td>{{ $row->entries }}</td>
                                                         <td>{{ number_format($row->fuel_liters, 1) }} L</td>
                                                         <td>{{ number_format($row->distance_km, 1) }} km</td>
                                                         <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
-                                                        <td><span class="fuel-status-pill fuel-status-{{ str($row->status)->slug() }}">{{ $row->status }}</span></td>
+                                                        <td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -187,7 +190,7 @@
                             <article class="analytics-card fuel-side-card">
                                 <x-analytics.card-header title="Fuel Data Quality" :description="$periodLabel . ' · completeness of recorded fuel entries'" />
                                 <div class="fuel-quality-body">
-                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-check"></i></span>
+                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-halved"></i></span>
                                     <div class="fuel-quality-score"><strong>{{ number_format($fuelQualityPct, 1) }}%</strong><span>Complete records</span></div>
                                     <div class="fuel-quality-counts"><div><span class="availability-dot operational"></span><span>Complete</span><strong>{{ $validFuelRecords }}</strong></div><div><span class="availability-dot inactive"></span><span>Incomplete</span><strong>{{ $incompleteFuelRecords }}</strong></div></div>
                                 </div>
