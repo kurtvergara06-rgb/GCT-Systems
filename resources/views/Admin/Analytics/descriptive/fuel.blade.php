@@ -47,7 +47,7 @@
 
                 @if($fuelSummaries->isNotEmpty())
                     <div class="fuel-table-tools fuel-table-tools-reference">
-                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus or driver..." data-fuel-table-search></label>
+                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus or driver..." data-fuel-reference-search></label>
                         <div class="fuel-table-action-group">
                             <button type="button" class="fuel-table-action"><i class="fa-solid fa-table-columns"></i> Columns</button>
                             <button type="button" class="fuel-table-action" data-fuel-export><i class="fa-solid fa-download"></i> Export</button>
@@ -55,7 +55,7 @@
                     </div>
 
                     <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Fuel usage details table">
-                        <table class="analytics-fuel-table" data-fuel-details-table>
+                        <table class="analytics-fuel-table" data-fuel-reference-table>
                             <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used (L)</th><th>Distance (km)</th><th>Efficiency (km/L)</th><th>Driver</th><th>Last Report</th></tr></thead>
                             <tbody>
                                 @foreach($fuelSummaries as $row)
@@ -67,7 +67,7 @@
                                         $driverName = trim((string) ($latestFuelRecord?->driver_name ?? '')) ?: '—';
                                         $lastReport = $latestFuelRecord?->report_date?->format('M j, Y') ?? '—';
                                     @endphp
-                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}" data-fuel-search="{{ strtolower($row->bus_no . ' ' . $driverName) }}">
+                                    <tr data-fuel-search="{{ strtolower($row->bus_no . ' ' . $driverName) }}">
                                         <td><strong>{{ $row->bus_no }}</strong></td>
                                         <td>{{ $row->entries }}</td>
                                         <td>{{ number_format($row->fuel_liters, 1) }}</td>
@@ -82,7 +82,7 @@
                     </div>
 
                     <div class="fuel-table-footer" data-fuel-table-footer>
-                        <span data-fuel-table-meta>Showing 1 to {{ min(10, $fuelSummaries->count()) }} of {{ $fuelSummaries->count() }} entries</span>
+                        <span data-fuel-table-meta></span>
                         <div class="fuel-table-pagination">
                             <button type="button" class="fuel-page-arrow" data-fuel-page-prev aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
                             <div data-fuel-page-numbers></div>
@@ -148,3 +148,77 @@
         </aside>
     </div>
 </section>
+
+<style>
+.fuel-reference-kpis{gap:10px!important;margin-bottom:12px!important}.fuel-reference-kpis>.analytics-kpi{min-height:104px!important;padding:14px 16px!important;border-radius:13px!important}.fuel-reference-dashboard .fuel-dashboard-layout{grid-template-columns:minmax(0,1.78fr) minmax(330px,.92fr)!important;gap:12px!important}.fuel-reference-dashboard .fuel-dashboard-main-column,.fuel-reference-dashboard .fuel-dashboard-side-column{gap:10px!important}.fuel-reference-dashboard .fuel-usage-main-card{padding:16px 17px!important}.fuel-reference-dashboard .fuel-usage-chart-large{height:286px!important;min-height:286px!important}.fuel-card-header-with-action{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}.fuel-reference-select{height:34px;padding:0 30px 0 11px;border:1px solid #d9e3ef;border-radius:8px;background:#fff;color:#203553;font:600 10px Poppins,sans-serif;outline:0}.fuel-reference-dashboard .fuel-summary-strip{min-height:76px!important}.fuel-reference-dashboard .fuel-summary-cell{padding:10px 12px!important;gap:9px!important}.fuel-reference-dashboard .fuel-summary-icon{width:38px!important;height:38px!important;flex-basis:38px!important;font-size:15px!important}.fuel-reference-dashboard .fuel-summary-cell strong{font-size:16px!important}.fuel-reference-dashboard .fuel-details-card{padding:14px 15px 12px!important}.fuel-table-tools-reference{margin:0 0 9px!important}.fuel-table-action-group{display:flex;gap:7px}.fuel-table-action{height:34px;padding:0 11px;border:1px solid #d9e3ef;border-radius:8px;background:#fff;color:#1557d5;font:700 10px Poppins,sans-serif;cursor:pointer}.fuel-table-action i{margin-right:5px}.fuel-reference-dashboard .fuel-table-search{width:min(290px,100%)!important}.fuel-reference-dashboard .fuel-details-table-wrap{max-height:none!important;overflow-x:auto!important;overflow-y:hidden!important}.fuel-reference-dashboard .analytics-fuel-table{min-width:780px!important;font-size:9.8px!important}.fuel-reference-dashboard .analytics-fuel-table thead th{padding:7px 8px!important;font-size:8px!important}.fuel-reference-dashboard .analytics-fuel-table tbody td{padding:5px 8px!important;font-size:9.4px!important}.fuel-reference-dashboard .analytics-fuel-table td strong{font-size:9.8px!important}.fuel-reference-dashboard .fuel-efficiency-value{min-height:19px!important;padding:3px 7px!important;font-size:8.6px!important}.fuel-table-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;color:#718096;font-size:9.4px}.fuel-table-pagination{display:flex;align-items:center;gap:5px}.fuel-table-pagination [data-fuel-page-numbers]{display:flex;gap:4px}.fuel-page-arrow,.fuel-page-number{width:27px;height:27px;border:1px solid #d9e3ef;border-radius:6px;background:#fff;color:#526277;font:700 9.5px Poppins,sans-serif;cursor:pointer}.fuel-page-number.active{border-color:#2563eb;background:#2563eb;color:#fff}.fuel-page-arrow:disabled{opacity:.35;cursor:not-allowed}.fuel-page-size{height:27px;display:inline-flex;align-items:center;padding:0 9px;border:1px solid #d9e3ef;border-radius:6px;background:#fff;color:#526277}.fuel-reference-dashboard .fuel-side-card{padding:11px 12px!important;border-radius:12px!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header{margin-bottom:7px!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header h3{font-size:13px!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header p{font-size:8.7px!important}.fuel-reference-dashboard .fuel-fleet-card{min-height:150px!important}.fuel-reference-dashboard .fuel-availability-layout{grid-template-columns:108px minmax(0,1fr)!important}.fuel-reference-dashboard .fuel-fleet-donut{width:100px!important;height:100px!important}.fuel-reference-dashboard .fuel-fleet-donut::after{inset:17px!important}.fuel-reference-dashboard .fuel-quality-body{grid-template-columns:40px 86px minmax(0,1fr)!important;gap:9px!important}.fuel-reference-dashboard .fuel-quality-icon{width:40px!important;height:40px!important;font-size:16px!important}.fuel-reference-dashboard .fuel-quality-score strong,.fuel-reference-dashboard .fuel-review-summary strong{font-size:18px!important}.fuel-reference-dashboard .fuel-quality-counts>div,.fuel-reference-dashboard .fuel-review-lines>div{min-height:25px!important;padding:4px 7px!important;font-size:8.8px!important}.fuel-quality-total{grid-column:1/-1}.fuel-reference-dashboard .fuel-review-summary{margin-bottom:6px!important}.fuel-reference-dashboard .fuel-distribution-bar{height:8px!important}.fuel-reference-dashboard .fuel-distribution-bar .no-data{background:#94a3b8}.fuel-reference-dashboard .fuel-distribution-legend.five{grid-template-columns:repeat(5,1fr)!important}.fuel-reference-dashboard .fuel-distribution-legend strong{font-size:10px!important}.fuel-reference-dashboard .fuel-distribution-legend span{font-size:8px!important}.fuel-reference-dashboard .fuel-trend-card{min-height:215px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-line-chart{min-height:150px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-line-chart,.fuel-reference-dashboard .fuel-trend-card .line-chart,.fuel-reference-dashboard .fuel-trend-card svg{max-height:150px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-chart-label,.fuel-reference-dashboard .fuel-trend-card .analytics-chart-value,.fuel-reference-dashboard .fuel-trend-card .analytics-chart-y-label{font-size:9.5px!important}@media(max-width:1100px){.fuel-reference-dashboard .fuel-dashboard-layout{grid-template-columns:1fr!important}.fuel-reference-dashboard .fuel-dashboard-side-column{grid-template-columns:repeat(2,minmax(0,1fr))}.fuel-reference-dashboard .fuel-trend-card{grid-column:1/-1}}@media(max-width:760px){.fuel-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fuel-reference-dashboard .fuel-dashboard-side-column{grid-template-columns:1fr}.fuel-card-header-with-action{align-items:stretch!important;flex-direction:column}.fuel-table-tools-reference{align-items:stretch!important;flex-direction:column}.fuel-table-action-group{justify-content:flex-end}.fuel-table-footer{align-items:flex-start;flex-direction:column}}
+</style>
+
+<script>
+(() => {
+    const root = document.currentScript?.previousElementSibling?.previousElementSibling?.classList?.contains('fuel-reference-dashboard')
+        ? document.currentScript.previousElementSibling.previousElementSibling
+        : document.querySelector('.fuel-reference-dashboard');
+    if (!root || root.dataset.referenceBound === 'true') return;
+    root.dataset.referenceBound = 'true';
+
+    const table = root.querySelector('[data-fuel-reference-table]');
+    const search = root.querySelector('[data-fuel-reference-search]');
+    const meta = root.querySelector('[data-fuel-table-meta]');
+    const numbers = root.querySelector('[data-fuel-page-numbers]');
+    const prev = root.querySelector('[data-fuel-page-prev]');
+    const next = root.querySelector('[data-fuel-page-next]');
+    const exportButton = root.querySelector('[data-fuel-export]');
+    if (!table) return;
+
+    const allRows = Array.from(table.querySelectorAll('tbody tr'));
+    const pageSize = 10;
+    let page = 1;
+    let filtered = [...allRows];
+
+    const render = () => {
+        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        page = Math.min(page, totalPages);
+        const start = (page - 1) * pageSize;
+        const end = Math.min(start + pageSize, filtered.length);
+        allRows.forEach((row) => { row.hidden = true; });
+        filtered.slice(start, end).forEach((row) => { row.hidden = false; });
+        if (meta) meta.textContent = filtered.length ? `Showing ${start + 1} to ${end} of ${filtered.length} entries` : 'Showing 0 entries';
+        if (numbers) {
+            numbers.innerHTML = '';
+            for (let index = 1; index <= totalPages; index += 1) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `fuel-page-number${index === page ? ' active' : ''}`;
+                button.textContent = String(index);
+                button.addEventListener('click', () => { page = index; render(); });
+                numbers.appendChild(button);
+            }
+        }
+        if (prev) prev.disabled = page <= 1;
+        if (next) next.disabled = page >= totalPages;
+    };
+
+    search?.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        filtered = allRows.filter((row) => !query || String(row.dataset.fuelSearch || '').includes(query));
+        page = 1;
+        render();
+    });
+    prev?.addEventListener('click', () => { if (page > 1) { page -= 1; render(); } });
+    next?.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize)); if (page < totalPages) { page += 1; render(); } });
+
+    exportButton?.addEventListener('click', () => {
+        const rows = [Array.from(table.querySelectorAll('thead th')).map((cell) => cell.textContent.trim()), ...allRows.map((row) => Array.from(row.cells).map((cell) => cell.textContent.trim()))];
+        const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"','""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'fuel-usage-details.csv';
+        anchor.click();
+        URL.revokeObjectURL(url);
+    });
+
+    render();
+})();
+</script>
