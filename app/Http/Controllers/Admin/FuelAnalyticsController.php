@@ -169,10 +169,19 @@ class FuelAnalyticsController extends Controller
             '30-days' => 30,
             default => 7,
         };
-        $trendStart = $end->copy()->subDays($days - 1)->startOfDay();
+
+        $latestReportDate = FuelReport::query()
+            ->whereDate('report_date', '<=', $end->toDateString())
+            ->when($selectedBus !== 'all', fn ($query) => $query->where('bus_no', $selectedBus))
+            ->max('report_date');
+
+        $trendEnd = $latestReportDate
+            ? Carbon::parse($latestReportDate)->endOfDay()
+            : $end->copy();
+        $trendStart = $trendEnd->copy()->subDays($days - 1)->startOfDay();
 
         $records = FuelReport::query()
-            ->whereBetween('report_date', [$trendStart->toDateString(), $end->toDateString()])
+            ->whereBetween('report_date', [$trendStart->toDateString(), $trendEnd->toDateString()])
             ->when($selectedBus !== 'all', fn ($query) => $query->where('bus_no', $selectedBus))
             ->orderBy('report_date')
             ->get();
