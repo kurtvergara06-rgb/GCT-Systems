@@ -187,7 +187,7 @@
                             <article class="analytics-card fuel-side-card">
                                 <x-analytics.card-header title="Fuel Data Quality" :description="$periodLabel . ' · completeness of recorded fuel entries'" />
                                 <div class="fuel-quality-body">
-                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-check"></i></span>
+                                    <span class="fuel-quality-icon"><i class="fa-solid fa-shield-halved"></i></span>
                                     <div class="fuel-quality-score"><strong>{{ number_format($fuelQualityPct, 1) }}%</strong><span>Complete records</span></div>
                                     <div class="fuel-quality-counts"><div><span class="availability-dot operational"></span><span>Complete</span><strong>{{ $validFuelRecords }}</strong></div><div><span class="availability-dot inactive"></span><span>Incomplete</span><strong>{{ $incompleteFuelRecords }}</strong></div></div>
                                 </div>
