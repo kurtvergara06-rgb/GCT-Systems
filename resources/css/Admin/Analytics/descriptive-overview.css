@@ -232,3 +232,8 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* analytics-stage-hub.css resets KPI-strip margin later in the cascade; keep Descriptive spacing authoritative. */
+.descriptive-analytics-page.analytics-stage-page .analytics-kpi-strip {
+    margin-bottom: 12px;
+}
