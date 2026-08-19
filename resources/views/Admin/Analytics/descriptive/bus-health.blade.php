@@ -12,46 +12,43 @@
         ->take(5);
 @endphp
 
-<section class="bus-health-kpi-strip">
-    <article class="bus-health-kpi-card tone-green">
-        <span class="bus-health-kpi-icon"><i class="fa-solid fa-bus"></i></span>
-        <div>
-            <span>Active Buses</span>
-            <strong>{{ number_format($activeBuses) }}</strong>
-            <small>Available buses</small>
-            <em>{{ number_format($activePct, 1) }}% of total fleet</em>
-        </div>
-    </article>
-
-    <article class="bus-health-kpi-card tone-yellow">
-        <span class="bus-health-kpi-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
-        <div>
-            <span>Under Maintenance</span>
-            <strong>{{ number_format($underMaintenance) }}</strong>
-            <small>Current Bus Master List status</small>
-            <em>{{ number_format($maintenancePct, 1) }}% of total fleet</em>
-        </div>
-    </article>
-
-    <article class="bus-health-kpi-card tone-red">
-        <span class="bus-health-kpi-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
-        <div>
-            <span>Inactive Buses</span>
-            <strong>{{ number_format($inactiveBuses) }}</strong>
-            <small>Unavailable buses</small>
-            <em>{{ number_format($inactivePct, 1) }}% of total fleet</em>
-        </div>
-    </article>
-
-    <article class="bus-health-kpi-card tone-blue">
-        <span class="bus-health-kpi-icon"><i class="fa-solid fa-chart-pie"></i></span>
-        <div>
-            <span>Fleet Availability</span>
-            <strong>{{ number_format($fleetAvailability, 1) }}%</strong>
-            <small>Active share of Bus Master List</small>
-            <em>{{ number_format($activeBuses) }} of {{ number_format($totalBuses) }} buses active</em>
-        </div>
-    </article>
+<section class="analytics-kpi-strip analytics-kpi-strip-four">
+    <x-analytics.kpi
+        label="Active Buses"
+        :value="number_format($activeBuses)"
+        description="Available buses"
+        :status="number_format($activePct, 1) . '% of total fleet'"
+        status-tone="positive"
+        icon="fa-bus"
+        tone="green"
+    />
+    <x-analytics.kpi
+        label="Under Maintenance"
+        :value="number_format($underMaintenance)"
+        description="Current Bus Master List status"
+        :status="number_format($maintenancePct, 1) . '% of total fleet'"
+        status-tone="warning"
+        icon="fa-screwdriver-wrench"
+        tone="yellow"
+    />
+    <x-analytics.kpi
+        label="Inactive Buses"
+        :value="number_format($inactiveBuses)"
+        description="Unavailable buses"
+        :status="number_format($inactivePct, 1) . '% of total fleet'"
+        status-tone="negative"
+        icon="fa-circle-exclamation"
+        tone="red"
+    />
+    <x-analytics.kpi
+        label="Fleet Availability"
+        :value="number_format($fleetAvailability, 1) . '%'"
+        description="Active share of Bus Master List"
+        :status="number_format($activeBuses) . ' of ' . number_format($totalBuses) . ' buses active'"
+        status-tone="info"
+        icon="fa-chart-pie"
+        tone="blue"
+    />
 </section>
 
 <section class="bus-health-dashboard-grid">
