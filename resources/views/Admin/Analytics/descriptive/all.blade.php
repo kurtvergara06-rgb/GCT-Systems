@@ -225,19 +225,19 @@
 
         @php
             $insights = [
-                ['More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips']],
-                [($comparison['idle'] !== null && $comparison['idle'] <= 0 ? 'Less idle time' : 'Idle time change'), number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
-                [($comparison['distance'] !== null && $comparison['distance'] >= 0 ? 'More distance traveled' : 'Distance traveled'), number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
-                [($comparison['speed'] !== null && $comparison['speed'] >= 0 ? 'Better avg. speed' : 'Average speed change'), number_format($averageSpeed, 1) . ' km/h current average', 'fa-gauge-high', $comparison['speed']],
+                ['More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips'], 'green'],
+                [($comparison['idle'] !== null && $comparison['idle'] <= 0 ? 'Less idle time' : 'Idle time change'), number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle'], 'red'],
+                [($comparison['distance'] !== null && $comparison['distance'] >= 0 ? 'More distance traveled' : 'Distance traveled'), number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-location-dot', $comparison['distance'], 'green'],
+                [($comparison['speed'] !== null && $comparison['speed'] >= 0 ? 'Better avg. speed' : 'Average speed change'), number_format($averageSpeed, 1) . ' km/h current average', 'fa-gauge-high', $comparison['speed'], 'blue'],
             ];
         @endphp
 
         <div class="descriptive-insight-grid">
-            @foreach($insights as [$label, $detail, $icon, $delta])
-                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
+            @foreach($insights as [$label, $detail, $icon, $delta, $tone])
+                <div class="descriptive-insight-card tone-{{ $tone }} {{ $delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive') }}">
                     <span><i class="fa-solid {{ $icon }}"></i></span>
                     <div>
-                        <strong>{{ $deltaText($delta) }}</strong>
+                        <strong>{{ $delta === null ? 'No prior data' : $deltaText($delta) }}</strong>
                         <b>{{ $label }}</b>
                         <small>{{ $detail }}</small>
                     </div>
