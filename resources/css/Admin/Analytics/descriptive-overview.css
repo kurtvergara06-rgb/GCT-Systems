@@ -1,3 +1,123 @@
-/* Legacy Descriptive overview stylesheet retired.
-   Domain-specific styles now live under resources/css/Admin/Analytics/descriptive/.
-   This compatibility stub remains because analytics-stage-hub.css still imports the path. */
+/* Shared Descriptive Analytics component styling.
+   Domain-specific layout rules remain under resources/css/Admin/Analytics/descriptive/. */
+
+.descriptive-analytics-page .analytics-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-four,
+.descriptive-analytics-page .analytics-kpi-strip.analytics-domain-kpi-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.descriptive-analytics-page .analytics-kpi {
+    min-width: 0;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 11px;
+    align-items: center;
+    padding: 14px 15px;
+    border: 1px solid #dce5f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(15, 35, 71, .055);
+}
+
+.descriptive-analytics-page .analytics-kpi:last-child {
+    border-right: 1px solid #dce5f0;
+}
+
+.descriptive-analytics-page .analytics-kpi-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #edf4ff;
+    color: #1764e8;
+    font-size: 17px;
+}
+
+.descriptive-analytics-page .analytics-kpi-icon.green { background: #eaf8ef; color: #16a34a; }
+.descriptive-analytics-page .analytics-kpi-icon.yellow { background: #fff5dc; color: #d97706; }
+.descriptive-analytics-page .analytics-kpi-icon.red { background: #fff0f0; color: #dc2626; }
+.descriptive-analytics-page .analytics-kpi-icon.purple { background: #f2ebff; color: #7c3aed; }
+.descriptive-analytics-page .analytics-kpi-icon.blue { background: #edf4ff; color: #1764e8; }
+
+.descriptive-analytics-page .analytics-kpi-copy {
+    min-width: 0;
+}
+
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-label {
+    display: block;
+    color: #5f6f86;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-value {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    color: #0b2347;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-description,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status {
+    display: block;
+    margin-top: 4px;
+    color: #7b899c;
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status {
+    min-height: 12px;
+    color: #69788d;
+}
+
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.positive { color: #129447; }
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.negative { color: #dc2626; }
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.warning { color: #b86700; }
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.info { color: #235ec7; }
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.neutral { color: #7b899c; }
+
+@media (max-width: 1200px) {
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-four,
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-domain-kpi-four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .descriptive-analytics-page .analytics-kpi-strip,
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six,
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-four,
+    .descriptive-analytics-page .analytics-kpi-strip.analytics-domain-kpi-four {
+        grid-template-columns: 1fr;
+    }
+}
