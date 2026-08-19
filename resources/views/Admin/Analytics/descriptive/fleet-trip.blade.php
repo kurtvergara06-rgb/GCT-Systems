@@ -2,7 +2,7 @@
     @php
         $fleetTripKpis = [
             ['Trips Processed', number_format($tripCount), 'Total trips recorded', 'fa-route', 'blue', $comparison['trips']],
-            ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total recorded distance', 'fa-road', 'green', $comparison['distance']],
+            ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total distance', 'fa-road', 'green', $comparison['distance']],
             ['Average Speed', number_format($averageSpeed, 1) . ' km/h', 'Average while in motion', 'fa-gauge-high', 'purple', $comparison['speed']],
             ['Buses Active', number_format($activeBuses), 'Out of ' . number_format($totalBuses) . ' buses', 'fa-bus', 'green', null],
             ['Idle Time', number_format($totalIdleMinutes / 60, 1) . ' hrs', 'Total recorded idle time', 'fa-hourglass-half', 'yellow', $comparison['idle']],
@@ -13,15 +13,16 @@
     @foreach($fleetTripKpis as [$label, $value, $small, $icon, $tone, $delta])
         <article class="fleet-trip-kpi-card tone-{{ $tone }}">
             <span class="fleet-trip-kpi-icon"><i class="fa-solid {{ $icon }}"></i></span>
-            <div>
-                <span>{{ $label }}</span>
+            <div class="fleet-trip-kpi-content">
+                <span class="fleet-trip-kpi-label">{{ $label }}</span>
                 <strong>{{ $value }}</strong>
+                <small class="fleet-trip-kpi-description">{{ $small }}</small>
                 @if($label === 'Buses Active')
-                    <small>{{ number_format($fleetAvailability, 1) }}% utilization</small>
+                    <em class="fleet-trip-kpi-status positive">{{ number_format($fleetAvailability, 1) }}% utilization</em>
                 @else
-                    <small class="{{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
-                        {{ $deltaText($delta) }} {{ $comparison['label'] }}
-                    </small>
+                    <em class="fleet-trip-kpi-status {{ $delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive') }}">
+                        {{ $delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label'] }}
+                    </em>
                 @endif
             </div>
         </article>
