@@ -198,13 +198,12 @@
         @if($recentAlerts->isNotEmpty())
             <div class="descriptive-alerts-table-wrap">
                 <table class="descriptive-alerts-table">
-                    <thead><tr><th>Time</th><th>Type</th><th>Message</th><th>Entity</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Time</th><th>Type</th><th>Entity</th><th>Status</th></tr></thead>
                     <tbody>
                         @foreach($recentAlerts as $alert)
                             <tr>
                                 <td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td>
                                 <td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td>
-                                <td>{{ $alert['message'] }}</td>
                                 <td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td>
                                 <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td>
                             </tr>
@@ -217,27 +216,29 @@
         @endif
     </article>
 
-    <article class="analytics-card descriptive-quick-insights-card">
+    <article class="analytics-card descriptive-operational-attention-card">
         <div class="descriptive-overview-card-heading">
-            <div><h3>Quick Insights <i class="fa-regular fa-circle-info"></i></h3></div>
-            <span>{{ $comparison['label'] }}</span>
+            <div>
+                <h3>Action Summary <i class="fa-regular fa-circle-info"></i></h3>
+                <p>Items that may need review or follow-up</p>
+            </div>
         </div>
 
         @php
-            $insights = [
-                ['More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips']],
-                [($comparison['idle'] !== null && $comparison['idle'] <= 0 ? 'Less idle time' : 'Idle time change'), number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
-                [($comparison['distance'] !== null && $comparison['distance'] >= 0 ? 'More distance traveled' : 'Distance traveled'), number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
-                [($comparison['speed'] !== null && $comparison['speed'] >= 0 ? 'Better avg. speed' : 'Average speed change'), number_format($averageSpeed, 1) . ' km/h current average', 'fa-gauge-high', $comparison['speed']],
+            $attentionItems = [
+                ['Under Maintenance', $underMaintenance, 'Buses in maintenance', 'fa-screwdriver-wrench', 'orange'],
+                ['Inactive Buses', $inactiveBuses, 'Currently inactive', 'fa-bus-simple', 'gray'],
+                ['Low Stock Items', $inventoryLow, 'Reorder soon', 'fa-box-open', 'orange'],
+                ['Out of Stock', $inventoryCritical, 'Requires restocking', 'fa-triangle-exclamation', 'red'],
             ];
         @endphp
 
-        <div class="descriptive-insight-grid">
-            @foreach($insights as [$label, $detail, $icon, $delta])
-                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
+        <div class="descriptive-attention-grid">
+            @foreach($attentionItems as [$label, $value, $detail, $icon, $tone])
+                <div class="descriptive-attention-card tone-{{ $tone }}">
                     <span><i class="fa-solid {{ $icon }}"></i></span>
                     <div>
-                        <strong>{{ $deltaText($delta) }}</strong>
+                        <strong>{{ number_format($value) }}</strong>
                         <b>{{ $label }}</b>
                         <small>{{ $detail }}</small>
                     </div>
