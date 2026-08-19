@@ -19,8 +19,10 @@
                 <small>{{ $small }}</small>
                 @if($label === 'Buses Active')
                     <em class="positive">{{ number_format($fleetAvailability, 1) }}% <small>utilization</small></em>
+                @elseif($delta === null)
+                    <em class="neutral">No prior data</em>
                 @else
-                    <em class="{{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
+                    <em class="{{ $delta < 0 ? 'negative' : 'positive' }}">
                         {{ $deltaText($delta) }} <small>{{ $comparison['label'] }}</small>
                     </em>
                 @endif
