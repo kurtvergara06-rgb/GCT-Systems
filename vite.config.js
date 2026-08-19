@@ -95,6 +95,11 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/descriptive/fuel.css',
                 'resources/css/Admin/Analytics/descriptive/bus-health.css',
                 'resources/css/Admin/Analytics/descriptive/inventory.css',
+                'resources/css/Admin/Analytics/diagnostic/all.css',
+                'resources/css/Admin/Analytics/diagnostic/fleet-trip.css',
+                'resources/css/Admin/Analytics/diagnostic/fuel.css',
+                'resources/css/Admin/Analytics/diagnostic/bus-health.css',
+                'resources/css/Admin/Analytics/diagnostic/inventory.css',
 
                 // ======================================================
                 // MAINTENANCE

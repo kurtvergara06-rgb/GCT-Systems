@@ -69,7 +69,11 @@ class AnalyticsStageController extends Controller
             ->sort()
             ->values();
 
-        return view('Admin.Analytics.stage', [
+        $viewName = $stage === 'diagnostic'
+            ? 'Admin.Analytics.diagnostic.layout'
+            : 'Admin.Analytics.stage';
+
+        return view($viewName, [
             'stage' => $stage,
             'stageLabel' => self::STAGES[$stage],
             'domain' => $domain,

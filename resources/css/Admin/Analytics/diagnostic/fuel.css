@@ -1,0 +1,4 @@
+/* Diagnostic Analytics — Fuel domain only. */
+.diagnostic-analytics-page.diagnostic-domain-fuel {
+    isolation: isolate;
+}

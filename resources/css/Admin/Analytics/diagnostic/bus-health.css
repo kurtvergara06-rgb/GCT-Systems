@@ -1,0 +1,4 @@
+/* Diagnostic Analytics — Bus Health domain only. */
+.diagnostic-analytics-page.diagnostic-domain-bus-health {
+    isolation: isolate;
+}
