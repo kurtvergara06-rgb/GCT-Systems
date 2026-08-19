@@ -1,0 +1,4 @@
+/* Diagnostic Analytics — Fleet & Trip domain only. */
+.diagnostic-analytics-page.diagnostic-domain-fleet-trip {
+    isolation: isolate;
+}

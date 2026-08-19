@@ -1,0 +1,4 @@
+/* Diagnostic Analytics — All domain only. */
+.diagnostic-analytics-page.diagnostic-domain-all {
+    isolation: isolate;
+}

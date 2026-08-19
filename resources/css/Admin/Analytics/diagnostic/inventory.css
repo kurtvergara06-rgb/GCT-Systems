@@ -1,0 +1,4 @@
+/* Diagnostic Analytics — Inventory domain only. */
+.diagnostic-analytics-page.diagnostic-domain-inventory {
+    isolation: isolate;
+}
