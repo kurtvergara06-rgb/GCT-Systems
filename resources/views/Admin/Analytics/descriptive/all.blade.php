@@ -198,13 +198,12 @@
         @if($recentAlerts->isNotEmpty())
             <div class="descriptive-alerts-table-wrap">
                 <table class="descriptive-alerts-table">
-                    <thead><tr><th>Time</th><th>Type</th><th>Message</th><th>Entity</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Time</th><th>Type</th><th>Entity</th><th>Status</th></tr></thead>
                     <tbody>
                         @foreach($recentAlerts as $alert)
                             <tr>
                                 <td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td>
                                 <td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td>
-                                <td>{{ $alert['message'] }}</td>
                                 <td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td>
                                 <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td>
                             </tr>
