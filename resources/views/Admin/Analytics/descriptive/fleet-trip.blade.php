@@ -13,16 +13,16 @@
     @foreach($fleetTripKpis as [$label, $value, $small, $icon, $tone, $delta])
         <article class="fleet-trip-kpi-card tone-{{ $tone }}">
             <span class="fleet-trip-kpi-icon"><i class="fa-solid {{ $icon }}"></i></span>
-            <div class="fleet-trip-kpi-content">
-                <span class="fleet-trip-kpi-label">{{ $label }}</span>
+            <div>
+                <span>{{ $label }}</span>
                 <strong>{{ $value }}</strong>
-                <small class="fleet-trip-kpi-description">{{ $small }}</small>
+                <small>{{ $small }}</small>
                 @if($label === 'Buses Active')
-                    <em class="fleet-trip-kpi-status positive">{{ number_format($fleetAvailability, 1) }}% utilization</em>
+                    <small class="positive">{{ number_format($fleetAvailability, 1) }}% utilization</small>
                 @else
-                    <em class="fleet-trip-kpi-status {{ $delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive') }}">
+                    <small class="{{ $delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive') }}">
                         {{ $delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label'] }}
-                    </em>
+                    </small>
                 @endif
             </div>
         </article>
