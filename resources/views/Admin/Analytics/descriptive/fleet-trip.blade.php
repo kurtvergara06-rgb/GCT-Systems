@@ -229,14 +229,15 @@
             <article class="analytics-card fleet-trip-status-card">
                 <div class="fleet-trip-card-heading compact">
                     <div>
-                        <h3>Inventory Overview <i class="fa-regular fa-circle-info"></i></h3>
-                        <p>Stock level summary</p>
+                        <h3>Fleet Operations <i class="fa-regular fa-circle-info"></i></h3>
+                        <p>Current fleet operating snapshot</p>
                     </div>
                 </div>
                 <div class="availability-breakdown">
-                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} <small>({{ number_format($healthyPct) }}%)</small></strong></div>
-                    <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} <small>({{ number_format($lowPct) }}%)</small></strong></div>
-                    <div class="availability-row fleet-trip-out-of-stock"><div><span class="availability-dot critical"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} <small>({{ number_format($criticalPct) }}%)</small></strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active Buses</span></div><strong>{{ $activeBuses }}</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive Buses</span></div><strong>{{ $inactiveBuses }}</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Fleet Utilization</span></div><strong>{{ number_format($fleetAvailability, 1) }}%</strong></div>
                 </div>
             </article>
         </div>
