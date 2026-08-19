@@ -1,6 +1,32 @@
 /* Shared Descriptive Analytics component styling.
    Domain-specific layout rules remain under resources/css/Admin/Analytics/descriptive/. */
 
+/*
+ * Legacy shared analytics primitives still read the historical --ft-* tokens.
+ * Define them on the Descriptive page itself so non-Fleet domains no longer
+ * need the fleet-trip-page class just to inherit colors, borders, and shadows.
+ */
+.descriptive-analytics-page {
+    --ft-surface: #ffffff;
+    --ft-surface-soft: #f8fbff;
+    --ft-line: #dfe7f2;
+    --ft-ink: #0b1f3a;
+    --ft-subtle: #66758b;
+    --ft-accent: #1557d5;
+    --ft-accent-soft: #edf4ff;
+    --ft-blue: #0b40b5;
+    --ft-blue-dark: #07338f;
+    --ft-navy: #061f3d;
+    --ft-text: #0f172a;
+    --ft-muted: #64748b;
+    --ft-border: #dce5f2;
+    --ft-green: #16a34a;
+    --ft-yellow: #f59e0b;
+    --ft-red: #dc2626;
+    --ft-purple: #7c3aed;
+    --ft-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+}
+
 .descriptive-analytics-page .analytics-kpi-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
