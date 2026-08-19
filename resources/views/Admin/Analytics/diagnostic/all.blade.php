@@ -59,6 +59,65 @@
         ['label' => 'Bus Health', 'value' => (int) $healthDiag->total, 'detail' => $healthDiag->open_orders->count() . ' open job orders', 'icon' => 'fa-screwdriver-wrench'],
         ['label' => 'Inventory', 'value' => (int) $inventoryDiag->total, 'detail' => $stockAttentionCount . ' stock attention records', 'icon' => 'fa-boxes-stacked'],
     ]);
+
+    $impactRows = collect([
+        (object) [
+            'domain' => 'Fleet & Trip',
+            'delay' => (int) ($fleetDiag->delay_count ?? 0) + (int) ($fleetDiag->slow_movement_count ?? 0),
+            'idle' => (int) ($fleetDiag->high_idle_count ?? 0),
+            'fuel' => null,
+            'maintenance' => null,
+            'stock' => null,
+            'total' => (int) ($fleetDiag->review_count ?? 0),
+        ],
+        (object) [
+            'domain' => 'Fuel',
+            'delay' => null,
+            'idle' => $fuelDiag->high_idling_units->count(),
+            'fuel' => $fuelDiag->review_units->count(),
+            'maintenance' => null,
+            'stock' => null,
+            'total' => $fuelDiag->review_units->count(),
+        ],
+        (object) [
+            'domain' => 'Bus Health',
+            'delay' => null,
+            'idle' => null,
+            'fuel' => null,
+            'maintenance' => $healthDiag->attention_buses->count(),
+            'stock' => null,
+            'total' => $healthDiag->attention_buses->count(),
+        ],
+        (object) [
+            'domain' => 'Inventory',
+            'delay' => null,
+            'idle' => null,
+            'fuel' => null,
+            'maintenance' => null,
+            'stock' => $inventoryDiag->attention_rows->count(),
+            'total' => $inventoryDiag->attention_rows->count(),
+        ],
+    ]);
+    $impactKeys = ['delay', 'idle', 'fuel', 'maintenance', 'stock'];
+    $impactMax = max(1, (int) $impactRows->flatMap(fn ($row) => collect($impactKeys)->map(fn ($key) => $row->{$key}))->filter(fn ($value) => $value !== null)->max());
+    $heatClass = function ($value) use ($impactMax): string {
+        if ($value === null) return 'unsupported';
+        if ((int) $value <= 0) return 'heat-0';
+        $ratio = ((int) $value) / $impactMax;
+        if ($ratio >= .80) return 'heat-5';
+        if ($ratio >= .60) return 'heat-4';
+        if ($ratio >= .40) return 'heat-3';
+        if ($ratio >= .20) return 'heat-2';
+        return 'heat-1';
+    };
+    $impactTotals = (object) [
+        'delay' => $impactRows->sum(fn ($row) => (int) ($row->delay ?? 0)),
+        'idle' => $impactRows->sum(fn ($row) => (int) ($row->idle ?? 0)),
+        'fuel' => $impactRows->sum(fn ($row) => (int) ($row->fuel ?? 0)),
+        'maintenance' => $impactRows->sum(fn ($row) => (int) ($row->maintenance ?? 0)),
+        'stock' => $impactRows->sum(fn ($row) => (int) ($row->stock ?? 0)),
+        'total' => $impactRows->sum('total'),
+    ];
 @endphp
 
 <section class="diag-stack diag-all-stack">
@@ -113,40 +172,37 @@
         </article>
 
         <article class="diag-card diag-impact-card">
-            <div class="diag-card-head"><div><h3>Impact by Domain and Metric</h3><p>Supported concentration of recorded signals. “—” means no supported relationship is asserted.</p></div></div>
-            <div class="diag-matrix-wrap">
-                <table class="diag-matrix diag-matrix-wide">
-                    <thead><tr><th>Domain</th><th>Delay / Movement</th><th>Idle</th><th>Fuel Efficiency</th><th>Maintenance</th><th>Stock Risk</th><th>Overall</th></tr></thead>
+            <div class="diag-card-head"><div><h3>Impact by Domain and Metric</h3><p>Recorded signal concentration by supported operational relationship. “—” means no supported link is asserted.</p></div></div>
+            <div class="diag-heatmap-wrap">
+                <table class="diag-heatmap-table">
+                    <thead>
+                        <tr><th>Domain</th><th>Delay / Movement</th><th>Idle</th><th>Fuel Efficiency</th><th>Maintenance</th><th>Stock Risk</th><th>Total Impact</th></tr>
+                    </thead>
                     <tbody>
-                        <tr>
-                            <td>Fleet & Trip</td>
-                            <td class="{{ ($fleetDiag->delay_count ?? 0) > 0 ? 'high' : (($fleetDiag->slow_movement_count ?? 0) > 0 ? 'medium' : 'low') }}">{{ ($fleetDiag->delay_count ?? 0) > 0 ? 'High' : (($fleetDiag->slow_movement_count ?? 0) > 0 ? 'Medium' : 'Low') }}</td>
-                            <td class="{{ ($fleetDiag->high_idle_count ?? 0) > 0 ? 'medium' : 'low' }}">{{ ($fleetDiag->high_idle_count ?? 0) > 0 ? 'Medium' : 'Low' }}</td>
-                            <td>—</td><td>—</td><td>—</td>
-                            <td class="{{ ($fleetDiag->review_count ?? 0) > 0 ? 'high' : 'low' }}">{{ number_format((int) ($fleetDiag->review_count ?? 0)) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Fuel</td><td>—</td>
-                            <td class="{{ $fuelDiag->high_idling_units->isNotEmpty() ? 'high' : 'low' }}">{{ $fuelDiag->high_idling_units->isNotEmpty() ? 'High' : 'Low' }}</td>
-                            <td class="{{ $fuelDiag->review_units->isNotEmpty() ? 'high' : 'low' }}">{{ $fuelDiag->review_units->isNotEmpty() ? 'High' : 'Low' }}</td>
-                            <td>—</td><td>—</td>
-                            <td class="{{ $fuelDiag->review_units->isNotEmpty() ? 'medium' : 'low' }}">{{ number_format($fuelDiag->review_units->count()) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Bus Health</td><td>—</td><td>—</td><td>—</td>
-                            <td class="{{ $healthDiag->overdue_orders->isNotEmpty() ? 'high' : ($healthDiag->attention_buses->isNotEmpty() ? 'medium' : 'low') }}">{{ $healthDiag->overdue_orders->isNotEmpty() ? 'High' : ($healthDiag->attention_buses->isNotEmpty() ? 'Medium' : 'Low') }}</td>
-                            <td>—</td>
-                            <td class="{{ $healthDiag->attention_buses->isNotEmpty() ? 'medium' : 'low' }}">{{ number_format($healthDiag->attention_buses->count()) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Inventory</td><td>—</td><td>—</td><td>—</td><td>—</td>
-                            <td class="{{ $inventoryDiag->critical > 0 ? 'high' : ($inventoryDiag->low > 0 ? 'medium' : 'low') }}">{{ $inventoryDiag->critical > 0 ? 'High' : ($inventoryDiag->low > 0 ? 'Medium' : 'Low') }}</td>
-                            <td class="{{ $inventoryDiag->attention_rows->isNotEmpty() ? 'medium' : 'low' }}">{{ number_format($inventoryDiag->attention_rows->count()) }}</td>
-                        </tr>
+                        @foreach($impactRows as $row)
+                            <tr>
+                                <th scope="row">{{ $row->domain }}</th>
+                                @foreach($impactKeys as $key)
+                                    <td class="{{ $heatClass($row->{$key}) }}">{{ $row->{$key} === null ? '—' : number_format($row->{$key}) }}</td>
+                                @endforeach
+                                <td class="diag-heat-total">{{ number_format($row->total) }}</td>
+                            </tr>
+                        @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total Impact</th>
+                            <td>{{ number_format($impactTotals->delay) }}</td>
+                            <td>{{ number_format($impactTotals->idle) }}</td>
+                            <td>{{ number_format($impactTotals->fuel) }}</td>
+                            <td>{{ number_format($impactTotals->maintenance) }}</td>
+                            <td>{{ number_format($impactTotals->stock) }}</td>
+                            <td>{{ number_format($impactTotals->total) }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
-            <div class="diag-impact-legend"><span>Impact scale</span><i class="low"></i><small>Low</small><i class="medium"></i><small>Medium</small><i class="high"></i><small>High</small></div>
+            <div class="diag-heat-legend"><span>Impact Scale (Low → High)</span><div class="diag-heat-gradient" aria-hidden="true"></div><small>Cell intensity is normalized from the real supported signal counts shown above.</small></div>
         </article>
 
         <article class="diag-card diag-investigation-signals">
