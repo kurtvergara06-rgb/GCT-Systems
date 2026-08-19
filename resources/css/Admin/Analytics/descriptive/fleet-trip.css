@@ -1,17 +1,377 @@
 /* Descriptive Analytics — Fleet & Trip domain only. */
-.descriptive-domain-fleet-trip .fleet-trip-domain-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(320px, .9fr);
-    gap: 12px;
-    margin: 12px 0;
-    align-items: stretch;
+.descriptive-domain-fleet-trip {
+    --fleet-trip-line: #dce5f0;
+    --fleet-trip-line-soft: #e8eef6;
+    --fleet-trip-ink: #0b2347;
+    --fleet-trip-muted: #6d7d92;
+    --fleet-trip-blue: #1764e8;
+    --fleet-trip-shadow: 0 5px 18px rgba(15, 35, 71, .055);
 }
-.descriptive-domain-fleet-trip .fleet-trip-domain-grid > .analytics-card { min-width: 0; }
-.descriptive-domain-fleet-trip .fleet-trip-domain-grid .trip-canvas-chart { height: 250px; min-height: 250px; }
-.descriptive-domain-fleet-trip .fleet-trip-domain-grid .analytics-availability-layout { min-height: 240px; align-items: center; }
-.descriptive-domain-fleet-trip .fleet-trip-ranking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.descriptive-domain-fleet-trip .fleet-trip-ranking-grid > .analytics-card { min-width: 0; }
-@media (max-width: 980px) {
-    .descriptive-domain-fleet-trip .fleet-trip-domain-grid,
-    .descriptive-domain-fleet-trip .fleet-trip-ranking-grid { grid-template-columns: 1fr; }
+
+.descriptive-domain-fleet-trip .analytics-card {
+    border-color: var(--fleet-trip-line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--fleet-trip-shadow);
+}
+
+/* KPI strip */
+.descriptive-domain-fleet-trip .fleet-trip-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card {
+    min-width: 0;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 11px;
+    align-items: center;
+    padding: 14px 15px;
+    border: 1px solid var(--fleet-trip-line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--fleet-trip-shadow);
+}
+
+.descriptive-domain-fleet-trip .fleet-trip-kpi-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 17px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card.tone-blue .fleet-trip-kpi-icon { color: #1764e8; background: #edf4ff; }
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card.tone-green .fleet-trip-kpi-icon { color: #16a34a; background: #eaf8ef; }
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card.tone-purple .fleet-trip-kpi-icon { color: #7c3aed; background: #f2ebff; }
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card.tone-yellow .fleet-trip-kpi-icon { color: #d97706; background: #fff6df; }
+
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card > div { min-width: 0; }
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card > div > span {
+    display: block;
+    color: #5f6f86;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--fleet-trip-ink);
+    font-size: 20px;
+    line-height: 1.1;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card small {
+    display: block;
+    margin-top: 5px;
+    color: #7b899c;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card small.positive { color: #129447; }
+.descriptive-domain-fleet-trip .fleet-trip-kpi-card small.negative { color: #dc2626; }
+
+/* Main two-column layout */
+.descriptive-domain-fleet-trip .fleet-trip-dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(400px, .9fr);
+    gap: 12px;
+    align-items: start;
+}
+.descriptive-domain-fleet-trip .fleet-trip-left-column,
+.descriptive-domain-fleet-trip .fleet-trip-right-column {
+    min-width: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.descriptive-domain-fleet-trip .fleet-trip-card-heading {
+    min-height: 38px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-card-heading.compact { min-height: 32px; margin-bottom: 7px; }
+.descriptive-domain-fleet-trip .fleet-trip-card-heading h3 {
+    margin: 0;
+    color: var(--fleet-trip-ink);
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 900;
+}
+.descriptive-domain-fleet-trip .fleet-trip-card-heading h3 i {
+    margin-left: 3px;
+    color: #91a2b8;
+    font-size: 11px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-card-heading p {
+    margin: 4px 0 0;
+    color: var(--fleet-trip-muted);
+    font-size: 10px;
+    line-height: 1.35;
+}
+.descriptive-domain-fleet-trip .fleet-trip-card-heading > span {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: #f3f6fa;
+    color: #526177;
+    font-size: 9px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.descriptive-domain-fleet-trip .fleet-trip-card-heading > a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #1557d5;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Hero chart */
+.descriptive-domain-fleet-trip .fleet-trip-chart-card {
+    min-height: 360px;
+    padding: 16px 17px 14px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-chart-card .trip-canvas-chart {
+    height: 275px;
+    min-height: 275px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-chart-card .trip-canvas-legend { margin-top: 2px; }
+
+/* Availability */
+.descriptive-domain-fleet-trip .fleet-trip-availability-card { min-height: 260px; padding: 15px 16px; }
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .analytics-availability-layout {
+    min-height: 190px;
+    grid-template-columns: minmax(130px, .8fr) minmax(190px, 1.2fr);
+    gap: 16px;
+    align-items: center;
+}
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .fleet-css-donut { width: 130px; height: 130px; }
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .fleet-css-donut::after { inset: 21px; }
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .fleet-css-donut-center strong { font-size: 24px; }
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .availability-breakdown { gap: 6px; }
+.descriptive-domain-fleet-trip .fleet-trip-availability-card .availability-row {
+    min-height: 34px;
+    padding: 7px 9px;
+    border: 1px solid var(--fleet-trip-line-soft);
+    border-radius: 8px;
+    background: #fbfcfe;
+}
+
+/* Rankings */
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card {
+    min-height: 230px;
+    padding: 14px 15px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-ranking-row {
+    min-height: 36px;
+    padding: 5px 0;
+}
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-rank-number {
+    width: 25px;
+    height: 25px;
+    font-size: 9px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-ranking-title-row strong { font-size: 10.5px; }
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-ranking-title-row span { font-size: 9.5px; }
+.descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-metric-bar { height: 4px; margin-top: 5px; }
+
+/* Fleet + inventory compact pair */
+.descriptive-domain-fleet-trip .fleet-trip-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-status-card {
+    min-width: 0;
+    min-height: 195px;
+    padding: 13px 14px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-status-card .availability-breakdown { gap: 6px; }
+.descriptive-domain-fleet-trip .fleet-trip-status-card .availability-row {
+    min-height: 32px;
+    padding: 6px 8px;
+    border: 1px solid var(--fleet-trip-line-soft);
+    border-radius: 8px;
+    background: #fbfcfe;
+    font-size: 9.5px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-status-card .availability-row strong { font-size: 10px; }
+.descriptive-domain-fleet-trip .fleet-trip-out-of-stock { border-color: #fecaca !important; background: #fff7f7 !important; }
+.descriptive-domain-fleet-trip .fleet-trip-out-of-stock .availability-dot.critical { background: #ef4444; }
+.descriptive-domain-fleet-trip .fleet-trip-out-of-stock > div > span:last-child,
+.descriptive-domain-fleet-trip .fleet-trip-out-of-stock > strong { color: #b91c1c; }
+
+/* Recent alerts */
+.descriptive-domain-fleet-trip .fleet-trip-alerts-card {
+    min-height: 330px;
+    padding: 16px 17px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alerts-heading { margin-bottom: 8px; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-wrap { width: 100%; overflow-x: auto; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th {
+    padding: 8px 9px;
+    border-bottom: 1px solid #dce5f2;
+    background: #f5f8fc;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td {
+    height: 46px;
+    padding: 8px 9px;
+    border-bottom: 1px solid #e7edf5;
+    color: #0f172a;
+    font-size: 10.5px;
+    font-weight: 500;
+    vertical-align: middle;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table tbody tr:last-child td { border-bottom: 0; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th:nth-child(1),
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:nth-child(1) { width: 22%; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th:nth-child(2),
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:nth-child(2) { width: 16%; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th:nth-child(3),
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:nth-child(3) { width: 36%; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th:nth-child(4),
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:nth-child(4) { width: 14%; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table th:nth-child(5),
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:nth-child(5) { width: 12%; text-align: center; }
+.descriptive-domain-fleet-trip .fleet-trip-alerts-table td:first-child small {
+    display: block;
+    margin-top: 2px;
+    color: #64748b;
+    font-size: 9px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alert-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #263b57;
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alert-type i {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.critical i { background: #ef4444; }
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.warning i,
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.maintenance i { background: #f59e0b; }
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.success i { background: #16a34a; }
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.update i,
+.descriptive-domain-fleet-trip .fleet-trip-alert-type.info i { background: #2563eb; }
+.descriptive-domain-fleet-trip .fleet-trip-alert-state {
+    min-height: 23px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+.descriptive-domain-fleet-trip .fleet-trip-alert-state.open { color: #b45309; background: #fff1cc; border: 1px solid #f8d77a; }
+.descriptive-domain-fleet-trip .fleet-trip-alert-state.resolved { color: #16833f; background: #dcfce7; border: 1px solid #b7efca; }
+
+/* Action Summary */
+.descriptive-domain-fleet-trip .fleet-trip-action-summary { min-height: 205px; padding: 15px 16px; }
+.descriptive-domain-fleet-trip .fleet-trip-action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item {
+    min-width: 0;
+    min-height: 118px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--fleet-trip-line);
+    border-radius: 12px;
+    background: #fff;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item > span {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 15px;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item strong {
+    display: block;
+    color: var(--fleet-trip-ink);
+    font-size: 19px;
+    line-height: 1;
+    font-weight: 900;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item b {
+    display: block;
+    margin-top: 5px;
+    color: #263b57;
+    font-size: 9.5px;
+    line-height: 1.2;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item small {
+    display: block;
+    margin-top: 4px;
+    color: #728198;
+    font-size: 8.5px;
+    line-height: 1.25;
+}
+.descriptive-domain-fleet-trip .fleet-trip-action-item.tone-blue > span { color: #1764e8; background: #edf4ff; }
+.descriptive-domain-fleet-trip .fleet-trip-action-item.tone-yellow > span { color: #d97706; background: #fff6df; }
+.descriptive-domain-fleet-trip .fleet-trip-action-item.tone-green > span { color: #16a34a; background: #eaf8ef; }
+.descriptive-domain-fleet-trip .fleet-trip-action-item.tone-orange > span { color: #ea580c; background: #fff0e8; }
+
+@media (max-width: 1380px) {
+    .descriptive-domain-fleet-trip .fleet-trip-kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .descriptive-domain-fleet-trip .fleet-trip-dashboard { grid-template-columns: minmax(0, 1.35fr) minmax(360px, .9fr); }
+    .descriptive-domain-fleet-trip .fleet-trip-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1120px) {
+    .descriptive-domain-fleet-trip .fleet-trip-dashboard { grid-template-columns: 1fr; }
+    .descriptive-domain-fleet-trip .fleet-trip-right-column { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    .descriptive-domain-fleet-trip .fleet-trip-availability-card { grid-column: 1 / -1; }
+    .descriptive-domain-fleet-trip .fleet-trip-status-grid { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+    .descriptive-domain-fleet-trip .fleet-trip-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .descriptive-domain-fleet-trip .fleet-trip-right-column,
+    .descriptive-domain-fleet-trip .fleet-trip-status-grid,
+    .descriptive-domain-fleet-trip .fleet-trip-action-grid { grid-template-columns: 1fr; }
+    .descriptive-domain-fleet-trip .fleet-trip-chart-card .trip-canvas-chart { height: 235px; min-height: 235px; }
+    .descriptive-domain-fleet-trip .fleet-trip-availability-card .analytics-availability-layout { grid-template-columns: 1fr; }
+    .descriptive-domain-fleet-trip .fleet-trip-availability-card .availability-score { justify-self: center; }
 }
