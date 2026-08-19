@@ -1,4 +1,4 @@
-<section class="fleet-trip-kpi-strip">
+<section class="analytics-kpi-strip analytics-kpi-strip-six">
     @php
         $fleetTripKpis = [
             ['Trips Processed', number_format($tripCount), 'Total trips recorded', 'fa-route', 'blue', $comparison['trips']],
@@ -10,24 +10,25 @@
         ];
     @endphp
 
-    @foreach($fleetTripKpis as [$label, $value, $small, $icon, $tone, $delta])
-        <article class="fleet-trip-kpi-card tone-{{ $tone }}">
-            <span class="fleet-trip-kpi-icon"><i class="fa-solid {{ $icon }}"></i></span>
-            <div>
-                <span>{{ $label }}</span>
-                <strong>{{ $value }}</strong>
-                <small>{{ $small }}</small>
-                @if($label === 'Buses Active')
-                    <small class="positive">{{ number_format($fleetAvailability, 1) }}% utilization</small>
-                @elseif($delta === null)
-                    <small>No prior data</small>
-                @else
-                    <small class="{{ $delta < 0 ? 'negative' : 'positive' }}">
-                        {{ $deltaText($delta) }} {{ $comparison['label'] }}
-                    </small>
-                @endif
-            </div>
-        </article>
+    @foreach($fleetTripKpis as [$label, $value, $description, $icon, $tone, $delta])
+        @php
+            $isBusAvailability = $label === 'Buses Active';
+            $status = $isBusAvailability
+                ? number_format($fleetAvailability, 1) . '% utilization'
+                : ($delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label']);
+            $statusTone = $isBusAvailability
+                ? 'positive'
+                : ($delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive'));
+        @endphp
+        <x-analytics.kpi
+            :label="$label"
+            :value="$value"
+            :description="$description"
+            :status="$status"
+            :status-tone="$statusTone"
+            :icon="$icon"
+            :tone="$tone"
+        />
     @endforeach
 </section>
 
