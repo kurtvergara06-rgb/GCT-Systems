@@ -1,4 +1,4 @@
-<section class="descriptive-overview-kpis">
+<section class="analytics-kpi-strip analytics-kpi-strip-six">
     @php
         $overviewKpis = [
             ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total distance', 'fa-location-dot', 'blue', $comparison['distance']],
@@ -10,22 +10,25 @@
         ];
     @endphp
 
-    @foreach($overviewKpis as [$label, $value, $small, $icon, $tone, $delta])
-        <article class="descriptive-overview-kpi">
-            <span class="descriptive-overview-kpi-icon {{ $tone }}"><i class="fa-solid {{ $icon }}"></i></span>
-            <div>
-                <span>{{ $label }}</span>
-                <strong>{{ $value }}</strong>
-                <small>{{ $small }}</small>
-                @if($label === 'Buses Active')
-                    <em class="positive">{{ number_format($fleetAvailability, 1) }}% <small>utilization</small></em>
-                @else
-                    <em class="{{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
-                        {{ $deltaText($delta) }} <small>{{ $comparison['label'] }}</small>
-                    </em>
-                @endif
-            </div>
-        </article>
+    @foreach($overviewKpis as [$label, $value, $description, $icon, $tone, $delta])
+        @php
+            $isBusAvailability = $label === 'Buses Active';
+            $status = $isBusAvailability
+                ? number_format($fleetAvailability, 1) . '% utilization'
+                : ($delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label']);
+            $statusTone = $isBusAvailability
+                ? 'positive'
+                : ($delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive'));
+        @endphp
+        <x-analytics.kpi
+            :label="$label"
+            :value="$value"
+            :description="$description"
+            :status="$status"
+            :status-tone="$statusTone"
+            :icon="$icon"
+            :tone="$tone"
+        />
     @endforeach
 </section>
 
