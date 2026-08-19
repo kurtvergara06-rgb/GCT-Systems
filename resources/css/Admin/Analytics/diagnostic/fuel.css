@@ -1,4 +1,13 @@
-/* Diagnostic Analytics — Fuel domain only. */
-.diagnostic-analytics-page.diagnostic-domain-fuel {
-    isolation: isolate;
-}
+@import './all.css';
+
+.diagnostic-domain-fuel .fuel-main-grid { display:grid; grid-template-columns:.9fr 1.45fr 1fr; gap:12px; }
+.diagnostic-domain-fuel .fuel-secondary-grid { display:grid; grid-template-columns:1.25fr .9fr 1fr; gap:12px; }
+.diagnostic-domain-fuel .fuel-matrix { position:relative; }
+.diagnostic-domain-fuel .fuel-matrix-center { margin:16px auto; max-width:330px; padding:16px; border:1px solid #9fc5ff; border-radius:12px; background:#f6faff; text-align:center; }
+.diagnostic-domain-fuel .fuel-matrix-center strong { display:block; font-size:22px; color:#12335d; }
+.diagnostic-domain-fuel .fuel-matrix-factors { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.diagnostic-domain-fuel .fuel-factor { padding:12px; border:1px solid #e3eaf3; border-radius:10px; background:#fbfdff; }
+.diagnostic-domain-fuel .fuel-factor strong { display:block; font-size:11px; color:#213650; }
+.diagnostic-domain-fuel .fuel-factor span { display:block; margin-top:4px; font-size:9.5px; color:#73849c; }
+@media(max-width:1180px){.diagnostic-domain-fuel .fuel-main-grid,.diagnostic-domain-fuel .fuel-secondary-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.diagnostic-domain-fuel .fuel-main-grid,.diagnostic-domain-fuel .fuel-secondary-grid,.diagnostic-domain-fuel .fuel-matrix-factors{grid-template-columns:1fr;}}

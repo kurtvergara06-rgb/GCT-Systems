@@ -1,4 +1,10 @@
-/* Diagnostic Analytics — Inventory domain only. */
-.diagnostic-analytics-page.diagnostic-domain-inventory {
-    isolation: isolate;
-}
+@import './all.css';
+
+.diagnostic-domain-inventory .inventory-main-grid { display:grid; grid-template-columns:1fr 1fr 1.35fr; gap:12px; }
+.diagnostic-domain-inventory .inventory-secondary-grid { display:grid; grid-template-columns:1fr 1fr 1.35fr; gap:12px; }
+.diagnostic-domain-inventory .inventory-health-donut { --p1: calc(var(--healthy) * 1%); --p2: calc((var(--healthy) + var(--low)) * 1%); }
+.diagnostic-domain-inventory .inventory-category-row { display:grid; grid-template-columns:minmax(100px,1fr) auto auto auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #edf1f6; font-size:10px; }
+.diagnostic-domain-inventory .inventory-category-row:last-child{border-bottom:0;}
+.diagnostic-domain-inventory .inventory-category-row strong{color:#253852;font-size:10.5px;}
+@media(max-width:1180px){.diagnostic-domain-inventory .inventory-main-grid,.diagnostic-domain-inventory .inventory-secondary-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.diagnostic-domain-inventory .inventory-main-grid,.diagnostic-domain-inventory .inventory-secondary-grid{grid-template-columns:1fr;}}

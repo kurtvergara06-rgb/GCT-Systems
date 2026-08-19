@@ -1,4 +1,10 @@
-/* Diagnostic Analytics — Bus Health domain only. */
-.diagnostic-analytics-page.diagnostic-domain-bus-health {
-    isolation: isolate;
-}
+@import './all.css';
+
+.diagnostic-domain-bus-health .health-overview-grid { display:grid; grid-template-columns:.9fr 1.1fr 1.25fr; gap:12px; }
+.diagnostic-domain-bus-health .health-secondary-grid { display:grid; grid-template-columns:.9fr .95fr 1fr .8fr .9fr; gap:12px; }
+.diagnostic-domain-bus-health .health-status-list { display:grid; gap:8px; }
+.diagnostic-domain-bus-health .health-status-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #edf1f6; font-size:10.5px; }
+.diagnostic-domain-bus-health .health-status-row:last-child{border-bottom:0;}
+.diagnostic-domain-bus-health .health-status-row strong{font-size:11px;color:#243852;}
+@media(max-width:1250px){.diagnostic-domain-bus-health .health-secondary-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.diagnostic-domain-bus-health .health-overview-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.diagnostic-domain-bus-health .health-secondary-grid,.diagnostic-domain-bus-health .health-overview-grid{grid-template-columns:1fr;}}
