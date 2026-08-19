@@ -236,3 +236,49 @@
     .diagnostic-domain-all .diag-impact-card,
     .diagnostic-domain-all .diag-coverage-card { grid-column: auto; }
 }
+
+/* All-domain readability pass: keep the layout, increase text legibility. */
+.diagnostic-domain-all .diag-kpis-six .diag-kpi { min-height: 132px; }
+.diagnostic-domain-all .diag-kpis-six .diag-kpi-label { font-size: 13px; line-height: 1.25; }
+.diagnostic-domain-all .diag-kpis-six .diag-kpi-value { font-size: 29px; }
+.diagnostic-domain-all .diag-kpis-six .diag-kpi small { font-size: 12px; line-height: 1.45; }
+
+.diagnostic-domain-all .diag-card-head h3 { font-size: 17px; }
+.diagnostic-domain-all .diag-card-head p { font-size: 12px; line-height: 1.5; }
+.diagnostic-domain-all .diag-badge { min-height: 27px; padding: 5px 10px; font-size: 11px; }
+
+.diagnostic-domain-all .diag-list-row { min-height: 62px; padding: 10px 11px; }
+.diagnostic-domain-all .diag-list-rank { width: 30px; height: 30px; font-size: 11px; }
+.diagnostic-domain-all .diag-list-row strong { font-size: 13px; line-height: 1.35; }
+.diagnostic-domain-all .diag-list-row small { font-size: 11px; line-height: 1.4; }
+.diagnostic-domain-all .diag-list-value,
+.diagnostic-domain-all .diag-signal-tail b { font-size: 13px; }
+
+.diagnostic-domain-all .diag-scope-title strong { font-size: 12.5px; }
+.diagnostic-domain-all .diag-scope-title span { font-size: 11px; }
+.diagnostic-domain-all .diag-scope-chip span { font-size: 10px; }
+.diagnostic-domain-all .diag-scope-chip strong { font-size: 12px; }
+
+.diagnostic-domain-all .diag-matrix-wide th { font-size: 11.5px; padding: 9px 6px; }
+.diagnostic-domain-all .diag-matrix-wide td { font-size: 12px; padding: 15px 8px; }
+.diagnostic-domain-all .diag-impact-legend { font-size: 11px; }
+.diagnostic-domain-all .diag-impact-legend small { font-size: 10.5px; }
+
+.diagnostic-domain-all .diag-table-detailed th { font-size: 11px; padding: 11px 12px; }
+.diagnostic-domain-all .diag-table-detailed td { font-size: 12px; line-height: 1.5; padding: 11px 12px; }
+.diagnostic-domain-all .diag-table-detailed td strong { font-size: 12.5px; }
+.diagnostic-domain-all .diag-status { font-size: 11px; }
+
+.diagnostic-domain-all .diag-insight h3 { font-size: 17px; }
+.diagnostic-domain-all .diag-insight p { font-size: 12px; line-height: 1.6; }
+.diagnostic-domain-all .diag-insight-stat span { font-size: 10.5px; }
+.diagnostic-domain-all .diag-insight-stat strong { font-size: 13px; }
+.diagnostic-domain-all .diag-insight-stat b { font-size: 13px; }
+.diagnostic-domain-all .diag-priority-numbered li > span { font-size: 11px; }
+.diagnostic-domain-all .diag-priority-numbered p { font-size: 12px; line-height: 1.5; }
+.diagnostic-domain-all .diag-coverage-ring span { font-size: 18px; }
+.diagnostic-domain-all .diag-coverage-summary strong { font-size: 12.5px; }
+.diagnostic-domain-all .diag-coverage-summary p { font-size: 11px; line-height: 1.45; }
+.diagnostic-domain-all .diag-coverage-list strong { font-size: 12px; }
+.diagnostic-domain-all .diag-coverage-list small { font-size: 10.5px; line-height: 1.35; }
+.diagnostic-domain-all .diag-coverage-list .diag-badge { min-height: 24px; font-size: 10.5px; }
