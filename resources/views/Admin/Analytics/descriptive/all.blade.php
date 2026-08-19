@@ -219,10 +219,9 @@
     <article class="analytics-card descriptive-operational-attention-card">
         <div class="descriptive-overview-card-heading">
             <div>
-                <h3>Operational Attention <i class="fa-regular fa-circle-info"></i></h3>
-                <p>Current items that may require follow-up</p>
+                <h3>Action Summary <i class="fa-regular fa-circle-info"></i></h3>
+                <p>Items that may need review or follow-up</p>
             </div>
-            <span>Current</span>
         </div>
 
         @php
