@@ -1,4 +1,7 @@
-/* Diagnostic Analytics — Fleet & Trip domain only. */
-.diagnostic-analytics-page.diagnostic-domain-fleet-trip {
-    isolation: isolate;
-}
+@import './all.css';
+
+.diagnostic-domain-fleet-trip .fleet-main-grid { display:grid; grid-template-columns:1.35fr 1fr; gap:12px; }
+.diagnostic-domain-fleet-trip .fleet-lower-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.diagnostic-domain-fleet-trip .diag-evidence-card { grid-column:1 / -1; }
+@media (max-width:1180px){.diagnostic-domain-fleet-trip .fleet-main-grid,.diagnostic-domain-fleet-trip .fleet-lower-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:760px){.diagnostic-domain-fleet-trip .fleet-main-grid,.diagnostic-domain-fleet-trip .fleet-lower-grid{grid-template-columns:1fr;}}
