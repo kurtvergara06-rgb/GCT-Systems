@@ -217,27 +217,30 @@
         @endif
     </article>
 
-    <article class="analytics-card descriptive-quick-insights-card">
+    <article class="analytics-card descriptive-operational-attention-card">
         <div class="descriptive-overview-card-heading">
-            <div><h3>Quick Insights <i class="fa-regular fa-circle-info"></i></h3></div>
-            <span>{{ $comparison['label'] }}</span>
+            <div>
+                <h3>Operational Attention <i class="fa-regular fa-circle-info"></i></h3>
+                <p>Current items that may require follow-up</p>
+            </div>
+            <span>Current</span>
         </div>
 
         @php
-            $insights = [
-                ['More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips'], 'green'],
-                [($comparison['idle'] !== null && $comparison['idle'] <= 0 ? 'Less idle time' : 'Idle time change'), number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle'], 'red'],
-                [($comparison['distance'] !== null && $comparison['distance'] >= 0 ? 'More distance traveled' : 'Distance traveled'), number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-location-dot', $comparison['distance'], 'green'],
-                [($comparison['speed'] !== null && $comparison['speed'] >= 0 ? 'Better avg. speed' : 'Average speed change'), number_format($averageSpeed, 1) . ' km/h current average', 'fa-gauge-high', $comparison['speed'], 'blue'],
+            $attentionItems = [
+                ['Under Maintenance', $underMaintenance, 'Buses in maintenance', 'fa-screwdriver-wrench', 'orange'],
+                ['Inactive Buses', $inactiveBuses, 'Currently inactive', 'fa-bus-simple', 'gray'],
+                ['Low Stock Items', $inventoryLow, 'Reorder soon', 'fa-box-open', 'orange'],
+                ['Out of Stock', $inventoryCritical, 'Requires restocking', 'fa-triangle-exclamation', 'red'],
             ];
         @endphp
 
-        <div class="descriptive-insight-grid">
-            @foreach($insights as [$label, $detail, $icon, $delta, $tone])
-                <div class="descriptive-insight-card tone-{{ $tone }} {{ $delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive') }}">
+        <div class="descriptive-attention-grid">
+            @foreach($attentionItems as [$label, $value, $detail, $icon, $tone])
+                <div class="descriptive-attention-card tone-{{ $tone }}">
                     <span><i class="fa-solid {{ $icon }}"></i></span>
                     <div>
-                        <strong>{{ $delta === null ? 'No prior data' : $deltaText($delta) }}</strong>
+                        <strong>{{ number_format($value) }}</strong>
                         <b>{{ $label }}</b>
                         <small>{{ $detail }}</small>
                     </div>
