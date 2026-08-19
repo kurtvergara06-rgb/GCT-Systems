@@ -223,6 +223,7 @@
                     <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }} <small>{{ number_format($activePct, 1) }}%</small></strong></div>
                     <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }} <small>{{ number_format($maintenancePct, 1) }}%</small></strong></div>
                     <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }} <small>{{ number_format($inactivePct, 1) }}%</small></strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Fleet Utilization</span></div><strong>{{ number_format($fleetAvailability, 1) }}%</strong></div>
                 </div>
             </article>
 
@@ -237,7 +238,7 @@
                     <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active Buses</span></div><strong>{{ $activeBuses }}</strong></div>
                     <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }}</strong></div>
                     <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive Buses</span></div><strong>{{ $inactiveBuses }}</strong></div>
-                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Fleet Utilization</span></div><strong>{{ number_format($fleetAvailability, 1) }}%</strong></div>
+                    <div class="availability-row"><div><span class="availability-dot operational"></span><span>Total Buses</span></div><strong>{{ $totalBuses }}</strong></div>
                 </div>
             </article>
         </div>
