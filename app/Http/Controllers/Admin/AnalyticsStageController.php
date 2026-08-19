@@ -42,8 +42,7 @@ class AnalyticsStageController extends Controller
             $domain = 'all';
         }
 
-        $fleetView = app(FleetTripAnalyticsController::class)->index($request, $predictionService);
-        $fleet = $fleetView->getData();
+        $fleet = app(FleetTripAnalyticsController::class)->data($request, $predictionService);
         $fuel = app(FuelAnalyticsController::class)->data($request);
 
         $inventoryItems = InventoryItem::query()
