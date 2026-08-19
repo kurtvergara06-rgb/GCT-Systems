@@ -190,7 +190,7 @@
 .descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-ranking-title-row span { font-size: 9.5px; }
 .descriptive-domain-fleet-trip .fleet-trip-ranking-card .refined-metric-bar { height: 4px; margin-top: 5px; }
 
-/* Fleet + inventory compact pair */
+/* Fleet status compact pair */
 .descriptive-domain-fleet-trip .fleet-trip-status-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -301,52 +301,55 @@
 .descriptive-domain-fleet-trip .fleet-trip-alert-state.resolved { color: #16833f; background: #dcfce7; border: 1px solid #b7efca; }
 
 /* Action Summary */
-.descriptive-domain-fleet-trip .fleet-trip-action-summary { min-height: 205px; padding: 15px 16px; }
+.descriptive-domain-fleet-trip .fleet-trip-action-summary {
+    min-height: 330px;
+    padding: 15px 16px 16px;
+}
 .descriptive-domain-fleet-trip .fleet-trip-action-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item {
     min-width: 0;
-    min-height: 118px;
+    min-height: 122px;
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 12px;
     align-items: center;
-    padding: 12px;
+    padding: 15px;
     border: 1px solid var(--fleet-trip-line);
     border-radius: 12px;
     background: #fff;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item > span {
-    width: 40px;
-    height: 40px;
+    width: 46px;
+    height: 46px;
     display: grid;
     place-items: center;
-    border-radius: 12px;
-    font-size: 15px;
+    border-radius: 13px;
+    font-size: 17px;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item strong {
     display: block;
     color: var(--fleet-trip-ink);
-    font-size: 19px;
+    font-size: 22px;
     line-height: 1;
     font-weight: 900;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item b {
     display: block;
-    margin-top: 5px;
+    margin-top: 6px;
     color: #263b57;
-    font-size: 9.5px;
+    font-size: 10.5px;
     line-height: 1.2;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item small {
     display: block;
-    margin-top: 4px;
+    margin-top: 5px;
     color: #728198;
-    font-size: 8.5px;
-    line-height: 1.25;
+    font-size: 9px;
+    line-height: 1.3;
 }
 .descriptive-domain-fleet-trip .fleet-trip-action-item.tone-blue > span { color: #1764e8; background: #edf4ff; }
 .descriptive-domain-fleet-trip .fleet-trip-action-item.tone-yellow > span { color: #d97706; background: #fff6df; }
@@ -356,7 +359,6 @@
 @media (max-width: 1380px) {
     .descriptive-domain-fleet-trip .fleet-trip-kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .descriptive-domain-fleet-trip .fleet-trip-dashboard { grid-template-columns: minmax(0, 1.35fr) minmax(360px, .9fr); }
-    .descriptive-domain-fleet-trip .fleet-trip-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1120px) {
