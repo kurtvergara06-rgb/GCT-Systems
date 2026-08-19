@@ -282,3 +282,96 @@
 .diagnostic-domain-all .diag-coverage-list strong { font-size: 12px; }
 .diagnostic-domain-all .diag-coverage-list small { font-size: 10.5px; line-height: 1.35; }
 .diagnostic-domain-all .diag-coverage-list .diag-badge { min-height: 24px; font-size: 10.5px; }
+
+/* All-domain compact heatmap, modeled after the selected reference. */
+.diagnostic-domain-all .diag-heatmap-wrap {
+    overflow-x: auto;
+    border: 1px solid #e3eaf3;
+    border-radius: 10px;
+    background: #fff;
+}
+.diagnostic-domain-all .diag-heatmap-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.diagnostic-domain-all .diag-heatmap-table th,
+.diagnostic-domain-all .diag-heatmap-table td {
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    text-align: center;
+    padding: 10px 7px;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.diagnostic-domain-all .diag-heatmap-table thead th {
+    background: #f4f7fb;
+    color: #5b6e88;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .035em;
+}
+.diagnostic-domain-all .diag-heatmap-table th:first-child {
+    width: 112px;
+    text-align: left;
+    padding-left: 11px;
+}
+.diagnostic-domain-all .diag-heatmap-table tbody th {
+    background: #fbfcfe;
+    color: #233852;
+    font-size: 12px;
+}
+.diagnostic-domain-all .diag-heatmap-table td.unsupported {
+    background: #f4f6f9;
+    color: #9aa7b8;
+}
+.diagnostic-domain-all .diag-heatmap-table td.heat-0 { background: #fff9ea; color: #7e6a37; }
+.diagnostic-domain-all .diag-heatmap-table td.heat-1 { background: #fff2c9; color: #7a5c13; }
+.diagnostic-domain-all .diag-heatmap-table td.heat-2 { background: #ffdca0; color: #754512; }
+.diagnostic-domain-all .diag-heatmap-table td.heat-3 { background: #ffbd82; color: #6f3316; }
+.diagnostic-domain-all .diag-heatmap-table td.heat-4 { background: #ff8b68; color: #5d1c16; }
+.diagnostic-domain-all .diag-heatmap-table td.heat-5 { background: #f25252; color: #fff; }
+.diagnostic-domain-all .diag-heatmap-table td.diag-heat-total {
+    background: #eef2f7;
+    color: #1d304b;
+    font-weight: 800;
+}
+.diagnostic-domain-all .diag-heatmap-table tfoot th,
+.diagnostic-domain-all .diag-heatmap-table tfoot td {
+    background: #edf2f8;
+    color: #152a47;
+    font-weight: 800;
+    border-top: 2px solid #d7e0ec;
+}
+.diagnostic-domain-all .diag-heat-legend {
+    display: grid;
+    grid-template-columns: auto 150px minmax(180px, 1fr);
+    align-items: center;
+    gap: 9px;
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid #edf1f6;
+    color: #5f718b;
+}
+.diagnostic-domain-all .diag-heat-legend > span {
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.diagnostic-domain-all .diag-heat-gradient {
+    height: 10px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #fff9ea 0%, #fff2c9 22%, #ffdca0 42%, #ffbd82 62%, #ff8b68 80%, #f25252 100%);
+}
+.diagnostic-domain-all .diag-heat-legend small {
+    font-size: 10.5px;
+    line-height: 1.35;
+    color: #7a899e;
+}
+
+@media (max-width: 760px) {
+    .diagnostic-domain-all .diag-heat-legend { grid-template-columns: 1fr; }
+    .diagnostic-domain-all .diag-heat-gradient { width: 180px; max-width: 100%; }
+}
