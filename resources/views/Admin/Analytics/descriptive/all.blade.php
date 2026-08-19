@@ -182,7 +182,7 @@
             <div class="availability-breakdown">
                 <div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} <small>({{ number_format($healthyPct) }}%)</small></strong></div>
                 <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} <small>({{ number_format($lowPct) }}%)</small></strong></div>
-                <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} <small>({{ number_format($criticalPct) }}%)</small></strong></div>
+                <div class="availability-row descriptive-inventory-critical"><div><span class="availability-dot critical"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} <small>({{ number_format($criticalPct) }}%)</small></strong></div>
             </div>
         </article>
     </div>
