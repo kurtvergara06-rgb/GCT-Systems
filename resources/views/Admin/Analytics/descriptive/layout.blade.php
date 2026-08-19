@@ -88,20 +88,32 @@
         return $value === null ? 'New' : (($value > 0 ? '+' : '') . number_format($value, 1) . '%');
     };
 
-    $pageAssets = [
-        'resources/css/Admin/Analytics/fleet-trip.css',
-        'resources/css/Admin/Analytics/fleet-trip-redesign.css',
-        'resources/css/Admin/Analytics/fleet-trip-rankings.css',
-        'resources/css/Admin/Analytics/analytics-stage-hub.css',
-        $domainStyles[$activeDomain],
-    ];
+    /*
+     * Descriptive keeps one legacy shared redesign layer because All/Fuel still
+     * use its reusable chart/card primitives. Fleet-specific base/ranking CSS
+     * is loaded only where those classes are actually used.
+     */
+    $pageAssets = [];
+
+    if ($activeDomain === 'fleet-trip') {
+        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip.css';
+    }
+
+    $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-redesign.css';
+
+    if (in_array($activeDomain, ['all', 'fleet-trip'], true)) {
+        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-rankings.css';
+    }
+
+    $pageAssets[] = 'resources/css/Admin/Analytics/analytics-stage-hub.css';
+    $pageAssets[] = $domainStyles[$activeDomain];
 @endphp
 
 <x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
-        <main class="main analytics-stage-page fleet-trip-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}">
+        <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
