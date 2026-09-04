@@ -77,9 +77,9 @@ class DescriptiveAnalyticsController extends Controller
 
         $fuel = app(FuelAnalyticsController::class)->data($request);
         $notificationData = app(NotificationCenterController::class)->data($request);
-        $recentAlerts = collect($notificationData['notifications']->items())->take(3)->values();
+        $recentAlerts = collect($notificationData['notifications']->items())->take(4)->values();
 
-        return view('Admin.Analytics.descriptive', compact(
+        return view('Admin.Analytics.descriptive.layout', compact(
             'period',
             'periodLabel',
             'selectedBus',

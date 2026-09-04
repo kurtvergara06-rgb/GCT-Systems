@@ -63,8 +63,6 @@
         'efficiency' => (float) $row->km_per_liter,
         'entries' => (int) $row->entries,
     ]);
-    $highestFuelBus = $fuelSummaries->sortByDesc('fuel_liters')->first();
-    $lowestFuelBus = $fuelSummaries->filter(fn ($row) => $row->fuel_liters > 0)->sortBy('fuel_liters')->first();
     $mostEfficientBus = $fuelSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortByDesc('km_per_liter')->first();
     $leastEfficientBus = $fuelSummaries->filter(fn ($row) => $row->km_per_liter > 0)->sortBy('km_per_liter')->first();
     $averageFuelPerBus = $fuelSummaries->count() > 0 ? ((float) ($fuel['totalFuel'] ?? 0) / $fuelSummaries->count()) : 0;
@@ -87,23 +85,35 @@
     $priorityFuelPct = ($priorityFuelUnits / $fuelStatusTotal) * 100;
 
     $deltaText = function (?float $value): string {
-        return $value === null ? '—' : (($value > 0 ? '+' : '') . number_format($value, 1) . '%');
+        return $value === null ? 'New' : (($value > 0 ? '+' : '') . number_format($value, 1) . '%');
     };
 
-    $pageAssets = [
-        'resources/css/Admin/Analytics/fleet-trip.css',
-        'resources/css/Admin/Analytics/fleet-trip-redesign.css',
-        'resources/css/Admin/Analytics/fleet-trip-rankings.css',
-        'resources/css/Admin/Analytics/analytics-stage-hub.css',
-        $domainStyles[$activeDomain],
-    ];
+    /*
+     * Descriptive keeps one legacy shared redesign layer because All/Fuel still
+     * use its reusable chart/card primitives. Fleet-specific base/ranking CSS
+     * is loaded only where those classes are actually used.
+     */
+    $pageAssets = [];
+
+    if ($activeDomain === 'fleet-trip') {
+        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip.css';
+    }
+
+    $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-redesign.css';
+
+    if (in_array($activeDomain, ['all', 'fleet-trip'], true)) {
+        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-rankings.css';
+    }
+
+    $pageAssets[] = 'resources/css/Admin/Analytics/analytics-stage-hub.css';
+    $pageAssets[] = $domainStyles[$activeDomain];
 @endphp
 
 <x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
-        <main class="main analytics-stage-page fleet-trip-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}">
+        <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
@@ -117,8 +127,24 @@
 
                 <form method="GET" action="{{ url('/analytics/descriptive') }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
-                    <label><span>Period</span><select name="period"><option value="this-month" @selected($period === 'this-month')>This Month</option><option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option><option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option><option value="this-year" @selected($period === 'this-year')>This Year</option></select></label>
-                    <label><span>Bus</span><select name="bus"><option value="all">All Buses</option>@foreach($buses as $bus)<option value="{{ $bus->bus_no }}" @selected($selectedBus === strtoupper($bus->bus_no))>{{ $bus->bus_no }}</option>@endforeach</select></label>
+                    <label>
+                        <span>Period</span>
+                        <select name="period">
+                            <option value="this-month" @selected($period === 'this-month')>This Month</option>
+                            <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
+                            <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
+                            <option value="this-year" @selected($period === 'this-year')>This Year</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Bus</span>
+                        <select name="bus">
+                            <option value="all">All Buses</option>
+                            @foreach($buses as $bus)
+                                <option value="{{ $bus->bus_no }}" @selected($selectedBus === strtoupper($bus->bus_no))>{{ $bus->bus_no }}</option>
+                            @endforeach
+                        </select>
+                    </label>
                     <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>

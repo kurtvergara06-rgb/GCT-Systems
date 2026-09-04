@@ -37,63 +37,36 @@
                 <div class="fuel-summary-cell"><span class="fuel-summary-icon orange"><i class="fa-solid fa-arrow-down"></i></span><div><span>Lowest Efficiency</span><strong>{{ $leastEfficientBus ? number_format($leastEfficientBus->km_per_liter, 2) . ' km/L' : '—' }}</strong><small>{{ $leastEfficientBus?->bus_no ?? 'No data' }}</small></div></div>
             </div>
 
-            <article class="analytics-card analytics-domain-card fuel-details-card">
-                <div class="analytics-card-header fuel-details-heading">
-                    <div>
-                        <h3>Fuel Usage Details</h3>
-                        <p>Detailed list of fuel records by bus</p>
-                    </div>
-                </div>
-
+            <x-analytics.panel class="fuel-details-card" title="Fuel Usage Details" description="Recorded distance, fuel usage, efficiency, and review status by bus">
                 @if($fuelSummaries->isNotEmpty())
-                    <div class="fuel-table-tools fuel-table-tools-reference">
-                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus or driver..." data-fuel-table-search></label>
-                        <div class="fuel-table-action-group">
-                            <button type="button" class="fuel-table-action"><i class="fa-solid fa-table-columns"></i> Columns</button>
-                            <button type="button" class="fuel-table-action" data-fuel-export><i class="fa-solid fa-download"></i> Export</button>
-                        </div>
+                    <div class="fuel-table-tools">
+                        <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus..." data-fuel-table-search></label>
+                        <span>{{ $fuelSummaries->count() }} recorded unit{{ $fuelSummaries->count() === 1 ? '' : 's' }}</span>
                     </div>
-
-                    <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Fuel usage details table">
+                    <div class="table-wrap analytics-fuel-table-wrap fuel-details-table-wrap" tabindex="0" aria-label="Scrollable fuel usage details table">
                         <table class="analytics-fuel-table" data-fuel-details-table>
-                            <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used (L)</th><th>Distance (km)</th><th>Efficiency (km/L)</th><th>Driver</th><th>Last Report</th></tr></thead>
+                            <thead><tr><th>Bus</th><th>Reports</th><th>Fuel Used</th><th>Distance</th><th>Efficiency</th><th>Status</th></tr></thead>
                             <tbody>
                                 @foreach($fuelSummaries as $row)
                                     @php
-                                        $latestFuelRecord = $fuelRecords
-                                            ->filter(fn ($record) => strtoupper(trim((string) $record->bus_no)) === strtoupper(trim((string) $row->bus_no)))
-                                            ->sortByDesc(fn ($record) => optional($record->report_date)->format('Y-m-d') . '-' . str_pad((string) $record->id, 10, '0', STR_PAD_LEFT))
-                                            ->first();
-                                        $driverName = trim((string) ($latestFuelRecord?->driver_name ?? '')) ?: '—';
-                                        $lastReport = $latestFuelRecord?->report_date?->format('M j, Y') ?? '—';
+                                        $fuelStatusClass = \Illuminate\Support\Str::slug((string) $row->status);
                                     @endphp
-                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}" data-fuel-search="{{ strtolower($row->bus_no . ' ' . $driverName) }}">
+                                    <tr data-fuel-bus="{{ strtolower($row->bus_no) }}">
                                         <td><strong>{{ $row->bus_no }}</strong></td>
                                         <td>{{ $row->entries }}</td>
-                                        <td>{{ number_format($row->fuel_liters, 1) }}</td>
-                                        <td>{{ number_format($row->distance_km, 1) }}</td>
-                                        <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }}</span></td>
-                                        <td>{{ $driverName }}</td>
-                                        <td>{{ $lastReport }}</td>
+                                        <td>{{ number_format($row->fuel_liters, 1) }} L</td>
+                                        <td>{{ number_format($row->distance_km, 1) }} km</td>
+                                        <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
+                                        <td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="fuel-table-footer" data-fuel-table-footer>
-                        <span data-fuel-table-meta>Showing 1 to {{ min(10, $fuelSummaries->count()) }} of {{ $fuelSummaries->count() }} entries</span>
-                        <div class="fuel-table-pagination">
-                            <button type="button" class="fuel-page-arrow" data-fuel-page-prev aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
-                            <div data-fuel-page-numbers></div>
-                            <button type="button" class="fuel-page-arrow" data-fuel-page-next aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></button>
-                            <span class="fuel-page-size">10 / page</span>
-                        </div>
-                    </div>
                 @else
                     <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus-level fuel records are available.</span></div>
                 @endif
-            </article>
+            </x-analytics.panel>
         </div>
 
         <aside class="fuel-dashboard-side-column">
@@ -148,3 +121,7 @@
         </aside>
     </div>
 </section>
+
+<style>
+.fuel-reference-kpis{gap:10px!important;margin-bottom:12px!important}.fuel-reference-kpis>.analytics-kpi{min-height:104px!important;padding:14px 16px!important;border-radius:13px!important}.fuel-reference-dashboard .fuel-dashboard-layout{grid-template-columns:minmax(0,1.78fr) minmax(330px,.92fr)!important;gap:12px!important}.fuel-reference-dashboard .fuel-dashboard-main-column,.fuel-reference-dashboard .fuel-dashboard-side-column{gap:10px!important}.fuel-reference-dashboard .fuel-usage-main-card{padding:16px 17px!important}.fuel-reference-dashboard .fuel-usage-chart-large{height:286px!important;min-height:286px!important}.fuel-card-header-with-action{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}.fuel-reference-select{height:38px;padding:0 30px 0 11px;border:1px solid #d9e3ef;border-radius:8px;background:#fff;color:#203553;font:600 12px Poppins,sans-serif;outline:0}.fuel-reference-dashboard .fuel-summary-strip{min-height:76px!important}.fuel-reference-dashboard .fuel-summary-cell{padding:10px 12px!important;gap:9px!important}.fuel-reference-dashboard .fuel-summary-icon{width:38px!important;height:38px!important;flex-basis:38px!important;font-size:15px!important}.fuel-reference-dashboard .fuel-summary-cell strong{font-size:16px!important}.fuel-reference-dashboard .fuel-details-card{padding:16px 17px!important}.fuel-reference-dashboard .fuel-details-card .analytics-card-header h3{font-size:16px!important}.fuel-reference-dashboard .fuel-details-card .analytics-card-header p{font-size:10.5px!important}.fuel-reference-dashboard .fuel-table-tools{margin-bottom:10px!important}.fuel-reference-dashboard .fuel-table-tools>span{font-size:10.5px!important}.fuel-reference-dashboard .fuel-table-search{width:min(300px,100%)!important}.fuel-reference-dashboard .fuel-table-search input{height:38px!important;font-size:11.5px!important}.fuel-reference-dashboard .fuel-details-table-wrap{max-height:440px!important;overflow:auto!important;scrollbar-gutter:stable!important}.fuel-reference-dashboard .analytics-fuel-table{min-width:720px!important;font-size:11.5px!important}.fuel-reference-dashboard .analytics-fuel-table thead th{padding:10px 11px!important;font-size:10px!important}.fuel-reference-dashboard .analytics-fuel-table tbody td{padding:8px 11px!important;font-size:11.5px!important}.fuel-reference-dashboard .analytics-fuel-table td strong{font-size:12.5px!important}.fuel-reference-dashboard .fuel-efficiency-value,.fuel-reference-dashboard .fuel-status-pill{min-height:23px!important;padding:4px 9px!important;font-size:10.5px!important}.fuel-reference-dashboard .fuel-side-card{padding:13px 14px!important;border-radius:12px!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header{margin-bottom:9px!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header h3{font-size:16px!important;line-height:1.2!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header p{font-size:11.5px!important;line-height:1.4!important}.fuel-reference-dashboard .fuel-side-card .analytics-card-header>span{font-size:10.5px!important;padding:5px 8px!important}.fuel-reference-dashboard .fuel-fleet-card{min-height:150px!important}.fuel-reference-dashboard .fuel-availability-layout{grid-template-columns:108px minmax(0,1fr)!important}.fuel-reference-dashboard .fuel-fleet-donut{width:100px!important;height:100px!important}.fuel-reference-dashboard .fuel-fleet-donut::after{inset:17px!important}.fuel-reference-dashboard .fuel-quality-body{grid-template-columns:44px 105px minmax(0,1fr)!important;gap:11px!important}.fuel-reference-dashboard .fuel-quality-icon{width:44px!important;height:44px!important;font-size:18px!important}.fuel-reference-dashboard .fuel-quality-score strong,.fuel-reference-dashboard .fuel-review-summary strong{font-size:24px!important;line-height:1!important}.fuel-reference-dashboard .fuel-quality-score span,.fuel-reference-dashboard .fuel-review-summary>div>span{font-size:11.5px!important;line-height:1.35!important}.fuel-reference-dashboard .fuel-quality-counts>div,.fuel-reference-dashboard .fuel-review-lines>div{min-height:30px!important;padding:6px 9px!important;font-size:11.5px!important}.fuel-reference-dashboard .fuel-quality-counts strong,.fuel-reference-dashboard .fuel-review-lines strong{font-size:12.5px!important}.fuel-quality-total{grid-column:1/-1}.fuel-reference-dashboard .fuel-review-summary{margin-bottom:8px!important}.fuel-reference-dashboard .fuel-distribution-bar{height:10px!important}.fuel-reference-dashboard .fuel-distribution-bar .no-data{background:#94a3b8}.fuel-reference-dashboard .fuel-distribution-legend.five{grid-template-columns:repeat(5,1fr)!important;gap:7px!important}.fuel-reference-dashboard .fuel-distribution-legend strong{font-size:12.5px!important}.fuel-reference-dashboard .fuel-distribution-legend span{font-size:10.5px!important;line-height:1.25!important}.fuel-reference-dashboard .fuel-trend-card{min-height:245px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-line-chart{min-height:178px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-line-chart,.fuel-reference-dashboard .fuel-trend-card .line-chart,.fuel-reference-dashboard .fuel-trend-card svg{max-height:178px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-chart-label,.fuel-reference-dashboard .fuel-trend-card .analytics-chart-value,.fuel-reference-dashboard .fuel-trend-card .analytics-chart-y-label{font-size:11.5px!important;font-weight:700!important}.fuel-reference-dashboard .fuel-trend-card .analytics-chart-tooltip{font-size:12px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-chart-tooltip strong{font-size:12.5px!important}.fuel-reference-dashboard .fuel-trend-card .analytics-chart-tooltip span{font-size:12px!important}@media(max-width:1100px){.fuel-reference-dashboard .fuel-dashboard-layout{grid-template-columns:1fr!important}.fuel-reference-dashboard .fuel-dashboard-side-column{grid-template-columns:repeat(2,minmax(0,1fr))}.fuel-reference-dashboard .fuel-trend-card{grid-column:1/-1}}@media(max-width:760px){.fuel-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fuel-reference-dashboard .fuel-dashboard-side-column{grid-template-columns:1fr}.fuel-card-header-with-action{align-items:stretch!important;flex-direction:column}}
+</style>
