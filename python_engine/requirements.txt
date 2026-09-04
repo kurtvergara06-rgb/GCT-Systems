@@ -7,3 +7,5 @@ spacy
 pandas
 numpy
 scikit-learn
+joblib
+torch
