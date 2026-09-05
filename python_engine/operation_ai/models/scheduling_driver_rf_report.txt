@@ -1,0 +1,20 @@
+Operation AI driver model report
+========================================
+Trained:            True
+Samples available:  6
+Training rows:      4
+Test rows:          2
+
+Metrics (held-out test set):
+  MAE : 0.0928
+  RMSE: 0.0928
+  R2  : 0.0000
+
+Feature importances:
+  attendance_rate              1.0000
+  shift_encoded                0.0000
+  late_rate                    0.0000
+  total_attendance             0.0000
+  distinct_dates               0.0000
+
+Note: the label is derived from REAL historical trip outcomes / attendance records, not from the old rule-based scores.

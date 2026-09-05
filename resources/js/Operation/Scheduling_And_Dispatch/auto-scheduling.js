@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const generationBusCount =
         document.getElementById('generationBusCount');
 
+    const aiMlStatus =
+        document.getElementById('aiMlStatus');
+
     const resourceAvailableDrivers =
         document.getElementById('resourceAvailableDrivers');
 
@@ -160,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${escapeHtml(explanation)}
             </p>
 
+            ${renderMlProvenance(ai)}
+
             ${renderAiFindings(findings)}
 
             ${renderAiWarnings(warnings)}
@@ -233,6 +238,136 @@ function renderAiWarnings(warnings) {
                     .join('')}
             </ul>
         </div>
+    `;
+}
+
+
+function renderMlProvenance(ai) {
+    const ml = ai.ml || {};
+
+    const anySignal =
+        Boolean(ml.bus_ready)
+        || Boolean(ml.driver_ready);
+
+    if (!anySignal) {
+        return '';
+    }
+
+    const labelFor = (source) => {
+        if (source === 'ml') {
+            return 'ML model';
+        }
+        if (source === 'data' || source === 'data_fallback') {
+            return 'Data-derived';
+        }
+        return 'Rule-based';
+    };
+
+    const scoreRow = (label, scores) => {
+        const entries = Object.entries(scores || {});
+        if (!entries.length) {
+            return '';
+        }
+        const pills = entries
+            .map(([id, value]) => {
+                const num = Number(value);
+                if (!Number.isFinite(num)) {
+                    return '';
+                }
+                return `<span class="ai-ml-score" title="Candidate ${escapeHtml(id)}">${escapeHtml(id)}: ${num}</span>`;
+            })
+            .join('');
+        return `
+            <div class="ai-ml-scores">
+                <span class="ai-ml-scores-label">${escapeHtml(label)}</span>
+                ${pills}
+            </div>
+        `;
+    };
+
+    const chip = (ready, source, title) => `
+        <span class="ai-ml-chip ${
+            ready ? 'is-ready' : 'is-fallback'
+        }" title="${escapeHtml(title)}">
+            <i class="fa-solid fa-microchip"></i>
+            ${escapeHtml(title)}:
+            ${escapeHtml(labelFor(source))}
+        </span>
+    `;
+
+    return `
+        <div class="ai-ml-provenance">
+            ${chip(ml.bus_ready, ml.bus_source, 'Bus')}
+            ${chip(ml.driver_ready, ml.driver_source, 'Driver')}
+            ${scoreRow('Bus suitability', ml.bus_suitability)}
+            ${scoreRow('Driver suitability', ml.driver_suitability)}
+        </div>
+    `;
+}
+
+
+function updateMlStatus(conflicts) {
+    if (!aiMlStatus) {
+        return;
+    }
+
+    let busReady = false;
+    let driverReady = false;
+    let busSource = 'rule_fallback';
+    let driverSource = 'rule_fallback';
+    let found = false;
+
+    for (const item of conflicts) {
+        const ml = item?.ai?.ml || {};
+
+        if (typeof ml.bus_ready !== 'boolean'
+            && typeof ml.driver_ready !== 'boolean') {
+            continue;
+        }
+
+        found = true;
+        busReady = busReady || Boolean(ml.bus_ready);
+        driverReady = driverReady || Boolean(ml.driver_ready);
+
+        if (ml.bus_source) {
+            busSource = ml.bus_source;
+        }
+
+        if (ml.driver_source) {
+            driverSource = ml.driver_source;
+        }
+    }
+
+    if (!found) {
+        aiMlStatus.hidden = true;
+        aiMlStatus.innerHTML = '';
+        return;
+    }
+
+    const badge = (ready, source, label) => `
+        <span class="ai-status-badge ${
+            ready ? 'is-ready' : 'is-fallback'
+        }">
+            <i class="fa-solid fa-microchip"></i>
+            ${escapeHtml(label)}:
+            ${escapeHtml(
+                source === 'ml'
+                    ? 'ML model'
+                    : source === 'data' || source === 'data_fallback'
+                        ? 'Data-derived'
+                        : 'Rule-based'
+            )}
+        </span>
+    `;
+
+    aiMlStatus.hidden = false;
+    aiMlStatus.innerHTML = `
+        <span class="ai-status-label">
+            <i class="fa-solid fa-robot"></i>
+            Ranking source
+        </span>
+        ${badge(busReady, busSource, 'Bus')}
+        ${badge(driverReady, driverSource, 'Driver')}
     `;
 }
 
@@ -463,6 +598,7 @@ function renderAiWarnings(warnings) {
                     : [];
 
             renderConflicts(schedulingConflicts);
+            updateMlStatus(schedulingConflicts);
 
             previewSection?.scrollIntoView({
                 behavior: 'smooth',

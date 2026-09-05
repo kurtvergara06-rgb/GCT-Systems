@@ -1,6 +1,14 @@
 from typing import Optional
 
-from .analyzer import analyze_recommendation
+from .analyzer import analyze_recommendation, evaluate_ranking
+from .ranking import (
+    ELIGIBLE_DRIVER_STATUSES,
+    driver_score,
+    bus_score,
+    is_bus_eligible,
+    is_driver_eligible,
+    remaining_pms_mileage,
+)
 from .schemas import (
     AiRecommendationResponse,
     BusData,
@@ -13,184 +21,44 @@ from .schemas import (
 )
 
 
-ELIGIBLE_DRIVER_STATUSES = {
-    "Present",
-    "Late",
-}
+def _driver_rank(driver: DriverData, payload: RecommendationData, outcome) -> int:
+    """0-100 ranking for a driver from ML/derived suitability, else rule score."""
+    derived = outcome.driver_scores.get(driver.id)
+    if derived is not None:
+        return max(0, min(100, int(round(derived * 100))))
+    return driver_score(driver, payload.trip.shift)
 
 
-def remaining_pms_mileage(
-    bus: BusData,
-) -> Optional[float]:
-    """
-    Return the remaining mileage before PMS.
-
-    None means that mileage information is incomplete.
-    """
-
-    if (
-        bus.mileage is None
-        or bus.next_pms_mileage is None
-    ):
-        return None
-
-    return (
-        bus.next_pms_mileage
-        - bus.mileage
-    )
-
-
-def is_driver_eligible(
-    driver: DriverData,
-    trip_shift: Optional[str],
-) -> bool:
-    """
-    Apply hard eligibility rules for drivers.
-    """
-
-    if driver.status not in ELIGIBLE_DRIVER_STATUSES:
-        return False
-
-    if driver.has_conflict:
-        return False
-
-    if (
-        trip_shift
-        and driver.shift
-        and driver.shift != trip_shift
-    ):
-        return False
-
-    return True
-
-
-def is_bus_eligible(
-    bus: BusData,
-) -> bool:
-    """
-    Apply hard eligibility rules for buses.
-    """
-
-    if bus.status != "Active":
-        return False
-
-    if bus.has_conflict:
-        return False
-
-    remaining = remaining_pms_mileage(bus)
-
-    if (
-        remaining is not None
-        and remaining <= 0
-    ):
-        return False
-
-    return True
-
-
-def calculate_driver_score(
-    driver: DriverData,
-    trip_shift: Optional[str],
-) -> int:
-    """
-    Calculate a ranking score for an eligible driver.
-
-    This score ranks valid candidates only.
-    It must not override hard eligibility rules.
-    """
-
-    if not is_driver_eligible(
-        driver,
-        trip_shift,
-    ):
-        return 0
-
-    score = 100
-
-    # Present drivers are preferred over Late drivers.
-    if driver.status == "Late":
-        score -= 10
-
-    # Prefer drivers with fewer assigned minutes.
-    score -= min(
-        driver.assigned_minutes // 30,
-        35,
-    )
-
-    # Prefer drivers with fewer total trips.
-    score -= min(
-        driver.assigned_trips * 5,
-        25,
-    )
-
-    return max(
-        1,
-        min(score, 100),
-    )
-
-
-def calculate_bus_score(
-    bus: BusData,
-) -> int:
-    """
-    Calculate a ranking score for an eligible bus.
-    """
-
-    if not is_bus_eligible(bus):
-        return 0
-
-    score = 100
-
-    score -= min(
-        bus.assigned_minutes // 30,
-        30,
-    )
-
-    score -= min(
-        bus.assigned_trips * 5,
-        20,
-    )
-
-    remaining = remaining_pms_mileage(bus)
-
-    if remaining is None:
-        # Mileage data is incomplete.
-        score -= 10
-    elif remaining <= 500:
-        # Eligible, but near the PMS limit.
-        score -= 25
-    elif remaining <= 1000:
-        score -= 10
-
-    return max(
-        1,
-        min(score, 100),
-    )
+def _bus_rank(bus: BusData, payload: RecommendationData, outcome) -> int:
+    """0-100 ranking for a bus from ML suitability, else rule score."""
+    if outcome.bus_readiness.ml_ready:
+        s = outcome.bus_scores.get(bus.id)
+        if s is not None:
+            return max(0, min(100, int(round(s * 100))))
+    return bus_score(bus)
 
 
 def select_best_driver(
     payload: RecommendationData,
+    outcome=None,
 ) -> tuple[
     Optional[DriverData],
     int,
 ]:
     """
     Select the highest-ranked eligible driver.
+
+    Ranking uses the ML/data-derived suitability when available, falling back
+    to the rule-based score when the driver model is not ready. ML never
+    overrides hard eligibility rules.
     """
+    if outcome is None:
+        outcome = evaluate_ranking(payload)
 
     ranked_drivers = [
-        (
-            driver,
-            calculate_driver_score(
-                driver,
-                payload.trip.shift,
-            ),
-        )
+        (driver, _driver_rank(driver, payload, outcome))
         for driver in payload.eligible_drivers
-        if is_driver_eligible(
-            driver,
-            payload.trip.shift,
-        )
+        if is_driver_eligible(driver, payload.trip.shift)
     ]
 
     ranked_drivers.sort(
@@ -210,19 +78,22 @@ def select_best_driver(
 
 def select_best_bus(
     payload: RecommendationData,
+    outcome=None,
 ) -> tuple[
     Optional[BusData],
     int,
 ]:
     """
     Select the highest-ranked eligible bus.
+
+    Ranking uses the ML suitability when the bus model is ready, otherwise the
+    rule-based score. ML never overrides hard eligibility rules.
     """
+    if outcome is None:
+        outcome = evaluate_ranking(payload)
 
     ranked_buses = [
-        (
-            bus,
-            calculate_bus_score(bus),
-        )
+        (bus, _bus_rank(bus, payload, outcome))
         for bus in payload.eligible_buses
         if is_bus_eligible(bus)
     ]
@@ -619,12 +490,14 @@ def recommend_trip(
     Laravel must perform final validation and saving.
     """
 
+    outcome = evaluate_ranking(payload)
+
     selected_driver, driver_score = (
-        select_best_driver(payload)
+        select_best_driver(payload, outcome)
     )
 
     selected_bus, bus_score = (
-        select_best_bus(payload)
+        select_best_bus(payload, outcome)
     )
 
     analyzed_payload = payload.model_copy(

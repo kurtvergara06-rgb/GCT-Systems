@@ -3,10 +3,12 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from .analyzer import analyze_recommendation
+from .ml.predict import bus_readiness, driver_readiness
 from .recommender import recommend_trip
 from .schemas import (
     AiAnalysisResponse,
     AiRecommendationResponse,
+    MlTrainingStatusResponse,
     RecommendationData,
 )
 
@@ -14,6 +16,27 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get(
+    "/training/status",
+    response_model=MlTrainingStatusResponse,
+)
+def ml_training_status() -> MlTrainingStatusResponse:
+    """Report ML model readiness for the scheduling recommender."""
+    bus = bus_readiness()
+    driver = driver_readiness()
+    return MlTrainingStatusResponse(
+        success=True,
+        bus_model_ready=bus.ml_ready,
+        driver_model_ready=driver.ml_ready,
+        bus_source=bus.source,
+        driver_source=driver.source,
+        bus_reason=bus.reason,
+        driver_reason=driver.reason,
+        bus_sample_count=bus.sample_count,
+        driver_sample_count=driver.sample_count,
+    )
 
 
 @router.post(

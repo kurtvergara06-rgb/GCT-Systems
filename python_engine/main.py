@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 import shutil
 import uuid
 
@@ -13,8 +14,119 @@ from NLP.pdf_extractor import (
     extract_pdf_text,
 )
 from NLP.text_cleaner import clean_text
+from NLP.severity_predictor import predict_record as predict_severity
+from NLP.severity_ner_predictor import (
+    predict_record as predict_severity_ner,
+    build_text as render_record_text,
+)
+from NLP.ner_extractor import (
+    extract_entities as extract_ner_entities,
+)
+from NLP.anomaly_detector import anomaly_details as detect_anomaly
+from NLP import ingestion as ingestion_store
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
+
+
+def annotate_records(records: list[dict]) -> list[dict]:
+    """Attach an NLP severity prediction and an anomaly flag to each record.
+
+    The severity prediction is a remark-driven classifier; the anomaly flag is
+    a robust unsupervised outlier score on the operational features. Either
+    one degrades gracefully (None) if its model is unavailable.
+    """
+    annotated = []
+
+    for record in records:
+        annotated_record = dict(record)
+
+        try:
+            prediction = predict_severity(record)
+            annotated_record["severity_prediction"] = prediction
+        except FileNotFoundError:
+            annotated_record["severity_prediction"] = None
+        except Exception as error:
+            logger.warning("Severity prediction failed for a record: %s", error)
+            annotated_record["severity_prediction"] = None
+
+        # Custom NER-driven severity classifier (typed event + operational
+        # features), with entity extraction exposed for transparency.
+        try:
+            annotated_record["severity_prediction_ner"] = predict_severity_ner(record)
+        except FileNotFoundError:
+            annotated_record["severity_prediction_ner"] = None
+        except Exception as error:
+            logger.warning("NER severity prediction failed for a record: %s", error)
+            annotated_record["severity_prediction_ner"] = None
+
+        try:
+            annotated_record["entities"] = extract_ner_entities(render_record_text(record))
+        except Exception as error:
+            logger.warning("NER entity extraction failed for a record: %s", error)
+            annotated_record["entities"] = {}
+
+        try:
+            details = detect_anomaly(record)
+            annotated_record["anomaly"] = details.get("is_anomaly")
+            annotated_record["anomaly_score"] = details.get("anomaly_score")
+        except Exception as error:
+            logger.warning("Anomaly detection failed for a record: %s", error)
+            annotated_record["anomaly"] = None
+            annotated_record["anomaly_score"] = None
+
+        annotated.append(annotated_record)
+
+    return annotated
+
+
+def _stage_and_annotate(records: list[dict], source_format: str) -> list[dict]:
+    """Annotate records with model predictions and persist them to staging.
+
+    Each record gets a unique _staged_id and is written to the ingestion
+    staging log so a reviewer can approve/label them for later retraining.
+    Staging is best-effort: a failure there must not fail the whole upload.
+    """
+    annotated = annotate_records(records)
+
+    for record in annotated:
+        record["_staged_id"] = str(uuid.uuid4())
+
+        try:
+            ingestion_store.stage_record(record, source_format)
+        except Exception as error:
+            logger.warning("Failed to stage a record for ingestion: %s", error)
+
+    return annotated
+
+
+from contextlib import asynccontextmanager
+
+
+def _warm_operation_ai_models() -> None:
+    """Pre-load the Operation AI ML models so the first live inference does not
+    pay the lazy joblib.load cost inside a request (which can exceed Laravel's
+    short service timeout). This is best-effort; failures only mean the first
+    request warms them lazily as before."""
+    try:
+        from operation_ai.ml import predict as ml_predict
+
+        ml_predict.bus_readiness()
+        ml_predict.driver_readiness()
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "Operation AI model warm-up failed (will lazy-load): %s", exc
+        )
+
+
+@asynccontextmanager
+async def operation_ai_lifespan(app: FastAPI):
+    _warm_operation_ai_models()
+    yield
+
+
+logger = logging.getLogger(__name__)
+
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
 app = FastAPI(
@@ -24,6 +136,7 @@ app = FastAPI(
         "and Operation AI Assistance API"
     ),
     version="1.0.0",
+    lifespan=operation_ai_lifespan,
 )
 
 
@@ -38,6 +151,14 @@ app.include_router(
     operation_ai_router,
     prefix="/operation/auto-scheduling/ai",
     tags=["Operation AI Assistance"],
+)
+
+from NLP.ingestion_router import router as ingestion_router
+
+app.include_router(
+    ingestion_router,
+    prefix="/ingestion",
+    tags=["Ingestion Review"],
 )
 
 
@@ -64,7 +185,7 @@ def health_check() -> dict[str, str]:
 
 
 @app.post("/nlp/extract-pdf")
-async def extract_pdf_data(
+def extract_pdf_data(
     pdf_file: UploadFile = File(...),
 ) -> dict:
     if not pdf_file.filename:
@@ -82,6 +203,20 @@ async def extract_pdf_data(
     safe_filename = Path(
         pdf_file.filename
     ).name
+
+    available = pdf_file.size
+
+    if (
+        available is not None
+        and available > MAX_UPLOAD_BYTES
+    ):
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                "PDF is too large. Maximum size is "
+                f"{MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+            ),
+        )
 
     unique_name = (
         f"{uuid.uuid4()}_{safe_filename}"
@@ -323,7 +458,7 @@ async def extract_pdf_data(
             "raw_text": raw_text,
             "cleaned_text": cleaned_text,
             "source_format": "GPS Report",
-            "records": records,
+            "records": _stage_and_annotate(records, "GPS Report"),
             "extracted_data": extracted_data,
             "_debug": {
                 "table_rows_found": len(
@@ -369,16 +504,18 @@ async def extract_pdf_data(
         raise
 
     except Exception as error:
+        logger.exception(
+            "PDF NLP processing failed.",
+        )
+
         raise HTTPException(
             status_code=500,
             detail=(
-                "PDF NLP processing failed: "
-                f"{str(error)}"
+                "PDF NLP processing failed. "
+                "Please try again later."
             ),
         ) from error
 
     finally:
-        await pdf_file.close()
-
         if saved_pdf_path.exists():
             saved_pdf_path.unlink()
