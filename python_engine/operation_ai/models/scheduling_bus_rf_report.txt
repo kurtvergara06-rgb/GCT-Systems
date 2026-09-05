@@ -1,0 +1,26 @@
+Operation AI bus model report
+========================================
+Trained:            True
+Samples available:  367
+Training rows:      293
+Test rows:          74
+
+Metrics (held-out test set):
+  MAE : 0.0418
+  RMSE: 0.0673
+  R2  : 0.3249
+
+Feature importances:
+  trip_idling_minutes          0.4361
+  trip_hour                    0.1784
+  trip_engine_hours            0.1174
+  trip_total_minutes           0.0817
+  trip_mileage_km              0.0807
+  remaining_pms_pct            0.0493
+  fuel_efficiency_avg          0.0321
+  capacity                     0.0153
+  total_job_orders             0.0059
+  active_job_orders            0.0031
+  status_encoded               0.0000
+
+Note: the label is derived from REAL historical trip outcomes / attendance records, not from the old rule-based scores.

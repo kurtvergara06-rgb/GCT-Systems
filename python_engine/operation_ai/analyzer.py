@@ -1,3 +1,11 @@
+from .ml.predict import evaluate_candidates
+from .ranking import (
+    ELIGIBLE_DRIVER_STATUSES,
+    bus_score,
+    driver_score,
+    is_bus_eligible,
+    is_driver_eligible,
+)
 from .schemas import (
     AiAnalysis,
     AlternativeItem,
@@ -5,92 +13,47 @@ from .schemas import (
 )
 
 
-ELIGIBLE_DRIVER_STATUSES = {
-    "Present",
-    "Late",
-}
+def evaluate_ranking(payload: RecommendationData):
+    """Run ML suitability evaluation over the payload's eligible candidates.
 
-
-def driver_alternative_score(
-    driver,
-    trip_shift,
-) -> int:
-    if driver.status not in ELIGIBLE_DRIVER_STATUSES:
-        return 0
-
-    if driver.has_conflict:
-        return 0
-
-    if (
-        trip_shift
-        and driver.shift
-        and driver.shift != trip_shift
-    ):
-        return 0
-
-    score = 100
-
-    if driver.status == "Late":
-        score -= 10
-
-    score -= min(
-        driver.assigned_minutes // 30,
-        35,
-    )
-
-    score -= min(
-        driver.assigned_trips * 5,
-        25,
-    )
-
-    return max(
-        1,
-        min(score, 100),
+    Returns a PredictionOutcome. The outcome supplies ML/derived suitability
+    for drivers and ML suitability for buses. When a model is not ready, the
+    legacy rule-based score is used as the fallback (see driver_rscore /
+    bus_rscore below).
+    """
+    return evaluate_candidates(
+        payload.trip,
+        payload.eligible_drivers,
+        payload.eligible_buses,
+        payload.driver_histories,
+        payload.bus_histories,
     )
 
 
-def bus_alternative_score(bus) -> int:
-    if bus.status != "Active":
-        return 0
+def driver_rscore(driver, payload, outcome) -> int:
+    """Return a 0-100 suitability for a driver.
 
-    if bus.has_conflict:
-        return 0
+    Uses the ML model score when the driver model is ready; otherwise uses the
+    data-derived reliability (attendance-grounded), and finally the legacy
+    rule-based score as a safety net.
+    """
+    derived = outcome.driver_scores.get(driver.id)
+    if derived is not None:
+        return max(0, min(100, int(round(derived * 100))))
+    return driver_score(driver, payload.trip.shift)
 
-    score = 100
 
-    if (
-        bus.mileage is not None
-        and bus.next_pms_mileage is not None
-    ):
-        remaining = (
-            bus.next_pms_mileage
-            - bus.mileage
-        )
+def bus_rscore(bus, outcome) -> int:
+    """Return a 0-100 suitability for a bus.
 
-        if remaining <= 0:
-            return 0
-
-        if remaining <= 500:
-            score -= 25
-        elif remaining <= 1000:
-            score -= 10
-    else:
-        score -= 10
-
-    score -= min(
-        bus.assigned_minutes // 30,
-        30,
-    )
-
-    score -= min(
-        bus.assigned_trips * 5,
-        20,
-    )
-
-    return max(
-        1,
-        min(score, 100),
-    )
+    Uses the ML model score when the bus model is ready; otherwise the legacy
+    rule-based score.
+    """
+    if outcome.bus_readiness.ml_ready:
+        s = outcome.bus_scores.get(bus.id)
+        if s is not None:
+            return max(0, min(100, int(round(s * 100))))
+    return bus_score(bus)
 
 
 def analyze_recommendation(
@@ -98,6 +61,8 @@ def analyze_recommendation(
 ) -> AiAnalysis:
     warnings: list[str] = []
     hard_conflicts: list[str] = []
+
+    outcome = evaluate_ranking(payload)
 
     score = 100
 
@@ -176,6 +141,12 @@ def analyze_recommendation(
             f"{selected_driver.assigned_minutes} "
             "assigned minute(s)"
         )
+
+        driver_suit = driver_rscore(selected_driver, payload, outcome)
+        if outcome.driver_readiness.ml_ready:
+            driver_reasons.append(
+                "the ML model ranks this driver highly"
+            )
 
         driver_explanation = (
             f"{selected_driver.name} was recommended "
@@ -293,6 +264,12 @@ def analyze_recommendation(
             "assigned minute(s)"
         )
 
+        bus_suit = bus_rscore(selected_bus, outcome)
+        if outcome.bus_readiness.ml_ready:
+            bus_reasons.append(
+                "the ML model ranks this bus highly"
+            )
+
         bus_explanation = (
             f"Bus {selected_bus.bus_no} was recommended "
             "because "
@@ -312,17 +289,14 @@ def analyze_recommendation(
 
     ranked_driver_alternatives = sorted(
         [
-            (
-                driver,
-                driver_alternative_score(
-                    driver,
-                    payload.trip.shift,
-                ),
-            )
+            (driver, driver_rscore(driver, payload, outcome))
             for driver in payload.eligible_drivers
             if (
-                selected_driver is None
-                or driver.id != selected_driver.id
+                is_driver_eligible(driver, payload.trip.shift)
+                and (
+                    selected_driver is None
+                    or driver.id != selected_driver.id
+                )
             )
         ],
         key=lambda item: (
@@ -352,14 +326,14 @@ def analyze_recommendation(
 
     ranked_bus_alternatives = sorted(
         [
-            (
-                bus,
-                bus_alternative_score(bus),
-            )
+            (bus, bus_rscore(bus, outcome))
             for bus in payload.eligible_buses
             if (
-                selected_bus is None
-                or bus.id != selected_bus.id
+                is_bus_eligible(bus)
+                and (
+                    selected_bus is None
+                    or bus.id != selected_bus.id
+                )
             )
         ],
         key=lambda item: (
@@ -418,4 +392,16 @@ def analyze_recommendation(
         warnings=warnings,
         alternative_drivers=alternative_drivers,
         alternative_buses=alternative_buses,
+        ml_driver_ready=outcome.driver_readiness.ml_ready,
+        ml_bus_ready=outcome.bus_readiness.ml_ready,
+        ml_driver_source=outcome.driver_readiness.source,
+        ml_bus_source=outcome.bus_readiness.source,
+        driver_suitability={
+            k: max(0, min(100, int(round(v * 100))))
+            for k, v in outcome.driver_scores.items()
+        },
+        bus_suitability={
+            k: max(0, min(100, int(round(v * 100))))
+            for k, v in outcome.bus_scores.items()
+        },
     )
