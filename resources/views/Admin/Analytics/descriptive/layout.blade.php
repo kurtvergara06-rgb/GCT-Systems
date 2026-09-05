@@ -104,16 +104,16 @@
     $pageAssets = [];
 
     if ($activeDomain === 'fleet-trip') {
-        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip.css';
+        $pageAssets[] = 'resources/css/Admin/Analytics/overview/fleet-trip.css';
     }
 
-    $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-redesign.css';
+    $pageAssets[] = 'resources/css/Admin/Analytics/overview/fleet-trip-redesign.css';
 
     if (in_array($activeDomain, ['all', 'fleet-trip'], true)) {
-        $pageAssets[] = 'resources/css/Admin/Analytics/fleet-trip-rankings.css';
+        $pageAssets[] = 'resources/css/Admin/Analytics/overview/fleet-trip-rankings.css';
     }
 
-    $pageAssets[] = 'resources/css/Admin/Analytics/analytics-stage-hub.css';
+    $pageAssets[] = 'resources/css/Admin/Analytics/overview/analytics-stage-hub.css';
 
     $overviewStyle = 'resources/css/Admin/Analytics/descriptive/all.css';
 
