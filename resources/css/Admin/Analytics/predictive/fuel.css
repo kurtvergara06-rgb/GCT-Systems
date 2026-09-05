@@ -1,0 +1,51 @@
+.predictive-fuel-page {
+    color: #1f2f46;
+}
+
+/* =========================================================
+   FUEL RISK CIRCLE (shared base handles the rest)
+========================================================= */
+
+.risk-circle {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background:
+        conic-gradient(
+            #22c55e 0deg 180deg,
+            #facc15 180deg 300deg,
+            #ef4444 300deg 360deg
+        );
+    position: relative;
+}
+
+.risk-circle::before {
+    content: "";
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.risk-circle span,
+.risk-circle small {
+    position: relative;
+    z-index: 1;
+}
+
+.risk-circle span {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.risk-circle small {
+    color: #64748b;
+    font-size: 11px;
+}

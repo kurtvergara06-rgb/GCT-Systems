@@ -1,0 +1,46 @@
+/* =========================================================
+   FLEET & TRIP SPECIFICS
+   (shared components come from predictive/all.css)
+========================================================= */
+
+.predictive-fleet-page {
+    color: #1f2f46;
+}
+
+.trend-up {
+    color: #ef4444;
+}
+
+.trend-good {
+    color: #16a34a;
+}
+
+/* =========================================================
+   RISK PROGRESS BAR
+========================================================= */
+
+.risk-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.risk-progress span {
+    width: 28px;
+    color: #465569;
+    font-size: 9px;
+}
+
+.progress-track {
+    width: 100px;
+    height: 5px;
+    background: #e7edf5;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2563d9;
+    border-radius: inherit;
+}

@@ -60,6 +60,24 @@
     border-radius: 14px;
     background: #fff;
     box-shadow: 0 5px 18px rgba(15, 35, 71, .055);
+    container-type: inline-size;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.descriptive-analytics-page .analytics-kpi:hover {
+    transform: translateY(-2px);
+    border-color: #cbdaef;
+    box-shadow: 0 8px 20px rgba(15, 35, 71, .09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .descriptive-analytics-page .analytics-kpi {
+        transition: none;
+    }
+
+    .descriptive-analytics-page .analytics-kpi:hover {
+        transform: none;
+    }
 }
 
 .descriptive-analytics-page .analytics-kpi:last-child {
@@ -98,13 +116,11 @@
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-value {
     display: block;
     margin-top: 3px;
-    overflow: hidden;
+    overflow-wrap: anywhere;
     color: #0b2347;
     font-size: 20px;
     font-weight: 900;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.12;
 }
 
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-description,
@@ -115,6 +131,7 @@
     font-size: 9.5px;
     font-weight: 500;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-status {
@@ -127,6 +144,19 @@
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-status.warning { color: #b86700; }
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-status.info { color: #235ec7; }
 .descriptive-analytics-page .analytics-kpi .analytics-kpi-status.neutral { color: #7b899c; }
+
+/* Keep KPI copy readable when cards get narrow: scale down gracefully
+   instead of truncating long labels, values, or comparison text. */
+@container (max-width: 215px) {
+    .descriptive-analytics-page .analytics-kpi .analytics-kpi-value { font-size: 15px; }
+    .descriptive-analytics-page .analytics-kpi .analytics-kpi-label { font-size: 9.5px; }
+}
+
+@container (max-width: 175px) {
+    .descriptive-analytics-page .analytics-kpi .analytics-kpi-value { font-size: 12.5px; }
+    .descriptive-analytics-page .analytics-kpi .analytics-kpi-description,
+    .descriptive-analytics-page .analytics-kpi .analytics-kpi-status { font-size: 8.5px; }
+}
 
 /* Bus Health readability: keep the selected layout, match All/Fleet & Trip text scale. */
 .descriptive-analytics-page.descriptive-domain-bus-health .bus-health-panel .analytics-card-header p {
@@ -239,13 +269,13 @@
     font-size: 9.5px;
 }
 
-@media (max-width: 1380px) {
+@media (max-width: 1700px) {
     .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1240px) {
     .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six,
     .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-four,
     .descriptive-analytics-page .analytics-kpi-strip.analytics-domain-kpi-four {
@@ -253,7 +283,7 @@
     }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 700px) {
     .descriptive-analytics-page .analytics-kpi-strip,
     .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-six,
     .descriptive-analytics-page .analytics-kpi-strip.analytics-kpi-strip-four,
@@ -262,7 +292,70 @@
     }
 }
 
+/* Multi-row strips keep each card's own full border (undo the shared
+   kpi-strip divider overrides from fleet-trip-redesign.css). */
+@media (max-width: 1240px) {
+    .descriptive-analytics-page .analytics-kpi {
+        border-right: 1px solid #dce5f0;
+        border-bottom: 1px solid #dce5f0;
+    }
+}
+
+@media (max-width: 700px) {
+    .descriptive-analytics-page .analytics-kpi {
+        border-right: 1px solid #dce5f0;
+        border-bottom: 1px solid #dce5f0;
+    }
+}
+
 /* analytics-stage-hub.css resets KPI-strip margin later in the cascade; keep Descriptive spacing authoritative. */
 .descriptive-analytics-page.analytics-stage-page .analytics-kpi-strip {
     margin-bottom: 12px;
 }
+
+/*
+ * Availability breakdown primitives. Admin/Analytics/fleet-trip.css defines
+ * these only for the Fleet & Trip page, but All, Fuel, and Inventory use the
+ * same .availability-* classes. Define the shared base under the Descriptive
+ * page so status dots and rows render consistently across every domain.
+ */
+.descriptive-analytics-page .availability-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.descriptive-analytics-page .availability-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #f8fafc;
+}
+
+.descriptive-analytics-page .availability-row > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-size: 12px;
+}
+
+.descriptive-analytics-page .availability-row strong {
+    color: #0b1f3a;
+    font-size: 13px;
+}
+
+.descriptive-analytics-page .availability-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.descriptive-analytics-page .availability-dot.operational { background: #16a34a; }
+.descriptive-analytics-page .availability-dot.maintenance { background: #f59e0b; }
+.descriptive-analytics-page .availability-dot.inactive { background: #94a3b8; }
+.descriptive-analytics-page .availability-dot.critical { background: #ef4444; }

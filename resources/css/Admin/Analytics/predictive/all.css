@@ -1,0 +1,577 @@
+.predictive-page,
+.predictive-fleet-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 25px;
+    color: #1f2f46;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.predictive-card {
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(22, 35, 58, 0.05);
+    padding: 16px;
+}
+
+.card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 14px;
+}
+
+.card-heading h3 {
+    margin: 0;
+    color: #1f2d42;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.card-heading p {
+    margin: 4px 0 0;
+    color: #718096;
+    font-size: 11px;
+}
+
+.card-heading select {
+    border: 1px solid #d9e1ec;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #374151;
+}
+
+/* =========================================================
+   KPI CARDS
+========================================================= */
+
+.predictive-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.predictive-kpi {
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: 12px;
+    padding: 17px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: 0 4px 16px rgba(22, 35, 58, 0.04);
+}
+
+.predictive-kpi-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.predictive-kpi span,
+.predictive-kpi-copy span {
+    display: block;
+    color: #526072;
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.predictive-kpi strong,
+.predictive-kpi-copy strong {
+    display: block;
+    color: #1f2d42;
+    font-size: 25px;
+    line-height: 1;
+    margin-bottom: 9px;
+}
+
+.predictive-kpi small,
+.predictive-kpi-copy small {
+    color: #7b8798;
+    font-size: 10px;
+}
+
+/* =========================================================
+   ICON TONES
+========================================================= */
+
+.predictive-kpi-icon.danger,
+.issue-icon.danger,
+.insight-icon.danger {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.predictive-kpi-icon.warning,
+.issue-icon.warning,
+.insight-icon.warning {
+    color: #f59e0b;
+    background: #fff7ed;
+}
+
+.predictive-kpi-icon.success,
+.issue-icon.success,
+.insight-icon.success {
+    color: #16a34a;
+    background: #f0fdf4;
+}
+
+.predictive-kpi-icon.purple,
+.issue-icon.purple,
+.insight-icon.purple {
+    color: #7c3aed;
+    background: #f5f3ff;
+}
+
+.predictive-kpi-icon.blue,
+.issue-icon.blue,
+.insight-icon.blue {
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.predictive-kpi-icon.orange,
+.issue-icon.orange,
+.insight-icon.orange {
+    color: #f97316;
+    background: #fff7ed;
+}
+
+.predictive-kpi-icon.green,
+.issue-icon.green,
+.insight-icon.green {
+    color: #16a34a;
+    background: #ecfdf3;
+}
+
+.predictive-kpi-icon.yellow,
+.issue-icon.yellow,
+.insight-icon.yellow {
+    color: #d97706;
+    background: #fffbeb;
+}
+
+/* =========================================================
+   MAIN GRID
+========================================================= */
+
+.predictive-main-grid {
+    display: grid;
+    grid-template-columns: 1.45fr 0.75fr 1.05fr;
+    gap: 12px;
+}
+
+.predictive-main-grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.forecast-card,
+.risk-card,
+.issues-card {
+    min-height: 265px;
+}
+
+.chart-container {
+    position: relative;
+    height: 230px;
+}
+
+.large-chart {
+    height: 215px;
+}
+
+/* =========================================================
+   DONUT
+========================================================= */
+
+.risk-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    height: 210px;
+}
+
+.donut-wrapper {
+    width: 150px;
+    height: 150px;
+    position: relative;
+}
+
+.donut-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.donut-center strong {
+    color: #25344a;
+    font-size: 27px;
+}
+
+.donut-center span {
+    margin-top: 3px;
+    text-align: center;
+    color: #7b8798;
+    font-size: 9px;
+}
+
+.risk-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+.risk-legend > div {
+    display: grid;
+    grid-template-columns: 9px auto auto;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #667085;
+}
+
+.risk-legend strong {
+    color: #344054;
+    font-size: 10px;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legend-dot.low {
+    background: #16a34a;
+}
+
+.legend-dot.medium {
+    background: #fbbf24;
+}
+
+.legend-dot.high {
+    background: #ef4444;
+}
+
+/* =========================================================
+   ISSUES
+========================================================= */
+
+.issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.issue-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px;
+    border: 1px solid #e4e9f0;
+    border-radius: 9px;
+}
+
+.issue-rank {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    background: #f2f6fb;
+    color: #4470b7;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.issue-icon {
+    width: 33px;
+    height: 33px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.issue-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.issue-info strong {
+    display: block;
+    color: #263548;
+    font-size: 10px;
+}
+
+.issue-info span {
+    display: block;
+    color: #7a8798;
+    font-size: 9px;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.issue-count {
+    color: #516074;
+    font-size: 10px;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.risk-badge.high {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.risk-badge.medium {
+    background: #fff7ed;
+    color: #d97706;
+}
+
+.risk-badge.low {
+    background: #ecfdf3;
+    color: #15803d;
+}
+
+/* =========================================================
+   LINKS
+========================================================= */
+
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #2563c9;
+    font-size: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 11px;
+}
+
+.card-link:hover {
+    color: #174ea6;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.predictive-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.predictive-table thead {
+    background: #f5f7fa;
+}
+
+.predictive-table th {
+    color: #536174;
+    text-align: left;
+    padding: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.predictive-table td {
+    padding: 10px;
+    color: #4a596b;
+    font-size: 10px;
+    border-bottom: 1px solid #edf0f4;
+    white-space: nowrap;
+}
+
+.predictive-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.predictive-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.predictive-table td:last-child,
+.predictive-table th:last-child {
+    text-align: right;
+}
+
+/* =========================================================
+   BOTTOM GRID
+========================================================= */
+
+.predictive-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.25fr;
+    gap: 12px;
+}
+
+/* =========================================================
+   INSIGHTS
+========================================================= */
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.insight-item {
+    border: 1px solid #e4e9f0;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.insight-icon {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.insight-item strong {
+    color: #344054;
+    font-size: 10px;
+}
+
+.insight-item p {
+    color: #718096;
+    font-size: 9px;
+    line-height: 1.5;
+    margin: 5px 0 0;
+}
+
+.predictive-footer {
+    margin: 2px 0 0;
+    text-align: center;
+    color: #8a94a4;
+    font-size: 10px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1400px) {
+
+    .predictive-kpis {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .predictive-main-grid,
+    .predictive-main-grid-two,
+    .predictive-bottom-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .issues-card {
+        grid-column: span 2;
+    }
+
+    .insights-card {
+        grid-column: span 2;
+    }
+
+}
+
+@media (max-width: 1000px) {
+
+    .predictive-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .predictive-main-grid,
+    .predictive-main-grid-two,
+    .predictive-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .issues-card,
+    .insights-card {
+        grid-column: auto;
+    }
+
+}
+
+@media (max-width: 650px) {
+
+    .predictive-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .risk-content {
+        flex-direction: column;
+        height: auto;
+        padding: 15px 0;
+    }
+
+    .insight-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .issue-row {
+        flex-wrap: wrap;
+    }
+
+    .issue-row .risk-badge {
+        margin-left: auto;
+    }
+
+}

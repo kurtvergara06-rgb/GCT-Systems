@@ -1,4 +1,4 @@
-<section class="descriptive-overview-kpis">
+<section class="analytics-kpi-strip analytics-kpi-strip-six">
     @php
         $overviewKpis = [
             ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total distance', 'fa-location-dot', 'blue', $comparison['distance']],
@@ -9,11 +9,26 @@
             ['Buses Active', number_format($activeBuses), 'Out of ' . number_format($totalBuses) . ' buses', 'fa-bus', 'green', null],
         ];
     @endphp
-    @foreach($overviewKpis as [$label, $value, $small, $icon, $tone, $delta])
-        <article class="descriptive-overview-kpi">
-            <span class="descriptive-overview-kpi-icon {{ $tone }}"><i class="fa-solid {{ $icon }}"></i></span>
-            <div><span>{{ $label }}</span><strong>{{ $value }}</strong><small>{{ $small }}</small>@if($label === 'Buses Active')<em class="positive">{{ number_format($fleetAvailability, 1) }}% utilization</em>@else<em class="{{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">{{ $deltaText($delta) }} <small>{{ $comparison['label'] }}</small></em>@endif</div>
-        </article>
+
+    @foreach($overviewKpis as [$label, $value, $description, $icon, $tone, $delta])
+        @php
+            $isBusAvailability = $label === 'Buses Active';
+            $status = $isBusAvailability
+                ? number_format($fleetAvailability, 1) . '% utilization'
+                : ($delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label']);
+            $statusTone = $isBusAvailability
+                ? 'positive'
+                : ($delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive'));
+        @endphp
+        <x-analytics.kpi
+            :label="$label"
+            :value="$value"
+            :description="$description"
+            :status="$status"
+            :status-tone="$statusTone"
+            :icon="$icon"
+            :tone="$tone"
+        />
     @endforeach
 </section>
 
@@ -43,7 +58,7 @@
     <article class="analytics-card descriptive-recent-alerts-card">
         <div class="descriptive-overview-card-heading"><div><h3>Recent Alerts <i class="fa-regular fa-circle-info"></i></h3></div><a href="{{ route('admin.notifications') }}">View all alerts <i class="fa-solid fa-arrow-right"></i></a></div>
         @if($recentAlerts->isNotEmpty())
-            <div class="descriptive-alerts-table-wrap"><table class="descriptive-alerts-table"><thead><tr><th>Time</th><th>Type</th><th>Message</th><th>Entity</th><th>Status</th></tr></thead><tbody>@foreach($recentAlerts as $alert)<tr><td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td><td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td><td>{{ $alert['message'] }}</td><td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td><td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td></tr>@endforeach</tbody></table></div>
+            <div class="descriptive-alerts-table-wrap"><table class="descriptive-alerts-table"><thead><tr><th>Time</th><th>Type</th><th>Entity</th><th>Status</th></tr></thead><tbody>@foreach($recentAlerts as $alert)<tr><td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td><td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td><td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td><td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td></tr>@endforeach</tbody></table></div>
         @else
             <div class="analytics-compact-empty"><i class="fa-regular fa-bell-slash"></i><span>No recorded notifications are available.</span></div>
         @endif
