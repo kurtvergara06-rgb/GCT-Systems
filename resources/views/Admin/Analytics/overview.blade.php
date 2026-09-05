@@ -1,7 +1,7 @@
 <x-layout.app
     title="FROMS - Analytics Overview"
     :assets="[
-        'resources/css/Admin/Analytics/overview.css',
+        'resources/css/Admin/Analytics/overview/overview.css',
     ]"
 >
     <div class="app">

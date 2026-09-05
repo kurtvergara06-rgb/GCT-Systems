@@ -314,7 +314,7 @@
 }
 
 /*
- * Availability breakdown primitives. Admin/Analytics/fleet-trip.css defines
+ * Availability breakdown primitives. Admin/Analytics/overview/fleet-trip.css defines
  * these only for the Fleet & Trip page, but All, Fuel, and Inventory use the
  * same .availability-* classes. Define the shared base under the Descriptive
  * page so status dots and rows render consistently across every domain.

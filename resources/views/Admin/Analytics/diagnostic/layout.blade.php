@@ -27,7 +27,7 @@
     $diagnosticUrl = route('analytics.stage', ['stage' => 'diagnostic'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
     $pageAssets = [
-        'resources/css/Admin/Analytics/analytics-stage-hub.css',
+        'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
         $domainStyles[$activeDomain],
     ];
 @endphp
