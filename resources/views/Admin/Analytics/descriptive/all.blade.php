@@ -1,4 +1,4 @@
-<section class="analytics-kpi-strip analytics-kpi-strip-six">
+<section class="analytics-kpi-strip">
     @php
         $overviewKpis = [
             ['Distance Traveled', number_format($totalDistance, 1) . ' km', 'Total distance', 'fa-location-dot', 'blue', $comparison['distance']],
@@ -13,35 +13,32 @@
     @foreach($overviewKpis as [$label, $value, $description, $icon, $tone, $delta])
         @php
             $isBusAvailability = $label === 'Buses Active';
-            $status = $isBusAvailability
+            $change = $isBusAvailability
                 ? number_format($fleetAvailability, 1) . '% utilization'
                 : ($delta === null ? 'No prior data' : $deltaText($delta) . ' ' . $comparison['label']);
-            $statusTone = $isBusAvailability
+            $changeType = $isBusAvailability
                 ? 'positive'
                 : ($delta === null ? 'neutral' : ($delta < 0 ? 'negative' : 'positive'));
+            $iconVariant = $tone;
         @endphp
         <x-analytics.kpi
             :label="$label"
             :value="$value"
             :description="$description"
-            :status="$status"
-            :status-tone="$statusTone"
             :icon="$icon"
-            :tone="$tone"
+            :icon-variant="$iconVariant"
+            :change="$change"
+            :change-type="$changeType"
         />
     @endforeach
 </section>
 
 <section class="descriptive-overview-main-grid">
-    <article class="analytics-card analytics-reference-chart-card descriptive-trip-card descriptive-overview-trip-card">
-        <div class="descriptive-overview-card-heading">
-            <div>
-                <h3>Processed Trip Activity <i class="fa-regular fa-circle-info"></i></h3>
-                <p>Trip-record volume across the selected period.</p>
-            </div>
-            <span>{{ $periodLabel }}</span>
-        </div>
-
+    <x-analytics.card
+        title="Processed Trip Activity"
+        description="Trip-record volume across the selected period."
+        :badge="$periodLabel"
+    >
         <div class="trip-canvas-chart" data-trip-points='@json($tripChartData)'>
             <canvas class="trip-canvas" role="img" aria-label="Processed trip activity chart"></canvas>
             <div class="trip-canvas-tooltip" aria-hidden="true">
@@ -56,17 +53,13 @@
                 <span class="trip-canvas-partial-note"><i class="fa-regular fa-clock"></i> Current bucket is partial</span>
             @endif
         </div>
-    </article>
+    </x-analytics.card>
 
-    <article class="analytics-card descriptive-availability-card descriptive-overview-fleet-card">
-        <div class="descriptive-overview-card-heading">
-            <div>
-                <h3>Fleet Availability <i class="fa-regular fa-circle-info"></i></h3>
-                <p>Current Bus Master List status.</p>
-            </div>
-            <span>{{ $totalBuses }} buses</span>
-        </div>
-
+    <x-analytics.card
+        title="Fleet Availability"
+        description="Current Bus Master List status."
+        :badge="$totalBuses . ' buses'"
+    >
         <div class="analytics-availability-layout">
             <div class="availability-score">
                 <div
@@ -102,17 +95,14 @@
                 <div class="availability-total"><span>Total Buses</span><strong>{{ $totalBuses }}</strong></div>
             </div>
         </div>
-    </article>
+    </x-analytics.card>
 </section>
 
 <section class="descriptive-overview-lower-grid">
-    <article class="analytics-card ranking-card descriptive-ranking-card">
-        <div class="descriptive-overview-card-heading">
-            <div>
-                <h3>Top Routes by Trips <i class="fa-regular fa-circle-info"></i></h3>
-                <p>{{ $periodLabel }} · highest-volume routes</p>
-            </div>
-        </div>
+    <x-analytics.card
+        title="Top Routes by Trips"
+        description="{{ $periodLabel }} \u00b7 highest-volume routes"
+    >
         <div class="ranking-list refined-ranking-list">
             @forelse($routes as $route)
                 <div class="refined-ranking-row">
@@ -130,15 +120,12 @@
                 <p class="ranking-empty">No route records match the selected filters.</p>
             @endforelse
         </div>
-    </article>
+    </x-analytics.card>
 
-    <article class="analytics-card ranking-card descriptive-ranking-card">
-        <div class="descriptive-overview-card-heading">
-            <div>
-                <h3>Busiest Buses <i class="fa-regular fa-circle-info"></i></h3>
-                <p>{{ $periodLabel }} · highest recorded trip activity</p>
-            </div>
-        </div>
+    <x-analytics.card
+        title="Busiest Buses"
+        description="{{ $periodLabel }} \u00b7 highest recorded trip activity"
+    >
         <div class="ranking-list refined-ranking-list">
             @forelse($busActivity as $bus)
                 <div class="refined-ranking-row">
@@ -156,48 +143,43 @@
                 <p class="ranking-empty">No bus activity matches the selected filters.</p>
             @endforelse
         </div>
-    </article>
+    </x-analytics.card>
 
     <div class="descriptive-overview-side-stack">
-        <article class="analytics-card descriptive-summary-card">
-            <div class="descriptive-overview-card-heading">
-                <div>
-                    <h3>Fleet Status <i class="fa-regular fa-circle-info"></i></h3>
-                    <p>Current Bus Master List operational status</p>
-                </div>
-                <span>{{ $totalBuses }} buses</span>
-            </div>
+        <x-analytics.card
+            title="Fleet Status"
+            description="Current Bus Master List operational status"
+            :badge="$totalBuses . ' buses'"
+        >
             <div class="availability-breakdown">
                 <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }} <small>{{ number_format($activePct, 1) }}%</small></strong></div>
                 <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }} <small>{{ number_format($maintenancePct, 1) }}%</small></strong></div>
                 <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }} <small>{{ number_format($inactivePct, 1) }}%</small></strong></div>
             </div>
-        </article>
+        </x-analytics.card>
 
-        <article class="analytics-card descriptive-summary-card">
-            <div class="descriptive-overview-card-heading">
-                <div>
-                    <h3>Inventory Overview <i class="fa-regular fa-circle-info"></i></h3>
-                    <p>Current stock-level summary</p>
-                </div>
-                <span>{{ $inventoryTotal }} items</span>
-            </div>
+        <x-analytics.card
+            title="Inventory Overview"
+            description="Current stock-level summary"
+            :badge="$inventoryTotal . ' items'"
+        >
             <div class="availability-breakdown">
                 <div class="availability-row"><div><span class="availability-dot operational"></span><span>Well Stocked</span></div><strong>{{ $inventoryHealthy }} <small>({{ number_format($healthyPct) }}%)</small></strong></div>
                 <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Low Stock</span></div><strong>{{ $inventoryLow }} <small>({{ number_format($lowPct) }}%)</small></strong></div>
                 <div class="availability-row descriptive-inventory-critical"><div><span class="availability-dot critical"></span><span>Out of Stock</span></div><strong>{{ $inventoryCritical }} <small>({{ number_format($criticalPct) }}%)</small></strong></div>
             </div>
-        </article>
+        </x-analytics.card>
     </div>
 </section>
 
 <section class="descriptive-overview-footer-grid">
-    <article class="analytics-card descriptive-recent-alerts-card">
-        <div class="descriptive-overview-card-heading">
-            <div><h3>Recent Alerts <i class="fa-regular fa-circle-info"></i></h3></div>
-            <a href="{{ route('admin.notifications') }}">View all alerts <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-
+    @php
+        $recentAlertsHeader = '<a href="' . e(route('admin.notifications')) . '">View all alerts <i class="fa-solid fa-arrow-right"></i></a>';
+    @endphp
+    <x-analytics.card
+        title="Recent Alerts"
+        :header-actions="$recentAlertsHeader"
+    >
         @if($recentAlerts->isNotEmpty())
             <div class="descriptive-alerts-table-wrap">
                 <table class="descriptive-alerts-table">
@@ -207,7 +189,7 @@
                             <tr>
                                 <td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td>
                                 <td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td>
-                                <td>{{ $alert['reference'] !== '—' ? $alert['reference'] : $alert['module'] }}</td>
+                                <td>{{ $alert['reference'] !== '\u2014' ? $alert['reference'] : $alert['module'] }}</td>
                                 <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td>
                             </tr>
                         @endforeach
@@ -217,16 +199,12 @@
         @else
             <div class="analytics-compact-empty"><i class="fa-regular fa-bell-slash"></i><span>No recorded notifications are available.</span></div>
         @endif
-    </article>
+    </x-analytics.card>
 
-    <article class="analytics-card descriptive-operational-attention-card">
-        <div class="descriptive-overview-card-heading">
-            <div>
-                <h3>Action Summary <i class="fa-regular fa-circle-info"></i></h3>
-                <p>Items that may need review or follow-up</p>
-            </div>
-        </div>
-
+    <x-analytics.card
+        title="Action Summary"
+        description="Items that may need review or follow-up"
+    >
         @php
             $attentionItems = [
                 ['Under Maintenance', $underMaintenance, 'Buses in maintenance', 'fa-screwdriver-wrench', 'orange'],
@@ -248,5 +226,23 @@
                 </div>
             @endforeach
         </div>
-    </article>
+    </x-analytics.card>
+
+    <x-analytics.card
+        title="Quick Insights"
+        :badge="$comparison['label']"
+    >
+        @php
+            $insights = [
+                ['trips', 'More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips']],
+                ['idle', 'Idle time change', number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
+                ['distance', 'Distance traveled', number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
+            ];
+        @endphp
+        <div class="descriptive-insight-grid">
+            @foreach($insights as [$key, $label, $detail, $icon, $delta])
+                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}"><span><i class="fa-solid {{ $icon }}"></i></span><div><strong>{{ $deltaText($delta) }}</strong><b>{{ $label }}</b><small>{{ $detail }}</small></div></div>
+            @endforeach
+        </div>
+    </x-analytics.card>
 </section>

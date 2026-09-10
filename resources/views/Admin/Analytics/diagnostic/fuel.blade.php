@@ -12,12 +12,38 @@
 @endphp
 
 <section class="diag-stack">
-    <div class="diag-kpis">
-        <article class="diag-kpi"><div class="diag-kpi-icon"><i class="fa-solid fa-droplet"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Total Fuel Consumed</span><div class="diag-kpi-value">{{ number_format($d->total_fuel,1) }} L</div><small>Recorded fuel reports in the selected period.</small></div></article>
-        <article class="diag-kpi" data-tone="green"><div class="diag-kpi-icon"><i class="fa-solid fa-gauge-high"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Average Fuel Efficiency</span><div class="diag-kpi-value">{{ number_format($d->fleet_average,2) }} km/L</div><small>Distance divided by recorded fuel consumption.</small></div></article>
-        <article class="diag-kpi" data-tone="orange"><div class="diag-kpi-icon"><i class="fa-solid fa-bus"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Buses Requiring Review</span><div class="diag-kpi-value">{{ number_format($reviewCount) }}</div><small>Units with low efficiency or elevated idling intensity.</small></div></article>
-        <article class="diag-kpi" data-tone="red"><div class="diag-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Priority Review</span><div class="diag-kpi-value">{{ number_format($priority) }}</div><small>Efficiency more than 20% below the selected fleet baseline.</small></div></article>
-    </div>
+    <section class="analytics-kpi-strip" aria-label="Fuel diagnostics summary">
+        <x-analytics.kpi
+            label="Total Fuel Consumed"
+            :value="number_format($d->total_fuel, 1) . ' L'"
+            description="Recorded fuel reports in the selected period."
+            icon="fa-droplet"
+        />
+
+        <x-analytics.kpi
+            label="Average Fuel Efficiency"
+            :value="number_format($d->fleet_average, 2) . ' km/L'"
+            description="Distance divided by recorded fuel consumption."
+            icon="fa-gauge-high"
+            tone="green"
+        />
+
+        <x-analytics.kpi
+            label="Buses Requiring Review"
+            :value="number_format($reviewCount)"
+            description="Units with low efficiency or elevated idling intensity."
+            icon="fa-bus"
+            tone="yellow"
+        />
+
+        <x-analytics.kpi
+            label="Priority Review"
+            :value="number_format($priority)"
+            description="Efficiency more than 20% below the selected fleet baseline."
+            icon="fa-triangle-exclamation"
+            tone="red"
+        />
+    </section>
 
     <div class="fuel-main-grid">
         <article class="diag-card">

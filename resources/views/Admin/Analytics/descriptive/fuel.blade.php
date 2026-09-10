@@ -1,8 +1,32 @@
-<section class="analytics-kpi-strip analytics-domain-kpi-four fuel-reference-kpis">
-    <x-analytics.kpi label="Fuel Used" :value="number_format($fuel['totalFuel'] ?? 0, 1) . ' L'" small="Recorded fuel volume" icon="fa-gas-pump" />
-    <x-analytics.kpi label="Linked Distance" :value="number_format($fuel['totalDistance'] ?? 0, 1) . ' km'" small="Distance attached to fuel reports" icon="fa-road" tone="green" />
-    <x-analytics.kpi label="Weighted Efficiency" :value="number_format($fuel['fleetAverage'] ?? 0, 2) . ' km/L'" small="Distance divided by recorded fuel" icon="fa-gauge-high" tone="purple" />
-    <x-analytics.kpi label="Recorded Units" :value="$fuelSummaries->count()" small="Buses represented in reports" icon="fa-bus" tone="yellow" />
+<section class="analytics-kpi-strip">
+    <x-analytics.kpi
+        icon="fa-gas-pump"
+        label="Fuel Used"
+        :value="number_format($fuel['totalFuel'] ?? 0, 1) . ' L'"
+        description="Recorded fuel volume"
+        icon-variant="blue"
+    />
+    <x-analytics.kpi
+        icon="fa-road"
+        label="Linked Distance"
+        :value="number_format($fuel['totalDistance'] ?? 0, 1) . ' km'"
+        description="Distance attached to fuel reports"
+        icon-variant="green"
+    />
+    <x-analytics.kpi
+        icon="fa-gauge-high"
+        label="Weighted Efficiency"
+        :value="number_format($fuel['fleetAverage'] ?? 0, 2) . ' km/L'"
+        description="Distance divided by recorded fuel"
+        icon-variant="purple"
+    />
+    <x-analytics.kpi
+        icon="fa-bus"
+        label="Recorded Units"
+        :value="$fuelSummaries->count()"
+        description="Buses represented in reports"
+        icon-variant="yellow"
+    />
 </section>
 
 <section class="analytics-domain-content fuel-dashboard-content fuel-reference-dashboard">
@@ -37,7 +61,7 @@
                 <div class="fuel-summary-cell"><span class="fuel-summary-icon orange"><i class="fa-solid fa-arrow-down"></i></span><div><span>Lowest Efficiency</span><strong>{{ $leastEfficientBus ? number_format($leastEfficientBus->km_per_liter, 2) . ' km/L' : '—' }}</strong><small>{{ $leastEfficientBus?->bus_no ?? 'No data' }}</small></div></div>
             </div>
 
-            <x-analytics.panel class="fuel-details-card" title="Fuel Usage Details" description="Recorded distance, fuel usage, efficiency, and review status by bus">
+            <x-analytics.card class="analytics-domain-card fuel-details-card" title="Fuel Usage Details" description="Recorded distance, fuel usage, efficiency, and review status by bus">
                 @if($fuelSummaries->isNotEmpty())
                     <div class="fuel-table-tools">
                         <label class="fuel-table-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search bus..." data-fuel-table-search></label>
@@ -66,7 +90,7 @@
                 @else
                     <div class="analytics-compact-empty"><i class="fa-regular fa-folder-open"></i><span>No bus-level fuel records are available.</span></div>
                 @endif
-            </x-analytics.panel>
+            </x-analytics.card>
         </div>
 
         <aside class="fuel-dashboard-side-column">

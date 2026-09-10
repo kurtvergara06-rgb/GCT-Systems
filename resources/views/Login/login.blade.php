@@ -120,14 +120,6 @@
             class="fleet-composite" 
           >
         </div>
-
-        <div class="security-note">
-          <span class="security-shield"><i class="fa-solid fa-shield-halved"></i></span>
-          <div>
-            <strong>Your security is our priority.</strong>
-            <span>All account data is protected and encrypted.</span>
-          </div>
-        </div>  
       </div>
     </section>
 

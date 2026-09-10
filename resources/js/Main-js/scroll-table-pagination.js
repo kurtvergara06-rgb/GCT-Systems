@@ -156,4 +156,6 @@
     } else {
         initialize();
     }
+
+    document.addEventListener('ajax:content-updated', initialize);
 })();
