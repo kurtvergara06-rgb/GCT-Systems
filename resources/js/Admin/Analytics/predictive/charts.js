@@ -1,5 +1,7 @@
 import Chart from 'chart.js/auto';
 
+Chart.defaults.font.family = 'Poppins, Inter, Arial, Helvetica, sans-serif';
+
 const data = window.predictiveChartData || {};
 
 const AXIS_GRID = '#e8edf5';

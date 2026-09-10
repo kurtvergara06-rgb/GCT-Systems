@@ -29,6 +29,7 @@
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
         $domainStyles[$activeDomain],
+        'resources/css/Admin/Analytics/design-system.css',
     ];
 @endphp
 

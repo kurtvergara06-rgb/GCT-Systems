@@ -45,6 +45,7 @@
   >
 
   @vite($viteAssets)
+  @stack('styles')
 </head>
 
 <body>
@@ -55,5 +56,6 @@
   />
 
   <x-ui.system-toast />
+  @stack('scripts')
 </body>
 </html>

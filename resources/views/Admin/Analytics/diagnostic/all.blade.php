@@ -121,32 +121,54 @@
 @endphp
 
 <section class="diag-stack diag-all-stack">
-    <div class="diag-kpis diag-kpis-six">
-        <article class="diag-kpi">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-wave-square"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">Diagnostic Signals</span><div class="diag-kpi-value">{{ number_format($all->signals) }}</div><small>Recorded signals across all four operational domains.</small></div>
-        </article>
-        <article class="diag-kpi" data-tone="red">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">High-Impact Signals</span><div class="diag-kpi-value">{{ number_format($all->high_impact) }}</div><small>Delayed trips, high-idling units, overdue work, and stockouts.</small></div>
-        </article>
-        <article class="diag-kpi" data-tone="purple">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-layer-group"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">Areas With Issues</span><div class="diag-kpi-value">{{ $all->areas_with_issues }} / 4</div><small>Operational domains with at least one current investigation signal.</small></div>
-        </article>
-        <article class="diag-kpi" data-tone="green">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-route"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">Route Baseline Coverage</span><div class="diag-kpi-value">{{ number_format($baselineCoverage, 0) }}%</div><small>Trip records with enough route history for baseline comparison.</small></div>
-        </article>
-        <article class="diag-kpi" data-tone="orange">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-gas-pump"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">Fuel Review Units</span><div class="diag-kpi-value">{{ number_format($fuelReviewCount) }}</div><small>Buses with fleet-relative efficiency or idling review signals.</small></div>
-        </article>
-        <article class="diag-kpi" data-tone="red">
-            <div class="diag-kpi-icon"><i class="fa-solid fa-box-open"></i></div>
-            <div class="diag-kpi-copy"><span class="diag-kpi-label">Stock Attention</span><div class="diag-kpi-value">{{ number_format($stockAttentionCount) }}</div><small>Inventory items at low-stock or out-of-stock thresholds.</small></div>
-        </article>
-    </div>
+    <section class="analytics-kpi-strip analytics-kpi-strip-six" aria-label="Diagnostic analytics summary">
+        <x-analytics.kpi
+            label="Diagnostic Signals"
+            :value="number_format($all->signals)"
+            description="Recorded signals across all four operational domains."
+            icon="fa-wave-square"
+        />
+
+        <x-analytics.kpi
+            label="High-Impact Signals"
+            :value="number_format($all->high_impact)"
+            description="Delayed trips, high-idling units, overdue work, and stockouts."
+            icon="fa-triangle-exclamation"
+            tone="red"
+        />
+
+        <x-analytics.kpi
+            label="Areas With Issues"
+            :value="$all->areas_with_issues . ' / 4'"
+            description="Operational domains with at least one current investigation signal."
+            icon="fa-layer-group"
+            tone="purple"
+        />
+
+        <x-analytics.kpi
+            label="Route Baseline Coverage"
+            :value="number_format($baselineCoverage, 0) . '%'"
+            description="Trip records with enough route history for baseline comparison."
+            icon="fa-route"
+            tone="green"
+        />
+
+        <x-analytics.kpi
+            label="Fuel Review Units"
+            :value="number_format($fuelReviewCount)"
+            description="Buses with fleet-relative efficiency or idling review signals."
+            icon="fa-gas-pump"
+            tone="yellow"
+        />
+
+        <x-analytics.kpi
+            label="Stock Attention"
+            :value="number_format($stockAttentionCount)"
+            description="Inventory items at low-stock or out-of-stock thresholds."
+            icon="fa-box-open"
+            tone="red"
+        />
+    </section>
 
     <div class="diag-scope-strip" aria-label="Diagnostic evidence scope">
         <div class="diag-scope-title"><i class="fa-solid fa-filter-circle-dollar"></i><div><strong>Evidence Scope</strong><span>Current filters are applied through Period and Bus above.</span></div></div>

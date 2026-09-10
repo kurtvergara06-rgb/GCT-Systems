@@ -7,12 +7,38 @@
 @endphp
 
 <section class="diag-stack">
-    <div class="diag-kpis">
-        <article class="diag-kpi"><div class="diag-kpi-icon"><i class="fa-regular fa-clock"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Average Trip Duration</span><div class="diag-kpi-value">{{ number_format($diagnostic->fleet->average_trip_duration, 1) }} min</div><small>Observed duration across selected trip records.</small></div></article>
-        <article class="diag-kpi" data-tone="red"><div class="diag-kpi-icon"><i class="fa-solid fa-wave-square"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Diagnostic Signals</span><div class="diag-kpi-value">{{ number_format((int) ($d->review_count ?? 0)) }}</div><small>Trip records with at least one supported review factor.</small></div></article>
-        <article class="diag-kpi" data-tone="green"><div class="diag-kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Idle Exposure</span><div class="diag-kpi-value">{{ number_format($diagnostic->fleet->total_idle_minutes / 60, 1) }} hrs</div><small>{{ number_format((int) ($d->high_idle_count ?? 0)) }} high-idle records detected.</small></div></article>
-        <article class="diag-kpi" data-tone="purple"><div class="diag-kpi-icon"><i class="fa-solid fa-road-circle-exclamation"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Delay / Movement Signals</span><div class="diag-kpi-value">{{ number_format((int) ($d->delay_count ?? 0) + (int) ($d->slow_movement_count ?? 0)) }}</div><small>Delay and slow-movement records based on route baselines.</small></div></article>
-    </div>
+    <section class="analytics-kpi-strip" aria-label="Fleet and trip diagnostics summary">
+        <x-analytics.kpi
+            label="Average Trip Duration"
+            :value="number_format($diagnostic->fleet->average_trip_duration, 1) . ' min'"
+            description="Observed duration across selected trip records."
+            icon="fa-clock"
+        />
+
+        <x-analytics.kpi
+            label="Diagnostic Signals"
+            :value="number_format((int) ($d->review_count ?? 0))"
+            description="Trip records with at least one supported review factor."
+            icon="fa-wave-square"
+            tone="red"
+        />
+
+        <x-analytics.kpi
+            label="Idle Exposure"
+            :value="number_format($diagnostic->fleet->total_idle_minutes / 60, 1) . ' hrs'"
+            description="{{ number_format((int) ($d->high_idle_count ?? 0)) }} high-idle records detected."
+            icon="fa-hourglass-half"
+            tone="green"
+        />
+
+        <x-analytics.kpi
+            label="Delay / Movement Signals"
+            :value="number_format((int) ($d->delay_count ?? 0) + (int) ($d->slow_movement_count ?? 0))"
+            description="Delay and slow-movement records based on route baselines."
+            icon="fa-road-circle-exclamation"
+            tone="purple"
+        />
+    </section>
 
     <div class="fleet-main-grid">
         <article class="diag-card">

@@ -10,12 +10,38 @@
 @endphp
 
 <section class="diag-stack">
-    <div class="diag-kpis">
-        <article class="diag-kpi"><div class="diag-kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Total Items</span><div class="diag-kpi-value">{{ number_format($d->total) }}</div><small>Current inventory records in the warehouse master list.</small></div></article>
-        <article class="diag-kpi" data-tone="green"><div class="diag-kpi-icon"><i class="fa-solid fa-circle-check"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Well Stocked</span><div class="diag-kpi-value">{{ number_format($d->healthy) }}</div><small>{{ number_format($healthyPct,1) }}% above reorder attention.</small></div></article>
-        <article class="diag-kpi" data-tone="orange"><div class="diag-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Low Stock</span><div class="diag-kpi-value">{{ number_format($d->low) }}</div><small>On-hand stock at or below reorder level.</small></div></article>
-        <article class="diag-kpi" data-tone="red"><div class="diag-kpi-icon"><i class="fa-solid fa-circle-xmark"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Out of Stock</span><div class="diag-kpi-value">{{ number_format($d->critical) }}</div><small>Records with zero or negative on-hand quantity.</small></div></article>
-    </div>
+<section class="analytics-kpi-strip" aria-label="Inventory diagnostics summary">
+        <x-analytics.kpi
+            label="Total Items"
+            :value="number_format($d->total)"
+            description="Stock items in the selected scope."
+            icon="fa-boxes-stacked"
+        />
+
+        <x-analytics.kpi
+            label="Low Stock"
+            :value="number_format($d->low_stock)"
+            :description="number_format($lowPct, 1) . '% of scoped items.'"
+            icon="fa-arrow-down"
+            tone="yellow"
+        />
+
+        <x-analytics.kpi
+            label="Out of Stock"
+            :value="number_format($d->out_of_stock)"
+            :description="number_format($outPct, 1) . '% of scoped items.'"
+            icon="fa-box-open"
+            tone="red"
+        />
+
+        <x-analytics.kpi
+            label="Stock Coverage"
+            :value="number_format($d->price * (1 - $d->out_of_stock / max($d->total, 1)), 0) . ' FCFA'"
+            description="Active stock value excluding out-of-stock items."
+            icon="fa-sack-dollar"
+            tone="green"
+        />
+    </section>
 
     <div class="inventory-main-grid">
         <article class="diag-card">

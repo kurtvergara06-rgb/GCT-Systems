@@ -29,8 +29,8 @@
 
 <section class="inventory-reference-layout">
     <div class="inventory-reference-main">
-        <x-analytics.panel
-            class="inventory-panel inventory-distribution-panel"
+        <x-analytics.card
+            class="analytics-domain-card inventory-panel inventory-distribution-panel"
             title="Stock-Level Distribution"
             description="Current stock status across inventory records"
             :badge="$inventoryTotal . ' items'"
@@ -64,10 +64,10 @@
                     </div>
                 </div>
             </div>
-        </x-analytics.panel>
+        </x-analytics.card>
 
-        <x-analytics.panel
-            class="inventory-panel inventory-restock-panel"
+        <x-analytics.card
+            class="analytics-domain-card inventory-panel inventory-restock-panel"
             title="Restock Exposure"
             description="Items currently at or below the reorder threshold"
         >
@@ -90,12 +90,12 @@
                     <b>{{ number_format($inventoryCritical) }}</b>
                 </div>
             </div>
-        </x-analytics.panel>
+        </x-analytics.card>
     </div>
 
     <aside class="inventory-reference-side">
-        <x-analytics.panel
-            class="inventory-panel inventory-comparison-panel"
+        <x-analytics.card
+            class="analytics-domain-card inventory-panel inventory-comparison-panel"
             title="Stock Status Comparison"
             description="Relative item counts by current stock state"
         >
@@ -108,10 +108,10 @@
                     empty-text="No inventory status records are available."
                 />
             </div>
-        </x-analytics.panel>
+        </x-analytics.card>
 
-        <x-analytics.panel
-            class="inventory-panel inventory-interpretation-panel"
+        <x-analytics.card
+            class="analytics-domain-card inventory-panel inventory-interpretation-panel"
             title="Inventory Interpretation"
             description="Key insights derived from current warehouse stock fields"
         >
@@ -134,10 +134,10 @@
                     <b>{{ number_format($inventoryHealthy + $inventoryLow + $inventoryCritical) }} / {{ number_format($inventoryTotal) }}</b>
                 </div>
             </div>
-        </x-analytics.panel>
+        </x-analytics.card>
 
-        <x-analytics.panel
-            class="inventory-panel inventory-attention-panel"
+        <x-analytics.card
+            class="analytics-domain-card inventory-panel inventory-attention-panel"
             title="Attention Snapshot"
             description="Quick view of the current inventory state"
         >
@@ -163,6 +163,6 @@
                     <small>Out of Stock</small>
                 </div>
             </div>
-        </x-analytics.panel>
+        </x-analytics.card>
     </aside>
 </section>

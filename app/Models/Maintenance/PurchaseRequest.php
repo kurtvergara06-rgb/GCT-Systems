@@ -15,6 +15,7 @@ class PurchaseRequest extends Model
         'item',
         'quantity',
         'status',
+        'source_type',
         'remarks',
         'approved_at',
         'rejected_at',
@@ -32,4 +33,3 @@ class PurchaseRequest extends Model
         return $this->hasOne(PurchaseOrder::class);
     }
 }
-

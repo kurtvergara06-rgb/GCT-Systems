@@ -146,7 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
     applyToolbarFilters(toolbar);
   };
 
-  document.querySelectorAll(toolbarSelector).forEach(prepareToolbar);
+  const prepareAllToolbars = () => document.querySelectorAll(toolbarSelector).forEach(prepareToolbar);
+
+  prepareAllToolbars();
+
+  document.addEventListener('ajax:content-updated', prepareAllToolbars);
 
   document.addEventListener('input', (event) => {
     const input = event.target.closest?.(searchInputSelector);

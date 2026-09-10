@@ -20,10 +20,13 @@ class FuelAnalyticsController extends Controller
 
     public function data(Request $request): array
     {
-        $allowedPeriods = ['this-month', 'last-30-days', 'last-3-months', 'this-year'];
-        $period = in_array($request->string('period')->toString(), $allowedPeriods, true)
-            ? $request->string('period')->toString()
-            : 'this-month';
+        $allowedPeriods = ['this-week', 'this-month', 'last-30-days', 'last-90-days', 'last-12-months'];
+        $period = match (true) {
+            in_array($request->string('period')->toString(), $allowedPeriods, true) => $request->string('period')->toString(),
+            $request->string('period')->toString() === 'last-3-months' => 'last-90-days',
+            $request->string('period')->toString() === 'this-year' => 'last-12-months',
+            default => 'this-month',
+        };
 
         $allowedTrendWindows = ['7-days', '14-days', '30-days'];
         $trendWindow = in_array($request->string('fuel_trend')->toString(), $allowedTrendWindows, true)
@@ -154,8 +157,9 @@ class FuelAnalyticsController extends Controller
         $end = now()->endOfDay();
         $start = match ($period) {
             'last-30-days' => now()->subDays(29)->startOfDay(),
-            'last-3-months' => now()->subMonths(3)->startOfDay(),
-            'this-year' => now()->startOfYear(),
+            'last-90-days' => now()->subDays(89)->startOfDay(),
+            'last-12-months' => now()->subMonths(12)->startOfDay(),
+            'this-week' => now()->startOfWeek()->startOfDay(),
             default => now()->startOfMonth(),
         };
 
