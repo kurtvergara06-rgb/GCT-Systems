@@ -160,6 +160,17 @@
     font-weight: 550;
 }
 
+.predictive-page .analytics-card__title {
+    color: var(--predictive-navy);
+    font-size: 14px;
+    font-weight: 850;
+}
+
+.predictive-page .analytics-card__description {
+    margin-top: 3px;
+    font-weight: 550;
+}
+
 .chart-container,
 .small-chart {
     position: relative;
@@ -391,9 +402,41 @@
 
 .analytics-table {
     width: 100%;
-    min-width: 620px;
+    min-width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+}
+
+.all-domain-table th {
+    padding: 10px 10px;
+    font-size: 9.5px;
+}
+
+.all-domain-table td {
+    padding: 10px 10px;
+    font-size: 10.5px;
+}
+
+.domain-explore-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-size: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.domain-explore-chip:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
 }
 
 .analytics-table th {
@@ -548,8 +591,35 @@
     align-items: start;
     padding: 13px;
     border: 1px solid #e5edf6;
+    border-left: 3.5px solid #cbd5e1;
     border-radius: 12px;
     background: #fbfdff;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.insight-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(6, 31, 61, 0.06);
+}
+
+.insight-item--blue {
+    border-left-color: #2563eb !important;
+    background: #fcfdff !important;
+}
+
+.insight-item--orange {
+    border-left-color: #f59e0b !important;
+    background: #fffdfa !important;
+}
+
+.insight-item--green {
+    border-left-color: #10b981 !important;
+    background: #f9fefb !important;
+}
+
+.insight-item--yellow {
+    border-left-color: #eab308 !important;
+    background: #fffff8 !important;
 }
 
 .insight-icon {
@@ -1053,3 +1123,337 @@
         flex-direction: column;
     }
 }
+
+/* =========================================================
+   SHARED PREDICTIVE AI BANNER & HORIZON COMPONENTS
+   ========================================================= */
+
+.predictive-ai-banner {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #0b1f3a 0%, #112d52 60%, #153a6b 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 8px 24px -4px rgba(11, 31, 58, 0.25), 0 2px 6px rgba(0, 0, 0, 0.08);
+    color: #f8fafc;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+
+.predictive-ai-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.predictive-ai-banner__icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    flex-shrink: 0;
+}
+
+.predictive-ai-banner__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.predictive-ai-banner__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.ai-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.ai-status-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.predictive-ai-banner__text {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #e2e8f0;
+}
+
+.predictive-ai-banner__text strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.predictive-ai-banner__action {
+    flex-shrink: 0;
+}
+
+.btn-ai-reorder {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #0f2744;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-ai-reorder:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    color: #0369a1;
+}
+
+/* Shared Horizon Timeline */
+.health-horizon-list,
+.inventory-horizon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.horizon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #94a3b8;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.horizon-row:hover {
+    transform: translateX(2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.horizon-row--danger {
+    border-left-color: #ef4444;
+    background: #fffafa;
+}
+
+.horizon-row--warning {
+    border-left-color: #f59e0b;
+    background: #fffdf7;
+}
+
+.horizon-row--info {
+    border-left-color: #3b82f6;
+    background: #f8faff;
+}
+
+.horizon-row--success {
+    border-left-color: #10b981;
+    background: #f9fefb;
+}
+
+.horizon-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 82px;
+    flex-shrink: 0;
+}
+
+.horizon-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    width: 100%;
+    text-align: center;
+}
+
+.horizon-pill--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.horizon-pill--warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.horizon-pill--info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.horizon-pill--success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.horizon-count {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.horizon-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.horizon-headline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.horizon-headline strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.horizon-sample-tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #64748b;
+    background: rgba(100, 116, 139, 0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.horizon-desc {
+    display: block;
+    font-size: 10.5px;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+/* Shared Ratio Bar */
+.health-ratio-bar-wrap,
+.inventory-ratio-bar-wrap {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.health-ratio-bar,
+.inventory-ratio-bar {
+    display: flex;
+    width: 100%;
+    height: 7px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+.ratio-segment.ratio-healthy {
+    background: #16a34a;
+}
+
+.ratio-segment.ratio-low {
+    background: #f59e0b;
+}
+
+.ratio-segment.ratio-critical {
+    background: #ef4444;
+}
+
+.table-bus-chip {
+    display: inline-block;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+}
+
+@media (max-width: 1024px) {
+    .predictive-ai-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .predictive-ai-banner__action {
+        width: 100%;
+    }
+
+    .btn-ai-reorder {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

@@ -1,8 +1,880 @@
 /* =========================================================
-   INVENTORY SPECIFICS
-   (shared components come from predictive/all.css)
-========================================================= */
+   INVENTORY PREDICTIVE ANALYTICS - MODERN STYLING
+   ========================================================= */
 
 .predictive-inventory-page {
-    color: #1f2f46;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ---------------------------------------------------------
+   1. AI PREDICTIVE INSIGHT BANNER
+   --------------------------------------------------------- */
+.predictive-ai-banner {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #0b1f3a 0%, #112d52 60%, #153a6b 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 8px 24px -4px rgba(11, 31, 58, 0.25), 0 2px 6px rgba(0, 0, 0, 0.08);
+    color: #f8fafc;
+    position: relative;
+    overflow: hidden;
+}
+
+.predictive-ai-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.predictive-ai-banner__icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    flex-shrink: 0;
+}
+
+.predictive-ai-banner__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.predictive-ai-banner__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.ai-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.ai-status-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.predictive-ai-banner__text {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #e2e8f0;
+}
+
+.predictive-ai-banner__text strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.predictive-ai-banner__action {
+    flex-shrink: 0;
+}
+
+.btn-ai-reorder {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #0f2744;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-ai-reorder:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    color: #0369a1;
+}
+
+/* ---------------------------------------------------------
+   2. MAIN GRID: STOCK DISTRIBUTION & RUNOUT HORIZON
+   --------------------------------------------------------- */
+.predictive-inventory-page .predictive-main-grid-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 16px;
+}
+
+/* Enhanced Donut Card */
+.inventory-donut-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 20px;
+    padding: 6px 0;
+}
+
+.donut-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+}
+
+.donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+.donut-center strong {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.donut-center span {
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.inventory-legend-enhanced {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inventory-legend-enhanced .legend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.inventory-legend-enhanced .legend-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-weight: 600;
+}
+
+.inventory-legend-enhanced .legend-numbers {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.inventory-legend-enhanced .legend-numbers strong {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.inventory-legend-enhanced .legend-pct {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.inventory-ratio-bar-wrap {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ratio-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.inventory-ratio-bar {
+    display: flex;
+    width: 100%;
+    height: 7px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+.ratio-segment.ratio-healthy {
+    background: #16a34a;
+}
+
+.ratio-segment.ratio-low {
+    background: #f59e0b;
+}
+
+.ratio-segment.ratio-critical {
+    background: #ef4444;
+}
+
+/* ---------------------------------------------------------
+   3. RUNOUT HORIZON TIMELINE
+   --------------------------------------------------------- */
+.inventory-horizon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.horizon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #94a3b8;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.horizon-row:hover {
+    transform: translateX(2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.horizon-row--danger {
+    border-left-color: #ef4444;
+    background: #fffafa;
+}
+
+.horizon-row--warning {
+    border-left-color: #f59e0b;
+    background: #fffdf7;
+}
+
+.horizon-row--info {
+    border-left-color: #3b82f6;
+    background: #f8faff;
+}
+
+.horizon-row--success {
+    border-left-color: #10b981;
+    background: #f9fefb;
+}
+
+.horizon-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 82px;
+    flex-shrink: 0;
+}
+
+.horizon-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    width: 100%;
+    text-align: center;
+}
+
+.horizon-pill--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.horizon-pill--warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.horizon-pill--info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.horizon-pill--success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.horizon-count {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.horizon-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.horizon-headline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.horizon-headline strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.horizon-sample-tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #64748b;
+    background: rgba(100, 116, 139, 0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.horizon-desc {
+    display: block;
+    font-size: 10.5px;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+/* ---------------------------------------------------------
+   4. ATTENTION GRID (CATEGORY & REORDER PRIORITY)
+   --------------------------------------------------------- */
+.predictive-inventory-page .predictive-inventory-attention-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
+    gap: 16px;
+}
+
+/* Category Attention */
+.category-attention-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    transition: background-color 0.15s ease;
+}
+
+.category-row:hover {
+    background: #f8fafc;
+}
+
+.category-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.category-icon--high {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.category-icon--medium {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.category-icon--low {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.category-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.category-info-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.category-info-top strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.category-meta {
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.category-health-track {
+    width: 100%;
+    height: 5px;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.category-health-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.category-health-fill--high {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.category-health-fill--medium {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.category-health-fill--low {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Reorder Priority Card */
+.inventory-priority-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.inventory-priority-item {
+    padding: 11px 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inventory-priority-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.inventory-priority-item.priority--high {
+    border-left: 3px solid #ef4444;
+}
+
+.inventory-priority-item.priority--medium {
+    border-left: 3px solid #f59e0b;
+}
+
+.inventory-priority-item.priority--low {
+    border-left: 3px solid #10b981;
+}
+
+.inventory-priority-item__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.item-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.item-code-chip {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #0f172a;
+    color: #f8fafc;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inventory-priority-metrics {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.metric-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    font-size: 10px;
+    color: #475569;
+}
+
+.metric-chip strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.metric-chip.highlight {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+}
+
+.metric-chip.highlight strong {
+    color: #1d4ed8;
+}
+
+.metric-chip .color-danger {
+    color: #dc2626 !important;
+}
+
+.metric-chip .color-warning {
+    color: #d97706 !important;
+}
+
+/* ---------------------------------------------------------
+   5. INVENTORY REORDER FORECAST TABLE
+   --------------------------------------------------------- */
+.predictive-inventory-page .predictive-inventory-table-wrap {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
+.predictive-inventory-page .predictive-inventory-table {
+    width: 100%;
+    min-width: 900px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.predictive-inventory-page .predictive-inventory-table th {
+    padding: 11px 14px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #475569;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.predictive-inventory-page .predictive-inventory-table td {
+    padding: 11px 14px;
+    font-size: 12px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.predictive-inventory-page .predictive-inventory-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.table-item-code-chip {
+    display: inline-block;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+.table-item-name {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.table-category-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.table-category-cell i {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* Stock Buffer Progress Meter in Table */
+.table-stock-buffer-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.buffer-text {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.buffer-onhand {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.buffer-onhand.buffer-zero {
+    color: #dc2626;
+}
+
+.buffer-sep {
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+.buffer-reorder {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.buffer-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.buffer-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.buffer-fill--danger {
+    background: #ef4444;
+}
+
+.buffer-fill--warning {
+    background: #f59e0b;
+}
+
+.buffer-fill--success {
+    background: #10b981;
+}
+
+/* Runout pill */
+.runout-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.runout-pill--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.runout-pill--warning {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.runout-pill--success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.table-gap {
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.table-gap--exposed {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.po-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.po-chip--none {
+    background: transparent;
+    border-color: transparent;
+    color: #94a3b8;
+}
+
+/* Footer note */
+.predictive-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.predictive-footer i {
+    color: #3b82f6;
+}
+
+/* ---------------------------------------------------------
+   6. RESPONSIVE BREAKPOINTS
+   --------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .predictive-ai-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .predictive-ai-banner__action {
+        width: 100%;
+    }
+
+    .btn-ai-reorder {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .predictive-inventory-page .predictive-main-grid-two,
+    .predictive-inventory-page .predictive-inventory-attention-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .inventory-donut-content {
+        flex-direction: column;
+    }
+
+    .horizon-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .horizon-indicator {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+    }
 }
