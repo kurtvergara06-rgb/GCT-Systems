@@ -478,10 +478,12 @@
     margin: 2px 0 0;
     font-size: 9.5px;
     color: var(--ft-muted);
-    line-height: 1.3;
-    white-space: nowrap;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .predictive-fleet-page .ft-issue-count {
@@ -625,11 +627,235 @@
     height: 100%;
     background: #2563eb;
     border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.predictive-fleet-page .ft-risk-pct--high {
+    color: #ef4444;
+    font-weight: 800;
+}
+
+.predictive-fleet-page .ft-risk-pct--medium {
+    color: #f59e0b;
+    font-weight: 800;
+}
+
+.predictive-fleet-page .ft-risk-pct--low {
+    color: #10b981;
+    font-weight: 800;
+}
+
+.predictive-fleet-page .ft-riskbar-fill--high {
+    background: #ef4444 !important;
+}
+
+.predictive-fleet-page .ft-riskbar-fill--medium {
+    background: #f59e0b !important;
+}
+
+.predictive-fleet-page .ft-riskbar-fill--low {
+    background: #10b981 !important;
+}
+
+.predictive-fleet-page .ft-action-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.predictive-fleet-page .ft-action-chip:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
 }
 
 /* =========================================================
    LOWER 3-COLUMN GRID
    ========================================================= */
+
+/* Route Risk List */
+.predictive-fleet-page .ft-route-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.predictive-fleet-page .ft-route-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.predictive-fleet-page .ft-route-item:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.predictive-fleet-page .ft-route-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.predictive-fleet-page .ft-route-name {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.predictive-fleet-page .ft-route-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.predictive-fleet-page .ft-route-tag {
+    font-size: 8.5px;
+    font-weight: 750;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.predictive-fleet-page .ft-route-tag.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.predictive-fleet-page .ft-route-tag.warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.predictive-fleet-page .ft-route-tag.success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.predictive-fleet-page .ft-route-meter-wrap {
+    margin-top: 6px;
+    width: 100%;
+}
+
+.predictive-fleet-page .ft-route-meter-track {
+    width: 100%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.predictive-fleet-page .ft-route-meter-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.predictive-fleet-page .ft-route-meter-fill--high {
+    background: #ef4444;
+}
+
+.predictive-fleet-page .ft-route-meter-fill--medium {
+    background: #f59e0b;
+}
+
+.predictive-fleet-page .ft-route-meter-fill--low {
+    background: #10b981;
+}
+
+.predictive-fleet-page .ft-route-variance {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.predictive-fleet-page .ft-route-variance.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.predictive-fleet-page .ft-route-variance.safe {
+    background: rgba(16, 185, 129, 0.1);
+    color: #15803d;
+}
+
+.predictive-fleet-page .ft-route-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 3px;
+    font-size: 9.5px;
+    color: #64748b;
+}
+
+.predictive-fleet-page .ft-route-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.predictive-fleet-page .ft-route-risk-col {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.predictive-fleet-page .ft-route-score-wrap {
+    text-align: right;
+}
+
+.predictive-fleet-page .ft-route-score {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.predictive-fleet-page .ft-route-score--high {
+    color: #ef4444;
+}
+
+.predictive-fleet-page .ft-route-score--medium {
+    color: #f59e0b;
+}
+
+.predictive-fleet-page .ft-route-score--low {
+    color: #10b981;
+}
+
+.predictive-fleet-page .ft-route-score-label {
+    display: block;
+    font-size: 8.5px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
 
 .predictive-fleet-page .ft-lower-grid {
     display: grid;
@@ -692,13 +918,48 @@
     padding: 12px;
     background: #f8fafc;
     border: 1px solid #edf2f7;
+    border-left: 3.5px solid #cbd5e1;
     border-radius: 10px;
-    transition: transform 0.15s ease, background 0.15s ease;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .predictive-fleet-page .ft-insight-tile:hover {
     background: #ffffff;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    transform: translateY(-1px);
+}
+
+.predictive-fleet-page .ft-insight-tile--blue {
+    border-left-color: #2563eb;
+    background: #fcfdff;
+}
+
+.predictive-fleet-page .ft-insight-tile--orange {
+    border-left-color: #f59e0b;
+    background: #fffdfa;
+}
+
+.predictive-fleet-page .ft-insight-tile--yellow {
+    border-left-color: #eab308;
+    background: #fffff8;
+}
+
+.predictive-fleet-page .ft-insight-tile--green {
+    border-left-color: #10b981;
+    background: #f9fefb;
+}
+
+.predictive-fleet-page .ft-telemetry-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
 }
 
 .predictive-fleet-page .ft-insight-icon {

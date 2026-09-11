@@ -127,6 +127,7 @@
             :value="number_format($all->signals)"
             description="Recorded signals across all four operational domains."
             icon="fa-wave-square"
+            icon-variant="blue"
         />
 
         <x-analytics.kpi
@@ -134,7 +135,7 @@
             :value="number_format($all->high_impact)"
             description="Delayed trips, high-idling units, overdue work, and stockouts."
             icon="fa-triangle-exclamation"
-            tone="red"
+            icon-variant="red"
         />
 
         <x-analytics.kpi
@@ -142,7 +143,7 @@
             :value="$all->areas_with_issues . ' / 4'"
             description="Operational domains with at least one current investigation signal."
             icon="fa-layer-group"
-            tone="purple"
+            icon-variant="purple"
         />
 
         <x-analytics.kpi
@@ -150,7 +151,7 @@
             :value="number_format($baselineCoverage, 0) . '%'"
             description="Trip records with enough route history for baseline comparison."
             icon="fa-route"
-            tone="green"
+            icon-variant="green"
         />
 
         <x-analytics.kpi
@@ -158,7 +159,7 @@
             :value="number_format($fuelReviewCount)"
             description="Buses with fleet-relative efficiency or idling review signals."
             icon="fa-gas-pump"
-            tone="yellow"
+            icon-variant="yellow"
         />
 
         <x-analytics.kpi
@@ -166,7 +167,7 @@
             :value="number_format($stockAttentionCount)"
             description="Inventory items at low-stock or out-of-stock thresholds."
             icon="fa-box-open"
-            tone="red"
+            icon-variant="red"
         />
     </section>
 
@@ -181,7 +182,7 @@
 
     <div class="diag-domain-grid diag-domain-grid-nexora">
         <article class="diag-card diag-primary-causes">
-            <div class="diag-card-head"><div><h3>Primary Contributing Factors</h3><p>Largest current evidence groups ranked by observed records.</p></div></div>
+            <x-analytics.card-header class="diag-card-head" title="Primary Contributing Factors" description="Largest current evidence groups ranked by observed records." />
             <div class="diag-list diag-ranked-list">
                 @foreach($rankedRows as $index => $row)
                     <div class="diag-list-row">
@@ -194,7 +195,7 @@
         </article>
 
         <article class="diag-card diag-impact-card">
-            <div class="diag-card-head"><div><h3>Impact by Domain and Metric</h3><p>Recorded signal concentration by supported operational relationship. “—” means no supported link is asserted.</p></div></div>
+            <x-analytics.card-header class="diag-card-head" title="Impact by Domain and Metric" description="Recorded signal concentration by supported operational relationship. &quot;“—” means no supported link is asserted." />
             <div class="diag-heatmap-wrap">
                 <table class="diag-heatmap-table">
                     <thead>
@@ -228,7 +229,7 @@
         </article>
 
         <article class="diag-card diag-investigation-signals">
-            <div class="diag-card-head"><div><h3>Signals Requiring Investigation</h3><p>Current domain-level evidence that deserves review.</p></div></div>
+            <x-analytics.card-header class="diag-card-head" title="Signals Requiring Investigation" description="Current domain-level evidence that deserves review." />
             <div class="diag-list">
                 @foreach($domainRows as $index => $row)
                     <div class="diag-list-row diag-signal-row">
@@ -242,7 +243,7 @@
     </div>
 
     <article class="diag-card diag-cross-table">
-        <div class="diag-card-head"><div><h3>Cross-Domain Diagnostic Breakdown</h3><p>Observed evidence by domain. Counts and labels are derived from current recorded data, not synthetic confidence scores.</p></div></div>
+        <x-analytics.card-header class="diag-card-head" title="Cross-Domain Diagnostic Breakdown" description="Observed evidence by domain. Counts and labels are derived from current recorded data, not synthetic confidence scores." />
         <div class="diag-table-wrap">
             <table class="diag-table diag-table-detailed">
                 <thead><tr><th>Domain</th><th>Observed Contributor</th><th>Related Metric</th><th>Observed</th><th>Supporting Evidence</th><th>Level</th><th>Status</th><th>Investigation Focus</th></tr></thead>
@@ -271,7 +272,7 @@
         </article>
 
         <article class="diag-card diag-priority-card">
-            <div class="diag-card-head"><div><h3>Investigation Priorities</h3><p>Evidence-first review order for the selected period.</p></div></div>
+            <x-analytics.card-header class="diag-card-head" title="Investigation Priorities" description="Evidence-first review order for the selected period." />
             <ol class="diag-priority-list diag-priority-numbered">
                 <li><span>1</span><p>Review <strong>{{ $topDomain?->domain ?? 'the highest-count domain' }}</strong> and its supporting records first.</p></li>
                 <li><span>2</span><p>Compare high-idle and delayed trip records where both signals occur.</p></li>
@@ -281,7 +282,7 @@
         </article>
 
         <article class="diag-card diag-coverage-card">
-            <div class="diag-card-head"><div><h3>Diagnostic Data Coverage</h3><p>Recorded sources currently represented in this cross-domain analysis.</p></div><span class="diag-badge info">4 sources</span></div>
+            <x-analytics.card-header class="diag-card-head" title="Diagnostic Data Coverage" description="Recorded sources currently represented in this cross-domain analysis." badge="4 sources" />
             <div class="diag-coverage-summary"><div class="diag-coverage-ring" style="--coverage: {{ min(100, max(0, $baselineCoverage)) }}"><span>{{ number_format($baselineCoverage, 0) }}%</span></div><div><strong>Route baseline coverage</strong><p>Fleet & Trip is the only domain currently using a formal historical baseline calculation.</p></div></div>
             <div class="diag-coverage-list">
                 @foreach($sourceCoverage as $source)

@@ -21,10 +21,10 @@
 @endphp
 
 <section class="analytics-kpi-strip analytics-domain-kpi-four inventory-kpi-strip">
-    <x-analytics.kpi label="Total Items" :value="$inventoryTotal" description="Inventory records" icon="fa-boxes-stacked" />
-    <x-analytics.kpi label="Well Stocked" :value="$inventoryHealthy" description="Above reorder threshold" icon="fa-box-open" tone="green" />
-    <x-analytics.kpi label="Low Stock" :value="$inventoryLow" description="At or below reorder level" icon="fa-triangle-exclamation" tone="yellow" />
-    <x-analytics.kpi label="Out of Stock" :value="$inventoryCritical" description="No on-hand stock" icon="fa-circle-exclamation" tone="red" />
+    <x-analytics.kpi label="Total Items" :value="$inventoryTotal" description="Inventory records" icon="fa-boxes-stacked" icon-variant="blue" />
+    <x-analytics.kpi label="Well Stocked" :value="$inventoryHealthy" description="Above reorder threshold" icon="fa-box-open" icon-variant="green" />
+    <x-analytics.kpi label="Low Stock" :value="$inventoryLow" description="At or below reorder level" icon="fa-triangle-exclamation" icon-variant="yellow" />
+    <x-analytics.kpi label="Out of Stock" :value="$inventoryCritical" description="No on-hand stock" icon="fa-circle-exclamation" icon-variant="red" />
 </section>
 
 <section class="inventory-reference-layout">
@@ -142,26 +142,10 @@
             description="Quick view of the current inventory state"
         >
             <div class="inventory-attention-grid">
-                <div class="inventory-attention-cell tone-blue">
-                    <span><i class="fa-solid fa-boxes-stacked"></i></span>
-                    <strong>{{ number_format($inventoryTotal) }}</strong>
-                    <small>Total Items</small>
-                </div>
-                <div class="inventory-attention-cell tone-green">
-                    <span><i class="fa-solid fa-box-open"></i></span>
-                    <strong>{{ number_format($inventoryHealthy) }}</strong>
-                    <small>Well Stocked</small>
-                </div>
-                <div class="inventory-attention-cell tone-yellow">
-                    <span><i class="fa-solid fa-triangle-exclamation"></i></span>
-                    <strong>{{ number_format($inventoryLow) }}</strong>
-                    <small>Low Stock</small>
-                </div>
-                <div class="inventory-attention-cell tone-red">
-                    <span><i class="fa-solid fa-circle-exclamation"></i></span>
-                    <strong>{{ number_format($inventoryCritical) }}</strong>
-                    <small>Out of Stock</small>
-                </div>
+                <x-analytics.kpi label="Total Items" :value="number_format($inventoryTotal)" icon="fa-boxes-stacked" tone="blue" />
+                <x-analytics.kpi label="Well Stocked" :value="number_format($inventoryHealthy)" icon="fa-box-open" tone="green" />
+                <x-analytics.kpi label="Low Stock" :value="number_format($inventoryLow)" icon="fa-triangle-exclamation" tone="yellow" />
+                <x-analytics.kpi label="Out of Stock" :value="number_format($inventoryCritical)" icon="fa-circle-exclamation" tone="red" />
             </div>
         </x-analytics.card>
     </aside>

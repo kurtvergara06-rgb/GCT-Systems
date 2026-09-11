@@ -1,0 +1,16 @@
+/* ==========================================================================
+   PRESCRIPTIVE ANALYTICS - FUEL DOMAIN STYLESHEET
+   ========================================================================== */
+
+.prescriptive-fuel-page .prescriptive-card {
+    border-top: 3px solid #10b981;
+}
+
+.prescriptive-fuel-page .queue-domain-pill {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.prescriptive-fuel-page .prescriptive-queue-item {
+    border-left-color: #10b981;
+}

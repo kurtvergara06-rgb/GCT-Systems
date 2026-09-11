@@ -6,7 +6,7 @@
   'type' => 'average',
 ])
 
-<article class="fuel-insight-card {{ $type }}">
+<article {{ $attributes->class(['fuel-insight-card', 'analytics-insight-card', $type]) }} data-ui-component="analytics-insight">
   <div class="fuel-insight-icon">
     <i class="fa-solid {{ $icon }}"></i>
   </div>

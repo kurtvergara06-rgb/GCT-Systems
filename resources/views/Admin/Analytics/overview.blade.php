@@ -310,41 +310,37 @@
                     </div>
 
                     <div class="performance-metrics">
-                        <div class="performance-metric">
-                            <div class="metric-icon fleet"><i class="fa-solid fa-clock"></i></div>
-                            <div>
-                                <span>Avg. Trip Duration</span>
-                                <strong>54 min</strong>
-                            </div>
-                            <small class="metric-change warning">12 Review</small>
-                        </div>
+                        <x-analytics.kpi
+                            label="Avg. Trip Duration"
+                            value="54 min"
+                            description="12 Review"
+                            icon="fa-clock"
+                            icon-variant="yellow"
+                        />
 
-                        <div class="performance-metric">
-                            <div class="metric-icon fuel"><i class="fa-solid fa-chart-line"></i></div>
-                            <div>
-                                <span>Fuel Forecast</span>
-                                <strong>Next-period outlook</strong>
-                            </div>
-                            <small class="metric-change warning">Predictive</small>
-                        </div>
+                        <x-analytics.kpi
+                            label="Fuel Forecast"
+                            value="Next-period outlook"
+                            description="Predictive"
+                            icon="fa-chart-line"
+                            icon-variant="yellow"
+                        />
 
-                        <div class="performance-metric">
-                            <div class="metric-icon maintenance"><i class="fa-solid fa-gauge-high"></i></div>
-                            <div>
-                                <span>Next PMS Alert</span>
-                                <strong>1,580 km</strong>
-                            </div>
-                            <small class="metric-change critical">Early Alert</small>
-                        </div>
+                        <x-analytics.kpi
+                            label="Next PMS Alert"
+                            value="1,580 km"
+                            description="Early Alert"
+                            icon="fa-gauge-high"
+                            icon-variant="red"
+                        />
 
-                        <div class="performance-metric">
-                            <div class="metric-icon inventory"><i class="fa-solid fa-box-open"></i></div>
-                            <div>
-                                <span>Stock Runway</span>
-                                <strong>Usage-based forecast</strong>
-                            </div>
-                            <small class="metric-change critical">Threshold</small>
-                        </div>
+                        <x-analytics.kpi
+                            label="Stock Runway"
+                            value="Usage-based forecast"
+                            description="Threshold"
+                            icon="fa-box-open"
+                            icon-variant="red"
+                        />
                     </div>
                 </div>
             </section>

@@ -1,8 +1,325 @@
 /* =========================================================
-   BUS HEALTH SPECIFICS
-   (shared components come from predictive/all.css)
-========================================================= */
+   BUS HEALTH PREDICTIVE ANALYTICS - MODERN STYLING
+   ========================================================= */
 
 .predictive-health-page {
-    color: #1f2f46;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ---------------------------------------------------------
+   1. MAIN GRID: DISTRIBUTION & FAILURE HORIZON
+   --------------------------------------------------------- */
+.predictive-health-page .predictive-main-grid-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 16px;
+}
+
+/* Fleet Status Donut Card */
+.health-donut-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 20px;
+    padding: 6px 0;
+}
+
+.health-legend-enhanced {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.health-legend-enhanced .legend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.health-legend-enhanced .legend-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-weight: 600;
+}
+
+.health-legend-enhanced .legend-numbers {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.health-legend-enhanced .legend-numbers strong {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.health-legend-enhanced .legend-pct {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.health-ratio-bar-wrap {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.health-ratio-bar {
+    display: flex;
+    width: 100%;
+    height: 7px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+/* ---------------------------------------------------------
+   2. FAILURE & WEAR RISK HORIZON TIMELINE
+   --------------------------------------------------------- */
+.health-horizon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+/* ---------------------------------------------------------
+   3. BUS MAINTENANCE FORECAST TABLE
+   --------------------------------------------------------- */
+.predictive-health-page .predictive-health-table-wrap {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
+.predictive-health-page .predictive-health-table {
+    width: 100%;
+    min-width: 920px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.predictive-health-page .predictive-health-table th {
+    padding: 11px 14px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #475569;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.predictive-health-page .predictive-health-table td {
+    padding: 11px 14px;
+    font-size: 12px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.predictive-health-page .predictive-health-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.table-bus-chip {
+    display: inline-block;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+}
+
+.table-bus-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bus-plate {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.bus-model {
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+/* Health Score Cell & Meter */
+.table-health-score-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.health-score-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.score-number {
+    font-weight: 800;
+    font-size: 12px;
+}
+
+.score-number.score-danger {
+    color: #dc2626;
+}
+
+.score-number.score-warning {
+    color: #d97706;
+}
+
+.score-number.score-success {
+    color: #16a34a;
+}
+
+.score-label {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.health-score-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.health-score-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.health-score-fill--danger {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.health-score-fill--warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.health-score-fill--success {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Operational Status Pill */
+.bus-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.bus-status-pill .status-circle {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.bus-status-pill--success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.bus-status-pill--success .status-circle {
+    background: #16a34a;
+}
+
+.bus-status-pill--warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.bus-status-pill--warning .status-circle {
+    background: #f59e0b;
+}
+
+.bus-status-pill--neutral {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.bus-status-pill--neutral .status-circle {
+    background: #94a3b8;
+}
+
+/* Component Risk Cell */
+.component-risk-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: #334155;
+}
+
+.component-risk-cell i {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.component-risk-cell strong {
+    font-weight: 600;
+}
+
+/* Work Orders Cell */
+.work-orders-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.order-overdue-tag {
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.order-open-tag {
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+    .predictive-health-page .predictive-main-grid-two {
+        grid-template-columns: 1fr;
+    }
 }

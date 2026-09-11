@@ -1,0 +1,16 @@
+/* ==========================================================================
+   PRESCRIPTIVE ANALYTICS - FLEET & TRIP DOMAIN STYLESHEET
+   ========================================================================== */
+
+.prescriptive-fleet-page .prescriptive-card {
+    border-top: 3px solid #3b82f6;
+}
+
+.prescriptive-fleet-page .queue-domain-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.prescriptive-fleet-page .prescriptive-queue-item {
+    border-left-color: #3b82f6;
+}
