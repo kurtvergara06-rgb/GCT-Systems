@@ -2,34 +2,17 @@
     $fleetData = $prescriptive?->fleet;
     $kpis = collect($fleetData?->kpis ?? []);
     $actions = collect($fleetData?->actions ?? []);
+    $chartRoutes = $actions->map(function ($a) {
+        $parts = explode(' - ', $a['route']);
+        return [
+            'route_no' => $parts[0] ?? $a['route'],
+            'corridor' => $parts[1] ?? '',
+            'full' => $a['route'],
+        ];
+    })->values()->all();
 @endphp
 
 <div class="prescriptive-page prescriptive-fleet-page">
-
-    {{-- EXECUTIVE AI BANNER --}}
-    <div class="predictive-ai-banner prescriptive-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-route"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Fleet Dispatch Optimization</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    4 Corridor Headway Playbooks Ready
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                The prescriptive dispatch optimizer recommends <strong>staggering departure times on Route 3 (+5m offset)</strong> and <strong>staging standby bus GCT-104 at Ayala depot</strong> to recover <strong>24 minutes of cumulative peak delay</strong> and lift on-time arrival to <strong>96.4%</strong> across metropolitan corridors.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('trip-schedule') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-calendar-check"></i>
-                <span>Open Dispatch Board</span>
-            </a>
-        </div>
-    </div>
 
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip" aria-label="Fleet Prescriptive KPIs">
@@ -67,8 +50,14 @@
             </x-slot:headerActions>
 
             <div class="prescriptive-chart-legend" aria-hidden="true">
-                <span><i class="legend-bar red"></i> Unmitigated Delay (mins)</span>
-                <span><i class="legend-bar green"></i> Prescribed Headway (mins)</span>
+                <span class="chart-legend-item">
+                    <span class="chart-legend-indicator delay"></span>
+                    <span>Unmitigated Peak Delay</span>
+                </span>
+                <span class="chart-legend-item">
+                    <span class="chart-legend-indicator prescribed"></span>
+                    <span>Prescribed Staggered Headway</span>
+                </span>
             </div>
 
             <div class="prescriptive-chart-container">
@@ -86,26 +75,27 @@
                 @foreach($actions as $action)
                     <div class="prescriptive-queue-item">
                         <div class="queue-item-header">
-                            <span class="queue-domain-pill">
+                            <div class="queue-route-label">
                                 <i class="fa-solid fa-route"></i>
-                                {{ $action['route'] }}
-                            </span>
-                            <span class="queue-urgency-badge {{ strtolower($action['priority']) === 'high' ? 'danger' : 'warning' }}">
+                                <span>{{ $action['route'] }}</span>
+                            </div>
+                            <span class="queue-priority-indicator {{ strtolower($action['priority']) === 'high' ? 'high' : 'medium' }}">
+                                <span class="priority-dot"></span>
                                 {{ $action['priority'] }} Priority
                             </span>
                         </div>
                         <h4 class="queue-item-title">{{ $action['issue'] }}</h4>
                         <p class="queue-item-impact">
-                            <strong>Prescription:</strong> {{ $action['prescribed_action'] }}
+                            {{ $action['prescribed_action'] }}
                         </p>
                         <div class="queue-item-footer">
-                            <span class="queue-savings">
-                                <i class="fa-solid fa-gauge-high"></i>
-                                {{ $action['impact'] }}
-                            </span>
+                            <div class="queue-impact-metric">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>{{ $action['impact'] }}</span>
+                            </div>
                             <a href="{{ $action['action_url'] }}" class="btn-queue-action">
+                                <span>Apply Playbook</span>
                                 <i class="fa-solid fa-arrow-right"></i>
-                                <span>Apply</span>
                             </a>
                         </div>
                     </div>
@@ -149,18 +139,19 @@
                             <td>
                                 <span class="gain-badge green">
                                     <i class="fa-solid fa-arrow-trend-up"></i>
-                                    {{ $action['impact'] }}
+                                    <span>{{ $action['impact'] }}</span>
                                 </span>
                             </td>
                             <td>
                                 <span class="status-pill {{ strtolower($action['priority']) === 'high' ? 'critical' : 'warning' }}">
+                                    <span class="status-dot"></span>
                                     {{ $action['priority'] }}
                                 </span>
                             </td>
                             <td>
-                                <span class="prescriptive-status-pill">
-                                    <i class="fa-solid fa-clock"></i>
-                                    {{ $action['status'] }}
+                                <span class="prescriptive-status-pill {{ strtolower(str_replace(' ', '-', $action['status'])) }}">
+                                    <i class="fa-solid {{ str_contains(strtolower($action['status']), 'recommend') ? 'fa-circle-check' : 'fa-clock' }}"></i>
+                                    <span>{{ $action['status'] }}</span>
                                 </span>
                             </td>
                             <td class="text-right">
@@ -211,8 +202,9 @@
 
 <script>
     window.fleetPrescriptiveData = {
-        labels: @json($actions->pluck('route')->map(fn($r) => explode(' - ', $r)[0] ?? $r)),
+        routes: @json($chartRoutes),
         unmitigated: [18, 22, 16, 12],
         prescribed: [4, 12, 8, 3]
     };
 </script>
+

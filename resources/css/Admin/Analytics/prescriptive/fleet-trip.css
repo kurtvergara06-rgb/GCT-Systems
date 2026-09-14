@@ -3,14 +3,10 @@
    ========================================================================== */
 
 .prescriptive-fleet-page .prescriptive-card {
-    border-top: 3px solid #3b82f6;
+    border: 1px solid var(--ds-border, #e2e8f0);
 }
 
 .prescriptive-fleet-page .queue-domain-pill {
-    background: #eff6ff;
-    color: #1d4ed8;
-}
-
-.prescriptive-fleet-page .prescriptive-queue-item {
-    border-left-color: #3b82f6;
+    background: #f1f5f9;
+    color: #334155;
 }

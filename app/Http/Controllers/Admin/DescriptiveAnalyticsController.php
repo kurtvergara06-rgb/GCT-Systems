@@ -75,6 +75,32 @@ class DescriptiveAnalyticsController extends Controller
         $inventoryCritical = InventoryItem::query()->where('on_hand', '<=', 0)->count();
         $inventoryHealthy = max(0, $inventoryTotal - $inventoryLow - $inventoryCritical);
 
+        $inventoryAtRiskItems = InventoryItem::query()
+            ->whereColumn('on_hand', '<=', 'reorder_level')
+            ->orderBy('on_hand', 'asc')
+            ->orderBy('reorder_level', 'desc')
+            ->get();
+
+        $inventoryCategoryBreakdown = InventoryItem::query()
+            ->selectRaw('category, count(*) as total, sum(case when on_hand <= reorder_level then 1 else 0 end) as at_risk, sum(case when on_hand > reorder_level then 1 else 0 end) as healthy, sum(on_hand) as total_units')
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get()
+            ->map(function ($cat) {
+                $total = (int) $cat->total;
+                $healthy = (int) $cat->healthy;
+                $atRisk = (int) $cat->at_risk;
+                $healthPct = $total > 0 ? round(($healthy / $total) * 100, 1) : 0;
+                return (object) [
+                    'category' => $cat->category ?: 'General Supplies',
+                    'total' => $total,
+                    'healthy' => $healthy,
+                    'at_risk' => $atRisk,
+                    'total_units' => (int) $cat->total_units,
+                    'health_pct' => $healthPct,
+                ];
+            });
+
         $fuel = app(FuelAnalyticsController::class)->data($request);
         $notificationData = app(NotificationCenterController::class)->data($request);
         $recentAlerts = collect($notificationData['notifications']->items())->take(4)->values();
@@ -103,6 +129,8 @@ class DescriptiveAnalyticsController extends Controller
             'inventoryHealthy',
             'inventoryLow',
             'inventoryCritical',
+            'inventoryAtRiskItems',
+            'inventoryCategoryBreakdown',
             'fuel',
             'recentAlerts'
         ));

@@ -6,31 +6,6 @@
 
 <div class="prescriptive-page prescriptive-fuel-page">
 
-    {{-- EXECUTIVE AI BANNER --}}
-    <div class="predictive-ai-banner prescriptive-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-gas-pump"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Fuel Optimization Engine</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    4 Consumption Reduction Playbooks Ready
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                The prescriptive fuel conservation model predicts <strong>168 Liters / month of fuel recovery (₱11,424 savings)</strong> by enforcing a <strong>10-minute automated idle cutoff policy on Bus 07</strong>, scheduling <strong>ultrasonic injector cleaning on Bus 12</strong>, and enrolling operators of Bus 05 in <strong>eco-driving telemetry coaching</strong>.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('fuel-reports') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-droplet"></i>
-                <span>Open Fuel Monitoring</span>
-            </a>
-        </div>
-    </div>
-
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip" aria-label="Fuel Prescriptive KPIs">
         @foreach($kpis as $kpi)
@@ -62,13 +37,13 @@
             <x-slot:headerActions>
                 <span class="ft-telemetry-badge">
                     <i class="fa-solid fa-leaf"></i>
-                    <span>-168 L/mo Prescribed Target</span>
+                    <span>-168 L/mo Prescribed Target (-42 L/wk)</span>
                 </span>
             </x-slot:headerActions>
 
             <div class="prescriptive-chart-legend" aria-hidden="true">
-                <span><i class="legend-bar red"></i> Current Consumption (L)</span>
-                <span><i class="legend-bar green"></i> Prescribed Target (L)</span>
+                <span><i class="legend-bar red"></i> Current Consumption (L / wk)</span>
+                <span><i class="legend-bar green"></i> Prescribed Target (L / wk)</span>
             </div>
 
             <div class="prescriptive-chart-container">
@@ -86,24 +61,26 @@
                 @foreach($actions as $action)
                     <div class="prescriptive-queue-item">
                         <div class="queue-item-header">
-                            <span class="queue-domain-pill">
+                            <div class="queue-route-label">
                                 <i class="fa-solid fa-bus"></i>
-                                {{ $action['bus_no'] }}
-                            </span>
-                            <span class="queue-urgency-badge {{ strtolower($action['priority']) === 'high' ? 'danger' : 'warning' }}">
+                                <span>{{ $action['bus_no'] }}</span>
+                            </div>
+                            <span class="queue-priority-indicator {{ strtolower($action['priority']) === 'high' ? 'high' : 'medium' }}">
+                                <span class="priority-dot"></span>
                                 {{ $action['priority'] }} Priority
                             </span>
                         </div>
                         <h4 class="queue-item-title">{{ $action['issue'] }}</h4>
                         <p class="queue-item-impact">
-                            <strong>Prescription:</strong> {{ $action['prescription'] }}
+                            {{ $action['prescription'] }}
                         </p>
                         <div class="queue-item-footer">
-                            <span class="queue-savings">
-                                <i class="fa-solid fa-coins"></i>
-                                {{ $action['savings'] }}
-                            </span>
+                            <div class="queue-impact-metric">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>{{ $action['savings'] }}</span>
+                            </div>
                             <span class="status-pill {{ strtolower($action['priority']) === 'high' ? 'critical' : 'warning' }}">
+                                <span class="status-dot"></span>
                                 {{ $action['status'] }}
                             </span>
                         </div>
@@ -127,7 +104,7 @@
                         <th>Bus Unit</th>
                         <th>Identified Efficiency Drain</th>
                         <th>Prescribed Engineering & Behavioral Action</th>
-                        <th>Projected Fuel & Cost Recovery</th>
+                        <th>Projected Fuel Recovery (L / wk)</th>
                         <th>Priority</th>
                         <th>Status</th>
                         <th class="text-right">Execution</th>
@@ -147,7 +124,7 @@
                             </td>
                             <td>
                                 <span class="gain-badge green">
-                                    <i class="fa-solid fa-coins"></i>
+                                    <i class="fa-solid fa-gas-pump"></i>
                                     {{ $action['savings'] }}
                                 </span>
                             </td>
@@ -211,7 +188,7 @@
 <script>
     window.fuelPrescriptiveData = {
         labels: ['Bus 07', 'Bus 12', 'Bus 05', 'Bus 03'],
-        current: [142, 178, 125, 110],
+        current: [142, 171, 124, 108],
         prescribed: [128, 155, 117, 103]
     };
 </script>

@@ -237,24 +237,48 @@
 .descriptive-overview-domain .descriptive-attention-card.tone-red > span { color: #dc2626; background: #fff0f0; }
 .descriptive-overview-domain .descriptive-attention-card.tone-red strong { color: #dc2626; }
 
-/* Quick Insights (Fleet & Trip footer card) */
-.descriptive-overview-domain .descriptive-quick-insights-card { display: flex; flex-direction: column; }
-.descriptive-overview-domain .descriptive-insight-grid {
+/* Action Summary 2x2 Grid */
+.descriptive-overview-domain .descriptive-attention-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.descriptive-overview-domain .descriptive-attention-grid .analytics-kpi {
+    padding: 10px 12px;
+    min-height: 80px;
+    border-radius: 10px;
+}
+
+.descriptive-overview-domain .descriptive-attention-grid .analytics-kpi-card__description {
+    overflow-wrap: normal;
+    word-break: normal;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+/* Quick Insights (Fleet & Trip footer card spanning full width) */
+.descriptive-overview-domain .descriptive-quick-insights-card {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+}
+.descriptive-overview-domain .descriptive-quick-insights-card .descriptive-insight-grid {
     flex: 1;
     min-height: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 14px;
     align-items: stretch;
 }
 .descriptive-overview-domain .descriptive-insight-card {
     min-width: 0;
-    min-height: 138px;
+    min-height: 110px;
     display: grid;
     grid-template-rows: auto 1fr;
     align-content: center;
     gap: 8px;
-    padding: 12px 11px;
+    padding: 14px 16px;
     border: 1px solid #dce5f2;
     border-radius: 12px;
     background: #fff;

@@ -28,6 +28,7 @@ export default defineConfig({
                 'resources/js/Main-js/sidebar.js',
                 'resources/js/Main-js/confirmation-modal.js',
                 'resources/js/Main-js/system-toast.js',
+                'resources/js/Account/account.js',
 
                 // ======================================================
                 // LOGIN
@@ -78,6 +79,7 @@ export default defineConfig({
                 'resources/css/Admin/Settings/general-settings.css',
                 'resources/css/Admin/Settings/notification-settings.css',
                 'resources/css/Admin/Settings/security-settings.css',
+                'resources/js/Admin/Settings/notification-settings.js',
 
                 // ======================================================
                 // ADMIN — ANALYTICS

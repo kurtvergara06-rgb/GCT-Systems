@@ -26,13 +26,6 @@
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
     $prescriptiveUrl = route('analytics.stage', ['stage' => 'prescriptive'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
-    $selectedRoute = strtolower(trim((string) ($fleet['selectedRoute'] ?? request('route', 'all'))));
-    $routeOptions = collect($fleet['routeOptions'] ?? [])
-        ->filter(fn ($label) => trim((string) $label) !== '')
-        ->unique()
-        ->values();
-
-    $activeRoute = request('route');
 
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
@@ -54,6 +47,8 @@
         <main class="main analytics-stage-page prescriptive-analytics-page prescriptive-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Prescriptive Analytics" subtitle="AI-driven action playbooks and operational optimization to maximize transit performance." />
 
+            <x-analytics.insight-toast stage="prescriptive" :domain="$activeDomain" />
+
             <section class="analytics-domain-toolbar prescriptive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Prescriptive analytics domains">
                     @foreach($tabs as $key => $tab)
@@ -62,7 +57,6 @@
                                 'domain' => $key,
                                 'period' => $period,
                                 'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null,
-                                'route' => $selectedRoute !== 'all' ? $activeRoute : null,
                             ])) }}"
                             class="{{ $activeDomain === $key ? 'active' : '' }}"
                         >
@@ -95,22 +89,7 @@
                         </select>
                     </label>
 
-                    @if ($activeDomain === 'fleet-trip')
-                        <label>
-                            <span>Route</span>
-                            <select name="route">
-                                <option value="all" @selected($selectedRoute === 'all')>All Routes</option>
-                                @foreach($routeOptions as $routeOption)
-                                    <option value="{{ $routeOption }}" @selected($selectedRoute === strtolower((string) $routeOption))>{{ $routeOption }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                    @endif
-
                     <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
-                    <a href="{{ $prescriptiveUrl }}?domain={{ $activeDomain }}" class="predictive-toolbar-refresh" aria-label="Reset filters">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </a>
                 </form>
             </section>
 

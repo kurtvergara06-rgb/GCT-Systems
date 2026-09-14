@@ -6,8 +6,11 @@
     $maintenancePct = round(($distribution->maintenance / $totalBuses) * 100, 1);
     $inactivePct = max(0, round((($distribution->inactive ?? 0) / $totalBuses) * 100, 1));
 
-    $overdueOrdersCount = (int) collect($health->kpis ?? [])->firstWhere('label', 'Overdue Job Orders')['value'] ?? 12;
+    $overdueOrdersCount = (int) (collect($health->kpis ?? [])->firstWhere('label', 'Overdue Job Orders')['value'] ?? 0);
     $maintenanceBusesCount = (int) ($distribution->maintenance ?? 0);
+
+    $topRiskBuses = collect($health->rows ?? [])->filter(fn ($r) => ($r['overdue'] ?? $r[5] ?? 0) > 0 || ($r['open'] ?? $r[4] ?? 0) > 0)->take(2);
+    $riskBusNames = $topRiskBuses->map(fn ($r) => $r['bus_no'] ?? $r[0] ?? '')->filter()->values();
 
     $legendRows = collect([
         ['label' => 'Active Fleet', 'value' => $distribution->active, 'pct' => $activePct, 'class' => 'low'],
@@ -17,39 +20,6 @@
 @endphp
 
 <div class="predictive-page predictive-health-page">
-
-    {{-- AI MAINTENANCE ALERT BANNER --}}
-    <div class="predictive-ai-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-screwdriver-wrench"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">AI Maintenance Forecast</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    @if($overdueOrdersCount > 0)
-                        High Maintenance Backlog: Dispatch Vulnerability
-                    @else
-                        Fleet Reliability Nominal
-                    @endif
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                @if($overdueOrdersCount > 0)
-                    <strong>{{ $overdueOrdersCount }} job orders are past their estimated completion date</strong> across {{ $totalBuses }} units, with <strong>{{ $maintenanceBusesCount }} buses currently grounded</strong> in the shop. Predictive models flag elevated breakdown risk on <strong>GCT-108</strong> and <strong>GCT-101</strong>. Expediting mechanical turnaround is critical to prevent scheduled trip cancellations.
-                @else
-                    All scheduled maintenance tasks are progressing on schedule. Predictive wear models indicate sufficient operating buffer across the active shuttle fleet.
-                @endif
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('warehouse.dashboard') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-clipboard-check"></i>
-                <span>Review Job Orders</span>
-            </a>
-        </div>
-    </div>
 
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip">
