@@ -16,6 +16,11 @@
         'this-year' => 'This Year',
     ][$period] ?? 'Selected Period';
 
+    $overdueCount = (int) ($predictive?->bus_health?->kpis ? collect($predictive->bus_health->kpis)->firstWhere('label', 'Overdue Job Orders')['value'] ?? 0 : 0);
+    $stockAttentionCount = (int) ($predictive?->inventory?->low ?? 0) + (int) ($predictive?->inventory?->critical ?? 0);
+    $fuelReviewCount = (int) ($predictive?->fuel?->distribution?->medium ?? 0) + (int) ($predictive?->fuel?->distribution?->high ?? 0);
+    $delayRiskCount = (int) ($predictive?->fleet?->stats['predictedDelays'] ?? 0);
+
     $toneClass = fn (string $tone): string => match ($tone) {
         'danger' => 'danger',
         'warning', 'orange', 'yellow' => 'warning',
@@ -32,31 +37,6 @@
 @endphp
 
 <div class="predictive-page">
-
-    {{-- EXECUTIVE CROSS-DOMAIN AI PREDICTIVE BANNER --}}
-    <div class="predictive-ai-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-brain"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Executive AI Command Center</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    Integrated Multi-Domain Predictive Telemetry
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                Cross-domain models detect <strong>{{ number_format($riskTotal) }} active operational signals</strong> across the fleet network: <strong>12 overdue job orders</strong> in maintenance, <strong>10 depleted parts</strong> near reorder threshold, <strong>3 fuel review units</strong>, and <strong>1 scheduled delay risk</strong>. Dispatch confidence is stable at <strong>94.1%</strong>. Immediate focus is recommended on mechanical shop turnaround and parts procurement.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('analytics.stage', ['stage' => 'predictive', 'domain' => 'bus-health'], false) }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-screwdriver-wrench"></i>
-                <span>Inspect Maintenance</span>
-            </a>
-        </div>
-    </div>
 
     <section class="analytics-kpi-strip" aria-label="Predictive analytics summary">
         @forelse($kpis as $kpi)
@@ -99,9 +79,9 @@
 
         <x-analytics.card class="confidence-card" title="System Reliability Index" description="AI operational readiness across all monitored domains.">
             <div class="confidence-content">
-                <div class="confidence-circle" style="--confidence: 88%;">
+                <div class="confidence-circle" style="--confidence: {{ $confidence }}%;">
                     <div class="confidence-inner">
-                        <strong>88%</strong>
+                        <strong>{{ $confidence }}%</strong>
                         <span>System Readiness</span>
                     </div>
                 </div>

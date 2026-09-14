@@ -3,14 +3,10 @@
    ========================================================================== */
 
 .prescriptive-fuel-page .prescriptive-card {
-    border-top: 3px solid #10b981;
+    border: 1px solid var(--ds-border, #e2e8f0);
 }
 
 .prescriptive-fuel-page .queue-domain-pill {
-    background: #ecfdf5;
-    color: #047857;
-}
-
-.prescriptive-fuel-page .prescriptive-queue-item {
-    border-left-color: #10b981;
+    background: #f1f5f9;
+    color: #334155;
 }

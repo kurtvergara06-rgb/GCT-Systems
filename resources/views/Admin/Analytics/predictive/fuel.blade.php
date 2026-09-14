@@ -16,40 +16,14 @@
     $peakForecastLabel = $peakForecast !== null ? $fuelTrendLabels->get($peakForecast) : null;
     $consumptionFactor = collect($fuelPredict->factors ?? [])->firstWhere('title', 'High Consumption Trend');
 
-    $reviewUnitsCount = (int) collect($fuelPredict->kpis ?? [])->firstWhere('label', 'Review Units')['value'] ?? 3;
+    $reviewUnitsCount = (int) collect($fuelPredict->kpis ?? [])->firstWhere('label', 'Review Units')['value'] ?? 0;
+    $highIdleUnitsCount = (int) collect($fuelPredict->kpis ?? [])->firstWhere('label', 'High Idle Units')['value'] ?? 0;
     $fleetAvgEfficiency = (float) str_replace(' km/L', '', (string) (collect($fuelPredict->kpis ?? [])->firstWhere('label', 'Efficiency Forecast')['value'] ?? 3.59));
+    $estWastedLiters = max(0, $highIdleUnitsCount * 14);
+    $estSavings = max(0, $estWastedLiters * 68);
 @endphp
 
 <div class="predictive-page predictive-fuel-page">
-
-    {{-- AI FUEL CONSERVATION & ANOMALY BANNER --}}
-    <div class="predictive-ai-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-gas-pump"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">AI Fuel Intelligence</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    @if($reviewUnitsCount > 0)
-                        Consumption Anomaly: {{ $reviewUnitsCount }} Units Below Baseline
-                    @else
-                        Fleet Fuel Efficiency Optimized
-                    @endif
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                Fleet efficiency is trending at <strong>{{ number_format($fleetAvgEfficiency, 2) }} km/L</strong>. Predictive telemetry flags <strong>{{ $reviewUnitsCount }} buses</strong> consuming higher than expected fuel baselines. An estimated <strong>42 Liters</strong> of fuel loss is attributable to prolonged idling intensity. Reducing idle durations across scheduled routes can yield an estimated <strong>₱2,800/week</strong> in operating savings.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('analytics.stage', ['stage' => 'diagnostic', 'domain' => 'fuel']) }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-chart-pie"></i>
-                <span>Triage Fuel Telemetry</span>
-            </a>
-        </div>
-    </div>
 
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip">

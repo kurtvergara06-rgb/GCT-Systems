@@ -1,11 +1,11 @@
 .predictive-page {
-    --predictive-border: var(--border-soft, #dce5f2);
-    --predictive-surface: var(--surface, #ffffff);
-    --predictive-main: var(--text-main, #1e293b);
-    --predictive-muted: var(--text-muted, #64748b);
-    --predictive-blue: var(--brand-blue, #0b40b5);
-    --predictive-navy: var(--brand-navy, #061f3d);
-    --predictive-shadow: var(--shadow-soft, 0 10px 30px rgba(6, 31, 61, .08));
+    --predictive-border: var(--ds-border, #e4eaf2);
+    --predictive-surface: var(--ds-surface, #ffffff);
+    --predictive-main: var(--ds-text, #1e293b);
+    --predictive-muted: var(--ds-muted, #64748b);
+    --predictive-blue: var(--ds-blue, #2563eb);
+    --predictive-navy: var(--ds-navy, #0b1f44);
+    --predictive-shadow: var(--ds-shadow-card, 0 2px 8px rgba(11, 31, 68, .04));
     width: 100%;
     max-width: 100%;
     display: flex;

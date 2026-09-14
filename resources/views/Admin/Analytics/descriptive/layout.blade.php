@@ -9,7 +9,7 @@
 
     $domainViews = [
         'all' => 'Admin.Analytics.descriptive.all',
-        'fleet-trip' => 'Admin.Analytics.descriptive.all',
+        'fleet-trip' => 'Admin.Analytics.descriptive.fleet-trip',
         'fuel' => 'Admin.Analytics.descriptive.fuel',
         'bus-health' => 'Admin.Analytics.descriptive.bus-health',
         'inventory' => 'Admin.Analytics.descriptive.inventory',
@@ -25,14 +25,7 @@
 
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
 
-    /*
-     * All and Fleet & Trip share the same overview partial
-     * (descriptive/all), which renders the KPI strip, main grid,
-     * rankings, side stack, and footer grids for both tabs.
-     * descriptive/all.css is scoped under the shared
-     * descriptive-overview-domain class so both domains are covered.
-     */
-    $usesOverviewLayout = in_array($activeDomain, ['all', 'fleet-trip'], true);
+    $usesOverviewLayout = $activeDomain === 'all';
 
     $trendCount = max(1, $trend->count());
     $tripChartData = $trend->values()->map(function ($bucket, $index) use ($trendCount) {
@@ -135,6 +128,8 @@
 
         <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}{{ $usesOverviewLayout ? ' descriptive-overview-domain' : '' }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
+
+            <x-analytics.insight-toast stage="descriptive" :domain="$activeDomain" />
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Descriptive analytics domains">

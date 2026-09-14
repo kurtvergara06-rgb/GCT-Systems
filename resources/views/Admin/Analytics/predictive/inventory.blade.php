@@ -27,43 +27,6 @@
 
 <div class="predictive-page predictive-inventory-page">
 
-    {{-- AI PREDICTIVE INSIGHT BANNER --}}
-    <div class="predictive-ai-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">AI Reorder Forecast</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    @if($criticalCount > 0)
-                        Active Fleet Risk: Grounding Potential
-                    @elseif($lowCount > 0)
-                        Moderate Depletion Warning
-                    @else
-                        Fleet Stock Reserve Optimal
-                    @endif
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                @if($criticalCount > 0)
-                    <strong>{{ $criticalCount }} items have depleted to zero stock</strong> and <strong>{{ $lowCount }} items</strong> are operating below safe threshold. Projections indicate fleet maintenance delays within <strong>48 to 72 hours</strong> unless emergency purchase requisitions are dispatched.
-                @elseif($lowCount > 0)
-                    <strong>{{ $lowCount }} items</strong> have breached safety reorder thresholds. Procurement orders should be initiated within 5 business days to match supplier lead times.
-                @else
-                    All registered inventory items remain comfortably above reorder points. Operating reserves are sufficient for ongoing dispatch and PMS schedules.
-                @endif
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('warehouse.dashboard') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-boxes-packing"></i>
-                <span>Manage Warehouse</span>
-            </a>
-        </div>
-    </div>
-
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip">
         @foreach($inventoryPredict->kpis as $kpi)

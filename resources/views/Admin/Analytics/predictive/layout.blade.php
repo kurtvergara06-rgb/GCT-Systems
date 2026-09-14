@@ -26,13 +26,6 @@
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
     $predictiveUrl = route('analytics.stage', ['stage' => 'predictive'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
-    $selectedRoute = strtolower(trim((string) ($fleet['selectedRoute'] ?? request('route', 'all'))));
-    $routeOptions = collect($fleet['routeOptions'] ?? [])
-        ->filter(fn ($label) => trim((string) $label) !== '')
-        ->unique()
-        ->values();
-
-    $activeRoute = request('route');
 
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
@@ -44,7 +37,6 @@
     }
 
     $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
-
     $pageAssets[] = $activeDomain === 'fleet-trip'
         ? 'resources/js/Admin/Analytics/predictive/fleet.js'
         : 'resources/js/Admin/Analytics/predictive/charts.js';
@@ -57,6 +49,8 @@
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Predictive Analytics" subtitle="AI-powered predictions and forecasts for proactive decision making." />
 
+            <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" />
+
             <section class="analytics-domain-toolbar predictive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Predictive analytics domains">
                     @foreach($tabs as $key => $tab)
@@ -65,7 +59,6 @@
                                 'domain' => $key,
                                 'period' => $period,
                                 'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null,
-                                'route' => $selectedRoute !== 'all' ? $activeRoute : null,
                             ])) }}"
                             class="{{ $activeDomain === $key ? 'active' : '' }}"
                         >
@@ -98,22 +91,7 @@
                         </select>
                     </label>
 
-                    @if ($activeDomain === 'fleet-trip')
-                        <label>
-                            <span>Route</span>
-                            <select name="route">
-                                <option value="all" @selected($selectedRoute === 'all')>All Routes</option>
-                                @foreach($routeOptions as $routeOption)
-                                    <option value="{{ $routeOption }}" @selected($selectedRoute === strtolower((string) $routeOption))>{{ $routeOption }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                    @endif
-
                     <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
-                    <button type="button" id="refreshAnalytics" class="predictive-toolbar-refresh" aria-label="Refresh predictive analytics">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </button>
                 </form>
             </section>
 

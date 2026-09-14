@@ -15,6 +15,8 @@
                 notification-count="6"
             />
 
+            <x-analytics.insight-toast stage="overview" domain="all" />
+
             {{-- =====================================================
                 EXECUTIVE SNAPSHOT
             ====================================================== --}}
@@ -214,7 +216,7 @@
                     </div>
 
                     <div class="analytics-lens-list">
-                        <div class="lens-item descriptive">
+                        <a href="{{ url('/analytics/descriptive') }}" class="lens-item descriptive">
                             <div class="lens-index">01</div>
                             <div class="lens-icon"><i class="fa-solid fa-chart-column"></i></div>
                             <div class="lens-content">
@@ -222,9 +224,10 @@
                                 <strong>What happened?</strong>
                                 <p>Distance, fuel used, speed, idle time, trip duration, and stock status.</p>
                             </div>
-                        </div>
+                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                        </a>
 
-                        <div class="lens-item diagnostic">
+                        <a href="{{ url('/analytics/diagnostic') }}" class="lens-item diagnostic">
                             <div class="lens-index">02</div>
                             <div class="lens-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
                             <div class="lens-content">
@@ -232,9 +235,10 @@
                                 <strong>Why might it be happening?</strong>
                                 <p>Delay, route-deviation, congestion, fuel-wastage, and recurring maintenance patterns.</p>
                             </div>
-                        </div>
+                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                        </a>
 
-                        <div class="lens-item predictive">
+                        <a href="{{ url('/analytics/predictive') }}" class="lens-item predictive">
                             <div class="lens-index">03</div>
                             <div class="lens-icon"><i class="fa-solid fa-chart-line"></i></div>
                             <div class="lens-content">
@@ -242,9 +246,10 @@
                                 <strong>What is likely next?</strong>
                                 <p>ETA, delay risk, peak periods, fuel use, PMS timing, and stock runway forecasts.</p>
                             </div>
-                        </div>
+                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                        </a>
 
-                        <div class="lens-item prescriptive">
+                        <a href="{{ url('/analytics/prescriptive') }}" class="lens-item prescriptive">
                             <div class="lens-index">04</div>
                             <div class="lens-icon"><i class="fa-solid fa-lightbulb"></i></div>
                             <div class="lens-content">
@@ -252,7 +257,8 @@
                                 <strong>What should be considered?</strong>
                                 <p>Assignment, route, schedule, PMS, maintenance-alert, and restocking actions.</p>
                             </div>
-                        </div>
+                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                        </a>
                     </div>
                 </article>
             </section>
@@ -313,31 +319,31 @@
                         <x-analytics.kpi
                             label="Avg. Trip Duration"
                             value="54 min"
-                            description="12 Review"
+                            description="12 Routes Active"
                             icon="fa-clock"
+                            icon-variant="blue"
+                        />
+
+                        <x-analytics.kpi
+                            label="Projected Fuel Burn"
+                            value="3,980 L"
+                            description="+3.6% est. outlook"
+                            icon="fa-gas-pump"
                             icon-variant="yellow"
                         />
 
                         <x-analytics.kpi
-                            label="Fuel Forecast"
-                            value="Next-period outlook"
-                            description="Predictive"
-                            icon="fa-chart-line"
-                            icon-variant="yellow"
-                        />
-
-                        <x-analytics.kpi
-                            label="Next PMS Alert"
+                            label="Next PMS Milestone"
                             value="1,580 km"
-                            description="Early Alert"
-                            icon="fa-gauge-high"
+                            description="Bus #015 runway"
+                            icon="fa-screwdriver-wrench"
                             icon-variant="red"
                         />
 
                         <x-analytics.kpi
-                            label="Stock Runway"
-                            value="Usage-based forecast"
-                            description="Threshold"
+                            label="Parts Requiring Restock"
+                            value="10 Items"
+                            description="Below buffer threshold"
                             icon="fa-box-open"
                             icon-variant="red"
                         />

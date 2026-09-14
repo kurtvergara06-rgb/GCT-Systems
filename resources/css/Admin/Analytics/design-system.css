@@ -1112,7 +1112,6 @@
    11. PRIORITY FINDINGS / ISSUES
    ========================================================= */
 
-.priority-findings-grid,
 .ft-issues-list,
 .issue-list,
 .diag-list {
@@ -1120,7 +1119,6 @@
     gap: 10px;
 }
 
-.priority-finding,
 .ft-issue,
 .issue-row,
 .diag-list-row {
@@ -1228,7 +1226,6 @@
     color: var(--ds-green-dark);
 }
 
-.priority-finding h3,
 .ft-issue h5,
 .issue-info strong {
     margin: 0 0 4px;
@@ -1238,7 +1235,6 @@
     line-height: 1.3;
 }
 
-.priority-finding p,
 .ft-issue p,
 .issue-info span {
     margin: 0;
@@ -1247,7 +1243,6 @@
     line-height: 1.45;
 }
 
-.priority-finding a,
 .ft-view-link {
     display: inline-flex;
     align-items: center;
@@ -1259,7 +1254,6 @@
     text-decoration: none;
 }
 
-.priority-finding a:hover,
 .ft-view-link:hover {
     color: var(--ds-blue-dark);
     text-decoration: underline;
@@ -1481,5 +1475,275 @@
 @media (max-width: 900px) {
     .executive-snapshot {
         grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   15. ANALYTICS INSIGHT TOAST (COMPACT & DISMISSIBLE)
+   ========================================================= */
+
+.analytics-insight-toast-container {
+    position: fixed;
+    top: 76px;
+    right: 24px;
+    z-index: 99999;
+    pointer-events: none;
+    max-width: 380px;
+    width: calc(100vw - 48px);
+}
+
+.analytics-insight-toast {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid var(--toast-accent, #1764e8);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(11, 35, 71, 0.12), 0 2px 6px rgba(11, 35, 71, 0.04);
+    animation: insightToastSlideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.analytics-insight-toast.is-dismissing {
+    opacity: 0 !important;
+    transform: translateX(35px) scale(0.96) !important;
+    pointer-events: none !important;
+}
+
+@keyframes insightToastSlideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(45px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Toast Header */
+.analytics-insight-toast .toast-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.analytics-insight-toast .toast-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.analytics-insight-toast .toast-icon-wrap {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    font-size: 11.5px;
+    background: var(--toast-icon-bg, #edf4ff);
+    color: var(--toast-accent, #1764e8);
+    flex-shrink: 0;
+}
+
+.analytics-insight-toast .toast-tag {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.analytics-insight-toast .toast-priority-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.analytics-insight-toast .toast-priority-pill.priority-info {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.analytics-insight-toast .toast-priority-pill.priority-warning {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.analytics-insight-toast .toast-priority-pill.priority-critical {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.analytics-insight-toast .toast-dismiss-btn {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: #94a3b8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.analytics-insight-toast .toast-dismiss-btn:hover {
+    background: #f1f5f9;
+    color: #0b2347;
+}
+
+/* Toast Body */
+.analytics-insight-toast .toast-body-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.analytics-insight-toast .toast-headline {
+    color: #0b2347;
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.analytics-insight-toast .toast-copy {
+    margin: 0;
+    color: #64748b;
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+/* Toast Footer */
+.analytics-insight-toast .toast-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 2px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.analytics-insight-toast .toast-metric-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #334155;
+    font-size: 10.5px;
+    font-weight: 700;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.analytics-insight-toast .toast-metric-chip i {
+    font-size: 10px;
+    color: var(--toast-accent, #1764e8);
+}
+
+.analytics-insight-toast .toast-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    background: transparent;
+    color: var(--toast-accent, #1764e8);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.analytics-insight-toast .toast-action-btn:hover {
+    color: #0b2347;
+    text-decoration: underline;
+}
+
+/* Priority Accent Schemes */
+.analytics-insight-toast.priority-info {
+    --toast-accent: #2563eb;
+    --toast-icon-bg: #eff6ff;
+}
+
+.analytics-insight-toast.priority-warning {
+    --toast-accent: #f59e0b;
+    --toast-icon-bg: #fffbeb;
+}
+
+.analytics-insight-toast.priority-critical {
+    --toast-accent: #ef4444;
+    --toast-icon-bg: #fef2f2;
+}
+
+/* Highlight Target Pulse on "View Details" */
+@keyframes gctHighlightPulseAnim {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+        outline: 2px solid rgba(37, 99, 235, 0.65);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+        outline: 2px solid rgba(37, 99, 235, 0.9);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+        outline: 2px solid transparent;
+    }
+}
+
+.gct-highlight-pulse {
+    animation: gctHighlightPulseAnim 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+}
+
+/* Ensure Bell Shake Animation rule exists in design-system as well */
+@keyframes bellRingingShake {
+    0% { transform: rotate(0); }
+    12% { transform: rotate(14deg); }
+    24% { transform: rotate(-12deg); }
+    36% { transform: rotate(10deg); }
+    48% { transform: rotate(-8deg); }
+    60% { transform: rotate(6deg); }
+    72% { transform: rotate(-4deg); }
+    84% { transform: rotate(2deg); }
+    92% { transform: rotate(-1deg); }
+    100% { transform: rotate(0); }
+}
+
+.icon-btn.notification.is-ringing i,
+.topbar .icon-btn.notification.is-ringing i {
+    display: inline-block;
+    animation: bellRingingShake 2.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) 1 both !important;
+    transform-origin: top center;
+}
+
+@media (max-width: 540px) {
+    .analytics-insight-toast-container {
+        top: 70px;
+        right: 14px;
+        width: calc(100vw - 28px);
     }
 }

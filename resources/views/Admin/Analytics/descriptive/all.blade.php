@@ -101,17 +101,20 @@
 <section class="descriptive-overview-lower-grid">
     <x-analytics.card
         title="Top Routes by Trips"
-        description="{{ $periodLabel }} \u00b7 highest-volume routes"
+        description="{{ $periodLabel }} &middot; highest-volume routes"
     >
         <div class="ranking-list refined-ranking-list">
             @forelse($routes as $route)
                 <div class="refined-ranking-row">
                     <span class="refined-rank-number">{{ $loop->iteration }}</span>
                     <div class="refined-ranking-main">
-                        <div class="refined-ranking-title-row"><strong>{{ $route->label }}</strong><span>{{ $route->trips }} trips</span></div>
+                        <div class="refined-ranking-title-row">
+                            <strong>{{ $route->label }}</strong>
+                            <span>{{ $route->trips }} {{ \Illuminate\Support\Str::plural('trip', $route->trips) }}</span>
+                        </div>
                         <div class="refined-ranking-meta">
-                            <span><i class="fa-regular fa-clock"></i>{{ number_format($route->average_duration, 1) }} min avg.</span>
-                            <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($route->share, 1) }}% of trips</span>
+                            <span><i class="fa-regular fa-clock"></i> {{ number_format($route->average_duration, 1) }} min avg.</span>
+                            <span><i class="fa-solid fa-chart-pie"></i> {{ number_format($route->share, 1) }}% of trips</span>
                         </div>
                         <div class="metric-bar refined-metric-bar"><span style="width: {{ $route->progress }}%"></span></div>
                     </div>
@@ -124,17 +127,20 @@
 
     <x-analytics.card
         title="Busiest Buses"
-        description="{{ $periodLabel }} \u00b7 highest recorded trip activity"
+        description="{{ $periodLabel }} &middot; highest recorded trip activity"
     >
         <div class="ranking-list refined-ranking-list">
             @forelse($busActivity as $bus)
                 <div class="refined-ranking-row">
                     <span class="refined-rank-number">{{ $loop->iteration }}</span>
                     <div class="refined-ranking-main">
-                        <div class="refined-ranking-title-row"><strong>{{ $bus->bus }}</strong><span>{{ $bus->trips }} trips</span></div>
+                        <div class="refined-ranking-title-row">
+                            <strong>{{ $bus->bus }}</strong>
+                            <span>{{ $bus->trips }} {{ \Illuminate\Support\Str::plural('trip', $bus->trips) }}</span>
+                        </div>
                         <div class="refined-ranking-meta">
-                            <span><i class="fa-solid fa-road"></i>{{ number_format($bus->distance, 1) }} km</span>
-                            <span><i class="fa-solid fa-chart-pie"></i>{{ number_format($bus->share, 1) }}% trip share</span>
+                            <span><i class="fa-solid fa-road"></i> {{ number_format($bus->distance, 1) }} km</span>
+                            <span><i class="fa-solid fa-chart-pie"></i> {{ number_format($bus->share, 1) }}% trip share</span>
                         </div>
                         <div class="metric-bar refined-metric-bar"><span style="width: {{ $bus->progress }}%"></span></div>
                     </div>
@@ -147,14 +153,23 @@
 
     <div class="descriptive-overview-side-stack">
         <x-analytics.card
-            title="Fleet Status"
-            description="Current Bus Master List operational status"
-            :badge="$totalBuses . ' buses'"
+            title="Fuel & Efficiency"
+            description="Fleet consumption & efficiency snapshot"
+            :badge="number_format($fuel['fleetAverage'] ?? 0, 2) . ' km/L'"
         >
             <div class="availability-breakdown">
-                <div class="availability-row"><div><span class="availability-dot operational"></span><span>Active</span></div><strong>{{ $activeBuses }} <small>{{ number_format($activePct, 1) }}%</small></strong></div>
-                <div class="availability-row"><div><span class="availability-dot maintenance"></span><span>Under Maintenance</span></div><strong>{{ $underMaintenance }} <small>{{ number_format($maintenancePct, 1) }}%</small></strong></div>
-                <div class="availability-row"><div><span class="availability-dot inactive"></span><span>Inactive</span></div><strong>{{ $inactiveBuses }} <small>{{ number_format($inactivePct, 1) }}%</small></strong></div>
+                <div class="availability-row">
+                    <div><span class="availability-dot operational"></span><span>Average Efficiency</span></div>
+                    <strong>{{ number_format($fuel['fleetAverage'] ?? 0, 2) }} <small>km/L</small></strong>
+                </div>
+                <div class="availability-row">
+                    <div><span class="availability-dot maintenance"></span><span>Total Fuel Burn</span></div>
+                    <strong>{{ number_format($fuel['totalFuel'] ?? 0, 1) }} <small>Liters</small></strong>
+                </div>
+                <div class="availability-row">
+                    <div><span class="availability-dot inactive"></span><span>Idling Exposure</span></div>
+                    <strong>{{ number_format($totalIdleMinutes / 60, 1) }} <small>Hours</small></strong>
+                </div>
             </div>
         </x-analytics.card>
 
@@ -189,7 +204,10 @@
                             <tr>
                                 <td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td>
                                 <td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td>
-                                <td>{{ $alert['reference'] !== '\u2014' ? $alert['reference'] : $alert['module'] }}</td>
+                                <td>
+                                    <strong>{{ $alert['module'] ?? 'Alert' }}</strong>
+                                    <small style="color: #64748b; margin-left: 4px;">#{{ $alert['reference'] !== '—' && $alert['reference'] !== '\u2014' ? $alert['reference'] : 'General' }}</small>
+                                </td>
                                 <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td>
                             </tr>
                         @endforeach
@@ -207,10 +225,10 @@
     >
         @php
             $attentionItems = [
-                ['Under Maintenance', $underMaintenance, 'Buses in maintenance', 'fa-screwdriver-wrench', 'orange'],
-                ['Inactive Buses', $inactiveBuses, 'Currently inactive', 'fa-bus-simple', 'gray'],
+                ['Under Maintenance', $underMaintenance, 'Buses in shop', 'fa-screwdriver-wrench', 'orange'],
+                ['Inactive Buses', $inactiveBuses, 'Currently idle', 'fa-bus-simple', 'gray'],
                 ['Low Stock Items', $inventoryLow, 'Reorder soon', 'fa-box-open', 'orange'],
-                ['Out of Stock', $inventoryCritical, 'Requires restocking', 'fa-triangle-exclamation', 'red'],
+                ['Out of Stock', $inventoryCritical, 'Zero on-hand', 'fa-triangle-exclamation', 'red'],
             ];
         @endphp
 
@@ -228,19 +246,31 @@
     </x-analytics.card>
 
     <x-analytics.card
+        class="descriptive-quick-insights-card"
         title="Quick Insights"
         :badge="$comparison['label']"
     >
         @php
+            $tripsLabel = $comparison['trips'] === null ? 'Trip Volume' : ($comparison['trips'] >= 0 ? 'Trip Volume Growth' : 'Trip Volume Reduction');
+            $idleLabel = $comparison['idle'] === null ? 'Idle Time' : ($comparison['idle'] <= 0 ? 'Idling Improvement' : 'Idling Increase');
+            $distLabel = $comparison['distance'] === null ? 'Distance Covered' : ($comparison['distance'] >= 0 ? 'Distance Increase' : 'Distance Reduction');
+
             $insights = [
-                ['trips', 'More trips processed', number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-arrow-trend-up', $comparison['trips']],
-                ['idle', 'Idle time change', number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
-                ['distance', 'Distance traveled', number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
+                ['trips', $tripsLabel, number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-route', $comparison['trips']],
+                ['idle', $idleLabel, number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
+                ['distance', $distLabel, number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
             ];
         @endphp
         <div class="descriptive-insight-grid">
             @foreach($insights as [$key, $label, $detail, $icon, $delta])
-                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}"><span><i class="fa-solid {{ $icon }}"></i></span><div><strong>{{ $deltaText($delta) }}</strong><b>{{ $label }}</b><small>{{ $detail }}</small></div></div>
+                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
+                    <span><i class="fa-solid {{ $icon }}"></i></span>
+                    <div>
+                        <strong>{{ $deltaText($delta) }}</strong>
+                        <b>{{ $label }}</b>
+                        <small>{{ $detail }}</small>
+                    </div>
+                </div>
             @endforeach
         </div>
     </x-analytics.card>

@@ -40,6 +40,8 @@
         <main class="main analytics-stage-page diagnostic-analytics-page diagnostic-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Diagnostic Analytics" subtitle="Why operational outcomes happened based on recorded data." />
 
+            <x-analytics.insight-toast stage="diagnostic" :domain="$activeDomain" />
+
             <section class="analytics-domain-toolbar diagnostic-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Diagnostic analytics domains">
                     @foreach($tabs as $key => $tab)

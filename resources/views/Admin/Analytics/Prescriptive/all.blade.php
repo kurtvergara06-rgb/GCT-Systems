@@ -5,38 +5,13 @@
     $tableRows = collect($prescriptiveData?->table_rows ?? []);
     $execStats = $prescriptiveData?->execution_stats ?? (object) ['completed' => 8, 'in_progress' => 5, 'pending' => 7, 'total' => 20];
     $savingsChart = $prescriptiveData?->savings_chart ?? (object) [
-        'labels' => ['Fleet Optimization', 'Fuel Conservation', 'Preventive PMS', 'Bulk Procurement'],
-        'current' => [12000, 15000, 18000, 22000],
-        'prescriptive' => [24000, 32000, 41000, 48500],
+        'labels' => ['Fleet Dispatch', 'Fuel Efficiency', 'PMS Uptime', 'Inventory Buffer'],
+        'current' => [82, 74, 76, 68],
+        'prescriptive' => [96, 91, 95, 94],
     ];
 @endphp
 
 <div class="prescriptive-page prescriptive-all-page">
-
-    {{-- EXECUTIVE AI PRESCRIPTIVE COMMAND BANNER --}}
-    <div class="predictive-ai-banner prescriptive-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Prescriptive Action Engine</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    16 Prioritized Operational Playbooks Active
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                The prescriptive engine recommends <strong>7 immediate high-impact interventions</strong>: generate emergency purchase requisitions for <strong>10 depleted brake and filter parts</strong>, reassign 2 mechanics to <strong>Bay 2 to compress job order backlog by 36h</strong>, and enforce <strong>10-min idle cutoffs to save ₱11,400/month</strong>. Executing these playbooks secures an estimated <strong>+5.8% on-time dispatch recovery</strong>.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="#actionQueueSection" class="btn-ai-reorder">
-                <i class="fa-solid fa-list-check"></i>
-                <span>Review Priority Queue</span>
-            </a>
-        </div>
-    </div>
 
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip" aria-label="Prescriptive summary KPIs">
@@ -63,19 +38,19 @@
         {{-- 1. Prescriptive Impact Chart --}}
         <x-analytics.card
             class="prescriptive-card prescriptive-chart-card"
-            title="Prescriptive ROI & Savings Projection"
-            description="Baseline operating cost vs projected savings under prescriptive playbooks."
+            title="Operational Performance & Recovery Projection"
+            description="Baseline operating capacity vs projected performance under prescriptive playbooks."
         >
             <x-slot:headerActions>
                 <span class="ft-telemetry-badge">
-                    <i class="fa-solid fa-coins"></i>
-                    <span>Est. ₱48,500/mo Savings</span>
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>+28% Operational Recovery</span>
                 </span>
             </x-slot:headerActions>
 
             <div class="prescriptive-chart-legend" aria-hidden="true">
-                <span><i class="legend-bar blue"></i> Business as Usual</span>
-                <span><i class="legend-bar green"></i> Prescriptive Optimization</span>
+                <span><i class="legend-bar blue"></i> Current Baseline (%)</span>
+                <span><i class="legend-bar green"></i> Optimized Trajectory (%)</span>
             </div>
 
             <div class="prescriptive-chart-container">
@@ -117,7 +92,7 @@
                 </ul>
             </div>
 
-            <div class="health-ratio-bar-wrap" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+            <div class="health-ratio-bar-wrap" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;">
                         <i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 4px;"></i> Action Compliance Score
@@ -141,22 +116,30 @@
             <div class="prescriptive-queue-list">
                 @foreach($queue as $item)
                     <article class="prescriptive-queue-item">
-                        <div class="queue-rank-badge">{{ $item['rank'] }}</div>
-                        <div class="queue-item-icon {{ $item['badge'] }}">
-                            <i class="fa-solid {{ $item['icon'] }}"></i>
-                        </div>
-                        <div class="queue-item-body">
-                            <div class="queue-item-header">
-                                <h6>{{ $item['title'] }}</h6>
-                                <span class="queue-urgency {{ $item['badge'] }}">{{ $item['urgency'] }}</span>
+                        <div class="queue-item-header">
+                            <div class="queue-lead">
+                                <span class="queue-rank-badge">{{ $item['rank'] }}</span>
+                                <div class="queue-item-icon {{ $item['badge'] }}">
+                                    <i class="fa-solid {{ $item['icon'] }}"></i>
+                                </div>
+                                <div class="queue-title-wrap">
+                                    <h6 class="queue-item-title">{{ $item['title'] }}</h6>
+                                    <div class="queue-tag-group">
+                                        <span class="queue-domain-tag">{{ $item['domain'] }}</span>
+                                        <span class="queue-urgency {{ $item['badge'] }}">
+                                            <span class="urgency-dot"></span>
+                                            {{ $item['urgency'] }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <p>{{ $item['impact'] }}</p>
-                            <div class="queue-meta-row">
-                                <span class="queue-domain-tag">{{ $item['domain'] }}</span>
-                                <span class="queue-savings-tag"><i class="fa-solid fa-coins"></i> {{ $item['savings'] }}</span>
-                            </div>
                         </div>
-                        <div class="queue-item-action">
+                        <p class="queue-item-impact">{{ $item['impact'] }}</p>
+                        <div class="queue-item-footer">
+                            <span class="queue-savings-tag">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>{{ $item['savings'] }}</span>
+                            </span>
                             <a href="{{ $item['action_url'] }}" class="btn-queue-action">
                                 <span>{{ $item['action_label'] }}</span>
                                 <i class="fa-solid fa-arrow-right"></i>
@@ -200,18 +183,20 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <strong style="color: #1e293b; font-size: 11.5px;">{{ $row->prescriptions }}</strong>
+                                    <span class="table-prescription-summary">{{ $row->prescriptions }}</span>
                                 </td>
                                 <td>
                                     <span class="gain-badge"><i class="fa-solid fa-arrow-trend-up"></i> {{ $row->expected_gain }}</span>
                                 </td>
                                 <td>
                                     <span class="risk-badge {{ $row->level === 'high' ? 'danger' : 'warning' }}">
+                                        <span class="risk-dot"></span>
                                         {{ ucfirst($row->level) }}
                                     </span>
                                 </td>
                                 <td>
                                     <span class="status-chip {{ strtolower(str_replace(' ', '-', $row->status)) }}">
+                                        <span class="status-dot"></span>
                                         {{ $row->status }}
                                     </span>
                                 </td>
@@ -236,21 +221,21 @@
         >
             <div class="prescriptive-governance-list">
                 <div class="gov-item">
-                    <div class="gov-icon"><i class="fa-solid fa-user-shield"></i></div>
+                    <div class="gov-icon blue"><i class="fa-solid fa-user-shield"></i></div>
                     <div class="gov-content">
                         <h6>Operator Discretion Protocol</h6>
                         <p>No automated dispatches, mechanic work orders, or purchase requisitions are finalized without active supervisor approval.</p>
                     </div>
                 </div>
                 <div class="gov-item">
-                    <div class="gov-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div class="gov-icon green"><i class="fa-solid fa-scale-balanced"></i></div>
                     <div class="gov-content">
                         <h6>Cost vs Risk Balancing</h6>
                         <p>Purchase orders prioritize zero-stock safety critical components (brakes, coolant) over non-essential inventory buffers.</p>
                     </div>
                 </div>
                 <div class="gov-item">
-                    <div class="gov-icon"><i class="fa-solid fa-route"></i></div>
+                    <div class="gov-icon purple"><i class="fa-solid fa-route"></i></div>
                     <div class="gov-content">
                         <h6>Headway Buffer Margin</h6>
                         <p>Route adjustments maintain strict ±5 minute transit regulatory guidelines to preserve passenger connection consistency.</p>

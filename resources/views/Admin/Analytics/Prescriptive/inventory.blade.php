@@ -6,31 +6,6 @@
 
 <div class="prescriptive-page prescriptive-inventory-page">
 
-    {{-- EXECUTIVE AI BANNER --}}
-    <div class="predictive-ai-banner prescriptive-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-boxes-stacked"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Procurement Prescriptive Engine</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    Consolidated Reorder Batch Formulated
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                The prescriptive inventory model formulated a <strong>consolidated emergency purchase order for 10 depleted parts</strong> totaling <strong>₱62,400</strong>. Immediate dispatch to primary vendors (Cebu Auto Supply & Metro Fleet Parts) prevents <strong>zero-stockout groundings</strong> on scheduled brake and filtration overhaul intervals.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('inventory') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-cart-plus"></i>
-                <span>Open Purchase Orders</span>
-            </a>
-        </div>
-    </div>
-
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip" aria-label="Inventory Prescriptive KPIs">
         @foreach($kpis as $kpi)
@@ -86,23 +61,24 @@
                 @foreach($poBatches as $batch)
                     <div class="prescriptive-queue-item">
                         <div class="queue-item-header">
-                            <span class="queue-domain-pill">
+                            <div class="queue-route-label">
                                 <i class="fa-solid fa-barcode"></i>
-                                {{ $batch['item_code'] }}
-                            </span>
-                            <span class="queue-urgency-badge {{ strtolower($batch['priority']) === 'critical' ? 'danger' : 'warning' }}">
+                                <span>{{ $batch['item_code'] }}</span>
+                            </div>
+                            <span class="queue-priority-indicator {{ strtolower($batch['priority']) === 'critical' ? 'high' : 'medium' }}">
+                                <span class="priority-dot"></span>
                                 {{ $batch['priority'] }} Priority
                             </span>
                         </div>
                         <h4 class="queue-item-title">{{ $batch['item_name'] }}</h4>
                         <p class="queue-item-impact">
-                            <strong>Vendor:</strong> {{ $batch['supplier'] }} &bull; Lead Time: {{ $batch['lead_time'] }}
+                            {{ $batch['supplier'] }} &bull; Lead Time: {{ $batch['lead_time'] }}
                         </p>
                         <div class="queue-item-footer">
-                            <span class="queue-savings">
-                                <i class="fa-solid fa-coins"></i>
-                                {{ $batch['reorder_qty'] }} units &bull; {{ $batch['total_cost'] }}
-                            </span>
+                            <div class="queue-impact-metric">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                                <span>+{{ $batch['reorder_qty'] }} {{ $batch['unit_of_measurement'] ?? 'units' }} &bull; Min: {{ $batch['safety_buffer'] ?? 'Buffer' }}</span>
+                            </div>
                             <a href="{{ route('inventory') }}" class="btn-queue-action">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Create PO</span>
@@ -119,7 +95,7 @@
     <x-analytics.card
         class="prescriptive-table-card"
         title="Prescribed Purchase Order Batch & Supplier Dispatch Queue"
-        description="Calculated replenishment quantities, pricing, and supplier fulfillment routing."
+        description="Calculated replenishment quantities, safety buffers, and supplier fulfillment routing."
     >
         <div class="analytics-table-wrapper">
             <table class="analytics-data-table prescriptive-table">
@@ -129,8 +105,8 @@
                         <th>Item Name & Category</th>
                         <th>Current On-Hand</th>
                         <th>Prescribed Qty</th>
-                        <th>Est. Unit Cost</th>
-                        <th>Total Cost</th>
+                        <th>Safety Buffer (Min)</th>
+                        <th>Storage Location</th>
                         <th>Preferred Supplier</th>
                         <th>Lead Time</th>
                         <th>Priority</th>
@@ -156,12 +132,15 @@
                             </td>
                             <td>
                                 <span class="reorder-qty-pill">
-                                    +{{ $batch['reorder_qty'] }} units
+                                    +{{ $batch['reorder_qty'] }} {{ $batch['unit_of_measurement'] ?? 'units' }}
                                 </span>
                             </td>
-                            <td>{{ $batch['unit_cost'] }}</td>
+                            <td>{{ $batch['safety_buffer'] }}</td>
                             <td>
-                                <strong class="table-cost-total">{{ $batch['total_cost'] }}</strong>
+                                <span class="lead-time-text">
+                                    <i class="fa-solid fa-warehouse"></i>
+                                    {{ $batch['storage_location'] }}
+                                </span>
                             </td>
                             <td>
                                 <span class="supplier-pill">

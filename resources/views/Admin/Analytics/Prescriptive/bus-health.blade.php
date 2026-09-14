@@ -6,31 +6,6 @@
 
 <div class="prescriptive-page prescriptive-health-page">
 
-    {{-- EXECUTIVE AI BANNER --}}
-    <div class="predictive-ai-banner prescriptive-banner">
-        <div class="predictive-ai-banner__icon-wrap">
-            <i class="fa-solid fa-screwdriver-wrench"></i>
-        </div>
-        <div class="predictive-ai-banner__content">
-            <div class="predictive-ai-banner__top">
-                <span class="ai-chip">Maintenance Prescriptive Engine</span>
-                <span class="ai-status-pulse">
-                    <span class="pulse-dot"></span>
-                    4 Expedited Workshop Bay Playbooks Active
-                </span>
-            </div>
-            <p class="predictive-ai-banner__text">
-                The prescriptive maintenance engine recommends <strong>reassigning 2 mechanics to Bay 2 (Heavy Lift)</strong> to service <strong>GCT-108 (Brake Pads)</strong> and <strong>GCT-101 (Cooling System)</strong> immediately. Executing these interventions reduces job order turnaround by <strong>36 hours</strong> and avoids estimated <strong>₱14,000+ in emergency roadside breakdown towing costs</strong>.
-            </p>
-        </div>
-        <div class="predictive-ai-banner__action">
-            <a href="{{ route('job-orders') }}" class="btn-ai-reorder">
-                <i class="fa-solid fa-wrench"></i>
-                <span>Open Maintenance Bays</span>
-            </a>
-        </div>
-    </div>
-
     {{-- KPI STRIP --}}
     <section class="analytics-kpi-strip" aria-label="Bus Health Prescriptive KPIs">
         @foreach($kpis as $kpi)
@@ -86,24 +61,26 @@
                 @foreach($actions as $action)
                     <div class="prescriptive-queue-item">
                         <div class="queue-item-header">
-                            <span class="queue-domain-pill">
+                            <div class="queue-route-label">
                                 <i class="fa-solid fa-bus"></i>
-                                {{ $action['bus_no'] }}
-                            </span>
-                            <span class="queue-urgency-badge {{ str_contains(strtolower($action['priority']), 'critical') ? 'danger' : 'warning' }}">
-                                {{ $action['priority'] }}
+                                <span>{{ $action['bus_no'] }}</span>
+                            </div>
+                            <span class="queue-priority-indicator {{ str_contains(strtolower($action['priority']), 'critical') ? 'high' : 'medium' }}">
+                                <span class="priority-dot"></span>
+                                {{ $action['priority'] }} Priority
                             </span>
                         </div>
                         <h4 class="queue-item-title">{{ $action['component'] }}</h4>
                         <p class="queue-item-impact">
-                            <strong>Prescription:</strong> {{ $action['prescription'] }}
+                            {{ $action['prescription'] }}
                         </p>
                         <div class="queue-item-footer">
-                            <span class="queue-savings">
+                            <div class="queue-impact-metric">
                                 <i class="fa-solid fa-warehouse"></i>
-                                {{ $action['bay'] }}
-                            </span>
+                                <span>{{ $action['bay'] }}</span>
+                            </div>
                             <span class="status-pill {{ str_contains(strtolower($action['priority']), 'critical') ? 'critical' : 'warning' }}">
+                                <span class="status-dot"></span>
                                 {{ $action['status'] }}
                             </span>
                         </div>

@@ -3,8 +3,11 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
+        'resources/css/Main-styles/system-toast.css',
         'resources/css/Admin/Settings/notification-settings.css',
-        'resources/js/Main-js/sidebar.js'
+        'resources/js/Main-js/sidebar.js',
+        'resources/js/Main-js/system-toast.js',
+        'resources/js/Admin/Settings/notification-settings.js'
     ]"
 >
     <div class="app">
@@ -56,7 +59,7 @@
                     </div>
 
                     <label class="switch">
-                        <input type="checkbox" checked>
+                        <input type="checkbox" id="masterSystemNotifications" checked>
                         <span class="switch-slider"></span>
                     </label>
 
@@ -68,7 +71,7 @@
             {{-- =====================================================
                 CHANNELS + PRIORITY
             ====================================================== --}}
-            <section class="notification-main-grid">
+            <section class="notification-main-grid" id="notificationMainGrid">
 
                 {{-- CHANNELS --}}
                 <article class="notification-panel">
@@ -265,7 +268,7 @@
             {{-- =====================================================
                 MODULE PREFERENCES
             ====================================================== --}}
-            <section class="module-preferences-section">
+            <section class="module-preferences-section" id="modulePreferencesSection">
 
                 <div class="section-heading">
 
@@ -281,7 +284,7 @@
                         </p>
                     </div>
 
-                    <span class="enabled-count">
+                    <span class="enabled-count" id="enabledEventsCount">
                         12 Enabled Events
                     </span>
 
@@ -309,7 +312,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -319,17 +322,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>PMS threshold reached</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>PMS approaching threshold</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Job order status changes</span>
                             </label>
 
@@ -357,7 +360,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -367,17 +370,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Critical stock reached</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Low stock warning</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>Incoming delivery recorded</span>
                             </label>
 
@@ -405,7 +408,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -415,17 +418,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>New purchase request</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Purchase order status updated</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>Scheduled purchase reminder</span>
                             </label>
 
@@ -453,7 +456,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -463,17 +466,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Bus status changed</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>Driver attendance issue</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>Trip schedule updated</span>
                             </label>
 
@@ -501,7 +504,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -511,17 +514,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Batch processing completed</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>File processing failed</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>Import completed</span>
                             </label>
 
@@ -549,7 +552,7 @@
                             </div>
 
                             <label class="switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-master-switch" checked>
                                 <span class="switch-slider"></span>
                             </label>
 
@@ -559,17 +562,17 @@
                         <div class="event-list">
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>New account request</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" class="module-event-checkbox" checked>
                                 <span>Security-related activity</span>
                             </label>
 
                             <label class="event-option">
-                                <input type="checkbox">
+                                <input type="checkbox" class="module-event-checkbox">
                                 <span>User status changed</span>
                             </label>
 
@@ -585,7 +588,7 @@
             {{-- =====================================================
                 DELIVERY SCHEDULE
             ====================================================== --}}
-            <section class="delivery-settings-panel">
+            <section class="delivery-settings-panel" id="deliverySettingsPanel">
 
                 <div class="delivery-heading">
 
@@ -625,7 +628,7 @@
                     </div>
 
 
-                    <div class="delivery-setting">
+                    <div class="delivery-setting" id="digestTimeContainer">
 
                         <label for="digest_time">
                             Daily Digest Time
@@ -637,29 +640,40 @@
                             value="08:00"
                         >
 
-                        <small>
+                        <small id="digestTimeHelper">
                             Used only when Daily Digest is selected.
                         </small>
 
                     </div>
 
 
-                    <div class="quiet-hours-card">
+                    <div class="quiet-hours-card" id="quietHoursCard">
 
-                        <div>
+                        <div class="quiet-hours-header">
+                            <div>
+                                <strong>Quiet Hours</strong>
+                                <span>
+                                    Reduce non-critical notification delivery during selected hours.
+                                </span>
+                            </div>
 
-                            <strong>Quiet Hours</strong>
-
-                            <span>
-                                Reduce non-critical notification delivery during selected hours.
-                            </span>
-
+                            <label class="switch">
+                                <input type="checkbox" id="quietHoursToggle">
+                                <span class="switch-slider"></span>
+                            </label>
                         </div>
 
-                        <label class="switch">
-                            <input type="checkbox">
-                            <span class="switch-slider"></span>
-                        </label>
+                        <div class="quiet-hours-range" id="quietHoursTimeRange" hidden>
+                            <div class="quiet-range-col">
+                                <label for="quiet_hours_start">Quiet Starts</label>
+                                <input type="time" id="quiet_hours_start" value="22:00">
+                            </div>
+                            <span class="quiet-range-separator">to</span>
+                            <div class="quiet-range-col">
+                                <label for="quiet_hours_end">Quiet Ends</label>
+                                <input type="time" id="quiet_hours_end" value="06:00">
+                            </div>
+                        </div>
 
                     </div>
 
