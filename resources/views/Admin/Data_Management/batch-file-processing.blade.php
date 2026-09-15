@@ -154,37 +154,28 @@
                     <div>
                         <h2>
                             <i class="fa-solid fa-cloud-arrow-up"></i>
-                            Upload Data Files
+                            Upload GPS Data File
                         </h2>
 
-                        <p>Select a processor profile first. Supported file formats depend on the selected data type.</p>
+                        <p>Upload a GPS Trip Record file for extraction, cleaning, and review.</p>
                     </div>
                 </div>
 
-                <div class="batch-profile-grid">
-                    <label class="batch-profile-field">
-                        <span>Target Module</span>
-                        <select name="module" required>
-                            <option value="Operation">Operation — GPS Trip Records</option>
-                            <option value="Maintenance">Maintenance — Fuel Reports</option>
-                            <option value="Warehouse">Warehouse — Inventory Records</option>
-                            <option value="Purchase">Purchase — Purchase Orders</option>
-                        </select>
-                    </label>
-
-                    <label class="batch-profile-field">
-                        <span>Data Type</span>
-                        <select name="data_type" required>
-                            <option value="GPS Trip Records">GPS Trip Records</option>
-                        </select>
-                    </label>
+                <div class="batch-profile-static">
+                    <span class="batch-profile-static-label">Target Module</span>
+                    <div class="batch-profile-static-badge">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Operation — GPS Trip Records</span>
+                    </div>
+                    <input type="hidden" name="module" value="Operation">
+                    <input type="hidden" name="data_type" value="GPS Trip Records">
                 </div>
 
                 <input
                     type="file"
                     id="gpsFileInput"
                     name="gps_file"
-                    accept=".csv,.txt,.pdf,.xls,.xlsx"
+                    accept=".pdf,.csv,.json,.txt,.xls,.xlsx"
                     hidden
                     required
                 >
@@ -196,10 +187,10 @@
 
                     <div class="dropzone-content">
                         <strong id="selectedFileName">
-                            Drag and drop data files here
+                            Drag and drop GPS file here
                         </strong>
 
-                        <span>or choose a file from your device</span>
+                        <span>or choose a supported GPS file from your device</span>
                     </div>
 
                     <button
@@ -208,19 +199,19 @@
                         id="chooseGpsFileBtn"
                     >
                         <i class="fa-solid fa-folder-open"></i>
-                        Choose File
+                        Choose GPS File
                     </button>
                 </div>
 
                 <div class="upload-details">
                     <span>
                         <i class="fa-solid fa-gears"></i>
-                        Operation · GPS Trip Records · PDF, CSV, TXT, XLS, XLSX
+                        Operation — GPS Trip Records · PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>
 
                     <span>
-                        <i class="fa-solid fa-file-pdf"></i>
-                        PDF is available only for GPS Trip Records
+                        <i class="fa-solid fa-file-lines"></i>
+                        Supported formats: PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>
 
                     <span>
@@ -237,7 +228,7 @@
                         disabled
                     >
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        Upload File
+                        Upload GPS File
                     </button>
                 </div>
             </form>
@@ -356,13 +347,6 @@
                 @endif
             </div>
         </section>
-
-        @if($genericStructuredBatch)
-            @include('Admin.Data_Management.partials.generic-processed-workspace')
-        @else
-            @include('Admin.Data_Management.partials.batch-file-processing-workspace')
-        @endif
-
-        @include('Admin.Data_Management.partials.generic-batch-review-modal')
+        @include('Admin.Data_Management.partials.batch-file-processing-workspace')
     </main>
 </x-layout.app>

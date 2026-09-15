@@ -570,15 +570,21 @@
 }
 
 .item-code-chip {
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
     font-size: 10.5px;
     font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 5px;
-    background: #0f172a;
-    color: #f8fafc;
-    letter-spacing: 0.3px;
+    padding: 2px 7.5px;
+    border-radius: 6px;
+    background: #f8fbff;
+    color: #0b2347;
+    border: 1px solid #d4deec;
+    letter-spacing: 0.02em;
     flex-shrink: 0;
+    box-shadow: none;
+    transition: none;
 }
 
 .item-name {
@@ -637,10 +643,16 @@
 .predictive-inventory-page .predictive-inventory-table-wrap {
     width: 100%;
     min-width: 0;
+    max-height: 480px;
+    overflow-y: auto;
+    overflow-x: auto;
+    overscroll-behavior: contain;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    overflow-x: auto;
     background: #ffffff;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 .predictive-inventory-page .predictive-inventory-table {
@@ -651,6 +663,9 @@
 }
 
 .predictive-inventory-page .predictive-inventory-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     padding: 11px 14px;
     font-size: 10.5px;
     font-weight: 700;
@@ -659,6 +674,7 @@
     color: #475569;
     background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 0 #e2e8f0;
     text-align: left;
 }
 
@@ -675,15 +691,19 @@
 }
 
 .table-item-code-chip {
-    display: inline-block;
-    font-family: 'SFMono-Regular', Consolas, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
     font-size: 10.5px;
     font-weight: 700;
-    padding: 3px 8px;
+    padding: 2.5px 8px;
     border-radius: 6px;
-    background: #f1f5f9;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
+    background: #f8fbff;
+    color: #0b2347;
+    border: 1px solid #d4deec;
+    box-shadow: none;
+    transition: none;
 }
 
 .table-item-name {

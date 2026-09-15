@@ -115,6 +115,26 @@
   border-radius: 10px;
 }
 
+.warehouse-part-card .table-wrap:has(tbody > tr:nth-child(8)),
+.warehouse-history-card .table-wrap:has(tbody > tr:nth-child(8)) {
+  max-height: 480px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.warehouse-part-card .table-wrap::-webkit-scrollbar,
+.warehouse-history-card .table-wrap::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.warehouse-part-card .table-wrap::-webkit-scrollbar-thumb,
+.warehouse-history-card .table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
 .warehouse-part-table {
   width: 100%;
   min-width: 1120px;
@@ -126,8 +146,13 @@
 .warehouse-part-table thead { background: #f3f7fc; }
 
 .warehouse-part-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f3f7fc;
   padding: 13px 12px;
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 var(--border);
   color: #475569;
   font-size: 11px;
   font-weight: 700;

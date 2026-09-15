@@ -1036,7 +1036,11 @@ textarea[readonly] {
 .jo-page .job-orders-table thead { background: var(--jo-table-head); }
 
 .jo-page .job-orders-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   padding: 13px 14px;
+  background: var(--jo-table-head, #f8fafc);
   color: #475569;
   font-size: 11px;
   font-weight: 700;
@@ -1045,6 +1049,7 @@ textarea[readonly] {
   text-transform: uppercase;
   white-space: nowrap;
   border-bottom: 1px solid var(--jo-border);
+  box-shadow: 0 1px 0 var(--jo-border);
 }
 
 .jo-page .job-orders-table td {

@@ -84,6 +84,38 @@
     margin-top: 16px;
 }
 
+.batch-profile-static {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.batch-profile-static-label {
+    color: var(--batch-text);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.batch-profile-static-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--batch-border);
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #061f3d;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.batch-profile-static-badge i {
+    color: var(--batch-primary);
+    font-size: 13px;
+}
+
 .batch-profile-field {
     display: flex;
     flex-direction: column;
@@ -603,6 +635,24 @@
     box-shadow: inset 3px 0 0 var(--batch-primary);
 }
 
+.file-thumbnail {
+    width: 34px;
+    height: 42px;
+    flex: 0 0 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
+}
+
+.file-thumbnail svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
 .file-icon {
     width: 38px;
     height: 38px;
@@ -874,10 +924,16 @@
 
 .structured-table-wrap {
     margin-top: 0;
+    max-height: 520px;
+    overflow-y: auto;
     overflow-x: auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--batch-border);
     border-radius: 12px;
     background: #ffffff;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 .batch-records-table {
@@ -888,9 +944,13 @@
 }
 
 .batch-records-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     height: 42px;
     padding: 0 11px;
     border-bottom: 1px solid var(--batch-border);
+    box-shadow: 0 1px 0 var(--batch-border);
     background: #edf3fb;
     color: #3e5169;
     font-size: 10px;

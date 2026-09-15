@@ -2,6 +2,7 @@
     title="FROMS - Data History"
     :assets="[
         'resources/css/Admin/Data_Management/data-history.css',
+        'resources/js/Admin/Data_Management/data-history.js',
     ]"
 >
     <div class="app">
@@ -208,6 +209,8 @@
                                                 type="view"
                                                 class="open-history-modal"
                                                 title="View Details"
+                                                data-id="{{ $item->id }}"
+                                                data-url="{{ route('admin.data-history.show', $item) }}"
                                                 data-file="{{ $item->file_name ?: 'System Data Activity' }}"
                                                 data-type="{{ $item->activity_type }}"
                                                 data-module="{{ $item->module ?: '—' }}"
@@ -307,10 +310,22 @@
                     <div class="history-detail-item"><span>Date & Time</span><strong id="historyModalDateTime">—</strong></div>
                     <div class="history-detail-item" style="grid-column:1 / -1;"><span>Error / Notes</span><strong id="historyModalError">—</strong></div>
                 </div>
+
+                <div id="historyModalValidationContainer" style="display:none;margin-top:14px;">
+                    <div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">
+                        Validation Errors (<span id="historyModalErrorCount">0</span>)
+                    </div>
+                    <div id="historyModalErrorsList" style="max-height:140px;overflow-y:auto;background:#fef2f2;border:1px solid #fee2e2;border-radius:10px;padding:10px 12px;font-size:12px;color:#991b1b;display:flex;flex-direction:column;gap:6px;">
+                    </div>
+                </div>
             </div>
 
-            <div class="history-modal-footer">
-                <button type="button" id="closeHistoryModalFooter" class="history-close-btn">Close</button>
+            <div class="history-modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+                <a id="historyModalActionLink" href="#" style="display:none;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--dh-blue);text-decoration:none;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span id="historyModalActionText">Go to Activity</span>
+                </a>
+                <button type="button" id="closeHistoryModalFooter" class="history-close-btn" style="margin-left:auto;">Close</button>
             </div>
         </div>
     </div>

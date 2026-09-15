@@ -60,7 +60,7 @@ class GenericBatchProcessingServiceProvider extends ServiceProvider
             function ($view): void {
                 $view->with(
                     'recordsExtracted',
-                    GpsTripRecord::count() + BatchProcessedRecord::count()
+                    GpsTripRecord::count()
                 );
 
                 $genericBatchId = request()->integer('generic_batch_id');

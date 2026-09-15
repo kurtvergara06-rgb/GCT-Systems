@@ -153,7 +153,7 @@
                             @forelse($buses as $bus)
                                 <tr>
                                     <td>
-                                        {{ $bus->bus_no }}
+                                        <x-ui.id-badge :value="$bus->bus_no" />
                                     </td>
 
                                     <td>

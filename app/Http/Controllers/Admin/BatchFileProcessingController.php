@@ -147,26 +147,66 @@ class BatchFileProcessingController extends Controller
             'gps_file' => [
                 'required',
                 'file',
-                'mimes:csv,txt,pdf,xls,xlsx',
+                'mimes:pdf,csv,json,txt,xls,xlsx',
                 'max:51200',
             ],
+            'module' => ['nullable', 'in:Operation'],
+            'data_type' => ['nullable', 'in:GPS Trip Records'],
+        ], [
+            'gps_file.required' => 'Please select a GPS file to upload.',
+            'gps_file.mimes' => 'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
+            'gps_file.file' => 'Please upload a valid GPS file.',
+            'module.in' => 'Only Operation module is supported for batch processing.',
+            'data_type.in' => 'Only GPS Trip Records are supported for batch processing.',
         ]);
+
+        $file = $validated['gps_file'];
+        $extension = strtolower($file->getClientOriginalExtension());
+        $mimeType = strtolower($file->getMimeType() ?? '');
+
+        $allowedExtensions = ['pdf', 'csv', 'json', 'txt', 'xls', 'xlsx'];
+        if (! in_array($extension, $allowedExtensions, true)) {
+            return back()->withErrors([
+                'gps_file' => 'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
+            ]);
+        }
+
+        $validMime = match ($extension) {
+            'pdf' => str_contains($mimeType, 'pdf') || $mimeType === 'application/octet-stream',
+            'csv' => str_contains($mimeType, 'csv') || str_contains($mimeType, 'plain') || str_contains($mimeType, 'text') || $mimeType === 'application/octet-stream' || str_contains($mimeType, 'excel'),
+            'txt' => str_contains($mimeType, 'plain') || str_contains($mimeType, 'text') || $mimeType === 'application/octet-stream',
+            'json' => str_contains($mimeType, 'json') || str_contains($mimeType, 'plain') || str_contains($mimeType, 'text') || $mimeType === 'application/octet-stream',
+            'xls', 'xlsx' => str_contains($mimeType, 'spreadsheet') || str_contains($mimeType, 'excel') || str_contains($mimeType, 'office') || str_contains($mimeType, 'zip') || $mimeType === 'application/octet-stream',
+            default => false,
+        };
+
+        if (! $validMime) {
+            return back()->withErrors([
+                'gps_file' => 'The uploaded file format does not match a valid GPS trip record file.',
+            ]);
+        }
+
+        if ($request->filled('module') && $request->input('module') !== 'Operation') {
+            return back()->withErrors([
+                'gps_file' => 'Only Operation — GPS Trip Records are supported.',
+            ]);
+        }
+
+        if ($request->filled('data_type') && $request->input('data_type') !== 'GPS Trip Records') {
+            return back()->withErrors([
+                'gps_file' => 'Only Operation — GPS Trip Records are supported.',
+            ]);
+        }
 
         $batch = null;
         $filePath = null;
 
         try {
-            $file = $validated['gps_file'];
-
             if (! $file->isValid()) {
                 throw new \RuntimeException(
                     'The uploaded file is invalid or incomplete.'
                 );
             }
-
-            $extension = strtolower(
-                $file->getClientOriginalExtension()
-            );
 
             if (! Storage::disk('public')->exists('gps-batches')) {
                 Storage::disk('public')->makeDirectory('gps-batches');
@@ -201,6 +241,8 @@ class BatchFileProcessingController extends Controller
                 'stored_name' => $storedName,
                 'file_path' => $filePath,
                 'file_type' => $extension,
+                'module' => 'Operation',
+                'data_type' => 'GPS Trip Records',
                 'bus_no' => 'Multiple Buses',
                 'uploaded_by' => Auth::id(),
                 'status' => 'Processing',
@@ -210,13 +252,12 @@ class BatchFileProcessingController extends Controller
                 'error_message' => null,
             ]);
 
-            if ($extension === 'pdf') {
-                $result = $this->processPdfFile($batch);
-            } elseif (in_array($extension, ['xls', 'xlsx'], true)) {
-                $result = $this->processExcelFile($batch);
-            } else {
-                $result = $this->processCsvFile($batch);
-            }
+            $result = match ($extension) {
+                'pdf' => $this->processPdfFile($batch),
+                'xls', 'xlsx' => $this->processExcelFile($batch),
+                'json' => $this->processJsonFile($batch),
+                default => $this->processCsvFile($batch),
+            };
 
             $batch->update([
                 'status' => 'In Review',
@@ -592,6 +633,28 @@ class BatchFileProcessingController extends Controller
         }
 
         $headers = fgetcsv($handle);
+        $firstLine = fgets($handle);
+        if ($firstLine === false || trim($firstLine) === '') {
+            fclose($handle);
+
+            throw new \RuntimeException(
+                'The GPS report is empty or has no header row.'
+            );
+        }
+
+        $candidates = [',', "\t", ';', '|'];
+        $delimiter = ',';
+        $maxCount = 0;
+        foreach ($candidates as $candidate) {
+            $count = substr_count($firstLine, $candidate);
+            if ($count > $maxCount) {
+                $maxCount = $count;
+                $delimiter = $candidate;
+            }
+        }
+
+        rewind($handle);
+        $headers = fgetcsv($handle, 0, $delimiter);
 
         if (! $headers) {
             fclose($handle);
@@ -615,6 +678,7 @@ class BatchFileProcessingController extends Controller
         DB::transaction(function () use (
             $handle,
             $headers,
+            $delimiter,
             $batch,
             &$total,
             &$processed,
@@ -622,7 +686,7 @@ class BatchFileProcessingController extends Controller
             &$firstFailureMessage,
             &$seenSignatures
         ) {
-            while (($row = fgetcsv($handle)) !== false) {
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
                 $hasValues = count(array_filter(
                     $row,
                     fn ($value) => trim((string) $value) !== ''
@@ -681,6 +745,109 @@ class BatchFileProcessingController extends Controller
         });
 
         fclose($handle);
+
+        return [
+            'total' => $total,
+            'processed' => $processed,
+            'failed' => $failed,
+            'first_error' => $firstFailureMessage,
+        ];
+    }
+
+    private function processJsonFile(BatchUpload $batch): array
+    {
+        $absolutePath = Storage::disk('public')->path($batch->file_path);
+
+        if (! file_exists($absolutePath)) {
+            throw new \RuntimeException(
+                'Unable to read the uploaded GPS JSON report.'
+            );
+        }
+
+        $content = file_get_contents($absolutePath);
+        $decoded = json_decode($content, true);
+
+        if (! is_array($decoded)) {
+            throw new \RuntimeException(
+                'The uploaded file is not a valid JSON document.'
+            );
+        }
+
+        $records = $decoded;
+        if (isset($decoded['records']) && is_array($decoded['records'])) {
+            $records = $decoded['records'];
+        } elseif (isset($decoded['data']) && is_array($decoded['data'])) {
+            $records = $decoded['data'];
+        } elseif (isset($decoded['trips']) && is_array($decoded['trips'])) {
+            $records = $decoded['trips'];
+        } elseif (isset($decoded['rows']) && is_array($decoded['rows'])) {
+            $records = $decoded['rows'];
+        }
+
+        if (! empty($records) && ! isset($records[0]) && is_array($records)) {
+            $records = [$records];
+        }
+
+        $total = 0;
+        $processed = 0;
+        $failed = 0;
+        $firstFailureMessage = null;
+        $seenSignatures = [];
+
+        DB::transaction(function () use (
+            $records,
+            $batch,
+            &$total,
+            &$processed,
+            &$failed,
+            &$firstFailureMessage,
+            &$seenSignatures
+        ) {
+            foreach ($records as $item) {
+                if (! is_array($item)) {
+                    continue;
+                }
+
+                $total++;
+
+                try {
+                    $normalizedData = [];
+                    foreach ($item as $key => $val) {
+                        $cleanKey = $this->normalizeHeader((string) $key);
+                        $normalizedData[$cleanKey] = is_array($val) ? json_encode($val) : $this->cleanValue($val);
+                    }
+
+                    $payload = $this->mapUnifiedRecord(
+                        $normalizedData,
+                        'JSON'
+                    );
+
+                    $signature = $this->fingerprintRecord($payload);
+
+                    if (in_array($signature, $seenSignatures, true)) {
+                        throw new \RuntimeException(
+                            'Duplicate row skipped during JSON processing.'
+                        );
+                    }
+
+                    $seenSignatures[] = $signature;
+
+                    $this->saveRecord(
+                        $batch,
+                        $payload,
+                        $item
+                    );
+
+                    $processed++;
+                } catch (\Throwable $exception) {
+                    $failed++;
+
+                    if ($firstFailureMessage === null) {
+                        $firstFailureMessage = $exception->getMessage();
+                    }
+                }
+            }
+        });
 
         return [
             'total' => $total,

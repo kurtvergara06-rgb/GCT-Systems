@@ -101,7 +101,7 @@
 <section class="descriptive-overview-lower-grid">
     <x-analytics.card
         title="Top Routes by Trips"
-        description="{{ $periodLabel }} &middot; highest-volume routes"
+        description="{{ $periodLabel }} · highest-volume routes"
     >
         <div class="ranking-list refined-ranking-list">
             @forelse($routes as $route)
@@ -127,7 +127,7 @@
 
     <x-analytics.card
         title="Busiest Buses"
-        description="{{ $periodLabel }} &middot; highest recorded trip activity"
+        description="{{ $periodLabel }} · highest recorded trip activity"
     >
         <div class="ranking-list refined-ranking-list">
             @forelse($busActivity as $bus)
@@ -192,23 +192,26 @@
         $recentAlertsHeader = '<a href="' . e(route('admin.notifications')) . '">View all alerts <i class="fa-solid fa-arrow-right"></i></a>';
     @endphp
     <x-analytics.card
-        title="Recent Alerts"
+        title="Recent System Activity"
+        description="Recorded notifications and audit logs for the operational period."
         :header-actions="$recentAlertsHeader"
     >
         @if($recentAlerts->isNotEmpty())
             <div class="descriptive-alerts-table-wrap">
                 <table class="descriptive-alerts-table">
-                    <thead><tr><th>Time</th><th>Type</th><th>Entity</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Time</th><th>Type</th><th>Activity Description</th><th>Status</th></tr></thead>
                     <tbody>
                         @foreach($recentAlerts as $alert)
                             <tr>
                                 <td>{{ $alert['date'] }}<br><small>{{ $alert['time'] }}</small></td>
                                 <td><span class="descriptive-alert-type {{ strtolower($alert['type']) }}"><i></i>{{ $alert['type'] }}</span></td>
                                 <td>
-                                    <strong>{{ $alert['module'] ?? 'Alert' }}</strong>
-                                    <small style="color: #64748b; margin-left: 4px;">#{{ $alert['reference'] !== '—' && $alert['reference'] !== '\u2014' ? $alert['reference'] : 'General' }}</small>
+                                    <strong>{{ $alert['title'] ?: ($alert['module'] ?? 'System') }}</strong>
+                                    @if(!empty($alert['message']))
+                                        <small style="color: #64748b; display: block; margin-top: 1px;">{{ \Illuminate\Support\Str::limit($alert['message'], 48) }}</small>
+                                    @endif
                                 </td>
-                                <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Open' : 'Read' }}</span></td>
+                                <td><span class="descriptive-alert-state {{ $alert['unread'] ? 'open' : 'resolved' }}">{{ $alert['unread'] ? 'Unread' : 'Read' }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -220,34 +223,8 @@
     </x-analytics.card>
 
     <x-analytics.card
-        title="Action Summary"
-        description="Items that may need review or follow-up"
-    >
-        @php
-            $attentionItems = [
-                ['Under Maintenance', $underMaintenance, 'Buses in shop', 'fa-screwdriver-wrench', 'orange'],
-                ['Inactive Buses', $inactiveBuses, 'Currently idle', 'fa-bus-simple', 'gray'],
-                ['Low Stock Items', $inventoryLow, 'Reorder soon', 'fa-box-open', 'orange'],
-                ['Out of Stock', $inventoryCritical, 'Zero on-hand', 'fa-triangle-exclamation', 'red'],
-            ];
-        @endphp
-
-        <div class="descriptive-attention-grid">
-            @foreach($attentionItems as [$label, $value, $detail, $icon, $tone])
-                <x-analytics.kpi
-                    :label="$label"
-                    :value="number_format($value)"
-                    :description="$detail"
-                    :icon="$icon"
-                    :tone="$tone === 'gray' ? 'blue' : ($tone === 'orange' ? 'yellow' : $tone)"
-                />
-            @endforeach
-        </div>
-    </x-analytics.card>
-
-    <x-analytics.card
-        class="descriptive-quick-insights-card"
-        title="Quick Insights"
+        title="Executive Period Shifts"
+        description="Key operational performance movements vs. prior period."
         :badge="$comparison['label']"
     >
         @php
@@ -256,22 +233,28 @@
             $distLabel = $comparison['distance'] === null ? 'Distance Covered' : ($comparison['distance'] >= 0 ? 'Distance Increase' : 'Distance Reduction');
 
             $insights = [
-                ['trips', $tripsLabel, number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']), 'fa-route', $comparison['trips']],
+                ['trips', $tripsLabel, number_format($tripCount) . ' vs ' . number_format($comparison['previousTrips']) . ' prior', 'fa-route', $comparison['trips']],
                 ['idle', $idleLabel, number_format($totalIdleMinutes / 60, 1) . ' hrs vs ' . number_format($comparison['previousIdleMinutes'] / 60, 1) . ' hrs', 'fa-hourglass-half', $comparison['idle']],
                 ['distance', $distLabel, number_format($totalDistance, 1) . ' km vs ' . number_format($comparison['previousDistance'], 1) . ' km', 'fa-road', $comparison['distance']],
             ];
         @endphp
-        <div class="descriptive-insight-grid">
+        <div class="descriptive-shift-list">
             @foreach($insights as [$key, $label, $detail, $icon, $delta])
-                <div class="descriptive-insight-card {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
-                    <span><i class="fa-solid {{ $icon }}"></i></span>
-                    <div>
-                        <strong>{{ $deltaText($delta) }}</strong>
-                        <b>{{ $label }}</b>
+                <div class="descriptive-shift-row {{ $delta !== null && $delta < 0 ? 'negative' : 'positive' }}">
+                    <div class="descriptive-shift-icon"><i class="fa-solid {{ $icon }}"></i></div>
+                    <div class="descriptive-shift-info">
+                        <strong>{{ $label }}</strong>
                         <small>{{ $detail }}</small>
+                    </div>
+                    <div class="descriptive-shift-stat">
+                        <strong class="{{ $delta !== null && $delta < 0 ? 'text-danger' : 'text-success' }}">{{ $deltaText($delta) }}</strong>
                     </div>
                 </div>
             @endforeach
+        </div>
+        <div class="descriptive-shift-footer-note">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Trip volume contracted by <strong>{{ abs(round($comparison['trips'] ?? 0)) }}%</strong> with a proportional <strong>{{ abs(round($comparison['idle'] ?? 0)) }}% idling reduction</strong>, while active fleet availability held at <strong>{{ number_format($fleetAvailability, 1) }}%</strong>.</span>
         </div>
     </x-analytics.card>
 </section>

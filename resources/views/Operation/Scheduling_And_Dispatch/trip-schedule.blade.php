@@ -191,7 +191,7 @@
                                 @endphp
 
                                 <tr class="{{ $trip->assignment_status === 'Unassigned' ? 'pending-row' : '' }}">
-                                    <td>{{ $trip->trip_code }}</td>
+                                    <td><x-ui.id-badge :value="$trip->trip_code" /></td>
                                     <td>{{ $trip->trip_date?->format('M d, Y') }}</td>
                                     <td>
                                         <div class="route-cell">
