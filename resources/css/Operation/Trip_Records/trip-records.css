@@ -400,6 +400,23 @@
     border-radius: 10px;
 }
 
+.trip-table-wrap:has(tbody > tr:nth-child(8)) {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.trip-table-wrap::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.trip-table-wrap::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
 
 /* =========================================================
    TABLE
@@ -421,9 +438,15 @@
 
 
 .trip-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--trip-table-head);
+
     padding: 13px 14px;
 
     border-bottom: 1px solid var(--trip-border);
+    box-shadow: 0 1px 0 var(--trip-border);
 
     color: #475569;
 

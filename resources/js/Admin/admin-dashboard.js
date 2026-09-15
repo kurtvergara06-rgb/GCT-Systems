@@ -46,7 +46,11 @@ function createDepartmentDistribution(distribution) {
         tooltip: {
           callbacks: {
             label(context) {
-              return `${context.label}: ${Number(context.raw || 0).toLocaleString()}`;
+              const dataset = context.dataset.data;
+              const total = dataset.reduce((sum, v) => sum + Number(v || 0), 0);
+              const val = Number(context.raw || 0);
+              const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+              return ` ${context.label}: ${val.toLocaleString()} (${pct}%)`;
             },
           },
         },
@@ -81,6 +85,14 @@ function createMonthlyActivity(labels, values) {
   const canvas = document.getElementById('monthlyActivityChart');
   if (!canvas) return;
 
+  const bgColors = values.map((_, index) => {
+    return index === values.length - 1 ? '#0757e6' : '#60a5fa';
+  });
+
+  const hoverColors = values.map((_, index) => {
+    return index === values.length - 1 ? '#0544b8' : '#3b82f6';
+  });
+
   new Chart(canvas, {
     type: 'bar',
     data: {
@@ -88,10 +100,11 @@ function createMonthlyActivity(labels, values) {
       datasets: [{
         label: 'Records',
         data: values,
-        backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#7c3aed', '#0891b2', '#16a34a'],
-        borderRadius: 7,
+        backgroundColor: bgColors,
+        hoverBackgroundColor: hoverColors,
+        borderRadius: 8,
         borderSkipped: false,
-        maxBarThickness: 28,
+        maxBarThickness: 32,
       }],
     },
     options: {
@@ -99,6 +112,13 @@ function createMonthlyActivity(labels, values) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return ` Created: ${Number(context.raw || 0).toLocaleString()} records`;
+            },
+          },
+        },
       },
       scales: {
         x: {

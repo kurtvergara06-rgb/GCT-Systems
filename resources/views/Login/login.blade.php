@@ -19,36 +19,13 @@
   ])
 
   <style>
-    .fleet-composite {
-      position: absolute;
-      left: -2%;
-      bottom: 0;
-      width: min(50vw, 760px);
-      max-width: 98%;
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.34));
-    }
-
-    @media (max-width: 1180px) {
-      .fleet-composite {
-        left: -1%;
-        width: min(52vw, 620px);
-      }
-    }
-
-    @media (max-width: 960px) {
-      .fleet-composite {
-        left: 0;
-        width: min(82vw, 520px);
-      }
-    }
-
-    @media (max-width: 620px) {
-      .fleet-composite {
-        left: -3%;
-        width: min(94vw, 360px);
-      }
+    /* Absolute stability: no element on the login page will scale, lift, or expand on hover */
+    .gct-login-page .login-card:hover,
+    .gct-login-page .input-box:hover,
+    .gct-login-page .login-btn:hover,
+    .gct-login-page .service-item:hover,
+    .gct-login-page .user-icon:hover {
+      transform: none !important;
     }
   </style>
 </head>
@@ -113,6 +90,7 @@
         <div class="fleet-visual" aria-hidden="true">
           <div class="light-trail light-trail-one"></div>
           <div class="light-trail light-trail-two"></div>
+          <div class="fleet-ground-shadow"></div>
 
           <img
             src="{{ asset('img/GCT-bus.png') }}"
@@ -130,11 +108,11 @@
       <div class="login-shell">
         <div class="login-card">
           <div class="user-icon" aria-hidden="true">
-            <i class="fa-regular fa-user"></i>
+            <i class="fa-solid fa-shield-halved"></i>
           </div>
 
           <div class="login-heading">
-            <span class="login-eyebrow">Secure account access</span>
+            <span class="login-eyebrow"><i class="fa-solid fa-lock" aria-hidden="true"></i> Secure Account Access</span>
             <h2>Welcome Back</h2>
             <p>Sign in to access your company system.</p>
           </div>
@@ -224,8 +202,14 @@
             </div>
 
             <button type="submit" class="login-btn" id="loginBtn">
-              <span>Sign In</span>
-              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              <span class="btn-text">Sign In</span>
+              <i class="fa-solid fa-arrow-right btn-icon" aria-hidden="true"></i>
+              <span class="btn-spinner" aria-hidden="true">
+                <svg class="spinner-svg" viewBox="0 0 24 24" fill="none">
+                  <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                  <circle class="spinner-fill" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                </svg>
+              </span>
             </button>
           </form>
 

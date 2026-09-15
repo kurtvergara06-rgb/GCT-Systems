@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\BatchFileProcessingController;
+use App\Http\Controllers\Admin\DataHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::view(
@@ -61,10 +62,15 @@ Route::view(
     'Admin.Data_Management.uploading-data'
 )->name('admin.import-export');
 
-Route::view(
+Route::get(
     '/admin/data-history',
-    'Admin.Data_Management.data-history'
+    [DataHistoryController::class, 'index']
 )->name('admin.data-history');
+
+Route::get(
+    '/admin/data-history/{activity}',
+    [DataHistoryController::class, 'show']
+)->name('admin.data-history.show');
 
 Route::redirect('/analytics', '/analytics/overview')->name('analytics');
 Route::view('/analytics/overview', 'Admin.Analytics.overview')

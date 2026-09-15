@@ -210,8 +210,13 @@
 }
 
 .fuel-page .fuel-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   padding: 13px 14px;
+  background: #edf3fb;
   border-bottom: 1px solid var(--fuel-border);
+  box-shadow: 0 1px 0 var(--fuel-border);
   color: #41536b;
   font-size: 11px;
   font-weight: 900;

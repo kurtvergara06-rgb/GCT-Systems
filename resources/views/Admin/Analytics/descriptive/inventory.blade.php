@@ -19,41 +19,42 @@
 
 {{-- 1. TOP EXECUTIVE KPI STRIP --}}
 <section class="analytics-kpi-strip analytics-domain-kpi-four inventory-kpi-strip" aria-label="Inventory summary KPIs">
-    <div class="analytics-kpi-card tone-blue">
-        <div class="analytics-kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-        <div>
-            <span>Total Catalogued Parts</span>
-            <strong>{{ number_format($inventoryTotal) }}</strong>
-            <small>Active inventory records</small>
-        </div>
-    </div>
+    <x-analytics.kpi
+        icon="fa-boxes-stacked"
+        label="Total Catalogued Parts"
+        :value="number_format($inventoryTotal)"
+        description="Active inventory records"
+        icon-variant="blue"
+    />
 
-    <div class="analytics-kpi-card tone-green">
-        <div class="analytics-kpi-icon"><i class="fa-solid fa-box-open"></i></div>
-        <div>
-            <span>Well Stocked</span>
-            <strong>{{ number_format($inventoryHealthy) }}</strong>
-            <small class="positive">{{ number_format($healthyPct, 1) }}% buffer compliance</small>
-        </div>
-    </div>
+    <x-analytics.kpi
+        icon="fa-box-open"
+        label="Well Stocked"
+        :value="number_format($inventoryHealthy)"
+        :change="number_format($healthyPct, 1) . '% buffer compliance'"
+        change-type="positive"
+        icon-variant="green"
+    />
 
-    <div class="analytics-kpi-card tone-yellow">
-        <div class="analytics-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div>
-            <span>Low Stock Warning</span>
-            <strong>{{ number_format($inventoryLow) }}</strong>
-            <small class="negative">Below safety reorder point</small>
-        </div>
-    </div>
+    <x-analytics.kpi
+        icon="fa-triangle-exclamation"
+        label="Low Stock Warning"
+        :value="number_format($inventoryLow)"
+        description="Below safety reorder point"
+        change="Threshold breached"
+        change-type="warning"
+        icon-variant="yellow"
+    />
 
-    <div class="analytics-kpi-card tone-red">
-        <div class="analytics-kpi-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
-        <div>
-            <span>Out of Stock</span>
-            <strong>{{ number_format($inventoryCritical) }}</strong>
-            <small class="negative">Immediate procurement needed</small>
-        </div>
-    </div>
+    <x-analytics.kpi
+        icon="fa-circle-exclamation"
+        label="Out of Stock"
+        :value="number_format($inventoryCritical)"
+        description="Immediate procurement needed"
+        change="Critical shortfall"
+        change-type="negative"
+        icon-variant="red"
+    />
 </section>
 
 {{-- 2. MID SECTION: DONUT/HEALTH SCORE + CATEGORY BREAKDOWN --}}

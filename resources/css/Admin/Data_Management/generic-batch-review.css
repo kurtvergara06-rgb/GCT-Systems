@@ -261,10 +261,15 @@
 }
 
 .generic-processed-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     height: 48px;
     padding: 0 15px;
     font-size: 12px;
     letter-spacing: 0.025em;
+    background: #edf3fb;
+    box-shadow: 0 1px 0 #dce5ef;
 }
 
 .generic-processed-table td {

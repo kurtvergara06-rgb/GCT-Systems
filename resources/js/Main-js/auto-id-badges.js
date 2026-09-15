@@ -1,44 +1,123 @@
 const idHeaders = [
   'id',
   'driver id',
+  'driver #',
   'mechanic id',
+  'mechanic #',
+  'bus',
   'bus id',
   'bus #',
   'bus no',
-  'vehicle id',
+  'bus no.',
+  'bus number',
   'vehicle',
+  'vehicle id',
+  'vehicle #',
+  'vehicle no',
+  'vehicle no.',
+  'jo',
   'jo #',
   'jo no',
+  'jo no.',
   'job order',
+  'job order #',
+  'job order no',
+  'job order no.',
+  'job order id',
+  'pr',
   'pr #',
   'pr no',
+  'pr no.',
+  'purchase request',
+  'purchase request #',
+  'purchase request no',
+  'purchase request no.',
+  'purchase request id',
+  'request',
+  'request #',
+  'request no',
+  'request no.',
+  'request id',
+  'po',
   'po #',
   'po no',
+  'po no.',
+  'purchase order',
+  'purchase order #',
+  'purchase order no',
+  'purchase order no.',
+  'purchase order id',
+  'trip',
   'trip id',
   'trip code',
+  'trip #',
+  'trip no',
+  'trip no.',
+  'trip number',
   'route id',
   'route code',
+  'route #',
   'schedule id',
   'assignment id',
+  'batch id',
+  'batch #',
+  'batch no',
+  'batch no.',
+  'batch code',
+  'record id',
+  'record #',
+  'record no',
+  'record no.',
   'item code',
+  'item id',
+  'item #',
+  'item no',
+  'item no.',
+  'part id',
+  'part code',
+  'part #',
+  'part no',
+  'part no.',
+  'maintenance id',
   'reference',
+  'reference #',
+  'reference no',
+];
+
+const nonIdWords = [
+  'status', 'date', 'time', 'type', 'score', 'count', 'amount', 'cost', 'price',
+  'fee', 'quantity', 'qty', 'total', 'action', 'name', 'description', 'distance',
+  'fuel', 'model', 'mileage', 'grouping', 'destination', 'origin', 'reason',
+  'duration', 'loss', 'level', 'rate', 'efficiency', 'speed', 'idle', 'factor',
+  'breakdown', 'trend', 'state', 'risk', 'progress', 'capacity', 'note', 'alert'
 ];
 
 const shouldBadgeHeader = (text) => {
   const normalized = text.trim().toLowerCase();
 
-  if (!normalized || normalized.includes('status')) {
+  if (!normalized) {
     return false;
   }
 
-  return idHeaders.some((header) =>
-    normalized === header
-    || normalized.startsWith(`${header} `)
-    || normalized.includes(' / bus')
-    || normalized.includes(' / job order')
-    || normalized.includes(' / driver')
-    || normalized.includes(' / mechanic')
-  );
+  if (nonIdWords.some((word) => normalized.includes(word))) {
+    return false;
+  }
+
+  const clean = normalized.replace(/[.:#]/g, '').trim();
+
+  return idHeaders.some((header) => {
+    const cleanHeader = header.replace(/[.:#]/g, '').trim();
+    return (
+      normalized === header
+      || clean === cleanHeader
+      || normalized.startsWith(`${header} `)
+      || clean.startsWith(`${cleanHeader} `)
+      || normalized.includes(' / bus')
+      || normalized.includes(' / job order')
+      || normalized.includes(' / driver')
+      || normalized.includes(' / mechanic')
+    );
+  });
 };
 
 const makeCompactIdBadge = (element) => {
@@ -46,14 +125,16 @@ const makeCompactIdBadge = (element) => {
   element.title = element.textContent.trim();
 
   /*
-   * Some pages style <strong> or <span> as block-level elements.
-   * Keep detected IDs content-sized so they match the compact Job Order
-   * identifier chips instead of stretching across the whole table cell.
+   * Keep detected IDs content-sized and non-animated so they match
+   * clean system identifiers.
    */
   element.style.setProperty('display', 'inline-flex', 'important');
+  element.style.setProperty('align-items', 'center', 'important');
+  element.style.setProperty('justify-content', 'center', 'important');
   element.style.setProperty('width', 'max-content', 'important');
   element.style.setProperty('max-width', '100%', 'important');
   element.style.setProperty('box-sizing', 'border-box', 'important');
+  element.style.setProperty('transition', 'none', 'important');
 };
 
 const normalizeExistingIdElements = (root = document) => {
@@ -65,6 +146,12 @@ const normalizeExistingIdElements = (root = document) => {
     '.route-code',
     '.trip-code',
     '.assignment-reference',
+    '.table-bus-chip',
+    '.bus-chip',
+    '.item-code-chip',
+    '.table-item-code-chip',
+    '.record-id-chip',
+    '.batch-id-chip',
   ].join(',')).forEach((element) => {
     if (!element.textContent.trim()) {
       return;
@@ -94,7 +181,13 @@ const badgeTable = (table) => {
         return;
       }
 
-      const existingBadge = cell.querySelector('.system-id-badge');
+      const existingBadge = cell.querySelector([
+        '.system-id-badge',
+        '.table-bus-chip',
+        '.bus-chip',
+        '.item-code-chip',
+        '.table-item-code-chip',
+      ].join(','));
       if (existingBadge) {
         makeCompactIdBadge(existingBadge);
         return;
@@ -108,6 +201,8 @@ const badgeTable = (table) => {
         '.route-code',
         '.trip-code',
         '.assignment-reference',
+        '.record-id-chip',
+        '.batch-id-chip',
       ].join(','));
 
       if (existingCandidate) {
@@ -120,7 +215,8 @@ const badgeTable = (table) => {
           return false;
         }
 
-        if (element.matches('.badge, .status-badge, .workflow-badge, .source-badge')) {
+        // Never touch status, risk, alerts, categories, or buttons
+        if (element.matches('.badge, .status-badge, .workflow-badge, .source-badge, .diag-badge, .ft-badge, .fuel-status-badge, .risk-badge, [class*="status"], [class*="risk"], [class*="alert"], [class*="btn"], button')) {
           return false;
         }
 

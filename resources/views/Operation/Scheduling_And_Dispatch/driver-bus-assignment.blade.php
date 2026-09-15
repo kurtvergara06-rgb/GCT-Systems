@@ -178,7 +178,7 @@
                                 @endphp
 
                                 <tr class="{{ $trip->assignment_status === 'Unassigned' ? 'unassigned-row' : '' }}">
-                                    <td>{{ $trip->trip_code }}</td>
+                                    <td><x-ui.id-badge :value="$trip->trip_code" /></td>
 
                                     <td>
                                         <div class="schedule-cell">
@@ -216,7 +216,7 @@
 
                                     <td>
                                         @if($bus)
-                                            <span class="bus-badge">{{ $bus->bus_no }}</span>
+                                            <x-ui.id-badge :value="$bus->bus_no" />
                                         @else
                                             <span class="not-assigned">Not Assigned</span>
                                         @endif

@@ -30,10 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     inputBox.classList.add('input-error');
     input.setAttribute('aria-invalid', 'true');
 
+    // Trigger subtle tactile shake animation
+    inputBox.classList.remove('input-shake');
+    void inputBox.offsetWidth;
+    inputBox.classList.add('input-shake');
+
     const error = document.createElement('span');
     error.className = 'field-error';
     error.dataset.clientError = 'true';
-    error.textContent = message;
+    error.innerHTML = `<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>${message}</span>`;
     formGroup.appendChild(error);
   };
 
@@ -83,13 +88,23 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (!loginButton || loginButton.disabled) return;
+    if (!loginButton || loginButton.classList.contains('is-loading')) {
+      event.preventDefault();
+      return;
+    }
 
-    loginButton.disabled = true;
+    // Activate the spinner component and loading state
+    loginButton.classList.add('is-loading');
     loginButton.setAttribute('aria-busy', 'true');
-    loginButton.innerHTML = `
-      <span>Signing In</span>
-      <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
-    `;
+
+    const textSpan = loginButton.querySelector('.btn-text');
+    if (textSpan) {
+      textSpan.textContent = 'Signing in...';
+    }
+
+    // Allow form submission to start before disabling to prevent browser abort
+    setTimeout(() => {
+      loginButton.disabled = true;
+    }, 20);
   });
 });

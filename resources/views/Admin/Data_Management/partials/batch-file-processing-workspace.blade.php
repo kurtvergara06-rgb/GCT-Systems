@@ -17,9 +17,10 @@
                         href="{{ route('batch-file-processing', ['batch_id' => $batch->id], false) }}"
                         class="uploaded-file {{ $selectedBatchId == $batch->id ? 'active-file' : '' }}"
                     >
-                        <div class="file-icon {{ strtolower($batch->file_type ?? 'csv') }}">
-                            <i class="fa-solid fa-file"></i>
-                        </div>
+                        <x-ui.file-thumbnail
+                            :filename="$batch->file_name"
+                            :type="$batch->file_type"
+                        />
 
                         <div class="file-info">
                             <strong>{{ $batch->file_name }}</strong>
@@ -180,8 +181,8 @@
             <tbody>
                 @forelse($records as $record)
                     <tr>
-                        <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
-                        <td>{{ $record->record_no ?? '—' }}</td>
+                        <td><x-ui.id-badge :value="$record->bus_no" /></td>
+                        <td><x-ui.id-badge :value="$record->record_no" /></td>
                         <td>{{ $record->grouping ?? '—' }}</td>
                         <td>{{ $record->trip_type ?? '—' }}</td>
                         <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
@@ -397,8 +398,8 @@
                                     ($record->final_location ?? '')
                                 ) }}"
                             >
-                                <td><strong>{{ $record->bus_no ?? '—' }}</strong></td>
-                                <td>{{ $record->record_no ?? '—' }}</td>
+                                <td><x-ui.id-badge :value="$record->bus_no" /></td>
+                                <td><x-ui.id-badge :value="$record->record_no" /></td>
                                 <td>{{ $record->grouping ?? '—' }}</td>
                                 <td>{{ $record->trip_type ?? '—' }}</td>
                                 <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>

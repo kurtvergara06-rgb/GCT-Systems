@@ -16,15 +16,6 @@ class BatchUpload extends Model
         'Operation' => [
             'GPS Trip Records',
         ],
-        'Maintenance' => [
-            'Fuel Reports',
-        ],
-        'Warehouse' => [
-            'Inventory Records',
-        ],
-        'Purchase' => [
-            'Purchase Orders',
-        ],
     ];
 
     protected $fillable = [
