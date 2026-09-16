@@ -55,7 +55,7 @@
 .inventory-toolbar {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px auto auto;
+  grid-template-columns: minmax(280px, 1fr) 150px auto auto auto;
   align-items: end;
   gap: 10px;
   padding: 10px 12px;
@@ -592,4 +592,99 @@
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+/* =====================================================
+   REFERENCE / ID BADGE
+   White/light pill for document numbers (PO, PR, ISS, JO…)
+   Subtle border, slight rounding, dark navy text, no shadow.
+===================================================== */
+
+.ref-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid #d6dce5;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #123f6b;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+/* =====================================================
+   DATA SOURCE BADGE (app = genuine, demo = sample)
+===================================================== */
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.source-badge--app {
+  border: 1px solid #bfe3cd;
+  background: #e9f8ef;
+  color: #156a44;
+}
+
+.source-badge--demo {
+  border: 1px solid #d6dce5;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* =====================================================
+   ISSUE STOCK MODAL
+===================================================== */
+
+.issue-stock-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.issue-stock-preview .preview-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.issue-stock-preview .preview-value {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.issue-stock-preview .preview-quantity {
+  text-align: right;
+}
+
+.issue-stock-preview .preview-quantity small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
 }

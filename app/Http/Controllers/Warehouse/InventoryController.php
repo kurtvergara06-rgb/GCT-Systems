@@ -4,16 +4,28 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
+use App\Models\Warehouse\InventoryIssuance;
+use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
+use App\Models\Warehouse\StockMovement;
+use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    private InventoryLedgerService $ledger;
+
+    public function __construct(InventoryLedgerService $ledger)
+    {
+        $this->ledger = $ledger;
+    }
 
     public function index(Request $request)
     {
@@ -54,6 +66,10 @@ class InventoryController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
+        $issueItems = InventoryItem::query()
+            ->orderBy('item_name')
+            ->get(['id', 'item_code', 'item_name', 'parts_name', 'on_hand', 'quantity_available', 'unit', 'unit_of_measurement']);
+
         $totalItemsInStock = InventoryItem::count();
 
         $lowStockAlerts = InventoryItem::query()
@@ -74,6 +90,7 @@ class InventoryController extends Controller
         return view('Warehouse.inventory', compact(
             'inventoryItems',
             'categories',
+            'issueItems',
             'totalItemsInStock',
             'lowStockAlerts',
             'criticalItems',
@@ -107,15 +124,14 @@ class InventoryController extends Controller
         ]);
 
         $inventoryItem = null;
+        $initialStock = (int) $validated['on_hand'];
 
-        DB::transaction(function () use ($validated, &$inventoryItem) {
+        unset($validated['on_hand'], $validated['quantity_available']);
+
+        DB::transaction(function () use ($validated, $initialStock, &$inventoryItem) {
             $validated['parts_name'] =
                 $validated['parts_name']
                 ?? $validated['item_name'];
-
-            $validated['quantity_available'] =
-                $validated['quantity_available']
-                ?? $validated['on_hand'];
 
             $validated['unit'] =
                 $validated['unit']
@@ -126,12 +142,25 @@ class InventoryController extends Controller
                 ?? $validated['storage_location']
                 ?? null;
 
+            $validated['on_hand'] = 0;
+            $validated['quantity_available'] = 0;
+
             $validated['status'] = $this->inventoryStatus(
-                (int) $validated['on_hand'],
+                0,
                 (int) $validated['reorder_level']
             );
 
             $inventoryItem = InventoryItem::create($validated);
+
+            if ($initialStock > 0) {
+                $this->ledger->adjustTo(
+                    $inventoryItem,
+                    $initialStock,
+                    $inventoryItem->item_code ?? $inventoryItem->item_name,
+                    'Opening balance on item creation.',
+                    auth()->id()
+                );
+            }
 
             $this->createAutoRestockRequestIfNeeded($inventoryItem);
         });
@@ -181,14 +210,14 @@ class InventoryController extends Controller
             'item_code.unique' => 'The item code already belongs to another inventory item.',
         ]);
 
-        DB::transaction(function () use ($validated, $inventoryItem) {
+        $targetStock = (int) $validated['on_hand'];
+
+        unset($validated['on_hand'], $validated['quantity_available']);
+
+        DB::transaction(function () use ($validated, $targetStock, $inventoryItem) {
             $validated['parts_name'] =
                 $validated['parts_name']
                 ?? $validated['item_name'];
-
-            $validated['quantity_available'] =
-                $validated['quantity_available']
-                ?? $validated['on_hand'];
 
             $validated['unit'] =
                 $validated['unit']
@@ -200,14 +229,32 @@ class InventoryController extends Controller
                 ?? null;
 
             $validated['status'] = $this->inventoryStatus(
-                (int) $validated['on_hand'],
+                $targetStock,
                 (int) $validated['reorder_level']
             );
 
             $inventoryItem->update($validated);
 
+            $freshItem = $inventoryItem->fresh();
+
+            $previousStock = (int) (
+                $freshItem->on_hand
+                ?? $freshItem->quantity_available
+                ?? 0
+            );
+
+            if ($targetStock !== $previousStock) {
+                $this->ledger->adjustTo(
+                    $freshItem,
+                    $targetStock,
+                    $freshItem->item_code ?? $freshItem->item_name,
+                    'Manual inventory adjustment.',
+                    auth()->id()
+                );
+            }
+
             $this->createAutoRestockRequestIfNeeded(
-                $inventoryItem->fresh()
+                $freshItem
             );
         });
 
@@ -320,11 +367,11 @@ class InventoryController extends Controller
                     continue;
                 }
 
-                $onHand = (int) (
+                $onHand = max(0, (int) (
                     $data['on_hand']
                     ?? $data['quantity_available']
                     ?? 0
-                );
+                ));
 
                 $reorderLevel = (int) (
                     $data['reorder_level']
@@ -348,33 +395,68 @@ class InventoryController extends Controller
                     'parts_name' => $partsName ?: null,
                     'item_name' => $partsName ?: null,
                     'category' => trim((string) ($data['category'] ?? '')) ?: null,
-                    'on_hand' => $onHand,
-                    'quantity_available' => $onHand,
                     'unit' => $unit ?: null,
                     'unit_of_measurement' => $unit ?: null,
                     'reorder_level' => $reorderLevel,
-                    'status' => $this->inventoryStatus(
-                        $onHand,
-                        $reorderLevel
-                    ),
                     'supplier' => trim((string) ($data['supplier'] ?? '')) ?: null,
                     'location' => $location ?: null,
                     'storage_location' => $location ?: null,
                 ];
 
+                $inventoryItem = null;
+
                 if ($itemCode !== '') {
-                    $inventoryItem = InventoryItem::updateOrCreate(
-                        ['item_code' => $itemCode],
-                        $payload
-                    );
-                } else {
-                    $inventoryItem = InventoryItem::create($payload);
+                    $inventoryItem = InventoryItem::query()
+                        ->where('item_code', $itemCode)
+                        ->first();
                 }
 
-                if ($inventoryItem->wasRecentlyCreated) {
-                    $created++;
-                } else {
+                if ($inventoryItem) {
+                    $previousStock = (int) (
+                        $inventoryItem->on_hand
+                        ?? $inventoryItem->quantity_available
+                        ?? 0
+                    );
+
+                    $inventoryItem->update($payload + [
+                        'status' => $this->inventoryStatus(
+                            $onHand,
+                            $reorderLevel
+                        ),
+                    ]);
+
+                    if ($onHand !== $previousStock) {
+                        $this->ledger->adjustTo(
+                            $inventoryItem->fresh(),
+                            $onHand,
+                            $inventoryItem->item_code ?? $inventoryItem->item_name,
+                            'Inventory import stock reconciliation.',
+                            auth()->id()
+                        );
+                    }
+
                     $updated++;
+                } else {
+                    $inventoryItem = InventoryItem::create($payload + [
+                        'on_hand' => 0,
+                        'quantity_available' => 0,
+                        'status' => $this->inventoryStatus(
+                            $onHand,
+                            $reorderLevel
+                        ),
+                    ]);
+
+                    if ($onHand > 0) {
+                        $this->ledger->adjustTo(
+                            $inventoryItem,
+                            $onHand,
+                            $inventoryItem->item_code ?? $inventoryItem->item_name,
+                            'Opening balance on inventory import.',
+                            auth()->id()
+                        );
+                    }
+
+                    $created++;
                 }
 
                 $this->createAutoRestockRequestIfNeeded(
@@ -399,6 +481,132 @@ class InventoryController extends Controller
         );
 
         return new RedirectResponse('/inventory');
+    }
+
+    public function issue(Request $request): RedirectResponse
+    {
+        $this->authorizeIssue();
+
+        $validated = $request->validate([
+            'inventory_item_id' => ['required', 'integer', 'exists:inventory_items,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'issued_to' => ['required', 'string', 'max:255'],
+            'purpose' => ['required', 'string', 'max:500'],
+            'reference_no' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $item = InventoryItem::findOrFail((int) $validated['inventory_item_id']);
+        $quantity = (int) $validated['quantity'];
+        $issueNo = '';
+
+        DB::transaction(function () use ($item, $quantity, $validated, &$issueNo) {
+            $current = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+
+            if ($quantity > $current) {
+                throw ValidationException::withMessages([
+                    'quantity' =>
+                        "Insufficient stock. Only {$current} available, but {$quantity} requested.",
+                ]);
+            }
+
+            $issueNo = $this->generateIssueNo();
+
+            $movement = $this->ledger->stockOut(
+                $item,
+                $quantity,
+                $issueNo,
+                'Issued to '
+                    . trim((string) $validated['issued_to'])
+                    . ' for '
+                    . trim((string) $validated['purpose'])
+                    . '.',
+                auth()->id()
+            );
+
+            $issuance = InventoryIssuance::create([
+                'issue_no' => $issueNo,
+                'issued_to' => trim((string) $validated['issued_to']),
+                'purpose' => trim((string) $validated['purpose']),
+                'reference_no' => trim((string) (
+                    $validated['reference_no'] ?? ''
+                )) ?: null,
+                'issued_by' => auth()->id(),
+                'issued_at' => now(),
+            ]);
+
+            InventoryIssuanceItem::create([
+                'inventory_issuance_id' => $issuance->id,
+                'inventory_item_id' => $item->id,
+                'item_code' => $item->item_code,
+                'item_name' => $item->parts_name ?? $item->item_name ?? 'Inventory Item',
+                'quantity' => $quantity,
+                'unit' => $item->unit_of_measurement ?: $item->unit,
+                'previous_stock' => $movement->previous_stock,
+                'new_stock' => $movement->new_stock,
+                'stock_movement_id' => $movement->id,
+            ]);
+        });
+
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'Inventory',
+            'issued',
+            $item->id,
+            "Stock was issued (#{$issueNo})."
+        );
+
+        session()->flash(
+            'success',
+            "Stock issued successfully. Issuance No: {$issueNo}."
+        );
+
+        return new RedirectResponse('/inventory');
+    }
+
+    private function authorizeIssue(): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            abort(403, 'You are not authorized to issue inventory.');
+        }
+
+        $department = strtolower(trim((string) ($user->department ?? '')));
+        $role = strtolower(trim((string) ($user->role ?? '')));
+
+        $isSystemAdmin =
+            ($department === 'admin' && $role === 'head')
+            || $role === 'system admin';
+
+        if ($isSystemAdmin || $department === 'warehouse') {
+            return;
+        }
+
+        abort(403, 'Only Warehouse personnel can issue inventory stock.');
+    }
+
+    private function generateIssueNo(): string
+    {
+        $year = now()->format('Y');
+
+        $latest = InventoryIssuance::query()
+            ->where('issue_no', 'like', "ISS-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
+
+        $lastNumber = $latest && $latest->issue_no
+            ? (int) substr($latest->issue_no, -4)
+            : 0;
+
+        return 'ISS-'
+            . $year
+            . '-'
+            . str_pad(
+                (string) ($lastNumber + 1),
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
     }
 
     private function syncAutoRestockRequests(): void

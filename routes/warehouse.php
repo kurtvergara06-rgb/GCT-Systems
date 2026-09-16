@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Warehouse\InventoryController;
+use App\Http\Controllers\Warehouse\InventoryMovementController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +18,13 @@ Route::controller(InventoryController::class)
         Route::put('/{inventoryItem}', 'update')->name('inventory.update');
         Route::delete('/{inventoryItem}', 'destroy')->name('inventory.destroy');
         Route::post('/import', 'import')->name('inventory.import');
+        Route::post('/issue', 'issue')->name('inventory.issue');
     });
+
+Route::get(
+    '/inventory/{inventoryItem}/movements',
+    [InventoryMovementController::class, 'show']
+)->name('inventory.movements');
 
 Route::controller(WarehousePartRequestController::class)
     ->prefix('part-requests')

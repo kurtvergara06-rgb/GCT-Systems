@@ -1,0 +1,26 @@
+{
+  "model_ready": true,
+  "message": "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)",
+  "source": "sample",
+  "disclaimer": "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA",
+  "sample_count": 47872,
+  "n_train": 38148,
+  "n_test": 9724,
+  "metrics": {
+    "mae": 0.26950018240504114,
+    "rmse": 0.7834558941958975,
+    "r2": 0.0948772483017053,
+    "train_mae": 0.12308654336525554
+  },
+  "target_range": {
+    "min": 0.0,
+    "max": 19.0,
+    "mean": 0.1072402222921254
+  },
+  "periods": {
+    "train_start": "2025-06-16",
+    "train_end": "2026-06-01",
+    "test_start": "2026-06-08",
+    "test_end": "2026-08-31"
+  }
+}

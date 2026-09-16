@@ -26,6 +26,9 @@ from NLP.anomaly_detector import anomaly_details as detect_anomaly
 from NLP import ingestion as ingestion_store
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
+from eta.router import router as eta_router
+from inventory.router import router as inventory_router
+from delay.router import router as delay_router
 
 
 def annotate_records(records: list[dict]) -> list[dict]:
@@ -117,6 +120,15 @@ def _warm_operation_ai_models() -> None:
             "Operation AI model warm-up failed (will lazy-load): %s", exc
         )
 
+    try:
+        from eta.predict import eta_readiness
+
+        eta_readiness()
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "ETA model warm-up failed (will lazy-load): %s", exc
+        )
+
 
 @asynccontextmanager
 async def operation_ai_lifespan(app: FastAPI):
@@ -151,6 +163,30 @@ app.include_router(
     operation_ai_router,
     prefix="/operation/auto-scheduling/ai",
     tags=["Operation AI Assistance"],
+)
+
+# Register the ETA / trip-duration prediction router (Predictive Analytics).
+app.include_router(
+    eta_router,
+    prefix="/eta",
+    tags=["Predictive Analytics"],
+)
+
+# Register the Inventory leading/forecasting router (Model #4, development
+# prototype trained on SAMPLE data).
+app.include_router(
+    inventory_router,
+    prefix="/inventory",
+    tags=["Predictive Analytics"],
+)
+
+# Register the Delay-prediction router (Model #3, SAMPLE / DEMONSTRATION
+# prototype trained on a separate generated sample dataset - NOT genuine GCT
+# historical delay records).
+app.include_router(
+    delay_router,
+    prefix="/delay",
+    tags=["Predictive Analytics"],
 )
 
 from NLP.ingestion_router import router as ingestion_router
