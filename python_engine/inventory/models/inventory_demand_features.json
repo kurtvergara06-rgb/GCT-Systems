@@ -1,0 +1,645 @@
+{
+  "features": [
+    "bus_encoded",
+    "part_encoded",
+    "category_encoded",
+    "unit_encoded",
+    "maintenance_type_lag1_encoded",
+    "on_hand",
+    "vehicle_mileage",
+    "breakdown_count_lag1",
+    "reorder_level",
+    "supplier_lead_days",
+    "demand_lag1",
+    "demand_lag2",
+    "rolling_demand_4w",
+    "rolling_demand_8w",
+    "days_since_last_issue",
+    "week_of_year",
+    "month",
+    "quarter",
+    "elapsed_weeks"
+  ],
+  "target": "quantity_issued",
+  "forecast_horizon": "next_week",
+  "source": "sample",
+  "encoders": {
+    "bus_encodings": {
+      "GCT-101": 0,
+      "GCT-102": 1,
+      "GCT-103": 2,
+      "GCT-104": 3,
+      "GCT-105": 4,
+      "GCT-106": 5,
+      "GCT-107": 6,
+      "GCT-108": 7,
+      "GCT-109": 8,
+      "GCT-110": 9,
+      "GCT-111": 10,
+      "GCT-112": 11,
+      "GCT-113": 12,
+      "GCT-114": 13,
+      "GCT-115": 14,
+      "GCT-116": 15,
+      "GCT-117": 16,
+      "GCT-118": 17,
+      "GCT-119": 18,
+      "GCT-120": 19,
+      "GCT-121": 20,
+      "GCT-122": 21
+    },
+    "part_encodings": {
+      "P001": 0,
+      "P002": 1,
+      "P003": 2,
+      "P004": 3,
+      "P005": 4,
+      "P006": 5,
+      "P007": 6,
+      "P008": 7,
+      "P009": 8,
+      "P010": 9,
+      "P011": 10,
+      "P012": 11,
+      "P013": 12,
+      "P014": 13,
+      "P015": 14,
+      "P016": 15,
+      "P017": 16,
+      "P018": 17,
+      "P019": 18,
+      "P020": 19,
+      "P021": 20,
+      "P022": 21,
+      "P023": 22,
+      "P024": 23,
+      "P025": 24,
+      "P026": 25,
+      "P027": 26,
+      "P028": 27,
+      "P029": 28,
+      "P030": 29,
+      "P031": 30,
+      "P032": 31,
+      "P033": 32,
+      "P034": 33
+    },
+    "category_encodings": {
+      "Body/General": 0,
+      "Brake System": 1,
+      "Cooling System": 2,
+      "Electrical": 3,
+      "Engine": 4,
+      "Fuel System": 5,
+      "Lubricants": 6,
+      "Suspension": 7,
+      "Tires": 8,
+      "Transmission": 9
+    },
+    "unit_encodings": {
+      "kg": 0,
+      "liter": 1,
+      "pcs": 2,
+      "set": 3
+    },
+    "maint_lag_encodings": {
+      "None": 0,
+      "Preventive": 1,
+      "Corrective": 2
+    }
+  },
+  "part_metadata": {
+    "P001": {
+      "name": "Brake Pad",
+      "category": "Brake System",
+      "unit": "set",
+      "reorder_level": 6,
+      "supplier_lead_days": 7,
+      "mean_weekly_demand": 0.04971590909090909,
+      "zero_share": 0.9595170454545454,
+      "n_obs": 1408,
+      "mean_on_hand": 12.693892045454545,
+      "mean_days_since_last_issue": 209.94105113636363
+    },
+    "P002": {
+      "name": "Brake Shoe",
+      "category": "Brake System",
+      "unit": "set",
+      "reorder_level": 4,
+      "supplier_lead_days": 8,
+      "mean_weekly_demand": 0.03835227272727273,
+      "zero_share": 0.96875,
+      "n_obs": 1408,
+      "mean_on_hand": 8.970880681818182,
+      "mean_days_since_last_issue": 226.48863636363637
+    },
+    "P003": {
+      "name": "Brake Fluid",
+      "category": "Brake System",
+      "unit": "liter",
+      "reorder_level": 8,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.15625,
+      "zero_share": 0.9318181818181818,
+      "n_obs": 1408,
+      "mean_on_hand": 16.046164772727273,
+      "mean_days_since_last_issue": 119.77414772727273
+    },
+    "P004": {
+      "name": "Brake Disc",
+      "category": "Brake System",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 10,
+      "mean_weekly_demand": 0.040482954545454544,
+      "zero_share": 0.9836647727272727,
+      "n_obs": 1408,
+      "mean_on_hand": 8.881392045454545,
+      "mean_days_since_last_issue": 264.74857954545456
+    },
+    "P005": {
+      "name": "Oil Filter",
+      "category": "Engine",
+      "unit": "pcs",
+      "reorder_level": 10,
+      "supplier_lead_days": 4,
+      "mean_weekly_demand": 0.19389204545454544,
+      "zero_share": 0.8487215909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 17.289772727272727,
+      "mean_days_since_last_issue": 57.30184659090909
+    },
+    "P006": {
+      "name": "Air Filter",
+      "category": "Engine",
+      "unit": "pcs",
+      "reorder_level": 8,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.10298295454545454,
+      "zero_share": 0.9211647727272727,
+      "n_obs": 1408,
+      "mean_on_hand": 14.813920454545455,
+      "mean_days_since_last_issue": 117.7215909090909
+    },
+    "P007": {
+      "name": "Fan Belt",
+      "category": "Engine",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 6,
+      "mean_weekly_demand": 0.045454545454545456,
+      "zero_share": 0.9659090909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 8.774857954545455,
+      "mean_days_since_last_issue": 201.359375
+    },
+    "P008": {
+      "name": "Alternator Belt",
+      "category": "Engine",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 6,
+      "mean_weekly_demand": 0.036931818181818184,
+      "zero_share": 0.9694602272727273,
+      "n_obs": 1408,
+      "mean_on_hand": 8.833806818181818,
+      "mean_days_since_last_issue": 213.1115056818182
+    },
+    "P009": {
+      "name": "Engine Oil",
+      "category": "Lubricants",
+      "unit": "liter",
+      "reorder_level": 24,
+      "supplier_lead_days": 3,
+      "mean_weekly_demand": 1.4545454545454546,
+      "zero_share": 0.7855113636363636,
+      "n_obs": 1408,
+      "mean_on_hand": 40.64417613636363,
+      "mean_days_since_last_issue": 48.90198863636363
+    },
+    "P010": {
+      "name": "Fuel Filter",
+      "category": "Fuel System",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 8,
+      "mean_weekly_demand": 0.04332386363636364,
+      "zero_share": 0.9659090909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 8.75,
+      "mean_days_since_last_issue": 223.02698863636363
+    },
+    "P011": {
+      "name": "Fuel Pump",
+      "category": "Fuel System",
+      "unit": "pcs",
+      "reorder_level": 2,
+      "supplier_lead_days": 14,
+      "mean_weekly_demand": 0.009943181818181818,
+      "zero_share": 0.9928977272727273,
+      "n_obs": 1408,
+      "mean_on_hand": 3.8607954545454546,
+      "mean_days_since_last_issue": 326.1832386363636
+    },
+    "P012": {
+      "name": "Radiator Hose",
+      "category": "Cooling System",
+      "unit": "pcs",
+      "reorder_level": 3,
+      "supplier_lead_days": 6,
+      "mean_weekly_demand": 0.03622159090909091,
+      "zero_share": 0.9744318181818182,
+      "n_obs": 1408,
+      "mean_on_hand": 6.166903409090909,
+      "mean_days_since_last_issue": 244.2393465909091
+    },
+    "P013": {
+      "name": "Radiator Cap",
+      "category": "Cooling System",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 6,
+      "mean_weekly_demand": 0.056107954545454544,
+      "zero_share": 0.9545454545454546,
+      "n_obs": 1408,
+      "mean_on_hand": 8.6328125,
+      "mean_days_since_last_issue": 179.2528409090909
+    },
+    "P014": {
+      "name": "Thermostat",
+      "category": "Cooling System",
+      "unit": "pcs",
+      "reorder_level": 3,
+      "supplier_lead_days": 7,
+      "mean_weekly_demand": 0.030539772727272728,
+      "zero_share": 0.9772727272727273,
+      "n_obs": 1408,
+      "mean_on_hand": 6.3288352272727275,
+      "mean_days_since_last_issue": 261.3458806818182
+    },
+    "P015": {
+      "name": "Water Pump",
+      "category": "Cooling System",
+      "unit": "pcs",
+      "reorder_level": 2,
+      "supplier_lead_days": 10,
+      "mean_weekly_demand": 0.015625,
+      "zero_share": 0.9907670454545454,
+      "n_obs": 1408,
+      "mean_on_hand": 4.78125,
+      "mean_days_since_last_issue": 315.96235795454544
+    },
+    "P016": {
+      "name": "Coolant",
+      "category": "Cooling System",
+      "unit": "liter",
+      "reorder_level": 12,
+      "supplier_lead_days": 4,
+      "mean_weekly_demand": 0.42613636363636365,
+      "zero_share": 0.9367897727272727,
+      "n_obs": 1408,
+      "mean_on_hand": 21.943892045454547,
+      "mean_days_since_last_issue": 142.9240056818182
+    },
+    "P017": {
+      "name": "Battery",
+      "category": "Electrical",
+      "unit": "pcs",
+      "reorder_level": 2,
+      "supplier_lead_days": 10,
+      "mean_weekly_demand": 0.020596590909090908,
+      "zero_share": 0.984375,
+      "n_obs": 1408,
+      "mean_on_hand": 4.676136363636363,
+      "mean_days_since_last_issue": 297.6058238636364
+    },
+    "P018": {
+      "name": "Alternator",
+      "category": "Electrical",
+      "unit": "pcs",
+      "reorder_level": 1,
+      "supplier_lead_days": 12,
+      "mean_weekly_demand": 0.016335227272727272,
+      "zero_share": 0.9893465909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 2.758522727272727,
+      "mean_days_since_last_issue": 292.56107954545456
+    },
+    "P019": {
+      "name": "Starter Motor",
+      "category": "Electrical",
+      "unit": "pcs",
+      "reorder_level": 1,
+      "supplier_lead_days": 12,
+      "mean_weekly_demand": 0.012073863636363636,
+      "zero_share": 0.9921875,
+      "n_obs": 1408,
+      "mean_on_hand": 2.8245738636363638,
+      "mean_days_since_last_issue": 312.3181818181818
+    },
+    "P020": {
+      "name": "Headlight Bulb",
+      "category": "Electrical",
+      "unit": "pcs",
+      "reorder_level": 6,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.07741477272727272,
+      "zero_share": 0.96875,
+      "n_obs": 1408,
+      "mean_on_hand": 12.041193181818182,
+      "mean_days_since_last_issue": 216.97727272727272
+    },
+    "P021": {
+      "name": "Fuse",
+      "category": "Electrical",
+      "unit": "pcs",
+      "reorder_level": 20,
+      "supplier_lead_days": 4,
+      "mean_weekly_demand": 0.16477272727272727,
+      "zero_share": 0.9765625,
+      "n_obs": 1408,
+      "mean_on_hand": 39.68821022727273,
+      "mean_days_since_last_issue": 257.5099431818182
+    },
+    "P022": {
+      "name": "Wheel Bearing",
+      "category": "Suspension",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 9,
+      "mean_weekly_demand": 0.032670454545454544,
+      "zero_share": 0.9872159090909091,
+      "n_obs": 1408,
+      "mean_on_hand": 9.213068181818182,
+      "mean_days_since_last_issue": 295.74928977272725
+    },
+    "P023": {
+      "name": "Tie Rod End",
+      "category": "Suspension",
+      "unit": "pcs",
+      "reorder_level": 4,
+      "supplier_lead_days": 9,
+      "mean_weekly_demand": 0.06178977272727273,
+      "zero_share": 0.9744318181818182,
+      "n_obs": 1408,
+      "mean_on_hand": 8.759232954545455,
+      "mean_days_since_last_issue": 238.3622159090909
+    },
+    "P024": {
+      "name": "Ball Joint",
+      "category": "Suspension",
+      "unit": "pcs",
+      "reorder_level": 3,
+      "supplier_lead_days": 9,
+      "mean_weekly_demand": 0.053267045454545456,
+      "zero_share": 0.9786931818181818,
+      "n_obs": 1408,
+      "mean_on_hand": 6.291903409090909,
+      "mean_days_since_last_issue": 275.05752840909093
+    },
+    "P025": {
+      "name": "Shock Absorber",
+      "category": "Suspension",
+      "unit": "pcs",
+      "reorder_level": 3,
+      "supplier_lead_days": 10,
+      "mean_weekly_demand": 0.026988636363636364,
+      "zero_share": 0.9893465909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 6.426136363636363,
+      "mean_days_since_last_issue": 306.46164772727275
+    },
+    "P026": {
+      "name": "Air Suspension Bag",
+      "category": "Suspension",
+      "unit": "pcs",
+      "reorder_level": 2,
+      "supplier_lead_days": 11,
+      "mean_weekly_demand": 0.018465909090909092,
+      "zero_share": 0.9872159090909091,
+      "n_obs": 1408,
+      "mean_on_hand": 4.605823863636363,
+      "mean_days_since_last_issue": 286.0490056818182
+    },
+    "P027": {
+      "name": "Clutch Disc",
+      "category": "Transmission",
+      "unit": "pcs",
+      "reorder_level": 1,
+      "supplier_lead_days": 12,
+      "mean_weekly_demand": 0.024857954545454544,
+      "zero_share": 0.9829545454545454,
+      "n_obs": 1408,
+      "mean_on_hand": 2.7421875,
+      "mean_days_since_last_issue": 270.84872159090907
+    },
+    "P028": {
+      "name": "Clutch Plate",
+      "category": "Transmission",
+      "unit": "pcs",
+      "reorder_level": 1,
+      "supplier_lead_days": 12,
+      "mean_weekly_demand": 0.014914772727272728,
+      "zero_share": 0.9879261363636364,
+      "n_obs": 1408,
+      "mean_on_hand": 2.875710227272727,
+      "mean_days_since_last_issue": 301.2265625
+    },
+    "P029": {
+      "name": "Clutch Release Bearing",
+      "category": "Transmission",
+      "unit": "pcs",
+      "reorder_level": 1,
+      "supplier_lead_days": 12,
+      "mean_weekly_demand": 0.014914772727272728,
+      "zero_share": 0.9893465909090909,
+      "n_obs": 1408,
+      "mean_on_hand": 2.750710227272727,
+      "mean_days_since_last_issue": 301.0745738636364
+    },
+    "P030": {
+      "name": "Transmission Oil",
+      "category": "Lubricants",
+      "unit": "liter",
+      "reorder_level": 12,
+      "supplier_lead_days": 6,
+      "mean_weekly_demand": 0.2421875,
+      "zero_share": 0.9751420454545454,
+      "n_obs": 1408,
+      "mean_on_hand": 23.400568181818183,
+      "mean_days_since_last_issue": 243.12926136363637
+    },
+    "P031": {
+      "name": "Tire",
+      "category": "Tires",
+      "unit": "pcs",
+      "reorder_level": 8,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.13707386363636365,
+      "zero_share": 0.9417613636363636,
+      "n_obs": 1408,
+      "mean_on_hand": 14.833806818181818,
+      "mean_days_since_last_issue": 145.60795454545453
+    },
+    "P032": {
+      "name": "Chassis Grease",
+      "category": "Lubricants",
+      "unit": "kg",
+      "reorder_level": 5,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.08877840909090909,
+      "zero_share": 0.921875,
+      "n_obs": 1408,
+      "mean_on_hand": 8.914772727272727,
+      "mean_days_since_last_issue": 106.36931818181819
+    },
+    "P033": {
+      "name": "Power Steering Fluid",
+      "category": "Lubricants",
+      "unit": "liter",
+      "reorder_level": 6,
+      "supplier_lead_days": 5,
+      "mean_weekly_demand": 0.07315340909090909,
+      "zero_share": 0.9666193181818182,
+      "n_obs": 1408,
+      "mean_on_hand": 12.4609375,
+      "mean_days_since_last_issue": 229.8465909090909
+    },
+    "P034": {
+      "name": "Wiper Blade",
+      "category": "Body/General",
+      "unit": "pcs",
+      "reorder_level": 6,
+      "supplier_lead_days": 4,
+      "mean_weekly_demand": 0.03551136363636364,
+      "zero_share": 0.9758522727272727,
+      "n_obs": 1408,
+      "mean_on_hand": 12.761363636363637,
+      "mean_days_since_last_issue": 234.96519886363637
+    }
+  },
+  "bus_metadata": {
+    "GCT-101": {
+      "mean_weekly_demand": 0.08685661764705882,
+      "mean_mileage": 1242827.5,
+      "n_obs": 2176
+    },
+    "GCT-102": {
+      "mean_weekly_demand": 0.12591911764705882,
+      "mean_mileage": 1161237.0,
+      "n_obs": 2176
+    },
+    "GCT-103": {
+      "mean_weekly_demand": 0.13556985294117646,
+      "mean_mileage": 1695968.0,
+      "n_obs": 2176
+    },
+    "GCT-104": {
+      "mean_weekly_demand": 0.09466911764705882,
+      "mean_mileage": 1540176.0,
+      "n_obs": 2176
+    },
+    "GCT-105": {
+      "mean_weekly_demand": 0.11948529411764706,
+      "mean_mileage": 1631532.5,
+      "n_obs": 2176
+    },
+    "GCT-106": {
+      "mean_weekly_demand": 0.12316176470588236,
+      "mean_mileage": 1280482.5,
+      "n_obs": 2176
+    },
+    "GCT-107": {
+      "mean_weekly_demand": 0.11534926470588236,
+      "mean_mileage": 1386620.5,
+      "n_obs": 2176
+    },
+    "GCT-108": {
+      "mean_weekly_demand": 0.11259191176470588,
+      "mean_mileage": 1444958.0,
+      "n_obs": 2176
+    },
+    "GCT-109": {
+      "mean_weekly_demand": 0.1130514705882353,
+      "mean_mileage": 1253852.5,
+      "n_obs": 2176
+    },
+    "GCT-110": {
+      "mean_weekly_demand": 0.08088235294117647,
+      "mean_mileage": 1046817.0,
+      "n_obs": 2176
+    },
+    "GCT-111": {
+      "mean_weekly_demand": 0.13786764705882354,
+      "mean_mileage": 1666326.5,
+      "n_obs": 2176
+    },
+    "GCT-112": {
+      "mean_weekly_demand": 0.14154411764705882,
+      "mean_mileage": 1623731.0,
+      "n_obs": 2176
+    },
+    "GCT-113": {
+      "mean_weekly_demand": 0.05744485294117647,
+      "mean_mileage": 917090.5,
+      "n_obs": 2176
+    },
+    "GCT-114": {
+      "mean_weekly_demand": 0.12224264705882353,
+      "mean_mileage": 1378353.0,
+      "n_obs": 2176
+    },
+    "GCT-115": {
+      "mean_weekly_demand": 0.14522058823529413,
+      "mean_mileage": 1396875.0,
+      "n_obs": 2176
+    },
+    "GCT-116": {
+      "mean_weekly_demand": 0.08318014705882353,
+      "mean_mileage": 986857.5,
+      "n_obs": 2176
+    },
+    "GCT-117": {
+      "mean_weekly_demand": 0.1208639705882353,
+      "mean_mileage": 1320590.5,
+      "n_obs": 2176
+    },
+    "GCT-118": {
+      "mean_weekly_demand": 0.10891544117647059,
+      "mean_mileage": 1265362.5,
+      "n_obs": 2176
+    },
+    "GCT-119": {
+      "mean_weekly_demand": 0.10661764705882353,
+      "mean_mileage": 1556325.0,
+      "n_obs": 2176
+    },
+    "GCT-120": {
+      "mean_weekly_demand": 0.1332720588235294,
+      "mean_mileage": 1516222.0,
+      "n_obs": 2176
+    },
+    "GCT-121": {
+      "mean_weekly_demand": 0.15808823529411764,
+      "mean_mileage": 1635243.0,
+      "n_obs": 2176
+    },
+    "GCT-122": {
+      "mean_weekly_demand": 0.06985294117647059,
+      "mean_mileage": 1124703.5,
+      "n_obs": 2176
+    }
+  },
+  "target_range": {
+    "min": 0.0,
+    "max": 19.0,
+    "mean": 0.1072402222921254
+  },
+  "periods": {
+    "train_start": "2025-06-16",
+    "train_end": "2026-06-01",
+    "test_start": "2026-06-08",
+    "test_end": "2026-08-31"
+  },
+  "disclaimer": "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
+}

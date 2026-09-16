@@ -457,6 +457,7 @@
                         <th>Predicted Issue</th>
                         <th>Risk Level</th>
                         <th>Status</th>
+                        <th>ML ETA</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
@@ -502,6 +503,17 @@
                                 </span>
                             </td>
                             <td>{{ $prediction[7] ?? 'Scheduled' }}</td>
+                            <td>
+                                <span class="ft-ml-eta" title="{{ ($prediction['eta_source'] ?? null) === 'ml' ? 'Predicted by the ETA ML model' : 'Estimated from route history (ML service offline)' }}">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>{{ $prediction[8] ?? '—' }}</span>
+                                    @if (($prediction['eta_source'] ?? null) === 'ml')
+                                        <em class="ft-eta-src ft-eta-src--ml">ML</em>
+                                    @elseif (($prediction['eta_source'] ?? null) === 'statistical')
+                                        <em class="ft-eta-src ft-eta-src--stat">Fallback</em>
+                                    @endif
+                                </span>
+                            </td>
                             <td style="text-align: right;">
                                 <a href="{{ route('trip-schedule') }}" class="ft-action-chip" title="Inspect trip schedule and bus allocation">
                                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Review
@@ -509,7 +521,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row colspan="9" message="No trip predictions available for the selected filters." />
+                        <x-ui.empty-row colspan="10" message="No trip predictions available for the selected filters." />
                     @endforelse
                 </tbody>
             </table>

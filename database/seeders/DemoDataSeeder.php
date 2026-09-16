@@ -48,7 +48,6 @@ class DemoDataSeeder extends Seeder
             [$fuelReports, $gpsRecords] = $this->seedGpsAndFuel($maxTrip = $this->tripData());
 
             $inventory = $this->seedInventory();
-            $this->seedStockMovements($inventory, $jobOrders, $purchaseRequests = [], $purchaseOrders = []);
 
             $purchaseRequests = $this->seedPurchaseRequests($jobOrders, $inventory, $users);
             $purchaseOrders = $this->seedPurchaseOrders($purchaseRequests, $users);
@@ -894,9 +893,7 @@ class DemoDataSeeder extends Seeder
 
         $inventory = [];
         foreach ($catalog as $i => [$code, $name, $category, $onHand, $unit, $reorder, $supplier]) {
-            $roll = mt_rand(1, 100);
-            $maxStock = max($reorder + 1, intval($onHand * 1.6));
-            $qty = $roll <= 8 ? 0 : ($roll <= 22 ? mt_rand(1, $reorder) : mt_rand($reorder + 1, $maxStock));
+            $qty = max(0, (int) $onHand);
 
             $status = $qty <= 0 ? 'Out of Stock' : ($qty <= $reorder ? 'Low Stock' : 'In Stock');
 
@@ -922,51 +919,6 @@ class DemoDataSeeder extends Seeder
         }
 
         return $inventory;
-    }
-
-    protected function seedStockMovements(array $inventory, array $jobOrders, array $purchaseRequests, array $purchaseOrders): void
-    {
-        $rows = [];
-        $month = Carbon::create(2026, 4, 1);
-
-        while ($month->lte(Carbon::now()->copy()->endOfMonth())) {
-            foreach ($inventory as $item) {
-                $eventRoll = mt_rand(1, 100);
-                if ($eventRoll > 30) {
-                    continue;
-                }
-
-                $change = mt_rand(2, 30);
-                $previous = $item['on_hand'];
-                $new = max(0, $previous + (mt_rand(0, 1) ? $change : -$change));
-
-                $type = $new >= $previous ? 'Stock In' : 'Stock Out';
-                $reference = $new >= $previous
-                    ? 'PO-2026-' . str_pad((string) mt_rand(1, 14), 4, '0', STR_PAD_LEFT)
-                    : 'PR-2026-' . str_pad((string) mt_rand(1, 32), 4, '0', STR_PAD_LEFT);
-
-                $rows[] = [
-                    'inventory_item_id' => $item['id'],
-                    'item_code' => $item['item_code'],
-                    'item_name' => $item['item_name'],
-                    'reference_no' => $reference,
-                    'movement_type' => $type,
-                    'quantity_change' => $new - $previous,
-                    'previous_stock' => $previous,
-                    'new_stock' => $new,
-                    'unit' => $item['unit'],
-                    'remarks' => $type === 'Stock In' ? 'Received from Purchase Order.' : 'Issued through Warehouse Part Request.',
-                    'created_by' => DB::table('users')->where('department', 'Warehouse')->value('id'),
-                    'created_at' => $month->copy()->addDays(mt_rand(0, 25))->setTime(mt_rand(9, 17), mt_rand(0, 59)),
-                    'updated_at' => $month->copy()->addDays(mt_rand(0, 25))->setTime(mt_rand(9, 17), mt_rand(0, 59)),
-                ];
-            }
-            $month->addMonth();
-        }
-
-        foreach (array_chunk($rows, 400) as $chunk) {
-            DB::table('stock_movements')->insert($chunk);
-        }
     }
 
     /* ------------------------------------------------------------------ */

@@ -3,6 +3,7 @@
 namespace App\Models\Warehouse;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Schema;
 
 class InventoryItem extends Model
@@ -31,8 +32,24 @@ class InventoryItem extends Model
         'reorder_level' => 'integer',
     ];
 
+    public function movements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+    }
+
     protected static function booted(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Keep the legacy on_hand / quantity_available columns in sync.
+        |--------------------------------------------------------------------------
+        | Movement logging is intentionally NOT performed here. Every stock
+        | change must flow through InventoryLedgerService so that transactions,
+        | references, previous/new stock and the signed quantity_change are
+        | written atomically and keep new_stock = previous_stock + quantity_change.
+        */
         static::saving(function (InventoryItem $item) {
             if (! Schema::hasColumn('inventory_items', 'on_hand')) {
                 return;
@@ -43,103 +60,6 @@ class InventoryItem extends Model
             } elseif ($item->isDirty('on_hand') && ! $item->isDirty('quantity_available')) {
                 $item->quantity_available = (int) $item->on_hand;
             }
-        });
-
-        static::created(function (InventoryItem $item) {
-            if (! Schema::hasTable('stock_movements')) {
-                return;
-            }
-
-            $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-
-            if ($stock <= 0) {
-                return;
-            }
-
-            $route = request()?->route();
-            $routeName = $route?->getName();
-
-            if (! in_array($routeName, ['purchase-orders.update-status', 'purchase-orders.update', 'purchase-orders.store'], true)) {
-                return;
-            }
-
-            $purchaseOrder = $route?->parameter('purchaseOrder');
-
-            StockMovement::create([
-                'inventory_item_id' => $item->id,
-                'item_code' => $item->item_code,
-                'item_name' => $item->parts_name ?? $item->item_name ?? $item->item_code ?? 'Inventory Item',
-                'reference_no' => is_object($purchaseOrder) ? ($purchaseOrder->po_no ?? $item->item_code) : $item->item_code,
-                'movement_type' => 'Stock In',
-                'quantity_change' => $stock,
-                'previous_stock' => 0,
-                'new_stock' => $stock,
-                'unit' => $item->unit ?? $item->unit_of_measurement,
-                'remarks' => 'Received from Purchase Order.',
-                'created_by' => auth()->id(),
-            ]);
-        });
-
-        static::updated(function (InventoryItem $item) {
-            if (! Schema::hasTable('stock_movements')) {
-                return;
-            }
-
-            $quantityChanged = $item->wasChanged('quantity_available');
-            $onHandChanged = Schema::hasColumn('inventory_items', 'on_hand') && $item->wasChanged('on_hand');
-
-            if (! $quantityChanged && ! $onHandChanged) {
-                return;
-            }
-
-            $newStock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-            $previousStock = $quantityChanged
-                ? (int) $item->getOriginal('quantity_available')
-                : (int) $item->getOriginal('on_hand');
-            $change = $newStock - $previousStock;
-
-            if ($change === 0) {
-                return;
-            }
-
-            $route = request()?->route();
-            $routeName = $route?->getName();
-            $referenceNo = $item->item_code;
-            $movementType = $change > 0 ? 'Stock In' : 'Stock Out';
-            $remarks = $change > 0 ? 'Inventory quantity increased.' : 'Inventory quantity decreased.';
-
-            if ($routeName === 'part-requests.issue') {
-                $purchaseRequest = $route?->parameter('purchaseRequest');
-                $referenceNo = is_object($purchaseRequest)
-                    ? ($purchaseRequest->pr_no ?? $item->item_code)
-                    : $item->item_code;
-                $movementType = 'Stock Out';
-                $remarks = 'Issued through Warehouse Part Request.';
-            } elseif (in_array($routeName, ['purchase-orders.update-status', 'purchase-orders.update', 'purchase-orders.store'], true)) {
-                $purchaseOrder = $route?->parameter('purchaseOrder');
-                $referenceNo = is_object($purchaseOrder)
-                    ? ($purchaseOrder->po_no ?? $item->item_code)
-                    : $item->item_code;
-                $movementType = 'Stock In';
-                $remarks = 'Received from Purchase Order.';
-            } elseif ($routeName === 'inventory.update') {
-                $movementType = 'Adjustment';
-                $remarks = 'Manual inventory adjustment.';
-            }
-
-            StockMovement::create([
-                'inventory_item_id' => $item->id,
-                'item_code' => $item->item_code,
-                'item_name' => $item->parts_name ?? $item->item_name ?? $item->item_code ?? 'Inventory Item',
-                'reference_no' => $referenceNo,
-                'movement_type' => $movementType,
-                'quantity_change' => $change,
-                'previous_stock' => $previousStock,
-                'new_stock' => $newStock,
-                'unit' => $item->unit ?? $item->unit_of_measurement,
-                'remarks' => $remarks,
-                'created_by' => auth()->id(),
-            ]);
         });
     }
 

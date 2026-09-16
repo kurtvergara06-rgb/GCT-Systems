@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (selectedFileName) {
+            selectedFileName.textContent = 'Drag and drop GPS PDF file here';
             selectedFileName.textContent = 'Drag and drop GPS file here';
         }
 
@@ -147,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!allowedExtensions.includes(extension)) {
             showNotification(
+                'Only PDF files containing GPS Trip Records are supported.',
                 'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
                 'error'
             );
@@ -247,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!allowedExtensions.includes(extension)) {
                 showNotification(
+                    'Only PDF files containing GPS Trip Records are supported.',
                     'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
                     'error'
                 );
@@ -270,6 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 event.preventDefault();
 
                 showNotification(
+                    'Please select a GPS PDF file first.',
                     'Please select a GPS file first.',
                     'warning'
                 );
@@ -281,6 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 event.preventDefault();
 
                 showNotification(
+                    'Only PDF files containing GPS Trip Records are supported.',
                     'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
                     'error'
                 );

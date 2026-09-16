@@ -8,4 +8,5 @@ pandas
 numpy
 scikit-learn
 joblib
+pymysql
 torch

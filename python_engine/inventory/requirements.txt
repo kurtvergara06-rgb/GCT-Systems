@@ -1,0 +1,15 @@
+# Model #4 - Inventory Demand Forecasting (development prototype)
+#
+# Dependency subset used by the inventory forecasting pipeline. The shared
+# python_engine environment already provides these; the versions pinned here
+# match the venv that the pipeline is developed/tested against.
+# Runs as a library from the root python_engine venv (no separate install needed).
+
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.4
+joblib>=1.3
+fastapi>=0.110
+pydantic>=2.5
+uvicorn>=0.29
+httpx>=0.27   # used only by the test client (test_inventory.py)

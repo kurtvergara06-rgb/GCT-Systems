@@ -1,0 +1,90 @@
+Inventory demand-forecasting model report (Model #4 - development prototype)
+====================================================================
+DISCLAIMER: SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA
+Data source:          sample
+Forecast target:      quantity_issued (weekly spare-part demand)
+Forecast horizon:     next week
+Feature inputs:       bus_encoded, part_encoded, category_encoded, unit_encoded, maintenance_type_lag1_encoded, on_hand, vehicle_mileage, breakdown_count_lag1, reorder_level, supplier_lead_days, demand_lag1, demand_lag2, rolling_demand_4w, rolling_demand_8w, days_since_last_issue, week_of_year, month, quarter, elapsed_weeks
+Samples available:    47872
+Training rows:        38148
+Test rows:            9724
+Training period:      2025-06-16 .. 2026-06-01
+Test period:          2026-06-08 .. 2026-08-31
+
+Metrics (chronological held-out test set):
+  MAE : 0.270 units/week
+  RMSE: 0.783 units/week
+  R2  : 0.0949
+
+Label range (training):
+  min : 0.00
+  max : 19.00
+  mean: 0.11
+
+Feature importances:
+  vehicle_mileage                    0.2105
+  bus_encoded                        0.1055
+  week_of_year                       0.1041
+  elapsed_weeks                      0.1017
+  on_hand                            0.0931
+  days_since_last_issue              0.0754
+  rolling_demand_8w                  0.0508
+  supplier_lead_days                 0.0508
+  reorder_level                      0.0467
+  month                              0.0433
+  rolling_demand_4w                  0.0267
+  quarter                            0.0167
+  part_encoded                       0.0134
+  breakdown_count_lag1               0.0134
+  demand_lag2                        0.0128
+  demand_lag1                        0.0104
+  category_encoded                   0.0089
+  unit_encoded                       0.0086
+  maintenance_type_lag1_encoded      0.0072
+
+Per-part held-out MAE (parts with >= 5 test rows):
+  P009       n=286  MAE=2.496  pred_mean=1.83  actual_mean=1.76
+  P016       n=286  MAE=1.065  pred_mean=0.68  actual_mean=0.48
+  P030       n=286  MAE=0.882  pred_mean=0.58  actual_mean=0.34
+  P021       n=286  MAE=0.540  pred_mean=0.32  actual_mean=0.25
+  P003       n=286  MAE=0.372  pred_mean=0.25  actual_mean=0.16
+  P005       n=286  MAE=0.341  pred_mean=0.24  actual_mean=0.16
+  P031       n=286  MAE=0.313  pred_mean=0.24  actual_mean=0.10
+  P006       n=286  MAE=0.288  pred_mean=0.21  actual_mean=0.13
+  P033       n=286  MAE=0.246  pred_mean=0.16  actual_mean=0.10
+  P020       n=286  MAE=0.202  pred_mean=0.13  actual_mean=0.08
+  P024       n=286  MAE=0.190  pred_mean=0.09  actual_mean=0.11
+  P032       n=286  MAE=0.188  pred_mean=0.16  actual_mean=0.09
+  P023       n=286  MAE=0.188  pred_mean=0.11  actual_mean=0.08
+  P001       n=286  MAE=0.165  pred_mean=0.10  actual_mean=0.07
+  P022       n=286  MAE=0.129  pred_mean=0.08  actual_mean=0.05
+  P025       n=286  MAE=0.126  pred_mean=0.09  actual_mean=0.03
+  P013       n=286  MAE=0.125  pred_mean=0.08  actual_mean=0.05
+  P012       n=286  MAE=0.121  pred_mean=0.05  actual_mean=0.08
+  P010       n=286  MAE=0.120  pred_mean=0.07  actual_mean=0.05
+  P034       n=286  MAE=0.118  pred_mean=0.06  actual_mean=0.06
+  P014       n=286  MAE=0.109  pred_mean=0.06  actual_mean=0.06
+  P004       n=286  MAE=0.108  pred_mean=0.08  actual_mean=0.03
+  P002       n=286  MAE=0.107  pred_mean=0.05  actual_mean=0.06
+  P008       n=286  MAE=0.099  pred_mean=0.06  actual_mean=0.04
+  P007       n=286  MAE=0.099  pred_mean=0.06  actual_mean=0.04
+  P027       n=286  MAE=0.085  pred_mean=0.06  actual_mean=0.03
+  P017       n=286  MAE=0.067  pred_mean=0.02  actual_mean=0.05
+  P029       n=286  MAE=0.057  pred_mean=0.03  actual_mean=0.03
+  P028       n=286  MAE=0.052  pred_mean=0.03  actual_mean=0.02
+  P026       n=286  MAE=0.041  pred_mean=0.03  actual_mean=0.01
+  P015       n=286  MAE=0.035  pred_mean=0.02  actual_mean=0.02
+  P019       n=286  MAE=0.030  pred_mean=0.02  actual_mean=0.01
+  P011       n=286  MAE=0.029  pred_mean=0.01  actual_mean=0.02
+  P018       n=286  MAE=0.028  pred_mean=0.02  actual_mean=0.01
+
+Configuration (project-wide RF convention):
+  n_estimators=200, max_depth=None, min_samples_leaf=2,
+  max_features='sqrt', random_state=42, n_jobs=-1
+
+Leakage controls:
+  - target (quantity_issued) is never an input feature
+  - on_hand_after is rejected (computed with the target)
+  - current maintenance_type / breakdown_count are lagged by one week
+  - train/test split is chronological (no random shuffle)
+  - days_since_last_issue is recomputed from strictly prior demand

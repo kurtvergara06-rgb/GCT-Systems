@@ -8,6 +8,7 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
+use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,13 @@ use Illuminate\Http\RedirectResponse;
 class PurchaseOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    private InventoryLedgerService $ledger;
+
+    public function __construct(InventoryLedgerService $ledger)
+    {
+        $this->ledger = $ledger;
+    }
 
     private array $statuses = [
         'Ordered',
@@ -340,42 +348,40 @@ class PurchaseOrderController extends Controller
             $quantity = max(1, (int) ($item['quantity'] ?? 1));
             $unit = trim($item['unit'] ?? 'PC');
             $supplier = $purchaseOrder->supplier_name ?: 'N/A';
+            $referenceNo = $purchaseOrder->po_no ?: ('PO-' . strtoupper(Str::random(8)));
 
             foreach ($this->splitItemNames($rawItemName) as $itemName) {
                 $inventoryItem = $this->findInventoryItem($itemName);
 
                 if ($inventoryItem) {
-                    $newOnHand = (int) ($inventoryItem->on_hand ?? $inventoryItem->quantity_available ?? 0) + $quantity;
-                    $updateData = [
-                        'quantity_available' => $newOnHand,
-                        'supplier' => $inventoryItem->supplier ?: $supplier,
-                    ];
+                    $this->ledger->stockIn(
+                        $inventoryItem,
+                        $quantity,
+                        $referenceNo,
+                        'Received from Purchase Order.',
+                        auth()->id()
+                    );
 
-                    if (array_key_exists('on_hand', $inventoryItem->getAttributes())) {
-                        $updateData['on_hand'] = $newOnHand;
-                    }
-                    if (array_key_exists('unit', $inventoryItem->getAttributes())) {
-                        $updateData['unit'] = $inventoryItem->unit ?: $unit;
-                    }
-                    if (array_key_exists('unit_of_measurement', $inventoryItem->getAttributes())) {
-                        $updateData['unit_of_measurement'] = $inventoryItem->unit_of_measurement ?: $unit;
-                    }
-                    if (array_key_exists('status', $inventoryItem->getAttributes())) {
-                        $updateData['status'] = $this->inventoryStatus($newOnHand, (int) ($inventoryItem->reorder_level ?? 0));
-                    }
-
-                    $inventoryItem->forceFill($updateData)->save();
+                    $this->syncSupplierAndUnit($inventoryItem, $supplier, $unit);
                 } else {
-                    InventoryItem::create([
+                    $inventoryItem = InventoryItem::create([
                         'item_code' => $this->generateInventoryItemCode(),
                         'item_name' => $itemName,
                         'category' => 'Auto Parts',
-                        'quantity_available' => $quantity,
-                        'unit_of_measurement' => $unit,
+                        'quantity_available' => 0,
+                        'unit_of_measurement' => $unit ?: 'PC',
                         'reorder_level' => 5,
                         'supplier' => $supplier,
                         'storage_location' => 'Warehouse',
                     ]);
+
+                    $this->ledger->stockIn(
+                        $inventoryItem,
+                        $quantity,
+                        $referenceNo,
+                        'Received from Purchase Order.',
+                        auth()->id()
+                    );
                 }
             }
         }
@@ -413,18 +419,6 @@ class PurchaseOrderController extends Controller
             ->first();
     }
 
-    private function inventoryStatus(int $onHand, int $reorderLevel): string
-    {
-        if ($onHand <= 0) {
-            return 'Critical';
-        }
-        if ($reorderLevel > 0 && $onHand <= $reorderLevel) {
-            return 'Low Stock';
-        }
-
-        return 'In Stock';
-    }
-
     private function generateInventoryItemCode(): string
     {
         do {
@@ -432,6 +426,24 @@ class PurchaseOrderController extends Controller
         } while (InventoryItem::where('item_code', $code)->exists());
 
         return $code;
+    }
+
+    private function syncSupplierAndUnit(InventoryItem $inventoryItem, string $supplier, string $unit): void
+    {
+        $updates = [];
+
+        if (empty($inventoryItem->supplier)) {
+            $updates['supplier'] = $supplier;
+        }
+
+        if (empty($inventoryItem->unit ?? $inventoryItem->unit_of_measurement)) {
+            $updates['unit_of_measurement'] = $unit ?: 'PC';
+            $updates['unit'] = $unit ?: 'PC';
+        }
+
+        if ($updates !== []) {
+            $inventoryItem->update($updates);
+        }
     }
 
     private function syncRelatedMaintenanceRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
