@@ -303,6 +303,32 @@ const initAutoSchedulingResolutionSummary = () => {
 
         if (isResolutionRequest) {
             pendingReview = readResolutionReview();
+
+            // The resolve endpoint validates 'proposed_departure_time', so
+            // normalize the client payload here (consolidated from the former
+            // inline auto-dispatch fetch patch into this single wrapper).
+            if (typeof init.body === 'string') {
+                try {
+                    const payload = JSON.parse(init.body);
+
+                    if (!payload.proposed_departure_time && payload.suggested_time) {
+                        payload.proposed_departure_time = payload.suggested_time;
+                    }
+
+                    delete payload.suggested_time;
+                    delete payload.resolution_type;
+
+                    init = {
+                        ...init,
+                        body: JSON.stringify(payload),
+                    };
+                } catch (error) {
+                    console.warn(
+                        'Unable to normalize AI resolution request.',
+                        error
+                    );
+                }
+            }
         }
 
         const response = await nativeFetch(input, init);

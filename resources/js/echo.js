@@ -22,6 +22,7 @@ window.realtimePageRouteMap = {
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
     'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/dashboard-operation','/admin/dashboard','/mechanic-list'],
     'Operation:Bus': ['/bus-master-list','/dashboard-operation','/job-orders','/pms-scheduling','/admin/dashboard'],
+    'Operation:Incident': ['/operation/incidents','/dashboard-operation','/admin/dashboard'],
 };
 
 window.showSystemNotification = function (message) {

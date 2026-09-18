@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
   let summaryLoaded = false;
   let summaryLoading = false;
+  let summaryWarned = false;
 
   function escapeHtml(value) {
     return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -69,8 +70,16 @@ document.addEventListener('DOMContentLoaded', function () {
       renderPendingActions(summary.pending_actions);
       renderNotifications(summary.recent_activity, recentActivityList, true);
       summaryLoaded = true;
+      window.dispatchEvent(new CustomEvent('topbar-summary-loaded', { detail: summary }));
     } catch (error) {
       console.warn(error);
+      if (!summaryWarned) {
+        summaryWarned = true;
+        if (typeof window.showSystemToast === 'function') {
+          window.showSystemToast('Notifications could not be loaded right now.', 'warning', 'Unable to load', { timeout: 6000 });
+        }
+      }
+      window.dispatchEvent(new CustomEvent('topbar-summary-loaded', { detail: null }));
     } finally {
       summaryLoading = false;
     }
@@ -124,6 +133,9 @@ document.addEventListener('DOMContentLoaded', function () {
         await loadTopbarSummary(true);
       } catch (error) {
         console.warn(error);
+        if (typeof window.showSystemToast === 'function') {
+          window.showSystemToast('Notifications could not be marked as read.', 'error', 'Failed', { timeout: 6000 });
+        }
         markAllButton.disabled = false;
       }
     });

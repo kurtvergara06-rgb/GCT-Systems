@@ -24,6 +24,25 @@
     color: var(--presc-main);
 }
 
+/* Sample / demonstration baseline note (labelling, not a redesign). */
+.prescriptive-sample-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 14px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--presc-muted);
+    background: rgba(100, 116, 139, 0.08);
+    border: 1px dashed var(--presc-border);
+    border-radius: 8px;
+}
+
+.prescriptive-sample-note i {
+    color: var(--presc-blue);
+}
+
 .prescriptive-page *,
 .prescriptive-page *::before,
 .prescriptive-page *::after {

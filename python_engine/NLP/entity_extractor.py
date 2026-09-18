@@ -150,6 +150,57 @@ def normalize_number(value):
     return match.group(0).replace(",", "")
 
 
+def normalize_duration_minutes(value):
+    """Normalize a GPS duration field into total minutes (as a string).
+
+    Accepts 'HH:MM', 'HH:MM:SS', explicitly unit-ed values ('8.5 hours',
+    '1 hr 30 min', '45 mins'), and bare numbers (treated as minutes).
+
+    The seconds and decimal parts are preserved so that, e.g., "07:07:36"
+    becomes 427.6 minutes and "14:00:57" becomes 840.95 - instead of the
+    first numeric chunk ("07" / "14") that generic number extraction gave.
+    """
+    value = clean_value(value)
+
+    if not value:
+        return None
+
+    text = str(value).strip().lower()
+
+    # "1 hr 30 min" / "1h 30m" (combined hours + minutes)
+    combined = re.fullmatch(
+        r"(\d+(?:\.\d+)?)\s*h(?:rs?|ours?)?\s+(\d+(?:\.\d+)?)\s*m(?:ins?)?",
+        text,
+    )
+    if combined:
+        total = float(combined.group(1)) * 60 + float(combined.group(2))
+        return str(round(total, 2))
+
+    # "07:07:36" / "07:07" (clock style)
+    clock = re.fullmatch(r"(\d{1,2})\s*:\s*(\d{1,2})(?:\s*:\s*(\d{1,2}))?", text)
+    if clock:
+        hours, minutes, seconds = clock.groups()
+        total = int(hours) * 60 + int(minutes) + (int(seconds) / 60.0 if seconds else 0.0)
+        return str(round(total, 2))
+
+    # "8.5 hours" / "2 hrs" / bare "h"
+    hours_only = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)", text)
+    if hours_only:
+        return str(round(float(hours_only.group(1)) * 60, 2))
+
+    # "45 mins" / "45 min" / "45 m"
+    minutes_only = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(?:minutes?|mins?|m)", text)
+    if minutes_only:
+        return str(round(float(minutes_only.group(1)), 2))
+
+    # Bare numeric -> minutes
+    bare = re.fullmatch(r"(\d+(?:\.\d+)?)", text)
+    if bare:
+        return str(round(float(bare.group(1)), 2))
+
+    return None
+
+
 def find_canonical_field(header):
     normalized_header = normalize_header(header)
 
@@ -212,10 +263,10 @@ def format_record(row_data):
         "initial_location": clean_value(row_data.get("initial_location")),
         "ending": clean_value(row_data.get("ending")),
         "final_location": clean_value(row_data.get("final_location")),
-        "duration_minutes": normalize_number(row_data.get("duration_minutes")),
-        "total_minutes": normalize_number(row_data.get("total_minutes")),
-        "in_motion_minutes": normalize_number(row_data.get("in_motion_minutes")),
-        "idling_minutes": normalize_number(row_data.get("idling_minutes")),
+        "duration_minutes": normalize_duration_minutes(row_data.get("duration_minutes")),
+        "total_minutes": normalize_duration_minutes(row_data.get("total_minutes")),
+        "in_motion_minutes": normalize_duration_minutes(row_data.get("in_motion_minutes")),
+        "idling_minutes": normalize_duration_minutes(row_data.get("idling_minutes")),
         "mileage_km": normalize_number(row_data.get("mileage_km")),
         "engine_hours": normalize_number(row_data.get("engine_hours")),
         "location": clean_value(row_data.get("location")),

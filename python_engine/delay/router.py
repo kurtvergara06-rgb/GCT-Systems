@@ -71,6 +71,12 @@ def delay_model_status() -> dict:
         "source": readiness.source,
         "dataset_type": "SAMPLE / DEMONSTRATION" if readiness.source == "sample" else "genuine",
         "data_source": readiness.data_source,
+        "is_production_model": readiness.source == "genuine",
+        "model_type": (
+            "Sample / Demonstration Model"
+            if readiness.source == "sample"
+            else "Production Model"
+        ),
         "model_version": readiness.message,
         "training_record_count": readiness.sample_count,
         "sample_count": readiness.sample_count,

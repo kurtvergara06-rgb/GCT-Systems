@@ -26,8 +26,7 @@ class TopbarSummaryService
             ->latest()
             ->limit(12)
             ->get()
-            ->map(fn (TopbarNotification $notification) =>
-                $this->formatNotification($notification, $readAt, $individuallyReadIds)
+            ->map(fn (TopbarNotification $notification) => $this->formatNotification($notification, $readAt, $individuallyReadIds)
             )
             ->values();
 
@@ -141,10 +140,12 @@ class TopbarSummaryService
             'operation' => [
                 ['trip_schedules', 'assignment_status', ['Unassigned'], 'Trips awaiting assignment', 'trip-schedule', 'fa-bus-simple'],
                 ['buses', 'status', ['Under Maintenance'], 'Buses under maintenance', 'bus-master-list', 'fa-wrench'],
+                ['incidents', 'status', ['Reported', 'Monitoring', 'Responding'], 'Active incidents', 'incidents', 'fa-triangle-exclamation'],
             ],
             'operations' => [
                 ['trip_schedules', 'assignment_status', ['Unassigned'], 'Trips awaiting assignment', 'trip-schedule', 'fa-bus-simple'],
                 ['buses', 'status', ['Under Maintenance'], 'Buses under maintenance', 'bus-master-list', 'fa-wrench'],
+                ['incidents', 'status', ['Reported', 'Monitoring', 'Responding'], 'Active incidents', 'incidents', 'fa-triangle-exclamation'],
             ],
             'admin' => [
                 ['users', 'status', ['Pending'], 'Pending user accounts', 'admin.users', 'fa-user-clock'],
@@ -155,8 +156,7 @@ class TopbarSummaryService
         ];
 
         return collect($actionsByDepartment[$department] ?? [])
-            ->filter(fn (array $definition) =>
-                Schema::hasTable($definition[0])
+            ->filter(fn (array $definition) => Schema::hasTable($definition[0])
                 && Route::has($definition[4])
             )
             ->map(function (array $definition): array {
@@ -212,6 +212,7 @@ class TopbarSummaryService
             'BatchUpload' => 'batch-file-processing',
             'Bus' => 'bus-master-list',
             'TripSchedule' => 'trip-schedule',
+            'Incident' => 'incidents',
             default => null,
         };
 
