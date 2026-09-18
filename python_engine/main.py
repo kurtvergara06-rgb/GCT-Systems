@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib
 import logging
 import shutil
 import uuid
@@ -14,21 +15,33 @@ from NLP.pdf_extractor import (
     extract_pdf_text,
 )
 from NLP.text_cleaner import clean_text
-from NLP.severity_predictor import predict_record as predict_severity
-from NLP.severity_ner_predictor import (
-    predict_record as predict_severity_ner,
-    build_text as render_record_text,
-)
-from NLP.ner_extractor import (
-    extract_entities as extract_ner_entities,
-)
-from NLP.anomaly_detector import anomaly_details as detect_anomaly
-from NLP import ingestion as ingestion_store
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
 from eta.router import router as eta_router
+from fuel.router import router as fuel_router
 from inventory.router import router as inventory_router
 from delay.router import router as delay_router
+
+
+def _optional_import(module_name: str, attribute: str):
+    """Best-effort import of an optional NLP annotation module.
+
+    Returns the requested callable, or None when the module is not available
+    in this checkout. The severity / NER / anomaly / ingestion modules are not
+    core PDF record extraction: when absent, annotations simply degrade to
+    None / {} (see annotate_records) and the engine still starts.
+    """
+    try:
+        module = importlib.import_module(module_name)
+        return getattr(module, attribute)
+    except Exception as error:  # noqa: BLE001
+        logger.warning(
+            "Optional NLP module %s.%s is unavailable: %s",
+            module_name,
+            attribute,
+            error,
+        )
+        return None
 
 
 def annotate_records(records: list[dict]) -> list[dict]:
@@ -38,44 +51,62 @@ def annotate_records(records: list[dict]) -> list[dict]:
     a robust unsupervised outlier score on the operational features. Either
     one degrades gracefully (None) if its model is unavailable.
     """
+    severity_model = _optional_import("NLP.severity_predictor", "predict_record")
+    severity_ner_model = _optional_import("NLP.severity_ner_predictor", "predict_record")
+    render_record_text = _optional_import("NLP.severity_ner_predictor", "build_text")
+    extract_ner_entities = _optional_import("NLP.ner_extractor", "extract_entities")
+    detect_anomaly = _optional_import("NLP.anomaly_detector", "anomaly_details")
+
     annotated = []
 
     for record in records:
         annotated_record = dict(record)
 
-        try:
-            prediction = predict_severity(record)
-            annotated_record["severity_prediction"] = prediction
-        except FileNotFoundError:
+        if severity_model is None:
             annotated_record["severity_prediction"] = None
-        except Exception as error:
-            logger.warning("Severity prediction failed for a record: %s", error)
-            annotated_record["severity_prediction"] = None
+        else:
+            try:
+                annotated_record["severity_prediction"] = severity_model(record)
+            except FileNotFoundError:
+                annotated_record["severity_prediction"] = None
+            except Exception as error:
+                logger.warning("Severity prediction failed for a record: %s", error)
+                annotated_record["severity_prediction"] = None
 
         # Custom NER-driven severity classifier (typed event + operational
         # features), with entity extraction exposed for transparency.
-        try:
-            annotated_record["severity_prediction_ner"] = predict_severity_ner(record)
-        except FileNotFoundError:
+        if severity_ner_model is None or render_record_text is None:
             annotated_record["severity_prediction_ner"] = None
-        except Exception as error:
-            logger.warning("NER severity prediction failed for a record: %s", error)
-            annotated_record["severity_prediction_ner"] = None
+        else:
+            try:
+                annotated_record["severity_prediction_ner"] = severity_ner_model(record)
+            except FileNotFoundError:
+                annotated_record["severity_prediction_ner"] = None
+            except Exception as error:
+                logger.warning("NER severity prediction failed for a record: %s", error)
+                annotated_record["severity_prediction_ner"] = None
 
-        try:
-            annotated_record["entities"] = extract_ner_entities(render_record_text(record))
-        except Exception as error:
-            logger.warning("NER entity extraction failed for a record: %s", error)
+        if extract_ner_entities is None or render_record_text is None:
             annotated_record["entities"] = {}
+        else:
+            try:
+                annotated_record["entities"] = extract_ner_entities(render_record_text(record))
+            except Exception as error:
+                logger.warning("NER entity extraction failed for a record: %s", error)
+                annotated_record["entities"] = {}
 
-        try:
-            details = detect_anomaly(record)
-            annotated_record["anomaly"] = details.get("is_anomaly")
-            annotated_record["anomaly_score"] = details.get("anomaly_score")
-        except Exception as error:
-            logger.warning("Anomaly detection failed for a record: %s", error)
+        if detect_anomaly is None:
             annotated_record["anomaly"] = None
             annotated_record["anomaly_score"] = None
+        else:
+            try:
+                details = detect_anomaly(record)
+                annotated_record["anomaly"] = details.get("is_anomaly")
+                annotated_record["anomaly_score"] = details.get("anomaly_score")
+            except Exception as error:
+                logger.warning("Anomaly detection failed for a record: %s", error)
+                annotated_record["anomaly"] = None
+                annotated_record["anomaly_score"] = None
 
         annotated.append(annotated_record)
 
@@ -89,13 +120,18 @@ def _stage_and_annotate(records: list[dict], source_format: str) -> list[dict]:
     staging log so a reviewer can approve/label them for later retraining.
     Staging is best-effort: a failure there must not fail the whole upload.
     """
+    stage_record = _optional_import("NLP.ingestion", "stage_record")
+
     annotated = annotate_records(records)
 
     for record in annotated:
         record["_staged_id"] = str(uuid.uuid4())
 
+        if stage_record is None:
+            continue
+
         try:
-            ingestion_store.stage_record(record, source_format)
+            stage_record(record, source_format)
         except Exception as error:
             logger.warning("Failed to stage a record for ingestion: %s", error)
 
@@ -172,6 +208,14 @@ app.include_router(
     tags=["Predictive Analytics"],
 )
 
+# Register the Fuel consumption prediction router (Model #2, trained on real
+# linked GPS + fuel report records).
+app.include_router(
+    fuel_router,
+    prefix="/fuel",
+    tags=["Predictive Analytics"],
+)
+
 # Register the Inventory leading/forecasting router (Model #4, development
 # prototype trained on SAMPLE data).
 app.include_router(
@@ -189,13 +233,23 @@ app.include_router(
     tags=["Predictive Analytics"],
 )
 
-from NLP.ingestion_router import router as ingestion_router
+# The /ingestion review router (NLP.ingestion_router) is NOT present in this
+# checkout. It has no consumers (Laravel never calls /ingestion), so the import
+# is isolated: when absent the endpoint is simply not registered and the rest
+# of the engine still starts.
+try:
+    from NLP.ingestion_router import router as ingestion_router  # noqa: E402
 
-app.include_router(
-    ingestion_router,
-    prefix="/ingestion",
-    tags=["Ingestion Review"],
-)
+    app.include_router(
+        ingestion_router,
+        prefix="/ingestion",
+        tags=["Ingestion Review"],
+    )
+except ImportError as error:  # noqa: BLE001
+    logger.warning(
+        "NLP ingestion-review router is unavailable; /ingestion disabled: %s",
+        error,
+    )
 
 
 UPLOAD_FOLDER = Path("uploads")

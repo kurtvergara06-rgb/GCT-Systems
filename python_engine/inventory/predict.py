@@ -53,6 +53,7 @@ class InventoryReadiness:
     sample_count: int = 0
     message: str = ""
     model_path: Optional[Path] = None
+    data_source: str = "sample"
 
 
 @dataclass
@@ -62,6 +63,9 @@ class InventoryPrediction:
     part_name: str = ""
     source: str = "ml"
     forecast_period: str = "next_week"
+    data_source: str = "sample"
+    is_production_model: bool = False
+    model_type: str = "Sample / Development Model"
     feature_inputs: Dict[str, float] = field(default_factory=dict)
     assessment: Dict[str, object] = field(default_factory=dict)
     disclaimer: str = DISCLAIMER
@@ -129,6 +133,7 @@ def inventory_readiness() -> InventoryReadiness:
             sample_count=sample_count,
             message=(_state or {}).get("message", "INVENTORY_ML_NOT_READY"),
             model_path=_paths["model"],
+            data_source="sample",
         )
     return InventoryReadiness(
         ml_ready=True,
@@ -137,6 +142,7 @@ def inventory_readiness() -> InventoryReadiness:
         sample_count=sample_count,
         message=(_state or {}).get("message", "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)"),
         model_path=_paths["model"],
+        data_source="sample",
     )
 
 
@@ -401,6 +407,9 @@ def predict_inventory_demand(
         part_name=str(part_meta.get("name") or ""),
         source="ml",
         forecast_period="next_week",
+        data_source="sample",
+        is_production_model=False,
+        model_type="Sample / Development Model",
         feature_inputs={name: features[name] for name in features_expected},
         assessment=assessment,
     )
@@ -421,6 +430,9 @@ def prediction_to_dict(prediction: InventoryPrediction, bus_id: str, part_id: st
         "bus_id": bus_id,
         "forecast_period": data["forecast_period"],
         "predicted_quantity_issued": data["predicted_quantity_issued"],
+        "data_source": data["data_source"],
+        "is_production_model": data["is_production_model"],
+        "model_type": data["model_type"],
         "disclaimer": data["disclaimer"],
         **data["assessment"],
     }

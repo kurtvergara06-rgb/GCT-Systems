@@ -313,6 +313,7 @@
                         Showing {{ $trips->firstItem() ?? 0 }} to {{ $trips->lastItem() ?? 0 }} of {{ $trips->total() }} trip records
                     </span>
 
+                    {{ $trips->links() }}
                     <div class="trip-pagination">
                         @if ($trips->onFirstPage())
                             <button type="button" class="disabled" disabled>

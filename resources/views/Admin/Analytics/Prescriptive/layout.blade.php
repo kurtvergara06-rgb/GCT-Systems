@@ -93,6 +93,18 @@
                 </form>
             </section>
 
+            @php
+                $activePrescriptive = $prescriptive->{$activeDomain} ?? null;
+                $prescriptiveNote = $activePrescriptive->note ?? null;
+            @endphp
+
+            @if ($prescriptiveNote)
+                <p class="prescriptive-sample-note" role="note">
+                    <i class="fa-solid fa-flask"></i>
+                    {{ $prescriptiveNote }}
+                </p>
+            @endif
+
             @include($domainViews[$activeDomain])
         </main>
     </div>

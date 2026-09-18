@@ -328,46 +328,6 @@ var getResolutionActionLabel = function (action) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const originalFetch = window.fetch.bind(window);
-
-    window.fetch = async (input, init = {}) => {
-        const url = typeof input === 'string'
-            ? input
-            : input?.url || '';
-
-        if (
-            url.endsWith('/operation/auto-scheduling/resolve')
-            && typeof init.body === 'string'
-        ) {
-            try {
-                const payload = JSON.parse(init.body);
-
-                if (
-                    !payload.proposed_departure_time
-                    && payload.suggested_time
-                ) {
-                    payload.proposed_departure_time =
-                        payload.suggested_time;
-                }
-
-                delete payload.suggested_time;
-                delete payload.resolution_type;
-
-                init = {
-                    ...init,
-                    body: JSON.stringify(payload),
-                };
-            } catch (error) {
-                console.warn(
-                    'Unable to normalize AI resolution request.',
-                    error
-                );
-            }
-        }
-
-        return originalFetch(input, init);
-    };
-
     const cleanSuggestedTime = () => {
         document
             .querySelectorAll('.ai-action-item > small')
