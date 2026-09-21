@@ -2,8 +2,9 @@
 
 Usage:
     python -m delay.train_model
+    DELAY_DATA_SOURCE=genuine python -m delay.train_model
 
-Reads the SAMPLE feature CSV produced by prepare_training_data, trains a
+Reads the feature CSV produced by prepare_training_data, trains a
 RandomForestRegressor (project-wide RF convention), evaluates it on a
 chronologically held-out test split, and saves:
     delay/models/delay_arrival_rf.pkl
@@ -11,8 +12,10 @@ chronologically held-out test split, and saves:
     delay/models/delay_arrival_report.txt
     delay/models/delay_arrival_state.json
 
-SAMPLE / DEMONSTRATION DATA ONLY - the model is NEVER trained on genuine GCT
-historical delay records, and this script never touches the MySQL database.
+SAMPLE mode: trains on the SAMPLE / DEMONSTRATION dataset (never touches MySQL).
+GENUINE mode: trains ONLY on genuine matched DDR history (Laravel export). The
+readiness gate is re-checked here as a final guard; if it fails, the model is
+NOT trained and the "NOT READY FOR GENUINE TRAINING" report is printed.
 """
 
 import logging
@@ -23,7 +26,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from delay.config import model_paths, training_data_paths  # noqa: E402
+from delay.config import is_genuine, model_paths, training_data_paths  # noqa: E402
 from delay.model import (  # noqa: E402
     DelayModelResult,
     save_delay_model,
@@ -36,6 +39,7 @@ from delay.training_data import (  # noqa: E402
     build_driver_metadata,
     build_encoders,
     build_route_metadata,
+    readiness_report,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -43,21 +47,36 @@ logger = logging.getLogger("train_delay_model")
 
 
 def main() -> int:
+    source = "genuine" if is_genuine() else "sample"
     paths = model_paths()
     features_path = training_data_paths()["features_csv"]
 
     if not features_path.exists():
         print(f"Delay feature CSV not found: {features_path}")
-        print("Run `python -m delay.prepare_training_data` first.")
-        result = DelayModelResult(message="No training data found.", n_samples=0)
-        save_delay_model(result, paths)
-        save_state(result, paths)
+        print("Run `python -m delay.prepare_training_data` first "
+              "(in the matching DELAY_DATA_SOURCE mode).")
+        # Do NOT save artifacts when feature data is missing - this would
+        # overwrite any existing model with an empty one. Just return an error.
         return 1
 
     df = pd.read_csv(features_path)
     df["trip_date"] = pd.to_datetime(df["trip_date"], errors="coerce")
 
-    result = train_delay_model(df)
+    if source == "genuine":
+        report = readiness_report(df)
+        if not report["ready"]:
+            print("\n" + "=" * 68)
+            print("DELAY MODEL NOT READY FOR GENUINE TRAINING")
+            print("=" * 68)
+            print("The genuine matched history fails the data-sufficiency gate. "
+                  "Model NOT trained (no silent fallback to sample).")
+            for field, detail in report["thresholds"].items():
+                status = "PASS" if detail["passed"] else "FAIL"
+                print(f"  threshold {field:<12}: {detail['actual']} / "
+                      f"{detail['threshold']} ({status})")
+            return 2
+
+    result = train_delay_model(df, source=source)
     if result.trained:
         # Encoders/metadata are rebuilt from the very same CSV the model was
         # trained on, so prediction encodings always match training encodings.
@@ -70,7 +89,10 @@ def main() -> int:
         save_delay_model(result, paths)
     save_state(result, paths)
 
-    print("\n=== Delay model training results (SAMPLE / DEMONSTRATION DATA) ===")
+    source_label = "GENUINE GCT OPERATIONAL DATA" if source == "genuine" \
+        else "SAMPLE / DEMONSTRATION DATA"
+    print(f"\n=== Delay model training results ({source_label}) ===")
+    print(f"Data source:   {source}")
     print(f"Sample count:  {result.n_samples}")
     if not result.trained:
         print(f"  NOT TRAINED: {result.message}")

@@ -84,23 +84,32 @@ class IncidentController extends Controller
 
         return view(
             'Operation.Incidents.index',
-            compact(
-                'incidents',
-                'totalIncidents',
-                'activeIncidents',
-                'breakdownIncidents',
-                'resolvedToday'
+            array_merge(
+                compact(
+                    'incidents',
+                    'totalIncidents',
+                    'activeIncidents',
+                    'breakdownIncidents',
+                    'resolvedToday'
+                ),
+                $this->incidentFormData($request)
             )
         );
     }
 
     public function create(Request $request): View
     {
-        $today = now()->toDateString();
+        return view(
+            'Operation.Incidents.create',
+            $this->incidentFormData($request)
+        );
+    }
 
+    private function incidentFormData(Request $request): array
+    {
+        $today = now()->toDateString();
         $activeTripAssignment = null;
         $tripSchedule = null;
-
         $tripAssignmentId = $request->input('trip_assignment_id');
 
         if ($tripAssignmentId) {
@@ -131,14 +140,11 @@ class IncidentController extends Controller
             ->orderBy('departure_time')
             ->get();
 
-        return view(
-            'Operation.Incidents.create',
-            compact(
-                'activeTripAssignment',
-                'tripSchedule',
-                'myAssignments',
-                'availableTrips'
-            )
+        return compact(
+            'activeTripAssignment',
+            'tripSchedule',
+            'myAssignments',
+            'availableTrips'
         );
     }
 
@@ -261,6 +267,15 @@ class IncidentController extends Controller
             $incidentNo,
             "New incident {$incidentNo} reported: {$validated['incident_type']}"
         );
+
+        if ($request->boolean('incident_modal')) {
+            return redirect()
+                ->route('incidents', $request->only(['search', 'status', 'type']))
+                ->with(
+                    'success',
+                    "Incident {$incidentNo} has been reported successfully."
+                );
+        }
 
         if (! empty($validated['trip_schedule_id'])) {
             return redirect()

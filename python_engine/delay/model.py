@@ -29,7 +29,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from .config import DISCLAIMER, forecast_test_fraction, model_paths, rf_convention
+from .config import disclaimers, forecast_test_fraction, model_paths, rf_convention
 from .training_data import (
     DLY_FEATURE_COLUMNS,
     DLY_TARGET,
@@ -167,6 +167,7 @@ def save_delay_model(
     if result.trained and result.model is not None:
         joblib.dump(result.model, paths["model"])
 
+    disclaimer = disclaimers().get(result.source, disclaimers()["sample"])
     features_payload = {
         "features": DLY_FEATURE_COLUMNS,
         "target": DLY_TARGET,
@@ -178,15 +179,17 @@ def save_delay_model(
         "target_range": result.target_range,
         "periods": result.periods,
         "risk_thresholds": RISK_THRESHOLDS,
-        "disclaimer": DISCLAIMER,
+        "disclaimer": disclaimer,
     }
     with open(paths["features"], "w", encoding="utf-8") as f:
         json.dump(features_payload, f, indent=2)
 
+    source_label = "GENUINE GCT OPERATIONAL DATA" if result.source == "genuine" \
+        else "SAMPLE / DEMONSTRATION DATA"
     lines = [
-        "Delay-prediction model report (Model #3 - development prototype)",
+        "Delay-prediction model report (Model #3)",
         "=" * 68,
-        "DISCLAIMER: SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA",
+        f"DATA SOURCE: {source_label}",
         f"Data source:          {result.source}",
         f"Prediction target:    {DLY_TARGET} (minutes)",
         f"Feature inputs:       {', '.join(DLY_FEATURE_COLUMNS)}",
@@ -248,10 +251,12 @@ def save_state(result: DelayModelResult, paths: Optional[Dict[str, Path]] = None
     state = {
         "model_ready": result.trained,
         "message": (
-            "DELAY_ML_READY (SAMPLE/DEVELOPMENT)" if result.trained else "DELAY_ML_NOT_READY"
+            "DELAY_ML_READY (GENUINE DATA)" if (result.trained and result.source == "genuine")
+            else "DELAY_ML_READY (SAMPLE/DEVELOPMENT)" if result.trained
+            else "DELAY_ML_NOT_READY"
         ),
         "source": result.source,
-        "disclaimer": DISCLAIMER,
+        "disclaimer": disclaimers().get(result.source, disclaimers()["sample"]),
         "sample_count": result.n_samples,
         "n_train": result.n_train,
         "n_test": result.n_test,

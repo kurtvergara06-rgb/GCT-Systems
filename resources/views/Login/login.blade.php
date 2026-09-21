@@ -18,25 +18,15 @@
     'resources/js/Login/login.js',
   ])
 
-  <style>
-    /* Absolute stability: no element on the login page will scale, lift, or expand on hover */
-    .gct-login-page .login-card:hover,
-    .gct-login-page .input-box:hover,
-    .gct-login-page .login-btn:hover,
-    .gct-login-page .service-item:hover,
-    .gct-login-page .user-icon:hover {
-      transform: none !important;
-    }
-  </style>
 </head>
 
 <body>
   <main class="gct-login-page">
-    <section class="gct-brand-panel" aria-label="GCT Transport Services information">
-      <div class="brand-grid" aria-hidden="true"></div>
-      <div class="route-line route-line-one" aria-hidden="true"></div>
-      <div class="route-line route-line-two" aria-hidden="true"></div>
-
+    <section
+      class="gct-brand-panel"
+      aria-label="GCT Transport Services information"
+      style="--gct-hero-image: url('{{ asset('img/BUS-GCT.png') }}');"
+    >
       <div class="brand-content">
         <header class="brand-header">
           <img
@@ -45,76 +35,28 @@
             class="company-logo"
           >
 
-          <div class="brand-heading">
-            <p class="brand-eyebrow">GCT Transport Services</p>
-            <h1>GCT Transport<br>Services, Inc.</h1>
-            <div class="brand-divider"></div>
-            <p class="brand-tagline">Leading shuttle service provider in CALABARZON</p>
-          </div>
+          <p class="brand-name">GCT Transport<br>Services, Inc.</p>
         </header>
 
-        <div class="services-list" aria-label="Our services">
-          <article class="service-item">
-            <span class="service-icon"><i class="fa-solid fa-bus-simple"></i></span>
-            <div>
-              <h2>Company Shuttle Service</h2>
-              <p>Reliable daily transportation for your workforce.</p>
-            </div>
-          </article>
-
-          <article class="service-item">
-            <span class="service-icon"><i class="fa-regular fa-calendar-check"></i></span>
-            <div>
-              <h2>Special Trips</h2>
-              <p>Flexible transport solutions for every occasion.</p>
-            </div>
-          </article>
-
-          <article class="service-item">
-            <span class="service-icon"><i class="fa-solid fa-people-group"></i></span>
-            <div>
-              <h2>Group Tours</h2>
-              <p>Comfortable and coordinated travel for groups.</p>
-            </div>
-          </article>
-
-          <article class="service-item">
-            <span class="service-icon"><i class="fa-solid fa-graduation-cap"></i></span>
-            <div>
-              <h2>Educational Tours</h2>
-              <p>Safe and enriching transport experiences.</p>
-            </div>
-          </article>
+                <div class="brand-copy">
+          <p class="brand-kicker">People moving possibilities</p>
+          <h1>Keeping your operations <span>moving.</span></h1>
+          <p class="brand-services">Fleet <b>•</b> Maintenance <b>•</b> Inventory <b>•</b> Dispatch</p>
         </div>
 
-        <div class="fleet-visual" aria-hidden="true">
-          <div class="light-trail light-trail-one"></div>
-          <div class="light-trail light-trail-two"></div>
-          <div class="fleet-ground-shadow"></div>
-
-          <img
-            src="{{ asset('img/GCT-bus.png') }}"
-            alt=""
-            class="fleet-composite" 
-          >
+        <div class="brand-bottomline">
+          <p class="brand-footer">Safer journeys<br>Stronger tomorrows</p>
+          <p class="brand-nav">People <span>|</span> Places <span>|</span> Progress</p>
         </div>
       </div>
     </section>
 
     <section class="gct-form-panel">
-      <div class="panel-glow panel-glow-one" aria-hidden="true"></div>
-      <div class="panel-glow panel-glow-two" aria-hidden="true"></div>
-
       <div class="login-shell">
         <div class="login-card">
-          <div class="user-icon" aria-hidden="true">
-            <i class="fa-solid fa-shield-halved"></i>
-          </div>
-
           <div class="login-heading">
-            <span class="login-eyebrow"><i class="fa-solid fa-lock" aria-hidden="true"></i> Secure Account Access</span>
-            <h2>Welcome Back</h2>
-            <p>Sign in to access your company system.</p>
+            <h2>Welcome back</h2>
+            <p>Sign in to continue to the GCT fleet operations platform.</p>
           </div>
 
           @if ($errors->any())
@@ -213,20 +155,15 @@
             </button>
           </form>
 
-          <div class="trust-divider">
+          <div class="trust-divider" aria-hidden="true">
             <span></span>
-            <p><i class="fa-solid fa-shield-halved"></i> Trusted. Secure. Encrypted.</p>
+            <p>Moving a more connected Philippines</p>
             <span></span>
           </div>
         </div>
 
         <footer class="login-footer">
-          <p>© 2026 GCT Transport Services, Inc. All rights reserved.</p>
-          <nav class="footer-links" aria-label="Legal links">
-            <a href="#">Privacy Policy</a>
-            <span aria-hidden="true">•</span>
-            <a href="#">Terms of Use</a>
-          </nav>
+          <p>&copy; {{ date('Y') }} GCT Transport Services, Inc. All rights reserved.</p>
         </footer>
       </div>
     </section>

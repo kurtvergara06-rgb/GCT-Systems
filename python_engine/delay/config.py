@@ -1,19 +1,27 @@
 """Configuration for the Model #3 Delay Prediction subsystem.
 
-DEVELOPMENT PROTOTYPE - SAMPLE / DEMONSTRATION DATA. The current GCT database
-does not contain sufficient genuine historical DDR/schedule meets for
-delay-model training, so this subsystem trains on a generated SAMPLE dataset
-stored in the central training folder ``training_data/delay/`` (project root).
-It NEVER reads from or writes to the Laravel MySQL database.
+Two explicit, isolated data sources:
+
+    * ``sample``  (DEFAULT) - DEVELOPMENT / DEMONSTRATION mode. Trains on a
+                  generated SAMPLE dataset under ``training_data/delay/``.
+                  Never reads the Laravel MySQL database.
+    * ``genuine`` - PRODUCTION-QUALITY mode. Trains exclusively on the genuine
+                  DDR <-> schedule matched history exported by the Laravel
+                  command ``php artisan delay:export-genuine`` (writes
+                  ``training_data/delay/genuine_delay_training.csv``). If the
+                  genuine export is missing or fails the readiness gate, the
+                  pipeline FAILS clearly and NEVER silently falls back to the
+                  sample dataset.
 
 The configuration mirrors the existing ETA / Fuel / Inventory conventions:
 
-    * data_source()      - 'sample' default; 'genuine' is refused (opt-in env).
-    * data_thresholds()  - minimum history before the model is considered usable.
-    * rf_convention()    - project-wide Random Forest configuration.
-    * model_paths()      - artifacts under delay/models/ (never shares with
-                           operation_ai/models/).
-    * training_data_paths() - central training_data/delay/ folder (repo root).
+    * data_source()        - 'sample' default; 'genuine' opt-in (explicit).
+    * data_thresholds()    - minimum history before the model is considered usable.
+    * rf_convention()      - project-wide Random Forest configuration.
+    * model_paths()        - artifacts under delay/models/ (never shares with
+                             operation_ai/models/).
+    * training_data_paths()- data-source aware central training_data/delay/
+                             folder (repo root).
     * forecast_test_fraction() - chronological held-out test fraction.
 """
 
@@ -21,7 +29,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
-DISCLAIMER = (
+SAMPLE_DISCLAIMER = (
     "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. "
     "This Model #3 implementation is a demonstration prototype trained on a "
     "separate sample dataset because the current GCT database does not contain "
@@ -30,15 +38,43 @@ DISCLAIMER = (
     "data, and the model is NOT trained on genuine GCT historical delay records."
 )
 
+GENUINE_DISCLAIMER = (
+    "GENUINE GCT OPERATIONAL DATA - trained on real matched Daily Driver "
+    "Reports against real trip schedules/assignments. This is a production-"
+    "quality model whose training dataset passed the Model #3 data-sufficiency "
+    "gate (DELAY_MODEL_READINESS.md)."
+)
+
+
+def disclaimers() -> Dict[str, str]:
+    return {
+        "sample": SAMPLE_DISCLAIMER,
+        "genuine": GENUINE_DISCLAIMER,
+    }
+
 
 def data_source() -> str:
     """Return the training-data source key ('sample' default, 'genuine' opt-in).
 
-    Only 'sample' is supported by the current generation pipeline. The
-    'genuine' key is recognized so a FUTURE switch is explicit and auditable;
-    if requested before genuine DDR data exists, training refuses to proceed.
+    ``sample`` trains on the deterministic generated sample CSV (development).
+    ``genuine`` reads the Laravel-exported genuine matched DDR dataset and
+    refuses to fall back to sample data under any condition.
     """
     return os.environ.get("DELAY_DATA_SOURCE", "sample").strip().lower()
+
+
+def is_genuine() -> bool:
+    return data_source() == "genuine"
+
+
+def demo_trip_prefixes() -> tuple[str, ...]:
+    """Trip-code prefixes treated as DEMO schedules and excluded from genuine
+    training (the seeded demo schedules use codes like ``TRIP-001``)."""
+    raw = os.environ.get(
+        "DELAY_DEMO_TRIP_PREFIXES",
+        "TRIP-",
+    )
+    return tuple(p.strip() for p in raw.split(",") if p.strip())
 
 
 def data_thresholds() -> Dict[str, int]:
@@ -90,15 +126,21 @@ def training_data_paths() -> Dict[str, Path]:
 
     Follows the ETA / Fuel / Inventory convention: the central ``training_data``
     directory lives at the repository root (python_engine/delay/config.py's
-    2nd parent). The sample CSVs are deliberately NOT stored under
-    python_engine/.
+    2nd parent). Paths are data-source aware so genuine and sample artifacts
+    never overwrite each other, and neither is stored under python_engine/.
     """
     data_dir = Path(__file__).resolve().parents[2] / "training_data" / "delay"
+    prefix = "genuine" if is_genuine() else "sample"
     return {
         "dir": data_dir,
-        "csv": data_dir / "sample_delay_training.csv",
-        "features_csv": data_dir / "sample_delay_training_features.csv",
+        "csv": data_dir / f"{prefix}_delay_training.csv",
+        "features_csv": data_dir / f"{prefix}_delay_training_features.csv",
     }
+
+
+def genuine_csv_path() -> Path:
+    """Path of the Laravel-exported genuine matched DDR dataset."""
+    return training_data_paths()["dir"] / "genuine_delay_training.csv"
 
 
 def forecast_test_fraction() -> float:

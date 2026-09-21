@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initSearchableCombos();
     initScheduleContextPanel();
+    initDdrEncodeModal();
 });
 
 /* =========================================================
@@ -122,7 +123,7 @@ function initSearchableCombos() {
 }
 
 /* =========================================================
-   SCHEDULE CONTEXT PANEL (create page)
+   SCHEDULE CONTEXT PANEL (create page + encode modal)
 ========================================================= */
 
 function initScheduleContextPanel() {
@@ -130,10 +131,17 @@ function initScheduleContextPanel() {
     const listEl = document.getElementById('sfcList');
     if (!statusEl || !listEl) return;
 
+    const root =
+        statusEl.closest('#ddrEncodeModal')
+        || statusEl.closest('.ddr-encode-layout')
+        || document;
+
+    const find = (selector) => root.querySelector(selector);
+
     const comboValues = () => ({
-        date: document.querySelector('input[name="report_date"]')?.value || '',
-        driverId: document.querySelector('input[name="driver_id"]')?.value || '',
-        busId: document.querySelector('input[name="bus_id"]')?.value || '',
+        date: find('input[name="report_date"]')?.value || '',
+        driverId: find('input[name="driver_id"]')?.value || '',
+        busId: find('input[name="bus_id"]')?.value || '',
     });
 
     const showStatus = (cls, iconClass, message) => {
@@ -231,10 +239,114 @@ function initScheduleContextPanel() {
         }
     };
 
-    const dateInput = document.querySelector('input[name="report_date"]');
+    const dateInput = find('input[name="report_date"]');
     if (dateInput) {
         dateInput.addEventListener('change', lookup);
     }
 
     document.addEventListener('combo:select', lookup);
+}
+
+/* =========================================================
+   ENCODE NEW REPORT MODAL (listing page)
+========================================================= */
+
+function initDdrEncodeModal() {
+    const modal = document.getElementById('ddrEncodeModal');
+    if (!modal) return;
+
+    const trigger = document.getElementById('openEncodeReportModal');
+    const form = modal.querySelector('form');
+
+    const closeButtons = [
+        document.getElementById('closeEncodeReport'),
+        document.getElementById('cancelEncodeReport'),
+    ].filter(Boolean);
+
+    let previousBodyOverflow = '';
+
+    const resetScheduleStatus = () => {
+        const statusEl = modal.querySelector('#sfcStatus');
+        const listEl = modal.querySelector('#sfcList');
+
+        if (statusEl) {
+            statusEl.className = 'ddr-sched-status idle';
+
+            const icon = statusEl.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-magnifying-glass';
+
+            const span = statusEl.querySelector('span');
+            if (span) span.textContent = 'Select a date, driver, and bus to check matching scheduled trips.';
+        }
+
+        if (listEl) {
+            listEl.innerHTML = '';
+            listEl.classList.remove('has-items');
+        }
+    };
+
+    const clearCombos = () => {
+        modal.querySelectorAll('[data-combo]').forEach((combo) => {
+            const input = combo.querySelector('[data-combo-input]');
+            const hidden = combo.querySelector('[data-combo-value]');
+
+            if (input) input.value = '';
+            if (hidden) hidden.value = '';
+
+            combo.classList.remove('has-value');
+        });
+    };
+
+    const open = (reset = true) => {
+        if (reset) {
+            form?.reset();
+            clearCombos();
+            resetScheduleStatus();
+        }
+
+        previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        modal.classList.add('show', 'active');
+        modal.querySelector('input[name="report_date"]')?.focus();
+    };
+
+    const close = () => {
+        modal.classList.remove('show', 'active');
+        document.body.style.overflow = previousBodyOverflow;
+        trigger?.focus();
+    };
+
+    if (trigger) {
+        trigger.addEventListener('click', () => open(true));
+    }
+
+    closeButtons.forEach((button) => {
+        button.addEventListener('click', close);
+    });
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) close();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (modal.classList.contains('show') || modal.classList.contains('active')) {
+            close();
+        }
+    });
+
+    const hasServerErrors = modal.querySelector('.ui-field-error, .ddr-alert-error');
+
+    if (hasServerErrors) {
+        open(false);
+
+        const errorGroup = modal.querySelector('.ui-field-error')
+            ?.closest('.ui-form-group, .ddr-form-group');
+
+        const focusTarget = errorGroup
+            ? errorGroup.querySelector('input, select, [data-combo-input]')
+            : modal.querySelector('input[name="report_date"]');
+
+        focusTarget?.focus();
+    }
 }

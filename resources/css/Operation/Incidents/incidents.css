@@ -560,34 +560,15 @@
 
 /* =========================================================
    TABLE
+   The shared `.table-wrap` rules (shared-ui-enhancements.css)
+   provide the contained vertical + horizontal scrolling and
+   the sticky header. Page-specific rules only keep the radius.
 ========================================================= */
 
 .inc-table-wrap {
     width: 100%;
 
-    overflow-x: auto;
-
     border-radius: 10px;
-}
-
-
-.inc-table-wrap:has(tbody > tr:nth-child(10)) {
-    max-height: 620px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-}
-
-
-.inc-table-wrap::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-}
-
-
-.inc-table-wrap::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 999px;
 }
 
 
@@ -1609,4 +1590,160 @@
         grid-column: auto;
     }
 
+}
+
+
+/* =========================================================
+   INCIDENT REPORT MODAL
+   Scoped to the listing modal so shared dialogs are unchanged.
+========================================================= */
+
+#incidentReportModal.ui-form-overlay {
+    z-index: 4100;
+    padding: 20px;
+}
+
+
+#incidentReportModal .ui-form-modal {
+    width: min(760px, calc(100vw - 32px));
+    max-width: calc(100vw - 40px);
+    max-height: calc(100dvh - 40px);
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+#incidentReportModal .ui-form-modal-header {
+    flex: 0 0 auto;
+    padding: 16px 18px 13px;
+}
+
+
+#incidentReportModal .ui-form-title-wrap {
+    gap: 10px;
+}
+
+
+#incidentReportModal .ui-form-heading h2 {
+    font-size: 18px;
+}
+
+
+#incidentReportModal .ui-form-title-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    font-size: 16px;
+}
+
+
+#incidentReportModal .ui-form-content {
+    min-height: 0;
+
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+
+#incidentReportModal .ui-form-modal-body {
+    min-height: 0;
+
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    padding: 14px 18px 16px;
+}
+
+
+#incidentReportModal .ui-form-modal-scrollable {
+    min-height: 0;
+
+    flex: 1 1 auto;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    padding: 0 2px 2px 0;
+}
+
+
+#incidentReportModal .inc-modal-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+
+#incidentReportModal .inc-form-group,
+#incidentReportModal .ui-form-group {
+    gap: 5px;
+}
+
+
+#incidentReportModal .inc-form-group > label,
+#incidentReportModal .ui-form-group > label {
+    font-size: 12px;
+}
+
+
+#incidentReportModal .inc-form-group > input,
+#incidentReportModal .inc-form-group > select,
+#incidentReportModal .ui-form-group input,
+#incidentReportModal .ui-form-group select {
+    height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+
+#incidentReportModal .inc-form-group textarea {
+    min-height: 72px;
+    padding: 9px 12px;
+    font-size: 13px;
+}
+
+
+#incidentReportModal .inc-modal-alert {
+    margin: 0 0 10px;
+    padding: 9px 11px;
+}
+
+
+#incidentReportModal .inc-modal-note {
+    margin-top: 12px;
+    padding: 9px 11px;
+    gap: 8px;
+}
+
+
+#incidentReportModal .inc-modal-note span {
+    line-height: 1.4;
+}
+
+
+#incidentReportModal .ui-form-actions {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+
+@media (max-width: 700px) {
+    #incidentReportModal.ui-form-overlay {
+        padding: 20px;
+    }
+
+    #incidentReportModal .ui-form-modal {
+        width: min(760px, calc(100vw - 32px));
+    }
+
+    #incidentReportModal .inc-modal-form-grid {
+        grid-template-columns: 1fr;
+    }
 }

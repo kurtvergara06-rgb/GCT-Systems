@@ -1,18 +1,23 @@
 """Live delay-prediction service (Model #3).
 
-DEVELOPMENT PROTOTYPE - SAMPLE / DEMONSTRATION DATA.
-
 Loads the saved Random Forest model plus its persistence metadata and predicts
 the expected arrival delay (``arrival_delay_minutes``) for a scheduled trip
 from pre-trip inputs only. Inference is side-effect free: it never queries the
 database and never writes anything.
 
+Supports both training sources transparently:
+    * ``sample``  (development)  - data_source 'sample', NOT a production model.
+    * ``genuine`` (production)   - data_source 'genuine', a production-quality
+                  model; only prepared/trained after the genuine data-sufficiency
+                  gate passed (the pipeline never falls back to sample).
+
 The response separates two conceptual layers explicitly:
     1. ML forecast       -> predicted_arrival_delay_minutes
     2. Business-rule band-> risk_status / threshold (plain thresholds, not ML)
 
-DISCLAIMER: this is a development prototype trained on GENERATED SAMPLE data.
-It is NOT trained on genuine GCT historical delay records.
+Incident context accepted at prediction time (pre-trip only, never resolution
+state): whether incidents exist before scheduled departure, breakdown /
+traffic incident flags, and replacement-bus dispatch. Defaults to 0/False.
 """
 
 from __future__ import annotations
@@ -28,20 +33,13 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from .config import model_paths
+from .config import disclaimers, is_genuine, model_paths, training_data_paths
 from .model import RISK_THRESHOLDS
 from .training_data import DLY_FEATURE_COLUMNS, SEASON_MAP
 
 logger = logging.getLogger(__name__)
 
 _paths = model_paths()
-
-DISCLAIMER = (
-    "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. "
-    "This Model #3 implementation is a demonstration prototype trained on a "
-    "separate sample dataset. It is NOT trained on genuine GCT historical "
-    "delay records and must not be presented as a production prediction."
-)
 
 # Default fallbacks for pre-trip unknowns (documented, neutral values).
 _DEFAULT_PRIOR_DELAY = 0.0
@@ -52,12 +50,13 @@ _DEFAULT_DRIVER_SEQ = 1
 @dataclass
 class DelayReadiness:
     ml_ready: bool = False
-    source: str = "not_trained"  # sample | not_trained
+    source: str = "not_trained"  # sample | genuine | not_trained
     reason: str = ""
     sample_count: int = 0
     message: str = ""
     model_path: Optional[Path] = None
     data_source: str = "sample"
+    is_production_model: bool = False
 
 
 @dataclass
@@ -70,7 +69,7 @@ class DelayPrediction:
     model_version: str = ""
     source: str = "ml"
     feature_inputs: Dict[str, float] = field(default_factory=dict)
-    disclaimer: str = DISCLAIMER
+    disclaimer: str = ""
 
 
 _model = None
@@ -117,25 +116,73 @@ def reset_cache() -> None:
 def delay_readiness() -> DelayReadiness:
     _load_artifacts()
     sample_count = int((_state or {}).get("sample_count", 0) or 0)
+    source = str((_state or {}).get("source", "not_trained") or "not_trained")
+    if source == "sample" and (_metadata or {}).get("source"):
+        source = str((_metadata or {}).get("source"))
+    data_source = source if source in {"sample", "genuine"} else "sample"
+    is_production = source == "genuine"
+    current_mode_is_genuine = is_genuine()
+
+    # In genuine mode, require a genuine model. If only a sample model exists
+    # (or no model at all), report NOT READY instead of silently falling back.
+    if current_mode_is_genuine and not is_production:
+        return DelayReadiness(
+            ml_ready=False,
+            source=source,
+            reason=(
+                "DELAY_DATA_SOURCE=genuine but no genuine model is available. "
+                "Run `php artisan delay:export-genuine` and `python -m delay.train_model` "
+                "with DELAY_DATA_SOURCE=genuine after the readiness gate passes."
+            ),
+            sample_count=sample_count,
+            message="DELAY_ML_NOT_READY (genuine model missing)",
+            model_path=_paths["model"],
+            data_source="genuine",
+            is_production_model=False,
+        )
+
+    # Also verify metadata source matches expected mode
+    metadata_source = str((_metadata or {}).get("source", "sample") or "sample")
+    if current_mode_is_genuine and metadata_source != "genuine":
+        return DelayReadiness(
+            ml_ready=False,
+            source=source,
+            reason=(
+                "DELAY_DATA_SOURCE=genuine but loaded model metadata indicates "
+                f"'{metadata_source}' source. A genuine model must be trained first."
+            ),
+            sample_count=sample_count,
+            message="DELAY_ML_NOT_READY (genuine model missing)",
+            model_path=_paths["model"],
+            data_source="genuine",
+            is_production_model=False,
+        )
 
     if _model is None or _metadata is None:
         return DelayReadiness(
             ml_ready=False,
-            source=(_state or {}).get("source", "not_trained"),
+            source=source,
             reason="Delay model is not trained or could not be loaded.",
             sample_count=sample_count,
             message=(_state or {}).get("message", "DELAY_ML_NOT_READY"),
             model_path=_paths["model"],
-            data_source="sample",
+            data_source=data_source,
+            is_production_model=is_production,
         )
+    reason = (
+        "Delay Random Forest model is ready (GENUINE GCT OPERATIONAL DATA)."
+        if is_production
+        else "Delay Random Forest model is ready (SAMPLE/DEVELOPMENT prototype)."
+    )
     return DelayReadiness(
         ml_ready=True,
-        source=(_metadata or {}).get("source", "sample"),
-        reason="Delay Random Forest model is ready (SAMPLE/DEVELOPMENT prototype).",
+        source=source,
+        reason=reason,
         sample_count=sample_count,
-        message=(_state or {}).get("message", "DELAY_ML_READY (SAMPLE/DEVELOPMENT)"),
+        message=(_state or {}).get("message", "DELAY_ML_READY"),
         model_path=_paths["model"],
-        data_source="sample",
+        data_source=data_source,
+        is_production_model=is_production,
     )
 
 
@@ -194,13 +241,18 @@ def encode_features(
     route_prior_delay_rate: Optional[float] = None,
     driver_prior_delay_mean_min: Optional[float] = None,
     driver_trip_seq: Optional[int] = None,
+    incident_before_departure: bool = False,
+    incident_breakdown_flag: bool = False,
+    incident_traffic_flag: bool = False,
+    incident_replacement_flag: bool = False,
 ) -> Dict[str, float]:
     """Build the exact training feature vector from request inputs + defaults.
 
     Missing operational context uses route metadata captured at training time
     or neutral documented defaults - never invented values. Categorical
     encodings are rebuilt from the persisted sorted maps (identical to
-    training), and unknown categories map to -1.
+    training), and unknown categories map to -1. Incident context is pre-trip
+    only (never resolution state) and defaults to absent/0.
     """
     _load_artifacts()
     encoders = (_metadata or {}).get("encoders") or {}
@@ -276,6 +328,10 @@ def encode_features(
         "route_prior_delay_rate": r_rate,
         "driver_prior_delay_mean_min": d_prior,
         "driver_trip_seq": float(seq),
+        "incident_before_departure": 1.0 if incident_before_departure else 0.0,
+        "incident_breakdown_flag": 1.0 if incident_breakdown_flag else 0.0,
+        "incident_traffic_flag": 1.0 if incident_traffic_flag else 0.0,
+        "incident_replacement_flag": 1.0 if incident_replacement_flag else 0.0,
     }
 
 
@@ -316,12 +372,20 @@ def predict_arrival_delay(
     route_prior_delay_rate: Optional[float] = None,
     driver_prior_delay_mean_min: Optional[float] = None,
     driver_trip_seq: Optional[int] = None,
+    incident_before_departure: bool = False,
+    incident_breakdown_flag: bool = False,
+    incident_traffic_flag: bool = False,
+    incident_replacement_flag: bool = False,
 ) -> Optional[DelayPrediction]:
     """Predict expected arrival delay (minutes) for a scheduled trip.
 
     Returns None when the model is not ready or the feature vector cannot be
     built. Predictions are clipped to [0, max_observed] and rounded to 1dp.
     """
+    readiness = delay_readiness()
+    if not readiness.ml_ready:
+        return None
+
     _load_artifacts()
     if _model is None or _metadata is None:
         return None
@@ -338,6 +402,10 @@ def predict_arrival_delay(
         route_prior_delay_rate=route_prior_delay_rate,
         driver_prior_delay_mean_min=driver_prior_delay_mean_min,
         driver_trip_seq=driver_trip_seq,
+        incident_before_departure=incident_before_departure,
+        incident_breakdown_flag=incident_breakdown_flag,
+        incident_traffic_flag=incident_traffic_flag,
+        incident_replacement_flag=incident_replacement_flag,
     )
 
     features_expected = (_metadata or {}).get("features") or DLY_FEATURE_COLUMNS
@@ -358,6 +426,10 @@ def predict_arrival_delay(
 
     band = classify_arrival_delay(predicted)
 
+    source = str((_metadata or {}).get("source", "sample") or "sample")
+    is_production = source == "genuine"
+    disclaimer = disclaimers().get(source, disclaimers()["sample"])
+
     return DelayPrediction(
         predicted_arrival_delay_minutes=predicted,
         risk_status=band["label"],
@@ -367,28 +439,39 @@ def predict_arrival_delay(
             "bands_minutes": band["threshold"],
             "bands_labels": band["band"],
         },
-        data_source="sample",
-        is_production_model=False,
-        model_version=(_state or {}).get("message", "DELAY_ML_READY (SAMPLE/DEVELOPMENT)"),
+        data_source=source,
+        is_production_model=is_production,
+        model_version=(_state or {}).get("message", "DELAY_ML_READY"),
         source="ml",
         feature_inputs={name: features[name] for name in features_expected},
-        disclaimer=DISCLAIMER,
+        disclaimer=disclaimer,
     )
 
 
 def prediction_to_dict(prediction: DelayPrediction) -> Dict[str, object]:
-    """Flatten a prediction into the API response shape."""
+    """Flatten a prediction into the API response shape.
+
+    Existing keys are kept unchanged; friendly aliases used by the Laravel
+    consumer are added: ``predicted_delay_minutes`` (alias of
+    ``predicted_arrival_delay_minutes``), ``risk_level`` (alias of
+    ``risk_status``), ``model_source`` (alias of ``data_source``) and
+    ``ready`` (model readiness flag).
+    """
     data = asdict(prediction)
     features = data.pop("feature_inputs")
     del features  # raw feature row kept internal for debugging
     return {
         "success": True,
         "predicted_arrival_delay_minutes": data["predicted_arrival_delay_minutes"],
+        "predicted_delay_minutes": data["predicted_arrival_delay_minutes"],
         "risk_status": data["risk_status"],
+        "risk_level": data["risk_status"],
         "threshold": data["threshold"],
         "data_source": data["data_source"],
+        "model_source": data["data_source"],
         "is_production_model": data["is_production_model"],
         "model_version": data["model_version"],
+        "ready": delay_readiness().ml_ready,
         "source": data["source"],
         "disclaimer": data["disclaimer"],
     }
