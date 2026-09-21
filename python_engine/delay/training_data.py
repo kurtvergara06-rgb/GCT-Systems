@@ -1,15 +1,15 @@
-"""Load, validate, generate, and feature-engineer the delay sample dataset.
+"""Load, validate, generate, and feature-engineer the delay dataset.
 
-DEVELOPMENT PROTOTYPE - SAMPLE / DEMONSTRATION DATA.
-
-Two data sources are supported:
+Two explicit, isolated data sources:
     * ``sample``   (DEFAULT, development): the generated SAMPLE dataset under
                     ``training_data/delay/sample_delay_training.csv`` (project
-                    root). This is the ONLY source used by Model #3 today.
-    * ``genuine``  (opt-in via ``DELAY_DATA_SOURCE=genuine``): NOT implemented
-                    yet. Reading genuine daily_driver_reports + trip_schedules
-                    is the documented future transition; until genuine history
-                    exists the pipeline refuses to train rather than fall back.
+                    root). Used only for development/demonstration.
+    * ``genuine``  (opt-in via ``DELAY_DATA_SOURCE=genuine``): reads the
+                    Laravel-exported genuine matched DDR dataset
+                    ``training_data/delay/genuine_delay_training.csv``
+                    (produced by ``php artisan delay:export-genuine``). If that
+                    export is missing or fails the data-sufficiency gate, the
+                    pipeline FAILS clearly and never falls back to the sample.
 
 TARGET: ``arrival_delay_minutes`` — the actual arrival delay of a completed
 trip (actual arrival - scheduled arrival, in minutes).
@@ -18,12 +18,14 @@ FEATURES: only values that are known BEFORE or AT trip departure:
     route encoding, bus encoding, driver encoding, scheduled departure
     hour/minute, day of week, weekend flag, month, season, scheduled duration,
     route distance, route-level historical delay statistics (strictly prior
-    observations), driver-level prior delay mean, and the driver's trip
-    sequence within the day.
+    observations), driver-level prior delay mean, the driver's trip
+    sequence within the day, and pre-trip incident context (incidents reported
+    strictly before scheduled departure, plus replacement-bus dispatch).
 
 LEAKAGE EXCLUSIONS (never features):
     actual_departure_time, actual_arrival_time, actual_duration_minutes,
-    departure_delay_minutes, arrival_delay_minutes (the label itself).
+    departure_delay_minutes, arrival_delay_minutes (the label itself),
+    incident resolution state (resolved_at / resolution_notes).
 """
 
 from __future__ import annotations
@@ -40,6 +42,67 @@ from .config import data_source, forecast_test_fraction, training_data_paths
 logger = logging.getLogger(__name__)
 
 DLY_TARGET = "arrival_delay_minutes"
+
+# Pre-trip incident-context features. All are KNOWN strictly before scheduled
+# departure (incidents reported earlier that same date for the same trip /
+# bus / driver, and any replacement bus already dispatched). Default 0 when no
+# incident data is present (e.g. the sample dataset).
+DELAY_INCIDENT_FEATURES: List[str] = [
+    "incident_before_departure",
+    "incident_breakdown_flag",
+    "incident_traffic_flag",
+    "incident_replacement_flag",
+]
+
+# Raw columns written by the Laravel exporter (php artisan delay:export-genuine)
+# into genuine_delay_training.csv - one row per DDR <-> schedule match with its
+# derived departure/arrival delay labels and pre-trip incident context counts.
+GENUINE_RAW_COLUMNS: List[str] = [
+    "report_date",
+    "trip_code",
+    "route_code",
+    "route_name",
+    "bus_no",
+    "driver_id",
+    "driver_name",
+    "trip_ticket",
+    "scheduled_departure_time",
+    "actual_departure_time",
+    "scheduled_arrival_time",
+    "actual_arrival_time",
+    "scheduled_duration_minutes",
+    "actual_duration_minutes",
+    "departure_delay_minutes",
+    "arrival_delay_minutes",
+    "route_distance_km",
+    "incident_before_count",
+    "incident_breakdown_count",
+    "incident_traffic_count",
+    "incident_replacement_count",
+]
+
+GENUINE_EXCLUSION_CODES: Dict[str, str] = {
+    "demo_schedule": "Trip schedule identified as DEMO (trip_code prefix).",
+    "unmatched": "DDR could not be matched to a trip schedule/assignment.",
+    "missing_timing": "DDR or schedule is missing departure/arrival timing.",
+    "implausible_duration": "Actual duration <= 0 or > 720 minutes (corrupt).",
+    "short_schedule": "Scheduled duration < 10 minutes (insufficient trip).",
+    "cancelled": "Trip schedule status is Cancelled.",
+    "duplicate": "Duplicate (report_date, trip_ticket) match row.",
+}
+
+
+class GenuineDataNotReady(Exception):
+    """Raised when genuine training data is missing/insufficient.
+
+    Carries a structured readiness report so callers can print the full
+    "NOT READY FOR GENUINE TRAINING" summary without string parsing.
+    """
+
+    def __init__(self, message: str, report: Dict[str, object]):
+        super().__init__(message)
+        self.message = message
+        self.report = report
 
 # Every column stored in the SAMPLE CSV (readable trip record + pre-trip
 # context + the two delay labels). The feature matrix is a strict subset.
@@ -88,6 +151,7 @@ DLY_FEATURE_COLUMNS: List[str] = [
     "route_prior_delay_rate",
     "driver_prior_delay_mean_min",
     "driver_trip_seq",
+    *DELAY_INCIDENT_FEATURES,
 ]
 
 # Fields that would leak the current/future target or post-trip information.
@@ -345,20 +409,176 @@ def load_sample_csv(path: Optional[Path] = None) -> pd.DataFrame:
     return df
 
 
+def load_genuine_csv(path: Optional[Path] = None) -> pd.DataFrame:
+    """Load the genuine matched DDR dataset exported by Laravel.
+
+    Raises ``GenuineDataNotReady`` (with a full readiness report) when the
+    export is missing or fails structural validation. Never falls back to the
+    sample dataset.
+    """
+    from .config import genuine_csv_path
+
+    path = Path(path) if path else genuine_csv_path()
+    if not path.exists():
+        report = {
+            "matched_trips": 0,
+            "ready": False,
+            "missing": ["genuine export"],
+            "export_path": str(path),
+        }
+        raise GenuineDataNotReady(
+            "GENUINE delay data not found. Run `php artisan delay:export-genuine` "
+            "inside the Laravel app to export the matched DDR history before "
+            "training. Genuine mode never falls back to the sample dataset.",
+            report,
+        )
+
+    df = pd.read_csv(path)
+    missing = [c for c in GENUINE_RAW_COLUMNS if c not in df.columns]
+    if missing:
+        report = {"matched_trips": int(len(df)), "ready": False,
+                  "missing": ["export columns"], "missing_columns": missing}
+        raise GenuineDataNotReady(
+            f"Genuine delay export is missing required columns: {missing}. "
+            "Re-run `php artisan delay:export-genuine`.",
+            report,
+        )
+    if df.empty:
+        report = {
+            "matched_trips": 0,
+            "ready": False,
+            "missing": ["genuine export data rows"],
+            "export_path": str(path),
+        }
+        raise GenuineDataNotReady(
+            "Genuine delay export exists but contains no data rows. "
+            "Run `php artisan delay:export-genuine` to export matched DDR history.",
+            report,
+        )
+    return df
+
+
+def build_genuine_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Derive the model-facing wide matrix from genuine raw matched rows.
+
+    Accepts the GENUINE_RAW_COLUMNS rows exported by Laravel and produces the
+    REQUIRED_COLUMNS-wide layout consumed by :func:`build_dataset`. Strictly
+    chronological prior statistics and per-day driver trip sequences are
+    computed here; the incident counts become pre-trip flags.
+    """
+    from .config import demo_trip_prefixes
+
+    out = df.copy()
+    prefixes = demo_trip_prefixes()
+
+    def is_demo(code: str) -> bool:
+        return any(prefix and code.startswith(prefix) for prefix in prefixes)
+
+    demo_mask = out["trip_code"].astype(str).str.strip().map(is_demo)
+    if demo_mask.any():
+        logger.warning("Excluding %d demo-schedule rows from genuine features.",
+                       int(demo_mask.sum()))
+        out = out[~demo_mask].reset_index(drop=True)
+
+    out["trip_date"] = pd.to_datetime(out["report_date"], errors="coerce")
+    out = out.sort_values(
+        ["trip_date", "scheduled_departure_time"]
+    ).reset_index(drop=True)
+
+    if out.empty:
+        return pd.DataFrame(columns=REQUIRED_COLUMNS + DELAY_INCIDENT_FEATURES)
+
+    # --- pre-trip incident flags (strictly known before departure) ---------
+    out["route"] = out["route_code"].astype(str).str.strip()
+    out["incident_before_departure"] = (
+        pd.to_numeric(out["incident_before_count"], errors="coerce").fillna(0) > 0
+    ).astype(int)
+    out["incident_breakdown_flag"] = (
+        pd.to_numeric(out["incident_breakdown_count"], errors="coerce").fillna(0) > 0
+    ).astype(int)
+    out["incident_traffic_flag"] = (
+        pd.to_numeric(out["incident_traffic_count"], errors="coerce").fillna(0) > 0
+    ).astype(int)
+    out["incident_replacement_flag"] = (
+        pd.to_numeric(out["incident_replacement_count"], errors="coerce").fillna(0) > 0
+    ).astype(int)
+
+    # --- calendar fields from report date ---------------------------------
+    out["day_of_week"] = out["trip_date"].dt.dayofweek.astype(int)
+    out["is_weekend"] = (out["day_of_week"] >= 5).astype(int)
+    out["month"] = out["trip_date"].dt.month.astype(int)
+    out["season"] = out["trip_date"].dt.month.map(_season_for_month)
+
+    # --- scheduled departure hour/minute ----------------------------------
+    def _hm(value: str) -> Tuple[int, int]:
+        try:
+            parts = str(value).strip().split(":")
+            return int(parts[0]), int(parts[1])
+        except (ValueError, IndexError):
+            return -1, -1
+
+    parts = out["scheduled_departure_time"].map(_hm)
+    out["scheduled_departure_hour"] = parts.map(lambda p: p[0]).astype(int)
+    out["scheduled_departure_minute"] = parts.map(lambda p: p[1]).astype(int)
+
+    # --- strictly-prior route/driver statistics + driver day sequence ------
+    route_hist: Dict[str, List[float]] = {}
+    driver_hist: Dict[str, List[float]] = {}
+    driver_day_seq: Dict[str, int] = {}
+    last_day: Optional[str] = None
+
+    r_mean: List[float] = []
+    r_rate: List[float] = []
+    d_mean: List[float] = []
+    d_seq: List[int] = []
+
+    for _, row in out.iterrows():
+        day = str(row["trip_date"].date())
+        if day != last_day:
+            driver_day_seq = {}
+            last_day = day
+
+        route = str(row["route_code"]).strip()
+        driver_id = str(row["driver_id"]).strip()
+
+        hist = route_hist.get(route, [])
+        r_mean.append(float(np.mean(hist)) if hist else 0.0)
+        r_rate.append(
+            float(np.mean([1.0 if v > 5.0 else 0.0 for v in hist])) if hist else 0.0
+        )
+        d_hist = driver_hist.get(driver_id, [])
+        d_mean.append(float(np.mean(d_hist)) if d_hist else 0.0)
+        d_seq.append(driver_day_seq.get(driver_id, 0) + 1)
+
+        route_hist.setdefault(route, []).append(float(row["arrival_delay_minutes"]))
+        driver_hist.setdefault(driver_id, []).append(float(row["arrival_delay_minutes"]))
+        driver_day_seq[driver_id] = driver_day_seq.get(driver_id, 0) + 1
+
+    out["route_prior_delay_mean_min"] = np.round(r_mean, 2)
+    out["route_prior_delay_rate"] = np.round(r_rate, 4)
+    out["driver_prior_delay_mean_min"] = np.round(d_mean, 2)
+    out["driver_trip_seq"] = d_seq
+
+    wide = out[[
+        col for col in REQUIRED_COLUMNS if col in out.columns
+    ] + DELAY_INCIDENT_FEATURES].copy()
+    return wide
+
+
+# ---------------------------------------------------------------------------
+# Loading
+# ---------------------------------------------------------------------------
 def load_training_data(path: Optional[Path] = None) -> Tuple[pd.DataFrame, str]:
     """Load the active training dataset based on ``DELAY_DATA_SOURCE``.
 
-    Returns ``(df, source_label)``. Only ``sample`` is supported today; the
-    ``genuine`` key is refused until real DDR/schedule history exists.
+    Returns ``(df, source_label)`` where source_label is 'sample' or 'genuine'.
+    ``genuine`` NEVER falls back to sample: if the Laravel-exported genuine
+    dataset is missing or insufficient, ``GenuineDataNotReady`` is raised so
+    the caller can report "NOT READY FOR GENUINE TRAINING".
     """
     source = data_source()
     if source == "genuine":
-        raise ValueError(
-            "GENUINE delay data is not available yet (the daily_driver_reports "
-            "table holds no historical records - see DELAY_MODEL_READINESS.md). "
-            "Model #3 training on genuine data is refused; set "
-            "DELAY_DATA_SOURCE=sample for the demonstration dataset."
-        )
+        return build_genuine_features(load_genuine_csv(path)), "genuine"
     if source == "sample":
         return load_sample_csv(path), "sample"
     raise ValueError(f"Unknown delay data source: {source!r}")
@@ -455,25 +675,73 @@ def validate_dataset(df: pd.DataFrame) -> Tuple[bool, List[str], Dict[str, objec
     return (len(errors) == 0), errors, report
 
 
-def check_readiness_thresholds(df: pd.DataFrame) -> Tuple[bool, List[str]]:
-    """Data-sufficiency gate for the SAMPLE dataset."""
+def readiness_report(df: pd.DataFrame) -> Dict[str, object]:
+    """Detailed data-sufficiency report against the configured thresholds.
+
+    Used by the genuine pipeline (and echoed in status). Counts reflected the
+    MATCHED rows present in the dataset: matched trips, distinct routes, buses,
+    drivers, and the history span in weeks. Each threshold gets its own
+    ``{threshold, actual, passed}`` entry so downstream callers can print the
+    exact "missing" list without string parsing.
+    """
     from .config import data_thresholds
 
     thresholds = data_thresholds()
-    issues: List[str] = []
-    if len(df) < thresholds["min_records"]:
-        issues.append(f"rows {len(df)} < {thresholds['min_records']}")
-    if df["route"].nunique() < thresholds["min_routes"]:
-        issues.append(f"routes {df['route'].nunique()} < {thresholds['min_routes']}")
-    if df["bus_no"].nunique() < thresholds["min_buses"]:
-        issues.append(f"buses {df['bus_no'].nunique()} < {thresholds['min_buses']}")
-    if df["driver_id"].nunique() < thresholds["min_drivers"]:
-        issues.append(f"drivers {df['driver_id'].nunique()} < {thresholds['min_drivers']}")
-    span_days = int((pd.to_datetime(df["trip_date"]).max() - pd.to_datetime(df["trip_date"]).min()).days)
-    weeks = max(1, int(span_days / 7) + 1)
-    if weeks < thresholds["min_weeks"]:
-        issues.append(f"weeks {weeks} < {thresholds['min_weeks']}")
-    return (len(issues) == 0), issues
+
+    n = int(len(df))
+    routes = int(df["route"].nunique()) if n else 0
+    buses = int(df["bus_no"].nunique()) if n else 0
+    drivers = int(df["driver_id"].nunique()) if n else 0
+
+    span_days = 0
+    weeks = 0
+    date_min = date_max = ""
+    if n:
+        parsed = pd.to_datetime(df["trip_date"], errors="coerce").dropna()
+        if len(parsed):
+            date_min = str(parsed.min().date())
+            date_max = str(parsed.max().date())
+            span_days = int((parsed.max() - parsed.min()).days)
+            weeks = max(1, int(span_days / 7) + 1)
+
+    detail = {
+        "min_records": {"threshold": thresholds["min_records"], "actual": n,
+                        "passed": n >= thresholds["min_records"]},
+        "min_routes": {"threshold": thresholds["min_routes"], "actual": routes,
+                       "passed": routes >= thresholds["min_routes"]},
+        "min_buses": {"threshold": thresholds["min_buses"], "actual": buses,
+                      "passed": buses >= thresholds["min_buses"]},
+        "min_drivers": {"threshold": thresholds["min_drivers"], "actual": drivers,
+                        "passed": drivers >= thresholds["min_drivers"]},
+        "min_weeks": {"threshold": thresholds["min_weeks"], "actual": weeks,
+                      "passed": weeks >= thresholds["min_weeks"]},
+    }
+    missing = [name for name, d in detail.items() if not d["passed"]]
+
+    return {
+        "matched_trips": n,
+        "routes": routes,
+        "buses": buses,
+        "drivers": drivers,
+        "date_min": date_min,
+        "date_max": date_max,
+        "span_days": span_days,
+        "weeks": weeks,
+        "thresholds": detail,
+        "missing": missing,
+        "ready": len(missing) == 0,
+    }
+
+
+def check_readiness_thresholds(df: pd.DataFrame) -> Tuple[bool, List[str]]:
+    """Data-sufficiency gate for the delay dataset (sample or genuine)."""
+    report = readiness_report(df)
+    issues = [
+        f"{field} {detail['actual']} < {detail['threshold']}"
+        for field, detail in report["thresholds"].items()
+        if not detail["passed"]
+    ]
+    return report["ready"], issues
 
 
 # ---------------------------------------------------------------------------
@@ -557,6 +825,11 @@ def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
     out["season_encoded"] = (
         out["season"].astype(str).str.strip().str.lower().map(SEASON_MAP).fillna(-1)
     )
+
+    # Sample mode has no incident data: incident-context features default to 0.
+    for col in DELAY_INCIDENT_FEATURES:
+        if col not in out.columns:
+            out[col] = 0
 
     for col in DLY_FEATURE_COLUMNS:
         out[col] = pd.to_numeric(out[col], errors="coerce")

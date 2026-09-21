@@ -37,7 +37,9 @@ class DailyDriverReportTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('daily-driver-reports'))
             ->assertOk()
-            ->assertSee('Daily Drivers Report');
+            ->assertSee('Daily Drivers Report')
+            ->assertSee('openEncodeReportModal')
+            ->assertSee('ddrEncodeModal');
 
         $this->actingAs($this->user)
             ->get(route('daily-driver-reports.create'))
@@ -49,9 +51,7 @@ class DailyDriverReportTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->post(route('daily-driver-reports.store'), $this->validPayload())
-            ->assertRedirect(route('daily-driver-reports.show', [
-                'dailyDriverReport' => 'DDR-2026-0001',
-            ]))
+            ->assertRedirect(route('daily-driver-reports'))
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('daily_driver_reports', [

@@ -14,7 +14,11 @@
     "route_prior_delay_mean_min",
     "route_prior_delay_rate",
     "driver_prior_delay_mean_min",
-    "driver_trip_seq"
+    "driver_trip_seq",
+    "incident_before_departure",
+    "incident_breakdown_flag",
+    "incident_traffic_flag",
+    "incident_replacement_flag"
   ],
   "target": "arrival_delay_minutes",
   "source": "sample",

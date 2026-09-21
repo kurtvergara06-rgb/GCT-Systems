@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initSearchableCombos();
     initTripPrefill();
+    initIncidentReportModal();
 });
 
 /* =========================================================
@@ -143,4 +144,102 @@ function initTripPrefill() {
 
     tripSelect.addEventListener('change', syncPrefill);
     syncPrefill();
+}
+
+/* =========================================================
+   INCIDENT REPORT MODAL (listing page)
+========================================================= */
+
+function initIncidentReportModal() {
+    const modal = document.getElementById('incidentReportModal');
+    const trigger = document.getElementById('openIncidentReportModal');
+    if (!modal || !trigger) return;
+
+    const form = modal.querySelector('form');
+    const closeButtons = [
+        document.getElementById('closeIncidentReport'),
+        document.getElementById('cancelIncidentReport'),
+    ].filter(Boolean);
+    const submitButton = document.getElementById('incidentReportSubmit');
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ].join(', ');
+
+    let previousBodyOverflow = '';
+    let isSubmitting = false;
+
+    const open = (focusError = false) => {
+        previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        modal.classList.add('show', 'active');
+
+        const errorTarget = focusError
+            ? modal.querySelector('.ui-field-error')?.closest('.inc-form-group, .ui-form-group')?.querySelector('input, select, textarea')
+            : null;
+
+        (errorTarget || modal.querySelector('input[name="trip_schedule_id"]'))?.focus();
+    };
+
+    const close = () => {
+        modal.classList.remove('show', 'active');
+        document.body.style.overflow = previousBodyOverflow;
+        trigger.focus();
+    };
+
+    trigger.addEventListener('click', () => open());
+    closeButtons.forEach((button) => button.addEventListener('click', close));
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) close();
+    });
+
+    modal.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            close();
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+
+        const focusable = Array.from(modal.querySelectorAll(focusableSelector))
+            .filter((element) => element.getClientRects().length > 0);
+        if (!focusable.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+
+    form?.addEventListener('submit', (event) => {
+        if (isSubmitting) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!form.checkValidity()) return;
+
+        isSubmitting = true;
+        submitButton?.setAttribute('aria-busy', 'true');
+        if (submitButton) submitButton.disabled = true;
+
+        const label = submitButton?.querySelector('[data-loading-label]');
+        if (label) label.textContent = 'Saving...';
+    });
+
+    if (modal.querySelector('.ui-field-error, .inc-modal-alert')) {
+        open(true);
+    }
 }
