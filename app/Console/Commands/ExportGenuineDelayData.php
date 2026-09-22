@@ -58,7 +58,12 @@ class ExportGenuineDelayData extends Command
         $from = $this->option('from') ?: null;
 
         $reports = DailyDriverReport::query()
-            ->with(['bus'])
+            ->with([
+                'bus',
+                'tripSchedule.shuttleRoute',
+                'tripSchedule.assignment',
+                'tripAssignment',
+            ])
             ->when($from, fn ($query) => $query->whereDate('report_date', '>=', $from))
             ->orderBy('report_date')
             ->orderBy('departure_time')
@@ -242,10 +247,13 @@ class ExportGenuineDelayData extends Command
     }
 
     /**
-     * Pre-trip incident context for a matched trip: incidents for the same
-     * trip schedule / bus / driver on the report date that were reported
-     * STRICTLY before the scheduled departure, plus any replacement bus
-     * already dispatched before departure. Resolution state is never used.
+     * Pre-trip incident context for a matched trip.
+     *
+     * Directly linked DDR records only use incidents tied to that exact
+     * trip schedule. Legacy DDR records may additionally use unlinked
+     * incidents that match the same bus and driver. An incident explicitly
+     * linked to a different trip is never allowed to leak into this trip's
+     * training features.
      *
      * @return array{incident_before_count: int, breakdown_count: int, traffic_count: int, replacement_count: int}
      */
@@ -254,15 +262,31 @@ class ExportGenuineDelayData extends Command
         TripSchedule $schedule,
         Carbon $scheduledDeparture
     ): array {
-        $incidents = Incident::query()
+        $query = Incident::query()
             ->whereDate('incident_reported_at', $report->report_date->toDateString())
-            ->where('incident_reported_at', '<', $scheduledDeparture)
-            ->where(function ($query) use ($report, $schedule) {
-                $query
-                    ->where('trip_schedule_id', $schedule->id)
-                    ->orWhere('bus_id', $report->bus_id)
-                    ->orWhere('driver_id', $report->driver_id);
-            })
+            ->where('incident_reported_at', '<', $scheduledDeparture);
+
+        if ($report->trip_schedule_id) {
+            $query->where('trip_schedule_id', $schedule->id);
+        } else {
+            $query->where(function ($contextQuery) use ($report, $schedule) {
+                $contextQuery->where('trip_schedule_id', $schedule->id);
+
+                $contextQuery->orWhere(function ($legacyQuery) use ($report) {
+                    $legacyQuery->whereNull('trip_schedule_id');
+
+                    if ($report->bus_id) {
+                        $legacyQuery->where('bus_id', $report->bus_id);
+                    }
+
+                    if ($report->driver_id) {
+                        $legacyQuery->where('driver_id', $report->driver_id);
+                    }
+                });
+            });
+        }
+
+        $incidents = $query
             ->with(['replacement'])
             ->get();
 

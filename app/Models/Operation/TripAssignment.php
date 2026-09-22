@@ -2,6 +2,7 @@
 
 namespace App\Models\Operation;
 
+use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class TripAssignment extends Model
         'driver_id',
         'driver_name',
         'bus_id',
+        'original_bus_id',
         'assigned_by',
     ];
 
@@ -41,6 +43,22 @@ class TripAssignment extends Model
         return $this->belongsTo(
             Bus::class,
             'bus_id'
+        );
+    }
+
+    public function originalBus(): BelongsTo
+    {
+        return $this->belongsTo(
+            Bus::class,
+            'original_bus_id'
+        );
+    }
+
+    public function assigner(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'assigned_by'
         );
     }
 }

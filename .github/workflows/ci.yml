@@ -1,16 +1,18 @@
-name: Production Deployment
+name: CI
 
 on:
   push:
     branches:
       - main
+      - 'fix/**'
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  quality:
-    name: Pre-deployment quality gate
+  laravel:
+    name: Laravel tests
     runs-on: ubuntu-latest
     env:
       APP_ENV: testing
@@ -40,8 +42,16 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      - name: Run Laravel tests
+      - name: Run Laravel test suite
         run: php artisan test
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -52,8 +62,16 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build frontend
+      - name: Build Vite assets
         run: npm run build
+
+  python:
+    name: Python syntax validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -62,24 +80,3 @@ jobs:
 
       - name: Compile Python engine
         run: python -m compileall -q python_engine
-
-  production:
-    name: Production verification
-    needs: quality
-    runs-on: ubuntu-latest
-
-    environment:
-      name: production
-      url: https://gct-systems.onrender.com/
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Wait for Render deployment
-        run: sleep 120
-
-      - name: Verify production site
-        run: |
-          curl --fail --retry 5 --retry-delay 15 \
-          https://gct-systems.onrender.com/
