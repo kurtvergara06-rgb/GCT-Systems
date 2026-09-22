@@ -168,7 +168,7 @@ export default defineConfig({
                 'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
                 'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
 
-               // ======================================================
+                // ======================================================
                 // OPERATION — SCHEDULING AND DISPATCH
                 // ======================================================
 
@@ -186,6 +186,20 @@ export default defineConfig({
 
                 'resources/css/Operation/Trip_Records/trip-records.css',
                 'resources/js/Operation/Trip_Records/trip-records.js',
+
+                // ======================================================
+                // OPERATION — DAILY DRIVER REPORTS
+                // ======================================================
+
+                'resources/css/Operation/Daily_Driver_Reports/daily-driver-reports.css',
+                'resources/js/Operation/Daily_Driver_Reports/daily-driver-reports.js',
+
+                // ======================================================
+                // OPERATION — INCIDENTS
+                // ======================================================
+
+                'resources/css/Operation/Incidents/incidents.css',
+                'resources/js/Operation/Incidents/incidents.js',
 
                 // ======================================================
                 // PURCHASE

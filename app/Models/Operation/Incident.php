@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Schema;
 
 class Incident extends Model
 {
@@ -17,6 +18,7 @@ class Incident extends Model
     protected $fillable = [
         'incident_no',
         'trip_schedule_id',
+        'trip_assignment_id',
         'bus_id',
         'driver_id',
         'driver_name',
@@ -36,6 +38,29 @@ class Incident extends Model
         'resolved_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Incident $incident): void {
+            if (
+                Schema::hasColumn('incidents', 'trip_assignment_id')
+                && $incident->trip_schedule_id
+                && ! $incident->trip_assignment_id
+            ) {
+                $incident->trip_assignment_id = TripAssignment::query()
+                    ->where('trip_schedule_id', $incident->trip_schedule_id)
+                    ->value('id');
+            }
+
+            if (
+                $incident->isDirty('status')
+                && $incident->status !== 'Resolved'
+            ) {
+                $incident->resolved_at = null;
+                $incident->resolved_by = null;
+            }
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'incident_no';
@@ -46,6 +71,14 @@ class Incident extends Model
         return $this->belongsTo(
             TripSchedule::class,
             'trip_schedule_id'
+        );
+    }
+
+    public function tripAssignment(): BelongsTo
+    {
+        return $this->belongsTo(
+            TripAssignment::class,
+            'trip_assignment_id'
         );
     }
 
@@ -78,7 +111,7 @@ class Incident extends Model
         return $this->hasMany(
             IncidentResponse::class,
             'incident_id'
-        );
+        )->orderBy('created_at');
     }
 
     public function replacement(): HasOne
