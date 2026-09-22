@@ -4,23 +4,23 @@
   "source": "sample",
   "disclaimer": "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a demonstration prototype trained on a separate sample dataset because the current GCT database does not contain sufficient genuine historical DDR/schedule records for delay-model training. The sample dataset is not presented as actual GCT operational data, and the model is NOT trained on genuine GCT historical delay records.",
   "sample_count": 500,
-  "n_train": 401,
-  "n_test": 99,
+  "n_train": 395,
+  "n_test": 105,
   "metrics": {
-    "mae": 3.279332187411354,
-    "rmse": 4.355818052386041,
-    "r2": -0.036472148368468904,
-    "train_mae": 1.719046889352681
+    "mae": 1.5499001112403006,
+    "rmse": 1.8733389768563757,
+    "r2": 0.6291987483271066,
+    "train_mae": 0.7262512627337021
   },
   "target_range": {
-    "min": 0.7,
-    "max": 29.1,
-    "mean": 7.724688279301746
+    "min": 1.8,
+    "max": 23.8,
+    "mean": 7.297215189873418
   },
   "periods": {
-    "train_start": "2026-03-19",
-    "train_end": "2026-07-29",
-    "test_start": "2026-07-30",
+    "train_start": "2026-03-24",
+    "train_end": "2026-07-30",
+    "test_start": "2026-07-31",
     "test_end": "2026-08-31"
   },
   "risk_thresholds": [
