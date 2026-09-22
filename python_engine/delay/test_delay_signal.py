@@ -49,6 +49,13 @@ def main() -> int:
         raise AssertionError(f"Post-trip leakage found in feature list: {leaked}")
 
     wide = build_dataset(raw)
+    # build_dataset also carries trace columns for reporting; one trace field
+    # (scheduled_duration_minutes) is intentionally also a model feature. Keep
+    # only the first copy before feeding the in-memory frame to scikit-learn.
+    # The CSV pipeline naturally normalizes this on reload, but the focused CI
+    # test should behave consistently on current scikit-learn versions too.
+    wide = wide.loc[:, ~wide.columns.duplicated()].copy()
+
     result = train_delay_model(wide, source="sample")
     if not result.trained:
         raise AssertionError(f"Delay model did not train: {result.message}")
