@@ -53,6 +53,11 @@ def _print_divider(title: str) -> None:
     print("=" * 68)
 
 
+def _normalize_feature_frame(df):
+    """Remove duplicate trace columns before persisting the model matrix."""
+    return df.loc[:, ~df.columns.duplicated()].copy()
+
+
 def main() -> int:
     source = "genuine" if is_genuine() else "sample"
     paths = training_data_paths()
@@ -97,7 +102,7 @@ def main() -> int:
             print("  50+ matched trips, 3+ routes, 5+ buses, 5+ drivers, 4+ weeks.")
             return 2
 
-        df = build_dataset(wide)
+        df = _normalize_feature_frame(build_dataset(wide))
         write_features_csv(df, paths["features_csv"])
         print(f"\nFeature matrix written: {paths['features_csv']}")
         print(f"Feature rows:          {len(df)}")
@@ -138,7 +143,7 @@ def main() -> int:
         print("\nSkipping feature matrix build.")
         return 1
 
-    wide = build_dataset(df)
+    wide = _normalize_feature_frame(build_dataset(df))
     write_features_csv(wide, paths["features_csv"])
     print(f"\nFeature matrix written: {paths['features_csv']}")
     print(f"Feature rows:          {len(wide)}")
