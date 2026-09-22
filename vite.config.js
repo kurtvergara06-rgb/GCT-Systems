@@ -188,6 +188,13 @@ export default defineConfig({
                 'resources/js/Operation/Trip_Records/trip-records.js',
 
                 // ======================================================
+                // OPERATION — DAILY DRIVER REPORTS
+                // ======================================================
+
+                'resources/css/Operation/Daily_Driver_Reports/daily-driver-reports.css',
+                'resources/js/Operation/Daily_Driver_Reports/daily-driver-reports.js',
+
+                // ======================================================
                 // OPERATION — INCIDENTS
                 // ======================================================
 
