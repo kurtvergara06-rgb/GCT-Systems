@@ -46,6 +46,11 @@ class DailyDriverReport extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'ddr_no';
+    }
+
     public function driver(): BelongsTo
     {
         return $this->belongsTo(
