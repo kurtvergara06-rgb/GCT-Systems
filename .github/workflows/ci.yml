@@ -21,7 +21,7 @@ jobs:
       SESSION_DRIVER: array
       CACHE_STORE: array
       QUEUE_CONNECTION: sync
-      BROADCAST_CONNECTION: null
+      BROADCAST_CONNECTION: 'null'
 
     steps:
       - name: Checkout repository
