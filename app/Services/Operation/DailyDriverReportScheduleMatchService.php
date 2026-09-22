@@ -130,6 +130,9 @@ class DailyDriverReportScheduleMatchService
 
     /**
      * @return array{
+     *     matched: bool,
+     *     trip_code: string|null,
+     *     shift: string|null,
      *     route_label: string|null,
      *     scheduled_departure: string|null,
      *     scheduled_arrival: string|null,
@@ -152,6 +155,9 @@ class DailyDriverReportScheduleMatchService
 
         if (! $schedule) {
             return [
+                'matched' => false,
+                'trip_code' => null,
+                'shift' => null,
                 'route_label' => null,
                 'scheduled_departure' => null,
                 'scheduled_arrival' => null,
@@ -181,6 +187,9 @@ class DailyDriverReportScheduleMatchService
         $isDelayed = $delayMinutes > self::LATE_THRESHOLD_MINUTES;
 
         return [
+            'matched' => true,
+            'trip_code' => $schedule->trip_code,
+            'shift' => $schedule->shift,
             'route_label' => $schedule->shuttleRoute
                 ? trim(
                     ($schedule->shuttleRoute->route_code ?? '')
