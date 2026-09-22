@@ -54,9 +54,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The generated SAMPLE CSVs are intentionally ignored. Commit only
+          # the tracked artifacts loaded by the Python service at runtime.
           git add \
-            training_data/delay/sample_delay_training.csv \
-            training_data/delay/sample_delay_training_features.csv \
             python_engine/delay/models/delay_arrival_rf.pkl \
             python_engine/delay/models/delay_arrival_features.json \
             python_engine/delay/models/delay_arrival_report.txt \
