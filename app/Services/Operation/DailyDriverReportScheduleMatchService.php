@@ -3,156 +3,261 @@
 namespace App\Services\Operation;
 
 use App\Models\Operation\DailyDriverReport;
+use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class DailyDriverReportScheduleMatchService
 {
-    /**
-     * Trips more than this many minutes past the scheduled time are
-     * considered delayed. Derived from real scheduled vs. actual values only.
-     */
-    public const LATE_THRESHOLD_MINUTES = 10;
+    private const LATE_THRESHOLD_MINUTES = 10;
 
     public function match(DailyDriverReport $report): ?TripSchedule
     {
+        if (
+            Schema::hasColumn('daily_driver_reports', 'trip_schedule_id')
+            && $report->trip_schedule_id
+        ) {
+            $directSchedule = $this->scheduleQuery()
+                ->whereKey($report->trip_schedule_id)
+                ->first();
+
+            if ($directSchedule) {
+                return $directSchedule;
+            }
+        }
+
+        if (
+            Schema::hasColumn('daily_driver_reports', 'trip_assignment_id')
+            && $report->trip_assignment_id
+        ) {
+            $assignment = TripAssignment::query()
+                ->with(['tripSchedule.shuttleRoute', 'tripSchedule.assignment'])
+                ->find($report->trip_assignment_id);
+
+            if ($assignment?->tripSchedule) {
+                return $assignment->tripSchedule;
+            }
+        }
+
         if (! $report->driver_id || ! $report->bus_id) {
             return null;
         }
 
-        $query = TripSchedule::query()
-            ->with(['shuttleRoute', 'assignment'])
+        $query = $this->scheduleQuery()
             ->whereDate('trip_date', $report->report_date->toDateString())
-            ->whereHas('assignment', function ($assignmentQuery) use ($report) {
+            ->whereHas('assignment', function (Builder $assignmentQuery) use ($report) {
                 $assignmentQuery
                     ->where('driver_id', $report->driver_id)
-                    ->where('bus_id', $report->bus_id);
+                    ->where(function (Builder $busQuery) use ($report) {
+                        $busQuery->where('bus_id', $report->bus_id);
+
+                        if (Schema::hasColumn('trip_assignments', 'original_bus_id')) {
+                            $busQuery->orWhere('original_bus_id', $report->bus_id);
+                        }
+                    });
             });
 
-        $schedules = $query->get();
+        if ($report->trip_ticket) {
+            $exactTicketMatch = (clone $query)
+                ->where('trip_code', $report->trip_ticket)
+                ->first();
 
-        if ($schedules->isEmpty()) {
+            if ($exactTicketMatch) {
+                return $exactTicketMatch;
+            }
+        }
+
+        $matches = $query->get();
+
+        if ($matches->isEmpty()) {
             return null;
         }
 
-        if ($schedules->count() === 1) {
-            return $schedules->first();
+        if ($matches->count() === 1) {
+            return $matches->first();
         }
 
-        $actualDeparture = $this->toCarbon($report->departure_time);
+        $actualDepartureMinutes = $this->minutesFromMidnight(
+            $this->timeString($report->departure_time)
+        );
 
-        $closest = null;
-        $closestDistance = PHP_INT_MAX;
-
-        foreach ($schedules as $schedule) {
-            $scheduledDeparture = $this->toCarbon($schedule->departure_time);
-
-            $distance = abs($actualDeparture->diffInMinutes($scheduledDeparture));
-
-            if ($distance > 720) {
-                $distance = 1440 - $distance;
-            }
-
-            if ($distance < $closestDistance) {
-                $closestDistance = $distance;
-                $closest = $schedule;
-            }
-        }
-
-        return $closest;
+        return $matches
+            ->sortBy(function (TripSchedule $schedule) use ($actualDepartureMinutes) {
+                return abs(
+                    $this->minutesFromMidnight(
+                        $this->timeString($schedule->departure_time)
+                    ) - $actualDepartureMinutes
+                );
+            })
+            ->first();
     }
 
+    public function persistMatch(DailyDriverReport $report): ?TripSchedule
+    {
+        if (
+            ! Schema::hasColumn('daily_driver_reports', 'trip_schedule_id')
+            || ! Schema::hasColumn('daily_driver_reports', 'trip_assignment_id')
+        ) {
+            return $this->match($report);
+        }
+
+        $schedule = $this->match($report);
+
+        if (! $schedule) {
+            return null;
+        }
+
+        $assignment = $schedule->relationLoaded('assignment')
+            ? $schedule->assignment
+            : $schedule->assignment()->first();
+
+        $updates = [
+            'trip_schedule_id' => $schedule->id,
+            'trip_assignment_id' => $assignment?->id,
+        ];
+
+        if (
+            (int) $report->trip_schedule_id !== (int) $updates['trip_schedule_id']
+            || (int) $report->trip_assignment_id !== (int) ($updates['trip_assignment_id'] ?? 0)
+        ) {
+            $report->forceFill($updates)->saveQuietly();
+        }
+
+        return $schedule;
+    }
+
+    /**
+     * @return array{
+     *     matched: bool,
+     *     trip_code: string|null,
+     *     shift: string|null,
+     *     route_label: string|null,
+     *     scheduled_departure: string|null,
+     *     scheduled_arrival: string|null,
+     *     actual_departure: string|null,
+     *     actual_arrival: string|null,
+     *     departure_delay_minutes: int,
+     *     arrival_delay_minutes: int,
+     *     delay_minutes: int,
+     *     status: string,
+     *     status_detail: string
+     * }
+     */
     public function comparison(
         ?TripSchedule $schedule,
-        mixed $departureTime,
-        mixed $arrivalTime
+        mixed $actualDeparture,
+        mixed $actualArrival
     ): array {
-        $actualDeparture = $this->toCarbon($departureTime);
-        $actualArrival = $this->toCarbon($arrivalTime);
+        $actualDepartureString = $this->timeString($actualDeparture);
+        $actualArrivalString = $this->timeString($actualArrival);
 
         if (! $schedule) {
             return [
                 'matched' => false,
-                'status' => 'Schedule match unavailable',
                 'trip_code' => null,
-                'route_label' => null,
                 'shift' => null,
+                'route_label' => null,
                 'scheduled_departure' => null,
                 'scheduled_arrival' => null,
-                'actual_departure' => $actualDeparture?->format('H:i'),
-                'actual_arrival' => $actualArrival?->format('H:i'),
-                'departure_delay_minutes' => null,
-                'arrival_delay_minutes' => null,
-                'delay_minutes' => null,
+                'actual_departure' => $actualDepartureString,
+                'actual_arrival' => $actualArrivalString,
+                'departure_delay_minutes' => 0,
+                'arrival_delay_minutes' => 0,
+                'delay_minutes' => 0,
+                'status' => 'Schedule match unavailable',
+                'status_detail' => 'No exact scheduled trip could be matched to this report.',
             ];
         }
 
-        $scheduledDeparture = $this->toCarbon($schedule->departure_time);
-        $scheduledArrival = $this->toCarbon($schedule->estimated_arrival_time);
+        $scheduledDeparture = $this->timeString($schedule->departure_time);
+        $scheduledArrival = $this->timeString($schedule->estimated_arrival_time);
 
-        $departureDelay = $this->minutesLate(
-            $actualDeparture,
-            $scheduledDeparture
+        $departureDelay = $this->delayMinutes(
+            $scheduledDeparture,
+            $actualDepartureString
         );
-
-        $arrivalDelay = $this->minutesLate(
-            $actualArrival,
-            $scheduledArrival
+        $arrivalDelay = $this->delayMinutes(
+            $scheduledArrival,
+            $actualArrivalString
         );
+        $delayMinutes = max($departureDelay, $arrivalDelay, 0);
 
-        $delayMinutes = max($departureDelay, $arrivalDelay);
-
-        $route = $schedule->shuttleRoute;
-
-        $routeLabel = $route
-            ? ($route->route_code . ' - ' . $route->route_name
-                . ($route->origin && $route->destination
-                    ? ' (' . $route->origin . ' → ' . $route->destination . ')'
-                    : ''))
-            : null;
+        $isDelayed = $delayMinutes > self::LATE_THRESHOLD_MINUTES;
 
         return [
             'matched' => true,
-            'status' => $delayMinutes > self::LATE_THRESHOLD_MINUTES
-                ? 'Delayed'
-                : 'On Time',
             'trip_code' => $schedule->trip_code,
-            'route_label' => $routeLabel,
             'shift' => $schedule->shift,
-            'scheduled_departure' => $scheduledDeparture->format('H:i'),
-            'scheduled_arrival' => $scheduledArrival->format('H:i'),
-            'actual_departure' => $actualDeparture->format('H:i'),
-            'actual_arrival' => $actualArrival->format('H:i'),
+            'route_label' => $schedule->shuttleRoute
+                ? trim(
+                    ($schedule->shuttleRoute->route_code ?? '')
+                    .' - '
+                    .($schedule->shuttleRoute->route_name ?? '')
+                )
+                : null,
+            'scheduled_departure' => $scheduledDeparture,
+            'scheduled_arrival' => $scheduledArrival,
+            'actual_departure' => $actualDepartureString,
+            'actual_arrival' => $actualArrivalString,
             'departure_delay_minutes' => $departureDelay,
             'arrival_delay_minutes' => $arrivalDelay,
             'delay_minutes' => $delayMinutes,
+            'status' => $isDelayed ? 'Delayed' : 'On Time',
+            'status_detail' => $isDelayed
+                ? "Late by {$delayMinutes} min"
+                : 'Within the 10-minute tolerance',
         ];
     }
 
-    private function minutesLate(Carbon $actual, Carbon $scheduled): int
+    private function scheduleQuery(): Builder
     {
-        // Carbon's signed diff returns scheduled minus actual, so negate to
-        // get "actual is this many minutes later than scheduled".
-        $diff = -1 * (int) $actual->diffInMinutes($scheduled, false);
-
-        // Arrivals that wrap past midnight land on the following day.
-        if ($diff < -720) {
-            $diff += 1440;
-        }
-
-        return max(0, $diff);
+        return TripSchedule::query()
+            ->with(['shuttleRoute', 'assignment']);
     }
 
-    private function toCarbon(mixed $value): ?Carbon
+    private function delayMinutes(?string $scheduled, ?string $actual): int
     {
-        if ($value instanceof Carbon) {
-            return $value;
+        if (! $scheduled || ! $actual) {
+            return 0;
         }
 
-        if (is_string($value) && preg_match('/^\d{1,2}:\d{2}/', $value)) {
-            return Carbon::createFromFormat('H:i', substr($value, 0, 5));
+        $scheduledMinutes = $this->minutesFromMidnight($scheduled);
+        $actualMinutes = $this->minutesFromMidnight($actual);
+
+        $difference = $actualMinutes - $scheduledMinutes;
+
+        if ($difference < -720) {
+            $difference += 1440;
+        } elseif ($difference > 720) {
+            $difference -= 1440;
         }
 
-        return null;
+        return $difference;
+    }
+
+    private function minutesFromMidnight(?string $time): int
+    {
+        if (! $time) {
+            return 0;
+        }
+
+        $parsed = Carbon::parse($time);
+
+        return ($parsed->hour * 60) + $parsed->minute;
+    }
+
+    private function timeString(mixed $time): ?string
+    {
+        if ($time === null || $time === '') {
+            return null;
+        }
+
+        if ($time instanceof \DateTimeInterface) {
+            return $time->format('H:i');
+        }
+
+        return Carbon::parse((string) $time)->format('H:i');
     }
 }

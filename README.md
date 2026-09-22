@@ -1,49 +1,76 @@
 # GCT Systems
 
-Fleet and operations management system for Maintenance, Warehouse, Purchase, Operation, and Administration workflows.
+Fleet and operations management system for GCT Transport Services covering Maintenance, Warehouse, Purchase, Operation, and Administration workflows.
 
-**Production:** [https://gct-systems.onrender.com/](https://gct-systems.onrender.com/)
+**Production:** https://gct-systems.onrender.com/
 
 ## Architecture
 
-Dual-engine architecture:
+GCT Systems uses a dual-engine architecture:
 
-- **Laravel Backend** (PHP): Core business logic, authentication, database, realtime events
-- **Python FastAPI Microservice**: NLP extraction, ML-powered analytics, auto-scheduling AI
+- **Laravel backend** — authentication, business workflows, database access, validation, audit activity, and realtime events.
+- **Python FastAPI engine** — PDF/NLP extraction, analytics, delay/ETA/fuel/inventory models, and operation auto-scheduling.
+- **Laravel Reverb + Echo** — realtime UI updates.
+- **MySQL 8.4** — primary production database.
 
-Communication: Laravel calls the Python engine via `NLP_API_URL` environment variable.
-
-Realtime flow: Server broadcasts events → Laravel Reverb → Echo client → AJAX region refresh (no full page reloads).
+Laravel communicates with the Python engine through `NLP_API_URL` and `OPERATION_AI_BASE_URL`.
 
 ## Technology Stack
 
 | Layer | Technology |
-|-------|------------|
-| Backend | Laravel 13, PHP 8.3+ (8.4 in Docker) |
-| Database | MySQL 8.4 (SQLite for local dev) |
-| Frontend | Blade templates, Vanilla JS, Tailwind CSS 4 |
-| Build | Vite 8, laravel-vite-plugin |
-| Realtime | Laravel Reverb + Echo (WebSockets) |
-| Python Engine | FastAPI, spaCy, scikit-learn, PyTorch |
-| Deployment | Docker multi-stage build, Render |
-| CI/CD | GitHub Actions |
+|---|---|
+| Backend | Laravel 13, PHP 8.3+ (PHP 8.4 production Docker image) |
+| Database | MySQL 8.4; SQLite supported for automated tests |
+| Frontend | Blade, Vanilla JavaScript, Tailwind CSS 4 |
+| Build | Vite 8 |
+| Realtime | Laravel Reverb + Echo |
+| Python Engine | FastAPI, PyMuPDF, spaCy, pandas, NumPy, scikit-learn, PyTorch |
+| Deployment | Docker + Render |
+| CI | GitHub Actions |
 
 ## Modules
 
 ### Maintenance
-Job Orders, PMS Scheduling, Mechanic Availability, Fuel Reports, Purchase Requests.
+Job Orders, PMS scheduling, mechanic availability, fuel reports, and purchase requests.
 
 ### Warehouse
-Inventory Management, Part Requests, Stock Movements, Incoming Deliveries.
+Inventory, part requests, stock movements, and incoming deliveries.
 
 ### Purchase
-Maintenance Requests, Inventory Restock, Purchase Orders, Scheduled Purchases, Purchase History.
+Maintenance requests, inventory restock, purchase orders, scheduled purchases, and purchase history.
 
 ### Operation
-Routes & Stops, Trip Scheduling, Driver/Bus Assignment, Auto Scheduling (ML-powered), Personnel Management, Driver/Mechanic Attendance, Bus Master List, Trip Records.
+Buses, routes and stops, trip scheduling, driver/bus assignment, automated scheduling, driver/mechanic attendance, Daily Driver Reports (DDR), incidents, and replacement-bus dispatch.
 
-### Admin
-Account Management, Roles & Permissions, Activity Logs, Notifications, Data Management (batch uploads), Analytics (descriptive/diagnostic dashboards), Settings.
+### Administration
+Accounts, role/permission configuration, activity logs, notifications, data management, analytics, and settings.
+
+## Operational Data Relationships
+
+The operation workflow stores durable trip relationships instead of relying only on heuristic matching:
+
+```text
+Trip Schedule
+    |
+    +--> Trip Assignment
+    |       |
+    |       +--> Daily Driver Report
+    |
+    +--> Incident
+            |
+            +--> Incident Replacement
+```
+
+`daily_driver_reports` stores nullable `trip_schedule_id` and `trip_assignment_id` when an exact match is available. Historical DDR records without these keys still use `DailyDriverReportScheduleMatchService` as a compatibility fallback.
+
+When a breakdown replacement is dispatched:
+
+- `incident_replacements.original_bus_id` preserves the bus involved in the incident.
+- `incident_replacements.replacement_bus_id` preserves the dispatched replacement.
+- `trip_assignments.original_bus_id` preserves the trip's initial bus.
+- `trip_assignments.bus_id` represents the current/effective bus continuing the trip.
+
+This lets analytics distinguish the originally assigned bus from the bus that actually continued the trip.
 
 ## Prerequisites
 
@@ -51,11 +78,11 @@ Account Management, Roles & Permissions, Activity Logs, Notifications, Data Mana
 - Composer
 - Node.js 22+
 - Python 3.10+
-- MySQL 8.4 (or SQLite for local dev)
+- MySQL 8.4 for normal local/production use
 
 ## Local Setup
 
-### Laravel Backend
+### Laravel
 
 ```bash
 composer install
@@ -67,10 +94,18 @@ npm run build
 php artisan serve
 ```
 
-Or use the development runner (starts server, queue worker, and Vite concurrently):
+For the local development runner:
 
 ```bash
 composer run dev
+```
+
+### Reverb
+
+Run Reverb separately when testing realtime behavior:
+
+```bash
+php artisan reverb:start
 ```
 
 ### Python Engine
@@ -81,72 +116,114 @@ pip install -r requirements.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Available endpoints:
-- `/nlp/extract-pdf` - PDF extraction
-- `/analytics/*` - Business analytics
-- `/operation/auto-scheduling/ai/*` - ML auto-scheduling
-- `/ingestion/*` - Data ingestion
+The committed Python checkout includes the core PDF extraction plus the analytics, operation AI, ETA, fuel, inventory, and delay routers mounted by `main.py`.
 
-### Docker (Full Stack)
+Some severity/NER/anomaly/ingestion helpers are intentionally loaded as **optional modules** by `main.py`. They are not present in the current repository checkout, so the engine degrades gracefully instead of failing startup. Do not advertise or depend on an optional endpoint until its implementation exists in the repository.
+
+### Docker Compose
+
+`compose.yaml` is the Laravel Sail development stack for:
+
+- Laravel
+- MySQL
+
+It is **not** a complete container definition for the separate FastAPI and Reverb services. Start those services separately using the commands above, or use their production Render services.
 
 ```bash
 docker compose up
 ```
 
-## Project Structure
+## Delay Model #3
 
-```
-app/
-├── Http/Controllers/{Admin,Maintenance,Operation,Purchase,Warehouse}/
-├── Models/{Admin,Maintenance,Operation,Purchase,Warehouse}/
-├── Services/
-├── Events/Listeners/Observers/
+The delay pipeline supports two explicit data sources:
 
-python_engine/
-├── NLP/            # PDF extraction, NER, severity prediction, anomaly detection
-├── analytics/      # Forecasting
-├── operation_ai/   # ML-based auto-scheduling
-
-resources/
-├── views/{Admin,Maintenance,Operation,Purchase,Warehouse,components}/
-├── js/{Admin,Maintenance,Operation,Purchase,Warehouse}/
-├── css/{Admin,Maintenance,Operation,Purchase,Warehouse}/
-
-routes/{admin,maintenance,operation,purchase,warehouse}.php
-
-database/migrations/  # 59 migrations
+```env
+DELAY_DATA_SOURCE=sample
 ```
 
-## Shared Frontend Architecture
+or:
 
-Shared Blade components: `resources/views/components/`
+```env
+DELAY_DATA_SOURCE=genuine
+```
 
-Global styles and JS: `resources/js/app.js`
+`genuine` mode never silently falls back to sample data.
 
-Page-specific assets: Keep in relevant module folder.
+Export genuine matched DDR history with:
 
-### AJAX Regions
+```bash
+php artisan delay:export-genuine
+```
 
-Use `data-ajax-region` attribute and the helper in `resources/js/Main-js/ajax-regions.js` for partial page refreshes.
+New DDR records prefer their stored `trip_schedule_id` / `trip_assignment_id`. Historical records can still use schedule matching.
 
-### Realtime Updates
+Incident features are tied to the exact trip whenever a direct trip relationship exists. Legacy fallback matching is only allowed for incidents that do not already belong to another explicit trip.
 
-Events delivered through Laravel Reverb/Echo refresh AJAX-ready regions instead of forcing full page reloads.
+## Inventory Model #4
+
+The inventory forecasting implementation currently uses generated/sample training data until sufficient genuine stock-movement history exists.
+
+Sample-model output must be treated as development/demo output, not as a production genuine forecast.
+
+Do not change the model to claim genuine readiness until real stock movements satisfy its readiness checks.
+
+## Testing
+
+### Laravel
+
+```bash
+php artisan test
+```
+
+or:
+
+```bash
+composer run test
+```
+
+The repository's test count changes as features are added, so this README intentionally does not hard-code a stale number.
+
+### Frontend
+
+```bash
+npm ci
+npm run build
+```
+
+### Python
+
+Python model folders contain script-style validation tests where applicable. CI always compiles the Python tree to catch syntax/import-source errors without pretending that unavailable optional ML modules are present.
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs on pull requests, `main`, and `fix/**` branches and checks:
+
+- Laravel test suite on PHP 8.4 + SQLite
+- Vite production build on Node 22
+- Python source compilation on Python 3.12
+
+The production verification workflow also runs a quality gate before its Render availability check.
+
+> Render auto-deploy behavior is configured separately in Render. A GitHub workflow quality gate does not by itself guarantee that Render waits for GitHub checks unless the Render service is configured to do so.
+
+## Realtime Updates
+
+Events are broadcast through Laravel Reverb and received through Echo. AJAX-ready regions can refresh without requiring a complete page reload.
 
 ## Activity Log Policy
 
-Activity Logs are a controlled audit trail, not click history. The system records meaningful mutations:
+Activity logs are a controlled audit trail for meaningful changes, including:
 
-- Create, update, delete/deactivate
-- Approve/reject, status changes
-- Assignments, completions
-- Receiving/issuing, imports/uploads
-- Account/security changes, permission changes
-- Login/logout
+- create/update/delete/deactivate
+- approve/reject/status changes
+- assignments and completions
+- receiving/issuing/imports
+- account/security/permission changes
+- login/logout
 
-**Not logged:** Navigation, searches, filters, pagination, topbar/read-state requests, route calculations, Auto Scheduling previews.
+Navigation, searches, filters, pagination, and preview-only actions are not intended to create audit noise.
 
-Audit records are retained for 365 days by default and pruned daily:
+Default retention:
 
 ```env
 ACTIVITY_LOG_RETENTION_DAYS=365
@@ -160,57 +237,22 @@ php artisan activity-logs:prune
 php artisan activity-logs:prune --days=180
 ```
 
-## Testing
+## Deployment Notes
 
-### Pest PHP
+The production Laravel Dockerfile uses a Node 22 build stage and PHP 8.4-FPM/Nginx/Supervisor runtime.
 
-```bash
-php artisan test
-# or
-composer run test
-```
-
-Test suites: Feature (8 tests) + Unit (1 test)
-
-### Python ML Tests
-
-```bash
-cd python_engine
-python operation_ai/test_ml.py
-```
-
-## Development Workflow
-
-### Code Style
-
-- **PHP:** Laravel Pint
-- **General:** `.editorconfig`
-
-### Conventions
-
-- Reuse shared Blade/UI components instead of duplicating UI
-- Keep Personnel Management separate from daily Attendance
-- Keep page-specific CSS/JS in the relevant module folder
-- Use JavaScript for dynamic behavior, not hiding obsolete markup
-
-## Deployment
-
-Docker multi-stage build:
-
-1. **Build stage:** Node 22 + npm (Vite assets)
-2. **Runtime stage:** PHP 8.4-FPM + Nginx + Supervisor
-
-Exposed port: 10000
-
-### Environment Variables (Build-time)
+Build-time Vite/Reverb variables include:
 
 - `VITE_REVERB_APP_KEY`
 - `VITE_REVERB_HOST`
 - `VITE_REVERB_PORT`
 - `VITE_REVERB_SCHEME`
 
-## Known Limitations
+The FastAPI engine is a separate service and should not be assumed to be private merely because Laravel is the normal caller. Restrict the service at the deployment/network layer before exposing production-only endpoints publicly.
 
-- Department/role restrictive middleware is intentionally deferred during testing
+## Known Development Decisions
 
-## 
+- Department/role restrictive route middleware is intentionally deferred **during current testing** so one test account can move across Maintenance, Warehouse, Purchase, Operation, and Admin without multiple browser sessions.
+- This testing convenience must be reviewed before production access is opened to real users.
+- Genuine ML readiness is data-dependent and is not simulated with generated data.
+- Optional NLP severity/NER/anomaly/ingestion modules are absent from the current checkout and therefore remain optional/degraded rather than being replaced with fake implementations.
