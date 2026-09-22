@@ -5,8 +5,8 @@ Usage:
     DELAY_DATA_SOURCE=genuine python -m delay.prepare_training_data
 
 SAMPLE mode (default):
-    Generates the SAMPLE CSV if needed (deterministic), validates it (structural
-    + consistency checks), feature-engineers the leakage-safe feature matrix and
+    Regenerates the deterministic SAMPLE CSV, validates it (structural +
+    consistency checks), feature-engineers the leakage-safe feature matrix and
     writes ``training_data/delay/sample_delay_training_features.csv``.
 
 GENUINE mode (opt-in):
@@ -19,27 +19,23 @@ GENUINE mode (opt-in):
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
-
-import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from delay.config import (  # noqa: E402
     disclaimers,
     is_genuine,
-    model_paths,
     training_data_paths,
 )
+from delay.sample_generator import generate_sample_csv  # noqa: E402
 from delay.training_data import (  # noqa: E402
     DLY_FEATURE_COLUMNS,
     DLY_TARGET,
     GenuineDataNotReady,
     build_dataset,
     check_readiness_thresholds,
-    generate_sample_csv,
     load_sample_csv,
     load_training_data,
     readiness_report,
@@ -111,9 +107,11 @@ def main() -> int:
         return 0
 
     # ---------------- SAMPLE / DEMONSTRATION mode (default) --------------
-    if not paths["csv"].exists():
-        print("Sample CSV not found - generating deterministic SAMPLE data...")
-        generate_sample_csv()
+    # SAMPLE data is deterministic, so always regenerate it from the current
+    # generator. This prevents a stale checked-in CSV from silently preserving
+    # an older, poorly specified target distribution.
+    print("Regenerating deterministic SAMPLE data...")
+    generate_sample_csv(paths["csv"])
 
     df = load_sample_csv(paths["csv"])
     valid, errors, report = validate_dataset(df)
