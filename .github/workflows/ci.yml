@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'fix/**'
+      - 'improve/**'
   pull_request:
 
 permissions:
@@ -87,7 +88,7 @@ jobs:
         run: npm run build
 
   python:
-    name: Python syntax validation
+    name: Python validation
     runs-on: ubuntu-latest
 
     steps:
@@ -101,3 +102,12 @@ jobs:
 
       - name: Compile Python engine
         run: python -m compileall -q python_engine
+
+      - name: Install delay-model test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "numpy>=2,<3" "pandas>=2.2,<4" "scikit-learn>=1.5,<2" "joblib>=1.4,<2"
+
+      - name: Verify Delay Model #3 signal quality
+        working-directory: python_engine
+        run: python -m delay.test_delay_signal
