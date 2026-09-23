@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\FuelReport;
 use App\Services\FuelPredictionService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,27 +14,41 @@ class FuelPredictionController extends Controller
     public function index(Request $request, FuelPredictionService $fuelService): JsonResponse
     {
         $validated = $request->validate([
-            'fuel_report_ids' => ['required', 'array', 'min:1', 'max:20'],
-            'fuel_report_ids.*' => ['required', 'integer', 'min:1'],
+            'bus_nos' => ['required', 'array', 'min:1', 'max:12'],
+            'bus_nos.*' => ['required', 'string', 'max:50'],
+            'period' => ['nullable', 'string', 'max:30'],
         ]);
 
-        $ids = collect($validated['fuel_report_ids'])
-            ->map(fn ($id): int => (int) $id)
+        $busNos = collect($validated['bus_nos'])
+            ->map(fn ($bus): string => strtoupper(trim((string) $bus)))
+            ->filter()
             ->unique()
             ->values();
 
+        [$start, $end] = $this->periodBounds((string) ($validated['period'] ?? 'this-month'));
+
         $reports = FuelReport::query()
             ->with('gpsTripRecord')
-            ->whereIn('id', $ids)
+            ->whereBetween('report_date', [$start->toDateString(), $end->toDateString()])
+            ->whereNotNull('gps_trip_record_id')
+            ->where(function ($query) use ($busNos): void {
+                foreach ($busNos as $busNo) {
+                    $query->orWhereRaw('UPPER(TRIM(bus_no)) = ?', [$busNo]);
+                }
+            })
+            ->orderByDesc('report_date')
+            ->orderByDesc('id')
             ->get()
-            ->keyBy('id');
+            ->filter(fn (FuelReport $report): bool => $report->gpsTripRecord !== null)
+            ->groupBy(fn (FuelReport $report): string => strtoupper(trim((string) $report->bus_no)))
+            ->map(fn ($rows) => $rows->first());
 
         $payloads = [];
         $contexts = [];
 
-        foreach ($ids as $id) {
+        foreach ($busNos as $busNo) {
             /** @var FuelReport|null $report */
-            $report = $reports->get($id);
+            $report = $reports->get($busNo);
             $gps = $report?->gpsTripRecord;
 
             if (! $report || ! $gps || ! $gps->beginning_at) {
@@ -57,7 +72,7 @@ class FuelPredictionController extends Controller
                 $distance = (float) ($gps->mileage_km ?? 0);
             }
 
-            $payloads[(string) $id] = [
+            $payloads[$busNo] = [
                 'route' => $route,
                 'trip_started_at' => $gps->beginning_at->toIso8601String(),
                 'bus_no' => $report->bus_no ?: $gps->bus_no,
@@ -68,7 +83,8 @@ class FuelPredictionController extends Controller
                 'engine_on_hours' => $gps->engine_hours !== null ? (float) $gps->engine_hours : null,
             ];
 
-            $contexts[(string) $id] = [
+            $contexts[$busNo] = [
+                'fuel_report_id' => $report->id,
                 'report_date' => $report->report_date?->toDateString(),
                 'bus_no' => $report->bus_no,
                 'route' => $route,
@@ -87,10 +103,9 @@ class FuelPredictionController extends Controller
 
         $predictions = [];
 
-        foreach ($ids as $id) {
-            $key = (string) $id;
-            $report = $reports->get($id);
-            $prediction = $responses[$key] ?? null;
+        foreach ($busNos as $busNo) {
+            $report = $reports->get($busNo);
+            $prediction = $responses[$busNo] ?? null;
             $actual = $report ? (float) $report->fuel_liters : null;
             $predicted = is_array($prediction) && isset($prediction['predicted_fuel_liters'])
                 ? (float) $prediction['predicted_fuel_liters']
@@ -102,8 +117,8 @@ class FuelPredictionController extends Controller
                 ? ($variance / $predicted) * 100
                 : null;
 
-            $predictions[$key] = [
-                'fuel_report_id' => $id,
+            $predictions[$busNo] = [
+                'bus_no' => $busNo,
                 'report_found' => $report !== null,
                 'gps_linked' => $report?->gpsTripRecord !== null,
                 'available' => is_array($prediction),
@@ -111,7 +126,7 @@ class FuelPredictionController extends Controller
                 'actual_fuel_liters' => $actual,
                 'variance_liters' => $variance !== null ? round($variance, 2) : null,
                 'variance_percent' => $variancePercent !== null ? round($variancePercent, 1) : null,
-                'context' => $contexts[$key] ?? null,
+                'context' => $contexts[$busNo] ?? null,
             ];
         }
 
@@ -124,9 +139,24 @@ class FuelPredictionController extends Controller
             'is_production_model' => (bool) ($status['is_production_model'] ?? $modelReady),
             'model_version' => $status['model_version'] ?? null,
             'sample_count' => (int) ($status['sample_count'] ?? 0),
-            'metrics' => $status['metrics'] ?? null,
             'reason' => $status['reason'] ?? null,
+            'period' => $validated['period'] ?? 'this-month',
             'predictions' => $predictions,
         ]);
+    }
+
+    /** @return array{0: Carbon, 1: Carbon} */
+    private function periodBounds(string $period): array
+    {
+        $end = now()->endOfDay();
+        $start = match ($period) {
+            'last-30-days' => now()->subDays(29)->startOfDay(),
+            'last-90-days' => now()->subDays(89)->startOfDay(),
+            'last-12-months' => now()->subMonths(12)->startOfDay(),
+            'this-week' => now()->startOfWeek()->startOfDay(),
+            default => now()->startOfMonth(),
+        };
+
+        return [$start, $end];
     }
 }
