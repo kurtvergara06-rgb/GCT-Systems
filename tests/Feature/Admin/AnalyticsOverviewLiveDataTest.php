@@ -5,11 +5,22 @@ namespace Tests\Feature\Admin;
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AnalyticsOverviewLiveDataTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The overview now renders live Python model readiness. These tests
+        // focus on database-backed operational metrics, so keep the external
+        // status calls isolated and let the UI exercise its unavailable state.
+        Http::fake();
+    }
 
     public function test_overview_uses_live_database_values_instead_of_hard_coded_metrics(): void
     {
