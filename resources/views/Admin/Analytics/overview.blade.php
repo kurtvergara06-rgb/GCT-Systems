@@ -12,10 +12,19 @@
             <x-layout.topbar
                 title="Analytics Overview"
                 subtitle="Executive summary of descriptive, diagnostic, predictive, and prescriptive analytics across FROMS"
-                notification-count="6"
             />
 
-            <x-analytics.insight-toast stage="overview" domain="all" />
+            <form class="overview-period-filter" method="GET" action="{{ route('analytics.overview') }}">
+                <div>
+                    <label for="overview-period">Reporting period</label>
+                    <small>Trip and fuel metrics use this period; maintenance and inventory remain current snapshots.</small>
+                </div>
+                <select id="overview-period" name="period" onchange="this.form.submit()">
+                    @foreach($periodOptions as $value => $label)
+                        <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </form>
 
             {{-- =====================================================
                 EXECUTIVE SNAPSHOT
@@ -27,14 +36,12 @@
                         Analytical Module Overview
                     </span>
 
-                    <h2>
-                        Current records show stable fleet activity, with maintenance, inventory, and peak-period trip conditions requiring review.
-                    </h2>
+                    <h2>{{ $summaryText }}</h2>
 
                     <p>
-                        The overview summarizes measurable operational indicators from Fleet & Trip, Fuel,
-                        Bus Health, and Inventory Analytics, then surfaces decision-support recommendations
-                        without assigning an arbitrary overall readiness score.
+                        The overview summarizes recorded Fleet & Trip and Fuel activity for {{ $periodLabel }},
+                        together with current Bus Health and Inventory thresholds. Findings are generated only
+                        when the available records meet an explainable review rule.
                     </p>
 
                     <div class="snapshot-actions">
@@ -53,8 +60,8 @@
                 <div class="executive-score">
                     <div class="score-ring">
                         <div class="score-inner">
-                            <strong>8</strong>
-                            <span>Open Recommendations</span>
+                            <strong>{{ $openRecommendationCount }}</strong>
+                            <span>Current Findings</span>
                         </div>
                     </div>
 
@@ -62,24 +69,24 @@
                         <div>
                             <span class="score-dot red"></span>
                             <div>
-                                <strong>3 High</strong>
-                                <small>Priority actions</small>
+                                <strong>{{ $highRecommendationCount }} High</strong>
+                                <small>Priority review findings</small>
                             </div>
                         </div>
 
                         <div>
                             <span class="score-dot yellow"></span>
                             <div>
-                                <strong>3 Medium</strong>
-                                <small>Operational adjustments</small>
+                                <strong>{{ $mediumRecommendationCount }} Review</strong>
+                                <small>Operational review findings</small>
                             </div>
                         </div>
 
                         <div>
                             <span class="score-dot green"></span>
                             <div>
-                                <strong>2 Monitor</strong>
-                                <small>Continue observing</small>
+                                <strong>{{ $monitorRecommendationCount }} Monitor</strong>
+                                <small>Monitoring-only findings</small>
                             </div>
                         </div>
                     </div>
@@ -90,39 +97,37 @@
                 5.1 DESCRIPTIVE ANALYTICS
             ====================================================== --}}
             <section data-ajax-region="summary" class="analytics-kpi-strip">
-
                 <x-analytics.kpi
                     icon="fa-road"
                     label="Distance Traveled"
-                    value="26,126 km"
-                    description="Recorded fleet trip distance"
+                    :value="number_format($totalDistance, 1) . ' km'"
+                    :description="$periodLabel . ' processed GPS trip distance'"
                     icon-variant="blue"
                 />
 
                 <x-analytics.kpi
                     icon="fa-gas-pump"
                     label="Fuel Used"
-                    value="3,842 L"
-                    description="Recorded fleet fuel usage"
+                    :value="number_format($totalFuel, 1) . ' L'"
+                    :description="$periodLabel . ' recorded fuel usage'"
                     icon-variant="yellow"
                 />
 
                 <x-analytics.kpi
                     icon="fa-screwdriver-wrench"
                     label="PMS Attention"
-                    value="2"
-                    description="Priority buses nearing next PMS"
+                    :value="(string) $pmsAttentionCount"
+                    description="Current buses due soon or beyond PMS threshold"
                     icon-variant="red"
                 />
 
                 <x-analytics.kpi
                     icon="fa-box-open"
                     label="Stock Threshold Alerts"
-                    value="20"
-                    description="Items at or below reorder threshold"
+                    :value="(string) $inventoryAttentionCount"
+                    description="Current items at or below reorder threshold"
                     icon-variant="red"
                 />
-
             </section>
 
             {{-- =====================================================
@@ -134,12 +139,12 @@
                         <div>
                             <span class="panel-kicker">Current State</span>
                             <h2>Cross-Module Indicators</h2>
-                            <p>Direct measures from each analytics domain without composite scoring.</p>
+                            <p>Direct measures from available records without composite scoring.</p>
                         </div>
 
                         <span class="live-label">
                             <i class="fa-solid fa-circle"></i>
-                            Current Records
+                            Live Database Values
                         </span>
                     </div>
 
@@ -147,61 +152,77 @@
                         <a href="{{ route('analytics.fleet-trip') }}" class="health-module fleet">
                             <div class="health-module-top">
                                 <div class="health-module-icon"><i class="fa-solid fa-bus"></i></div>
-                                <span class="health-state good">Stable</span>
+                                <span class="health-state {{ $moduleStates['fleet']->class }}">{{ $moduleStates['fleet']->label }}</span>
                             </div>
 
                             <div class="health-module-content">
                                 <span>Fleet & Trip</span>
-                                <strong>286 Trips</strong>
-                                <p>26,126 km · 42.6 km/h avg.</p>
+                                <strong>{{ $tripCount }} {{ $tripCount === 1 ? 'Trip' : 'Trips' }}</strong>
+                                <p>{{ number_format($totalDistance, 1) }} km · {{ number_format($averageSpeed, 1) }} km/h avg.</p>
                             </div>
 
-                            <small>12 trips currently require performance review</small>
+                            <small>
+                                @if($tripCount === 0)
+                                    No processed GPS trip records in {{ $periodLabel }}
+                                @elseif($tripDiagnostics->review_count > 0)
+                                    {{ $tripDiagnostics->review_count }} trip record(s) meet review thresholds
+                                @else
+                                    No trip records meet the current review thresholds
+                                @endif
+                            </small>
                         </a>
 
                         <a href="{{ route('analytics.fuel') }}" class="health-module fuel">
                             <div class="health-module-top">
                                 <div class="health-module-icon"><i class="fa-solid fa-gas-pump"></i></div>
-                                <span class="health-state watch">Monitor</span>
+                                <span class="health-state {{ $moduleStates['fuel']->class }}">{{ $moduleStates['fuel']->label }}</span>
                             </div>
 
                             <div class="health-module-content">
                                 <span>Fuel</span>
-                                <strong>6.8 km/L</strong>
-                                <p>3,842 L recorded fuel use</p>
+                                <strong>{{ $fuelRecordCount > 0 ? number_format($fleetFuelAverage, 2) . ' km/L' : 'No data' }}</strong>
+                                <p>{{ number_format($totalFuel, 1) }} L recorded fuel use</p>
                             </div>
 
-                            <small>3 buses require efficiency-context review</small>
+                            <small>
+                                @if($fuelRecordCount === 0)
+                                    No fuel reports in {{ $periodLabel }}
+                                @elseif($fuelReviewCount > 0)
+                                    {{ $fuelReviewCount }} bus(es) meet fuel review rules
+                                @else
+                                    No buses meet the current fuel review rules
+                                @endif
+                            </small>
                         </a>
 
                         <a href="{{ route('analytics.bus-health') }}" class="health-module maintenance">
                             <div class="health-module-top">
                                 <div class="health-module-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                                <span class="health-state warning">Attention</span>
+                                <span class="health-state {{ $moduleStates['bus']->class }}">{{ $moduleStates['bus']->label }}</span>
                             </div>
 
                             <div class="health-module-content">
                                 <span>Bus Health</span>
-                                <strong>1,580 km</strong>
-                                <p>Nearest priority PMS runway</p>
+                                <strong>{{ $pmsMilestoneValue }}</strong>
+                                <p>{{ $pmsMilestoneDescription }}</p>
                             </div>
 
-                            <small>1 threshold reached · 2 priority buses approaching PMS</small>
+                            <small>{{ $overduePmsCount }} overdue · {{ $dueSoonPmsCount }} due soon</small>
                         </a>
 
                         <a href="{{ route('analytics.inventory') }}" class="health-module inventory">
                             <div class="health-module-top">
                                 <div class="health-module-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-                                <span class="health-state critical">Attention</span>
+                                <span class="health-state {{ $moduleStates['inventory']->class }}">{{ $moduleStates['inventory']->label }}</span>
                             </div>
 
                             <div class="health-module-content">
                                 <span>Inventory</span>
-                                <strong>20 Items</strong>
-                                <p>At or below reorder threshold</p>
+                                <strong>{{ $inventoryAttentionCount }} {{ $inventoryAttentionCount === 1 ? 'Item' : 'Items' }}</strong>
+                                <p>At or below current reorder threshold</p>
                             </div>
 
-                            <small>Forecasting uses stock-out history for early alerts</small>
+                            <small>{{ $inventoryCriticalCount }} out of stock · {{ $inventoryLowCount }} low stock</small>
                         </a>
                     </div>
                 </article>
@@ -271,10 +292,10 @@
                     <div>
                         <span class="panel-kicker">Operational Snapshot</span>
                         <h2>Recorded Performance and Early Alerts</h2>
-                        <p>Selected current indicators and forward-looking conditions from the aligned analytics pages.</p>
+                        <p>Selected current indicators and data-backed baseline conditions.</p>
                     </div>
 
-                    <span class="period-label">Current Month</span>
+                    <span class="period-label">{{ $periodLabel }}</span>
                 </div>
 
                 <div class="performance-layout">
@@ -282,13 +303,17 @@
                         <div class="trend-heading">
                             <div>
                                 <span>Trip Activity</span>
-                                <strong>286 completed trips</strong>
+                                <strong>{{ $tripCount }} recorded {{ $tripCount === 1 ? 'trip' : 'trips' }}</strong>
                             </div>
 
-                            <span class="trend-change positive">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                +8.2%
-                            </span>
+                            @if($tripGrowth !== null)
+                                <span class="trend-change {{ $tripGrowth >= 0 ? 'positive' : 'negative' }}">
+                                    <i class="fa-solid {{ $tripGrowth >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
+                                    {{ sprintf('%+.1f%%', $tripGrowth) }}
+                                </span>
+                            @else
+                                <span class="trend-change neutral">No prior baseline</span>
+                            @endif
                         </div>
 
                         <div class="mini-chart">
@@ -296,54 +321,44 @@
                             <div class="chart-grid line-2"></div>
                             <div class="chart-grid line-3"></div>
 
-                            <div class="chart-bar-group">
-                                <div class="mini-bar" style="height: 52%;"></div>
-                                <span>W1</span>
-                            </div>
-                            <div class="chart-bar-group">
-                                <div class="mini-bar" style="height: 67%;"></div>
-                                <span>W2</span>
-                            </div>
-                            <div class="chart-bar-group">
-                                <div class="mini-bar" style="height: 82%;"></div>
-                                <span>W3</span>
-                            </div>
-                            <div class="chart-bar-group">
-                                <div class="mini-bar" style="height: 72%;"></div>
-                                <span>W4</span>
-                            </div>
+                            @foreach($tripTrend as $point)
+                                <div class="chart-bar-group" title="{{ $point->count }} trip record(s)">
+                                    <div class="mini-bar" style="height: {{ $point->height }}%;"></div>
+                                    <span>{{ $point->label }}</span>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
 
                     <div class="performance-metrics">
                         <x-analytics.kpi
                             label="Avg. Trip Duration"
-                            value="54 min"
-                            description="12 Routes Active"
+                            :value="$tripCount > 0 ? number_format($averageTripDuration, 1) . ' min' : 'No data'"
+                            :description="$activeRouteCount . ' recorded route' . ($activeRouteCount === 1 ? '' : 's')"
                             icon="fa-clock"
                             icon-variant="blue"
                         />
 
                         <x-analytics.kpi
                             label="Projected Fuel Burn"
-                            value="3,980 L"
-                            description="+3.6% est. outlook"
+                            :value="$projectedFuelValue"
+                            :description="$projectedFuelDescription"
                             icon="fa-gas-pump"
                             icon-variant="yellow"
                         />
 
                         <x-analytics.kpi
                             label="Next PMS Milestone"
-                            value="1,580 km"
-                            description="Bus #015 runway"
+                            :value="$pmsMilestoneValue"
+                            :description="$pmsMilestoneDescription"
                             icon="fa-screwdriver-wrench"
                             icon-variant="red"
                         />
 
                         <x-analytics.kpi
                             label="Parts Requiring Restock"
-                            value="10 Items"
-                            description="Below buffer threshold"
+                            :value="$inventoryAttentionCount . ' ' . ($inventoryAttentionCount === 1 ? 'Item' : 'Items')"
+                            :description="$inventoryCriticalCount . ' out of stock · ' . $inventoryLowCount . ' low stock'"
                             icon="fa-box-open"
                             icon-variant="red"
                         />
@@ -359,7 +374,7 @@
                     <div>
                         <span class="panel-kicker">Diagnostic + Prescriptive</span>
                         <h2>Priority Findings</h2>
-                        <p>Evidence-backed findings that lead to reviewable operational recommendations.</p>
+                        <p>Only findings supported by the current database records are shown here.</p>
                     </div>
 
                     <a href="{{ route('analytics.recommendations') }}" class="view-all-link">
@@ -369,49 +384,33 @@
                 </div>
 
                 <div class="priority-findings-grid">
-                    <article class="priority-finding high">
-                        <div class="finding-top">
-                            <div class="finding-icon maintenance"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                            <span class="finding-priority high">High Priority</span>
-                        </div>
-                        <span class="finding-module">Bus Health</span>
-                        <h3>BUS-015 exceeded its PMS mileage threshold.</h3>
-                        <p>50,240 km recorded against a configured next PMS threshold of 50,000 km.</p>
-                        <a href="{{ route('analytics.bus-health') }}">Review Bus Health <i class="fa-solid fa-arrow-right"></i></a>
-                    </article>
-
-                    <article class="priority-finding high">
-                        <div class="finding-top">
-                            <div class="finding-icon inventory"><i class="fa-solid fa-box-open"></i></div>
-                            <span class="finding-priority high">High Priority</span>
-                        </div>
-                        <span class="finding-module">Inventory</span>
-                        <h3>Critical parts require replenishment review.</h3>
-                        <p>Brake Pad Set remains below reorder level and stock-out history supports early restocking review.</p>
-                        <a href="{{ route('analytics.inventory') }}">Review Inventory <i class="fa-solid fa-arrow-right"></i></a>
-                    </article>
-
-                    <article class="priority-finding medium">
-                        <div class="finding-top">
-                            <div class="finding-icon fuel"><i class="fa-solid fa-gas-pump"></i></div>
-                            <span class="finding-priority medium">Investigate</span>
-                        </div>
-                        <span class="finding-module">Fuel</span>
-                        <h3>Three buses require fuel-efficiency context review.</h3>
-                        <p>Compare km/L with distance, idling, trip activity, and maintenance condition before classifying wastage.</p>
-                        <a href="{{ route('analytics.fuel') }}">Review Fuel Analytics <i class="fa-solid fa-arrow-right"></i></a>
-                    </article>
-
-                    <article class="priority-finding low">
-                        <div class="finding-top">
-                            <div class="finding-icon fleet"><i class="fa-solid fa-route"></i></div>
-                            <span class="finding-priority low">Operational Review</span>
-                        </div>
-                        <span class="finding-module">Fleet & Trip</span>
-                        <h3>Peak-period performance may justify route or schedule review.</h3>
-                        <p>Recurring delay patterns, lower speeds, and longer travel times should inform—not automatically apply—route or schedule changes.</p>
-                        <a href="{{ route('analytics.fleet-trip') }}">Review Fleet Analytics <i class="fa-solid fa-arrow-right"></i></a>
-                    </article>
+                    @forelse($findings as $finding)
+                        <article class="priority-finding {{ $finding->severity }}">
+                            <div class="finding-top">
+                                <div class="finding-icon {{ $finding->icon_class }}">
+                                    <i class="fa-solid {{ $finding->icon }}"></i>
+                                </div>
+                                <span class="finding-priority {{ $finding->severity }}">{{ $finding->label }}</span>
+                            </div>
+                            <span class="finding-module">{{ $finding->module }}</span>
+                            <h3>{{ $finding->title }}</h3>
+                            <p>{{ $finding->description }}</p>
+                            <a href="{{ route($finding->route) }}">
+                                Review {{ $finding->module }}
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </article>
+                    @empty
+                        <article class="priority-finding empty">
+                            <div class="finding-top">
+                                <div class="finding-icon fleet"><i class="fa-solid fa-circle-check"></i></div>
+                                <span class="finding-priority low">No Current Finding</span>
+                            </div>
+                            <span class="finding-module">Cross-Module</span>
+                            <h3>No threshold-based priority finding is supported by the available records.</h3>
+                            <p>As new operational records are added, this section will populate from the same database-backed review rules.</p>
+                        </article>
+                    @endforelse
                 </div>
             </section>
 
@@ -420,9 +419,9 @@
                 <div>
                     <strong>Analytics are based on available FROMS records and explainable rules.</strong>
                     <p>
-                        Descriptive values summarize recorded data; diagnostic outputs identify patterns and possible contributing factors;
-                        predictive outputs estimate future conditions from historical trends and thresholds; and prescriptive outputs remain
-                        recommendations for authorized personnel review rather than automatic operational changes.
+                        Descriptive values summarize recorded data; diagnostic outputs identify measurable review signals;
+                        predictive baseline values appear only when sufficient historical records are available; and prescriptive
+                        outputs remain recommendations for authorized personnel review rather than automatic operational changes.
                     </p>
                 </div>
             </section>
