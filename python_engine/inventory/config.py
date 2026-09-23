@@ -1,28 +1,34 @@
 """Configuration for the Model #4 inventory demand-forecasting subsystem.
 
-Mirrors the ETA / Fuel config convention. The development pipeline operates
-on GENERATED SAMPLE data stored in the central training folder
-``training_data/inventory/`` (project root); it never reads or writes the
-Laravel inventory tables. When genuine ``stock_movements`` rows
-(``source = 'app'``) become available, set ``INVENTORY_DATA_SOURCE=genuine``
-to switch the extractor — see ``training_data.fetch_genuine_stock_movements``.
+Development may train on GENERATED / SYNTHETIC data stored under
+``training_data/inventory/``. Production must use genuine ``stock_movements``
+(``source='app'``) only. If genuine inventory history is insufficient, the
+model must report ``MODEL NOT READY`` rather than falling back to generated
+training data.
 """
 
 import os
 from pathlib import Path
 from typing import Dict
 
+from ml_runtime_policy import is_production_runtime
+
 DISCLAIMER = (
-    "SAMPLE / DEVELOPMENT DATA — NOT ACTUAL GCT OPERATIONAL DATA. "
-    "The current model is a development/prototype model trained on generated "
-    "sample data. It must not be presented as a model trained on actual GCT "
-    "operational inventory data."
+    "SYNTHETIC / DEVELOPMENT DATA — NOT ACTUAL GCT OPERATIONAL DATA. "
+    "Generated inventory data is allowed only for development/demo use and is "
+    "blocked from serving predictions in production."
 )
 
 
 def data_source() -> str:
-    """Return the training-data source key ('sample' default, 'genuine' opt-in)."""
-    return os.environ.get("INVENTORY_DATA_SOURCE", "sample").strip().lower()
+    """Return the requested inventory training-data source.
+
+    Development defaults to ``sample``. Production defaults to ``genuine``.
+    The runtime policy still blocks synthetic artifacts in production even if
+    ``INVENTORY_DATA_SOURCE=sample`` is explicitly configured.
+    """
+    default = "genuine" if is_production_runtime() else "sample"
+    return os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
 
 
 def data_thresholds() -> Dict[str, int]:
@@ -36,7 +42,7 @@ def data_thresholds() -> Dict[str, int]:
 
 
 def rf_convention() -> Dict[str, object]:
-    """Project-wide Random Forest convention (reused by ETA / Fuel / Operation AI)."""
+    """Project-wide Random Forest convention."""
     return {
         "n_estimators": 200,
         "max_depth": None,
@@ -60,24 +66,21 @@ def model_paths() -> Dict[str, Path]:
 
 
 def training_data_paths() -> Dict[str, Path]:
-    """Canonical paths for the inventory training datasets (central folder).
-
-    Follows the ETA / Fuel convention: the central ``training_data`` directory
-    lives at the repository root (``python_engine/config.py``'s 2nd parent).
-    """
+    """Canonical paths for inventory training datasets."""
     data_dir = Path(__file__).resolve().parents[2] / "training_data" / "inventory"
+    prefix = "genuine" if data_source() == "genuine" else "sample"
     return {
         "dir": data_dir,
-        "csv": data_dir / "sample_inventory_training.csv",
-        "features_csv": data_dir / "sample_inventory_training_features.csv",
+        "csv": data_dir / f"{prefix}_inventory_training.csv",
+        "features_csv": data_dir / f"{prefix}_inventory_training_features.csv",
     }
 
 
 def forecast_test_fraction() -> float:
-    """Fraction of the chronologically LATEST weeks reserved for the test set."""
+    """Fraction of the chronologically latest weeks reserved for the test set."""
     return float(os.environ.get("INVENTORY_TEST_FRACTION", "0.2"))
 
 
 def forecast_horizon() -> str:
-    """Forecast horizon label ('next_week' for the weekly development model)."""
+    """Forecast horizon label for the weekly model."""
     return "next_week"
