@@ -106,7 +106,7 @@ jobs:
       - name: Install Python model test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "numpy>=2,<3" "pandas>=2.2,<4" "scikit-learn>=1.5,<2" "joblib>=1.4,<2"
+          python -m pip install "fastapi>=0.115,<1" "numpy>=2,<3" "pandas>=2.2,<4" "scikit-learn>=1.5,<2" "joblib>=1.4,<2"
 
       - name: Verify required NLP modules
         working-directory: python_engine
