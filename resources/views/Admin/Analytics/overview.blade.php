@@ -2,6 +2,7 @@
     title="FROMS - Analytics Overview"
     :assets="[
         'resources/css/Admin/Analytics/overview/overview.css',
+        'resources/css/Admin/Analytics/overview/live-data.css',
         'resources/css/Admin/Analytics/design-system.css',
     ]"
 >
