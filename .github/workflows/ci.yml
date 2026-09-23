@@ -117,6 +117,10 @@ jobs:
         working-directory: python_engine
         run: python test_model_status_contracts.py
 
+      - name: Verify genuine Inventory Model #4 pipeline
+        working-directory: python_engine
+        run: python -m inventory.test_genuine_pipeline
+
       - name: Verify required NLP modules
         working-directory: python_engine
         run: python -m NLP.test_required_modules
