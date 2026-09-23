@@ -2,6 +2,12 @@
     'models' => [],
 ])
 
+@inject('aiModelStatusService', 'App\Services\AiModelStatusService')
+
+@php
+    $models = ! empty($models) ? $models : $aiModelStatusService->all();
+@endphp
+
 <section class="overview-panel ai-model-status-panel" aria-labelledby="ai-model-status-heading">
     <div class="panel-header">
         <div>
