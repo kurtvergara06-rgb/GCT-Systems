@@ -1,4 +1,10 @@
-"""FastAPI router for the fuel consumption prediction service."""
+"""FastAPI router for the fuel consumption prediction service.
+
+Model #2 is trained only from genuine linked GCT fuel/GPS records. The API
+keeps the historical ``source=ml`` field for compatibility while explicitly
+publishing the dataset source so the frontend cannot mistake the model for a
+sample/demo model.
+"""
 
 import logging
 from datetime import datetime
@@ -12,6 +18,9 @@ from .predict import fuel_readiness, predict_fuel_consumption
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+DATA_SOURCE = "genuine"
+DATASET_TYPE = "GENUINE GCT RECORDS"
 
 
 class FuelTripRequest(BaseModel):
@@ -37,6 +46,10 @@ class FuelTripResponse(BaseModel):
     success: bool
     model_ready: bool
     source: str
+    data_source: str
+    dataset_type: str
+    is_production_model: bool
+    model_version: str
     sample_count: int
     predicted_fuel_liters: Optional[float]
     feature_inputs: Dict[str, float]
@@ -47,6 +60,10 @@ class FuelStatusResponse(BaseModel):
     success: bool
     model_ready: bool
     source: str
+    data_source: str
+    dataset_type: str
+    is_production_model: bool
+    model_version: str
     sample_count: int
     model_path: str
     reason: str
@@ -59,6 +76,10 @@ def fuel_model_status() -> FuelStatusResponse:
         success=True,
         model_ready=readiness.ml_ready,
         source=readiness.source,
+        data_source=DATA_SOURCE,
+        dataset_type=DATASET_TYPE,
+        is_production_model=readiness.ml_ready,
+        model_version="FUEL_ML_READY" if readiness.ml_ready else "FUEL_ML_NOT_READY",
         sample_count=readiness.sample_count,
         model_path=str(readiness.model_path or ""),
         reason=readiness.reason,
@@ -97,11 +118,15 @@ def fuel_trip_prediction(payload: FuelTripRequest) -> FuelTripResponse:
         success=True,
         model_ready=True,
         source=prediction.source,
+        data_source=DATA_SOURCE,
+        dataset_type=DATASET_TYPE,
+        is_production_model=True,
+        model_version="FUEL_ML_READY",
         sample_count=readiness.sample_count,
         predicted_fuel_liters=prediction.predicted_fuel_liters,
         feature_inputs=prediction.feature_inputs,
         message=(
             f"Predicted Fuel Consumption: {prediction.predicted_fuel_liters:.2f} liters "
-            "based on historical GPS trip records."
+            "from the genuine GCT fuel/GPS-trained Random Forest model."
         ),
     )
