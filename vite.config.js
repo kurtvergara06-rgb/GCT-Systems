@@ -89,6 +89,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Admin/Analytics/overview/overview.css',
+                'resources/css/Admin/Analytics/overview/live-data.css',
                 'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
                 'resources/css/Admin/Analytics/overview/fleet-trip.css',
                 'resources/css/Admin/Analytics/overview/fleet-trip-redesign.css',
