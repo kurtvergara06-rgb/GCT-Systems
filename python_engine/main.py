@@ -1,19 +1,29 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
-import importlib
 import logging
 import shutil
 import uuid
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
+from NLP.anomaly_detector import anomaly_details
 from NLP.entity_extractor import (
     extract_entities,
     infer_records_from_table_rows,
 )
+from NLP.ingestion import stage_record
+from NLP.ner_extractor import extract_entities as extract_ner_entities
 from NLP.pdf_extractor import (
     extract_pdf_rows,
     extract_pdf_text,
 )
+from NLP.readiness import assert_required_modules, required_module_status
+from NLP.router import router as nlp_router
+from NLP.severity_ner_predictor import (
+    build_text as render_record_text,
+    predict_record as predict_ner_severity,
+)
+from NLP.severity_predictor import predict_record as predict_severity
 from NLP.text_cleaner import clean_text
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
@@ -23,90 +33,57 @@ from inventory.router import router as inventory_router
 from delay.router import router as delay_router
 
 
-def _optional_import(module_name: str, attribute: str):
-    """Best-effort import of an optional NLP annotation module.
+logger = logging.getLogger(__name__)
 
-    Returns the requested callable, or None when the module is not available
-    in this checkout. The severity / NER / anomaly / ingestion modules are not
-    core PDF record extraction: when absent, annotations simply degrade to
-    None / {} (see annotate_records) and the engine still starts.
-    """
-    try:
-        module = importlib.import_module(module_name)
-        return getattr(module, attribute)
-    except Exception as error:  # noqa: BLE001
-        logger.warning(
-            "Optional NLP module %s.%s is unavailable: %s",
-            module_name,
-            attribute,
-            error,
-        )
-        return None
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
 def annotate_records(records: list[dict]) -> list[dict]:
-    """Attach an NLP severity prediction and an anomaly flag to each record.
+    """Attach required NLP severity, NER, and anomaly analysis to records.
 
-    The severity prediction is a remark-driven classifier; the anomaly flag is
-    a robust unsupervised outlier score on the operational features. Either
-    one degrades gracefully (None) if its model is unavailable.
+    These capabilities are required parts of the deployed Python engine. A
+    failure on one individual record is still isolated so one malformed row
+    cannot take down a complete PDF upload. The classifiers themselves report
+    their real source and never claim trained-model readiness when it does not
+    exist.
     """
-    severity_model = _optional_import("NLP.severity_predictor", "predict_record")
-    severity_ner_model = _optional_import("NLP.severity_ner_predictor", "predict_record")
-    render_record_text = _optional_import("NLP.severity_ner_predictor", "build_text")
-    extract_ner_entities = _optional_import("NLP.ner_extractor", "extract_entities")
-    detect_anomaly = _optional_import("NLP.anomaly_detector", "anomaly_details")
-
     annotated = []
 
     for record in records:
         annotated_record = dict(record)
 
-        if severity_model is None:
+        try:
+            annotated_record["severity_prediction"] = predict_severity(record)
+        except Exception as error:  # noqa: BLE001
+            logger.warning("Severity classification failed for a record: %s", error)
             annotated_record["severity_prediction"] = None
-        else:
-            try:
-                annotated_record["severity_prediction"] = severity_model(record)
-            except FileNotFoundError:
-                annotated_record["severity_prediction"] = None
-            except Exception as error:
-                logger.warning("Severity prediction failed for a record: %s", error)
-                annotated_record["severity_prediction"] = None
 
-        # Custom NER-driven severity classifier (typed event + operational
-        # features), with entity extraction exposed for transparency.
-        if severity_ner_model is None or render_record_text is None:
+        try:
+            annotated_record["severity_prediction_ner"] = predict_ner_severity(record)
+        except Exception as error:  # noqa: BLE001
+            logger.warning("NER severity classification failed for a record: %s", error)
             annotated_record["severity_prediction_ner"] = None
-        else:
-            try:
-                annotated_record["severity_prediction_ner"] = severity_ner_model(record)
-            except FileNotFoundError:
-                annotated_record["severity_prediction_ner"] = None
-            except Exception as error:
-                logger.warning("NER severity prediction failed for a record: %s", error)
-                annotated_record["severity_prediction_ner"] = None
 
-        if extract_ner_entities is None or render_record_text is None:
+        try:
+            annotated_record["entities"] = extract_ner_entities(
+                render_record_text(record)
+            )
+        except Exception as error:  # noqa: BLE001
+            logger.warning("NER entity extraction failed for a record: %s", error)
             annotated_record["entities"] = {}
-        else:
-            try:
-                annotated_record["entities"] = extract_ner_entities(render_record_text(record))
-            except Exception as error:
-                logger.warning("NER entity extraction failed for a record: %s", error)
-                annotated_record["entities"] = {}
 
-        if detect_anomaly is None:
+        try:
+            details = anomaly_details(record)
+            annotated_record["anomaly"] = details.get("is_anomaly")
+            annotated_record["anomaly_score"] = details.get("anomaly_score")
+            annotated_record["anomaly_signals"] = details.get("signals", [])
+            annotated_record["anomaly_source"] = details.get("source")
+        except Exception as error:  # noqa: BLE001
+            logger.warning("Anomaly detection failed for a record: %s", error)
             annotated_record["anomaly"] = None
             annotated_record["anomaly_score"] = None
-        else:
-            try:
-                details = detect_anomaly(record)
-                annotated_record["anomaly"] = details.get("is_anomaly")
-                annotated_record["anomaly_score"] = details.get("anomaly_score")
-            except Exception as error:
-                logger.warning("Anomaly detection failed for a record: %s", error)
-                annotated_record["anomaly"] = None
-                annotated_record["anomaly_score"] = None
+            annotated_record["anomaly_signals"] = []
+            annotated_record["anomaly_source"] = None
 
         annotated.append(annotated_record)
 
@@ -114,46 +91,39 @@ def annotate_records(records: list[dict]) -> list[dict]:
 
 
 def _stage_and_annotate(records: list[dict], source_format: str) -> list[dict]:
-    """Annotate records with model predictions and persist them to staging.
+    """Annotate records and stage every result for human review.
 
-    Each record gets a unique _staged_id and is written to the ingestion
-    staging log so a reviewer can approve/label them for later retraining.
-    Staging is best-effort: a failure there must not fail the whole upload.
+    Ingestion is a required capability. A single record that cannot be staged
+    is retained in the upload response with an explicit staging error instead
+    of silently pretending it entered the review pipeline.
     """
-    stage_record = _optional_import("NLP.ingestion", "stage_record")
-
     annotated = annotate_records(records)
 
     for record in annotated:
         record["_staged_id"] = str(uuid.uuid4())
 
-        if stage_record is None:
-            continue
-
         try:
             stage_record(record, source_format)
-        except Exception as error:
-            logger.warning("Failed to stage a record for ingestion: %s", error)
+            record["_staging_status"] = "pending"
+        except Exception as error:  # noqa: BLE001
+            logger.exception("Failed to stage a record for ingestion.")
+            record["_staging_status"] = "failed"
+            record["_staging_error"] = str(error)
 
     return annotated
 
 
-from contextlib import asynccontextmanager
-
-
 def _warm_operation_ai_models() -> None:
-    """Pre-load the Operation AI ML models so the first live inference does not
-    pay the lazy joblib.load cost inside a request (which can exceed Laravel's
-    short service timeout). This is best-effort; failures only mean the first
-    request warms them lazily as before."""
+    """Pre-load latency-sensitive models used by live requests."""
     try:
         from operation_ai.ml import predict as ml_predict
 
         ml_predict.bus_readiness()
         ml_predict.driver_readiness()
     except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).warning(
-            "Operation AI model warm-up failed (will lazy-load): %s", exc
+        logger.warning(
+            "Operation AI model warm-up failed (will lazy-load): %s",
+            exc,
         )
 
     try:
@@ -161,20 +131,20 @@ def _warm_operation_ai_models() -> None:
 
         eta_readiness()
     except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).warning(
-            "ETA model warm-up failed (will lazy-load): %s", exc
+        logger.warning(
+            "ETA model warm-up failed (will lazy-load): %s",
+            exc,
         )
 
 
 @asynccontextmanager
 async def operation_ai_lifespan(app: FastAPI):
+    # Required NLP capabilities are a deployment contract. Missing modules or
+    # an unusable ingestion store should fail startup rather than be disguised
+    # as a complete AI deployment.
+    assert_required_modules()
     _warm_operation_ai_models()
     yield
-
-
-logger = logging.getLogger(__name__)
-
-MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
 app = FastAPI(
@@ -194,44 +164,42 @@ app.include_router(
     tags=["Business Analytics"],
 )
 
-# Register the Operation AI router during application startup.
 app.include_router(
     operation_ai_router,
     prefix="/operation/auto-scheduling/ai",
     tags=["Operation AI Assistance"],
 )
 
-# Register the ETA / trip-duration prediction router (Predictive Analytics).
 app.include_router(
     eta_router,
     prefix="/eta",
     tags=["Predictive Analytics"],
 )
 
-# Register the Fuel consumption prediction router (Model #2, trained on real
-# linked GPS + fuel report records).
 app.include_router(
     fuel_router,
     prefix="/fuel",
     tags=["Predictive Analytics"],
 )
 
-# Register the Inventory leading/forecasting router (Model #4, development
-# prototype trained on SAMPLE data).
 app.include_router(
     inventory_router,
     prefix="/inventory",
     tags=["Predictive Analytics"],
 )
 
-# Register the Delay-prediction router (Model #3). Source-aware: SAMPLE /
-# DEMONSTRATION prototype by default; with DELAY_DATA_SOURCE=genuine it serves
-# the genuine-operation model after the data-sufficiency gate has passed. It
-# NEVER falls back to the sample when genuine mode is requested.
 app.include_router(
     delay_router,
     prefix="/delay",
     tags=["Predictive Analytics"],
+)
+
+# Required NLP capability/readiness and human-review endpoints. The existing
+# PDF extraction endpoint below remains at /nlp/extract-pdf.
+app.include_router(
+    nlp_router,
+    prefix="/nlp",
+    tags=["NLP Processing"],
 )
 
 UPLOAD_FOLDER = Path("uploads")
@@ -249,10 +217,12 @@ def home() -> dict[str, str]:
 
 
 @app.get("/health")
-def health_check() -> dict[str, str]:
+def health_check() -> dict:
+    nlp = required_module_status()
     return {
-        "status": "online",
+        "status": "online" if nlp["ready"] else "degraded",
         "service": "GCT Python Engine",
+        "required_nlp_ready": nlp["ready"],
     }
 
 
