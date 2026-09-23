@@ -14,6 +14,7 @@ from NLP.anomaly_detector import anomaly_details
 from NLP.ingestion import approve_record, list_staged, promoted_records, stage_record
 from NLP.ner_extractor import extract_entities
 from NLP.readiness import assert_required_modules
+from NLP.router import router as nlp_router
 from NLP.severity_ner_predictor import predict_record as predict_ner_severity
 from NLP.severity_predictor import predict_record as predict_severity
 
@@ -31,6 +32,19 @@ def run() -> None:
         try:
             status = assert_required_modules()
             check("all required modules report ready", status["ready"] is True)
+
+            api_paths = {route.path for route in nlp_router.routes}
+            expected_paths = {
+                "/status",
+                "/ingestion/staged",
+                "/ingestion/promoted",
+                "/ingestion/{staged_id}/approve",
+                "/ingestion/{staged_id}/reject",
+            }
+            check(
+                "required NLP readiness/review API routes are registered",
+                expected_paths.issubset(api_paths),
+            )
 
             text = (
                 "BUS-015 was delayed by heavy traffic from Talisay to SM Seaside. "
