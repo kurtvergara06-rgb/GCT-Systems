@@ -232,10 +232,17 @@ class AiRecommendationResponse(BaseModel):
 
 class MlTrainingStatusResponse(BaseModel):
     success: bool
+    data_source: str = "genuine"
+    dataset_type: str = "GENUINE GCT GPS + ATTENDANCE RECORDS"
+    policy_enforced: bool = True
     bus_model_ready: bool = False
     driver_model_ready: bool = False
-    bus_source: str = "rule_fallback"  # ml | data | rule_fallback
+    bus_source: str = "rule_fallback"  # ml | data_fallback | rule_fallback
     driver_source: str = "rule_fallback"
+    bus_data_source: str = "genuine"
+    driver_data_source: str = "genuine"
+    bus_is_production_model: bool = False
+    driver_is_production_model: bool = False
     bus_reason: Optional[str] = None
     driver_reason: Optional[str] = None
     bus_sample_count: int = 0
