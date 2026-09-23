@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,77 @@ class DelayPredictionService
     public function predict(array $payload): ?array
     {
         return $this->post('/delay/predict', $payload);
+    }
+
+    /**
+     * Predict multiple scheduled trips concurrently.
+     *
+     * The returned map keeps the caller's keys. A failed trip resolves to
+     * null without failing the rest of the pool, so Analytics can degrade
+     * gracefully when one prediction is unavailable.
+     *
+     * @param  array<string, array<string, mixed>>  $keyedPayloads
+     * @return array<string, array<string, mixed>|null>
+     */
+    public function predictBatch(array $keyedPayloads): array
+    {
+        if ($keyedPayloads === []) {
+            return [];
+        }
+
+        $baseUrl = $this->baseUrl();
+
+        try {
+            $responses = Http::pool(function (Pool $pool) use ($keyedPayloads, $baseUrl): array {
+                $requests = [];
+
+                foreach ($keyedPayloads as $key => $payload) {
+                    $requests[$key] = $pool->as($key)
+                        ->acceptJson()
+                        ->asJson()
+                        ->connectTimeout(1)
+                        ->timeout(3)
+                        ->post($baseUrl.'/delay/predict', $payload);
+                }
+
+                return $requests;
+            });
+        } catch (\Throwable $exception) {
+            Log::warning(
+                'Delay ML prediction pool failed.',
+                ['exception' => $exception->getMessage()]
+            );
+
+            return array_fill_keys(array_keys($keyedPayloads), null);
+        }
+
+        $results = [];
+
+        foreach ($keyedPayloads as $key => $payload) {
+            try {
+                $response = $responses[$key] ?? null;
+
+                if (! $response instanceof Response) {
+                    $results[$key] = null;
+
+                    continue;
+                }
+
+                $results[$key] = $this->decode($response, '/delay/predict');
+            } catch (\Throwable $exception) {
+                Log::warning(
+                    'Delay ML prediction failed for a trip.',
+                    [
+                        'key' => $key,
+                        'exception' => $exception->getMessage(),
+                    ]
+                );
+
+                $results[$key] = null;
+            }
+        }
+
+        return $results;
     }
 
     /**
@@ -129,8 +201,7 @@ class DelayPredictionService
             return null;
         }
 
-        // The delay API uses "success": pred for predictions and "success":
-        // true for status; both are valid here.
+        // The delay API uses "success": true for both predictions and status.
         if (($data['success'] ?? false) !== true) {
             Log::warning(
                 'Delay ML endpoint response missing success flag.',

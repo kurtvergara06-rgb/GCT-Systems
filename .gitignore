@@ -91,6 +91,8 @@ python_engine/**/__pycache__/
 python_engine/**/*.pyc
 python_engine/uploads/*
 !python_engine/uploads/.gitkeep
+python_engine/training_data/nlp/*.jsonl
+python_engine/training_data/nlp/*.tmp
 
 # Local server scratch files
 server_command
