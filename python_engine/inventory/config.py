@@ -1,10 +1,8 @@
-"""Configuration for the Model #4 inventory demand-forecasting subsystem.
+"""Configuration for Inventory Model #4.
 
-Development may train on GENERATED / SYNTHETIC data stored under
-``training_data/inventory/``. Production must use genuine ``stock_movements``
-(``source='app'``) only. If genuine inventory history is insufficient, the
-model must report ``MODEL NOT READY`` rather than falling back to generated
-training data.
+Development may still use generated sample data for UI/model-development work.
+Production defaults to genuine GCT inventory ledger rows (``source='app'``)
+and never falls back to sample artifacts.
 """
 
 import os
@@ -21,23 +19,36 @@ DISCLAIMER = (
 
 
 def data_source() -> str:
-    """Return the requested inventory training-data source.
-
-    Development defaults to ``sample``. Production defaults to ``genuine``.
-    The runtime policy still blocks synthetic artifacts in production even if
-    ``INVENTORY_DATA_SOURCE=sample`` is explicitly configured.
-    """
+    """Return the requested inventory training-data source."""
     default = "genuine" if is_production_runtime() else "sample"
     return os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
 
 
 def data_thresholds() -> Dict[str, int]:
-    """Minimum data before the inventory model is considered usable."""
+    """Minimum history required before Model #4 is considered usable.
+
+    Genuine training is fleet-level spare-part demand rather than per-bus
+    demand because the authoritative warehouse ledger records the issued part,
+    quantity and reference but does not reliably identify a bus on every row.
+    The genuine gate therefore measures parts, weeks and real Stock Out events.
+    """
+    if data_source() == "genuine":
+        return {
+            "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "260")),
+            "min_buses": 1,
+            "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "20")),
+            "min_weeks": int(os.environ.get("INVENTORY_MIN_WEEKS", "13")),
+            "min_stock_out_events": int(
+                os.environ.get("INVENTORY_MIN_STOCK_OUT_EVENTS", "500")
+            ),
+        }
+
     return {
         "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "1000")),
         "min_buses": int(os.environ.get("INVENTORY_MIN_BUSES", "3")),
         "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "10")),
         "min_weeks": int(os.environ.get("INVENTORY_MIN_WEEKS", "13")),
+        "min_stock_out_events": 0,
     }
 
 
@@ -77,10 +88,9 @@ def training_data_paths() -> Dict[str, Path]:
 
 
 def forecast_test_fraction() -> float:
-    """Fraction of the chronologically latest weeks reserved for the test set."""
+    """Fraction of chronologically latest weeks reserved for testing."""
     return float(os.environ.get("INVENTORY_TEST_FRACTION", "0.2"))
 
 
 def forecast_horizon() -> str:
-    """Forecast horizon label for the weekly model."""
     return "next_week"

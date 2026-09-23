@@ -1,9 +1,8 @@
-"""FastAPI router for the inventory demand-forecasting service (Model #4).
+"""FastAPI router for Inventory Model #4.
 
-Generated/synthetic training data remains available for explicit development
-and demo use. Production enforces the shared genuine-data policy: if a genuine
-model is not ready, this API reports ``MODEL NOT READY`` and refuses to serve a
-synthetic forecast.
+Production accepts only a genuine inventory artifact. Genuine forecasting is
+fleet-level by spare part; bus_id remains optional context for existing clients
+and is not fabricated into the training history.
 """
 
 import logging
@@ -20,31 +19,45 @@ from .predict import (
     prediction_to_dict,
     reset_cache,
 )
+from .training_data import GENUINE_SCOPE_ID
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
 
 
 class InventoryPredictionRequest(BaseModel):
-    bus_id: str = Field(..., description="Bus identifier, e.g. 'GCT-101'.")
     part_id: str = Field(..., description="Inventory part id or part name.")
-    forecast_date: Optional[datetime] = Field(default=None, description="Forecast week (defaults to next Monday).")
-    current_stock: Optional[float] = Field(default=None, description="Current on-hand stock (falls back to the part training mean).")
-    vehicle_mileage: Optional[float] = Field(default=None, description="Bus mileage override (falls back to the bus training mean).")
-    breakdown_count_lag1: Optional[int] = Field(default=None, description="Breakdowns last week (defaults to 0).")
-    maintenance_type_lag1: Optional[str] = Field(default=None, description="Maintenance type last week (Preventive / Corrective / None).")
-    demand_lag1: Optional[float] = Field(default=None, description="Issued quantity last week (falls back to part training mean).")
-    demand_lag2: Optional[float] = Field(default=None, description="Issued quantity two weeks ago.")
-    rolling_demand_4w: Optional[float] = Field(default=None, description="Total issued quantity over the last 4 weeks.")
-    rolling_demand_8w: Optional[float] = Field(default=None, description="Total issued quantity over the last 8 weeks.")
-    days_since_last_issue: Optional[float] = Field(default=None, description="Days since the last issuance (falls back to part training mean).")
+    bus_id: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional bus context for compatibility. Genuine Model #4 forecasts "
+            "fleet-level demand by part and does not invent per-bus history."
+        ),
+    )
+    forecast_date: Optional[datetime] = Field(
+        default=None, description="Forecast week (defaults to next Monday)."
+    )
+    current_stock: Optional[float] = Field(
+        default=None, description="Current on-hand stock."
+    )
+    vehicle_mileage: Optional[float] = None
+    breakdown_count_lag1: Optional[int] = None
+    maintenance_type_lag1: Optional[str] = None
+    demand_lag1: Optional[float] = None
+    demand_lag2: Optional[float] = None
+    rolling_demand_4w: Optional[float] = None
+    rolling_demand_8w: Optional[float] = None
+    days_since_last_issue: Optional[float] = None
 
 
 @router.get("/status")
 def inventory_model_status() -> dict:
     readiness = inventory_readiness()
-    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    source = (
+        readiness.source
+        if readiness.source in {"sample", "genuine"}
+        else readiness.data_source
+    )
     policy = evaluate_model_source("Inventory Model #4", source)
     effective_ready = bool(readiness.ml_ready and policy.allowed)
     genuine = policy.data_source == "genuine"
@@ -53,14 +66,21 @@ def inventory_model_status() -> dict:
         "success": True,
         "model_ready": effective_ready,
         "source": readiness.source,
-        "dataset_type": "GENUINE GCT RECORDS" if genuine else "SYNTHETIC / DEVELOPMENT",
+        "dataset_type": (
+            "GENUINE GCT INVENTORY LEDGER"
+            if genuine
+            else "SYNTHETIC / DEVELOPMENT"
+        ),
         "data_source": policy.data_source,
         "is_production_model": bool(genuine and effective_ready),
         "model_type": (
-            "Production Model" if genuine and effective_ready
-            else "Synthetic / Development Model" if policy.allowed
+            "Production Model"
+            if genuine and effective_ready
+            else "Synthetic / Development Model"
+            if policy.allowed
             else "MODEL NOT READY"
         ),
+        "forecast_scope": "fleet_part" if genuine else "bus_part",
         "sample_count": readiness.sample_count,
         "model_path": str(readiness.model_path or ""),
         "runtime_mode": policy.runtime_mode,
@@ -69,7 +89,7 @@ def inventory_model_status() -> dict:
         "reason": readiness.reason if policy.allowed else policy.reason,
         "message": readiness.message if policy.allowed else policy.model_ready_message,
         "disclaimer": (
-            "GENUINE GCT OPERATIONAL DATA"
+            "GENUINE GCT OPERATIONAL INVENTORY DATA"
             if genuine
             else "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
         ),
@@ -79,12 +99,15 @@ def inventory_model_status() -> dict:
 @router.post("/predict")
 def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
     readiness = inventory_readiness()
-    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    source = (
+        readiness.source
+        if readiness.source in {"sample", "genuine"}
+        else readiness.data_source
+    )
     policy = evaluate_model_source("Inventory Model #4", source)
 
     if not policy.allowed:
         raise HTTPException(status_code=503, detail=policy.reason)
-
     if not readiness.ml_ready:
         raise HTTPException(
             status_code=503,
@@ -94,8 +117,9 @@ def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
             ),
         )
 
+    request_bus = payload.bus_id or GENUINE_SCOPE_ID
     prediction = predict_inventory_demand(
-        bus_id=payload.bus_id,
+        bus_id=request_bus,
         part_id=payload.part_id,
         forecast_date=payload.forecast_date,
         current_stock=payload.current_stock,
@@ -110,21 +134,16 @@ def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
     )
 
     if prediction is None:
-        logger.warning(
-            "Inventory prediction failed for bus=%s part=%s",
-            payload.bus_id,
-            payload.part_id,
-        )
+        logger.warning("Inventory prediction unavailable for part=%s", payload.part_id)
         raise HTTPException(
             status_code=404,
             detail="Unknown part or model unavailable for this request.",
         )
 
-    return prediction_to_dict(prediction, payload.bus_id, payload.part_id)
+    return prediction_to_dict(prediction, request_bus, payload.part_id)
 
 
 @router.post("/cache/reset")
 def reset_prediction_cache() -> dict:
-    """Drop lazy-loaded artifacts (used by ops/tests, not by normal traffic)."""
     reset_cache()
     return {"success": True, "message": "Inventory model cache reset."}
