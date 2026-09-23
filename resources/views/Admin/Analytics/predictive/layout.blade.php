@@ -36,10 +36,18 @@
         $pageAssets[] = $domainStyles[$activeDomain];
     }
 
+    if ($activeDomain === 'fuel') {
+        $pageAssets[] = 'resources/css/Admin/Analytics/predictive/fuel-model.css';
+    }
+
     $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
     $pageAssets[] = $activeDomain === 'fleet-trip'
         ? 'resources/js/Admin/Analytics/predictive/fleet.js'
         : 'resources/js/Admin/Analytics/predictive/charts.js';
+
+    if ($activeDomain === 'fuel') {
+        $pageAssets[] = 'resources/js/Admin/Analytics/predictive/fuel-model.js';
+    }
 @endphp
 
 <x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets">

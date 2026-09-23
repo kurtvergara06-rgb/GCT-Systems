@@ -1,7 +1,9 @@
 """FastAPI router for the inventory demand-forecasting service (Model #4).
 
-Development prototype trained on GENERATED SAMPLE data. See the DISCLAIMER
-in the payloads - this must never be presented as a production model.
+Generated/synthetic training data remains available for explicit development
+and demo use. Production enforces the shared genuine-data policy: if a genuine
+model is not ready, this API reports ``MODEL NOT READY`` and refuses to serve a
+synthetic forecast.
 """
 
 import logging
@@ -11,6 +13,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from ml_runtime_policy import evaluate_model_source, synthetic_models_allowed
 from .predict import (
     inventory_readiness,
     predict_inventory_demand,
@@ -41,36 +44,53 @@ class InventoryPredictionRequest(BaseModel):
 @router.get("/status")
 def inventory_model_status() -> dict:
     readiness = inventory_readiness()
+    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    policy = evaluate_model_source("Inventory Model #4", source)
+    effective_ready = bool(readiness.ml_ready and policy.allowed)
+    genuine = policy.data_source == "genuine"
+
     return {
         "success": True,
-        "model_ready": readiness.ml_ready,
+        "model_ready": effective_ready,
         "source": readiness.source,
-        "dataset_type": "SAMPLE / DEVELOPMENT" if readiness.source == "sample" else "genuine",
-        "data_source": readiness.data_source,
-        "is_production_model": readiness.source == "genuine",
+        "dataset_type": "GENUINE GCT RECORDS" if genuine else "SYNTHETIC / DEVELOPMENT",
+        "data_source": policy.data_source,
+        "is_production_model": bool(genuine and effective_ready),
         "model_type": (
-            "Sample / Development Model"
-            if readiness.source == "sample"
-            else "Production Model"
+            "Production Model" if genuine and effective_ready
+            else "Synthetic / Development Model" if policy.allowed
+            else "MODEL NOT READY"
         ),
         "sample_count": readiness.sample_count,
         "model_path": str(readiness.model_path or ""),
-        "reason": readiness.reason,
-        "message": readiness.message,
-        "disclaimer": "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA",
+        "runtime_mode": policy.runtime_mode,
+        "synthetic_allowed": synthetic_models_allowed(),
+        "policy_enforced": True,
+        "reason": readiness.reason if policy.allowed else policy.reason,
+        "message": readiness.message if policy.allowed else policy.model_ready_message,
+        "disclaimer": (
+            "GENUINE GCT OPERATIONAL DATA"
+            if genuine
+            else "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
+        ),
     }
 
 
 @router.post("/predict")
 def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
     readiness = inventory_readiness()
+    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    policy = evaluate_model_source("Inventory Model #4", source)
+
+    if not policy.allowed:
+        raise HTTPException(status_code=503, detail=policy.reason)
 
     if not readiness.ml_ready:
         raise HTTPException(
             status_code=503,
             detail=(
-                "Inventory model is not ready. "
-                "Run `python -m inventory.train_model` first."
+                "MODEL NOT READY: Inventory Model #4 does not have sufficient "
+                "genuine GCT stock-movement history for this runtime."
             ),
         )
 
