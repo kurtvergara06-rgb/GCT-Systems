@@ -6,6 +6,7 @@ on:
       - main
       - 'fix/**'
       - 'improve/**'
+      - 'feat/**'
   pull_request:
 
 permissions:
@@ -111,6 +112,10 @@ jobs:
       - name: Verify production genuine-data ML policy
         working-directory: python_engine
         run: python test_ml_production_policy.py
+
+      - name: Verify production model status contracts
+        working-directory: python_engine
+        run: python test_model_status_contracts.py
 
       - name: Verify required NLP modules
         working-directory: python_engine
