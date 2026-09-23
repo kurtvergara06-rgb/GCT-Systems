@@ -9,6 +9,34 @@ function escapeFuelHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+function clarifyFuelForecastLabels() {
+    const page = document.querySelector('.predictive-fuel-page');
+    if (!page) return;
+
+    const replacements = new Map([
+        [
+            'Recorded daily liters vs smooth ML forecast projection across the full period.',
+            'Recorded daily liters vs recorded-trend baseline projection across the selected period.',
+        ],
+        ['Smooth 7-day projection', '7-day baseline projection'],
+        ['AI Insight', 'Operational Insight'],
+        [
+            'Fuel projections are calculated from recorded telemetry, engine idle duration, and historical route baselines.',
+            'Trip-level Model #2 predictions use genuine GCT fuel/GPS records; demand projections remain recorded-trend baselines.',
+        ],
+    ]);
+
+    const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach((node) => {
+        const trimmed = node.nodeValue?.trim();
+        if (!trimmed || !replacements.has(trimmed)) return;
+        node.nodeValue = node.nodeValue.replace(trimmed, replacements.get(trimmed));
+    });
+}
+
 function prepareFuelModelColumn(table) {
     const headerRow = table.tHead?.rows?.[0];
     const body = table.tBodies?.[0];
@@ -111,6 +139,8 @@ function renderFuelPrediction(cell, item, response) {
 }
 
 async function loadFuelModelPredictions() {
+    clarifyFuelForecastLabels();
+
     const table = document.querySelector('.predictive-fuel-page .predictions-card table.predictive-table');
     if (!table) return;
 
