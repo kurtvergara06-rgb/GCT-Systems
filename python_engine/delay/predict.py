@@ -33,6 +33,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from ml_version_guard import safe_load_model
 from .config import disclaimers, is_genuine, model_paths, training_data_paths
 from .model import RISK_THRESHOLDS
 from .training_data import DLY_FEATURE_COLUMNS, SEASON_MAP
@@ -75,17 +76,19 @@ class DelayPrediction:
 _model = None
 _metadata = None
 _state = None
+_load_error = None
 _loaded = False
 
 
 def _load_artifacts() -> None:
-    global _model, _metadata, _state, _loaded
+    global _model, _metadata, _state, _load_error, _loaded
     if _loaded:
         return
     _loaded = True
     _model = None
     _metadata = None
     _state = {}
+    _load_error = None
     try:
         if _paths["state"].exists():
             _state = json.loads(_paths["state"].read_text(encoding="utf-8"))
@@ -98,18 +101,22 @@ def _load_artifacts() -> None:
         logger.warning("Failed to read delay feature layout: %s", exc)
     try:
         if _paths["model"].exists():
-            _model = joblib.load(_paths["model"])
+            _model, reason = safe_load_model(_paths["model"], "delay_arrival_rf", _state)
+            if _model is None:
+                _load_error = reason
     except Exception as exc:  # noqa: BLE001
         logger.warning("Failed to load delay model %s: %s", _paths["model"], exc)
         _model = None
+        _load_error = str(exc)
 
 
 def reset_cache() -> None:
     """Clear lazy caches (used by tests to force a reload)."""
-    global _model, _metadata, _state, _loaded
+    global _model, _metadata, _state, _load_error, _loaded
     _model = None
     _metadata = None
     _state = {}
+    _load_error = None
     _loaded = False
 
 
@@ -162,7 +169,7 @@ def delay_readiness() -> DelayReadiness:
         return DelayReadiness(
             ml_ready=False,
             source=source,
-            reason="Delay model is not trained or could not be loaded.",
+            reason=_load_error or "Delay model is not trained or could not be loaded.",
             sample_count=sample_count,
             message=(_state or {}).get("message", "DELAY_ML_NOT_READY"),
             model_path=_paths["model"],

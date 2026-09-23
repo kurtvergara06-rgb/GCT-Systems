@@ -29,6 +29,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from ml_version_guard import get_model_metadata
 from .config import disclaimers, forecast_test_fraction, model_paths, rf_convention
 from .training_data import (
     DLY_FEATURE_COLUMNS,
@@ -248,7 +249,14 @@ def save_state(result: DelayModelResult, paths: Optional[Dict[str, Path]] = None
     """Write a JSON state file describing delay model readiness."""
     paths = paths or model_paths()
     paths["dir"].mkdir(parents=True, exist_ok=True)
+    metadata = get_model_metadata(
+        model_name="delay_arrival_rf",
+        training_source=result.source,
+        model_version="1.0.0",
+        feature_schema_version="1.0",
+    )
     state = {
+        **metadata,
         "model_ready": result.trained,
         "message": (
             "DELAY_ML_READY (GENUINE DATA)" if (result.trained and result.source == "genuine")

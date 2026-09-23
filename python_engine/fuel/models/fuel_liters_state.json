@@ -1,12 +1,18 @@
 {
+  "model_name": "fuel_liters_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "genuine",
+  "trained_at": "2026-09-23T23:07:50.336615+00:00",
+  "feature_schema_version": "1.0",
   "model_ready": true,
   "sample_count": 156,
   "metrics": {
-    "mae": 0.2590863690476192,
-    "rmse": 0.3434059039127156,
+    "mae": 0.25908636904761906,
+    "rmse": 0.3434059039127154,
     "r2": 0.9072157555899573,
-    "train_mae": 0.1819794490847416,
-    "test_mae": 0.2590863690476192
+    "train_mae": 0.18197944908474162,
+    "test_mae": 0.25908636904761906
   },
   "target_range": {
     "min": 0.73,

@@ -24,6 +24,11 @@ def data_source() -> str:
     return os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
 
 
+def is_genuine() -> bool:
+    """Return True if data source is configured for genuine data."""
+    return data_source() == "genuine"
+
+
 def data_thresholds() -> Dict[str, int]:
     """Minimum history required before Model #4 is considered usable.
 

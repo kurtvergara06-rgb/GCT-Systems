@@ -1,12 +1,18 @@
 {
+  "model_name": "eta_duration_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "genuine",
+  "trained_at": "2026-09-23T23:08:09.055447+00:00",
+  "feature_schema_version": "1.0",
   "model_ready": true,
   "sample_count": 362,
   "metrics": {
-    "mae": 4.624494285365078,
-    "rmse": 6.132630990575449,
+    "mae": 4.624494285365079,
+    "rmse": 6.132630990575448,
     "r2": 0.8243474318833754,
     "train_mae": 3.387806776305145,
-    "test_mae": 4.624494285365078
+    "test_mae": 4.624494285365079
   },
   "target_range": {
     "min": 14.0,

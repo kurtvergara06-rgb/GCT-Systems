@@ -26,6 +26,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from ml_version_guard import safe_load_model
 from ..schemas import BusData, DriverData, TripData
 from .config import data_thresholds, model_paths
 from .features import (
@@ -46,6 +47,19 @@ _bus_model = None
 _driver_model = None
 _bus_loaded = False
 _driver_loaded = False
+_bus_load_error = None
+_driver_load_error = None
+
+
+def reset_cache() -> None:
+    """Clear lazy caches (used by tests to force a reload)."""
+    global _bus_model, _driver_model, _bus_loaded, _driver_loaded, _bus_load_error, _driver_load_error
+    _bus_model = None
+    _driver_model = None
+    _bus_loaded = False
+    _driver_loaded = False
+    _bus_load_error = None
+    _driver_load_error = None
 
 
 @dataclass
@@ -75,30 +89,34 @@ class PredictionOutcome:
         return self.bus_readiness.ml_ready or self.driver_readiness.ml_ready
 
 
-def _load_model_secret(path: Path):
-    """Lazy-load a joblib model; returns None if unavailable/broken."""
-    if not path.exists():
-        return None
-    try:
-        return joblib.load(path)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to load model %s: %s", path, exc)
-        return None
+def _raw_state() -> Dict:
+    if _paths["state"].exists():
+        try:
+            return json.loads(_paths["state"].read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    return {}
 
 
 def _load_bus_model():
-    global _bus_model, _bus_loaded
+    global _bus_model, _bus_loaded, _bus_load_error
     if not _bus_loaded:
         _bus_loaded = True
-        _bus_model = _load_model_secret(_paths["bus_model"])
+        state = _raw_state()
+        _bus_model, reason = safe_load_model(_paths["bus_model"], "scheduling_bus_rf", state)
+        if _bus_model is None:
+            _bus_load_error = reason
     return _bus_model
 
 
 def _load_driver_model():
-    global _driver_model, _driver_loaded
+    global _driver_model, _driver_loaded, _driver_load_error
     if not _driver_loaded:
         _driver_loaded = True
-        _driver_model = _load_model_secret(_paths["driver_model"])
+        state = _raw_state()
+        _driver_model, reason = safe_load_model(_paths["driver_model"], "scheduling_driver_rf", state)
+        if _driver_model is None:
+            _driver_load_error = reason
     return _driver_model
 
 
@@ -116,12 +134,7 @@ def _load_feature_layout(path: Path, expected: List[str]) -> Optional[List[str]]
 
 
 def _component_state(prefix: str) -> Dict:
-    state = {}
-    if _paths["state"].exists():
-        try:
-            state = json.loads(_paths["state"].read_text(encoding="utf-8"))
-        except Exception:  # noqa: BLE001
-            state = {}
+    state = _raw_state()
     return {
         "sample_count": int(state.get(f"{prefix}_sample_count", 0) or 0),
         "ready": bool(state.get(f"{prefix}_model_ready", False)),
@@ -137,7 +150,7 @@ def bus_readiness() -> ComponentReadiness:
         return ComponentReadiness(
             ml_ready=False,
             source="rule_fallback",
-            reason="Bus ML model is not trained or could not be loaded.",
+            reason=_bus_load_error or "Bus ML model is not trained or could not be loaded.",
             sample_count=state["sample_count"],
             model_path=_paths["bus_model"],
         )
@@ -170,7 +183,7 @@ def driver_readiness() -> ComponentReadiness:
         return ComponentReadiness(
             ml_ready=False,
             source="data_fallback",
-            reason="Driver ML model is not trained; using data-derived driver reliability.",
+            reason=_driver_load_error or "Driver ML model is not trained; using data-derived driver reliability.",
             sample_count=state["sample_count"],
             model_path=_paths["driver_model"],
         )
