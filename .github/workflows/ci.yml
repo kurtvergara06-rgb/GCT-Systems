@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -96,17 +96,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Compile Python engine
         run: python -m compileall -q python_engine
 
-      - name: Install delay-model test dependencies
+      - name: Install Python model test dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install "numpy>=2,<3" "pandas>=2.2,<4" "scikit-learn>=1.5,<2" "joblib>=1.4,<2"
+
+      - name: Verify required NLP modules
+        working-directory: python_engine
+        run: python -m NLP.test_required_modules
 
       - name: Verify Delay Model #3 signal quality
         working-directory: python_engine
