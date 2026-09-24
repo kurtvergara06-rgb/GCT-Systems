@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class AdminUserController extends Controller
 {
@@ -252,8 +253,21 @@ class AdminUserController extends Controller
 
     public function resetPassword(Request $request, User $user)
     {
+        $actor = $request->user();
+
+        abort_unless(
+            $actor && $actor->hasSystemPermission('administration', 'full_control'),
+            403
+        );
+
+        if ($this->isProtectedSystemAdmin($user)) {
+            return redirect()
+                ->route('admin.users')
+                ->with('error', 'The protected System Admin password must be changed from Security & Password.');
+        }
+
         $validated = $request->validate([
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
         $user->update([
