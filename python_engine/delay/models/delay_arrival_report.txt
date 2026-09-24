@@ -5,41 +5,41 @@ Data source:          sample
 Prediction target:    arrival_delay_minutes (minutes)
 Feature inputs:       route_encoded, bus_encoded, driver_encoded, scheduled_departure_hour, scheduled_departure_minute, day_of_week, is_weekend, month, season_encoded, scheduled_duration_minutes, route_distance_km, route_prior_delay_mean_min, route_prior_delay_rate, driver_prior_delay_mean_min, driver_trip_seq, incident_before_departure, incident_breakdown_flag, incident_traffic_flag, incident_replacement_flag
 Samples available:    500
-Training rows:        395
-Test rows:            105
-Training period:      2026-03-24 .. 2026-07-30
-Test period:          2026-07-31 .. 2026-08-31
+Training rows:        401
+Test rows:            99
+Training period:      2026-03-19 .. 2026-07-29
+Test period:          2026-07-30 .. 2026-08-31
 
 Metrics (chronological held-out test set):
-  MAE : 1.55 minutes
-  RMSE: 1.87 minutes
-  R2  : 0.6292
+  MAE : 3.28 minutes
+  RMSE: 4.36 minutes
+  R2  : -0.0365
 
 Label range (training):
-  min : 1.8
-  max : 23.8
-  mean: 7.3
+  min : 0.7
+  max : 29.1
+  mean: 7.7
 
 Feature importances:
-  scheduled_departure_hour             0.2744
-  incident_before_departure            0.1360
-  driver_prior_delay_mean_min          0.0823
-  incident_traffic_flag                0.0675
-  route_prior_delay_rate               0.0517
-  route_prior_delay_mean_min           0.0498
-  scheduled_departure_minute           0.0449
-  driver_encoded                       0.0397
-  day_of_week                          0.0359
-  scheduled_duration_minutes           0.0358
-  month                                0.0318
-  incident_breakdown_flag              0.0316
-  bus_encoded                          0.0304
-  season_encoded                       0.0253
-  route_distance_km                    0.0181
-  route_encoded                        0.0176
-  is_weekend                           0.0172
-  incident_replacement_flag            0.0073
-  driver_trip_seq                      0.0027
+  driver_prior_delay_mean_min          0.1596
+  route_prior_delay_mean_min           0.1037
+  route_prior_delay_rate               0.0995
+  scheduled_departure_hour             0.0948
+  scheduled_departure_minute           0.0911
+  scheduled_duration_minutes           0.0810
+  bus_encoded                          0.0728
+  driver_encoded                       0.0662
+  day_of_week                          0.0620
+  month                                0.0597
+  route_distance_km                    0.0333
+  route_encoded                        0.0310
+  season_encoded                       0.0271
+  is_weekend                           0.0121
+  driver_trip_seq                      0.0061
+  incident_before_departure            0.0000
+  incident_breakdown_flag              0.0000
+  incident_traffic_flag                0.0000
+  incident_replacement_flag            0.0000
 
 Risk threshold layer (business rule, not ML):
   0-5  minutes  = On Time

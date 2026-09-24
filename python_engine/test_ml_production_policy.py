@@ -94,13 +94,18 @@ try:
     check("inventory status MODEL NOT READY", inventory_body["message"] == "MODEL NOT READY")
     check("inventory synthetic_allowed false", inventory_body["synthetic_allowed"] is False)
 
-    # Legacy generated-data scheduling NN is development-only. In production it
-    # must never load or contribute a synthetic score.
     from operation_ai import ml_scorer
 
     ml_scorer._model = None
     ml_scorer._model_loaded = False
     check("legacy synthetic scheduling model blocked", ml_scorer._load_model() is None)
+
+    # Incompatible scikit-learn version in production must never serve predictions
+    from ml_version_guard import validate_model_version
+
+    is_valid, reason = validate_model_version("test_rf", {"sklearn_version": "0.99.0"})
+    check("incompatible scikit-learn version blocked in production", not is_valid)
+    check("mismatch reason specifies MODEL NOT READY", "MODEL NOT READY" in reason)
 
     print("Production genuine-data ML policy PASS")
 finally:

@@ -29,6 +29,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
+from ml_version_guard import get_model_metadata
 from .config import model_paths
 from .training_data import FUEL_FEATURE_COLUMNS, FUEL_TARGET
 
@@ -209,7 +210,14 @@ def save_state(result: FuelModelResult, paths: Optional[Dict[str, Path]] = None)
     """Write a JSON state file describing fuel model readiness."""
     paths = paths or model_paths()
     paths["dir"].mkdir(parents=True, exist_ok=True)
+    metadata = get_model_metadata(
+        model_name="fuel_liters_rf",
+        training_source="genuine",
+        model_version="1.0.0",
+        feature_schema_version="1.0",
+    )
     state = {
+        **metadata,
         "model_ready": result.trained,
         "sample_count": result.n_samples,
         "metrics": result.metrics,

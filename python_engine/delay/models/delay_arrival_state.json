@@ -1,26 +1,32 @@
 {
+  "model_name": "delay_arrival_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "sample",
+  "trained_at": "2026-09-23T23:07:37.201000+00:00",
+  "feature_schema_version": "1.0",
   "model_ready": true,
   "message": "DELAY_ML_READY (SAMPLE/DEVELOPMENT)",
   "source": "sample",
-  "disclaimer": "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a demonstration prototype trained on a separate sample dataset because the current GCT database does not contain sufficient genuine historical DDR/schedule records for delay-model training. The sample dataset is not presented as actual GCT operational data, and the model is NOT trained on genuine GCT historical delay records.",
+  "disclaimer": "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a development/demo prototype trained on generated data. It must never be presented as genuine GCT history and is blocked from serving predictions in production.",
   "sample_count": 500,
-  "n_train": 395,
-  "n_test": 105,
+  "n_train": 401,
+  "n_test": 99,
   "metrics": {
-    "mae": 1.5499001112403006,
-    "rmse": 1.8733389768563757,
-    "r2": 0.6291987483271066,
-    "train_mae": 0.7262512627337021
+    "mae": 3.279332187411354,
+    "rmse": 4.355818052386041,
+    "r2": -0.036472148368468904,
+    "train_mae": 1.7190468893526811
   },
   "target_range": {
-    "min": 1.8,
-    "max": 23.8,
-    "mean": 7.297215189873418
+    "min": 0.7,
+    "max": 29.1,
+    "mean": 7.724688279301746
   },
   "periods": {
-    "train_start": "2026-03-24",
-    "train_end": "2026-07-30",
-    "test_start": "2026-07-31",
+    "train_start": "2026-03-19",
+    "train_end": "2026-07-29",
+    "test_start": "2026-07-30",
     "test_end": "2026-08-31"
   },
   "risk_thresholds": [

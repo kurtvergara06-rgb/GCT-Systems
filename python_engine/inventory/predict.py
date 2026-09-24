@@ -20,6 +20,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from ml_version_guard import safe_load_model
 from .config import model_paths
 from .training_data import GENUINE_SCOPE_ID, INVENTORY_FEATURE_COLUMNS
 
@@ -67,11 +68,12 @@ _model = None
 _metadata = None
 _state = None
 _part_by_name: Dict[str, str] = {}
+_load_error = None
 _loaded = False
 
 
 def _load_artifacts() -> None:
-    global _model, _metadata, _state, _loaded, _part_by_name
+    global _model, _metadata, _state, _loaded, _part_by_name, _load_error
     if _loaded:
         return
     _loaded = True
@@ -79,7 +81,7 @@ def _load_artifacts() -> None:
     _metadata = None
     _state = {}
     _part_by_name = {}
-
+    _load_error = None
     try:
         if _paths["state"].exists():
             _state = json.loads(_paths["state"].read_text(encoding="utf-8"))
@@ -92,10 +94,13 @@ def _load_artifacts() -> None:
         logger.warning("Failed to read inventory feature layout: %s", exc)
     try:
         if _paths["model"].exists():
-            _model = joblib.load(_paths["model"])
+            _model, reason = safe_load_model(_paths["model"], "inventory_demand_rf", _state)
+            if _model is None:
+                _load_error = reason
     except Exception as exc:  # noqa: BLE001
         logger.warning("Failed to load inventory model %s: %s", _paths["model"], exc)
         _model = None
+        _load_error = str(exc)
 
     if _metadata:
         for part_id, meta in (_metadata.get("part_metadata") or {}).items():
@@ -105,12 +110,14 @@ def _load_artifacts() -> None:
 
 
 def reset_cache() -> None:
-    global _model, _metadata, _state, _loaded, _part_by_name
+    """Clear lazy caches (used by tests to force a reload)."""
+    global _model, _metadata, _state, _loaded, _part_by_name, _load_error
     _model = None
     _metadata = None
     _state = {}
     _loaded = False
     _part_by_name = {}
+    _load_error = None
 
 
 def _artifact_source() -> str:
@@ -131,7 +138,7 @@ def inventory_readiness() -> InventoryReadiness:
         return InventoryReadiness(
             ml_ready=False,
             source=source,
-            reason="Inventory model is not trained or could not be loaded.",
+            reason=_load_error or "Inventory model is not trained or could not be loaded.",
             sample_count=sample_count,
             message=(_state or {}).get("message", "INVENTORY_ML_NOT_READY"),
             model_path=_paths["model"],

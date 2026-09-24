@@ -14,6 +14,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from ml_version_guard import get_model_metadata
 from .config import forecast_test_fraction, model_paths, rf_convention
 from .training_data import INVENTORY_FEATURE_COLUMNS, INVENTORY_TARGET, chronological_split
 
@@ -223,7 +224,14 @@ def save_state(result: InventoryModelResult, paths: Optional[Dict[str, Path]] = 
         if result.trained
         else "INVENTORY_ML_NOT_READY"
     )
+    metadata = get_model_metadata(
+        model_name="inventory_demand_rf",
+        training_source=result.source,
+        model_version="1.0.0",
+        feature_schema_version="1.0",
+    )
     state = {
+        **metadata,
         "model_ready": result.trained,
         "message": ready_message,
         "source": result.source,

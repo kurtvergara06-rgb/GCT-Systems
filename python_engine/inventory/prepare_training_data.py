@@ -1,9 +1,9 @@
 """CLI: prepare Inventory Model #4 training data.
 
-Development may prepare generated sample data. In genuine mode the command
-reads only application-written warehouse ledger rows (source='app'), builds a
-weekly fleet-level part-demand panel, validates the genuine history and writes
-both the auditable panel CSV and leakage-safe feature CSV.
+Modes:
+- sample: deterministic generated development CSV
+- demo: frontend-visible synthetic warehouse movements (source='demo')
+- genuine: application-written warehouse movements (source='app')
 """
 
 import logging
@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from inventory.config import data_source, training_data_paths  # noqa: E402
+from inventory.demo_data import fetch_demo_stock_movements  # noqa: E402
 from inventory.training_data import (  # noqa: E402
     INVENTORY_FEATURE_COLUMNS,
     build_dataset,
@@ -35,14 +36,26 @@ def main() -> int:
         print("Sample CSV not found - generating deterministic DEVELOPMENT data...")
         generate_sample_data.write_sample_csv()
 
-    df, loaded_source = load_training_data(paths["csv"] if source == "sample" else None)
+    if source == "demo":
+        df = fetch_demo_stock_movements()
+        loaded_source = "demo"
+    else:
+        df, loaded_source = load_training_data(
+            paths["csv"] if source == "sample" else None
+        )
 
-    if loaded_source == "genuine":
+    if loaded_source in {"genuine", "demo"}:
         paths["dir"].mkdir(parents=True, exist_ok=True)
         df.to_csv(paths["csv"], index=False)
 
     valid, errors, report = validate_dataset(df)
-    label = "GENUINE GCT INVENTORY LEDGER" if loaded_source == "genuine" else "SAMPLE / DEVELOPMENT"
+
+    if loaded_source == "genuine":
+        label = "GENUINE GCT INVENTORY LEDGER"
+    elif loaded_source == "demo":
+        label = "FRONTEND DEMO / SYNTHETIC WAREHOUSE DATA"
+    else:
+        label = "SAMPLE / DEVELOPMENT"
 
     print(f"\n=== Inventory Model #4 dataset report ({label}) ===")
     for key in [
@@ -69,6 +82,8 @@ def main() -> int:
         print(f"Feature rows:   {len(wide)}")
         print(f"Features:       {len(INVENTORY_FEATURE_COLUMNS)}")
         print(f"Source:         {loaded_source}")
+        if loaded_source == "demo":
+            print("DEMO / SYNTHETIC ONLY - not genuine GCT operational history.")
         return 0
 
     print("\nDataset is not ready for model training:")
@@ -76,6 +91,8 @@ def main() -> int:
         print(f"  - {error}")
     if loaded_source == "genuine":
         print("No synthetic fallback was used.")
+    elif loaded_source == "demo":
+        print("Run ClientDemoDataSeeder first and verify source='demo' stock movements exist.")
     return 1
 
 
