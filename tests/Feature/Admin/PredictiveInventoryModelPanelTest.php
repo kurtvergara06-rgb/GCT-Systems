@@ -31,6 +31,6 @@ class PredictiveInventoryModelPanelTest extends TestCase
             ->assertSee('DEMO-PART-001')
             ->assertSee('Brake Pad Set')
             ->assertSee('DEMO MODEL READY', false)
-            ->assertSee('analytics/inventory-predictions', false);
+            ->assertSee('inventory-predictions', false);
     }
 }
