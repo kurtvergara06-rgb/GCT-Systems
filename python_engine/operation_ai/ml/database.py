@@ -47,7 +47,14 @@ class DbConnection:
     def query(self, sql: str, params: Optional[tuple] = None) -> List[dict]:
         self.connect()
         with self._conn.cursor() as cursor:
-            cursor.execute(sql, params or ())
+            if params is None:
+                # Do not pass an empty tuple here. PyMySQL treats any supplied
+                # args as a request to apply Python %-style interpolation, so a
+                # literal SQL LIKE pattern such as 'DEMO-%' can otherwise raise
+                # TypeError: not enough arguments for format string.
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, params)
             return list(cursor.fetchall())
 
     def query_df(self, sql: str, params: Optional[tuple] = None) -> pd.DataFrame:
