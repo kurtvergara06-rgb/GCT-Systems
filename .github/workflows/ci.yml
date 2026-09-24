@@ -122,6 +122,10 @@ jobs:
         working-directory: python_engine
         run: python test_demo_ml_sources.py
 
+      - name: Verify DB literal-percent query handling
+        working-directory: python_engine
+        run: python test_db_query_percent_literal.py
+
       - name: Verify production model status contracts
         working-directory: python_engine
         run: python test_model_status_contracts.py
