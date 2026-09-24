@@ -22,10 +22,12 @@ class PredictiveInventoryModelEndpointTest extends TestCase
         $item = InventoryItem::create([
             'item_code' => 'DEMO-PART-001',
             'parts_name' => 'Brake Pad Set',
+            'item_name' => 'Brake Pad Set',
             'category' => 'Brakes',
             'on_hand' => 8,
             'quantity_available' => 8,
             'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
             'reorder_level' => 10,
             'status' => 'Low Stock',
         ]);
@@ -94,10 +96,12 @@ class PredictiveInventoryModelEndpointTest extends TestCase
         $item = InventoryItem::create([
             'item_code' => 'DEMO-PART-002',
             'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
             'category' => 'Filters',
             'on_hand' => 20,
             'quantity_available' => 20,
             'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
             'reorder_level' => 8,
             'status' => 'In Stock',
         ]);
