@@ -22,19 +22,42 @@ from inventory.training_data import (  # noqa: E402
     validate_dataset,
     write_features_csv,
 )
-from inventory.sample_data import generate_sample_data  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("prepare_inventory_data")
+
+
+def _ensure_sample_csv(paths) -> bool:
+    """Generate the legacy sample CSV only when sample mode actually needs it.
+
+    Demo and genuine modes must not depend on the optional legacy sample-data
+    generator. Keeping this import lazy prevents demo/genuine preparation from
+    crashing just because that optional module is absent from an installation.
+    """
+    if paths["csv"].exists():
+        return True
+
+    print("Sample CSV not found - generating deterministic DEVELOPMENT data...")
+    try:
+        from inventory.sample_data import generate_sample_data  # noqa: E402
+    except ModuleNotFoundError:
+        print(
+            "Inventory sample-data generator is not installed. Use "
+            "INVENTORY_DATA_SOURCE=demo for the frontend demo dataset, or "
+            "provide the sample CSV explicitly."
+        )
+        return False
+
+    generate_sample_data.write_sample_csv()
+    return paths["csv"].exists()
 
 
 def main() -> int:
     source = data_source()
     paths = training_data_paths()
 
-    if source == "sample" and not paths["csv"].exists():
-        print("Sample CSV not found - generating deterministic DEVELOPMENT data...")
-        generate_sample_data.write_sample_csv()
+    if source == "sample" and not _ensure_sample_csv(paths):
+        return 1
 
     if source == "demo":
         df = fetch_demo_stock_movements()
