@@ -44,13 +44,17 @@ class WarehousePartRequestController extends Controller
     |--------------------------------------------------------------------------
     | This page must show Maintenance Job Order part requests only.
     | Inventory restock requests like RST-2026-0001 must NOT appear here.
+    |
+    | Missing-parts copies are identified by the controlled remarks marker
+    | written by sendToPurchase(). Do not classify them by a broad "%-P%"
+    | pattern because legitimate PR numbers such as DEMO-PR-0001 contain "-P".
     */
     private function warehouseMaintenanceRequestQuery()
     {
         return PurchaseRequest::query()
             ->where(function ($q) {
-                $q->where('pr_no', 'not like', '%-P%')
-                    ->orWhereNull('pr_no');
+                $q->whereNull('remarks')
+                    ->orWhere('remarks', 'not like', 'Missing parts from %');
             })
             ->where(function ($q) {
                 $q->whereNull('job_order_no')
@@ -76,7 +80,7 @@ class WarehousePartRequestController extends Controller
     private function missingPartsPurchaseQuery()
     {
         return PurchaseRequest::query()
-            ->where('pr_no', 'like', '%-P%')
+            ->where('remarks', 'like', 'Missing parts from %')
             ->where(function ($q) {
                 $q->whereNull('job_order_no')
                     ->orWhere('job_order_no', '!=', 'RESTOCK');
@@ -99,7 +103,7 @@ class WarehousePartRequestController extends Controller
         |--------------------------------------------------------------------------
         | Show Maintenance PR only.
         | Hide:
-        | - purchase-side copied PRs like PR-2026-0001-P
+        | - purchase-side copied PRs created for missing Warehouse parts
         | - inventory restock requests like RST-2026-0001
         | - RESTOCK job_order_no / bus_no
         |--------------------------------------------------------------------------
