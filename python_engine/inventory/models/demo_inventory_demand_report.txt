@@ -1,0 +1,45 @@
+Inventory demand-forecasting model report (Model #4)
+========================================================
+Data source:          sample
+Dataset type:         SAMPLE / DEVELOPMENT
+Disclaimer:           SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA
+Forecast target:      quantity_issued (weekly spare-part demand)
+Forecast horizon:     next week
+Samples available:    432
+Training rows:        336
+Test rows:            96
+Training period:      2026-05-25 .. 2026-08-24
+Test period:          2026-08-31 .. 2026-09-21
+
+Metrics (chronological held-out test set):
+  MAE : 0.619 units/week
+  RMSE: 0.799 units/week
+  R2  : 0.8095
+
+Feature importances:
+  demand_lag1                        0.2873
+  rolling_demand_4w                  0.2528
+  demand_lag2                        0.1569
+  rolling_demand_8w                  0.0750
+  on_hand                            0.0551
+  elapsed_weeks                      0.0339
+  week_of_year                       0.0334
+  part_encoded                       0.0274
+  reorder_level                      0.0269
+  category_encoded                   0.0252
+  unit_encoded                       0.0107
+  month                              0.0097
+  quarter                            0.0058
+  bus_encoded                        0.0000
+  maintenance_type_lag1_encoded      0.0000
+  vehicle_mileage                    0.0000
+  breakdown_count_lag1               0.0000
+  supplier_lead_days                 0.0000
+  days_since_last_issue              0.0000
+
+Leakage controls:
+  - quantity_issued is target only, never an input
+  - current-week demand is excluded from lag/rolling features
+  - chronological train/test split; no random shuffling
+  - genuine mode uses only source='app' warehouse ledger rows
+  - genuine demand is fleet-level by part; no bus id is fabricated

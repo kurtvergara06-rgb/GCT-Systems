@@ -1,0 +1,49 @@
+{
+  "model_name": "delay_arrival_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "sample",
+  "trained_at": "2026-09-24T02:28:13.652371+00:00",
+  "feature_schema_version": "1.0",
+  "model_ready": true,
+  "message": "DELAY_ML_READY (SAMPLE/DEVELOPMENT)",
+  "source": "sample",
+  "disclaimer": "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a development prototype trained on generated data and is blocked from serving predictions in production.",
+  "sample_count": 460,
+  "n_train": 368,
+  "n_test": 92,
+  "metrics": {
+    "mae": 5.095137470363894,
+    "rmse": 6.188740142737688,
+    "r2": 0.5684909744324553,
+    "train_mae": 3.1687289349646273
+  },
+  "target_range": {
+    "min": 0.0,
+    "max": 51.0,
+    "mean": 12.160326086956522
+  },
+  "periods": {
+    "train_start": "2026-06-01",
+    "train_end": "2026-08-31",
+    "test_start": "2026-09-01",
+    "test_end": "2026-09-23"
+  },
+  "risk_thresholds": [
+    {
+      "max_minutes": 5,
+      "label": "On Time"
+    },
+    {
+      "max_minutes": 10,
+      "label": "Minor Delay"
+    },
+    {
+      "max_minutes": 20,
+      "label": "Moderate Delay"
+    },
+    {
+      "label": "High Delay"
+    }
+  ]
+}

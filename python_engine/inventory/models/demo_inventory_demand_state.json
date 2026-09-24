@@ -1,0 +1,33 @@
+{
+  "model_name": "inventory_demand_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "sample",
+  "trained_at": "2026-09-24T02:41:38.084860+00:00",
+  "feature_schema_version": "1.0",
+  "model_ready": true,
+  "message": "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)",
+  "source": "sample",
+  "dataset_type": "SAMPLE / DEVELOPMENT",
+  "disclaimer": "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA",
+  "sample_count": 432,
+  "n_train": 336,
+  "n_test": 96,
+  "metrics": {
+    "mae": 0.6188739751126674,
+    "rmse": 0.7994080141565173,
+    "r2": 0.8094748303808199,
+    "train_mae": 0.49191794645655984
+  },
+  "target_range": {
+    "min": 1.0,
+    "max": 8.0,
+    "mean": 4.005952380952381
+  },
+  "periods": {
+    "train_start": "2026-05-25",
+    "train_end": "2026-08-24",
+    "test_start": "2026-08-31",
+    "test_end": "2026-09-21"
+  }
+}
