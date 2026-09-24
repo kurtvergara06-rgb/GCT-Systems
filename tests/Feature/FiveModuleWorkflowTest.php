@@ -17,9 +17,13 @@ class FiveModuleWorkflowTest extends TestCase
 
     public function test_operation_incident_can_move_from_reported_to_responding(): void
     {
-        $user = User::factory()->create();
+        $operationUser = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
 
-        $this->actingAs($user)->post(route('incidents.store'), [
+        $this->actingAs($operationUser)->post(route('incidents.store'), [
             'incident_type' => 'Bus Breakdown',
             'location' => 'Test terminal',
             'description' => 'Engine stopped during a trip.',
@@ -28,7 +32,7 @@ class FiveModuleWorkflowTest extends TestCase
         $incident = Incident::query()->firstOrFail();
         $this->assertSame('Reported', $incident->status);
 
-        $this->actingAs($user)->put(route('incidents.update', $incident), [
+        $this->actingAs($operationUser)->put(route('incidents.update', $incident), [
             'status' => 'Responding',
             'location' => 'Test terminal',
             'resolution_notes' => 'Operations dispatched assistance.',
@@ -39,7 +43,26 @@ class FiveModuleWorkflowTest extends TestCase
 
     public function test_maintenance_warehouse_purchase_and_inventory_round_trip_stays_synchronized(): void
     {
-        $user = User::factory()->create();
+        $maintenanceStaff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        $maintenanceHead = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $warehouseUser = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $purchaseUser = User::factory()->create([
+            'department' => 'Purchase',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
 
         $jobOrder = JobOrder::create([
             'job_order_no' => 'JO-FLOW-0001',
@@ -53,7 +76,7 @@ class FiveModuleWorkflowTest extends TestCase
             'part_status' => 'Not Requested',
         ]);
 
-        $this->actingAs($user)
+        $this->actingAs($maintenanceStaff)
             ->post(route('job-orders.create-pr', $jobOrder))
             ->assertRedirect();
 
@@ -64,14 +87,14 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('Submitted', $originalPr->status);
         $this->assertSame('Submitted', $jobOrder->fresh()->part_status);
 
-        $this->actingAs($user)
+        $this->actingAs($maintenanceHead)
             ->post(route('purchase-requests.approve', $originalPr))
             ->assertRedirect();
 
         $this->assertSame('Approved', $originalPr->fresh()->status);
         $this->assertSame('Approved', $jobOrder->fresh()->part_status);
 
-        $this->actingAs($user)
+        $this->actingAs($warehouseUser)
             ->post(route('part-requests.send-to-purchase', $originalPr))
             ->assertRedirect();
 
@@ -83,7 +106,7 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('For Purchase', $purchasePr->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
-        $this->actingAs($user)->post(route('purchase-orders.store'), [
+        $this->actingAs($purchaseUser)->post(route('purchase-orders.store'), [
             'purchase_request_id' => $purchasePr->id,
             'supplier_name' => 'Flow Supplier',
             'status' => 'Ordered',
@@ -102,13 +125,13 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('Ordered', $purchasePr->fresh()->status);
         $this->assertSame('Ordered', $jobOrder->fresh()->part_status);
 
-        $this->actingAs($user)
+        $this->actingAs($purchaseUser)
             ->patch(route('purchase-orders.update-status', $purchaseOrder), [
                 'status' => 'For Delivery',
             ])
             ->assertRedirect('/purchase-orders');
 
-        $this->actingAs($user)
+        $this->actingAs($warehouseUser)
             ->patch(route('purchase-orders.update-status', $purchaseOrder), [
                 'status' => 'Delivered',
                 'warehouse_receive' => 1,
@@ -124,7 +147,7 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('Delivered', $jobOrder->fresh()->part_status);
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
 
-        $this->actingAs($user)
+        $this->actingAs($warehouseUser)
             ->post(route('part-requests.issue', $originalPr))
             ->assertRedirect();
 
