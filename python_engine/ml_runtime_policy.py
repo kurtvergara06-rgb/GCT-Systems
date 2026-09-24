@@ -8,12 +8,23 @@ Runtime mode resolution:
 2. Render automatically counts as production when ``RENDER=true``.
 3. ``APP_ENV=production`` also counts as production.
 4. Everything else defaults to development.
+
+For local development, the repository-root ``.env`` file is loaded when this
+module is imported. Existing process environment variables always win, so
+Render/runtime configuration cannot be overwritten by the local dotenv file.
 """
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+_ROOT_ENV = Path(__file__).resolve().parents[1] / ".env"
+if _ROOT_ENV.exists():
+    load_dotenv(_ROOT_ENV, override=False)
 
 _TRUE_VALUES = {"1", "true", "yes", "on"}
 _PRODUCTION_VALUES = {"production", "prod", "live"}
