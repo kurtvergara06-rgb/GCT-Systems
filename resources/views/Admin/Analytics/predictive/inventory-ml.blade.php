@@ -63,6 +63,13 @@
     const statusEl = document.getElementById('inventory-model4-status');
     const disclaimerEl = document.getElementById('inventory-model4-disclaimer');
 
+    const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+
     const setStatus = (label, detail = '') => {
         statusEl.innerHTML = '';
         const badge = document.createElement('span');
@@ -130,15 +137,18 @@
                 const prediction = record.prediction;
                 const quantity = Number(prediction.predicted_quantity_issued ?? 0);
                 const orderQty = Number(prediction.suggested_order_qty ?? 0);
-                const unit = prediction.unit || record.context?.unit || 'units';
+                const unit = escapeHtml(prediction.unit || record.context?.unit || 'units');
+                const onHand = escapeHtml(record.context?.on_hand ?? '—');
+                const reorderLevel = escapeHtml(record.context?.reorder_level ?? '—');
+                const recommendedAction = escapeHtml(prediction.recommended_action || 'No action required.');
                 const riskStatus = String(prediction.risk_status || 'NORMAL').replaceAll('_', ' ');
 
                 risk.textContent = riskStatus;
                 body.innerHTML = `
                     <div style="display:grid;gap:5px;">
                         <div><strong style="color:var(--text-color,#111827);">${quantity.toFixed(2)} ${unit}</strong> predicted next week</div>
-                        <div>On hand: <strong>${record.context?.on_hand ?? '—'}</strong> · Reorder: <strong>${record.context?.reorder_level ?? '—'}</strong></div>
-                        <div>${prediction.recommended_action || 'No action required.'}</div>
+                        <div>On hand: <strong>${onHand}</strong> · Reorder: <strong>${reorderLevel}</strong></div>
+                        <div>${recommendedAction}</div>
                         <div>Suggested order: <strong>${orderQty.toFixed(2)} ${unit}</strong></div>
                     </div>`;
             });
