@@ -137,7 +137,9 @@
                 @endphp
 
                 <tr class="{{ $rowClass }}">
-                  <td>{{ $item->item_code }}</td>
+                  <td>
+                    <x-ui.id-badge :value="$item->item_code" />
+                  </td>
                   <td>{{ $item->item_name }}</td>
                   <td>{{ $item->category }}</td>
                   <td><strong>{{ $item->quantity_available }}</strong></td>
