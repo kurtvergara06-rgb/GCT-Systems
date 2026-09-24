@@ -118,6 +118,10 @@ jobs:
         working-directory: python_engine
         run: python test_ml_production_policy.py
 
+      - name: Verify client demo ML source isolation
+        working-directory: python_engine
+        run: python test_demo_ml_sources.py
+
       - name: Verify production model status contracts
         working-directory: python_engine
         run: python test_model_status_contracts.py
