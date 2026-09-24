@@ -1,8 +1,11 @@
 """Configuration for Inventory Model #4.
 
-Development may still use generated sample data for UI/model-development work.
-Production defaults to genuine GCT inventory ledger rows (``source='app'``)
-and never falls back to sample artifacts.
+Sources:
+- ``sample``: generated development CSV.
+- ``demo``: frontend-visible synthetic warehouse movements (source='demo').
+- ``genuine``: production GCT ledger rows (source='app').
+
+Production defaults to genuine and never falls back to synthetic data.
 """
 
 import os
@@ -17,27 +20,35 @@ DISCLAIMER = (
     "blocked from serving predictions in production."
 )
 
+DEMO_DISCLAIMER = (
+    "DEMO / SYNTHETIC FRONTEND DATA — NOT ACTUAL GCT OPERATIONAL HISTORY. "
+    "These records exist in the normal Warehouse/Purchase frontend for client "
+    "presentation but remain development-only ML data."
+)
+
 
 def data_source() -> str:
-    """Return the requested inventory training-data source."""
     default = "genuine" if is_production_runtime() else "sample"
-    return os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
+    value = os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
+    if value not in {"sample", "demo", "genuine"}:
+        raise ValueError(
+            "INVENTORY_DATA_SOURCE must be one of: sample, demo, genuine "
+            f"(received {value!r})."
+        )
+    return value
 
 
 def is_genuine() -> bool:
-    """Return True if data source is configured for genuine data."""
     return data_source() == "genuine"
 
 
-def data_thresholds() -> Dict[str, int]:
-    """Minimum history required before Model #4 is considered usable.
+def is_demo() -> bool:
+    return data_source() == "demo"
 
-    Genuine training is fleet-level spare-part demand rather than per-bus
-    demand because the authoritative warehouse ledger records the issued part,
-    quantity and reference but does not reliably identify a bus on every row.
-    The genuine gate therefore measures parts, weeks and real Stock Out events.
-    """
-    if data_source() == "genuine":
+
+def data_thresholds() -> Dict[str, int]:
+    """Minimum history required before Model #4 is considered usable."""
+    if data_source() in {"genuine", "demo"}:
         return {
             "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "260")),
             "min_buses": 1,
@@ -58,7 +69,6 @@ def data_thresholds() -> Dict[str, int]:
 
 
 def rf_convention() -> Dict[str, object]:
-    """Project-wide Random Forest convention."""
     return {
         "n_estimators": 200,
         "max_depth": None,
@@ -70,21 +80,21 @@ def rf_convention() -> Dict[str, object]:
 
 
 def model_paths() -> Dict[str, Path]:
-    """Canonical paths for the saved inventory model artifacts."""
+    """Demo artifacts are isolated from the canonical inventory artifact."""
     models_dir = Path(__file__).resolve().parent / "models"
+    prefix = "demo_" if data_source() == "demo" else ""
     return {
         "dir": models_dir,
-        "model": models_dir / "inventory_demand_rf.pkl",
-        "report": models_dir / "inventory_demand_report.txt",
-        "features": models_dir / "inventory_demand_features.json",
-        "state": models_dir / "inventory_demand_state.json",
+        "model": models_dir / f"{prefix}inventory_demand_rf.pkl",
+        "report": models_dir / f"{prefix}inventory_demand_report.txt",
+        "features": models_dir / f"{prefix}inventory_demand_features.json",
+        "state": models_dir / f"{prefix}inventory_demand_state.json",
     }
 
 
 def training_data_paths() -> Dict[str, Path]:
-    """Canonical paths for inventory training datasets."""
     data_dir = Path(__file__).resolve().parents[2] / "training_data" / "inventory"
-    prefix = "genuine" if data_source() == "genuine" else "sample"
+    prefix = data_source()
     return {
         "dir": data_dir,
         "csv": data_dir / f"{prefix}_inventory_training.csv",
@@ -93,7 +103,6 @@ def training_data_paths() -> Dict[str, Path]:
 
 
 def forecast_test_fraction() -> float:
-    """Fraction of chronologically latest weeks reserved for testing."""
     return float(os.environ.get("INVENTORY_TEST_FRACTION", "0.2"))
 
 
