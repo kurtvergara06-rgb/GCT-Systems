@@ -565,20 +565,21 @@
 
     inset: 0;
 
-    z-index: 10000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 
     display: none;
     align-items: center;
     justify-content: center;
 
     padding: 20px;
+    box-sizing: border-box;
 
     overflow-y: auto;
+    overscroll-behavior: contain;
 
-    background:
-        rgba(6, 31, 61, 0.58);
-
-    backdrop-filter: blur(4px);
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
 }
 
 .pms-modal-overlay.show,

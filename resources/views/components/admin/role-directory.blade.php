@@ -43,6 +43,7 @@
                     class="directory-role {{ $selectedRolePermission?->role_key === $rolePermission->role_key ? 'active' : '' }}"
                     data-role-search="{{ strtolower($rolePermission->label . ' ' . $rolePermission->department) }}"
                     data-role-key="{{ $rolePermission->role_key }}"
+                    title="{{ $rolePermission->label }} ({{ $rolePermission->department }} Department)"
                 >
                     <div class="directory-role-icon {{ $rolePermission->role_type === 'admin' ? 'admin' : $rolePermission->role_type }}">
                         <i class="fa-solid {{ $rolePermission->role_type === 'admin' ? 'fa-user-shield' : ($rolePermission->role_type === 'head' ? 'fa-user-tie' : 'fa-user') }}"></i>
@@ -50,11 +51,15 @@
 
                     <div class="directory-role-info">
                         <strong>{{ $rolePermission->label }}</strong>
-                        <span>{{ $rolePermission->department }} Department</span>
+                        <span>{{ $rolePermission->department }} Dept</span>
                     </div>
 
                     <span class="directory-role-type {{ $rolePermission->role_type === 'admin' ? 'admin' : $rolePermission->role_type }}">
-                        {{ $rolePermission->role_type === 'admin' ? 'Protected' : ucfirst($rolePermission->role_type) }}
+                        @if($rolePermission->role_type === 'admin')
+                            <i class="fa-solid fa-shield-halved" style="font-size: 9px; margin-right: 3px;"></i>Protected
+                        @else
+                            {{ ucfirst($rolePermission->role_type) }}
+                        @endif
                     </span>
                 </button>
             </form>

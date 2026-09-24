@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setText('viewUserInitials', viewButton.dataset.initials);
     setText('viewUserName', viewButton.dataset.name);
+    setText('viewUserUserId', viewButton.dataset.userId || '—');
     setText('viewUserEmail', viewButton.dataset.email);
     setText('viewUserRole', viewButton.dataset.role);
     setText('viewUserDepartment', viewButton.dataset.department);

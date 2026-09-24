@@ -57,8 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
         pendingForm = null;
         pendingCallback = null;
         pendingSubmitter = null;
-        isSubmitting = false;
-        document.body.style.overflow = '';
+        if (window.GCTModalBackdrop?.sync) {
+            window.GCTModalBackdrop.sync();
+        } else {
+            document.body.style.overflow = '';
+        }
     }
 
     function getFormMethod(form) {

@@ -142,7 +142,7 @@
                 </div>
             </form>
 
-            @if($records->total() > 0)
+            @if($records->count() > 0)
                 <a
                     href="{{ route('batch-file-processing.export', [
                         'batch_id' => $selectedBatch?->id,
@@ -213,30 +213,8 @@
 
     <div class="batch-table-footer">
         <p>
-            Showing {{ $records->firstItem() ?? 0 }}
-            to {{ $records->lastItem() ?? 0 }}
-            of {{ $records->total() }} records
+            Showing {{ number_format($records->count()) }} {{ \Illuminate\Support\Str::plural('record', $records->count()) }}
         </p>
-
-        @if($records->hasPages())
-            <div class="batch-simple-pagination">
-                @if($records->onFirstPage())
-                    <span class="simple-page-button disabled">Previous</span>
-                @else
-                    <a href="{{ $records->previousPageUrl() }}" class="simple-page-button">Previous</a>
-                @endif
-
-                <span class="simple-page-info">
-                    Page {{ $records->currentPage() }} of {{ $records->lastPage() }}
-                </span>
-
-                @if($records->hasMorePages())
-                    <a href="{{ $records->nextPageUrl() }}" class="simple-page-button">Next</a>
-                @else
-                    <span class="simple-page-button disabled">Next</span>
-                @endif
-            </div>
-        @endif
     </div>
 </section>
 

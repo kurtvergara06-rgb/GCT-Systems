@@ -64,7 +64,6 @@
                 </div>
 
                 <p class="ai-model-dataset">{{ $model->dataset_type }}</p>
-                <p class="ai-model-reason">{{ $model->reason }}</p>
 
                 @if(! empty($model->details))
                     <div class="ai-model-details">
@@ -77,6 +76,8 @@
                         @endforeach
                     </div>
                 @endif
+
+                <p class="ai-model-reason">{{ $model->reason }}</p>
             </article>
         @endforeach
     </div>

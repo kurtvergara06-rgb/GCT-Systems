@@ -584,7 +584,7 @@
 ========================================================= */
 
 #driverAttendanceModal.ui-form-overlay {
-  z-index: 3000;
+  z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 
@@ -974,7 +974,7 @@
 ========================================================= */
 
 #viewDriverAttendanceModal.ui-form-overlay {
-  z-index: 3000;
+  z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 

@@ -1467,19 +1467,17 @@
     gap: 14px;
 }
 
-.overview-panel,
-.executive-main-grid,
-.performance-panel {
+.executive-main-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: 14px;
+    grid-template-columns: minmax(0, 1.55fr) minmax(360px, 0.95fr);
+    gap: 16px;
 }
 
 .executive-snapshot {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr);
     gap: 24px;
-    align-items: start;
+    align-items: center;
 }
 
 @media (max-width: 900px) {

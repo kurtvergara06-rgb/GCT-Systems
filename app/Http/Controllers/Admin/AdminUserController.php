@@ -43,13 +43,18 @@ class AdminUserController extends Controller
 
         if ($request->filled('search')) {
             $search = trim($request->search);
+            $numericId = preg_replace('/[^0-9]/', '', $search);
 
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search, $numericId) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('role', 'like', "%{$search}%")
                     ->orWhere('department', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%");
+
+                if ($numericId !== '') {
+                    $q->orWhere('id', (int) $numericId);
+                }
             });
         }
 

@@ -490,9 +490,13 @@
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 20000;
+    z-index: var(--modal-backdrop-z-index, 99999);
     padding: 24px;
-    background: rgba(6, 31, 61, 0.52);
+    box-sizing: border-box;
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    overscroll-behavior: contain;
     align-items: center;
     justify-content: center;
 }
