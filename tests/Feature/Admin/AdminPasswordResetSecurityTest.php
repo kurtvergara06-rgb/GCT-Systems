@@ -32,9 +32,15 @@ class AdminPasswordResetSecurityTest extends TestCase
                 'password_confirmation' => 'NewPassword123!',
             ])
             ->assertRedirect(route('admin.users'))
-            ->assertSessionHas('success', 'Password reset successfully.');
+            ->assertSessionHas(
+                'success',
+                'Password reset successfully. The user must change the temporary password at next login.'
+            );
 
-        $this->assertTrue(Hash::check('NewPassword123!', $target->fresh()->password));
+        $target->refresh();
+
+        $this->assertTrue(Hash::check('NewPassword123!', $target->password));
+        $this->assertTrue($target->must_change_password);
     }
 
     public function test_non_admin_user_cannot_reset_another_users_password(): void
@@ -107,5 +113,6 @@ class AdminPasswordResetSecurityTest extends TestCase
             ->assertSessionHasErrors('password');
 
         $this->assertTrue(Hash::check('OriginalPassword123!', $target->fresh()->password));
+        $this->assertFalse($target->fresh()->must_change_password);
     }
 }
