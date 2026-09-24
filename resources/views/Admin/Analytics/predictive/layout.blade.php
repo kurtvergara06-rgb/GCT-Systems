@@ -104,6 +104,10 @@
             </section>
 
             @include($domainViews[$activeDomain])
+
+            @if($activeDomain === 'inventory')
+                @include('Admin.Analytics.predictive.inventory-ml')
+            @endif
         </main>
     </div>
 </x-layout.app>
