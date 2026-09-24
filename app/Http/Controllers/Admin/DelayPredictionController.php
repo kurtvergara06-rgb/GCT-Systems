@@ -53,7 +53,15 @@ class DelayPredictionController extends Controller
             );
 
             $route = $schedule->shuttleRoute;
-            $routeLabel = trim((string) ($route?->route_name ?? ''));
+            // Model #3 training encodes routes by route_code. Prefer that exact
+            // identifier so known demo/genuine routes do not become unseen (-1)
+            // during inference. Keep the human-readable fallbacks for legacy
+            // records that do not have a route code.
+            $routeLabel = trim((string) ($route?->route_code ?? ''));
+
+            if ($routeLabel === '') {
+                $routeLabel = trim((string) ($route?->route_name ?? ''));
+            }
 
             if ($routeLabel === '') {
                 $origin = trim((string) ($route?->origin ?? ''));
@@ -61,7 +69,7 @@ class DelayPredictionController extends Controller
 
                 $routeLabel = $origin !== '' && $destination !== ''
                     ? "{$origin} - {$destination}"
-                    : trim((string) ($route?->route_code ?? 'Unspecified Route'));
+                    : 'Unspecified Route';
             }
 
             $incidentContext = $this->incidentContext(
