@@ -72,7 +72,6 @@ class AccountController extends Controller
 
         $user->update([
             'password' => $validated['password'],
-            'must_change_password' => false,
         ]);
 
         return redirect()
