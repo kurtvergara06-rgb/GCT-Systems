@@ -828,10 +828,13 @@
 
   inset: 0;
 
-  z-index: 20000;
+  z-index: var(--modal-backdrop-z-index, 99999);
 
-  background:
-    rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
 
   justify-content: center;
 

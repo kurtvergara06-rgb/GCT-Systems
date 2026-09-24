@@ -1063,24 +1063,27 @@
     align-items: center;
     justify-content: center;
     padding: 22px;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    box-sizing: border-box;
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    overscroll-behavior: contain;
 }
 
 .records-modal-overlay {
-    z-index: 4000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 .batch-feedback-overlay {
-    z-index: 4500;
+    z-index: var(--modal-stacked-z-index, 105000);
 }
 
 .batch-delete-modal-overlay {
-    z-index: 5000;
+    z-index: var(--modal-stacked-z-index, 105000);
 }
 
 .edit-trip-modal-overlay {
-    z-index: 5000;
+    z-index: var(--modal-stacked-z-index, 105000);
 }
 
 .records-modal-overlay.show,

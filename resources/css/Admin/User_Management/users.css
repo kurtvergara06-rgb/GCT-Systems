@@ -24,21 +24,227 @@
   margin-bottom: 14px;
 }
 
-/* Account table proportions only; core table visuals are global. */
+/* Account table proportions and layout */
+.users-main .users-table-wrap {
+  max-height: clamp(520px, 68vh, 660px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.users-main .users-table-wrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.users-main .users-table-wrap::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+
+.users-main .users-table-wrap::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.users-main .users-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .users-main .users-table th:nth-child(1),
-.users-main .users-table td:nth-child(1) { width: 34%; }
+.users-main .users-table td:nth-child(1) { width: 10%; min-width: 95px; }
 .users-main .users-table th:nth-child(2),
-.users-main .users-table td:nth-child(2) { width: 14%; }
+.users-main .users-table td:nth-child(2) { width: 26%; min-width: 200px; }
 .users-main .users-table th:nth-child(3),
-.users-main .users-table td:nth-child(3) { width: 13%; }
+.users-main .users-table td:nth-child(3) { width: 15%; min-width: 135px; }
 .users-main .users-table th:nth-child(4),
-.users-main .users-table td:nth-child(4) { width: 10%; }
+.users-main .users-table td:nth-child(4) { width: 12%; min-width: 110px; }
 .users-main .users-table th:nth-child(5),
-.users-main .users-table td:nth-child(5) { width: 14%; }
+.users-main .users-table td:nth-child(5) { width: 10%; min-width: 90px; }
 .users-main .users-table th:nth-child(6),
-.users-main .users-table td:nth-child(6) {
-  width: 15%;
+.users-main .users-table td:nth-child(6) { width: 13%; min-width: 125px; }
+.users-main .users-table th:nth-child(7),
+.users-main .users-table td:nth-child(7) {
+  width: 14%;
+  min-width: 180px;
   text-align: center;
+}
+
+/* =========================================================
+   TOOLBAR FILTERS — MODERN REFINED SELECTS
+========================================================= */
+
+.users-main .records-toolbar .filter-group select {
+  min-width: 138px;
+  height: 38px;
+  padding: 0 32px 0 13px !important;
+  border: 1px solid #dce5f2 !important;
+  border-radius: 9px !important;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2364748b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E") no-repeat right 10px center !important;
+  background-size: 16px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: 13px !important;
+  font-weight: 600;
+  color: #0b2344 !important;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.users-main .records-toolbar .filter-group select:hover {
+  border-color: #b0c6e8 !important;
+}
+
+.users-main .records-toolbar .filter-group select:focus {
+  border-color: #0057f8 !important;
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12) !important;
+  outline: none;
+}
+
+/* =========================================================
+   ACTION BUTTONS — REFINED ENTERPRISE TREATMENT
+========================================================= */
+
+.users-main .record-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+}
+
+.users-main .record-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.users-main .record-actions .action-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.users-main .record-actions .action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+}
+
+.users-main .record-actions .action-btn:active {
+  transform: translateY(0);
+}
+
+.users-main .record-actions .action-btn.action-view:hover,
+.users-main .record-actions .action-btn.view:hover {
+  background: #edf5ff;
+  border-color: #bcd7ff;
+  color: #0057f8;
+}
+
+.users-main .record-actions .action-btn.action-edit:hover,
+.users-main .record-actions .action-btn.edit:hover {
+  background: #edf5ff;
+  border-color: #bcd7ff;
+  color: #0057f8;
+}
+
+.users-main .record-actions .action-btn.action-reset:hover,
+.users-main .record-actions .action-btn.reset:hover {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6366f1;
+}
+
+.users-main .record-actions .action-btn.action-deactivate:hover,
+.users-main .record-actions .action-btn.deactivate:hover {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #d97706;
+}
+
+.users-main .record-actions .action-btn.action-activate:hover,
+.users-main .record-actions .action-btn.activate:hover {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+}
+
+.users-main .record-actions .action-btn.action-delete:hover,
+.users-main .record-actions .action-btn.delete:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.users-main .record-actions .action-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* =========================================================
+   CELL TYPOGRAPHY & LAST LOGIN
+========================================================= */
+
+.users-main .user-dept-text {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.users-main .user-last-login {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.users-main .user-last-login .login-date {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.users-main .user-last-login .login-time {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.users-main .user-login-never {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.view-user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.view-user-meta {
+  min-width: 0;
+  flex: 1;
 }
 
 .admin-footer {
@@ -57,13 +263,16 @@
 .admin-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--modal-backdrop-z-index, 99999);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(2px);
+  box-sizing: border-box;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
 }
 
 .admin-modal-overlay.show {

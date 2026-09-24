@@ -513,6 +513,14 @@
     color: #9a6700;
 }
 
+.history-status.deleted {
+    border: 1px solid #e2e8f0;
+
+    background: #f1f5f9;
+
+    color: #475569;
+}
+
 
 /* =========================================================
    PROCESSED BY
@@ -693,12 +701,15 @@
 
     inset: 0;
 
-    z-index: 20000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 
     padding: 24px;
+    box-sizing: border-box;
 
-    background:
-        rgba(6, 31, 61, 0.52);
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    overscroll-behavior: contain;
 
     align-items: center;
     justify-content: center;

@@ -20,6 +20,7 @@ import '../css/Main-styles/topbar.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
 
+import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-toast.js';
 import './Main-js/automatic-table-search.js';
 import './Main-js/auto-id-badges.js';

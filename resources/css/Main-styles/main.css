@@ -887,12 +887,15 @@ tbody tr:last-child td {
   align-items: center;
   justify-content: center;
 
-  background:
-    rgba(0, 0, 0, 0.45);
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
 
-  z-index: 99999;
+  z-index: var(--modal-backdrop-z-index, 99999);
 
   padding: 20px;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
 }
 
 .modal-overlay.show,
@@ -1261,7 +1264,7 @@ textarea[readonly] {
 ========================================================= */
 
 .global-confirmation-overlay {
-  z-index: 99999;
+  z-index: var(--modal-stacked-z-index, 105000);
 }
 
 

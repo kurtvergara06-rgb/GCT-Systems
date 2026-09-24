@@ -1894,13 +1894,16 @@ body.ai-modal-open {
 
 .ai-resolution-modal-overlay {
     position: fixed;
-    z-index: 9999;
+    z-index: var(--modal-backdrop-z-index, 99999);
     inset: 0;
     display: grid;
     place-items: center;
     padding: 20px;
-    background: rgba(7, 22, 41, .6);
-    backdrop-filter: blur(4px);
+    box-sizing: border-box;
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    overscroll-behavior: contain;
 }
 
 .ai-resolution-modal {

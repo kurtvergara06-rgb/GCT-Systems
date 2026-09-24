@@ -1097,7 +1097,7 @@
 
 #assignmentModal.ui-form-overlay,
 #viewAssignmentModal.ui-form-overlay {
-    z-index: 3000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 #assignmentModal.ui-form-overlay.show,

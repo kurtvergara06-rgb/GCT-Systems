@@ -645,17 +645,20 @@
 .route-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 4000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 
     display: none;
     align-items: center;
     justify-content: center;
 
     padding: 20px;
+    box-sizing: border-box;
     overflow-y: auto;
+    overscroll-behavior: contain;
 
-    background: rgba(15, 23, 42, 0.46);
-    backdrop-filter: blur(5px);
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
 }
 
 .route-modal-overlay.show,
@@ -1211,7 +1214,7 @@
 }
 
 .modal-overlay {
-    z-index: 5000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 /* =========================================================

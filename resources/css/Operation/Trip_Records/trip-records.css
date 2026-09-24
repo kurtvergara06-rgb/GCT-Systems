@@ -971,18 +971,19 @@
 
     inset: 0;
 
-    z-index: 3000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 
     padding: 20px;
+    box-sizing: border-box;
 
     display: none;
     align-items: center;
     justify-content: center;
 
-    background:
-        rgba(6, 31, 61, 0.58);
-
-    backdrop-filter: blur(3px);
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    overscroll-behavior: contain;
 }
 
 

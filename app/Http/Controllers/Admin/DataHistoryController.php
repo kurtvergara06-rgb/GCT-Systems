@@ -38,9 +38,7 @@ class DataHistoryController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        $history = $query
-            ->paginate(10)
-            ->withQueryString();
+        $history = $query->get();
 
         $stats = [
             'total' => DataActivity::count(),

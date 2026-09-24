@@ -306,13 +306,16 @@
 .fuel-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--modal-backdrop-z-index, 99999);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(6, 31, 61, 0.56);
-  backdrop-filter: blur(3px);
+  box-sizing: border-box;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
 }
 
 .fuel-modal-overlay.show {
@@ -1617,8 +1620,9 @@
 
 .fuel-modal-overlay {
   padding: 24px;
-  background: rgba(6, 31, 61, 0.58);
-  backdrop-filter: blur(5px);
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
 }
 
 .fuel-modal {

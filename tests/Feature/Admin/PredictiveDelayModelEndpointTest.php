@@ -98,6 +98,7 @@ class PredictiveDelayModelEndpointTest extends TestCase
             ->assertJsonPath("predictions.{$schedule->trip_code}.available", true)
             ->assertJsonPath("predictions.{$schedule->trip_code}.prediction.predicted_delay_minutes", 12.5)
             ->assertJsonPath("predictions.{$schedule->trip_code}.prediction.risk_status", 'Moderate Delay')
+            ->assertJsonPath("predictions.{$schedule->trip_code}.context.route", 'TAL-SM')
             ->assertJsonPath("predictions.{$schedule->trip_code}.context.pre_trip_incident_count", 1);
 
         Http::assertSent(function ($request): bool {
@@ -105,7 +106,7 @@ class PredictiveDelayModelEndpointTest extends TestCase
                 return false;
             }
 
-            return $request['route'] === 'Talisay - SM Seaside'
+            return $request['route'] === 'TAL-SM'
                 && $request['scheduled_departure_time'] === '08:00'
                 && $request['bus_no'] === 'GCT-101'
                 && $request['driver_id'] === 'DRV-001'

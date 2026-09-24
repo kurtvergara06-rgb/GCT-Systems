@@ -49,7 +49,7 @@
             </section>
 
             <section class="data-flow-guide">
-                <article class="flow-card">
+                <article class="flow-card import-flow-card">
                     <div class="flow-icon import">
                         <i class="fa-solid fa-file-import"></i>
                     </div>
@@ -71,7 +71,7 @@
                     </div>
                 </article>
 
-                <article class="flow-card">
+                <article class="flow-card export-flow-card">
                     <div class="flow-icon export">
                         <i class="fa-solid fa-file-export"></i>
                     </div>
@@ -321,9 +321,7 @@
                         <p>Live transfer activity recorded by the Data History subsystem.</p>
                     </div>
 
-                    <span class="record-count">
-                        {{ $recentTransferActivities->count() }} Recent
-                    </span>
+                    <x-ui.id-badge :value="$recentTransferActivities->count() . ' Recent'" />
                 </div>
 
                 <div class="table-wrap">
@@ -357,9 +355,9 @@
                                             </div>
 
                                             <div>
-                                                <strong>{{ $activity->file_name ?: 'Generated Data File' }}</strong>
+                                                <strong>{{ $activity->file_name ?: ($activity->data_type ? $activity->data_type . ' File' : 'System Data File') }}</strong>
                                                 @if($activity->data_type)
-                                                    <small style="display:block;margin-top:3px;color:var(--muted);font-size:10px;">
+                                                    <small class="file-subtext">
                                                         {{ $activity->data_type }}
                                                     </small>
                                                 @endif
@@ -369,8 +367,8 @@
 
                                     <td><span class="transfer-type {{ $typeClass }}">{{ $activity->activity_type }}</span></td>
                                     <td><span class="module-badge {{ $moduleClass }}">{{ $activity->module ?: '—' }}</span></td>
-                                    <td><span class="source-badge">{{ $activity->source ?: '—' }}</span></td>
-                                    <td>{{ number_format($activity->total_records) }}</td>
+                                    <td><span class="source-text">{{ $activity->source ?: '—' }}</span></td>
+                                    <td><span class="records-cell">{{ number_format($activity->total_records) }}</span></td>
                                     <td><span class="status-badge {{ $statusClass }}">{{ $activity->status }}</span></td>
                                     <td>
                                         <div class="date-time-cell">

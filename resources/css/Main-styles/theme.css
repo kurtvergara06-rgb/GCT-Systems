@@ -17,6 +17,13 @@
   --info: #2563EB;
   --shadow-soft: 0 10px 30px rgba(6, 31, 61, 0.08);
   --shadow-card: 0 16px 36px rgba(6, 31, 61, 0.08);
+
+  /* Global Modal Backdrop System Tokens */
+  --modal-backdrop-bg: rgba(15, 23, 42, 0.42);
+  --modal-backdrop-blur: blur(5px);
+  --modal-backdrop-z-index: 99999;
+  --modal-stacked-backdrop-bg: rgba(15, 23, 42, 0.20);
+  --modal-stacked-z-index: 105000;
 }
 
 body,
@@ -263,19 +270,132 @@ button {
   border-color: rgba(37, 99, 235, 0.2);
 }
 
-/* Shared modal styles */
+/* =========================================================
+   GLOBAL MODAL BACKDROP SYSTEM
+   Unified backdrop blur, dim, and viewport layering across all modules.
+========================================================= */
+
+:is(
+  .modal-overlay,
+  .delete-modal-overlay,
+  .feedback-modal-overlay,
+  .batch-feedback-overlay,
+  .success-modal-overlay,
+  .ui-form-overlay,
+  .admin-modal-overlay,
+  .records-modal-overlay,
+  .batch-delete-modal-overlay,
+  .generic-batch-review-overlay,
+  .history-modal-overlay,
+  .activity-modal-overlay,
+  .transfer-activity-modal-overlay,
+  .fuel-modal-overlay,
+  .pms-modal-overlay,
+  .personnel-modal-overlay,
+  .route-modal-overlay,
+  .trip-modal-overlay,
+  .batch-time-modal-overlay,
+  .batch-attendance-overlay,
+  .ai-resolution-modal-overlay,
+  .restock-view-overlay,
+  .requested-pr-view-overlay,
+  .schedule-modal-overlay,
+  .po-status-modal-overlay,
+  .warehouse-view-overlay,
+  .edit-trip-modal-overlay,
+  .confirm-modal-overlay,
+  .system-confirm-overlay,
+  .confirmation-modal-overlay,
+  [data-modal-overlay],
+  [data-gct-modal-overlay]
+) {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
+  z-index: var(--modal-backdrop-z-index, 99999);
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure modal containers inside overlays remain sharp and interactive */
+:is(
+  .modal-overlay,
+  .delete-modal-overlay,
+  .feedback-modal-overlay,
+  .batch-feedback-overlay,
+  .success-modal-overlay,
+  .ui-form-overlay,
+  .admin-modal-overlay,
+  .records-modal-overlay,
+  .batch-delete-modal-overlay,
+  .generic-batch-review-overlay,
+  .history-modal-overlay,
+  .activity-modal-overlay,
+  .transfer-activity-modal-overlay,
+  .fuel-modal-overlay,
+  .pms-modal-overlay,
+  .personnel-modal-overlay,
+  .route-modal-overlay,
+  .trip-modal-overlay,
+  .batch-time-modal-overlay,
+  .batch-attendance-overlay,
+  .ai-resolution-modal-overlay,
+  .restock-view-overlay,
+  .requested-pr-view-overlay,
+  .schedule-modal-overlay,
+  .po-status-modal-overlay,
+  .warehouse-view-overlay,
+  .edit-trip-modal-overlay,
+  .confirm-modal-overlay,
+  .system-confirm-overlay,
+  .confirmation-modal-overlay,
+  [data-modal-overlay],
+  [data-gct-modal-overlay]
+) > :is(.modal-card, .modal-box, .ui-form-modal, .admin-user-modal, .records-modal, .fuel-modal, .pms-modal, .personnel-modal, .route-modal, .route-details-modal, .trip-modal, .schedule-modal, .po-modal-box, .po-status-modal, .requested-pr-style-modal, .warehouse-edit-style-modal, .generic-batch-review-modal, .history-modal, .activity-modal, .transfer-activity-modal, .ai-resolution-modal, .batch-attendance-modal, .batch-time-modal, [role="dialog"]) {
+  position: relative;
+  z-index: 1;
+  filter: none;
+  -webkit-filter: none;
+  transform: translateZ(0);
+}
+
+/* Nested / Stacked modal overlays */
+.global-confirmation-overlay,
+:is(
+  .modal-overlay,
+  .delete-modal-overlay,
+  .ui-form-overlay,
+  .admin-modal-overlay,
+  .records-modal-overlay,
+  .batch-delete-modal-overlay
+).is-stacked-modal,
+.has-stacked-modal :is(
+  .global-confirmation-overlay,
+  .batch-delete-modal-overlay,
+  .is-stacked-modal
+) {
+  z-index: var(--modal-stacked-z-index, 105000) !important;
+  background: var(--modal-stacked-backdrop-bg, rgba(15, 23, 42, 0.20)) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+}
+
+/* Base display toggles */
 .modal-overlay,
 .delete-modal-overlay,
 .feedback-modal-overlay,
 .batch-feedback-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(6, 31, 61, 0.48);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 2200;
 }
 
 .modal-overlay.show,
@@ -285,6 +405,11 @@ button {
 .feedback-modal-overlay.show,
 .batch-feedback-overlay.show {
   display: flex;
+}
+
+/* Unified body scroll lock */
+body.modal-open {
+  overflow: hidden !important;
 }
 
 .modal-card,
