@@ -11,10 +11,12 @@ os.environ["INVENTORY_DATA_SOURCE"] = "demo"
 
 import delay.config as delay_config
 import inventory.config as inventory_config
+import inventory.prepare_training_data as inventory_prepare
 from ml_runtime_policy import evaluate_model_source, normalize_data_source
 
 importlib.reload(delay_config)
 importlib.reload(inventory_config)
+importlib.reload(inventory_prepare)
 
 assert delay_config.data_source() == "demo"
 assert delay_config.training_data_paths()["csv"].name == "demo_delay_training.csv"
@@ -27,6 +29,7 @@ assert inventory_config.training_data_paths()["csv"].name == "demo_inventory_tra
 assert inventory_config.training_data_paths()["features_csv"].name == "demo_inventory_training_features.csv"
 assert inventory_config.model_paths()["model"].name == "demo_inventory_demand_rf.pkl"
 assert inventory_config.model_paths()["state"].name == "demo_inventory_demand_state.json"
+assert callable(inventory_prepare.main)
 
 thresholds = inventory_config.data_thresholds()
 assert thresholds["min_rows"] == 260
