@@ -267,11 +267,12 @@ class AdminUserController extends Controller
 
         $user->update([
             'password' => Hash::make($validated['password']),
+            'must_change_password' => true,
         ]);
 
         return redirect()
             ->route('admin.users')
-            ->with('success', 'Password reset successfully.');
+            ->with('success', 'Password reset successfully. The user must change the temporary password at next login.');
     }
 
     public function destroy(User $user)
