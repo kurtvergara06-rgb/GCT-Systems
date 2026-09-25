@@ -66,11 +66,8 @@ class MaintenanceDashboardController extends Controller
             return (!is_null($jo->maintenance_referral_id) || !is_null($jo->incident_id)) || $jo->is_overdue;
         })->count();
 
-        // Active job orders for the main work in progress list
-        $activeJobOrdersList = $activeJobOrders->take(6)->values();
-
-        // Recent job orders for general activity
-        $recentJobOrders = $allJobOrders->take(6)->values();
+        // Recent 8 job orders for the main activity table
+        $recentJobOrders = $allJobOrders->take(8);
 
         // ---------------------------------------------------------------------
         // 2. PMS SCHEDULES (Overdue, Due Soon, Attention List)
@@ -329,7 +326,6 @@ class MaintenanceDashboardController extends Controller
             'referralPendingCount' => $referralPendingCount,
 
             // Active & Recent Job Orders
-            'activeJobOrdersList' => $activeJobOrdersList,
             'recentJobOrders' => $recentJobOrders,
 
             // PMS Attention Hub

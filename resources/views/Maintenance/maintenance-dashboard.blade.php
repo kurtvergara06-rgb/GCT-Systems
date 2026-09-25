@@ -26,7 +26,7 @@
       />
 
       {{-- =====================================================
-          ROW 1: TOP 5 KPI SUMMARY CARDS
+          ROW 1: TOP 5 KPI CARDS
       ====================================================== --}}
       <section data-ajax-region="summary" class="stats-grid maintenance-stats-grid">
 
@@ -64,7 +64,7 @@
         <x-ui.summary-card
           label="Available Mechanics"
           value="{{ $availableMechanicsCount }} / {{ $totalMechanicsCount }}"
-          small="{{ $onDutyMechanicsCount }} on duty · {{ $totalMechanicsCount - ($availableMechanicsCount + $onDutyMechanicsCount) }} standby"
+          small="{{ $onDutyMechanicsCount }} on duty · {{ $hasTodayAttendance ? 'Attendance active' : 'No shift logged' }}"
           icon="fa-user-check"
           color="green"
           href="{{ route('mechanic-list') }}"
@@ -74,7 +74,7 @@
         <x-ui.summary-card
           label="Pending Referrals"
           value="{{ $referralPendingCount }}"
-          small="{{ $referralPendingCount > 0 ? 'Action required' : 'All clear · 0 pending' }}"
+          small="Awaiting maintenance review"
           icon="fa-arrow-right-arrow-left"
           color="red"
           href="{{ route('maintenance-referrals') }}"
@@ -83,31 +83,25 @@
       </section>
 
       {{-- =====================================================
-          ROW 2: ACTIVE JOB ORDERS + MECHANIC WORKFORCE ROSTER
+          ROW 2: ACTIVE & RECENT JOB ORDERS + MECHANIC ROSTER
       ====================================================== --}}
       <section class="maintenance-dashboard-grid mb-4">
 
-        {{-- ACTIVE JOB ORDERS --}}
-        <div class="maintenance-dashboard-card active-job-orders-card">
+        {{-- ACTIVE & RECENT JOB ORDERS --}}
+        <div class="maintenance-dashboard-card recent-job-orders-card">
           <div class="dashboard-card-header">
             <div>
-              <span class="dashboard-eyebrow">WORK IN PROGRESS</span>
-              <h2>Active Job Orders ({{ $totalActiveJobOrders }})</h2>
-              <p>Tickets currently under service in repair bays · {{ $ongoingCount }} Ongoing, {{ $onHoldCount }} On Hold.</p>
+              <span class="dashboard-eyebrow">WORK ORDERS</span>
+              <h2>Active & Recent Job Orders</h2>
+              <p>Current repair tickets, assigned personnel, and incident breakdown sources.</p>
             </div>
             <a href="{{ route('job-orders') }}" class="dashboard-view-link">
-              View All ({{ $totalActiveJobOrders }}) <i class="fa-solid fa-arrow-right"></i>
+              View All Job Orders <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
 
           <div class="recent-job-list">
-            @php
-              $displayJobs = isset($activeJobOrdersList) && $activeJobOrdersList->isNotEmpty()
-                ? $activeJobOrdersList
-                : $recentJobOrders;
-            @endphp
-
-            @forelse($displayJobs as $jobOrder)
+            @forelse($recentJobOrders as $jobOrder)
               @php
                 $statusClass = match($jobOrder->status ?? '') {
                   'Completed' => 'completed',
@@ -122,19 +116,11 @@
                 $isUrgent = !is_null($jobOrder->maintenance_referral_id)
                   || !is_null($jobOrder->incident_id)
                   || $jobOrder->is_overdue;
-
-                $typeIcon = match(strtolower($jobOrder->maintenance_type ?? '')) {
-                  'preventive', 'pms' => 'fa-calendar-check',
-                  'major repair', 'major', 'corrective' => 'fa-screwdriver-wrench',
-                  'emergency', 'breakdown' => 'fa-triangle-exclamation',
-                  'electrical' => 'fa-bolt',
-                  default => 'fa-wrench',
-                };
               @endphp
 
               <div class="recent-job-item {{ $isUrgent ? 'is-urgent-item' : '' }}">
                 <div class="recent-job-icon {{ $statusClass }}">
-                  <i class="fa-solid {{ $typeIcon }}"></i>
+                  <i class="fa-solid fa-screwdriver-wrench"></i>
                 </div>
 
                 <div class="recent-job-content">
@@ -169,7 +155,7 @@
                     </span>
                   </div>
 
-                  <div class="recent-job-description" title="{{ $jobOrder->problem_issue }}">
+                  <div class="recent-job-description">
                     {{ $jobOrder->problem_issue ?? 'No maintenance issue description provided.' }}
                   </div>
 
@@ -185,24 +171,11 @@
                     </span>
 
                     @if(!empty($jobOrder->part_needed))
-                      @php
-                        $partClass = match(strtolower($jobOrder->part_status ?? '')) {
-                          'delivered', 'issued', 'in stock' => 'part-delivered',
-                          'ordered', 'in transit' => 'part-ordered',
-                          'approved', 'for purchase' => 'part-approved',
-                          default => 'part-waiting',
-                        };
-
-                        $partLabel = match(strtolower($jobOrder->part_status ?? '')) {
-                          'delivered' => 'Ready to Install',
-                          'ordered' => 'Ordered',
-                          'approved' => 'Approved',
-                          'requested' => 'Requested',
-                          default => $jobOrder->part_status ?: 'Needed',
-                        };
-                      @endphp
-                      <span class="part-badge {{ $partClass }}" title="Part: {{ $jobOrder->part_needed }} ({{ $jobOrder->part_status }})">
-                        <i class="fa-solid fa-gears"></i> Part: {{ Str::limit($jobOrder->part_needed, 28) }} ({{ $partLabel }})
+                      <span class="part-badge {{ in_array($jobOrder->part_status, ['Requested', 'Waiting Approval', 'Waiting Purchase', 'Waiting Delivery']) ? 'part-waiting' : 'part-ready' }}">
+                        <i class="fa-solid fa-gears"></i> Part: {{ $jobOrder->part_needed }}
+                        @if(!empty($jobOrder->part_status))
+                          ({{ $jobOrder->part_status }})
+                        @endif
                       </span>
                     @endif
 
@@ -226,7 +199,7 @@
                   <i class="fa-solid fa-clipboard-list"></i>
                 </div>
                 <h3>No active or recent job orders</h3>
-                <p>All vehicles are currently serviced or waiting for dispatch.</p>
+                <p>Newly dispatched repair tickets and maintenance tasks will appear here.</p>
               </div>
             @endforelse
           </div>
@@ -241,34 +214,28 @@
               <p>Shift presence and active job assignments.</p>
             </div>
             <a href="{{ route('mechanic-list') }}" class="dashboard-view-link">
-              View All ({{ $totalMechanicsCount }}) <i class="fa-solid fa-arrow-right"></i>
+              View All <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
 
           {{-- Summary Mini Counters --}}
           <div class="roster-metrics-bar">
-            <div class="roster-metric-item duty">
-              <span class="roster-dot duty"></span>
-              <span class="roster-metric-label">On Duty</span>
-              <strong>{{ $onDutyMechanicsCount }}</strong>
-            </div>
             <div class="roster-metric-item available">
               <span class="roster-dot available"></span>
               <span class="roster-metric-label">Available</span>
               <strong>{{ $availableMechanicsCount }}</strong>
             </div>
+            <div class="roster-metric-item duty">
+              <span class="roster-dot duty"></span>
+              <span class="roster-metric-label">On Duty</span>
+              <strong>{{ $onDutyMechanicsCount }}</strong>
+            </div>
             <div class="roster-metric-item other">
               <span class="roster-dot other"></span>
-              <span class="roster-metric-label">Standby/Off</span>
+              <span class="roster-metric-label">Off/Leave</span>
               <strong>{{ $totalMechanicsCount - ($availableMechanicsCount + $onDutyMechanicsCount) }}</strong>
             </div>
           </div>
-
-          @if(!$hasTodayAttendance)
-            <div class="shift-hint-notice">
-              <i class="fa-solid fa-circle-info"></i> Shift attendance not logged yet for today. Showing active job assignments.
-            </div>
-          @endif
 
           <div class="mechanic-roster-list">
             {{-- On Duty Section --}}
@@ -279,7 +246,7 @@
               @foreach($onDutyMechanicsList as $mech)
                 <div class="roster-item on-duty-item">
                   <div class="roster-avatar on-duty">
-                    <span>{{ strtoupper(substr($mech->name, 0, 2)) }}</span>
+                    <i class="fa-solid fa-user-gear"></i>
                   </div>
                   <div class="roster-info">
                     <div class="roster-name-row">
@@ -305,7 +272,7 @@
               @foreach($availableMechanicsList as $mech)
                 <div class="roster-item available-item">
                   <div class="roster-avatar available">
-                    <span>{{ strtoupper(substr($mech->name, 0, 2)) }}</span>
+                    <i class="fa-solid fa-user-check"></i>
                   </div>
                   <div class="roster-info">
                     <div class="roster-name-row">
@@ -313,7 +280,7 @@
                       <span class="roster-pill pill-available">{{ $mech->status }}</span>
                     </div>
                     <p class="roster-assignment text-muted">
-                      <i class="fa-solid fa-clock"></i> Shift: {{ $mech->shift }} · Ready in shop
+                      <i class="fa-solid fa-clock"></i> Shift: {{ $mech->shift }} · Standing by in shop
                     </p>
                   </div>
                 </div>
@@ -323,20 +290,20 @@
             {{-- Other / Off Duty Section --}}
             @if($otherMechanicsList->isNotEmpty())
               <div class="roster-group-label mt-3">
-                <i class="fa-solid fa-calendar-xmark text-muted"></i> Standby / Off Duty ({{ $otherMechanicsList->count() }})
+                <i class="fa-solid fa-calendar-xmark text-muted"></i> Off Duty / Absent ({{ $otherMechanicsList->count() }})
               </div>
-              @foreach($otherMechanicsList as $mech)
+              @foreach($otherMechanicsList->take(3) as $mech)
                 <div class="roster-item other-item">
                   <div class="roster-avatar other">
-                    <span>{{ strtoupper(substr($mech->name, 0, 2)) }}</span>
+                    <i class="fa-solid fa-user-slash"></i>
                   </div>
                   <div class="roster-info">
                     <div class="roster-name-row">
                       <h4>{{ $mech->name }}</h4>
-                      <span class="roster-pill pill-other">{{ $mech->shift === 'Night' ? 'Night Shift' : 'Standby' }}</span>
+                      <span class="roster-pill pill-other">{{ $mech->status }}</span>
                     </div>
                     <p class="roster-assignment text-muted">
-                      Shift: {{ $mech->shift }} · Standby
+                      Shift: {{ $mech->shift }}
                     </p>
                   </div>
                 </div>
@@ -436,12 +403,12 @@
         <div class="maintenance-dashboard-card parts-tracker-card">
           <div class="dashboard-card-header">
             <div>
-              <span class="dashboard-eyebrow">PARTS PROCUREMENT</span>
+              <span class="dashboard-eyebrow">PARTS & PROCUREMENT</span>
               <h2>Parts Pipeline & Bottlenecks</h2>
-              <p>Requisition pipeline and active repairs blocked by warehouse.</p>
+              <p>Requisition flow and repairs waiting for warehouse or procurement.</p>
             </div>
             <a href="{{ route('purchase-requests') }}" class="dashboard-view-link">
-              View All PRs <i class="fa-solid fa-arrow-right"></i>
+              View PRs <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
 
@@ -480,36 +447,19 @@
 
             <div class="blocked-repairs-list">
               @forelse($blockedJobOrders as $blockedJo)
-                @php
-                  $badgeClass = match(strtolower($blockedJo->part_status)) {
-                    'delivered', 'issued' => 'part-delivered',
-                    'ordered', 'in transit' => 'part-ordered',
-                    'approved', 'for purchase' => 'part-approved',
-                    default => 'part-waiting',
-                  };
-
-                  $statusText = match(strtolower($blockedJo->part_status)) {
-                    'delivered' => 'Ready to Install',
-                    'ordered' => 'Ordered',
-                    'approved' => 'Approved',
-                    'requested' => 'Requested',
-                    default => $blockedJo->part_status ?: 'Waiting',
-                  };
-                @endphp
-
                 <div class="blocked-item">
                   <div class="blocked-main">
                     <div class="blocked-header">
                       <strong>{{ $blockedJo->job_order_no }}</strong>
                       <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $blockedJo->bus_no }}</span>
                     </div>
-                    <p class="blocked-part-name" title="{{ $blockedJo->part_needed }}">
-                      <i class="fa-solid fa-box-open"></i> Needed: <strong>{{ Str::limit($blockedJo->part_needed, 35) }}</strong>
+                    <p class="blocked-part-name">
+                      <i class="fa-solid fa-box-open"></i> Needed: <strong>{{ $blockedJo->part_needed }}</strong>
                     </p>
                   </div>
                   <div class="blocked-status-side">
-                    <span class="part-status-pill {{ $badgeClass }}">
-                      {{ $statusText }}
+                    <span class="part-status-badge waiting">
+                      {{ $blockedJo->part_status ?: 'Requested' }}
                     </span>
                   </div>
                 </div>
@@ -563,64 +513,55 @@
             </div>
           </div>
 
-          <div class="referrals-content-area mt-3">
-            @if($recentReferrals->isNotEmpty())
-              <div class="referrals-stream-list">
-                @foreach($recentReferrals as $referral)
-                  @php
-                    $refStatusClass = match($referral->status) {
-                      'Pending' => 'ref-pending',
-                      'Approved' => 'ref-approved',
-                      'Job Order Created' => 'ref-jo',
-                      'Rejected' => 'ref-rejected',
-                      default => 'ref-default',
-                    };
-                  @endphp
+          <div class="referrals-stream-list mt-3">
+            @forelse($recentReferrals as $referral)
+              @php
+                $refStatusClass = match($referral->status) {
+                  'Pending' => 'ref-pending',
+                  'Approved' => 'ref-approved',
+                  'Job Order Created' => 'ref-jo',
+                  'Rejected' => 'ref-rejected',
+                  default => 'ref-default',
+                };
+              @endphp
 
-                  <div class="referral-stream-item {{ $referral->status === 'Pending' ? 'is-pending' : '' }}">
-                    <div class="ref-icon {{ $refStatusClass }}">
-                      <i class="fa-solid fa-triangle-exclamation"></i>
+              <div class="referral-stream-item {{ $referral->status === 'Pending' ? 'is-pending' : '' }}">
+                <div class="ref-icon {{ $refStatusClass }}">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div class="ref-details">
+                  <div class="ref-header-row">
+                    <div class="d-flex align-items-center gap-2">
+                      <strong>INC-{{ $referral->incident?->incident_no ?? 'Incident' }}</strong>
+                      <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $referral->incident?->bus?->bus_no ?? 'No Bus' }}</span>
                     </div>
-
-                    <div class="ref-details">
-                      <div class="ref-header-row">
-                        <div class="d-flex align-items-center gap-2">
-                          <strong>INC-{{ $referral->incident?->incident_no ?? 'Incident' }}</strong>
-                          <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $referral->incident?->bus?->bus_no ?? 'No Bus' }}</span>
-                        </div>
-                        <span class="ref-status-badge {{ $refStatusClass }}">
-                          {{ $referral->status }}
-                        </span>
-                      </div>
-
-                      <p class="ref-desc">
-                        {{ Str::limit($referral->incident?->description ?? $referral->notes ?? 'No breakdown description provided.', 85) }}
-                      </p>
-
-                      <div class="ref-footer-row">
-                        <span class="text-muted"><i class="fa-solid fa-clock"></i> {{ $referral->created_at->format('M d, Y h:i A') }}</span>
-                        @if($referral->jobOrder)
-                          <span class="linked-jo-pill"><i class="fa-solid fa-clipboard-check"></i> {{ $referral->jobOrder->job_order_no }}</span>
-                        @endif
-                      </div>
-                    </div>
+                    <span class="ref-status-badge {{ $refStatusClass }}">
+                      {{ $referral->status }}
+                    </span>
                   </div>
-                @endforeach
-              </div>
-            @else
-              <div class="referrals-all-clear-widget">
-                <div class="all-clear-icon">
-                  <i class="fa-solid fa-shield-check"></i>
+
+                  <p class="ref-desc">
+                    {{ Str::limit($referral->incident?->description ?? $referral->notes ?? 'No breakdown description provided.', 85) }}
+                  </p>
+
+                  <div class="ref-footer-row">
+                    <span class="text-muted"><i class="fa-solid fa-clock"></i> {{ $referral->created_at->format('M d, Y h:i A') }}</span>
+                    @if($referral->jobOrder)
+                      <span class="linked-jo-pill"><i class="fa-solid fa-clipboard-check"></i> {{ $referral->jobOrder->job_order_no }}</span>
+                    @endif
+                  </div>
                 </div>
-                <div class="all-clear-text">
-                  <h4>No breakdown referrals</h4>
-                  <p>No breakdown referrals from Operation at this time. Vehicle breakdown incidents referred by Operation will appear here automatically for review and Job Order generation.</p>
-                </div>
-                <a href="{{ route('maintenance-referrals') }}" class="btn-check-history">
-                  <i class="fa-solid fa-clock-rotate-left"></i> View Referral History
-                </a>
               </div>
-            @endif
+            @empty
+              <div class="dashboard-empty-state">
+                <div class="dashboard-empty-icon">
+                  <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </div>
+                <h3>No breakdown referrals</h3>
+                <p>Breakdown referrals submitted by Operation will appear here for review.</p>
+              </div>
+            @endforelse
           </div>
         </div>
 
@@ -660,7 +601,7 @@
           </div>
 
           <div class="progress-bar-wrap mt-2">
-            <div class="progress-bar-fill" style="width: {{ max(10, $operationalRate) }}%;"></div>
+            <div class="progress-bar-fill" style="width: {{ $operationalRate }}%;"></div>
           </div>
 
           {{-- Fuel Efficiency Summary --}}
