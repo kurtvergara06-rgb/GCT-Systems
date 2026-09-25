@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Maintenance\FuelReportController;
 use App\Http\Controllers\Maintenance\JobOrderController;
+use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
 use App\Http\Controllers\Maintenance\MaintenanceReferralController;
 use App\Http\Controllers\Maintenance\MechanicListController;
 use App\Http\Controllers\Maintenance\PmsSchedulingController;
@@ -9,7 +10,8 @@ use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Maintenance\ReferralJobOrderController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/maintenance-dashboard', 'Maintenance.maintenance-dashboard')->name('maintenance-dashboard');
+Route::get('/maintenance-dashboard', [MaintenanceDashboardController::class, 'index'])
+    ->name('maintenance-dashboard');
 
 Route::get('/mechanic-list', [MechanicListController::class, 'index'])->name('mechanic-list');
 

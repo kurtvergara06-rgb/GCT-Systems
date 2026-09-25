@@ -61,19 +61,6 @@
       </div>
     </div>
 
-    {{-- Static Moon icon directly beside the notification bell (Static only, no toggle or theme switching) --}}
-    <div class="topbar-action-item">
-      <button
-        type="button"
-        class="icon-btn topbar-theme-toggle static-moon-btn"
-        aria-label="Theme mode (Coming soon)"
-        title="Theme mode (Coming soon)"
-        tabindex="-1"
-      >
-        <i class="fa-regular fa-moon"></i>
-      </button>
-    </div>
-
     <div class="topbar-action-item">
       <button
         type="button"

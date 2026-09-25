@@ -1,182 +1,187 @@
 /* =========================================================
    MAINTENANCE DASHBOARD
-   Consistent with Job Order styling
+   Enterprise-grade operational monitoring styling
 ========================================================= */
 
 .maintenance-dashboard-page {
   --md-blue: #0b40b5;
+  --md-blue-light: #e0ecff;
   --md-navy: #061f3d;
-  --md-yellow: #ffc400;
+  --md-yellow: #f59e0b;
+  --md-yellow-light: #fef3c7;
+  --md-green: #10b981;
+  --md-green-light: #d1fae5;
+  --md-red: #ef4444;
+  --md-red-light: #fee2e2;
   --md-text: #0f172a;
   --md-muted: #64748b;
   --md-border: #dce5f2;
   --md-card: #ffffff;
-  --md-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+  --md-shadow: 0 4px 16px rgba(6, 31, 61, 0.06);
+  --md-shadow-sm: 0 2px 8px rgba(6, 31, 61, 0.04);
 }
-
 
 /* =========================================================
    TOPBAR
 ========================================================= */
-
 .maintenance-dashboard-main .topbar {
   margin-bottom: 20px;
 }
 
-
 /* =========================================================
-   SUMMARY
+   TOP 5 KPI CARDS GRID
 ========================================================= */
-
 .maintenance-stats-grid {
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
   margin-bottom: 20px;
 }
 
 .maintenance-stats-grid .stat-card,
 .maintenance-stats-grid .stat-card-link {
-  min-height: 112px;
-  padding: 18px 20px;
-
+  min-height: 104px;
+  padding: 16px 18px;
   border: 1px solid var(--md-border);
-  border-radius: 16px;
-
+  border-radius: 14px;
   background: #ffffff;
   box-shadow: var(--md-shadow);
-
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.maintenance-stats-grid .stat-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 31, 61, 0.1);
 }
 
 .maintenance-stats-grid .stat-icon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-
-  border-radius: 14px;
-  font-size: 18px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.maintenance-stats-grid .stat-icon.blue { background: #e0ecff; color: #0b40b5; }
+.maintenance-stats-grid .stat-icon.red { background: #fee2e2; color: #dc2626; }
+.maintenance-stats-grid .stat-icon.yellow { background: #fef3c7; color: #b45309; }
+.maintenance-stats-grid .stat-icon.green { background: #dcfce7; color: #15803d; }
+
+.maintenance-stats-grid .stat-card-content p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--md-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.maintenance-stats-grid .stat-card-content h2 {
+  margin: 3px 0 1px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--md-navy);
+  line-height: 1.1;
+}
+
+.maintenance-stats-grid .stat-card-content small {
+  display: block;
+  font-size: 11px;
+  color: var(--md-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* =========================================================
-   DASHBOARD GRID
+   GRID LAYOUTS
 ========================================================= */
-
 .maintenance-dashboard-grid {
   display: grid;
-
-  grid-template-columns:
-    minmax(0, 1.7fr)
-    minmax(300px, 0.8fr);
-
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
   gap: 16px;
+}
 
+.maintenance-two-col-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mb-4 {
   margin-bottom: 16px;
 }
 
-.maintenance-bottom-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
-  gap: 16px;
-}
-
-
 /* =========================================================
-   CARDS
+   CARD SHELL
 ========================================================= */
-
 .maintenance-dashboard-card {
   min-width: 0;
-
-  padding: 18px;
-
+  padding: 18px 20px;
   border: 1px solid var(--md-border);
   border-radius: 16px;
-
   background: var(--md-card);
-
   box-shadow: var(--md-shadow);
+  display: flex;
+  flex-direction: column;
 }
-
-
-/* =========================================================
-   CARD HEADER
-========================================================= */
 
 .dashboard-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-
-  gap: 16px;
-
+  gap: 12px;
   margin-bottom: 16px;
 }
 
 .dashboard-eyebrow {
   display: block;
-
-  margin-bottom: 4px;
-
+  margin-bottom: 3px;
   color: var(--md-blue);
-
   font-size: 10px;
   font-weight: 800;
-
   letter-spacing: 0.12em;
 }
 
 .dashboard-card-header h2 {
   margin: 0;
-
   color: var(--md-navy);
-
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .dashboard-card-header p {
-  margin: 4px 0 0;
-
+  margin: 3px 0 0;
   color: var(--md-muted);
-
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
-
-/* =========================================================
-   VIEW LINK
-========================================================= */
-
 .dashboard-view-link {
-  min-height: 34px;
-
-  padding: 0 11px;
-
+  min-height: 30px;
+  padding: 0 10px;
   border: 1px solid var(--md-border);
   border-radius: 8px;
-
   background: #ffffff;
-
   color: var(--md-blue);
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  gap: 7px;
-
+  gap: 6px;
   font-size: 11px;
   font-weight: 700;
-
   text-decoration: none;
-
   white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
 .dashboard-view-link:hover {
@@ -184,562 +189,867 @@
   border-color: var(--md-blue);
 }
 
-
 /* =========================================================
    RECENT JOB ORDERS
 ========================================================= */
-
 .recent-job-list {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .recent-job-item {
   display: grid;
-
-  grid-template-columns:
-    44px minmax(0, 1fr);
-
+  grid-template-columns: 38px minmax(0, 1fr);
   gap: 12px;
-
-  padding: 14px 0;
-
-  border-bottom: 1px solid #e7edf5;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border-bottom: 1px solid #edf2f7;
+  transition: background 0.15s ease;
 }
 
 .recent-job-item:last-child {
   border-bottom: none;
 }
 
+.recent-job-item:hover {
+  background: #f8fbff;
+}
+
+.recent-job-item.is-urgent-item {
+  background: #fffafa;
+  border-left: 3px solid #ef4444;
+}
+
 .recent-job-icon {
-  width: 44px;
-  height: 44px;
-
-  border-radius: 12px;
-
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
 }
 
-.recent-job-icon.completed {
-  background: #dcfce7;
-  color: #15803d;
-}
+.recent-job-icon.completed { background: #dcfce7; color: #15803d; }
+.recent-job-icon.ongoing { background: #e0ecff; color: #0b40b5; }
+.recent-job-icon.hold { background: #fef3c7; color: #b45309; }
+.recent-job-icon.urgent { background: #fee2e2; color: #dc2626; }
+.recent-job-icon.default { background: #f1f5f9; color: #64748b; }
 
-.recent-job-icon.ongoing {
-  background: #e0ecff;
-  color: var(--md-blue);
-}
-
-.recent-job-icon.urgent {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.recent-job-icon.hold {
-  background: #fff3cd;
-  color: #9a6700;
-}
-
-.recent-job-icon.default {
-  background: #f1f5f9;
-  color: #64748b;
+.recent-job-content {
+  min-width: 0;
 }
 
 .recent-job-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-
   gap: 10px;
 }
 
-.recent-job-heading h3 {
-  margin: 0;
-
-  color: var(--md-navy);
-
+.jo-badge-number {
   font-size: 13px;
   font-weight: 800;
+  color: var(--md-navy);
 }
 
-.recent-job-heading p {
-  margin: 3px 0 0;
-
-  color: var(--md-muted);
-
-  font-size: 11px;
+.bus-badge-pill,
+.bus-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
 }
+
+.jo-source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.jo-source-chip.incident {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.jo-source-chip.pms {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.badge-chip.overdue-chip {
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dashboard-status {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dashboard-status.completed { background: #dcfce7; color: #15803d; }
+.dashboard-status.ongoing { background: #e0ecff; color: #0b40b5; }
+.dashboard-status.hold { background: #fef3c7; color: #b45309; }
+.dashboard-status.urgent { background: #fee2e2; color: #dc2626; }
+.dashboard-status.default { background: #f1f5f9; color: #64748b; }
 
 .recent-job-description {
-  margin-top: 7px;
-
+  margin-top: 5px;
+  font-size: 11.5px;
   color: var(--md-text);
-
-  font-size: 12px;
-  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .recent-job-meta {
   display: flex;
   flex-wrap: wrap;
-
-  gap: 14px;
-
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
 }
 
 .recent-job-meta span {
   display: inline-flex;
   align-items: center;
-
-  gap: 6px;
-
+  gap: 5px;
   color: var(--md-muted);
-
-  font-size: 11px;
 }
 
-
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
-.dashboard-status {
-  min-width: 82px;
-  min-height: 25px;
-
-  padding: 0 10px;
-
-  border-radius: 999px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
+.part-badge {
+  padding: 2px 6px;
+  border-radius: 5px;
   font-size: 10px;
   font-weight: 700;
 }
 
-.dashboard-status.completed {
-  background: #dcfce7;
+.part-badge.part-waiting {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.part-badge.part-ready {
+  background: #f0fdf4;
   color: #15803d;
+  border: 1px solid #dcfce7;
 }
-
-.dashboard-status.ongoing {
-  background: #e0ecff;
-  color: var(--md-blue);
-}
-
-.dashboard-status.urgent {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.dashboard-status.hold {
-  background: #fff3cd;
-  color: #9a6700;
-}
-
 
 /* =========================================================
-   STATUS LIST
+   MECHANIC AVAILABILITY ROSTER
 ========================================================= */
-
-.dashboard-status-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-status-row {
-  min-height: 74px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 14px;
-
-  padding: 12px 0;
-
-  border-bottom: 1px solid #e7edf5;
-}
-
-.dashboard-status-row:last-child {
-  border-bottom: none;
-}
-
-.dashboard-status-info {
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-}
-
-.dashboard-status-icon {
-  width: 42px;
-  height: 42px;
-
-  flex: 0 0 42px;
-
-  border-radius: 12px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-status-icon.available {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.dashboard-status-icon.duty {
-  background: #e0ecff;
-  color: var(--md-blue);
-}
-
-.dashboard-status-icon.leave {
-  background: #ede9fe;
-  color: #6d28d9;
-}
-
-.dashboard-status-info h3 {
-  margin: 0;
-
-  color: var(--md-navy);
-
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.dashboard-status-info p {
-  margin: 3px 0 0;
-
-  color: var(--md-muted);
-
-  font-size: 11px;
-}
-
-.dashboard-status-row > strong {
-  color: var(--md-navy);
-
-  font-size: 20px;
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   MINI CARDS
-========================================================= */
-
-.dashboard-mini-grid {
+.roster-metrics-bar {
   display: grid;
-
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
-.dashboard-mini-card {
-  min-height: 90px;
-
-  padding: 12px;
-
-  border: 1px solid var(--md-border);
-  border-radius: 12px;
-
-  background: #f8fbff;
-
+.roster-metric-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
-
-  gap: 11px;
-}
-
-.dashboard-mini-icon {
-  width: 40px;
-  height: 40px;
-
-  flex: 0 0 40px;
-
-  border-radius: 11px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-mini-icon.blue {
-  background: #e0ecff;
-  color: var(--md-blue);
-}
-
-.dashboard-mini-icon.red {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.dashboard-mini-card span {
-  display: block;
-
-  color: var(--md-muted);
-
+  gap: 7px;
   font-size: 11px;
 }
 
-.dashboard-mini-card strong {
-  display: block;
-
-  margin: 2px 0;
-
+.roster-metric-item strong {
+  margin-left: auto;
+  font-size: 14px;
   color: var(--md-navy);
+}
 
-  font-size: 20px;
+.roster-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.roster-dot.available { background: #10b981; }
+.roster-dot.duty { background: #3b82f6; }
+.roster-dot.other { background: #94a3b8; }
+
+.roster-group-label {
+  font-size: 11px;
   font-weight: 800;
-}
-
-.dashboard-mini-card p {
-  margin: 0;
-
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--md-muted);
-
-  font-size: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
+.mechanic-roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #edf2f7;
+  background: #ffffff;
+  transition: border-color 0.15s ease;
+}
+
+.roster-item:hover {
+  border-color: #cbd5e1;
+}
+
+.roster-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.roster-avatar.on-duty { background: #e0ecff; color: #0b40b5; }
+.roster-avatar.available { background: #dcfce7; color: #15803d; }
+.roster-avatar.other { background: #f1f5f9; color: #64748b; }
+
+.roster-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.roster-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.roster-name-row h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--md-navy);
+}
+
+.roster-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.roster-pill.pill-duty { background: #dbeafe; color: #1e40af; }
+.roster-pill.pill-available { background: #dcfce7; color: #166534; }
+.roster-pill.pill-other { background: #f1f5f9; color: #475569; }
+
+.roster-assignment {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* =========================================================
-   PURCHASE SUMMARY
+   PMS ATTENTION HUB
 ========================================================= */
+.pms-attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-.purchase-summary-list {
+.pms-attention-row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.pms-attention-row.is-overdue {
+  border-left: 4px solid #ef4444;
+  background: #fffcfc;
+}
+
+.pms-attention-row.is-due-soon {
+  border-left: 4px solid #f59e0b;
+  background: #fffdfa;
+}
+
+.pms-bus-badge {
   display: flex;
   flex-direction: column;
 }
 
-.purchase-summary-row {
-  min-height: 54px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 4px;
-
-  border-bottom: 1px solid #e7edf5;
+.pms-bus-badge .bus-no-text {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--md-navy);
 }
 
-.purchase-summary-row:last-child {
-  border-bottom: none;
-}
-
-.purchase-summary-row > div {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  color: var(--md-text);
-
-  font-size: 12px;
+.pms-bus-badge .pms-type-text {
+  font-size: 10.5px;
+  color: var(--md-muted);
   font-weight: 600;
 }
 
-.purchase-summary-row strong {
-  color: var(--md-navy);
-
-  font-size: 15px;
-  font-weight: 800;
+.pms-mileage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.purchase-dot {
-  width: 9px;
-  height: 9px;
-
-  border-radius: 50%;
+.mileage-numbers {
+  font-size: 11px;
+  color: #475569;
 }
 
-.purchase-dot.submitted {
-  background: #f59e0b;
+.mileage-numbers .separator {
+  margin: 0 4px;
+  color: #cbd5e1;
 }
 
-.purchase-dot.approved {
-  background: #7c3aed;
+.mileage-delta {
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.purchase-dot.purchase {
+.pms-active-jo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: #e0ecff;
+  color: #0b40b5;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.btn-create-jo-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
   background: var(--md-blue);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
 }
 
+.btn-create-jo-compact:hover {
+  background: #08328c;
+}
 
 /* =========================================================
-   QUICK ACTIONS
+   PARTS PIPELINE & BOTTLENECK
 ========================================================= */
+.pr-pipeline-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  gap: 4px;
+}
 
-.maintenance-quick-actions {
+.pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.pipeline-step .step-num {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--md-navy);
+}
+
+.pipeline-step .step-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--md-muted);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.pipeline-divider {
+  color: #cbd5e1;
+  font-size: 9px;
+}
+
+.subhead-title {
+  margin: 12px 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--md-navy);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.blocked-repairs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.blocked-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+  background: #fffaf5;
+}
+
+.blocked-main {
+  min-width: 0;
+}
+
+.blocked-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.blocked-header strong {
+  color: var(--md-navy);
+}
+
+.blocked-part-name {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #9a3412;
+}
+
+.part-status-badge.waiting {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   OPERATION -> MAINTENANCE REFERRALS
+========================================================= */
+.referral-tally-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.tally-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
   display: flex;
   flex-direction: column;
 }
 
-.maintenance-quick-item {
-  min-height: 64px;
+.tally-box.highlight-pending {
+  background: #fff5f5;
+  border-color: #fca5a5;
+}
 
+.tally-box.highlight-pending .tally-count {
+  color: #dc2626;
+}
+
+.tally-count {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--md-navy);
+}
+
+.tally-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--md-muted);
+  text-transform: uppercase;
+}
+
+.referrals-stream-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.referral-stream-item {
   display: grid;
-
-  grid-template-columns:
-    40px minmax(0, 1fr) 14px;
-
-  align-items: center;
-
-  gap: 11px;
-
-  padding: 10px 4px;
-
-  border-bottom: 1px solid #e7edf5;
-
-  color: var(--md-text);
-
-  text-decoration: none;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
-.maintenance-quick-item:last-child {
-  border-bottom: none;
+.referral-stream-item.is-pending {
+  border-left: 3px solid #dc2626;
+  background: #fffcfc;
 }
 
-.maintenance-quick-item:hover {
-  background: #f8fbff;
-}
-
-.maintenance-quick-icon {
-  width: 40px;
-  height: 40px;
-
-  border-radius: 11px;
-
+.ref-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 13px;
 }
 
-.maintenance-quick-icon.blue {
-  background: #e0ecff;
-  color: var(--md-blue);
+.ref-icon.ref-pending { background: #fee2e2; color: #dc2626; }
+.ref-icon.ref-approved { background: #dbeafe; color: #1d4ed8; }
+.ref-icon.ref-jo { background: #dcfce7; color: #15803d; }
+.ref-icon.ref-rejected { background: #f1f5f9; color: #64748b; }
+.ref-icon.ref-default { background: #f1f5f9; color: #64748b; }
+
+.ref-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.maintenance-quick-icon.yellow {
-  background: #fff3cd;
-  color: #9a6700;
-}
-
-.maintenance-quick-icon.green {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.maintenance-quick-item h3 {
-  margin: 0;
-
-  color: var(--md-navy);
-
+.ref-header-row strong {
   font-size: 12px;
-  font-weight: 800;
+  color: var(--md-navy);
 }
 
-.maintenance-quick-item p {
-  margin: 3px 0 0;
+.ref-status-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
 
-  color: var(--md-muted);
+.ref-status-badge.ref-pending { background: #fee2e2; color: #dc2626; }
+.ref-status-badge.ref-approved { background: #dbeafe; color: #1d4ed8; }
+.ref-status-badge.ref-jo { background: #dcfce7; color: #15803d; }
+.ref-status-badge.ref-rejected { background: #f1f5f9; color: #64748b; }
 
+.ref-desc {
+  margin: 4px 0 5px;
   font-size: 11px;
+  color: var(--md-text);
+  line-height: 1.35;
 }
 
-.maintenance-quick-item > i {
-  color: #94a3b8;
-
-  font-size: 10px;
+.ref-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
 }
 
+.linked-jo-pill {
+  background: #f1f5f9;
+  color: #0b40b5;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
 
 /* =========================================================
-   EMPTY STATE
+   FLEET READINESS & FUEL SUMMARY
 ========================================================= */
+.readiness-gauge-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  gap: 16px;
+}
 
+.gauge-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.gauge-percentage {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0b40b5;
+  line-height: 1;
+}
+
+.gauge-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--md-muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.gauge-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gauge-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge-stat .num {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--md-navy);
+}
+
+.gauge-stat .lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--md-muted);
+}
+
+.progress-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #0b40b5);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.fuel-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.fuel-stat-tile {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.fuel-stat-tile.highlight {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.fuel-tile-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--md-navy);
+}
+
+.fuel-tile-lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--md-muted);
+  margin-top: 2px;
+}
+
+.quick-nav-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.quick-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.quick-tile:hover {
+  background: #f8fbff;
+  border-color: var(--md-blue);
+  transform: translateY(-1px);
+}
+
+.quick-tile i {
+  font-size: 15px;
+}
+
+.quick-tile span {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--md-navy);
+  text-align: center;
+}
+
+/* =========================================================
+   EMPTY STATES
+========================================================= */
 .dashboard-empty-state {
-  padding: 36px 20px;
-
+  padding: 32px 16px;
   text-align: center;
 }
 
 .dashboard-empty-icon {
-  width: 48px;
-  height: 48px;
-
-  margin: 0 auto 12px;
-
-  border-radius: 14px;
-
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
   background: #e0ecff;
   color: var(--md-blue);
-
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
 }
 
 .dashboard-empty-state h3 {
   margin: 0;
-
   color: var(--md-navy);
-
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
 }
 
 .dashboard-empty-state p {
-  margin: 5px 0 0;
-
+  margin: 4px 0 0;
   color: var(--md-muted);
-
   font-size: 11px;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1200px) {
-
-  .maintenance-dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .maintenance-bottom-grid {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-
+.dashboard-empty-state-sm {
+  padding: 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--md-muted);
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
+/* =========================================================
+   HELPERS
+========================================================= */
+.text-blue { color: #0b40b5 !important; }
+.text-green { color: #10b981 !important; }
+.text-danger { color: #ef4444 !important; }
+.text-warning { color: #f59e0b !important; }
+.text-muted { color: #64748b !important; }
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-2 { gap: 8px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
+@media (max-width: 1400px) {
+  .maintenance-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .maintenance-dashboard-grid,
+  .maintenance-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 768px) {
-
   .maintenance-stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .maintenance-bottom-grid {
+  .roster-metrics-bar,
+  .fuel-stats-grid,
+  .quick-nav-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pr-pipeline-strip {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .pipeline-divider {
+    display: none;
+  }
+
+  .pms-attention-row {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
-
-  .dashboard-card-header {
-    flex-direction: column;
-  }
-
-  .dashboard-mini-grid {
-    grid-template-columns: 1fr;
-  }
-
 }
