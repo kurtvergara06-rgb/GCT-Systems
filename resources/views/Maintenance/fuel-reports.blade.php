@@ -9,260 +9,6 @@
   ]"
 >
 
-  <style>
-    .fuel-page .daily-monitoring-card {
-      border-color: #cfdceb;
-    }
-
-    .fuel-page .daily-monitoring-header {
-      align-items: flex-start;
-    }
-
-    .fuel-page .daily-monitoring-summary {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .fuel-page .daily-monitoring-summary span {
-      min-height: 30px;
-      padding: 7px 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      border: 1px solid #dbe4f0;
-      border-radius: 999px;
-      background: #f8fafc;
-      color: #526176;
-      font-family: "Poppins", sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-    }
-
-    .fuel-page .daily-monitoring-summary strong {
-      color: #061f3d;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .fuel-page .daily-monitoring-summary .needs-entry {
-      border-color: #fde68a;
-      background: #fffbeb;
-      color: #9a6700;
-    }
-
-    .fuel-page .daily-monitoring-summary .completed {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-      color: #15803d;
-    }
-
-    .fuel-page .daily-monitoring-toolbar {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-      padding: 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      background: #f8fafc;
-    }
-
-    .fuel-page .daily-monitoring-filters {
-      display: flex;
-      align-items: end;
-      gap: 12px;
-    }
-
-    .fuel-page .daily-filter-field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .fuel-page .daily-filter-field label {
-      color: #64748b;
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    .fuel-page .daily-filter-field input,
-    .fuel-page .daily-filter-field select {
-      min-width: 170px;
-      height: 38px;
-      padding: 0 11px;
-      border: 1px solid #cfdbea;
-      border-radius: 9px;
-      background: #fff;
-      color: #17233a;
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      outline: none;
-    }
-
-    .fuel-page .daily-monitoring-table {
-      min-width: 1080px;
-      table-layout: auto;
-    }
-
-    .fuel-page .daily-monitoring-table td {
-      vertical-align: middle;
-    }
-
-    .fuel-page .daily-monitoring-table .bus-cell strong,
-    .fuel-page .daily-monitoring-table .gps-cell strong {
-      display: block;
-      color: #061f3d;
-      font-weight: 800;
-    }
-
-    .fuel-page .daily-monitoring-table small {
-      display: block;
-      margin-top: 3px;
-      color: #7b8798;
-      font-size: 9px;
-      font-weight: 500;
-    }
-
-    .fuel-page .daily-inline-input {
-      width: 132px;
-      height: 36px;
-      padding: 0 10px;
-      border: 1px solid #cfdbea;
-      border-radius: 8px;
-      background: #fff;
-      color: #17233a;
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      outline: none;
-    }
-
-    .fuel-page .daily-driver-input {
-      width: 150px;
-    }
-
-    .fuel-page .daily-inline-input:focus {
-      border-color: #0b40b5;
-      box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.10);
-    }
-
-    .fuel-page .daily-inline-input:disabled {
-      border-color: #e2e8f0;
-      background: #f1f5f9;
-      color: #94a3b8;
-      cursor: not-allowed;
-    }
-
-    .fuel-page .workflow-badge {
-      min-width: 116px;
-      min-height: 28px;
-      padding: 6px 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      border: 1px solid #dbe4f0;
-      border-radius: 999px;
-      background: #f8fafc;
-      color: #64748b;
-      font-family: "Poppins", sans-serif;
-      font-size: 9px;
-      line-height: 1;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .fuel-page .workflow-badge.completed {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-      color: #15803d;
-    }
-
-    .fuel-page .workflow-badge.for-fuel-entry {
-      border-color: #fde68a;
-      background: #fffbeb;
-      color: #9a6700;
-    }
-
-    .fuel-page .workflow-badge.missing-gps {
-      border-color: #fecaca;
-      background: #fff1f2;
-      color: #dc2626;
-    }
-
-    .fuel-page .daily-monitoring-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid #e5edf7;
-    }
-
-    .fuel-page .daily-monitoring-actions p {
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      color: #64748b;
-      font-size: 10px;
-      line-height: 1.5;
-    }
-
-    .fuel-page .daily-monitoring-actions p i {
-      color: #0b40b5;
-    }
-
-    .fuel-page .daily-save-btn {
-      min-width: 158px;
-      height: 40px;
-      padding: 0 16px;
-      border: 1px solid #e8ad00;
-      border-radius: 9px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #ffc400;
-      color: #061f3d;
-      box-shadow: 0 7px 16px rgba(255, 196, 0, 0.22);
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .fuel-page .daily-save-btn:hover {
-      background: #ffcf2f;
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 760px) {
-      .fuel-page .daily-monitoring-header,
-      .fuel-page .daily-monitoring-toolbar,
-      .fuel-page .daily-monitoring-actions,
-      .fuel-page .daily-monitoring-filters {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .fuel-page .daily-monitoring-summary {
-        justify-content: flex-start;
-      }
-
-      .fuel-page .daily-filter-field input,
-      .fuel-page .daily-filter-field select,
-      .fuel-page .daily-save-btn {
-        width: 100%;
-      }
-    }
-  </style>
-
   <div class="app">
 
     <x-layout.sidebar department="Maintenance" />
@@ -399,13 +145,13 @@
         <div class="section-header daily-monitoring-header">
           <div>
             <h2>Daily Fuel Monitoring</h2>
-            <p>All buses are listed automatically. GPS activity is detected from processed mileage records, so staff only enters fuel when a bus actually refuels.</p>
+            <p>Automated GPS mileage telemetry paired with daily refuel logging and efficiency analysis.</p>
           </div>
 
           <div class="daily-monitoring-summary">
-            <span><strong>{{ $dailyMonitoringCounts['total'] }}</strong> Buses</span>
-            <span class="needs-entry"><strong>{{ $dailyMonitoringCounts['for_entry'] }}</strong> For Entry</span>
-            <span class="completed"><strong>{{ $dailyMonitoringCounts['completed'] }}</strong> Completed</span>
+            <span class="chip-buses"><i class="fa-solid fa-bus"></i> <strong>{{ $dailyMonitoringCounts['total'] }}</strong> Buses</span>
+            <span class="needs-entry"><i class="fa-solid fa-clock"></i> <strong>{{ $dailyMonitoringCounts['for_entry'] }}</strong> For Entry</span>
+            <span class="completed"><i class="fa-solid fa-circle-check"></i> <strong>{{ $dailyMonitoringCounts['completed'] }}</strong> Completed</span>
           </div>
         </div>
 
@@ -439,7 +185,7 @@
 
           <button
             type="button"
-            class="primary-btn"
+            class="primary-btn manual-entry-btn"
             id="openFuelModal"
             title="Use manual entry only for exceptional cases"
           >
@@ -480,7 +226,7 @@
 
                   <tr class="daily-monitoring-row {{ $workflowClass }}">
                     <td class="bus-cell">
-                      <strong>{{ $row->bus_no }}</strong>
+                      <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $row->bus_no }}</span>
                       @if($row->bus_model)
                         <small>{{ $row->bus_model }}</small>
                       @endif
@@ -637,7 +383,7 @@
                   </td>
 
                   <td>
-                    {{ $record->bus_no }}
+                    <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
                   </td>
 
                   <td>

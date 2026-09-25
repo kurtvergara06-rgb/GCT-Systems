@@ -14,6 +14,8 @@ use Illuminate\Notifications\Notifiable;
     'email',
     'password',
     'must_change_password',
+    'onboarding_completed',
+    'onboarding_completed_at',
     'department',
     'role',
     'status',
@@ -71,6 +73,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'must_change_password' => 'boolean',
+            'onboarding_completed' => 'boolean',
+            'onboarding_completed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

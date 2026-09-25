@@ -30,6 +30,13 @@
     content="{{ csrf_token() }}"
   >
 
+  @auth
+    <meta
+      name="gct-force-password-change"
+      content="{{ auth()->user()->must_change_password ? '1' : '0' }}"
+    >
+  @endauth
+
   <title>{{ $title }}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">

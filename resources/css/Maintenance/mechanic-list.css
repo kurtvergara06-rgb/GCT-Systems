@@ -219,12 +219,12 @@
 
   grid-template-columns:
     minmax(300px, 1fr)
-    150px
-    150px;
+    160px
+    160px;
 
-  align-items: end;
+  align-items: center;
 
-  gap: 10px;
+  gap: 12px;
 
   margin-bottom: 14px;
 
@@ -697,6 +697,21 @@
   color: #6d28d9;
 
   border-color: #ddd6fe;
+}
+
+
+/* =========================================================
+   NO ATTENDANCE / OFF DUTY / INACTIVE
+========================================================= */
+
+.mechanic-page .attendance-badge.no-attendance,
+.mechanic-page .attendance-badge.off-duty,
+.mechanic-page .attendance-badge.inactive {
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  border-color: #cbd5e1;
 }
 
 

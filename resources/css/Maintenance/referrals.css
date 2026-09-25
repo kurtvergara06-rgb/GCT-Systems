@@ -1,0 +1,279 @@
+/* =========================================================
+   MAINTENANCE REFERRALS STYLING
+   Consistent with FROMS Design System
+========================================================= */
+
+.referrals-page {
+  --ref-blue: #0b40b5;
+  --ref-navy: #061f3d;
+  --ref-border: #dce5f2;
+  --ref-muted: #64748b;
+  --ref-card: #ffffff;
+}
+
+.referral-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 20px;
+}
+
+.table-card.referrals-card {
+  background: var(--ref-card);
+  border: 1px solid var(--ref-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(6, 31, 61, 0.05);
+  padding: 20px;
+}
+
+.referral-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 18px;
+  flex-wrap: wrap;
+}
+
+.referral-toolbar .search-box {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 420px;
+}
+
+.referral-toolbar .search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.referral-toolbar .search-box input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 34px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  font-size: 12.5px;
+  color: #0f172a;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.referral-toolbar .search-box input:focus {
+  outline: none;
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+.referral-toolbar select {
+  height: 38px;
+  padding: 0 28px 0 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  font-size: 12.5px;
+  color: #1e293b;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.referral-toolbar select:focus {
+  outline: none;
+  border-color: #0b40b5;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+/* =========================================================
+   TABLE PRESENTATION
+========================================================= */
+.referrals-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.referrals-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.referrals-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 12.5px;
+  color: #1e293b;
+}
+
+.referrals-table tbody tr:hover td {
+  background-color: #f8fbff;
+}
+
+.incident-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.incident-number {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ref-navy);
+}
+
+.incident-type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.bus-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.location-problem-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 380px;
+}
+
+.location-text {
+  font-size: 12.5px;
+  color: var(--ref-navy);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.location-text i {
+  color: #ef4444;
+  font-size: 11px;
+}
+
+.problem-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.35;
+}
+
+.linked-jo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #e0ecff;
+  color: #0b40b5;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.linked-jo-pill:hover {
+  background: #c7dcfe;
+  color: #08328c;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+.referral-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-ref-action {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-ref-action.btn-approve {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.btn-ref-action.btn-approve:hover {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.btn-ref-action.btn-reject {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.btn-ref-action.btn-reject:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.btn-ref-action.btn-create-jo {
+  background: #0b40b5;
+  color: #ffffff;
+  border-color: #0b40b5;
+}
+
+.btn-ref-action.btn-create-jo:hover {
+  background: #08328c;
+}
+
+.btn-ref-action.btn-view-jo {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.btn-ref-action.btn-view-jo:hover {
+  background: #e2e8f0;
+}
+
+@media (max-width: 992px) {
+  .referral-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .referral-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
