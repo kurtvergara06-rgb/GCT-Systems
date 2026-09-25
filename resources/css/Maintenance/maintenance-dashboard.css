@@ -153,23 +153,23 @@
 
 /* Specific Max Heights for Paired Scroll Bodies (Desktop) */
 .dashboard-scroll-job-orders {
-  max-height: 560px;
+  max-height: 430px;
 }
 
 .dashboard-scroll-mechanics {
-  max-height: 560px;
+  max-height: 430px;
 }
 
 .dashboard-scroll-pms {
-  max-height: 360px;
+  max-height: 260px;
 }
 
 .dashboard-scroll-parts {
-  max-height: 360px;
+  max-height: 260px;
 }
 
 .dashboard-scroll-referrals {
-  max-height: 300px;
+  max-height: 220px;
 }
 
 /* =========================================================
@@ -1117,24 +1117,18 @@
     grid-template-columns: 1fr;
   }
 
-  .dashboard-scroll-job-orders {
-    max-height: 480px;
-  }
-
+  .dashboard-scroll-job-orders,
   .dashboard-scroll-mechanics {
-    max-height: 480px;
+    max-height: 380px;
   }
 
-  .dashboard-scroll-pms {
-    max-height: 320px;
-  }
-
+  .dashboard-scroll-pms,
   .dashboard-scroll-parts {
-    max-height: 320px;
+    max-height: 240px;
   }
 
   .dashboard-scroll-referrals {
-    max-height: 280px;
+    max-height: 210px;
   }
 }
 
@@ -1148,7 +1142,7 @@
   .dashboard-scroll-pms,
   .dashboard-scroll-parts,
   .dashboard-scroll-referrals {
-    max-height: 420px;
+    max-height: 360px;
   }
 
   .roster-metrics-bar,
