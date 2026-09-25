@@ -70,13 +70,27 @@
                             @forelse($referrals as $referral)
                                 @php
                                     $incident = $referral->incident;
-                                    $user = auth()->user();
-                                    $department = strtolower(trim((string) ($user?->department ?? ''));
-                                    $role = strtolower(trim((string) ($user?->role ?? '')));
-                                    $canReview = ($department === 'maintenance' && in_array($role, ['head', 'admin', 'maintenance head', 'maintenance admin'], true))
-                                        || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
-                                    $canCreateJo = ($department === 'maintenance' && in_array($role, ['staff', 'head', 'admin', 'maintenance staff', 'maintenance head', 'maintenance admin'], true))
-                                        || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
+                                    $currentUser = auth()->user();
+                                    $department = strtolower(trim((string) optional($currentUser)->department));
+                                    $role = strtolower(trim((string) optional($currentUser)->role));
+
+                                    $maintenanceReviewRoles = ['head', 'admin', 'maintenance head', 'maintenance admin'];
+                                    $maintenanceCreateRoles = ['staff', 'head', 'admin', 'maintenance staff', 'maintenance head', 'maintenance admin'];
+                                    $adminRoles = ['head', 'admin', 'system admin'];
+
+                                    $canReview = false;
+                                    if ($department === 'maintenance') {
+                                        $canReview = in_array($role, $maintenanceReviewRoles, true);
+                                    } elseif ($department === 'admin') {
+                                        $canReview = in_array($role, $adminRoles, true);
+                                    }
+
+                                    $canCreateJo = false;
+                                    if ($department === 'maintenance') {
+                                        $canCreateJo = in_array($role, $maintenanceCreateRoles, true);
+                                    } elseif ($department === 'admin') {
+                                        $canCreateJo = in_array($role, $adminRoles, true);
+                                    }
                                 @endphp
                                 <tr>
                                     <td>
