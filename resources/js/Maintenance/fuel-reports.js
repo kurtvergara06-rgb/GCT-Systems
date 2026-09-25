@@ -1564,8 +1564,8 @@ const parseFuelAnalytics = () => {
 };
 
 const fuelChartFont = {
-  family: 'Poppins',
-  size: 10,
+  family: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  size: 11,
 };
 
 const fuelLegendOptions = {
@@ -1576,8 +1576,8 @@ const fuelLegendOptions = {
     padding: 16,
     color: '#475569',
     font: {
-      family: 'Poppins',
-      size: 10,
+      family: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      size: 11.5,
       weight: '600',
     },
   },
@@ -1718,7 +1718,7 @@ grid: { color: 'rgba(148, 163, 184, 0.18)' },
 grid: { display: false },
 ticks: {
   color: '#334155',
-  font: { family: 'Poppins', size: 10, weight: '600' },
+  font: { family: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", size: 11, weight: '700' },
 },
         },
       },
@@ -1804,7 +1804,7 @@ ticks: {
   autoSkip: false,
   maxRotation: 38,
   minRotation: 38,
-  font: { family: 'Poppins', size: 9, weight: '600' },
+  font: { family: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", size: 10.5, weight: '600' },
 },
         },
         distanceAxis: {
