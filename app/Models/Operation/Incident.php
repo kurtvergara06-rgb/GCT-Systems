@@ -4,6 +4,7 @@ namespace App\Models\Operation;
 
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\MaintenanceReferral;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -68,57 +69,41 @@ class Incident extends Model
 
     public function tripSchedule(): BelongsTo
     {
-        return $this->belongsTo(
-            TripSchedule::class,
-            'trip_schedule_id'
-        );
+        return $this->belongsTo(TripSchedule::class, 'trip_schedule_id');
     }
 
     public function tripAssignment(): BelongsTo
     {
-        return $this->belongsTo(
-            TripAssignment::class,
-            'trip_assignment_id'
-        );
+        return $this->belongsTo(TripAssignment::class, 'trip_assignment_id');
     }
 
     public function bus(): BelongsTo
     {
-        return $this->belongsTo(
-            Bus::class,
-            'bus_id'
-        );
+        return $this->belongsTo(Bus::class, 'bus_id');
     }
 
     public function reporter(): BelongsTo
     {
-        return $this->belongsTo(
-            User::class,
-            'reported_by'
-        );
+        return $this->belongsTo(User::class, 'reported_by');
     }
 
     public function resolver(): BelongsTo
     {
-        return $this->belongsTo(
-            User::class,
-            'resolved_by'
-        );
+        return $this->belongsTo(User::class, 'resolved_by');
     }
 
     public function responses(): HasMany
     {
-        return $this->hasMany(
-            IncidentResponse::class,
-            'incident_id'
-        )->orderBy('created_at');
+        return $this->hasMany(IncidentResponse::class, 'incident_id')->orderBy('created_at');
     }
 
     public function replacement(): HasOne
     {
-        return $this->hasOne(
-            IncidentReplacement::class,
-            'incident_id'
-        );
+        return $this->hasOne(IncidentReplacement::class, 'incident_id');
+    }
+
+    public function maintenanceReferral(): HasOne
+    {
+        return $this->hasOne(MaintenanceReferral::class, 'incident_id');
     }
 }
