@@ -66,6 +66,7 @@
                 'label' => 'Work Management',
                 'icon' => 'fa-screwdriver-wrench',
                 'children' => [
+                    ['label' => 'Maintenance Referrals', 'route' => 'maintenance-referrals', 'icon' => 'fa-arrow-right-arrow-left'],
                     ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
                     ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
                 ],

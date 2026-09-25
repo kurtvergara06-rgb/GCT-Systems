@@ -21,19 +21,3 @@
   transform-origin: top center;
 }
 
-/* Static Moon icon beside notification bell (Static only, no toggle) */
-.static-moon-btn {
-  cursor: default;
-  pointer-events: auto;
-  color: #64748b;
-  transition: color 0.15s ease;
-}
-
-.static-moon-btn:hover {
-  color: #0b2347;
-}
-
-.static-moon-btn:focus {
-  outline: none;
-}
-
