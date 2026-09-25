@@ -254,15 +254,32 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 6. FLEET READINESS
         // ---------------------------------------------------------------------
+        // Bus master status is the authoritative source of readiness. An active
+        // job order alone must not silently mark an otherwise Active bus as
+        // unavailable, and an Inactive bus must never count as operational.
         $totalBuses = $buses->count();
-        $activeBusesCount = $buses->where('status', 'Active')->count();
-        $underMaintenanceBusesCount = $buses->where('status', 'Under Maintenance')->count();
-        
-        // Buses currently in the repair bay based on active job orders
-        $busesInRepairBay = $activeJobOrders->pluck('bus_no')->filter()->unique()->count();
-        
+        $activeBusesCount = $buses->filter(
+            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Active') === 0
+        )->count();
+        $underMaintenanceBusesCount = $buses->filter(
+            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Under Maintenance') === 0
+        )->count();
+        $inactiveBusesCount = $buses->filter(
+            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Inactive') === 0
+        )->count();
+
+        // Keep this separately for repair-bay workload context. It is not used
+        // to calculate fleet readiness because JO assignment and bus readiness
+        // are different operational concepts.
+        $busesInRepairBay = $activeJobOrders
+            ->pluck('bus_no')
+            ->filter()
+            ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
+            ->unique()
+            ->count();
+
         $operationalRate = $totalBuses > 0
-            ? round((($totalBuses - $busesInRepairBay) / $totalBuses) * 100)
+            ? round(($activeBusesCount / $totalBuses) * 100)
             : 0;
 
         // ---------------------------------------------------------------------
@@ -337,6 +354,7 @@ class MaintenanceDashboardController extends Controller
             'totalBuses' => $totalBuses,
             'activeBusesCount' => $activeBusesCount,
             'underMaintenanceBusesCount' => $underMaintenanceBusesCount,
+            'inactiveBusesCount' => $inactiveBusesCount,
             'busesInRepairBay' => $busesInRepairBay,
             'operationalRate' => $operationalRate,
 
