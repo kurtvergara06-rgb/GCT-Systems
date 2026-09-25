@@ -146,4 +146,54 @@ class FirstLoginOnboardingTest extends TestCase
 
         $this->assertTrue($user->fresh()->onboarding_completed);
     }
+
+    public function test_authenticated_completed_user_cannot_return_to_login_page(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('login'))
+            ->assertRedirect(route('maintenance-dashboard'));
+    }
+
+    public function test_authenticated_first_login_user_is_sent_to_the_correct_setup_step_from_login(): void
+    {
+        $passwordUser = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => true,
+            'onboarding_completed' => false,
+        ]);
+
+        $this->actingAs($passwordUser)
+            ->get(route('login'))
+            ->assertRedirect(route('account.settings'));
+
+        $onboardingUser = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => false,
+        ]);
+
+        $this->actingAs($onboardingUser)
+            ->get(route('login'))
+            ->assertRedirect(route('onboarding.show'));
+    }
+
+    public function test_guest_login_page_is_not_cached(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
 }
