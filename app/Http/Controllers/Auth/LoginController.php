@@ -7,12 +7,46 @@ use App\Models\Admin\User;
 use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
+    /**
+     * Show the login page, or return an already-authenticated user to the
+     * correct first-login step / department dashboard.
+     */
+    public function show(Request $request): RedirectResponse|Response
+    {
+        /** @var User|null $user */
+        $user = $request->user();
+
+        if ($user !== null) {
+            if ($user->must_change_password) {
+                return redirect()->route('account.settings');
+            }
+
+            if (! $user->onboarding_completed) {
+                return redirect()->route('onboarding.show');
+            }
+
+            return redirect($this->redirectByDepartmentAndRole(
+                $user->department ?? null,
+                $user->role ?? null
+            ));
+        }
+
+        return response()
+            ->view('Login.login')
+            ->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
+    }
+
     /**
      * Authenticate the user and redirect them to the correct dashboard.
      */
