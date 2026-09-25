@@ -11,7 +11,7 @@ class FirstLoginOnboardingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_new_account_must_change_password_before_onboarding(): void
+    public function test_new_account_sees_welcome_before_password_change(): void
     {
         $user = User::factory()->create([
             'department' => 'Maintenance',
@@ -24,10 +24,14 @@ class FirstLoginOnboardingTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('onboarding.show'))
-            ->assertRedirect(route('account.settings'));
+            ->assertOk()
+            ->assertSee('Welcome to GCT')
+            ->assertSee('Secure Account')
+            ->assertSee('Secure your account')
+            ->assertDontSee('Skip Tutorial');
     }
 
-    public function test_temporary_password_change_redirects_new_user_to_onboarding(): void
+    public function test_temporary_password_change_continues_to_profile_step(): void
     {
         $user = User::factory()->create([
             'department' => 'Maintenance',
@@ -44,14 +48,30 @@ class FirstLoginOnboardingTest extends TestCase
                 'password' => 'PrivatePassword456!',
                 'password_confirmation' => 'PrivatePassword456!',
             ])
-            ->assertRedirect(route('onboarding.show'));
+            ->assertRedirect(route('onboarding.show', ['step' => 2]));
 
         $user->refresh();
         $this->assertFalse($user->must_change_password);
         $this->assertFalse($user->onboarding_completed);
+        $this->assertTrue(Hash::check('PrivatePassword456!', $user->password));
     }
 
-    public function test_incomplete_onboarding_blocks_normal_module_pages(): void
+    public function test_password_required_user_cannot_bypass_onboarding_to_module_pages(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => true,
+            'onboarding_completed' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('maintenance-dashboard'))
+            ->assertRedirect(route('onboarding.show'));
+    }
+
+    public function test_incomplete_onboarding_blocks_normal_module_pages_after_password_change(): void
     {
         $user = User::factory()->create([
             'department' => 'Maintenance',
@@ -89,24 +109,6 @@ class FirstLoginOnboardingTest extends TestCase
         $user->refresh();
         $this->assertTrue($user->onboarding_completed);
         $this->assertNotNull($user->onboarding_completed_at);
-    }
-
-    public function test_forced_password_screen_explains_next_onboarding_step_and_hides_replay_link(): void
-    {
-        $user = User::factory()->create([
-            'department' => 'Warehouse',
-            'role' => 'head',
-            'status' => 'Active',
-            'must_change_password' => true,
-            'onboarding_completed' => false,
-        ]);
-
-        $this->actingAs($user)
-            ->get(route('account.settings'))
-            ->assertOk()
-            ->assertSee('First login — Step 1 of 2:')
-            ->assertSee('Welcome to GCT')
-            ->assertDontSee('System Tutorial');
     }
 
     public function test_completed_user_can_open_tutorial_from_account_settings(): void
@@ -163,7 +165,7 @@ class FirstLoginOnboardingTest extends TestCase
             ->assertRedirect(route('maintenance-dashboard'));
     }
 
-    public function test_authenticated_first_login_user_is_sent_to_the_correct_setup_step_from_login(): void
+    public function test_authenticated_first_login_user_is_sent_to_welcome_from_login(): void
     {
         $passwordUser = User::factory()->create([
             'department' => 'Warehouse',
@@ -175,7 +177,7 @@ class FirstLoginOnboardingTest extends TestCase
 
         $this->actingAs($passwordUser)
             ->get(route('login'))
-            ->assertRedirect(route('account.settings'));
+            ->assertRedirect(route('onboarding.show'));
 
         $onboardingUser = User::factory()->create([
             'department' => 'Operation',
@@ -188,6 +190,24 @@ class FirstLoginOnboardingTest extends TestCase
         $this->actingAs($onboardingUser)
             ->get(route('login'))
             ->assertRedirect(route('onboarding.show'));
+    }
+
+    public function test_new_account_login_submission_opens_welcome_first(): void
+    {
+        User::factory()->create([
+            'email' => 'new.user@gct.test',
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'password' => Hash::make('Temporary123!'),
+            'must_change_password' => true,
+            'onboarding_completed' => false,
+        ]);
+
+        $this->post(route('login.submit'), [
+            'email' => 'new.user@gct.test',
+            'password' => 'Temporary123!',
+        ])->assertRedirect(route('onboarding.show'));
     }
 
     public function test_guest_login_page_is_not_cached(): void
