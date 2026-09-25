@@ -2184,23 +2184,45 @@
 .fuel-page .fuel-chart-card {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid #dbe4f0;
+  padding: 20px;
+  border: 1px solid #dce5f2;
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(6, 31, 61, 0.055);
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(6, 31, 61, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fuel-page .fuel-chart-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(6, 31, 61, 0.08);
 }
 
 .fuel-page .fuel-chart-header {
-  min-height: 70px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eef3f8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: auto;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .fuel-page .fuel-chart-heading h2 {
+  margin: 0;
   color: #061f3d;
   font-size: 16px;
-  line-height: 1.25;
+  line-height: 1.3;
   font-weight: 800;
+}
+
+.fuel-page .fuel-chart-heading p {
+  max-width: 520px;
+  margin-top: 4px;
+  margin-bottom: 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.5;
 }
 
 .fuel-page .fuel-chart-header-actions {
@@ -2211,44 +2233,64 @@
 }
 
 .fuel-page .fuel-chart-tag {
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
-  border: 1px solid #d6e0ee;
+  border: 1px solid #dce5f2;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #f8fbff;
-  color: #163b6c;
+  background: #f8fafc;
+  color: #1e293b;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
 }
 
+.fuel-page .fuel-chart-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.fuel-page .fuel-chart-icon.blue {
+  background: #eff6ff;
+  color: #0b40b5;
+  border: 1px solid #bfdbfe;
+}
+
+.fuel-page .fuel-chart-icon.yellow {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
 .fuel-page .fuel-chart-container {
-  overflow: hidden !important;
+  position: relative;
+  width: 100%;
+  min-width: 0;
   min-height: 290px;
-  padding: 10px 12px 0;
-  background: #fbfdff;
-  border: 1px solid #f1f5f9;
+  height: 290px !important;
+  background: #fbfcfe;
+  border: 1px solid #edf2f9;
   border-radius: 12px;
+  padding: 12px 14px 8px;
+  overflow: hidden !important;
 }
 
 .fuel-page .fuel-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
   max-width: 100%;
 }
 
 .fuel-page .fuel-chart-scroll-inner {
   width: 100% !important;
   min-width: 0 !important;
-}
-
-.fuel-page .fuel-chart-heading p {
-  max-width: 520px;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 11.5px;
-  line-height: 1.45;
 }
 
 /* =========================================================
