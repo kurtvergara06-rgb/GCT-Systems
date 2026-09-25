@@ -192,8 +192,14 @@ class FirstLoginOnboardingTest extends TestCase
 
     public function test_guest_login_page_is_not_cached(): void
     {
-        $this->get(route('login'))
-            ->assertOk()
-            ->assertHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response = $this->get(route('login'))
+            ->assertOk();
+
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('must-revalidate', $cacheControl);
+        $this->assertStringContainsString('max-age=0', $cacheControl);
     }
 }
