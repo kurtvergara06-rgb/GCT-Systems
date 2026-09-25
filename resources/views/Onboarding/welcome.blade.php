@@ -45,7 +45,10 @@
     <div class="top">
         <div class="brand">
             <div class="logo">GCT</div>
-            <div><h1>GCT Fleet & Operations Management System</h1><p>First-time account setup and system orientation</p></div>
+            <div>
+                <h1>GCT Fleet & Operations Management System</h1>
+                <p>{{ $replay ? 'System tutorial replay' : 'Password secured — complete your first-time account setup' }}</p>
+            </div>
         </div>
         @if($replay)<span class="pill">Tutorial Replay</span>@endif
     </div>
@@ -53,9 +56,9 @@
     <div class="card">
         <div class="progress">
             <button type="button" class="active" data-step="0">1. Welcome</button>
-            <button type="button" data-step="1">2. About You</button>
-            <button type="button" data-step="2">3. Your Module</button>
-            <button type="button" data-step="3">4. Ready</button>
+            <button type="button" data-step="1">2. Confirm Profile</button>
+            <button type="button" data-step="2">3. Module Tutorial</button>
+            <button type="button" data-step="3">4. Ready to Start</button>
         </div>
 
         @if(session('success'))<div class="alert">{{ session('success') }}</div>@endif
@@ -64,7 +67,7 @@
             <div class="hero">
                 <div class="hero-badge">✓</div>
                 <h2>Welcome to GCT, {{ explode(' ', trim($user->name))[0] ?: 'User' }}!</h2>
-                <p class="lead">This quick setup introduces the tools available to your department, confirms your profile information, and shows the safest way to start working in the system.</p>
+                <p class="lead">Your sign-in password is already secured. This short onboarding will confirm your profile, introduce the tools for your department, and prepare you for your first use of the system.</p>
                 <div class="identity">
                     <span class="pill">Department: {{ $user->department }}</span>
                     <span class="pill">Role: {{ ucfirst($user->role) }}</span>
@@ -74,8 +77,8 @@
         </section>
 
         <section class="step">
-            <h2>Tell us about you</h2>
-            <p class="lead" style="margin:0 0 22px;text-align:left">You may update your name and email. Department and role are controlled by the System Administrator and cannot be changed here.</p>
+            <h2>Confirm your profile</h2>
+            <p class="lead" style="margin:0 0 22px;text-align:left">Review your name and email before continuing. Your department and role are assigned by the System Administrator and are read-only here.</p>
             <form id="profileForm" action="{{ route('onboarding.profile.update', [], false) }}" method="POST">
                 @csrf @method('PUT')
                 <div class="grid">
@@ -90,8 +93,8 @@
         </section>
 
         <section class="step">
-            <h2>Your {{ $user->department }} workspace</h2>
-            <p class="lead" style="margin:0;text-align:left">These are the main areas you will use based on your assigned department.</p>
+            <h2>Your {{ $user->department }} module</h2>
+            <p class="lead" style="margin:0;text-align:left">These are the main tools and workflows available to you based on your assigned department.</p>
             <div class="tips">
                 @foreach($tips as [$title, $description])
                     <div class="tip"><strong>{{ $title }}</strong><span>{{ $description }}</span></div>
@@ -103,8 +106,8 @@
         <section class="step">
             <div class="hero">
                 <div class="hero-badge">GCT</div>
-                <h2>You’re ready to use GCT</h2>
-                <p class="lead">Use your dashboard for daily work, check notifications for pending actions, and open Account Settings anytime to change your password or replay this tutorial.</p>
+                <h2>You’re ready to start</h2>
+                <p class="lead">Finish setup to open your department dashboard. You can replay this tutorial later from Account Settings whenever you need a refresher.</p>
                 <div class="tips" style="text-align:left">
                     <div class="tip"><strong>Start with your dashboard</strong><span>Your dashboard summarizes records and actions relevant to your department.</span></div>
                     <div class="tip"><strong>Watch notifications</strong><span>Pending approvals, workflow changes, and operational updates appear in the system top bar.</span></div>
