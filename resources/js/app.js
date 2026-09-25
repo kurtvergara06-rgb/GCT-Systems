@@ -59,4 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('historyDetailsModal')) {
         import('./Admin/Data_Management/data-history.js');
     }
+
+    if (document.querySelector('.fuel-page')) {
+        import('./Maintenance/fuel-reports-refinement.js');
+    }
 });
