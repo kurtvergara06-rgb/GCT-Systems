@@ -2,6 +2,7 @@
 
 namespace App\Models\Maintenance;
 
+use App\Models\Operation\Incident;
 use App\Models\TopbarNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,8 @@ class JobOrder extends Model
         'job_order_no',
         'bus_no',
         'pms_schedule_id',
+        'maintenance_referral_id',
+        'incident_id',
         'problem_issue',
         'maintenance_type',
         'assigned_mechanic',
@@ -50,12 +53,6 @@ class JobOrder extends Model
             $value = $request->input('estimated_duration_value');
             $unit = $request->input('estimated_duration_unit');
 
-            /*
-             * Edit forms may leave the optional estimate field blank. In that
-             * case keep the saved estimate instead of rejecting unrelated Job
-             * Order updates. A value explicitly entered as zero/invalid still
-             * fails validation below.
-             */
             if (($value === null || $value === '') && $jobOrder->exists) {
                 $savedValue = $jobOrder->getOriginal('estimated_duration_value');
                 $savedUnit = $jobOrder->getOriginal('estimated_duration_unit');
@@ -195,5 +192,15 @@ class JobOrder extends Model
     public function pmsSchedule(): BelongsTo
     {
         return $this->belongsTo(PmsSchedule::class, 'pms_schedule_id');
+    }
+
+    public function maintenanceReferral(): BelongsTo
+    {
+        return $this->belongsTo(MaintenanceReferral::class, 'maintenance_referral_id');
+    }
+
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class, 'incident_id');
     }
 }
