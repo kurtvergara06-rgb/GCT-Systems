@@ -100,7 +100,8 @@
             </a>
           </div>
 
-          <div class="recent-job-list">
+          <div class="dashboard-scroll-body dashboard-scroll-job-orders">
+            <div class="recent-job-list">
             @forelse($recentJobOrders as $jobOrder)
               @php
                 $statusClass = match($jobOrder->status ?? '') {
@@ -202,6 +203,7 @@
                 <p>Newly dispatched repair tickets and maintenance tasks will appear here.</p>
               </div>
             @endforelse
+            </div>
           </div>
         </div>
 
@@ -237,7 +239,8 @@
             </div>
           </div>
 
-          <div class="mechanic-roster-list">
+          <div class="dashboard-scroll-body dashboard-scroll-mechanics">
+            <div class="mechanic-roster-list">
             {{-- On Duty Section --}}
             @if($onDutyMechanicsList->isNotEmpty())
               <div class="roster-group-label">
@@ -319,6 +322,7 @@
                 <p>Register mechanics in the Personnel module to track shop availability.</p>
               </div>
             @endif
+            </div>
           </div>
         </div>
 
@@ -342,7 +346,8 @@
             </a>
           </div>
 
-          <div class="pms-attention-list">
+          <div class="dashboard-scroll-body dashboard-scroll-pms">
+            <div class="pms-attention-list">
             @forelse($pmsAttentionList as $item)
               <div class="pms-attention-row {{ $item->status === 'Overdue' ? 'is-overdue' : 'is-due-soon' }}">
                 <div class="pms-bus-badge">
@@ -358,7 +363,7 @@
                   </div>
                   <div class="mileage-delta">
                     @if($item->status === 'Overdue')
-                      <span class="text-danger">
+                      <span class="pms-status-badge overdue">
                         <i class="fa-solid fa-circle-exclamation"></i>
                         @if($item->km_difference <= 0)
                           {{ number_format(abs($item->km_difference)) }} km overdue
@@ -367,7 +372,7 @@
                         @endif
                       </span>
                     @else
-                      <span class="text-warning">
+                      <span class="pms-status-badge due-soon">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         Due in {{ number_format($item->km_difference) }} km
                       </span>
@@ -396,6 +401,7 @@
                 <p>No buses currently exceed or approach their service mileage interval.</p>
               </div>
             @endforelse
+            </div>
           </div>
         </div>
 
@@ -445,7 +451,8 @@
               <i class="fa-solid fa-hourglass-start text-warning"></i> Active Repairs Blocked by Parts ({{ $blockedJobOrders->count() }})
             </h4>
 
-            <div class="blocked-repairs-list">
+            <div class="dashboard-scroll-body dashboard-scroll-parts">
+              <div class="blocked-repairs-list">
               @forelse($blockedJobOrders as $blockedJo)
                 <div class="blocked-item">
                   <div class="blocked-main">
@@ -469,6 +476,7 @@
                   <span>No active repairs currently delayed waiting for parts.</span>
                 </div>
               @endforelse
+              </div>
             </div>
           </div>
         </div>
@@ -513,7 +521,8 @@
             </div>
           </div>
 
-          <div class="referrals-stream-list mt-3">
+          <div class="dashboard-scroll-body dashboard-scroll-referrals mt-3">
+            <div class="referrals-stream-list">
             @forelse($recentReferrals as $referral)
               @php
                 $refStatusClass = match($referral->status) {
@@ -562,6 +571,7 @@
                 <p>Breakdown referrals submitted by Operation will appear here for review.</p>
               </div>
             @endforelse
+            </div>
           </div>
         </div>
 
