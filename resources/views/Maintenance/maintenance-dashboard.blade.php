@@ -131,7 +131,7 @@
                       
                       @if($incidentNo)
                         <span class="jo-source-chip incident" title="Initiated from Operation Bus Breakdown Incident">
-                          <i class="fa-solid fa-triangle-exclamation"></i> Breakdown INC-{{ $incidentNo }}
+                          <i class="fa-solid fa-triangle-exclamation"></i> Breakdown {{ \Illuminate\Support\Str::startsWith($incidentNo, 'INC-') ? $incidentNo : 'INC-' . $incidentNo }}
                         </span>
                       @elseif($jobOrder->maintenance_referral_id)
                         <span class="jo-source-chip incident" title="Initiated from Operation Maintenance Referral">
@@ -533,7 +533,7 @@
                 <div class="ref-details">
                   <div class="ref-header-row">
                     <div class="d-flex align-items-center gap-2">
-                      <strong>INC-{{ $referral->incident?->incident_no ?? 'Incident' }}</strong>
+                      <strong>{{ $referral->incident?->incident_no ? (\Illuminate\Support\Str::startsWith($referral->incident->incident_no, 'INC-') ? $referral->incident->incident_no : 'INC-' . $referral->incident->incident_no) : 'Incident' }}</strong>
                       <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $referral->incident?->bus?->bus_no ?? 'No Bus' }}</span>
                     </div>
                     <span class="ref-status-badge {{ $refStatusClass }}">
@@ -590,13 +590,19 @@
                 <span class="lbl">Total Fleet</span>
               </div>
               <div class="gauge-stat">
-                <span class="num text-green">{{ $totalBuses - $busesInRepairBay }}</span>
-                <span class="lbl">Ready for Trips</span>
+                <span class="num text-green">{{ $activeBusesCount }}</span>
+                <span class="lbl">Active Buses</span>
               </div>
               <div class="gauge-stat">
-                <span class="num text-danger">{{ $busesInRepairBay }}</span>
-                <span class="lbl">In Repair Bay</span>
+                <span class="num text-danger">{{ $underMaintenanceBusesCount }}</span>
+                <span class="lbl">Under Maint.</span>
               </div>
+              @if($inactiveBusesCount > 0)
+                <div class="gauge-stat">
+                  <span class="num text-muted">{{ $inactiveBusesCount }}</span>
+                  <span class="lbl">Inactive</span>
+                </div>
+              @endif
             </div>
           </div>
 

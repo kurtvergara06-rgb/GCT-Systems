@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\MaintenanceReferral;
 use App\Models\Operation\Incident;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class MaintenanceReferralController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     public function store(Request $request, Incident $incident): RedirectResponse
     {
         $this->authorizeOperationHead();
@@ -30,12 +33,20 @@ class MaintenanceReferralController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        MaintenanceReferral::create([
+        $referral = MaintenanceReferral::create([
             'incident_id' => $incident->id,
             'status' => 'Pending',
             'notes' => $validated['notes'] ?? null,
             'referred_by' => auth()->id(),
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'MaintenanceReferral',
+            'created',
+            $referral->id,
+            "Breakdown incident {$incident->incident_no} was referred to Maintenance for review."
+        );
 
         return back()->with('success', 'Incident referred to Maintenance for review.');
     }

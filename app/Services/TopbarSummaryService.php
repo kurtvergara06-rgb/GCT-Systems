@@ -120,6 +120,7 @@ class TopbarSummaryService
 
         $actionsByDepartment = [
             'maintenance' => [
+                ['maintenance_referrals', 'status', ['Pending'], 'Pending breakdown referrals', 'maintenance-referrals', 'fa-arrow-right-arrow-left'],
                 ['job_orders', 'status', ['On Going'], 'Job orders in progress', 'job-orders', 'fa-screwdriver-wrench'],
                 ['job_orders', 'status', ['On Hold'], 'Job orders on hold', 'job-orders', 'fa-pause'],
                 ['purchase_requests', 'status', ['Rejected'], 'Purchase requests needing revision', 'purchase-requests', 'fa-rotate'],
@@ -204,6 +205,7 @@ class TopbarSummaryService
             ) ? 'mechanic-attendance' : 'driver-attendance',
             'Inventory' => 'inventory',
             'JobOrder' => 'job-orders',
+            'MaintenanceReferral' => 'maintenance-referrals',
             'PurchaseOrder' => 'purchase-orders',
             'PurchaseRequest' => $notification->module === 'Warehouse'
                 ? 'part-requests'

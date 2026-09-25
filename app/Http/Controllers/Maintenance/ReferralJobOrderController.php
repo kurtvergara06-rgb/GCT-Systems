@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\MaintenanceReferral;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class ReferralJobOrderController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
     public function store(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
         $this->authorizeMaintenanceStaff();
@@ -94,6 +96,22 @@ class ReferralJobOrderController extends Controller
 
             return $jobOrder;
         });
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'JobOrder',
+            'created',
+            $jobOrder->id,
+            "Job Order {$jobOrder->job_order_no} created from referral."
+        );
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'MaintenanceReferral',
+            'updated',
+            $maintenanceReferral->id,
+            "Referral status updated to Job Order Created."
+        );
 
         return redirect()
             ->route('job-orders', ['search' => $jobOrder->job_order_no])
