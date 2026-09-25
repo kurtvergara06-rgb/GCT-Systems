@@ -91,6 +91,42 @@ class FirstLoginOnboardingTest extends TestCase
         $this->assertNotNull($user->onboarding_completed_at);
     }
 
+    public function test_forced_password_screen_explains_next_onboarding_step_and_hides_replay_link(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => true,
+            'onboarding_completed' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.settings'))
+            ->assertOk()
+            ->assertSee('First login — Step 1 of 2:')
+            ->assertSee('Welcome to GCT')
+            ->assertDontSee('System Tutorial');
+    }
+
+    public function test_completed_user_can_open_tutorial_from_account_settings(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.settings'))
+            ->assertOk()
+            ->assertSee('System Tutorial')
+            ->assertSee(route('onboarding.show', ['replay' => 1]), false);
+    }
+
     public function test_completed_user_can_replay_tutorial_without_resetting_state(): void
     {
         $user = User::factory()->create([
