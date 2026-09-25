@@ -72,14 +72,14 @@ class AccountController extends Controller
         }
 
         $user->update([
-            'password' => $validated['password'],
+            'password' => Hash::make($validated['password']),
             'must_change_password' => false,
         ]);
 
         if ($wasTemporary && ! $user->fresh()->onboarding_completed) {
             return redirect()
-                ->route('onboarding.show')
-                ->with('success', 'Password updated. Welcome to GCT — let’s finish your account setup.');
+                ->route('onboarding.show', ['step' => 2])
+                ->with('success', 'Password secured. Continue by confirming your profile.');
         }
 
         return redirect()
