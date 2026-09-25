@@ -44,22 +44,20 @@
                     </div>
                 </div>
 
-                <x-ui.table-toolbar
-                    :action="route('maintenance-referrals')"
-                    class="toolbar referral-toolbar"
-                    search-placeholder="Search incident, bus, location, or problem..."
-                    :show-button="false"
-                >
+                <form method="GET" action="{{ route('maintenance-referrals') }}" class="toolbar referral-toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search incident, bus, location, or problem...">
+                    </div>
                     <div class="filter-group">
-                        <label for="referralStatusFilter"></label>
-                        <select name="status" id="referralStatusFilter" onchange="this.form.submit()">
+                        <select name="status" onchange="this.form.submit()">
                             <option value="all">All Statuses</option>
                             @foreach(['Pending', 'Approved', 'Job Order Created', 'Rejected'] as $status)
                                 <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                             @endforeach
                         </select>
                     </div>
-                </x-ui.table-toolbar>
+                </form>
 
                 <div class="table-wrap">
                     <table class="referrals-table">

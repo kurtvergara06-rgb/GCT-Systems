@@ -11,11 +11,13 @@
 
   <style>
     .fuel-page .daily-monitoring-card {
-      border-color: #cfdceb;
+      border: 1px solid #dce5f2;
+      border-radius: 16px;
     }
 
     .fuel-page .daily-monitoring-header {
-      align-items: flex-start;
+      align-items: center;
+      margin-bottom: 16px;
     }
 
     .fuel-page .daily-monitoring-summary {
@@ -26,23 +28,22 @@
     }
 
     .fuel-page .daily-monitoring-summary span {
-      min-height: 30px;
-      padding: 7px 10px;
+      min-height: 32px;
+      padding: 6px 12px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      border: 1px solid #dbe4f0;
+      gap: 6px;
+      border: 1px solid #dce5f2;
       border-radius: 999px;
       background: #f8fafc;
-      color: #526176;
-      font-family: "Poppins", sans-serif;
-      font-size: 10px;
+      color: #475569;
+      font-size: 11.5px;
       font-weight: 600;
     }
 
     .fuel-page .daily-monitoring-summary strong {
       color: #061f3d;
-      font-size: 11px;
+      font-size: 12.5px;
       font-weight: 800;
     }
 
@@ -60,47 +61,56 @@
 
     .fuel-page .daily-monitoring-toolbar {
       display: flex;
-      align-items: end;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-      padding: 12px;
-      border: 1px solid #e2e8f0;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      border: 1px solid #dce5f2;
       border-radius: 12px;
-      background: #f8fafc;
+      background: #ffffff;
+      flex-wrap: wrap;
     }
 
     .fuel-page .daily-monitoring-filters {
       display: flex;
-      align-items: end;
-      gap: 12px;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
     .fuel-page .daily-filter-field {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      gap: 8px;
     }
 
     .fuel-page .daily-filter-field label {
       color: #64748b;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .fuel-page .daily-filter-field input,
     .fuel-page .daily-filter-field select {
-      min-width: 170px;
+      min-width: 160px;
       height: 38px;
-      padding: 0 11px;
-      border: 1px solid #cfdbea;
+      padding: 0 12px;
+      border: 1px solid #dce5f2;
       border-radius: 9px;
-      background: #fff;
+      background: #ffffff;
       color: #17233a;
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
+      font-size: 12.5px;
       font-weight: 600;
       outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .fuel-page .daily-filter-field input:focus,
+    .fuel-page .daily-filter-field select:focus {
+      border-color: #0b40b5;
+      box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.10);
     }
 
     .fuel-page .daily-monitoring-table {
@@ -123,7 +133,7 @@
       display: block;
       margin-top: 3px;
       color: #7b8798;
-      font-size: 9px;
+      font-size: 10.5px;
       font-weight: 500;
     }
 
@@ -131,14 +141,14 @@
       width: 132px;
       height: 36px;
       padding: 0 10px;
-      border: 1px solid #cfdbea;
+      border: 1px solid #dce5f2;
       border-radius: 8px;
-      background: #fff;
+      background: #ffffff;
       color: #17233a;
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .fuel-page .daily-driver-input {
@@ -152,7 +162,7 @@
 
     .fuel-page .daily-inline-input:disabled {
       border-color: #e2e8f0;
-      background: #f1f5f9;
+      background: #f8fafc;
       color: #94a3b8;
       cursor: not-allowed;
     }
@@ -160,17 +170,16 @@
     .fuel-page .workflow-badge {
       min-width: 116px;
       min-height: 28px;
-      padding: 6px 10px;
+      padding: 5px 11px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      border: 1px solid #dbe4f0;
+      border: 1px solid #dce5f2;
       border-radius: 999px;
       background: #f8fafc;
       color: #64748b;
-      font-family: "Poppins", sans-serif;
-      font-size: 9px;
+      font-size: 11px;
       line-height: 1;
       font-weight: 700;
       white-space: nowrap;
@@ -210,7 +219,7 @@
       align-items: center;
       gap: 7px;
       color: #64748b;
-      font-size: 10px;
+      font-size: 11.5px;
       line-height: 1.5;
     }
 
@@ -220,7 +229,7 @@
 
     .fuel-page .daily-save-btn {
       min-width: 158px;
-      height: 40px;
+      height: 38px;
       padding: 0 16px;
       border: 1px solid #e8ad00;
       border-radius: 9px;
@@ -230,11 +239,11 @@
       gap: 8px;
       background: #ffc400;
       color: #061f3d;
-      box-shadow: 0 7px 16px rgba(255, 196, 0, 0.22);
-      font-family: "Poppins", sans-serif;
-      font-size: 11px;
+      box-shadow: 0 5px 14px rgba(255, 196, 0, 0.22);
+      font-size: 12px;
       font-weight: 800;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .fuel-page .daily-save-btn:hover {
@@ -480,7 +489,7 @@
 
                   <tr class="daily-monitoring-row {{ $workflowClass }}">
                     <td class="bus-cell">
-                      <strong>{{ $row->bus_no }}</strong>
+                      <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $row->bus_no }}</span>
                       @if($row->bus_model)
                         <small>{{ $row->bus_model }}</small>
                       @endif
@@ -637,7 +646,7 @@
                   </td>
 
                   <td>
-                    {{ $record->bus_no }}
+                    <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
                   </td>
 
                   <td>
