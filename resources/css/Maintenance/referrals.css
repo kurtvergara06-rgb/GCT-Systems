@@ -1,6 +1,6 @@
 /* =========================================================
    MAINTENANCE REFERRALS STYLING
-   Consistent with FROMS Design System
+   Consistent with FROMS Design System & Job Orders Layout
 ========================================================= */
 
 .referrals-page {
@@ -26,65 +26,93 @@
   padding: 20px;
 }
 
-.referral-toolbar {
+.table-card.referrals-card .section-header {
+  margin-bottom: 14px;
+}
+
+.table-card.referrals-card .section-header h2 {
+  margin: 0;
+  color: var(--ref-navy);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.table-card.referrals-card .section-header p {
+  margin: 4px 0 0;
+  color: var(--ref-muted);
+  font-size: 12px;
+}
+
+/* =========================================================
+   TOOLBAR (Matching Job Orders Toolbar in Image 1)
+========================================================= */
+.referrals-page .referral-toolbar {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 180px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 11px;
+  border: 1px solid var(--ref-border);
+  border-radius: 14px;
+  background: #fbfcfe;
+}
+
+.referrals-page .referral-toolbar .search-box {
+  position: relative;
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 16px 0 18px;
-  flex-wrap: wrap;
 }
 
-.referral-toolbar .search-box {
-  position: relative;
-  flex: 1;
-  min-width: 260px;
-  max-width: 420px;
-}
-
-.referral-toolbar .search-box i {
+.referrals-page .referral-toolbar .search-box i {
   position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 13px;
+  left: 14px;
+  color: var(--ref-muted);
+  font-size: 14px;
   pointer-events: none;
 }
 
-.referral-toolbar .search-box input {
+.referrals-page .referral-toolbar .search-box input {
   width: 100%;
-  height: 38px;
-  padding: 0 12px 0 34px;
-  border: 1px solid #dce5f2;
-  border-radius: 9px;
-  font-size: 12.5px;
-  color: #0f172a;
+  height: 42px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #d7e2ef;
+  border-radius: 10px;
   background: #ffffff;
-  transition: all 0.15s ease;
+  font-size: 13px;
+  color: #0f172a;
+  transition: border-color .18s ease, box-shadow .18s ease;
 }
 
-.referral-toolbar .search-box input:focus {
+.referrals-page .referral-toolbar .search-box input:focus {
   outline: none;
-  border-color: #0b40b5;
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+  border-color: #75a2ef;
+  box-shadow: 0 0 0 3px rgba(31, 95, 214, 0.1);
 }
 
-.referral-toolbar select {
-  height: 38px;
-  padding: 0 28px 0 12px;
-  border: 1px solid #dce5f2;
-  border-radius: 9px;
-  font-size: 12.5px;
+.referrals-page .referral-toolbar .filter-group {
+  margin: 0;
+  width: 100%;
+}
+
+.referrals-page .referral-toolbar select {
+  width: 100%;
+  height: 42px;
+  padding: 0 30px 0 14px;
+  border: 1px solid #d7e2ef;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 13px;
   color: #1e293b;
-  background-color: #ffffff;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color .18s ease, box-shadow .18s ease;
 }
 
-.referral-toolbar select:focus {
+.referrals-page .referral-toolbar select:focus {
   outline: none;
-  border-color: #0b40b5;
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
+  border-color: #75a2ef;
+  box-shadow: 0 0 0 3px rgba(31, 95, 214, 0.1);
 }
 
 /* =========================================================
@@ -138,19 +166,6 @@
   font-size: 11px;
   color: #b91c1c;
   font-weight: 600;
-}
-
-.bus-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #f1f5f9;
-  color: #334155;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
 }
 
 .location-problem-cell {
@@ -269,6 +284,12 @@
 @media (max-width: 992px) {
   .referral-stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .referrals-page .referral-toolbar {
+    grid-template-columns: 1fr;
   }
 }
 
