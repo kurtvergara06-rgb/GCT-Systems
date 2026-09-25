@@ -52,6 +52,7 @@ class AccountController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $wasTemporary = (bool) $user->must_change_password;
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
@@ -74,6 +75,12 @@ class AccountController extends Controller
             'password' => $validated['password'],
             'must_change_password' => false,
         ]);
+
+        if ($wasTemporary && ! $user->fresh()->onboarding_completed) {
+            return redirect()
+                ->route('onboarding.show')
+                ->with('success', 'Password updated. Welcome to GCT — let’s finish your account setup.');
+        }
 
         return redirect()
             ->route('account.settings')
