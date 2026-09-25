@@ -43,23 +43,23 @@ const updateUsageCardCopy = (canvas) => {
     const icon = card.querySelector('.fuel-chart-icon i');
 
     if (title) {
-        title.textContent = 'Distance vs Fuel Consumption';
+        title.textContent = 'Fuel Consumption & Efficiency';
     }
 
     if (description) {
-        description.textContent = 'Each point is a vehicle. Compare travelled distance with recorded fuel use to spot unusual consumption.';
+        description.textContent = 'Compare fuel consumed by each vehicle with the efficiency achieved from that fuel.';
     }
 
     if (tag) {
-        tag.textContent = 'Vehicle Relationship';
+        tag.textContent = 'Top 10';
     }
 
     if (icon) {
-        icon.className = 'fa-solid fa-chart-scatter';
+        icon.className = 'fa-solid fa-gas-pump';
     }
 };
 
-const renderDistanceFuelScatter = () => {
+const renderFuelConsumptionEfficiencyChart = () => {
     const canvas = document.getElementById('fuelUsageChart');
     const analytics = readFuelAnalytics();
 
@@ -68,8 +68,8 @@ const renderDistanceFuelScatter = () => {
     }
 
     const rows = normalizeFuelRows(analytics)
-        .filter((row) => row.distance > 0 && row.fuel > 0)
-        .sort((a, b) => b.distance - a.distance)
+        .filter((row) => row.fuel > 0 && row.efficiency > 0)
+        .sort((a, b) => b.fuel - a.fuel)
         .slice(0, 10);
 
     updateUsageCardCopy(canvas);
@@ -81,48 +81,73 @@ const renderDistanceFuelScatter = () => {
     Chart.getChart(canvas)?.destroy();
 
     const fleetAverage = Number(analytics.fleetAverage || 0);
-    const points = rows.map((row) => ({
-        x: row.distance,
-        y: row.fuel,
-        busNo: row.label,
-        efficiency: row.efficiency > 0 ? row.efficiency : row.distance / row.fuel,
-    }));
 
     new Chart(canvas, {
-        type: 'scatter',
+        type: 'bar',
         data: {
-            datasets: [{
-                label: 'Vehicles',
-                data: points,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBorderWidth: 2,
-                pointBackgroundColor: points.map((point) =>
-                    fleetAverage > 0 && point.efficiency < fleetAverage
-                        ? 'rgba(239, 68, 68, 0.78)'
-                        : 'rgba(11, 64, 181, 0.82)'
-                ),
-                pointBorderColor: points.map((point) =>
-                    fleetAverage > 0 && point.efficiency < fleetAverage
-                        ? '#dc2626'
-                        : '#0b40b5'
-                ),
-            }],
+            labels: rows.map((row) => row.label),
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Fuel Used (L)',
+                    data: rows.map((row) => row.fuel),
+                    backgroundColor: 'rgba(245, 158, 11, 0.72)',
+                    hoverBackgroundColor: '#f59e0b',
+                    borderColor: '#d97706',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barThickness: 22,
+                    yAxisID: 'fuelAxis',
+                    order: 2,
+                },
+                {
+                    type: 'line',
+                    label: 'Efficiency (km/L)',
+                    data: rows.map((row) => row.efficiency),
+                    borderColor: '#0b40b5',
+                    backgroundColor: '#0b40b5',
+                    pointBackgroundColor: rows.map((row) =>
+                        fleetAverage > 0 && row.efficiency < fleetAverage
+                            ? '#dc2626'
+                            : '#0b40b5'
+                    ),
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4.5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2.5,
+                    tension: 0.32,
+                    fill: false,
+                    yAxisID: 'efficiencyAxis',
+                    order: 1,
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 350 },
             interaction: {
-                mode: 'nearest',
-                intersect: true,
+                mode: 'index',
+                intersect: false,
             },
             layout: {
-                padding: { top: 10, right: 14, bottom: 4, left: 4 },
+                padding: { top: 10, right: 8, bottom: 4, left: 4 },
             },
             plugins: {
                 legend: {
-                    display: false,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 9,
+                        padding: 16,
+                        color: '#475569',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 10.5,
+                            weight: '600',
+                        },
+                    },
                 },
                 tooltip: {
                     backgroundColor: '#061f3d',
@@ -130,57 +155,98 @@ const renderDistanceFuelScatter = () => {
                     bodyColor: '#e2e8f0',
                     padding: 11,
                     cornerRadius: 8,
-                    displayColors: false,
                     callbacks: {
-                        title(items) {
-                            return items[0]?.raw?.busNo || 'Vehicle';
-                        },
-                        label(context) {
-                            const point = context.raw;
+                        afterBody(items) {
+                            const row = rows[items[0]?.dataIndex ?? -1];
+
+                            if (!row) {
+                                return [];
+                            }
+
                             const benchmark = fleetAverage > 0
-                                ? point.efficiency < fleetAverage
+                                ? row.efficiency < fleetAverage
                                     ? 'Below fleet average'
                                     : 'At/above fleet average'
                                 : 'Fleet benchmark unavailable';
 
                             return [
-                                `Distance: ${Number(point.x).toFixed(2)} km`,
-                                `Fuel used: ${Number(point.y).toFixed(2)} L`,
-                                `Efficiency: ${Number(point.efficiency).toFixed(2)} km/L`,
+                                `Distance: ${row.distance.toFixed(2)} km`,
                                 benchmark,
                             ];
+                        },
+                        label(context) {
+                            const value = Number(context.raw || 0);
+
+                            return context.dataset.yAxisID === 'fuelAxis'
+                                ? `Fuel Used: ${value.toFixed(2)} L`
+                                : `Efficiency: ${value.toFixed(2)} km/L`;
                         },
                     },
                 },
             },
             scales: {
                 x: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Distance Travelled (km)',
-                        color: '#64748b',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
-                    },
+                    grid: { display: false },
                     ticks: {
-                        color: '#64748b',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 10.5, weight: '600' },
+                        color: '#0f172a',
+                        autoSkip: false,
+                        maxRotation: 28,
+                        minRotation: 28,
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 10.5,
+                            weight: '700',
+                        },
                     },
-                    grid: { color: 'rgba(226, 232, 240, 0.65)' },
                 },
-                y: {
+                fuelAxis: {
+                    type: 'linear',
+                    position: 'left',
                     beginAtZero: true,
                     title: {
                         display: true,
                         text: 'Fuel Used (L)',
-                        color: '#64748b',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
+                        color: '#b45309',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 11,
+                            weight: '700',
+                        },
                     },
                     ticks: {
-                        color: '#64748b',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 10.5, weight: '600' },
+                        color: '#b45309',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 10.5,
+                            weight: '600',
+                        },
                     },
                     grid: { color: 'rgba(226, 232, 240, 0.65)' },
+                },
+                efficiencyAxis: {
+                    type: 'linear',
+                    position: 'right',
+                    beginAtZero: true,
+                    suggestedMax: Math.max(6, ...rows.map((row) => row.efficiency)) + 0.5,
+                    title: {
+                        display: true,
+                        text: 'Efficiency (km/L)',
+                        color: '#0b40b5',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 11,
+                            weight: '700',
+                        },
+                    },
+                    ticks: {
+                        color: '#0b40b5',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 10.5,
+                            weight: '600',
+                        },
+                    },
+                    grid: { drawOnChartArea: false },
                 },
             },
         },
@@ -204,7 +270,7 @@ const applyFuelReportRefinement = () => {
     }
 
     refineMonitoringTable();
-    renderDistanceFuelScatter();
+    renderFuelConsumptionEfficiencyChart();
 };
 
 const scheduleRefinement = () => {
