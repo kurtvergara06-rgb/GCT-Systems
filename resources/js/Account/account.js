@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Keep the tutorial discoverable from Account Settings/Profile.
+    const accountTabs = document.querySelector('.account-nav-tabs');
+    if (accountTabs && !accountTabs.querySelector('[data-system-tutorial-link]')) {
+        const tutorialLink = document.createElement('a');
+        tutorialLink.href = '/onboarding?replay=1';
+        tutorialLink.className = 'account-nav-tab';
+        tutorialLink.dataset.systemTutorialLink = '1';
+        tutorialLink.innerHTML = '<i class="fa-solid fa-graduation-cap"></i><span>System Tutorial</span>';
+        accountTabs.appendChild(tutorialLink);
+    }
+
     // 1. Password Visibility Toggles
     const toggleButtons = document.querySelectorAll('.account-pw-toggle');
     toggleButtons.forEach((btn) => {
