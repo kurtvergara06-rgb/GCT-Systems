@@ -63,6 +63,11 @@
   />
 
   <x-ui.system-toast />
+
+  @if(request()->routeIs('operation.routes') && $errors->any())
+    <script type="application/json" id="routeValidationOldInput">@json(session()->getOldInput())</script>
+  @endif
+
   @stack('scripts')
 </body>
 </html>
