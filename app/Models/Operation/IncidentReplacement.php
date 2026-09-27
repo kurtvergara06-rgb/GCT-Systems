@@ -28,9 +28,13 @@ class IncidentReplacement extends Model
     protected static function booted(): void
     {
         static::created(function (IncidentReplacement $replacement): void {
-            if (
-                ! Schema::hasColumn('trip_assignments', 'original_bus_id')
-            ) {
+            if ($replacement->original_bus_id) {
+                Bus::query()
+                    ->whereKey($replacement->original_bus_id)
+                    ->update(['status' => 'Under Maintenance']);
+            }
+
+            if (! Schema::hasColumn('trip_assignments', 'original_bus_id')) {
                 return;
             }
 
@@ -54,6 +58,7 @@ class IncidentReplacement extends Model
                     ?: $assignment->bus_id;
             }
 
+            // Keep the existing driver and trip/route. Only the effective bus changes.
             $assignment->bus_id = $replacement->replacement_bus_id;
             $assignment->save();
         });
