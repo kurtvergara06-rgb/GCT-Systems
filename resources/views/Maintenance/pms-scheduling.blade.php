@@ -215,7 +215,9 @@
                                 <tr>
 
                                     <td>
-                                        {{ $row->bus_no }}
+                                        <span class="bus-badge-pill">
+                                            <i class="fa-solid fa-bus"></i> {{ $row->bus_no }}
+                                        </span>
                                     </td>
 
 

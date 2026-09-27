@@ -1635,14 +1635,41 @@ const fleetAverageReferencePlugin = {
     const ctx = chart.ctx;
 
     ctx.save();
-    ctx.strokeStyle = '#d89b00';
+    ctx.strokeStyle = '#f59e0b';
     ctx.lineWidth = 2;
-    ctx.setLineDash([6, 5]);
+    ctx.setLineDash([5, 4]);
     ctx.beginPath();
     ctx.moveTo(x, area.top);
     ctx.lineTo(x, area.bottom);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // Draw benchmark pill above reference line
+    const text = `Avg ${average.toFixed(2)} km/L`;
+    ctx.font = "bold 10px 'Plus Jakarta Sans', sans-serif";
+    const textWidth = ctx.measureText(text).width;
+    const badgeWidth = textWidth + 12;
+    const badgeHeight = 18;
+    const badgeX = Math.max(area.left + 2, Math.min(x - badgeWidth / 2, area.right - badgeWidth - 2));
+    const badgeY = Math.max(2, area.top - 20);
+
+    ctx.fillStyle = '#fffbeb';
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4);
+    } else {
+      ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#b45309';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+
     ctx.restore();
   },
 };
@@ -1676,50 +1703,106 @@ const renderEfficiencyChart = data => {
       datasets: [{
         label: 'Efficiency (km/L)',
         data: rows.map(row => row.efficiency),
-        backgroundColor: 'rgba(11, 64, 181, 0.82)',
-        borderColor: '#0b40b5',
-        borderWidth: 1,
-        borderRadius: 5,
-        barThickness: 14,
+        backgroundColor: rows.map(row =>
+          row.efficiency >= fleetAverage
+            ? 'rgba(11, 64, 181, 0.88)'
+            : 'rgba(148, 163, 184, 0.65)'
+        ),
+        hoverBackgroundColor: rows.map(row =>
+          row.efficiency >= fleetAverage
+            ? '#0b40b5'
+            : '#64748b'
+        ),
+        borderColor: rows.map(row =>
+          row.efficiency >= fleetAverage
+            ? '#0b40b5'
+            : '#94a3b8'
+        ),
+        borderWidth: 1.5,
+        borderRadius: 6,
+        barThickness: 16,
       }],
     },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 350 },
+      animation: { duration: 400 },
       interaction: { mode: 'nearest', intersect: false },
-      layout: { padding: { right: 18 } },
+      layout: { padding: { top: 24, right: 18, bottom: 4, left: 4 } },
       plugins: {
-        legend: fuelLegendOptions,
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 14,
+            color: '#475569',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' },
+            generateLabels() {
+              return [
+                {
+                  text: 'Above Benchmark (≥ Fleet Avg)',
+                  fillStyle: 'rgba(11, 64, 181, 0.88)',
+                  strokeStyle: '#0b40b5',
+                  lineWidth: 1,
+                },
+                {
+                  text: 'Below Benchmark (< Fleet Avg)',
+                  fillStyle: 'rgba(148, 163, 184, 0.65)',
+                  strokeStyle: '#94a3b8',
+                  lineWidth: 1,
+                },
+              ];
+            },
+          },
+        },
         fuelFleetAverageReference: { value: fleetAverage },
         tooltip: {
-callbacks: {
-  label(context) {
-    return `Efficiency: ${Number(context.raw || 0).toFixed(2)} km/L`;
-  },
-},
+          backgroundColor: '#061f3d',
+          titleColor: '#ffffff',
+          bodyColor: '#e2e8f0',
+          titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+          bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11.5, weight: '600' },
+          padding: 10,
+          cornerRadius: 8,
+          boxPadding: 4,
+          callbacks: {
+            label(context) {
+              const val = Number(context.raw || 0);
+              const diff = (val - fleetAverage).toFixed(2);
+              const diffText = val >= fleetAverage ? `+${diff}` : `${diff}`;
+              return [
+                `Efficiency: ${val.toFixed(2)} km/L`,
+                `Benchmark: ${diffText} km/L vs. avg`,
+              ];
+            },
+          },
         },
       },
       scales: {
         x: {
-beginAtZero: true,
-suggestedMax: Math.max(7, ...rows.map(row => row.efficiency)) + 0.5,
-title: {
-  display: true,
-  text: 'km/L',
-  color: '#64748b',
-  font: { ...fuelChartFont, weight: '600' },
-},
-ticks: { color: '#64748b', font: fuelChartFont },
-grid: { color: 'rgba(148, 163, 184, 0.18)' },
+          beginAtZero: true,
+          suggestedMax: Math.max(7, ...rows.map(row => row.efficiency)) + 0.5,
+          title: {
+            display: true,
+            text: 'Fuel Efficiency (km/L)',
+            color: '#64748b',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
+          },
+          ticks: {
+            color: '#64748b',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10.5, weight: '600' },
+          },
+          grid: { color: 'rgba(226, 232, 240, 0.7)' },
         },
         y: {
-grid: { display: false },
-ticks: {
-  color: '#334155',
-  font: { family: 'Poppins', size: 10, weight: '600' },
-},
+          grid: { display: false },
+          ticks: {
+            color: '#0f172a',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11.5, weight: '700' },
+          },
         },
       },
     },
@@ -1752,86 +1835,115 @@ const renderUsageChart = data => {
       labels: rows.map(row => row.label),
       datasets: [
         {
-type: 'bar',
-label: 'Distance (km)',
-data: rows.map(row => row.distance),
-backgroundColor: 'rgba(11, 64, 181, 0.82)',
-borderColor: '#0b40b5',
-borderWidth: 1,
-borderRadius: 5,
-barThickness: 18,
-yAxisID: 'distanceAxis',
+          type: 'bar',
+          label: 'Distance (km)',
+          data: rows.map(row => row.distance),
+          backgroundColor: 'rgba(11, 64, 181, 0.75)',
+          hoverBackgroundColor: '#0b40b5',
+          borderColor: '#0b40b5',
+          borderWidth: 1.5,
+          borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+          barThickness: 20,
+          yAxisID: 'distanceAxis',
+          order: 2,
         },
         {
-type: 'line',
-label: 'Fuel Used (L)',
-data: rows.map(row => row.fuel),
-borderColor: '#e2a900',
-backgroundColor: '#ffc400',
-borderWidth: 2.25,
-pointRadius: 3,
-pointHoverRadius: 5,
-pointBackgroundColor: '#ffc400',
-pointBorderColor: '#d89b00',
-tension: 0.25,
-yAxisID: 'fuelAxis',
+          type: 'line',
+          label: 'Fuel Used (L)',
+          data: rows.map(row => row.fuel),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#f59e0b',
+          pointBorderWidth: 2.5,
+          tension: 0.35,
+          fill: true,
+          yAxisID: 'fuelAxis',
+          order: 1,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 350 },
+      animation: { duration: 400 },
       interaction: { mode: 'index', intersect: false },
+      layout: { padding: { top: 12, right: 8, bottom: 4, left: 4 } },
       plugins: {
-        legend: fuelLegendOptions,
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 16,
+            color: '#475569',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' },
+          },
+        },
         tooltip: {
-callbacks: {
-  label(context) {
-    const value = Number(context.raw || 0).toFixed(2);
-    return context.dataset.label.startsWith('Distance')
-      ? `Distance: ${value} km`
-      : `Fuel Used: ${value} L`;
-  },
-},
+          backgroundColor: '#061f3d',
+          titleColor: '#ffffff',
+          bodyColor: '#e2e8f0',
+          titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+          bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11.5, weight: '600' },
+          padding: 10,
+          cornerRadius: 8,
+          boxPadding: 4,
+          callbacks: {
+            label(context) {
+              const value = Number(context.raw || 0).toFixed(2);
+              return context.dataset.label.startsWith('Distance')
+                ? `Distance: ${value} km`
+                : `Fuel Used: ${value} L`;
+            },
+          },
         },
       },
       scales: {
         x: {
-grid: { display: false },
-ticks: {
-  color: '#475569',
-  autoSkip: false,
-  maxRotation: 38,
-  minRotation: 38,
-  font: { family: 'Poppins', size: 9, weight: '600' },
-},
+          grid: { display: false },
+          ticks: {
+            color: '#0f172a',
+            autoSkip: false,
+            maxRotation: 28,
+            minRotation: 28,
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
+          },
         },
         distanceAxis: {
-type: 'linear',
-position: 'left',
-beginAtZero: true,
-title: {
-  display: true,
-  text: 'Distance (km)',
-  color: '#64748b',
-  font: { ...fuelChartFont, weight: '600' },
-},
-ticks: { color: '#64748b', font: fuelChartFont },
-grid: { color: 'rgba(148, 163, 184, 0.18)' },
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Distance (km)',
+            color: '#0b40b5',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
+          },
+          ticks: {
+            color: '#0b40b5',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10.5, weight: '600' },
+          },
+          grid: { color: 'rgba(226, 232, 240, 0.6)' },
         },
         fuelAxis: {
-type: 'linear',
-position: 'right',
-beginAtZero: true,
-title: {
-  display: true,
-  text: 'Fuel Used (L)',
-  color: '#64748b',
-  font: { ...fuelChartFont, weight: '600' },
-},
-ticks: { color: '#64748b', font: fuelChartFont },
-grid: { drawOnChartArea: false },
+          type: 'linear',
+          position: 'right',
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Fuel Used (L)',
+            color: '#d97706',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '700' },
+          },
+          ticks: {
+            color: '#d97706',
+            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10.5, weight: '600' },
+          },
+          grid: { drawOnChartArea: false },
         },
       },
     },

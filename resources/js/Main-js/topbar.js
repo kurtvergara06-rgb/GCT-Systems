@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const topbarActions = document.getElementById('topbarActions');
   if (!topbarActions) return;
 
+  const passwordChangeRequired = document.querySelector('meta[name="gct-force-password-change"]')?.content === '1';
+  if (passwordChangeRequired) return;
+
   const toggles = topbarActions.querySelectorAll('.topbar-dropdown-toggle');
   const dropdowns = topbarActions.querySelectorAll('.topbar-dropdown');
   const notificationsList = document.getElementById('notificationsList');

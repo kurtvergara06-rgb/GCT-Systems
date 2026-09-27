@@ -152,7 +152,8 @@ class MaintenanceDashboardTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewHas('breakdownRepairsCount', 1);
         $response->assertViewHas('referralPendingCount', 1);
-        $response->assertSee('Breakdown INC-INC-9999');
+        $response->assertSee('Breakdown INC-9999');
+        $response->assertDontSee('Breakdown INC-INC-9999');
         $response->assertSee('Radiator burst causing coolant leak.');
     }
 

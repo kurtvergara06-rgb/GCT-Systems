@@ -1,0 +1,53 @@
+.trip-schedule-page .trip-card-header {
+    margin-bottom: 12px;
+}
+
+.trip-schedule-page .trip-card-header > .ui-form-actions {
+    display: none;
+}
+
+.trip-schedule-page .trip-toolbar {
+    grid-template-columns: minmax(280px, 1fr) 170px 170px auto;
+    align-items: center;
+}
+
+.trip-schedule-page .trip-toolbar-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: max-content;
+}
+
+.trip-schedule-page .trip-toolbar-actions .new-trip-btn {
+    height: 40px;
+    margin: 0;
+}
+
+@media (max-width: 1180px) {
+    .trip-schedule-page .trip-toolbar {
+        grid-template-columns: minmax(240px, 1fr) 160px 160px;
+    }
+
+    .trip-schedule-page .trip-toolbar-actions {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+}
+
+@media (max-width: 760px) {
+    .trip-schedule-page .trip-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-schedule-page .trip-toolbar-actions {
+        grid-column: auto;
+        width: 100%;
+        justify-content: stretch;
+        flex-wrap: wrap;
+    }
+
+    .trip-schedule-page .trip-toolbar-actions .new-trip-btn {
+        flex: 1 1 180px;
+    }
+}

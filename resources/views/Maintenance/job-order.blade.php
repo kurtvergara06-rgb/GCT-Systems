@@ -149,7 +149,11 @@
                                 @endphp
 
                                 <tr class="{{ $isOverdue ? 'jo-overdue-row' : '' }}">
-                                    <td>{{ $jobOrder->bus_no }}</td>
+                                    <td>
+                                        <span class="bus-badge-pill">
+                                            <i class="fa-solid fa-bus"></i> {{ $jobOrder->bus_no }}
+                                        </span>
+                                    </td>
 
                                     <td>
                                         {{ $jobOrder->maintenance_type }}
@@ -166,7 +170,13 @@
                                         @endif
                                     </td>
 
-                                    <td>{{ $jobOrder->assigned_mechanic ?: 'No mechanic assigned' }}</td>
+                                    <td>
+                                        @if($jobOrder->assigned_mechanic)
+                                            <span class="mechanic-name-text"><i class="fa-solid fa-user-gear"></i> {{ $jobOrder->assigned_mechanic }}</span>
+                                        @else
+                                            <span class="text-muted"><i class="fa-solid fa-user-slash"></i> Unassigned</span>
+                                        @endif
+                                    </td>
 
                                     <td class="{{ $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
                                         @if($jobOrder->start_date)

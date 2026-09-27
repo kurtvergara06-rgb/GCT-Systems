@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\PreferredAiResolutionMiddleware;
 use App\Http\Middleware\RecordSystemActivity;
+use App\Http\Middleware\RequireOnboarding;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
@@ -24,18 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Trusted Proxies
-        |--------------------------------------------------------------------------
-        |
-        | Required when the application is accessed through Cloudflare Tunnel.
-        | This allows Laravel to recognize the original HTTPS request and
-        | generate HTTPS asset URLs, route URLs, and form actions.
-        |
-        */
-
         $middleware->trustProxies(
             at: '*',
             headers:
@@ -48,13 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             PreferredAiResolutionMiddleware::class,
             RecordSystemActivity::class,
             RequirePasswordChange::class,
+            RequireOnboarding::class,
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Middleware Aliases
-        |--------------------------------------------------------------------------
-        */
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

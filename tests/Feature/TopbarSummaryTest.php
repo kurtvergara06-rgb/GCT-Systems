@@ -113,4 +113,30 @@ class TopbarSummaryTest extends TestCase
                 ->count()
         );
     }
+
+    public function test_maintenance_user_sees_pending_referrals_and_referral_notification_in_topbar(): void
+    {
+        $maintenanceUser = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+
+        $notification = TopbarNotification::create([
+            'module' => 'Maintenance',
+            'entity' => 'MaintenanceReferral',
+            'action' => 'created',
+            'record_id' => 42,
+            'message' => 'Breakdown incident INC-001 was referred to Maintenance.',
+            'created_by' => $maintenanceUser->id,
+        ]);
+
+        $response = $this
+            ->actingAs($maintenanceUser)
+            ->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 1)
+            ->assertJsonPath('notifications.0.url', route('maintenance-referrals', [], false))
+            ->assertJsonPath('notifications.0.message', 'Breakdown incident INC-001 was referred to Maintenance.');
+    }
 }
