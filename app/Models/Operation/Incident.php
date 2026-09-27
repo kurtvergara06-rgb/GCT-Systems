@@ -62,7 +62,7 @@ class Incident extends Model
         });
 
         static::created(function (Incident $incident): void {
-            if ($incident->incident_type !== 'Bus Breakdown' || ! $incident->bus_id) {
+            if (! $incident->is_unplanned_breakdown || ! $incident->bus_id) {
                 return;
             }
 
