@@ -119,7 +119,7 @@
                       </div>
 
                       <div class="filter-group">
-                          <label for="prStatusFilter">Status</label>
+                          <label for="prStatusFilter" class="sr-only"></label>
                           <select
                               name="status"
                               id="prStatusFilter"
@@ -179,15 +179,26 @@
                                   @endphp
 
                                   <tr>
-                                      <td>{{ $pr->pr_no }}</td>
-                                      <td>{{ $pr->bus_no }}</td>
+                                      <td>
+                                          <span class="pr-no-pill">{{ $pr->pr_no }}</span>
+                                      </td>
+                                      <td>
+                                          <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $pr->bus_no }}</span>
+                                      </td>
                                       <td class="requested-part-cell">{{ $firstRequestedItem ?: '—' }}</td>
                                       <td>{{ $pr->quantity }}</td>
                                       <td class="status-col">
                                           <x-ui.status-badge :status="$pr->status" type="purchase" />
                                       </td>
                                       <td class="created-cell">
-                                          {{ $pr->created_at ? $pr->created_at->format('m/d/y | h:i A') : '—' }}
+                                          @if($pr->created_at)
+                                              <div class="date-time-cell">
+                                                  <strong>{{ $pr->created_at->format('M d, Y') }}</strong>
+                                                  <small>{{ $pr->created_at->format('h:i A') }}</small>
+                                              </div>
+                                          @else
+                                              —
+                                          @endif
                                       </td>
                                       <td>
                                           <div class="actions">

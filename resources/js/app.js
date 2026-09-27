@@ -52,11 +52,23 @@ document.addEventListener('DOMContentLoaded', () => {
         import('./Operation/Routes/route-pin-controls.js');
     }
 
+    if (document.getElementById('routeModal') && document.getElementById('routeValidationOldInput')) {
+        import('./Operation/Routes/route-validation-recovery.js');
+    }
+
+    if (document.querySelector('.trip-schedule-page')) {
+        import('./Operation/Scheduling_And_Dispatch/trip-toolbar-alignment.js');
+    }
+
     if (document.getElementById('importModule') && document.getElementById('exportModule')) {
         import('./Admin/Data_Management/import-export.js');
     }
 
     if (document.getElementById('historyDetailsModal')) {
         import('./Admin/Data_Management/data-history.js');
+    }
+
+    if (document.querySelector('.fuel-page')) {
+        import('./Maintenance/fuel-reports-refinement.js');
     }
 });

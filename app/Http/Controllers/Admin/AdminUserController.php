@@ -59,31 +59,19 @@ class AdminUserController extends Controller
             });
         }
 
-        if (
-            $request->filled('department') &&
-            $request->department !== 'All Departments'
-        ) {
+        if ($request->filled('department') && $request->department !== 'All Departments') {
             $query->where('department', $request->department);
         }
 
-        if (
-            $request->filled('role') &&
-            $request->role !== 'All Roles'
-        ) {
+        if ($request->filled('role') && $request->role !== 'All Roles') {
             $query->where('role', $request->role);
         }
 
-        if (
-            $request->filled('status') &&
-            $request->status !== 'All Status'
-        ) {
+        if ($request->filled('status') && $request->status !== 'All Status') {
             $query->where('status', $request->status);
         }
 
-        $users = $query
-            ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString();
+        $users = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
 
         $totalUsers = User::count();
         $activeUsers = User::where('status', 'Active')->count();
@@ -96,15 +84,8 @@ class AdminUserController extends Controller
         $statuses = $this->statuses;
 
         return view('Admin.User_Management.users', compact(
-            'users',
-            'totalUsers',
-            'activeUsers',
-            'inactiveUsers',
-            'pendingUsers',
-            'departments',
-            'departmentOptions',
-            'roles',
-            'statuses'
+            'users', 'totalUsers', 'activeUsers', 'inactiveUsers', 'pendingUsers',
+            'departments', 'departmentOptions', 'roles', 'statuses'
         ));
     }
 
@@ -127,6 +108,9 @@ class AdminUserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'must_change_password' => true,
+            'onboarding_completed' => false,
+            'onboarding_completed_at' => null,
             'department' => $validated['department'],
             'role' => $validated['role'],
             'status' => $validated['status'],
@@ -134,7 +118,7 @@ class AdminUserController extends Controller
 
         return redirect()
             ->route('admin.users')
-            ->with('success', 'User account created successfully.');
+            ->with('success', 'User account created successfully. The user must change the temporary password and complete the welcome setup at first login.');
     }
 
     private function updateRolePermissions(Request $request)
@@ -149,18 +133,14 @@ class AdminUserController extends Controller
         $rolePermission = RolePermission::where('role_key', $validated['role_key'])->firstOrFail();
 
         if ($rolePermission->role_key === 'admin_head') {
-            return redirect()
-                ->route('admin.roles-permissions')
-                ->with('error', 'System Admin permissions are protected.');
+            return redirect()->route('admin.roles-permissions')->with('error', 'System Admin permissions are protected.');
         }
 
         $normalized = [];
 
         foreach ($modules as $moduleKey => $module) {
             foreach (array_keys($module['capabilities']) as $capabilityKey) {
-                $normalized[$moduleKey][$capabilityKey] = $request->boolean(
-                    "permissions.{$moduleKey}.{$capabilityKey}"
-                );
+                $normalized[$moduleKey][$capabilityKey] = $request->boolean("permissions.{$moduleKey}.{$capabilityKey}");
             }
         }
 
@@ -177,28 +157,19 @@ class AdminUserController extends Controller
     public function update(Request $request, User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'The protected System Admin account cannot be edited from Account Management.');
+            return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be edited from Account Management.');
         }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'department' => ['required', 'string', Rule::in($this->departments)],
             'role' => ['required', 'string', Rule::in(array_keys($this->roles))],
             'status' => ['required', 'string', Rule::in($this->statuses)],
         ]);
 
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'You cannot deactivate or place your own account in Pending status.');
+            return redirect()->route('admin.users')->with('error', 'You cannot deactivate or place your own account in Pending status.');
         }
 
         $user->update([
@@ -209,17 +180,13 @@ class AdminUserController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()
-            ->route('admin.users')
-            ->with('success', 'User account updated successfully.');
+        return redirect()->route('admin.users')->with('success', 'User account updated successfully.');
     }
 
     public function updateStatus(Request $request, User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'The protected System Admin account must remain Active.');
+            return redirect()->route('admin.users')->with('error', 'The protected System Admin account must remain Active.');
         }
 
         $validated = $request->validate([
@@ -227,17 +194,13 @@ class AdminUserController extends Controller
         ]);
 
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'You cannot deactivate your own account.');
+            return redirect()->route('admin.users')->with('error', 'You cannot deactivate your own account.');
         }
 
         $previousStatus = $user->status;
         $newStatus = $validated['status'];
 
-        $user->update([
-            'status' => $newStatus,
-        ]);
+        $user->update(['status' => $newStatus]);
 
         $message = match ([$previousStatus, $newStatus]) {
             ['Pending', 'Active'] => 'Account approved and activated successfully.',
@@ -246,24 +209,17 @@ class AdminUserController extends Controller
             default => 'User status updated successfully.',
         };
 
-        return redirect()
-            ->route('admin.users')
-            ->with('success', $message);
+        return redirect()->route('admin.users')->with('success', $message);
     }
 
     public function resetPassword(Request $request, User $user)
     {
         $actor = $request->user();
 
-        abort_unless(
-            $actor && $actor->hasSystemPermission('administration', 'full_control'),
-            403
-        );
+        abort_unless($actor && $actor->hasSystemPermission('administration', 'full_control'), 403);
 
         if ($this->isProtectedSystemAdmin($user)) {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'The protected System Admin password must be changed from Security & Password.');
+            return redirect()->route('admin.users')->with('error', 'The protected System Admin password must be changed from Security & Password.');
         }
 
         $validated = $request->validate([
@@ -283,21 +239,15 @@ class AdminUserController extends Controller
     public function destroy(User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'The protected System Admin account cannot be deleted.');
+            return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be deleted.');
         }
 
         if (Auth::id() === $user->id) {
-            return redirect()
-                ->route('admin.users')
-                ->with('error', 'You cannot delete your own account.');
+            return redirect()->route('admin.users')->with('error', 'You cannot delete your own account.');
         }
 
         $user->delete();
 
-        return redirect()
-            ->route('admin.users')
-            ->with('success', 'User deleted successfully.');
+        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
 }

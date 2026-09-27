@@ -30,6 +30,13 @@
     content="{{ csrf_token() }}"
   >
 
+  @auth
+    <meta
+      name="gct-force-password-change"
+      content="{{ auth()->user()->must_change_password ? '1' : '0' }}"
+    >
+  @endauth
+
   <title>{{ $title }}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,6 +63,11 @@
   />
 
   <x-ui.system-toast />
+
+  @if(request()->routeIs('operation.routes') && $errors->any())
+    <script type="application/json" id="routeValidationOldInput">@json(session()->getOldInput())</script>
+  @endif
+
   @stack('scripts')
 </body>
 </html>

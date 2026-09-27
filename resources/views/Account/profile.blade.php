@@ -149,6 +149,10 @@
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Security & Password</span>
                     </a>
+                    <a href="{{ route('onboarding.show', ['replay' => 1]) }}" class="account-nav-tab" data-system-tutorial-link>
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>System Tutorial</span>
+                    </a>
                 </nav>
 
                 <div class="account-grid">
