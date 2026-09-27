@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\DB;
 class ReferralJobOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
     public function store(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
         $this->authorizeMaintenanceStaff();
 
-        $maintenanceReferral->load(['incident.bus', 'jobOrder']);
+        $maintenanceReferral->load(['incident.bus', 'incident.tripSchedule.shuttleRoute', 'jobOrder']);
 
         if ($maintenanceReferral->status !== 'Approved') {
             return back()->with('error', 'Only approved maintenance referrals can create a Job Order.');
@@ -77,6 +78,24 @@ class ReferralJobOrderController extends Controller
                 $problem = 'Bus breakdown reported at ' . ($incident->location ?: 'an unspecified location') . '.';
             }
 
+            if ($incident->is_unplanned_breakdown) {
+                $tripCode = $incident->tripSchedule?->trip_code ?: 'Active Trip';
+                $routeName = $incident->tripSchedule?->shuttleRoute?->route_name;
+                $source = "Unplanned Breakdown - {$tripCode}";
+
+                if ($routeName) {
+                    $source .= " / {$routeName}";
+                }
+
+                if (! str_starts_with($problem, '[Unplanned Breakdown]')) {
+                    $problem = "[Unplanned Breakdown] {$source}: {$problem}";
+                }
+            }
+
+            if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
+                $incident->bus->update(['status' => 'Under Maintenance']);
+            }
+
             $jobOrder = JobOrder::create([
                 'job_order_no' => $jobOrderNo,
                 'bus_no' => $busNo,
@@ -102,7 +121,9 @@ class ReferralJobOrderController extends Controller
             'JobOrder',
             'created',
             $jobOrder->id,
-            "Job Order {$jobOrder->job_order_no} created from referral."
+            $incident->is_unplanned_breakdown
+                ? "Urgent Job Order {$jobOrder->job_order_no} created from unplanned breakdown {$incident->incident_no}."
+                : "Job Order {$jobOrder->job_order_no} created from referral."
         );
 
         $this->broadcastSystemDataUpdated(
@@ -110,7 +131,7 @@ class ReferralJobOrderController extends Controller
             'MaintenanceReferral',
             'updated',
             $maintenanceReferral->id,
-            "Referral status updated to Job Order Created."
+            'Referral status updated to Job Order Created.'
         );
 
         return redirect()

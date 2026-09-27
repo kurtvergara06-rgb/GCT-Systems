@@ -33,10 +33,23 @@ class MaintenanceReferralController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $incident->loadMissing(['bus', 'tripSchedule']);
+
+        if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
+            $incident->bus->update(['status' => 'Under Maintenance']);
+        }
+
+        $notes = trim((string) ($validated['notes'] ?? ''));
+
+        if ($notes === '' && $incident->is_unplanned_breakdown) {
+            $tripCode = $incident->tripSchedule?->trip_code ?: 'the active trip';
+            $notes = "Unplanned breakdown during {$tripCode}. Original bus was placed Under Maintenance for inspection and repair.";
+        }
+
         $referral = MaintenanceReferral::create([
             'incident_id' => $incident->id,
             'status' => 'Pending',
-            'notes' => $validated['notes'] ?? null,
+            'notes' => $notes !== '' ? $notes : null,
             'referred_by' => auth()->id(),
         ]);
 
@@ -45,7 +58,9 @@ class MaintenanceReferralController extends Controller
             'MaintenanceReferral',
             'created',
             $referral->id,
-            "Breakdown incident {$incident->incident_no} was referred to Maintenance for review."
+            $incident->is_unplanned_breakdown
+                ? "Unplanned breakdown {$incident->incident_no} was referred to Maintenance for review."
+                : "Breakdown incident {$incident->incident_no} was referred to Maintenance for review."
         );
 
         return back()->with('success', 'Incident referred to Maintenance for review.');
