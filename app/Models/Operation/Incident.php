@@ -60,11 +60,28 @@ class Incident extends Model
                 $incident->resolved_by = null;
             }
         });
+
+        static::created(function (Incident $incident): void {
+            if ($incident->incident_type !== 'Bus Breakdown' || ! $incident->bus_id) {
+                return;
+            }
+
+            Bus::query()
+                ->whereKey($incident->bus_id)
+                ->where('status', '!=', 'Under Maintenance')
+                ->update(['status' => 'Under Maintenance']);
+        });
     }
 
     public function getRouteKeyName(): string
     {
         return 'incident_no';
+    }
+
+    public function getIsUnplannedBreakdownAttribute(): bool
+    {
+        return $this->incident_type === 'Bus Breakdown'
+            && $this->trip_schedule_id !== null;
     }
 
     public function tripSchedule(): BelongsTo
