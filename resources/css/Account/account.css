@@ -296,6 +296,202 @@
     margin-top: 6px;
 }
 
+.account-avatar-error[hidden] {
+    display: none;
+}
+
+body.account-crop-open {
+    overflow: hidden;
+}
+
+.account-crop-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.account-crop-modal[hidden] {
+    display: none;
+}
+
+.account-crop-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 20, 40, 0.66);
+    backdrop-filter: blur(5px);
+}
+
+.account-crop-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(520px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    border: 1px solid #dce5f1;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 28px 80px rgba(6, 31, 61, 0.3);
+}
+
+.account-crop-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #e7edf5;
+}
+
+.account-crop-eyebrow {
+    color: #0b40b5;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.account-crop-header h2 {
+    margin: 4px 0 0;
+    color: #0f2742;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.account-crop-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.account-crop-close {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #e1e8f1;
+    border-radius: 10px;
+    background: #f5f8fc;
+    color: #41536b;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.account-crop-close:hover {
+    background: #edf3fb;
+    color: #0b40b5;
+}
+
+.account-crop-workspace {
+    display: grid;
+    place-items: center;
+    padding: 24px 24px 16px;
+}
+
+.account-crop-viewport {
+    position: relative;
+    width: min(360px, 72vw);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #0b1728;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.account-crop-viewport.is-dragging {
+    cursor: grabbing;
+}
+
+.account-crop-viewport > img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none;
+    pointer-events: none;
+    transform-origin: center;
+    will-change: transform;
+}
+
+.account-crop-mask {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: 50%;
+    box-shadow: 0 0 0 999px rgba(4, 16, 32, 0.58);
+    outline: 2px solid rgba(255, 255, 255, 0.92);
+    outline-offset: -2px;
+    pointer-events: none;
+}
+
+.account-crop-zoom {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 2px 28px 20px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.account-crop-zoom input {
+    width: 100%;
+    accent-color: #0b40b5;
+    cursor: pointer;
+}
+
+.account-crop-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px 22px;
+    border-top: 1px solid #e7edf5;
+}
+
+.account-crop-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 17px;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.account-crop-button.secondary {
+    border: 1px solid #d8e1ec;
+    background: #ffffff;
+    color: #41536b;
+}
+
+.account-crop-button.primary {
+    border: 1px solid #0b40b5;
+    background: #0b40b5;
+    color: #ffffff;
+    box-shadow: 0 7px 16px rgba(11, 64, 181, 0.2);
+}
+
+.account-crop-button:hover {
+    transform: translateY(-1px);
+}
+
+.account-crop-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+    transform: none;
+}
+
 .account-badge {
     display: inline-flex;
     align-items: center;
@@ -1046,5 +1242,29 @@
     .account-theme-control {
         grid-column: 2;
         justify-self: start;
+    }
+
+    .account-crop-modal {
+        align-items: end;
+        padding: 10px;
+    }
+
+    .account-crop-dialog {
+        width: 100%;
+        border-radius: 18px;
+    }
+
+    .account-crop-header,
+    .account-crop-actions {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .account-crop-workspace {
+        padding: 18px 18px 14px;
+    }
+
+    .account-crop-actions .account-crop-button {
+        flex: 1;
     }
 }

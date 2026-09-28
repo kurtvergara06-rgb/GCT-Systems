@@ -3,21 +3,220 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarTrigger = avatarForm?.querySelector('[data-avatar-trigger]');
     const avatarInput = avatarForm?.querySelector('[data-avatar-input]');
     const avatarPreview = avatarForm?.querySelector('[data-avatar-preview]');
+    const avatarError = document.querySelector('[data-avatar-client-error]');
+    const cropModal = document.querySelector('[data-avatar-crop-modal]');
+    const cropViewport = cropModal?.querySelector('[data-avatar-crop-viewport]');
+    const cropImage = cropModal?.querySelector('[data-avatar-crop-image]');
+    const cropZoom = cropModal?.querySelector('[data-avatar-crop-zoom]');
+    const cropApply = cropModal?.querySelector('[data-avatar-crop-apply]');
+    const cropCancelButtons = cropModal?.querySelectorAll('[data-avatar-crop-cancel]') ?? [];
+    let cropObjectUrl = null;
+    let cropLastFocus = null;
+    let cropPointerId = null;
+    let cropStartPoint = null;
+    let cropState = {
+        naturalWidth: 0,
+        naturalHeight: 0,
+        baseScale: 1,
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+    };
+
+    const setAvatarError = (message = '') => {
+        if (!avatarError) return;
+        avatarError.textContent = message;
+        avatarError.hidden = !message;
+    };
+
+    const cropBounds = () => {
+        const viewportSize = cropViewport?.clientWidth ?? 0;
+        const renderedWidth = cropState.naturalWidth * cropState.baseScale * cropState.zoom;
+        const renderedHeight = cropState.naturalHeight * cropState.baseScale * cropState.zoom;
+
+        return {
+            x: Math.max(0, (renderedWidth - viewportSize) / 2),
+            y: Math.max(0, (renderedHeight - viewportSize) / 2),
+        };
+    };
+
+    const renderCrop = () => {
+        if (!cropImage) return;
+        const bounds = cropBounds();
+        cropState.offsetX = Math.max(-bounds.x, Math.min(bounds.x, cropState.offsetX));
+        cropState.offsetY = Math.max(-bounds.y, Math.min(bounds.y, cropState.offsetY));
+
+        cropImage.style.width = `${cropState.naturalWidth * cropState.baseScale * cropState.zoom}px`;
+        cropImage.style.height = `${cropState.naturalHeight * cropState.baseScale * cropState.zoom}px`;
+        cropImage.style.transform = `translate(-50%, -50%) translate(${cropState.offsetX}px, ${cropState.offsetY}px)`;
+    };
+
+    const closeCrop = ({ resetInput = true } = {}) => {
+        if (!cropModal) return;
+        cropModal.hidden = true;
+        document.body.classList.remove('account-crop-open');
+        cropViewport?.classList.remove('is-dragging');
+        if (resetInput && avatarInput) avatarInput.value = '';
+        if (cropObjectUrl) URL.revokeObjectURL(cropObjectUrl);
+        cropObjectUrl = null;
+        cropLastFocus?.focus();
+    };
+
+    const openCrop = (file) => {
+        if (!cropModal || !cropImage || !cropViewport || !cropZoom) return;
+        cropLastFocus = document.activeElement;
+        cropObjectUrl = URL.createObjectURL(file);
+        cropModal.hidden = false;
+        document.body.classList.add('account-crop-open');
+        cropZoom.value = '1';
+        cropImage.onload = () => {
+            const viewportSize = cropViewport.clientWidth;
+            cropState = {
+                naturalWidth: cropImage.naturalWidth,
+                naturalHeight: cropImage.naturalHeight,
+                baseScale: Math.max(
+                    viewportSize / cropImage.naturalWidth,
+                    viewportSize / cropImage.naturalHeight,
+                ),
+                zoom: 1,
+                offsetX: 0,
+                offsetY: 0,
+            };
+            renderCrop();
+            cropZoom.focus();
+        };
+        cropImage.onerror = () => {
+            setAvatarError('The selected image could not be opened. Please try another file.');
+            closeCrop();
+        };
+        cropImage.src = cropObjectUrl;
+    };
 
     avatarTrigger?.addEventListener('click', () => avatarInput?.click());
 
     avatarInput?.addEventListener('change', () => {
         const file = avatarInput.files?.[0];
-        if (!file || !avatarForm) return;
+        if (!file) return;
 
-        if (avatarPreview && file.type.startsWith('image/')) {
+        setAvatarError();
+        const supportedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!supportedTypes.includes(file.type)) {
+            setAvatarError('Choose a JPG, PNG, or WebP image.');
+            avatarInput.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            setAvatarError('The selected image must not exceed 2 MB.');
+            avatarInput.value = '';
+            return;
+        }
+
+        openCrop(file);
+    });
+
+    cropZoom?.addEventListener('input', () => {
+        cropState.zoom = Number(cropZoom.value);
+        renderCrop();
+    });
+
+    cropViewport?.addEventListener('pointerdown', (event) => {
+        cropPointerId = event.pointerId;
+        cropStartPoint = {
+            x: event.clientX,
+            y: event.clientY,
+            offsetX: cropState.offsetX,
+            offsetY: cropState.offsetY,
+        };
+        cropViewport.setPointerCapture(event.pointerId);
+        cropViewport.classList.add('is-dragging');
+    });
+
+    cropViewport?.addEventListener('pointermove', (event) => {
+        if (cropPointerId !== event.pointerId || !cropStartPoint) return;
+        cropState.offsetX = cropStartPoint.offsetX + event.clientX - cropStartPoint.x;
+        cropState.offsetY = cropStartPoint.offsetY + event.clientY - cropStartPoint.y;
+        renderCrop();
+    });
+
+    const stopCropDrag = (event) => {
+        if (cropPointerId !== event.pointerId) return;
+        cropPointerId = null;
+        cropStartPoint = null;
+        cropViewport?.classList.remove('is-dragging');
+    };
+
+    cropViewport?.addEventListener('pointerup', stopCropDrag);
+    cropViewport?.addEventListener('pointercancel', stopCropDrag);
+
+    cropCancelButtons.forEach((button) => button.addEventListener('click', () => closeCrop()));
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && cropModal && !cropModal.hidden) closeCrop();
+    });
+
+    cropApply?.addEventListener('click', async () => {
+        if (!avatarForm || !avatarInput || !cropImage || !cropViewport || !cropApply) return;
+
+        cropApply.disabled = true;
+        const originalContent = cropApply.innerHTML;
+        cropApply.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing photo';
+
+        const viewportSize = cropViewport.clientWidth;
+        const renderedScale = cropState.baseScale * cropState.zoom;
+        const sourceSize = viewportSize / renderedScale;
+        const sourceX = (cropState.naturalWidth - sourceSize) / 2 - cropState.offsetX / renderedScale;
+        const sourceY = (cropState.naturalHeight - sourceSize) / 2 - cropState.offsetY / renderedScale;
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+            cropApply.disabled = false;
+            cropApply.innerHTML = originalContent;
+            setAvatarError('Your browser could not prepare this image. Please try another file.');
+            closeCrop();
+            return;
+        }
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(
+            cropImage,
+            sourceX,
+            sourceY,
+            sourceSize,
+            sourceSize,
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+        );
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+        if (!blob) {
+            cropApply.disabled = false;
+            cropApply.innerHTML = originalContent;
+            setAvatarError('The cropped image could not be created. Please try again.');
+            closeCrop();
+            return;
+        }
+
+        const croppedFile = new File([blob], `profile-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const transfer = new DataTransfer();
+        transfer.items.add(croppedFile);
+        avatarInput.files = transfer.files;
+
+        if (avatarPreview) {
             const previewImage = document.createElement('img');
-            previewImage.src = URL.createObjectURL(file);
-            previewImage.alt = 'Selected profile photo preview';
+            previewImage.src = URL.createObjectURL(blob);
+            previewImage.alt = 'Cropped profile photo preview';
             previewImage.addEventListener('load', () => URL.revokeObjectURL(previewImage.src), { once: true });
             avatarPreview.replaceChildren(previewImage);
         }
 
+        closeCrop({ resetInput: false });
         avatarForm.classList.add('is-uploading');
         avatarForm.setAttribute('aria-busy', 'true');
 

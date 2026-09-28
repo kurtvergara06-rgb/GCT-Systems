@@ -36,6 +36,9 @@ class ProfilePhotoTest extends TestCase
             ->get(route('account.profile'))
             ->assertOk()
             ->assertSee('data-avatar-upload-form', false)
+            ->assertSee('data-avatar-crop-modal', false)
+            ->assertSee('Crop your photo')
+            ->assertSee('Crop & Upload', false)
             ->assertSee($user->fresh()->profilePhotoUrl(), false);
 
         $this->actingAs($user)

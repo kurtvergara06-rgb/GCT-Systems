@@ -138,7 +138,7 @@
                                 </span>
                             </div>
                             <div class="account-avatar-help">
-                                <span>Click the photo to upload JPG, PNG, or WebP up to 2 MB.</span>
+                                <span>Click the photo to choose and crop a JPG, PNG, or WebP image up to 2 MB.</span>
                                 @if ($profilePhotoUrl)
                                     <form
                                         action="{{ route('account.profile.photo.destroy', [], false) }}"
@@ -158,8 +158,64 @@
                             @error('avatar')
                                 <span class="account-field-error account-avatar-error">{{ $message }}</span>
                             @enderror
+                            <span class="account-field-error account-avatar-error" data-avatar-client-error hidden></span>
                         </div>
                     </div>
+                </div>
+
+                <div class="account-crop-modal" data-avatar-crop-modal hidden>
+                    <div class="account-crop-backdrop" data-avatar-crop-cancel></div>
+                    <section
+                        class="account-crop-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="avatarCropTitle"
+                    >
+                        <div class="account-crop-header">
+                            <div>
+                                <span class="account-crop-eyebrow">Profile photo</span>
+                                <h2 id="avatarCropTitle">Crop your photo</h2>
+                                <p>Drag the image to reposition it. Use the slider to zoom.</p>
+                            </div>
+                            <button
+                                type="button"
+                                class="account-crop-close"
+                                data-avatar-crop-cancel
+                                aria-label="Close crop dialog"
+                            >&times;</button>
+                        </div>
+
+                        <div class="account-crop-workspace">
+                            <div class="account-crop-viewport" data-avatar-crop-viewport>
+                                <img data-avatar-crop-image alt="Photo selected for cropping" draggable="false">
+                                <div class="account-crop-mask" aria-hidden="true"></div>
+                            </div>
+                        </div>
+
+                        <label class="account-crop-zoom" for="avatarCropZoom">
+                            <i class="fa-solid fa-image" aria-hidden="true"></i>
+                            <input
+                                id="avatarCropZoom"
+                                type="range"
+                                min="1"
+                                max="3"
+                                step="0.01"
+                                value="1"
+                                data-avatar-crop-zoom
+                            >
+                            <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>
+                        </label>
+
+                        <div class="account-crop-actions">
+                            <button type="button" class="account-crop-button secondary" data-avatar-crop-cancel>
+                                Cancel
+                            </button>
+                            <button type="button" class="account-crop-button primary" data-avatar-crop-apply>
+                                <i class="fa-solid fa-crop-simple"></i>
+                                Crop & Upload
+                            </button>
+                        </div>
+                    </section>
                 </div>
 
                 {{-- Unified Module Tabs --}}
