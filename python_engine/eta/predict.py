@@ -1,14 +1,4 @@
-"""Live ETA / trip-duration prediction service.
-
-Loads the saved Random Forest model plus its feature layout and route
-metadata, then predicts trip duration from pre-trip inputs only. Inference is
-side-effect free: it never queries the database and never touches the
-schedule / analytics code.
-
-The predicted duration is clipped to the observed training range (stored in
-the model state) so a prediction always returns a plausible, explainable
-value. If the model is not ready the service refuses to invent numbers.
-"""
+"""ETA / trip-duration inference with production provenance safeguards."""
 
 from __future__ import annotations
 
@@ -17,27 +7,32 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
-import joblib
-import numpy as np
 import pandas as pd
 
+from ml_runtime_policy import evaluate_model_source, normalize_data_source
 from ml_version_guard import safe_load_model
-from .config import model_paths
+from .config import data_thresholds, model_paths
 from .training_data import ETA_FEATURE_COLUMNS, SHIFT_MAP
 
 logger = logging.getLogger(__name__)
 
 _paths = model_paths()
+EXPECTED_MODEL_NAME = "eta_duration_rf"
+EXPECTED_FEATURE_SCHEMA_VERSION = "1.1"
 
 
 @dataclass
 class EtaReadiness:
     ml_ready: bool = False
-    source: str = "not_trained"  # ml | not_trained
+    source: str = "not_trained"
     reason: str = ""
     sample_count: int = 0
+    distinct_routes: int = 0
+    data_source: str = "unknown"
+    dataset_type: str = "UNVERIFIED ETA DATA"
+    is_production_model: bool = False
     model_path: Optional[Path] = None
 
 
@@ -50,9 +45,8 @@ class EtaPrediction:
     feature_inputs: Dict[str, float] = field(default_factory=dict)
 
 
-# Module-level lazy caches.
 _model = None
-_metadata = None  # dict(features, target, route_metadata)
+_metadata = None
 _state = None
 _load_error = None
 _loaded = False
@@ -67,29 +61,33 @@ def _load_artifacts() -> None:
     _metadata = None
     _model = None
     _load_error = None
+
     try:
         if _paths["state"].exists():
             _state = json.loads(_paths["state"].read_text(encoding="utf-8"))
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to read ETA state: %s", exc)
+        _load_error = f"Failed to read ETA state: {exc}"
+        logger.warning(_load_error)
+
     try:
         if _paths["features"].exists():
             _metadata = json.loads(_paths["features"].read_text(encoding="utf-8"))
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to read ETA feature layout: %s", exc)
+        _load_error = f"Failed to read ETA feature schema: {exc}"
+        logger.warning(_load_error)
+
     try:
         if _paths["model"].exists():
-            _model, reason = safe_load_model(_paths["model"], "eta_duration_rf", _state)
+            _model, reason = safe_load_model(_paths["model"], EXPECTED_MODEL_NAME, _state)
             if _model is None:
                 _load_error = reason
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to load ETA model %s: %s", _paths["model"], exc)
         _model = None
-        _load_error = str(exc)
+        _load_error = f"Failed to load ETA model: {exc}"
+        logger.warning(_load_error)
 
 
 def reset_cache() -> None:
-    """Clear lazy caches (used by tests to force a reload)."""
     global _model, _metadata, _state, _load_error, _loaded
     _model = None
     _metadata = None
@@ -98,35 +96,107 @@ def reset_cache() -> None:
     _loaded = False
 
 
-def eta_readiness() -> EtaReadiness:
-    _load_artifacts()
-    sample_count = int(_state.get("sample_count", 0) or 0)
+def _dataset_type(source: str) -> str:
+    if source == "genuine":
+        return "GENUINE GCT GPS RECORDS"
+    if source == "synthetic":
+        return "SAMPLE / DEMO ETA DATA"
+    return "UNVERIFIED ETA DATA"
 
-    if _model is None or _metadata is None:
-        return EtaReadiness(
-            ml_ready=False,
-            source="not_trained",
-            reason=_load_error or "ETA model is not trained or could not be loaded.",
-            sample_count=sample_count,
-            model_path=_paths["model"],
-        )
-    return EtaReadiness(
-        ml_ready=True,
-        source="ml",
-        reason="ETA Random Forest model is ready.",
+
+def eta_readiness() -> EtaReadiness:
+    """Return runtime readiness; production fails closed on provenance."""
+    _load_artifacts()
+    state = _state or {}
+    metadata = _metadata or {}
+    sample_count = int(state.get("sample_count", 0) or 0)
+    distinct_routes = int(state.get("distinct_routes", 0) or 0)
+    data_source = normalize_data_source(state.get("training_source"))
+    common = dict(
         sample_count=sample_count,
+        distinct_routes=distinct_routes,
+        data_source=data_source,
+        dataset_type=_dataset_type(data_source),
         model_path=_paths["model"],
     )
 
+    if _model is None or _metadata is None or not state:
+        return EtaReadiness(
+            reason=_load_error or "ETA model artifacts are missing or unreadable.",
+            **common,
+        )
 
-def _route_lookup() -> Dict[str, Dict[str, float]]:
-    if _metadata is None:
-        return {}
-    return _metadata.get("route_metadata", {}) or {}
+    if state.get("model_ready") is not True:
+        return EtaReadiness(reason="MODEL NOT READY: latest ETA training run did not produce a usable artifact.", **common)
+
+    if state.get("model_name") != EXPECTED_MODEL_NAME:
+        return EtaReadiness(reason="MODEL NOT READY: ETA artifact model identity does not match runtime expectations.", **common)
+
+    if state.get("feature_schema_version") != EXPECTED_FEATURE_SCHEMA_VERSION:
+        return EtaReadiness(reason="MODEL NOT READY: ETA feature schema version is incompatible with this runtime.", **common)
+
+    expected_features = metadata.get("features")
+    if expected_features != ETA_FEATURE_COLUMNS:
+        return EtaReadiness(reason="MODEL NOT READY: ETA feature order/schema does not match the trainer contract.", **common)
+
+    route_encodings = metadata.get("route_encodings") or {}
+    if not isinstance(route_encodings, dict) or not route_encodings:
+        return EtaReadiness(reason="MODEL NOT READY: persisted ETA route encodings are missing.", **common)
+
+    thresholds = data_thresholds()
+    if sample_count < thresholds["min_records"]:
+        return EtaReadiness(
+            reason=(
+                f"MODEL NOT READY: {sample_count} ETA records available; "
+                f"minimum is {thresholds['min_records']}."
+            ),
+            **common,
+        )
+    if distinct_routes < thresholds["min_routes"]:
+        return EtaReadiness(
+            reason=(
+                f"MODEL NOT READY: {distinct_routes} ETA routes available; "
+                f"minimum is {thresholds['min_routes']}."
+            ),
+            **common,
+        )
+
+    source_policy = evaluate_model_source("ETA model", data_source)
+    if not source_policy.allowed:
+        return EtaReadiness(reason=source_policy.reason, **common)
+
+    # A genuine production model must prove that its newest-trip holdout beats
+    # the existing operator route-time baseline. Demo models may still be used
+    # in development, but can never receive the production flag.
+    quality_ready = state.get("quality_ready") is True
+    if data_source == "genuine" and not quality_ready:
+        return EtaReadiness(
+            reason="MODEL NOT READY: genuine ETA artifact has not passed the production quality gate.",
+            **common,
+        )
+
+    production_model = data_source == "genuine" and quality_ready
+    return EtaReadiness(
+        ml_ready=True,
+        source="ml",
+        reason=(
+            "ETA Random Forest production model is ready."
+            if production_model
+            else "ETA development/demo model is loaded; it is not production-ready."
+        ),
+        is_production_model=production_model,
+        **common,
+    )
 
 
-def _normalize_route(route: str) -> str:
-    return " ".join(str(route).strip().lower().split())
+def _normalize_route(route: object) -> str:
+    return " ".join(str(route or "").strip().lower().split())
+
+
+def route_supported(route: str) -> bool:
+    _load_artifacts()
+    encodings = (_metadata or {}).get("route_encodings") or {}
+    return _normalize_route(route) in encodings
 
 
 def _encode_features(
@@ -137,30 +207,25 @@ def _encode_features(
     distance_km: Optional[float],
     route_estimated_time_minutes: Optional[float],
 ) -> Dict[str, float]:
-    """Encode pre-trip inputs into the exact training feature order."""
+    """Encode inputs from persisted training-time maps only."""
     _load_artifacts()
-    route_lookup = _route_lookup()
+    metadata = _metadata or {}
 
-    # Resolve route metadata from training-time captures, allowing a caller
-    # override for routes the model has not seen. Lookup keys are normalized
-    # exactly like the route index so both stay consistent with training.
+    route_lookup = metadata.get("route_metadata") or {}
     normalized_lookup = {_normalize_route(name): meta for name, meta in route_lookup.items()}
-    route_meta = normalized_lookup.get(_normalize_route(route))
+    route_key = _normalize_route(route)
+    route_meta = normalized_lookup.get(route_key)
+
     resolved_distance = distance_km
     resolved_est_time = route_estimated_time_minutes
     if route_meta:
         if resolved_distance is None:
-            resolved_distance = route_meta["distance_km"]
+            resolved_distance = route_meta.get("distance_km")
         if resolved_est_time is None:
-            resolved_est_time = route_meta["estimated_time_minutes"]
+            resolved_est_time = route_meta.get("estimated_time_minutes")
 
-    # Route label-encoding rebuilt identically to training time (sorted keys,
-    # same ordering as the trainer's route_map).
-    route_map = {
-        name: idx
-        for idx, name in enumerate(sorted(normalized_lookup.keys()))
-    }
-    route_encoded = float(route_map.get(_normalize_route(route), -1.0))
+    route_encodings = metadata.get("route_encodings") or {}
+    route_encoded = float(route_encodings.get(route_key, -1.0))
 
     tz_naive = departure_at.replace(tzinfo=None) if departure_at else None
     departure_hour = float(tz_naive.hour) if tz_naive else -1.0
@@ -171,9 +236,8 @@ def _encode_features(
 
     shift_encoded = float(SHIFT_MAP.get((shift or "").strip().lower(), -1.0))
 
-    # Bus encoding uses the persisted training-time map; unseen buses map to -1.
     bus_encoded = -1.0
-    known_buses = (_metadata or {}).get("bus_encodings") or {}
+    known_buses = metadata.get("bus_encodings") or {}
     if bus_no is not None:
         normalized_bus = str(bus_no).strip()
         if normalized_bus in known_buses:
@@ -201,13 +265,8 @@ def predict_trip_duration(
     distance_km: Optional[float] = None,
     route_estimated_time_minutes: Optional[float] = None,
 ) -> Optional[EtaPrediction]:
-    """Predict actual trip duration (minutes) for a new trip.
-
-    Returns None when the model is not ready. Predictions are clipped to the
-    observed training target range so the number is always plausible.
-    """
-    _load_artifacts()
-    if _model is None or _metadata is None:
+    readiness = eta_readiness()
+    if not readiness.ml_ready or not route_supported(route):
         return None
 
     features = _encode_features(
@@ -218,7 +277,8 @@ def predict_trip_duration(
         distance_km,
         route_estimated_time_minutes,
     )
-    features_expected = _metadata.get("features") or ETA_FEATURE_COLUMNS
+    features_expected = (_metadata or {}).get("features") or []
+
     try:
         frame = pd.DataFrame(
             [[features[name] for name in features_expected]],
@@ -229,22 +289,18 @@ def predict_trip_duration(
         logger.warning("ETA prediction failed: %s", exc)
         return None
 
-    target_range = _state.get("target_range") or {}
-    lo = float(target_range.get("min", 1.0)) if target_range else 1.0
-    hi = float(target_range.get("max", 240.0)) if target_range else 240.0
-    predicted = max(min(predicted, hi), lo)
-    predicted_rounded = round(predicted, 1)
+    target_range = (_state or {}).get("target_range") or {}
+    lo = float(target_range.get("min", 1.0))
+    hi = float(target_range.get("max", 240.0))
+    predicted_rounded = round(max(min(predicted, hi), lo), 1)
 
-    tz_naive = departure_at.replace(tzinfo=None) if departure_at else None
-    if tz_naive is not None:
-        arrival = tz_naive + timedelta(minutes=predicted_rounded)
-    else:
-        arrival = None
+    departure = departure_at.replace(tzinfo=None) if departure_at else None
+    arrival = departure + timedelta(minutes=predicted_rounded) if departure else None
 
     return EtaPrediction(
         predicted_duration_minutes=predicted_rounded,
         estimated_arrival_at=arrival,
-        departure_at=tz_naive,
+        departure_at=departure,
         source="ml",
         feature_inputs={name: features[name] for name in features_expected},
     )
