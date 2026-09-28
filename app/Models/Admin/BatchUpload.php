@@ -25,6 +25,7 @@ class BatchUpload extends Model
         'file_type',
         'module',
         'data_type',
+        'data_origin',
         'bus_no',
         'uploaded_by',
         'status',
