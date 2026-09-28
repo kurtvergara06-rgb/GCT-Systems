@@ -1,4 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const avatarForm = document.querySelector('[data-avatar-upload-form]');
+    const avatarTrigger = avatarForm?.querySelector('[data-avatar-trigger]');
+    const avatarInput = avatarForm?.querySelector('[data-avatar-input]');
+    const avatarPreview = avatarForm?.querySelector('[data-avatar-preview]');
+
+    avatarTrigger?.addEventListener('click', () => avatarInput?.click());
+
+    avatarInput?.addEventListener('change', () => {
+        const file = avatarInput.files?.[0];
+        if (!file || !avatarForm) return;
+
+        if (avatarPreview && file.type.startsWith('image/')) {
+            const previewImage = document.createElement('img');
+            previewImage.src = URL.createObjectURL(file);
+            previewImage.alt = 'Selected profile photo preview';
+            previewImage.addEventListener('load', () => URL.revokeObjectURL(previewImage.src), { once: true });
+            avatarPreview.replaceChildren(previewImage);
+        }
+
+        avatarForm.classList.add('is-uploading');
+        avatarForm.setAttribute('aria-busy', 'true');
+
+        const editIcon = avatarForm.querySelector('.account-avatar-edit i');
+        if (editIcon) {
+            editIcon.className = 'fa-solid fa-spinner fa-spin';
+        }
+
+        avatarForm.requestSubmit();
+    });
+
     // 1. Password Visibility Toggles
     const toggleButtons = document.querySelectorAll('.account-pw-toggle');
     toggleButtons.forEach((btn) => {

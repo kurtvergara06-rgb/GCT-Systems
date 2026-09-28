@@ -121,10 +121,9 @@
    HERO IDENTITY CARD
    ========================================================================== */
 .account-hero-card {
-    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 28px;
     padding: 26px 30px;
     margin-bottom: 22px;
@@ -132,17 +131,6 @@
     border-radius: 20px;
     background: linear-gradient(135deg, #ffffff 0%, #f8faff 55%, #f0f6ff 100%);
     box-shadow: 0 10px 30px -4px rgba(11, 64, 181, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
-    overflow: hidden;
-}
-
-.account-hero-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #0b40b5 0%, #2563eb 50%, #38bdf8 100%);
 }
 
 .account-hero-identity {
@@ -159,6 +147,25 @@
     height: 80px;
 }
 
+.account-avatar-form {
+    flex: 0 0 80px;
+}
+
+.account-avatar-trigger {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.account-avatar-trigger:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.35);
+    outline-offset: 7px;
+    border-radius: 50%;
+}
+
 .account-avatar-large {
     display: grid;
     place-items: center;
@@ -173,6 +180,53 @@
     box-shadow: 0 0 0 4px #ffffff, 0 0 0 7px #dbe8fb, 0 8px 18px rgba(11, 64, 181, 0.22);
 }
 
+.account-avatar-large > span {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.account-avatar-large img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
+
+.account-avatar-edit {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(6, 31, 61, 0.68);
+    color: #ffffff;
+    font-size: 19px;
+    opacity: 0;
+    transition: opacity 160ms ease;
+}
+
+.account-avatar-trigger:hover .account-avatar-edit,
+.account-avatar-trigger:focus-visible .account-avatar-edit,
+.account-avatar-form.is-uploading .account-avatar-edit {
+    opacity: 1;
+}
+
+.account-avatar-form.is-uploading .account-avatar-edit {
+    cursor: wait;
+}
+
+.account-avatar-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
 .account-avatar-status-dot {
     position: absolute;
     bottom: 2px;
@@ -183,6 +237,7 @@
     background: #10b981;
     border: 3px solid #ffffff;
     box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+    z-index: 3;
 }
 
 .account-hero-copy {
@@ -204,6 +259,41 @@
     align-items: center;
     gap: 8px;
     margin-top: 8px;
+}
+
+.account-avatar-help {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 9px;
+    color: #64748b;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.account-avatar-help form {
+    display: inline-flex;
+}
+
+.account-avatar-remove {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #b42318;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.account-avatar-remove:hover {
+    color: #8f1d14;
+    text-decoration: underline;
+}
+
+.account-avatar-error {
+    display: block;
+    margin-top: 6px;
 }
 
 .account-badge {

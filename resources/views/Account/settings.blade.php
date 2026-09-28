@@ -57,6 +57,7 @@
             substr($nameParts->get(0, ''), 0, 1)
             . substr($nameParts->get(1, ''), 0, 1)
         ) ?: 'U';
+        $profilePhotoUrl = $user->profilePhotoUrl();
     @endphp
 
     <div class="app account-page">
@@ -92,10 +93,23 @@
                 {{-- Hero Identity Card --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
-                        <div class="account-avatar-wrapper">
-                            <div class="account-avatar-large">{{ $initials }}</div>
+                        <a
+                            href="{{ route('account.profile', [], false) }}"
+                            class="account-avatar-wrapper account-avatar-trigger"
+                            aria-label="Open profile photo settings"
+                        >
+                            <span class="account-avatar-large">
+                                @if ($profilePhotoUrl)
+                                    <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
+                                @else
+                                    <span>{{ $initials }}</span>
+                                @endif
+                            </span>
+                            <span class="account-avatar-edit" aria-hidden="true">
+                                <i class="fa-solid fa-camera"></i>
+                            </span>
                             <span class="account-avatar-status-dot" title="Active Account"></span>
-                        </div>
+                        </a>
                         <div class="account-hero-copy">
                             <h2>{{ $user->name }}</h2>
                             <div class="account-hero-badges">

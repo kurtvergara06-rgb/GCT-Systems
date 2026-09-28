@@ -57,6 +57,7 @@
             substr($nameParts->get(0, ''), 0, 1)
             . substr($nameParts->get(1, ''), 0, 1)
         ) ?: 'U';
+        $profilePhotoUrl = $user->profilePhotoUrl();
     @endphp
 
     <div class="app account-page">
@@ -85,10 +86,41 @@
                 {{-- Hero Identity Card --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
-                        <div class="account-avatar-wrapper">
-                            <div class="account-avatar-large">{{ $initials }}</div>
-                            <span class="account-avatar-status-dot" title="Active Account"></span>
-                        </div>
+                        <form
+                            action="{{ route('account.profile.photo.update', [], false) }}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            class="account-avatar-form"
+                            data-avatar-upload-form
+                        >
+                            @csrf
+                            @method('PUT')
+                            <button
+                                type="button"
+                                class="account-avatar-wrapper account-avatar-trigger"
+                                data-avatar-trigger
+                                aria-label="Choose a new profile photo"
+                            >
+                                <span class="account-avatar-large" data-avatar-preview>
+                                    @if ($profilePhotoUrl)
+                                        <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
+                                    @else
+                                        <span data-avatar-initials>{{ $initials }}</span>
+                                    @endif
+                                </span>
+                                <span class="account-avatar-edit" aria-hidden="true">
+                                    <i class="fa-solid fa-camera"></i>
+                                </span>
+                                <span class="account-avatar-status-dot" title="Active Account"></span>
+                            </button>
+                            <input
+                                type="file"
+                                name="avatar"
+                                accept="image/jpeg,image/png,image/webp"
+                                class="account-avatar-input"
+                                data-avatar-input
+                            >
+                        </form>
                         <div class="account-hero-copy">
                             <h2>{{ $user->name }}</h2>
                             <div class="account-hero-badges">
@@ -105,36 +137,27 @@
                                     {{ $user->status ?: 'Active' }}
                                 </span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="account-hero-meta">
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-id-badge"></i>
+                            <div class="account-avatar-help">
+                                <span>Click the photo to upload JPG, PNG, or WebP up to 2 MB.</span>
+                                @if ($profilePhotoUrl)
+                                    <form
+                                        action="{{ route('account.profile.photo.destroy', [], false) }}"
+                                        method="POST"
+                                        data-confirm-form
+                                        data-confirm-title="Remove Profile Photo"
+                                        data-confirm-message="Remove your current profile photo and return to your initials?"
+                                        data-confirm-button="Remove Photo"
+                                        data-confirm-type="danger"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="account-avatar-remove">Remove photo</button>
+                                    </form>
+                                @endif
                             </div>
-                            <div class="account-hero-meta-text">
-                                <span>System ID</span>
-                                <strong>{{ $displayUserId }}</strong>
-                            </div>
-                        </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Account Health</span>
-                                <strong>Verified Active</strong>
-                            </div>
-                        </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Last Activity</span>
-                                <strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Current Session' }}</strong>
-                            </div>
+                            @error('avatar')
+                                <span class="account-field-error account-avatar-error">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
                 </div>

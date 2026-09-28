@@ -391,6 +391,14 @@
   color: #061f3d;
 }
 
+.user-box .avatar img,
+.profile-menu-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .user-box-text {
   min-width: 0;
 
