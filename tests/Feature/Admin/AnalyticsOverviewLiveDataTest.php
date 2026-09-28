@@ -22,9 +22,18 @@ class AnalyticsOverviewLiveDataTest extends TestCase
         Http::fake();
     }
 
+    private function adminUser(): User
+    {
+        return User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+    }
+
     public function test_overview_uses_live_database_values_instead_of_hard_coded_metrics(): void
     {
-        $user = User::factory()->create();
+        $user = $this->adminUser();
         $batchId = DB::table('batch_uploads')->insertGetId([
             'file_name' => 'overview-test.csv',
             'stored_name' => 'overview-test.csv',
@@ -118,7 +127,7 @@ class AnalyticsOverviewLiveDataTest extends TestCase
 
     public function test_overview_reports_honest_empty_states_when_no_operational_records_exist(): void
     {
-        $user = User::factory()->create();
+        $user = $this->adminUser();
 
         $response = $this->actingAs($user)->get(route('analytics.overview'));
 
@@ -136,7 +145,7 @@ class AnalyticsOverviewLiveDataTest extends TestCase
 
     public function test_overview_normalizes_legacy_period_aliases(): void
     {
-        $user = User::factory()->create();
+        $user = $this->adminUser();
 
         $this->actingAs($user)
             ->get(route('analytics.overview', ['period' => 'last-3-months']))
