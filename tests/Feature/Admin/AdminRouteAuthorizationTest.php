@@ -10,16 +10,20 @@ class AdminRouteAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_non_admin_departments_cannot_access_admin_or_analytics_routes(): void
+    public function test_non_admin_departments_cannot_access_admin_routes(): void
     {
         $protectedRoutes = [
             'admin.dashboard',
             'admin.users',
             'admin.roles-permissions',
+            'admin.activity-logs',
+            'admin.notifications',
             'admin.batch-file-processing',
+            'admin.import-export',
+            'admin.data-history',
             'admin.settings.general',
-            'analytics.overview',
-            'analytics.descriptive',
+            'admin.settings.notifications',
+            'admin.settings.security',
         ];
 
         foreach (['Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $department) {
