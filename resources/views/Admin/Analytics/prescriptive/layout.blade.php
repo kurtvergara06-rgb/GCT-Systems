@@ -29,6 +29,8 @@
 
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
+        'resources/css/Admin/Analytics/overview/live-data.css',
+        'resources/css/Admin/Analytics/model-status-stage.css',
         'resources/css/Admin/Analytics/prescriptive/all.css',
     ];
 
@@ -99,10 +101,18 @@
             @endphp
 
             @if ($prescriptiveNote)
-                <p class="prescriptive-sample-note" role="note">
+                <div class="prescriptive-sample-note" role="note">
                     <i class="fa-solid fa-flask"></i>
-                    {{ $prescriptiveNote }}
-                </p>
+                    <span>
+                        <strong>Demonstration mode:</strong>
+                        {{ $prescriptiveNote }}
+                        Live model readiness is shown separately below so illustrative recommendations are never presented as production-model output.
+                    </span>
+                </div>
+            @endif
+
+            @if($activeDomain === 'all')
+                <x-analytics.model-status />
             @endif
 
             @include($domainViews[$activeDomain])
