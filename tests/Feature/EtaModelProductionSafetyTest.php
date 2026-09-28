@@ -13,12 +13,12 @@ class EtaModelProductionSafetyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_normal_batch_uploads_are_genuine_but_direct_seed_rows_fail_closed(): void
+    public function test_batch_uploads_remain_unknown_until_explicitly_verified(): void
     {
         $batch = BatchUpload::create([
-            'file_name' => 'verified-gps.csv',
-            'stored_name' => 'verified-gps.csv',
-            'file_path' => 'gps-batches/verified-gps.csv',
+            'file_name' => 'uploaded-gps.csv',
+            'stored_name' => 'uploaded-gps.csv',
+            'file_path' => 'gps-batches/uploaded-gps.csv',
             'file_type' => 'csv',
             'module' => 'Operation',
             'data_type' => 'GPS Trip Records',
@@ -26,7 +26,21 @@ class EtaModelProductionSafetyTest extends TestCase
             'status' => 'Processed',
         ]);
 
-        $this->assertSame('genuine', $batch->fresh()->data_origin);
+        $this->assertSame('unknown', $batch->fresh()->data_origin);
+
+        $verified = BatchUpload::create([
+            'file_name' => 'verified-gps.csv',
+            'stored_name' => 'verified-gps.csv',
+            'file_path' => 'gps-batches/verified-gps.csv',
+            'file_type' => 'csv',
+            'module' => 'Operation',
+            'data_type' => 'GPS Trip Records',
+            'data_origin' => 'genuine',
+            'bus_no' => 'Multiple Buses',
+            'status' => 'Processed',
+        ]);
+
+        $this->assertSame('genuine', $verified->fresh()->data_origin);
 
         $directId = DB::table('batch_uploads')->insertGetId([
             'file_name' => 'seeded-demo.csv',
