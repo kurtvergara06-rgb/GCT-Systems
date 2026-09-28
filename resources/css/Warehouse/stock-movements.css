@@ -125,8 +125,9 @@
 
   grid-template-columns:
     minmax(280px, 1fr)
-    150px
-    150px;
+    minmax(130px, 150px)
+    minmax(130px, 150px)
+    minmax(150px, 170px);
 
   align-items: end;
 
@@ -576,7 +577,7 @@
 
   .stock-movement-toolbar {
     grid-template-columns:
-      1fr 1fr;
+      repeat(3, minmax(0, 1fr));
   }
 
   .stock-movement-toolbar .search-box {

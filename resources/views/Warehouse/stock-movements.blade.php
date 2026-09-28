@@ -21,25 +21,14 @@
         <x-ui.summary-card label="Total Movements" value="{{ $totalMovements }}" small="Recorded stock transactions" icon="fa-right-left" color="blue" />
         <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Inventory received" icon="fa-arrow-down" color="green" />
         <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Inventory issued" icon="fa-arrow-up" color="red" />
-        <x-ui.summary-card label="Application Records" value="{{ $genuineTransactions }}" small="Recorded through live workflows" icon="fa-check" color="purple" />
+        <x-ui.summary-card label="System Transactions" value="{{ $genuineTransactions }}" small="Recorded through live workflows" icon="fa-check" color="purple" />
       </section>
-
-      @if($simulatedTransactions > 0)
-        <div class="history-simulated-notice">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>
-            <strong>{{ $simulatedTransactions }}</strong> movement{{ $simulatedTransactions === 1 ? '' : 's' }} form a realistic simulated operational history
-            labelled <span class="source-badge source-badge--simulated">Simulated</span>.
-            They are isolated from application records and excluded from genuine-data model training.
-          </span>
-        </div>
-      @endif
 
       <section data-ajax-region="records" class="table-card stock-movement-card">
         <div class="section-header">
           <div>
             <h2>Stock Movement History</h2>
-            <p>Application transactions plus realistic simulated operational history.</p>
+            <p>Complete inventory transaction and adjustment history.</p>
           </div>
         </div>
 
@@ -50,7 +39,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="type" id="movementTypeFilter">
+            <select name="type" id="movementTypeFilter" aria-label="Movement type">
               @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
                 <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
               @endforeach
@@ -58,18 +47,18 @@
           </div>
 
           <div class="filter-group">
-            <select name="source" id="movementSourceFilter">
-              @foreach(['All Sources', 'app', 'simulated'] as $source)
-                <option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source === 'app' ? 'Application' : ($source === 'simulated' ? 'Simulated' : $source) }}</option>
+            <select name="date_filter" id="movementDateFilter" aria-label="Date range">
+              @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
+                <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
               @endforeach
             </select>
           </div>
 
           <div class="filter-group">
-            <select name="date_filter" id="movementDateFilter">
-              @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
-                <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
-              @endforeach
+            <select name="source" id="movementSourceFilter" aria-label="Record origin">
+              <option value="All Sources" @selected(request('source', 'All Sources') === 'All Sources')>All Records</option>
+              <option value="app" @selected(request('source') === 'app')>System Transactions</option>
+              <option value="simulated" @selected(request('source') === 'simulated')>Simulated</option>
             </select>
           </div>
         </form>
@@ -81,7 +70,7 @@
                 <th>Date / Time</th>
                 <th>Item / Part</th>
                 <th>Reference</th>
-                <th>Source</th>
+                <th>Record Origin</th>
                 <th>Movement</th>
                 <th>Qty</th>
                 <th>Previous</th>
@@ -127,7 +116,7 @@
                   </td>
                   <td>
                     <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
-                      {{ $movement->source === 'app' ? 'Application' : 'Simulated' }}
+                      {{ $movement->source === 'app' ? 'System' : 'Simulated' }}
                     </span>
                   </td>
                   <td>

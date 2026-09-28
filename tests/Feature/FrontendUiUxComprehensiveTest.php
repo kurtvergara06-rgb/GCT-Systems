@@ -534,6 +534,24 @@ class FrontendUiUxComprehensiveTest extends TestCase
         }
     }
 
+    public function test_stock_movement_filters_are_compact_and_clearly_label_record_origin(): void
+    {
+        $response = $this->actingAs($this->warehouseUser)->get(route('stock-movements'));
+
+        $response
+            ->assertOk()
+            ->assertDontSee('realistic simulated operational history')
+            ->assertSee('Complete inventory transaction and adjustment history.')
+            ->assertSee('System Transactions')
+            ->assertSee('All Records')
+            ->assertSee('Record Origin')
+            ->assertSeeInOrder([
+                'movementTypeFilter',
+                'movementDateFilter',
+                'movementSourceFilter',
+            ], false);
+    }
+
     // =========================================================================
     // 6. PURCHASE MODULE PAGES
     // =========================================================================
