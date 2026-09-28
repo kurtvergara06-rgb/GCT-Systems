@@ -368,6 +368,38 @@ class FrontendUiUxComprehensiveTest extends TestCase
             $this->assertStringContainsString('data-analytics-insight-toast', $content, "Analytics page {$name} must include the insight toast component");
             $this->assertStringContainsString('data-toast-action', $content, "Analytics page {$name} must include the View Details/Action button");
             $this->assertStringContainsString('data-target-selector', $content, "Analytics page {$name} must configure target selector for highlighting");
+            $this->assertStringContainsString('window.gctHighlightTarget', $content, "Analytics page {$name} must include the reusable gctHighlightTarget script");
+        }
+    }
+
+    public function test_topbar_has_no_horizontal_divider_across_modules(): void
+    {
+        // 1. Verify CSS files enforce no topbar bottom border or pseudo divider
+        $mainCss = file_get_contents(resource_path('css/Main-styles/main.css'));
+        $designCss = file_get_contents(resource_path('css/Admin/Analytics/design-system.css'));
+        $themeCss = file_get_contents(resource_path('css/Main-styles/theme.css'));
+        $enhancementsCss = file_get_contents(resource_path('css/Main-styles/shared-ui-enhancements.css'));
+
+        $this->assertStringContainsString('border-bottom: none !important', $mainCss);
+        $this->assertStringContainsString('border-bottom: none !important', $designCss);
+        $this->assertStringContainsString('border-bottom: none !important', $themeCss);
+        $this->assertStringContainsString('border-bottom: none !important', $enhancementsCss);
+
+        // 2. Verify all five departments render topbar without <hr> or hardcoded divider markup
+        $modulePages = [
+            'Admin' => [$this->adminUser, route('admin.dashboard')],
+            'Operation' => [$this->operationUser, route('dashboard-operation')],
+            'Maintenance' => [$this->maintenanceUser, route('maintenance-dashboard')],
+            'Warehouse' => [$this->warehouseUser, route('warehouse.dashboard')],
+            'Purchase' => [$this->purchaseUser, route('dashboard-purchase')],
+        ];
+
+        foreach ($modulePages as $department => [$user, $url]) {
+            $resp = $this->actingAs($user)->get($url);
+            $this->assertSame(200, $resp->status(), "{$department} dashboard failed status check");
+            $content = $resp->getContent();
+            $this->assertStringContainsString('class="topbar"', $content, "{$department} page must have .topbar header");
+            $this->assertStringNotContainsString('<header class="topbar"><hr', $content);
         }
     }
 
