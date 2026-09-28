@@ -138,6 +138,10 @@ jobs:
         working-directory: python_engine
         run: python -m eta.test_training_pipeline
 
+      - name: Verify ETA Model #1 extraction safety filters
+        working-directory: python_engine
+        run: python -m eta.test_eta_safety_filters
+
       - name: Verify genuine Inventory Model #4 pipeline
         working-directory: python_engine
         run: python -m inventory.test_genuine_pipeline
