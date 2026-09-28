@@ -14,11 +14,20 @@ class BatchFileProcessingActivityPeriodTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function actingAsAdmin(): void
+    {
+        $this->actingAs(User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'head',
+            'status' => 'Active',
+        ]));
+    }
+
     public function test_long_activity_period_record_is_preserved_and_flagged_for_review(): void
     {
         Storage::fake('public');
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAsAdmin();
 
         $records = [
             [
@@ -105,7 +114,7 @@ class BatchFileProcessingActivityPeriodTest extends TestCase
     {
         Storage::fake('public');
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAsAdmin();
 
         $records = [[
             'Record No.' => 'R-100',
