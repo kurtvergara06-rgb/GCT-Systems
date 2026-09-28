@@ -18,6 +18,14 @@ class BatchUpload extends Model
         ],
     ];
 
+    public const DATA_ORIGINS = [
+        'genuine',
+        'demo',
+        'sample',
+        'synthetic',
+        'unknown',
+    ];
+
     protected $fillable = [
         'file_name',
         'stored_name',
@@ -56,8 +64,22 @@ class BatchUpload extends Model
                 );
             }
 
+            $origin = strtolower(trim((string) $batchUpload->data_origin));
+            if ($origin === '') {
+                // Eloquent-created batches come from the authenticated upload
+                // workflow. Seeders that insert directly with DB::table bypass
+                // this hook and retain the migration's fail-closed `unknown`.
+                $origin = 'genuine';
+            }
+            if (! in_array($origin, self::DATA_ORIGINS, true)) {
+                throw new InvalidArgumentException(
+                    "Unsupported batch data origin: {$origin}."
+                );
+            }
+
             $batchUpload->module = $module;
             $batchUpload->data_type = $dataType;
+            $batchUpload->data_origin = $origin;
         });
     }
 
