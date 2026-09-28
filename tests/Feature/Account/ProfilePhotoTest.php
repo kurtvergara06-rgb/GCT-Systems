@@ -105,4 +105,31 @@ class ProfilePhotoTest extends TestCase
             ->assertSee('aria-checked="false"', false)
             ->assertSee('disabled', false);
     }
+
+    public function test_admin_account_management_displays_saved_profile_photos(): void
+    {
+        Storage::fake('public');
+        $photoPath = UploadedFile::fake()->image('staff-profile.jpg')->store('profile-photos', 'public');
+        $admin = User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $staff = User::factory()->create([
+            'name' => 'Profile Photo Staff',
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+            'avatar_path' => $photoPath,
+        ]);
+
+        $photoUrl = $staff->profilePhotoUrl();
+
+        $this->actingAs($admin)
+            ->get(route('admin.users'))
+            ->assertOk()
+            ->assertSee('Profile Photo Staff')
+            ->assertSee('src="'.$photoUrl.'"', false)
+            ->assertSee('data-avatar-url="'.$photoUrl.'"', false);
+    }
 }
