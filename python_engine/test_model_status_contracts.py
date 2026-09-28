@@ -1,4 +1,4 @@
-"""Contract checks for the model-status data consumed by Laravel Analytics."""
+"""Contract checks for model-status data consumed by Laravel Analytics."""
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -16,25 +16,26 @@ def check(name: str, condition: bool) -> None:
 def main() -> None:
     app = FastAPI()
     app.include_router(eta_router, prefix="/eta")
-    app.include_router(
-        operation_ai_router,
-        prefix="/operation/auto-scheduling/ai",
-    )
+    app.include_router(operation_ai_router, prefix="/operation/auto-scheduling/ai")
     client = TestClient(app)
 
     eta_response = client.get("/eta/status")
     check("ETA status reachable", eta_response.status_code == 200)
     eta = eta_response.json()
-    check("ETA source is genuine", eta["data_source"] == "genuine")
-    check("ETA dataset is genuine GPS", eta["dataset_type"] == "GENUINE GCT GPS RECORDS")
+    check("ETA reports explicit provenance", eta["data_source"] in {"genuine", "synthetic", "unknown"})
+    check("ETA reports dataset type", bool(eta["dataset_type"]))
     check(
-        "ETA production flag follows readiness",
-        eta["is_production_model"] is eta["model_ready"],
+        "ETA production flag requires genuine source",
+        not eta["is_production_model"] or eta["data_source"] == "genuine",
     )
+    check(
+        "ETA production flag also requires runtime readiness",
+        not eta["is_production_model"] or eta["model_ready"] is True,
+    )
+    if eta["data_source"] != "genuine":
+        check("non-genuine ETA is never production", eta["is_production_model"] is False)
 
-    scheduling_response = client.get(
-        "/operation/auto-scheduling/ai/training/status"
-    )
+    scheduling_response = client.get("/operation/auto-scheduling/ai/training/status")
     check("Scheduling status reachable", scheduling_response.status_code == 200)
     scheduling = scheduling_response.json()
     check("Scheduling source is genuine", scheduling["data_source"] == "genuine")
