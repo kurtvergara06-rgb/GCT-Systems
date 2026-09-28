@@ -88,4 +88,18 @@ class ProfilePhotoTest extends TestCase
         $this->assertNull($user->fresh()->avatar_path);
         Storage::disk('public')->assertMissing($path);
     }
+
+    public function test_account_settings_shows_disabled_dark_mode_placeholder(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('account.settings'))
+            ->assertOk()
+            ->assertSee('Dark Mode')
+            ->assertSee('Coming soon')
+            ->assertSee('role="switch"', false)
+            ->assertSee('aria-checked="false"', false)
+            ->assertSee('disabled', false);
+    }
 }

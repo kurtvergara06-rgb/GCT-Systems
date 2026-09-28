@@ -334,6 +334,32 @@
                             </div>
                         </div>
 
+                        <section class="account-appearance-setting" aria-labelledby="appearanceSettingTitle">
+                            <div class="account-appearance-icon" aria-hidden="true">
+                                <i class="fa-solid fa-moon"></i>
+                            </div>
+                            <div class="account-appearance-copy">
+                                <div class="account-appearance-heading">
+                                    <strong id="appearanceSettingTitle">Dark Mode</strong>
+                                    <span>Coming soon</span>
+                                </div>
+                                <p>Switch between light and dark appearance when theme support becomes available.</p>
+                            </div>
+                            <div class="account-theme-control">
+                                <span>Off</span>
+                                <button
+                                    type="button"
+                                    class="account-theme-switch"
+                                    role="switch"
+                                    aria-checked="false"
+                                    aria-label="Dark mode is not available yet"
+                                    disabled
+                                >
+                                    <span></span>
+                                </button>
+                            </div>
+                        </section>
+
                         <ul class="account-tips-list">
                             <li class="account-tip-item">
                                 <div class="account-tip-icon">
