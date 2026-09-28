@@ -140,15 +140,15 @@ class AiModelStatusServiceTest extends TestCase
 
         $this->assertFalse($models['delay']->ready);
         $this->assertTrue($models['delay']->demo_ready);
-        $this->assertSame('Demo Ready', $models['delay']->state);
+        $this->assertSame('Simulation Ready', $models['delay']->state);
         $this->assertSame('partial', $models['delay']->tone);
-        $this->assertSame('Demo / Sample Data', $models['delay']->data_source);
+        $this->assertSame('Simulated Data', $models['delay']->data_source);
 
         $this->assertFalse($models['inventory']->ready);
         $this->assertTrue($models['inventory']->demo_ready);
-        $this->assertSame('Demo Ready', $models['inventory']->state);
+        $this->assertSame('Simulation Ready', $models['inventory']->state);
         $this->assertSame('partial', $models['inventory']->tone);
-        $this->assertSame('Demo / Sample Data', $models['inventory']->data_source);
+        $this->assertSame('Simulated Data', $models['inventory']->data_source);
     }
 
     public function test_it_reports_unreachable_status_endpoints_without_inventing_readiness(): void

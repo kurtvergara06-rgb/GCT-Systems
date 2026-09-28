@@ -647,7 +647,7 @@
   color: #156a44;
 }
 
-.source-badge--demo {
+.source-badge--simulated {
   border: 1px solid #d6dce5;
   background: #f1f5f9;
   color: #64748b;
@@ -680,7 +680,7 @@
   margin: 14px 0;
 }
 
-.history-demo-notice {
+.history-simulated-notice {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -694,7 +694,7 @@
   line-height: 1.5;
 }
 
-.history-demo-notice i {
+.history-simulated-notice i {
   margin-top: 2px;
   color: #d99a2b;
 }

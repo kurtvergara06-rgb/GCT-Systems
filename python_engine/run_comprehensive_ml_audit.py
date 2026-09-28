@@ -69,7 +69,7 @@ def audit_standard(key: str, name: str, payload: dict[str, Any]) -> dict[str, An
     if reported_ready and source == "genuine" and production:
         state = "Ready"
     elif reported_ready and source in SYNTHETIC_SOURCES and runtime in DEVELOPMENT_MODES:
-        state = "Demo Ready"
+        state = "Simulation Ready"
     elif reported_ready and source in SYNTHETIC_SOURCES:
         state = "Development Only"
     else:

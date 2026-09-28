@@ -2,7 +2,7 @@
 
 Sources:
 - ``sample``: generated development CSV.
-- ``demo``: frontend-visible synthetic warehouse movements (source='demo').
+- ``demo``: realistic simulated warehouse movements (source='simulated').
 - ``genuine``: production GCT ledger rows (source='app').
 
 Production defaults to genuine and never falls back to synthetic data.

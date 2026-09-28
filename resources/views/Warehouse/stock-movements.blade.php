@@ -21,17 +21,16 @@
         <x-ui.summary-card label="Total Movements" value="{{ $totalMovements }}" small="Recorded stock transactions" icon="fa-right-left" color="blue" />
         <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Inventory received" icon="fa-arrow-down" color="green" />
         <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Inventory issued" icon="fa-arrow-up" color="red" />
-        <x-ui.summary-card label="Genuine (App)" value="{{ $genuineTransactions }}" small="Real operational records" icon="fa-check" color="purple" />
+        <x-ui.summary-card label="Application Records" value="{{ $genuineTransactions }}" small="Recorded through live workflows" icon="fa-check" color="purple" />
       </section>
 
-      @if($demoTransactions > 0)
-        <div class="history-demo-notice">
+      @if($simulatedTransactions > 0)
+        <div class="history-simulated-notice">
           <i class="fa-solid fa-circle-info"></i>
           <span>
-            <strong>{{ $demoTransactions }}</strong> movement{{ $demoTransactions === 1 ? '' : 's' }} are legacy sample rows
-            labelled <span class="source-badge source-badge--demo">Demo</span>.
-            They were created by the demo seeder, are isolated from genuine records,
-            and are excluded from model training data.
+            <strong>{{ $simulatedTransactions }}</strong> movement{{ $simulatedTransactions === 1 ? '' : 's' }} form a realistic simulated operational history
+            labelled <span class="source-badge source-badge--simulated">Simulated</span>.
+            They are isolated from application records and excluded from genuine-data model training.
           </span>
         </div>
       @endif
@@ -40,7 +39,7 @@
         <div class="section-header">
           <div>
             <h2>Stock Movement History</h2>
-            <p>Genuine (App) transactions plus isolated legacy demo rows.</p>
+            <p>Application transactions plus realistic simulated operational history.</p>
           </div>
         </div>
 
@@ -60,8 +59,8 @@
 
           <div class="filter-group">
             <select name="source" id="movementSourceFilter">
-              @foreach(['All Sources', 'app', 'demo'] as $source)
-                <option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source === 'app' ? 'App' : ($source === 'demo' ? 'Demo' : $source) }}</option>
+              @foreach(['All Sources', 'app', 'simulated'] as $source)
+                <option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source === 'app' ? 'Application' : ($source === 'simulated' ? 'Simulated' : $source) }}</option>
               @endforeach
             </select>
           </div>
@@ -127,8 +126,8 @@
                     @endif
                   </td>
                   <td>
-                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'demo' }}">
-                      {{ $movement->source === 'app' ? 'App' : 'Demo' }}
+                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
+                      {{ $movement->source === 'app' ? 'Application' : 'Simulated' }}
                     </span>
                   </td>
                   <td>

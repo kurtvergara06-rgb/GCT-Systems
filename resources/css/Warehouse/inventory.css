@@ -618,7 +618,7 @@
 }
 
 /* =====================================================
-   DATA SOURCE BADGE (app = genuine, demo = sample)
+   DATA SOURCE BADGE (application and simulated records)
 ===================================================== */
 
 .source-badge {
@@ -639,7 +639,7 @@
   color: #156a44;
 }
 
-.source-badge--demo {
+.source-badge--simulated {
   border: 1px solid #d6dce5;
   background: #f1f5f9;
   color: #64748b;

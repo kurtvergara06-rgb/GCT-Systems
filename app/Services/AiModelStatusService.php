@@ -177,7 +177,7 @@ class AiModelStatusService
             $state = 'Ready';
             $tone = 'ready';
         } elseif ($demoReady) {
-            $state = 'Demo Ready';
+            $state = 'Simulation Ready';
             $tone = 'partial';
         } elseif ($modelReady && ! $genuine) {
             $state = 'Development Only';
@@ -300,7 +300,7 @@ class AiModelStatusService
     {
         return match ($source) {
             'genuine' => 'Genuine Data',
-            'sample', 'synthetic', 'demo', 'generated', 'development' => 'Demo / Sample Data',
+            'sample', 'synthetic', 'demo', 'generated', 'development' => 'Simulated Data',
             '' => 'Unknown Source',
             default => ucfirst($source).' Data',
         };
