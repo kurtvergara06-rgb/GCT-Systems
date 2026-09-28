@@ -93,9 +93,6 @@ def train_eta_model(df: pd.DataFrame) -> EtaModelResult:
         result.message = "MODEL NOT READY: insufficient complete ETA records after cleaning."
         return result
 
-    # Evaluate the deployment scenario: older trips train the model and the
-    # newest 20% are held out. Random splitting can leak future route patterns
-    # into both sets and overstate real-world performance.
     if "beginning_at" not in working.columns:
         result.message = "MODEL NOT READY: beginning_at is required for chronological validation."
         return result
@@ -241,6 +238,10 @@ def save_state(result: EtaModelResult, paths: Optional[Dict[str, Path]] = None) 
         model_version="1.1.0",
         feature_schema_version="1.1",
     )
+    safe_metrics = {
+        key: (float(value) if np.isfinite(value) else None)
+        for key, value in result.metrics.items()
+    }
     state = {
         **metadata,
         "model_ready": result.trained,
@@ -248,7 +249,7 @@ def save_state(result: EtaModelResult, paths: Optional[Dict[str, Path]] = None) 
         "sample_count": result.n_samples,
         "distinct_routes": result.distinct_routes,
         "split_strategy": "chronological_80_20",
-        "metrics": result.metrics,
+        "metrics": safe_metrics,
         "target_range": result.target_range,
         "message": (
             "ETA_ML_READY"
