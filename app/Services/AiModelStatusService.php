@@ -29,37 +29,16 @@ class AiModelStatusService
 
         try {
             $responses = Http::pool(fn (Pool $pool): array => [
-                $pool->as('eta')
-                    ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
-                    ->get($nlpBaseUrl.'/eta/status'),
-                $pool->as('fuel')
-                    ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
-                    ->get($nlpBaseUrl.'/fuel/status'),
-                $pool->as('delay')
-                    ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
-                    ->get($nlpBaseUrl.'/delay/status'),
-                $pool->as('inventory')
-                    ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
-                    ->get($nlpBaseUrl.'/inventory/status'),
-                $pool->as('scheduling')
-                    ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
-                    ->get($operationBaseUrl.'/operation/auto-scheduling/ai/training/status'),
+                $pool->as('eta')->acceptJson()->connectTimeout(1)->timeout(3)->get($nlpBaseUrl.'/eta/status'),
+                $pool->as('fuel')->acceptJson()->connectTimeout(1)->timeout(3)->get($nlpBaseUrl.'/fuel/status'),
+                $pool->as('delay')->acceptJson()->connectTimeout(1)->timeout(3)->get($nlpBaseUrl.'/delay/status'),
+                $pool->as('inventory')->acceptJson()->connectTimeout(1)->timeout(3)->get($nlpBaseUrl.'/inventory/status'),
+                $pool->as('scheduling')->acceptJson()->connectTimeout(1)->timeout(3)->get($operationBaseUrl.'/operation/auto-scheduling/ai/training/status'),
             ]);
         } catch (\Throwable $exception) {
             Log::warning('AI model status pool failed.', [
                 'exception' => $exception->getMessage(),
             ]);
-
             $responses = [];
         }
 
@@ -114,12 +93,10 @@ class AiModelStatusService
                     'model' => $key,
                     'status' => $response->status(),
                 ]);
-
                 return null;
             }
 
             $data = $response->json();
-
             if (! is_array($data) || ($data['success'] ?? false) !== true) {
                 return null;
             }
@@ -130,7 +107,6 @@ class AiModelStatusService
                 'model' => $key,
                 'exception' => $exception->getMessage(),
             ]);
-
             return null;
         }
     }
@@ -151,14 +127,7 @@ class AiModelStatusService
         $dataSource = strtolower(trim((string) ($status['data_source'] ?? '')));
         $productionFlag = ($status['is_production_model'] ?? false) === true;
 
-        // ETA became a genuine-only model before the shared provenance fields
-        // existed. The Python API now exposes them, but this fallback keeps the
-        // UI correct while mixed deployments roll forward.
-        if ($key === 'eta' && $dataSource === '' && ($status['source'] ?? null) === 'ml') {
-            $dataSource = 'genuine';
-            $productionFlag = $modelReady;
-        }
-
+        // Fail closed. Missing provenance is unknown, never implicitly genuine.
         $genuine = $dataSource === 'genuine';
         $productionReady = $modelReady && $genuine && $productionFlag;
         $sampleCount = (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0);
@@ -187,7 +156,9 @@ class AiModelStatusService
             'tone' => $tone,
             'ready' => $productionReady,
             'reachable' => true,
-            'data_source' => $genuine ? 'Genuine Data' : ($dataSource !== '' ? ucfirst($dataSource).' Data' : 'Unknown Source'),
+            'data_source' => $genuine
+                ? 'Genuine Data'
+                : ($dataSource !== '' ? ucfirst($dataSource).' Data' : 'Unknown Source'),
             'dataset_type' => $datasetType !== '' ? $datasetType : 'Source not reported',
             'sample_count' => $sampleCount,
             'reason' => trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
