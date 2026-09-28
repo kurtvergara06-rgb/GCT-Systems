@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\FuelPredictionController;
 use App\Http\Controllers\Admin\InventoryPredictionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->prefix('analytics')->group(function (): void {
+Route::middleware(['auth', 'role:admin:head,admin:staff'])->prefix('analytics')->group(function (): void {
     Route::get('/descriptive', [DescriptiveAnalyticsController::class, 'index'])
         ->name('analytics.descriptive');
 
