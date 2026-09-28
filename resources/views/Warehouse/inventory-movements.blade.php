@@ -39,16 +39,15 @@
           <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Receipts recorded" icon="fa-arrow-down" color="green" />
           <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Issuances recorded" icon="fa-arrow-up" color="red" />
           <x-ui.summary-card label="Adjustments" value="{{ $adjustments }}" small="Corrections recorded" icon="fa-sliders" color="yellow" />
-          <x-ui.summary-card label="Demo Records" value="{{ $demotedMovements }}" small="Sample seeder rows (isolated)" icon="fa-flask" color="gray" />
+          <x-ui.summary-card label="Simulated Records" value="{{ $simulatedMovements }}" small="Realistic generated history" icon="fa-flask" color="gray" />
         </div>
 
-        @if($demotedMovements > 0)
-          <div class="history-demo-notice">
+        @if($simulatedMovements > 0)
+          <div class="history-simulated-notice">
             <i class="fa-solid fa-circle-info"></i>
-            This item has <strong>{{ $demotedMovements }}</strong> legacy sample movement{{ $demotedMovements === 1 ? '' : 's' }}
-            labelled <span class="source-badge source-badge--demo">Demo</span>.
-            They were created by the demo seeder and are isolated from genuine
-            operational records used for model training.
+            This item has <strong>{{ $simulatedMovements }}</strong> realistic simulated movement{{ $simulatedMovements === 1 ? '' : 's' }}
+            labelled <span class="source-badge source-badge--simulated">Simulated</span>.
+            These rows are isolated from application records and genuine-data model training.
           </div>
         @endif
 
@@ -120,8 +119,8 @@
                     @endif
                   </td>
                   <td>
-                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'demo' }}">
-                      {{ $movement->source === 'app' ? 'App' : 'Demo' }}
+                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
+                      {{ $movement->source === 'app' ? 'Application' : 'Simulated' }}
                     </span>
                   </td>
                   <td class="movement-remarks">{{ $movement->remarks ?: '—' }}</td>

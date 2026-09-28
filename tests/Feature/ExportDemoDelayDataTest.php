@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Database\Seeders\ClientDemoDataSeeder;
+use Database\Seeders\RealisticSampleDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,7 +12,7 @@ class ExportDemoDelayDataTest extends TestCase
 
     public function test_demo_export_uses_frontend_visible_demo_ddr_only(): void
     {
-        $this->seed(ClientDemoDataSeeder::class);
+        $this->seed(RealisticSampleDataSeeder::class);
 
         $path = storage_path('framework/testing/demo-delay-training.csv');
         @unlink($path);
@@ -31,7 +31,7 @@ class ExportDemoDelayDataTest extends TestCase
         $this->assertNotFalse($tripCodeIndex);
 
         foreach ($rows as $row) {
-            $this->assertStringStartsWith('TRIP-DEMO-', $row[$tripCodeIndex]);
+            $this->assertStringStartsWith('TRIP-GCT-', $row[$tripCodeIndex]);
         }
 
         $meta = json_decode(file_get_contents($path.'.meta.json'), true);

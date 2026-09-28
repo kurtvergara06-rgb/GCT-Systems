@@ -269,7 +269,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!viewButton) return;
 
-    setText('viewUserInitials', viewButton.dataset.initials);
+    const viewAvatarImage = document.getElementById('viewUserAvatarImage');
+    const viewAvatarInitials = document.getElementById('viewUserInitials');
+    const avatarUrl = viewButton.dataset.avatarUrl || '';
+
+    if (viewAvatarImage && viewAvatarInitials) {
+      if (avatarUrl) {
+        viewAvatarImage.src = avatarUrl;
+        viewAvatarImage.alt = `${viewButton.dataset.name || 'User'} profile photo`;
+        viewAvatarImage.hidden = false;
+        viewAvatarInitials.hidden = true;
+      } else {
+        viewAvatarImage.removeAttribute('src');
+        viewAvatarImage.alt = '';
+        viewAvatarImage.hidden = true;
+        viewAvatarInitials.hidden = false;
+        viewAvatarInitials.textContent = viewButton.dataset.initials || 'U';
+      }
+    }
     setText('viewUserName', viewButton.dataset.name);
     setText('viewUserUserId', viewButton.dataset.userId || '—');
     setText('viewUserEmail', viewButton.dataset.email);

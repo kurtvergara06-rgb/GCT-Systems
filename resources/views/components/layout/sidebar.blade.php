@@ -11,6 +11,7 @@
     $authUser = auth()->user();
 
     $displayName = trim($authUser?->name ?? $userName ?? 'Guest User');
+    $profilePhotoUrl = $authUser?->profilePhotoUrl();
     $departmentRaw = trim($authUser?->department ?? $department ?? 'Department');
     $roleRaw = strtolower(trim($authUser?->role ?? ''));
 
@@ -218,7 +219,7 @@
                 'icon' => 'fa-database',
                 'children' => [
                     [
-                        'label' => 'Batch File Processing',
+                        'label' => 'Data Import Management',
                         'route' => 'admin.batch-file-processing',
                         'icon' => 'fa-file-import',
                         'active_routes' => [
@@ -449,7 +450,13 @@
             aria-expanded="false"
             title="{{ $displayName }}"
         >
-            <div class="avatar"><span>{{ $initials }}</span></div>
+            <div class="avatar">
+                @if($profilePhotoUrl)
+                    <img src="{{ $profilePhotoUrl }}" alt="">
+                @else
+                    <span>{{ $initials }}</span>
+                @endif
+            </div>
             <div class="user-box-text">
                 <h4>{{ $displayName }}</h4>
                 <p>{{ $displayRole }}</p>
@@ -459,7 +466,13 @@
 
         <div class="sidebar-profile-menu" id="sidebarProfileMenu">
             <div class="profile-menu-header">
-                <div class="profile-menu-avatar">{{ $initials }}</div>
+                <div class="profile-menu-avatar">
+                    @if($profilePhotoUrl)
+                        <img src="{{ $profilePhotoUrl }}" alt="">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
                 <div>
                     <h4>{{ $displayName }}</h4>
                     <p>{{ $displayRole }}</p>
@@ -468,10 +481,10 @@
 
             <div class="profile-menu-divider"></div>
 
-            <button type="button" class="profile-menu-item" disabled>
+            <a href="{{ route('account.profile', [], false) }}" class="profile-menu-item">
                 <i class="fa-solid fa-user"></i>
                 <span>Profile</span>
-            </button>
+            </a>
 
             @if($canOpenMaintenanceSettings && \Illuminate\Support\Facades\Route::has('settings'))
                 <a href="{{ route('settings', [], false) }}" class="profile-menu-item">
@@ -488,9 +501,20 @@
             <div class="profile-menu-divider"></div>
 
             @if(\Illuminate\Support\Facades\Route::has('logout'))
-                <form action="{{ route('logout', [], false) }}" method="POST" class="profile-logout-form">
+                <form
+                    action="{{ route('logout', [], false) }}"
+                    method="POST"
+                    class="profile-logout-form"
+                    id="profileLogoutForm"
+                    data-confirm-form
+                    data-confirm-title="Log Out"
+                    data-confirm-message="Are you sure you want to log out?"
+                    data-confirm-button="Log Out"
+                    data-confirm-type="logout"
+                    data-confirm-loading-text="Logging out..."
+                >
                     @csrf
-                    <button type="submit" class="profile-menu-item logout">
+                    <button type="submit" class="profile-menu-item logout" id="sidebarLogoutBtn">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Log out</span>
                     </button>

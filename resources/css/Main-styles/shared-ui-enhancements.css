@@ -17,11 +17,38 @@ body {
   font-weight: 400;
 }
 
+.topbar,
+.topbar-heading,
+.page-header,
+.dashboard-header,
+header.topbar {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+.topbar::after,
+.topbar::before,
+.topbar-heading::after,
+.topbar-heading::before,
+.page-header::after,
+.page-header::before,
+.dashboard-header::after,
+.dashboard-header::before,
+header.topbar::after,
+header.topbar::before {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  height: 0 !important;
+}
+
 .topbar h1,
 .page-title,
 .dashboard-title {
   font-weight: 800;
   letter-spacing: -0.025em;
+  border-bottom: none !important;
 }
 
 .section-header h2,

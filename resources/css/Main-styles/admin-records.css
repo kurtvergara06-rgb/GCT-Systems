@@ -225,6 +225,13 @@
   font-weight: 800;
 }
 
+.records-page .record-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .record-avatar--blue { background: #0ea5e9; }
 .record-avatar--green { background: #10b981; }
 .record-avatar--violet { background: #8b5cf6; }

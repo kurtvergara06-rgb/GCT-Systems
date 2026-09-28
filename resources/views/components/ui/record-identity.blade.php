@@ -3,6 +3,7 @@
     'subtitle' => null,
     'initials' => null,
     'tone' => 'blue',
+    'imageUrl' => null,
 ])
 
 @php
@@ -22,7 +23,11 @@
 
 <div {{ $attributes->merge(['class' => 'record-identity']) }} data-ui-component="record-identity">
     <div class="record-avatar record-avatar--{{ $tone }}" aria-hidden="true">
-        {{ $resolvedInitials }}
+        @if($imageUrl)
+            <img src="{{ $imageUrl }}" alt="">
+        @else
+            {{ $resolvedInitials }}
+        @endif
     </div>
 
     <div class="record-identity__text">
