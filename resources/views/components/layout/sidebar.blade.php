@@ -218,7 +218,7 @@
                 'icon' => 'fa-database',
                 'children' => [
                     [
-                        'label' => 'Batch File Processing',
+                        'label' => 'Data Import Management',
                         'route' => 'admin.batch-file-processing',
                         'icon' => 'fa-file-import',
                         'active_routes' => [
