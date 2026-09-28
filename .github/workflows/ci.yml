@@ -130,6 +130,10 @@ jobs:
         working-directory: python_engine
         run: python test_model_status_contracts.py
 
+      - name: Verify ETA Model #1 production readiness
+        working-directory: python_engine
+        run: python -m eta.test_production_readiness
+
       - name: Verify genuine Inventory Model #4 pipeline
         working-directory: python_engine
         run: python -m inventory.test_genuine_pipeline
