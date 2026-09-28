@@ -1,19 +1,8 @@
-"""CLI: Train the ETA / trip-duration Random Forest model.
+"""CLI: train the ETA / trip-duration Random Forest model.
 
-Usage:
-    python -m eta.train_model
-
-Reads the real CSV produced by prepare_training_data, trains a
-RandomForestRegressor (project-wide RF convention), evaluates it on a
-held-out test split, and saves:
-    eta/models/eta_duration_rf.pkl
-    eta/models/eta_duration_features.json
-    eta/models/eta_duration_report.txt
-    eta/models/eta_duration_state.json
-
-If there is insufficient real data the model is NOT saved and the state file
-reports ETA_ML_NOT_READY; the prediction service then refuses to predict
-rather than inventing numbers.
+The input CSV must have been produced by ``eta.prepare_training_data`` so each
+row carries explicit data provenance. Genuine production readiness is never
+inferred from a filename or from the mere presence of a model artifact.
 """
 
 import logging
@@ -25,15 +14,10 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from eta.config import model_paths, training_data_paths  # noqa: E402
-from eta.model import (  # noqa: E402
-    EtaModelResult,
-    save_eta_model,
-    save_state,
-    train_eta_model,
-)
+from eta.model import EtaModelResult, save_eta_model, save_state, train_eta_model  # noqa: E402
 from eta.training_data import (  # noqa: E402
-    ETA_TARGET,
     build_bus_encodings,
+    build_route_encodings,
     build_route_metadata,
 )
 
@@ -48,41 +32,48 @@ def main() -> int:
     if not csv_path.exists():
         print(f"ETA training CSV not found: {csv_path}")
         print("Run `python -m eta.prepare_training_data` first.")
-        result = EtaModelResult(message="No training data found.", n_samples=0)
+        result = EtaModelResult(message="No verified ETA training data found.")
         save_eta_model(result, paths)
         save_state(result, paths)
         return 1
 
     df = pd.read_csv(csv_path)
-
     result = train_eta_model(df)
+
     if result.trained:
-        # Route/bus metadata is rebuilt from the same real CSV the model was
-        # trained on, so prediction encodings always match training encodings.
-        route_metadata = build_route_metadata(df)
-        bus_encodings = build_bus_encodings(df)
-        save_eta_model(result, paths, route_metadata, bus_encodings)
+        save_eta_model(
+            result,
+            paths,
+            route_metadata=build_route_metadata(df),
+            route_encodings=build_route_encodings(df),
+            bus_encodings=build_bus_encodings(df),
+        )
     else:
         save_eta_model(result, paths)
     save_state(result, paths)
 
     print("\n=== ETA model training results ===")
-    print(f"Sample count:  {result.n_samples}")
+    print(f"Data source:    {result.data_source}")
+    print(f"Sample count:   {result.n_samples}")
+    print(f"Distinct routes:{result.distinct_routes}")
     if not result.trained:
-        print(f"  NOT TRAINED: {result.message}")
+        print(f"MODEL NOT READY: {result.message}")
         return 1
-    print(f"Train rows:    {result.n_train}")
-    print(f"Test rows:     {result.n_test}")
-    print("Metrics (held-out test):")
+
+    print(f"Train rows:     {result.n_train}")
+    print(f"Test rows:      {result.n_test}")
+    print("Metrics (chronological held-out test):")
     print(f"  MAE  = {result.metrics['mae']:.2f} min")
     print(f"  RMSE = {result.metrics['rmse']:.2f} min")
     print(f"  R2   = {result.metrics['r2']:.4f}")
-    print("Top feature importances:")
-    for name, imp in sorted(result.feature_importances.items(), key=lambda kv: -kv[1])[:5]:
-        print(f"  {name:<34} {imp:.4f}")
-    print(f"\nArtifacts written to: {paths['dir']}")
-    print("State file: " + str(paths["state"]))
-    return 0
+    print(f"  Operator baseline MAE = {result.metrics['operator_baseline_mae']:.2f} min")
+    print(f"  MAE improvement       = {result.metrics['mae_improvement_percent']:.2f}%")
+    print(f"Quality ready:  {'YES' if result.quality_ready else 'NO'}")
+    print(f"Artifacts:      {paths['dir']}")
+
+    # A model may be trained for analysis/development but still fail the
+    # production quality gate. Return non-zero so deployment pipelines notice.
+    return 0 if result.quality_ready else 1
 
 
 if __name__ == "__main__":
