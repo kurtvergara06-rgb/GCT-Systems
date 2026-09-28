@@ -30,9 +30,13 @@ class FrontendUiUxComprehensiveTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $operationUser;
+
     protected User $maintenanceUser;
+
     protected User $warehouseUser;
+
     protected User $purchaseUser;
 
     protected function setUp(): void
@@ -550,6 +554,36 @@ class FrontendUiUxComprehensiveTest extends TestCase
                 'movementDateFilter',
                 'movementSourceFilter',
             ], false);
+    }
+
+    public function test_inventory_table_uses_compact_columns_without_removing_supplier_data(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'COMPACT-001',
+            'item_name' => 'Compact Layout Brake Pad',
+            'category' => 'Brakes',
+            'quantity_available' => 12,
+            'unit_of_measurement' => 'sets',
+            'reorder_level' => 4,
+            'supplier' => 'Southern Luzon Parts Supply',
+            'storage_location' => 'Rack B-2',
+        ]);
+
+        $response = $this->actingAs($this->warehouseUser)->get(route('inventory'));
+        $response->assertOk();
+
+        preg_match('/<table class="inventory-table">.*?<\/table>/s', $response->getContent(), $matches);
+        $table = $matches[0] ?? '';
+
+        $this->assertNotSame('', $table);
+        $this->assertSame(8, substr_count($table, '<th>'));
+        $this->assertStringContainsString('<th>Item</th>', $table);
+        $this->assertStringContainsString('<th>Stock</th>', $table);
+        $this->assertStringContainsString('<th>Supplier</th>', $table);
+        $this->assertStringNotContainsString('<th>Last Updated</th>', $table);
+        $this->assertStringContainsString('inventory-item-cell', $table);
+        $this->assertStringContainsString('inventory-stock-cell', $table);
+        $this->assertStringContainsString('Southern Luzon Parts Supply', $table);
     }
 
     // =========================================================================

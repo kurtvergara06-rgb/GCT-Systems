@@ -110,16 +110,13 @@
           <table class="inventory-table">
             <thead>
               <tr>
-                <th>Item Code</th>
-                <th>Parts Name</th>
+                <th>Item</th>
                 <th>Category</th>
-                <th>On Hand</th>
-                <th>Unit</th>
+                <th>Stock</th>
                 <th>Reorder Level</th>
                 <th>Status</th>
                 <th>Supplier</th>
                 <th>Location</th>
-                <th>Last Updated</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -137,11 +134,19 @@
                 @endphp
 
                 <tr class="{{ $rowClass }}">
-                  <td>{{ $item->item_code }}</td>
-                  <td>{{ $item->item_name }}</td>
+                  <td>
+                    <div class="inventory-item-cell">
+                      <strong>{{ $item->item_name }}</strong>
+                      <small>{{ $item->item_code }}</small>
+                    </div>
+                  </td>
                   <td>{{ $item->category }}</td>
-                  <td><strong>{{ $item->quantity_available }}</strong></td>
-                  <td>{{ $item->unit_of_measurement }}</td>
+                  <td>
+                    <span class="inventory-stock-cell">
+                      <strong>{{ $item->quantity_available }}</strong>
+                      <small>{{ $item->unit_of_measurement }}</small>
+                    </span>
+                  </td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
                     <x-ui.status-badge
@@ -149,9 +154,10 @@
                       type="inventory"
                     />
                   </td>
-                  <td>{{ $item->supplier ?? '—' }}</td>
+                  <td class="inventory-supplier" title="{{ $item->supplier ?? 'No supplier recorded' }}">
+                    {{ $item->supplier ?? '—' }}
+                  </td>
                   <td>{{ $item->storage_location ?? '—' }}</td>
-                  <td>{{ $item->updated_at->format('M d, Y') }}</td>
 
                   <td>
                     <div class="actions">
@@ -220,7 +226,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="11"
+                  colspan="8"
                   message="No inventory items found."
                 />
               @endforelse
