@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
@@ -30,9 +31,13 @@ class FrontendUiUxComprehensiveTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $operationUser;
+
     protected User $maintenanceUser;
+
     protected User $warehouseUser;
+
     protected User $purchaseUser;
 
     protected function setUp(): void
@@ -368,6 +373,38 @@ class FrontendUiUxComprehensiveTest extends TestCase
             $this->assertStringContainsString('data-analytics-insight-toast', $content, "Analytics page {$name} must include the insight toast component");
             $this->assertStringContainsString('data-toast-action', $content, "Analytics page {$name} must include the View Details/Action button");
             $this->assertStringContainsString('data-target-selector', $content, "Analytics page {$name} must configure target selector for highlighting");
+            $this->assertStringContainsString('window.gctHighlightTarget', $content, "Analytics page {$name} must include the reusable gctHighlightTarget script");
+        }
+    }
+
+    public function test_topbar_has_no_horizontal_divider_across_modules(): void
+    {
+        // 1. Verify CSS files enforce no topbar bottom border or pseudo divider
+        $mainCss = file_get_contents(resource_path('css/Main-styles/main.css'));
+        $designCss = file_get_contents(resource_path('css/Admin/Analytics/design-system.css'));
+        $themeCss = file_get_contents(resource_path('css/Main-styles/theme.css'));
+        $enhancementsCss = file_get_contents(resource_path('css/Main-styles/shared-ui-enhancements.css'));
+
+        $this->assertStringContainsString('border-bottom: none !important', $mainCss);
+        $this->assertStringContainsString('border-bottom: none !important', $designCss);
+        $this->assertStringContainsString('border-bottom: none !important', $themeCss);
+        $this->assertStringContainsString('border-bottom: none !important', $enhancementsCss);
+
+        // 2. Verify all five departments render topbar without <hr> or hardcoded divider markup
+        $modulePages = [
+            'Admin' => [$this->adminUser, route('admin.dashboard')],
+            'Operation' => [$this->operationUser, route('dashboard-operation')],
+            'Maintenance' => [$this->maintenanceUser, route('maintenance-dashboard')],
+            'Warehouse' => [$this->warehouseUser, route('warehouse.dashboard')],
+            'Purchase' => [$this->purchaseUser, route('dashboard-purchase')],
+        ];
+
+        foreach ($modulePages as $department => [$user, $url]) {
+            $resp = $this->actingAs($user)->get($url);
+            $this->assertSame(200, $resp->status(), "{$department} dashboard failed status check");
+            $content = $resp->getContent();
+            $this->assertStringContainsString('class="topbar"', $content, "{$department} page must have .topbar header");
+            $this->assertStringNotContainsString('<header class="topbar"><hr', $content);
         }
     }
 
@@ -500,6 +537,117 @@ class FrontendUiUxComprehensiveTest extends TestCase
                 "Warehouse page '{$label}' failed with status {$resp->status()} at {$url}"
             );
         }
+    }
+
+    public function test_warehouse_dashboard_operational_sections(): void
+    {
+        $response = $this->actingAs($this->warehouseUser)->get(route('warehouse.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('Warehouse Dashboard')
+            ->assertSee('Active Part Requests')
+            ->assertSee('MAINTENANCE REQUISITIONS')
+            ->assertSee('Incoming Deliveries')
+            ->assertSee('PURCHASE SHIPMENTS')
+            ->assertSee('Stock Status')
+            ->assertSee('Recent Stock Movements')
+            ->assertSee('TRANSACTION AUDIT')
+            ->assertDontSee('QUICK ACCESS')
+            ->assertDontSee('Warehouse Actions');
+    }
+
+    public function test_warehouse_dashboard_counts_all_active_requests_and_prioritizes_oldest_approved(): void
+    {
+        $initialActiveCount = app(WarehouseDashboardController::class)->data()['activePartRequestCount'];
+
+        $requests = [
+            ['PR-ACTIVE-001', 'Approved', now()->subDays(2)],
+            ['PR-ACTIVE-002', 'Approved', now()->subDays(5)],
+            ['PR-ACTIVE-003', 'For Purchase', now()->subDays(8)],
+            ['PR-ACTIVE-004', 'Ordered', now()->subDays(7)],
+            ['PR-ACTIVE-005', 'For Pick-up', now()->subDays(6)],
+            ['PR-ACTIVE-006', 'For Delivery', now()->subDays(4)],
+            ['PR-INACTIVE-001', 'Issued', now()->subDays(10)],
+        ];
+
+        foreach ($requests as [$prNo, $status, $createdAt]) {
+            $request = PurchaseRequest::create([
+                'pr_no' => $prNo,
+                'job_order_no' => 'JO-'.$prNo,
+                'bus_no' => 'BUS-001',
+                'item' => 'Brake Pad',
+                'quantity' => 2,
+                'status' => $status,
+                'source_type' => 'Maintenance Request',
+            ]);
+
+            $request->forceFill([
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ])->saveQuietly();
+        }
+
+        $data = app(WarehouseDashboardController::class)->data();
+
+        $this->assertSame($initialActiveCount + 6, $data['activePartRequestCount']);
+        $this->assertCount(5, $data['activePartRequests']);
+        $this->assertSame('PR-ACTIVE-002', $data['activePartRequests']->first()->pr_no);
+        $this->assertSame('Approved', $data['activePartRequests']->first()->status);
+    }
+
+    public function test_stock_movement_filters_are_compact_and_clearly_label_record_origin(): void
+    {
+        $response = $this->actingAs($this->warehouseUser)->get(route('stock-movements'));
+
+        $response
+            ->assertOk()
+            ->assertDontSee('realistic simulated operational history')
+            ->assertSee('Complete inventory transaction and adjustment history.')
+            ->assertSee('System Transactions')
+            ->assertSee('All Records')
+            ->assertSee('Record Origin')
+            ->assertSeeInOrder([
+                'movementTypeFilter',
+                'movementDateFilter',
+                'movementSourceFilter',
+            ], false);
+    }
+
+    public function test_inventory_table_uses_compact_columns_without_removing_supplier_data(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'COMPACT-001',
+            'item_name' => 'Compact Layout Brake Pad',
+            'category' => 'Brakes',
+            'quantity_available' => 12,
+            'unit_of_measurement' => 'sets',
+            'reorder_level' => 4,
+            'supplier' => 'Southern Luzon Parts Supply',
+            'storage_location' => 'Rack B-2',
+        ]);
+
+        $response = $this->actingAs($this->warehouseUser)->get(route('inventory'));
+        $response
+            ->assertOk()
+            ->assertDontSee('Issue Stock')
+            ->assertDontSee('Import Inventory Data')
+            ->assertDontSee('openIssueModal', false)
+            ->assertDontSee('openImportModal', false)
+            ->assertDontSee('issueModal', false)
+            ->assertDontSee('importModal', false);
+
+        preg_match('/<table class="inventory-table">.*?<\/table>/s', $response->getContent(), $matches);
+        $table = $matches[0] ?? '';
+
+        $this->assertNotSame('', $table);
+        $this->assertSame(8, substr_count($table, '<th>'));
+        $this->assertStringContainsString('<th>Item</th>', $table);
+        $this->assertStringContainsString('<th>Stock</th>', $table);
+        $this->assertStringContainsString('<th>Supplier</th>', $table);
+        $this->assertStringNotContainsString('<th>Last Updated</th>', $table);
+        $this->assertStringContainsString('inventory-item-cell', $table);
+        $this->assertStringContainsString('inventory-stock-cell', $table);
+        $this->assertStringContainsString('Southern Luzon Parts Supply', $table);
     }
 
     // =========================================================================

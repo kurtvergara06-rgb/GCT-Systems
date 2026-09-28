@@ -7,39 +7,51 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Non-destructive client demonstration dataset.
+ * Non-destructive realistic simulation dataset.
  *
  * The records created here are intentionally visible in the normal frontend
  * modules (Operation, Incidents, Maintenance, Warehouse, Purchase) while
  * remaining clearly isolated from genuine production ML training:
  *
- * - Delay demo trips use the TRIP-DEMO-* prefix. The genuine Delay #3 export
- *   excludes the configured TRIP-* demo prefix.
- * - Inventory movements are written with source="demo". Genuine Inventory #4
+ * - Simulated delay trips use the TRIP-GCT-* prefix. The genuine Delay #3
+ *   export excludes the configured TRIP-* prefix.
+ * - Inventory movements are written with source="simulated". Genuine Inventory #4
  *   training reads only stock_movements.source="app".
  *
- * Re-running the seeder replaces only its own DEMO-* fact rows. It never
+ * Re-running the seeder replaces only its own simulated fact rows. It never
  * truncates application tables and never deletes genuine operational records.
  */
-class ClientDemoDataSeeder extends Seeder
+class RealisticSampleDataSeeder extends Seeder
 {
-    private const TRIP_PREFIX = 'TRIP-DEMO-';
-    private const DDR_PREFIX = 'DEMO-DDR-';
-    private const INCIDENT_PREFIX = 'DEMO-INC-';
-    private const JO_PREFIX = 'DEMO-JO-';
-    private const PR_PREFIX = 'DEMO-PR-';
-    private const PO_PREFIX = 'DEMO-PO-';
-    private const PART_PREFIX = 'DEMO-PART-';
-    private const BUS_PREFIX = 'DEMO-BUS-';
-    private const DRIVER_PREFIX = 'DEMO-DRV-';
-    private const ROUTE_PREFIX = 'DEMO-RT-';
+    private const TRIP_PREFIX = 'TRIP-GCT-';
+    private const DDR_PREFIX = 'DDR-GCT-';
+    private const INCIDENT_PREFIX = 'INC-GCT-';
+    private const JO_PREFIX = 'JO-GCT-';
+    private const PR_PREFIX = 'PR-GCT-';
+    private const PO_PREFIX = 'PO-GCT-';
+    private const PART_PREFIX = 'GCT-PART-';
+    private const BUS_PREFIX = 'GCT-2';
+    private const DRIVER_PREFIX = 'GCT-DRV-';
+    private const ROUTE_PREFIX = 'GCT-RT-';
+
+    private const LEGACY_TRIP_PREFIX = 'TRIP-DEMO-';
+    private const LEGACY_DDR_PREFIX = 'DEMO-DDR-';
+    private const LEGACY_INCIDENT_PREFIX = 'DEMO-INC-';
+    private const LEGACY_JO_PREFIX = 'DEMO-JO-';
+    private const LEGACY_PR_PREFIX = 'DEMO-PR-';
+    private const LEGACY_PO_PREFIX = 'DEMO-PO-';
+    private const LEGACY_PART_PREFIX = 'DEMO-PART-';
+    private const LEGACY_BUS_PREFIX = 'DEMO-BUS-';
+    private const LEGACY_DRIVER_PREFIX = 'DEMO-DRV-';
+    private const LEGACY_ROUTE_PREFIX = 'DEMO-RT-';
 
     public function run(): void
     {
         mt_srand(20260924);
 
         DB::transaction(function (): void {
-            $this->clearPreviousDemoFacts();
+            $this->clearPreviousSimulatedFacts();
+            $this->migrateLegacyMasterIdentifiers();
 
             $actorId = DB::table('users')->orderBy('id')->value('id');
             $buses = $this->seedBuses();
@@ -57,23 +69,31 @@ class ClientDemoDataSeeder extends Seeder
     }
 
     /**
-     * Remove only rows owned by this seeder. Master demo rows are kept and
+     * Remove only rows owned by this seeder. Master simulated rows are kept and
      * updated in place so foreign-key ids remain stable across re-runs.
      */
-    private function clearPreviousDemoFacts(): void
+    private function clearPreviousSimulatedFacts(): void
     {
         $scheduleIds = DB::table('trip_schedules')
-            ->where('trip_code', 'like', self::TRIP_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('trip_code', 'like', self::TRIP_PREFIX.'%')
+                    ->orWhere('trip_code', 'like', self::LEGACY_TRIP_PREFIX.'%');
+            })
             ->pluck('id');
 
         DB::table('incidents')
-            ->where('incident_no', 'like', self::INCIDENT_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('incident_no', 'like', self::INCIDENT_PREFIX.'%')
+                    ->orWhere('incident_no', 'like', self::LEGACY_INCIDENT_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('daily_driver_reports')
             ->where(function ($query): void {
                 $query->where('ddr_no', 'like', self::DDR_PREFIX.'%')
-                    ->orWhere('trip_ticket', 'like', self::TRIP_PREFIX.'%');
+                    ->orWhere('ddr_no', 'like', self::LEGACY_DDR_PREFIX.'%')
+                    ->orWhere('trip_ticket', 'like', self::TRIP_PREFIX.'%')
+                    ->orWhere('trip_ticket', 'like', self::LEGACY_TRIP_PREFIX.'%');
             })
             ->delete();
 
@@ -84,42 +104,81 @@ class ClientDemoDataSeeder extends Seeder
         }
 
         DB::table('trip_schedules')
-            ->where('trip_code', 'like', self::TRIP_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('trip_code', 'like', self::TRIP_PREFIX.'%')
+                    ->orWhere('trip_code', 'like', self::LEGACY_TRIP_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('driver_attendances')
-            ->where('driver_id', 'like', self::DRIVER_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('driver_id', 'like', self::DRIVER_PREFIX.'%')
+                    ->orWhere('driver_id', 'like', self::LEGACY_DRIVER_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('purchase_orders')
-            ->where('po_no', 'like', self::PO_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('po_no', 'like', self::PO_PREFIX.'%')
+                    ->orWhere('po_no', 'like', self::LEGACY_PO_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('purchase_requests')
-            ->where('pr_no', 'like', self::PR_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('pr_no', 'like', self::PR_PREFIX.'%')
+                    ->orWhere('pr_no', 'like', self::LEGACY_PR_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('job_orders')
-            ->where('job_order_no', 'like', self::JO_PREFIX.'%')
+            ->where(function ($query): void {
+                $query->where('job_order_no', 'like', self::JO_PREFIX.'%')
+                    ->orWhere('job_order_no', 'like', self::LEGACY_JO_PREFIX.'%');
+            })
             ->delete();
 
         DB::table('stock_movements')
-            ->where('source', 'demo')
-            ->where('reference_no', 'like', 'DEMO-%')
+            ->whereIn('source', ['demo', 'simulated'])
             ->delete();
+    }
+
+    private function migrateLegacyMasterIdentifiers(): void
+    {
+        for ($index = 1; $index <= 8; $index++) {
+            DB::table('buses')
+                ->where('bus_no', self::LEGACY_BUS_PREFIX.(100 + $index))
+                ->update(['bus_no' => 'GCT-'.(200 + $index)]);
+
+            DB::table('drivers')
+                ->where('driver_id', self::LEGACY_DRIVER_PREFIX.str_pad((string) $index, 3, '0', STR_PAD_LEFT))
+                ->update(['driver_id' => self::DRIVER_PREFIX.str_pad((string) $index, 3, '0', STR_PAD_LEFT)]);
+        }
+
+        for ($index = 1; $index <= 5; $index++) {
+            DB::table('shuttle_routes')
+                ->where('route_code', self::LEGACY_ROUTE_PREFIX.str_pad((string) $index, 2, '0', STR_PAD_LEFT))
+                ->update(['route_code' => self::ROUTE_PREFIX.str_pad((string) $index, 2, '0', STR_PAD_LEFT)]);
+        }
+
+        for ($index = 1; $index <= 24; $index++) {
+            DB::table('inventory_items')
+                ->where('item_code', self::LEGACY_PART_PREFIX.str_pad((string) $index, 3, '0', STR_PAD_LEFT))
+                ->update(['item_code' => self::PART_PREFIX.str_pad((string) $index, 3, '0', STR_PAD_LEFT)]);
+        }
     }
 
     private function seedBuses(): array
     {
         $definitions = [
-            ['DEMO-BUS-101', 'DMB-1101', 'Hino RK1JST', '2020', 50],
-            ['DEMO-BUS-102', 'DMB-1102', 'Isuzu LV123', '2019', 45],
-            ['DEMO-BUS-103', 'DMB-1103', 'Hyundai Universe', '2021', 50],
-            ['DEMO-BUS-104', 'DMB-1104', 'Yutong ZK6122H9', '2020', 55],
-            ['DEMO-BUS-105', 'DMB-1105', 'Hino FC9JL7A', '2018', 45],
-            ['DEMO-BUS-106', 'DMB-1106', 'Daewoo BS106', '2019', 48],
-            ['DEMO-BUS-107', 'DMB-1107', 'Kia Grandbird', '2022', 50],
-            ['DEMO-BUS-108', 'DMB-1108', 'Mitsubishi Fuso', '2021', 50],
+            ['GCT-201', 'NBG-8201', 'Hino RK1JST', '2020', 50],
+            ['GCT-202', 'NBG-8202', 'Isuzu LV123', '2019', 45],
+            ['GCT-203', 'NBG-8203', 'Hyundai Universe', '2021', 50],
+            ['GCT-204', 'NBG-8204', 'Yutong ZK6122H9', '2020', 55],
+            ['GCT-205', 'NBG-8205', 'Hino FC9JL7A', '2018', 45],
+            ['GCT-206', 'NBG-8206', 'Daewoo BS106', '2019', 48],
+            ['GCT-207', 'NBG-8207', 'Kia Grandbird', '2022', 50],
+            ['GCT-208', 'NBG-8208', 'Mitsubishi Fuso', '2021', 50],
         ];
 
         $rows = [];
@@ -128,10 +187,10 @@ class ClientDemoDataSeeder extends Seeder
                 ['bus_no' => $busNo],
                 [
                     'plate_no' => $plate,
-                    'bus_model' => '[DEMO] '.$model,
+                    'bus_model' => $model,
                     'year_model' => $year,
                     'capacity' => $capacity,
-                    'route_grouping' => '[DEMO] Client Presentation Fleet',
+                    'route_grouping' => 'Southern Luzon Operations',
                     'status' => 'Active',
                     'latest_gps_km' => 42000 + ($index * 3850),
                     'latest_gps_at' => Carbon::create(2026, 9, 23, 20, 0),
@@ -152,14 +211,14 @@ class ClientDemoDataSeeder extends Seeder
     private function seedDrivers(): array
     {
         $definitions = [
-            ['DEMO-DRV-001', 'Ramon Santos (Demo)', 'Morning'],
-            ['DEMO-DRV-002', 'Joel Mendoza (Demo)', 'Morning'],
-            ['DEMO-DRV-003', 'Marco Reyes (Demo)', 'Afternoon'],
-            ['DEMO-DRV-004', 'Dennis Cruz (Demo)', 'Afternoon'],
-            ['DEMO-DRV-005', 'Arnel Garcia (Demo)', 'Night'],
-            ['DEMO-DRV-006', 'Victor Ramos (Demo)', 'Morning'],
-            ['DEMO-DRV-007', 'Paolo Flores (Demo)', 'Afternoon'],
-            ['DEMO-DRV-008', 'Nestor Aquino (Demo)', 'Night'],
+            ['GCT-DRV-001', 'Ramon Santos', 'Morning'],
+            ['GCT-DRV-002', 'Joel Mendoza', 'Morning'],
+            ['GCT-DRV-003', 'Marco Reyes', 'Afternoon'],
+            ['GCT-DRV-004', 'Dennis Cruz', 'Afternoon'],
+            ['GCT-DRV-005', 'Arnel Garcia', 'Night'],
+            ['GCT-DRV-006', 'Victor Ramos', 'Morning'],
+            ['GCT-DRV-007', 'Paolo Flores', 'Afternoon'],
+            ['GCT-DRV-008', 'Nestor Aquino', 'Night'],
         ];
 
         $rows = [];
@@ -170,7 +229,7 @@ class ClientDemoDataSeeder extends Seeder
                     'driver_name' => $name,
                     'shift' => $shift,
                     'contact_number' => '0917'.str_pad((string) (7000000 + $index), 7, '0', STR_PAD_LEFT),
-                    'license_number' => 'DEMO-LIC-'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+                    'license_number' => 'N02-26-'.str_pad((string) ($index + 1), 6, '0', STR_PAD_LEFT),
                     'license_expiration' => Carbon::create(2027, 12, 31)->toDateString(),
                     'employment_status' => 'Active',
                     'created_at' => Carbon::create(2026, 5, 1, 8, 0),
@@ -187,11 +246,11 @@ class ClientDemoDataSeeder extends Seeder
     private function seedRoutes(): array
     {
         $definitions = [
-            ['DEMO-RT-01', '[DEMO] Batangas City - Lipa', 'Batangas City', 'Lipa City', 31.5, 55],
-            ['DEMO-RT-02', '[DEMO] Lipa - Tanauan', 'Lipa City', 'Tanauan City', 23.4, 45],
-            ['DEMO-RT-03', '[DEMO] Tanauan - Calamba', 'Tanauan City', 'Calamba City', 28.7, 50],
-            ['DEMO-RT-04', '[DEMO] Calamba - Biñan', 'Calamba City', 'Biñan City', 26.2, 50],
-            ['DEMO-RT-05', '[DEMO] Sto. Tomas - Alabang', 'Sto. Tomas City', 'Alabang, Muntinlupa', 43.8, 70],
+            ['GCT-RT-01', 'Batangas City - Lipa', 'Batangas City', 'Lipa City', 31.5, 55],
+            ['GCT-RT-02', 'Lipa - Tanauan', 'Lipa City', 'Tanauan City', 23.4, 45],
+            ['GCT-RT-03', 'Tanauan - Calamba', 'Tanauan City', 'Calamba City', 28.7, 50],
+            ['GCT-RT-04', 'Calamba - Biñan', 'Calamba City', 'Biñan City', 26.2, 50],
+            ['GCT-RT-05', 'Sto. Tomas - Alabang', 'Sto. Tomas City', 'Alabang, Muntinlupa', 43.8, 70],
         ];
 
         $rows = [];
@@ -275,7 +334,7 @@ class ClientDemoDataSeeder extends Seeder
                     'shift' => $shift,
                     'assignment_status' => 'Assigned',
                     'status' => 'Completed',
-                    'notes' => 'DEMO / SYNTHETIC client presentation trip. Not genuine GCT history.',
+                    'notes' => 'Scheduled passenger service record for operational planning.',
                     'created_by' => $actorId,
                     'created_at' => $date->copy()->subDay()->setTime(16, 0),
                     'updated_at' => $date->copy()->setTime(21, 0),
@@ -338,10 +397,10 @@ class ClientDemoDataSeeder extends Seeder
                         'driver_name' => $driver['driver_name'],
                         'incident_type' => $type,
                         'location' => $route['origin'].' corridor',
-                        'description' => 'DEMO / SYNTHETIC '.$type.' event included for the client presentation.',
+                        'description' => $type.' event recorded during scheduled service.',
                         'incident_reported_at' => $reportedAt,
                         'status' => 'Resolved',
-                        'resolution_notes' => 'Demo incident cleared; trip continued after an operational delay.',
+                        'resolution_notes' => 'Incident cleared; trip continued after an operational delay.',
                         'resolved_at' => $actualArrival->copy()->addMinutes(20),
                         'reported_by' => $actorId,
                         'resolved_by' => $actorId,
@@ -356,30 +415,30 @@ class ClientDemoDataSeeder extends Seeder
     private function seedInventoryItems(): array
     {
         $definitions = [
-            ['Brake Pad Set', 'Brakes', 'set', 12, 'Batangas Auto Parts Demo'],
-            ['Oil Filter', 'Filters', 'pcs', 15, 'Batangas Auto Parts Demo'],
-            ['Fuel Filter', 'Filters', 'pcs', 12, 'Southern Luzon Parts Demo'],
-            ['Air Filter', 'Filters', 'pcs', 10, 'Southern Luzon Parts Demo'],
-            ['Fan Belt', 'Engine', 'pcs', 8, 'Fleet Parts Center Demo'],
-            ['Alternator Belt', 'Engine', 'pcs', 8, 'Fleet Parts Center Demo'],
-            ['12V Battery', 'Electrical', 'pcs', 6, 'Calabarzon Battery Demo'],
-            ['Headlight Bulb', 'Electrical', 'pcs', 20, 'Calabarzon Electrical Demo'],
-            ['Tail Light Bulb', 'Electrical', 'pcs', 20, 'Calabarzon Electrical Demo'],
-            ['Wheel Bearing', 'Suspension', 'pcs', 10, 'Fleet Parts Center Demo'],
-            ['Brake Shoe Set', 'Brakes', 'set', 8, 'Batangas Auto Parts Demo'],
-            ['Clutch Disc', 'Drivetrain', 'pcs', 5, 'Southern Luzon Parts Demo'],
-            ['Coolant Hose', 'Cooling', 'pcs', 10, 'Fleet Parts Center Demo'],
-            ['Radiator Cap', 'Cooling', 'pcs', 12, 'Fleet Parts Center Demo'],
-            ['Wiper Blade Pair', 'Body', 'pair', 12, 'Batangas Auto Parts Demo'],
-            ['Engine Oil 15W-40', 'Fluids', 'liter', 80, 'Calabarzon Lubricants Demo'],
-            ['Gear Oil', 'Fluids', 'liter', 40, 'Calabarzon Lubricants Demo'],
-            ['Engine Coolant', 'Fluids', 'liter', 50, 'Calabarzon Lubricants Demo'],
-            ['Grease Cartridge', 'Fluids', 'pcs', 20, 'Calabarzon Lubricants Demo'],
-            ['Bus Tire 10R22.5', 'Tires', 'pcs', 10, 'South Luzon Tire Demo'],
-            ['Inner Tube 10R22.5', 'Tires', 'pcs', 12, 'South Luzon Tire Demo'],
-            ['Air Dryer Cartridge', 'Pneumatic', 'pcs', 8, 'Fleet Parts Center Demo'],
-            ['Fuel Hose', 'Engine', 'meter', 15, 'Southern Luzon Parts Demo'],
-            ['Fuse Assortment', 'Electrical', 'box', 8, 'Calabarzon Electrical Demo'],
+            ['Brake Pad Set', 'Brakes', 'set', 12, 'Batangas Auto Parts Center'],
+            ['Oil Filter', 'Filters', 'pcs', 15, 'Batangas Auto Parts Center'],
+            ['Fuel Filter', 'Filters', 'pcs', 12, 'Southern Luzon Parts Supply'],
+            ['Air Filter', 'Filters', 'pcs', 10, 'Southern Luzon Parts Supply'],
+            ['Fan Belt', 'Engine', 'pcs', 8, 'Fleet Parts Center'],
+            ['Alternator Belt', 'Engine', 'pcs', 8, 'Fleet Parts Center'],
+            ['12V Battery', 'Electrical', 'pcs', 6, 'Calabarzon Battery Center'],
+            ['Headlight Bulb', 'Electrical', 'pcs', 20, 'Calabarzon Electrical Supply'],
+            ['Tail Light Bulb', 'Electrical', 'pcs', 20, 'Calabarzon Electrical Supply'],
+            ['Wheel Bearing', 'Suspension', 'pcs', 10, 'Fleet Parts Center'],
+            ['Brake Shoe Set', 'Brakes', 'set', 8, 'Batangas Auto Parts Center'],
+            ['Clutch Disc', 'Drivetrain', 'pcs', 5, 'Southern Luzon Parts Supply'],
+            ['Coolant Hose', 'Cooling', 'pcs', 10, 'Fleet Parts Center'],
+            ['Radiator Cap', 'Cooling', 'pcs', 12, 'Fleet Parts Center'],
+            ['Wiper Blade Pair', 'Body', 'pair', 12, 'Batangas Auto Parts Center'],
+            ['Engine Oil 15W-40', 'Fluids', 'liter', 80, 'Calabarzon Lubricants'],
+            ['Gear Oil', 'Fluids', 'liter', 40, 'Calabarzon Lubricants'],
+            ['Engine Coolant', 'Fluids', 'liter', 50, 'Calabarzon Lubricants'],
+            ['Grease Cartridge', 'Fluids', 'pcs', 20, 'Calabarzon Lubricants'],
+            ['Bus Tire 10R22.5', 'Tires', 'pcs', 10, 'South Luzon Tire Center'],
+            ['Inner Tube 10R22.5', 'Tires', 'pcs', 12, 'South Luzon Tire Center'],
+            ['Air Dryer Cartridge', 'Pneumatic', 'pcs', 8, 'Fleet Parts Center'],
+            ['Fuel Hose', 'Engine', 'meter', 15, 'Southern Luzon Parts Supply'],
+            ['Fuse Assortment', 'Electrical', 'box', 8, 'Calabarzon Electrical Supply'],
         ];
 
         $items = [];
@@ -389,13 +448,13 @@ class ClientDemoDataSeeder extends Seeder
             DB::table('inventory_items')->updateOrInsert(
                 ['item_code' => $code],
                 [
-                    'item_name' => '[DEMO] '.$name,
+                    'item_name' => ''.$name,
                     'category' => $category,
                     'quantity_available' => 0,
                     'unit_of_measurement' => $unit,
                     'reorder_level' => $reorder,
-                    'supplier' => '[DEMO] '.$supplier,
-                    'storage_location' => 'DEMO Rack '.chr(65 + ($index % 6)).'-'.(($index % 4) + 1),
+                    'supplier' => ''.$supplier,
+                    'storage_location' => 'Rack '.chr(65 + ($index % 6)).'-'.(($index % 4) + 1),
                     'created_at' => Carbon::create(2026, 5, 18, 8, 0),
                     'updated_at' => Carbon::create(2026, 9, 23, 18, 0),
                 ]
@@ -428,9 +487,9 @@ class ClientDemoDataSeeder extends Seeder
             DB::table('job_orders')->insert([
                 'job_order_no' => $joNo,
                 'bus_no' => $bus['bus_no'],
-                'problem_issue' => 'DEMO / SYNTHETIC maintenance finding requiring '.$item['item_name'].'.',
+                'problem_issue' => 'Maintenance inspection identified a need for '.$item['item_name'].'.',
                 'maintenance_type' => ($index % 3 === 0) ? 'Corrective' : 'Preventive',
-                'assigned_mechanic' => 'Demo Mechanic '.str_pad((string) (($index % 4) + 1), 2, '0', STR_PAD_LEFT),
+                'assigned_mechanic' => 'Mechanic '.str_pad((string) (($index % 4) + 1), 2, '0', STR_PAD_LEFT),
                 'part_needed' => $item['item_name'].' - Qty: '.$quantity.' '.$item['unit_of_measurement'],
                 'start_date' => $storyDate->copy()->setTime(8, 0),
                 'completion_date' => $joStatuses[$state] === 'Completed'
@@ -448,7 +507,7 @@ class ClientDemoDataSeeder extends Seeder
                 'bus_no' => $bus['bus_no'],
                 'item' => $item['item_name'],
                 'quantity' => $quantity,
-                'remarks' => 'DEMO / SYNTHETIC request linked to '.$joNo.' for client presentation.',
+                'remarks' => 'Parts request generated from '.$joNo.'.',
                 'status' => $prStatuses[$state],
                 'source_type' => 'Maintenance Request',
                 'source_inventory_item_id' => $item['id'],
@@ -470,14 +529,14 @@ class ClientDemoDataSeeder extends Seeder
                     'po_date' => $storyDate->copy()->addDay()->toDateString(),
                     'purchase_request_id' => $prId,
                     'supplier_name' => $item['supplier'],
-                    'supplier_address_tel' => 'DEMO supplier record - CALABARZON',
-                    'terms' => 'DEMO: 7-day delivery',
-                    'terms_of_payment' => 'DEMO: Net 30',
-                    'purpose' => 'DEMO / SYNTHETIC replenishment linked to '.$joNo.'.',
+                    'supplier_address_tel' => 'CALABARZON service area',
+                    'terms' => '7-day delivery',
+                    'terms_of_payment' => 'Net 30',
+                    'purpose' => 'Fleet maintenance replenishment linked to '.$joNo.'.',
                     'items' => json_encode([[
                         'pr_no' => $prNo,
                         'bus_no' => $bus['bus_no'],
-                        'employee' => 'Demo Mechanic '.str_pad((string) (($index % 4) + 1), 2, '0', STR_PAD_LEFT),
+                        'employee' => 'Mechanic '.str_pad((string) (($index % 4) + 1), 2, '0', STR_PAD_LEFT),
                         'item_description' => $item['item_name'],
                         'quantity' => $quantity,
                         'unit' => $item['unit_of_measurement'],
@@ -518,12 +577,12 @@ class ClientDemoDataSeeder extends Seeder
 
             $this->insertMovement(
                 $item,
-                'DEMO-INIT-'.$item['item_code'],
+                'OPENING-'.$item['item_code'],
                 'Stock In',
                 $initialStock,
                 0,
                 $stock,
-                'Initial DEMO / SYNTHETIC balance for client presentation.',
+                'Opening inventory balance.',
                 $actorId,
                 $start->copy()->subDays(2)->setTime(9, 0)
             );
@@ -535,7 +594,7 @@ class ClientDemoDataSeeder extends Seeder
                     $replenish = 20 + (($itemIndex + $week) % 4) * 5;
                     $previous = $stock;
                     $stock += $replenish;
-                    $reference = 'DEMO-RESTOCK-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT);
+                    $reference = 'GRN-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT);
 
                     $this->insertMovement(
                         $item,
@@ -544,7 +603,7 @@ class ClientDemoDataSeeder extends Seeder
                         $replenish,
                         $previous,
                         $stock,
-                        'Scheduled DEMO replenishment.',
+                        'Scheduled inventory replenishment.',
                         $actorId,
                         $weekDate->copy()->setTime(9, 15)
                     );
@@ -557,12 +616,12 @@ class ClientDemoDataSeeder extends Seeder
                     $stock += $topUp;
                     $this->insertMovement(
                         $item,
-                        'DEMO-EMERGENCY-'.$item['item_code'].'-W'.$week,
+                        'URGENT-GRN-'.$item['item_code'].'-W'.$week,
                         'Stock In',
                         $topUp,
                         $previous,
                         $stock,
-                        'DEMO emergency replenishment to keep stock history realistic.',
+                        'Emergency replenishment to keep stock history realistic.',
                         $actorId,
                         $weekDate->copy()->setTime(10, 0)
                     );
@@ -573,7 +632,7 @@ class ClientDemoDataSeeder extends Seeder
                 $story = $stories[$item['id']] ?? null;
                 $reference = ($story && $week === $weeks - 2)
                     ? $story['job_order_no']
-                    : 'DEMO-ISSUE-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT).'-A';
+                    : 'ISS-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT).'-A';
 
                 $this->insertMovement(
                     $item,
@@ -583,8 +642,8 @@ class ClientDemoDataSeeder extends Seeder
                     $previous,
                     $stock,
                     $story && $week === $weeks - 2
-                        ? 'DEMO part issuance linked to '.$story['job_order_no'].'.'
-                        : 'Routine DEMO spare-part issuance.',
+                        ? 'Part issuance linked to '.$story['job_order_no'].'.'
+                        : 'Routine spare-part issuance.',
                     $actorId,
                     $weekDate->copy()->addDay()->setTime(14, 0)
                 );
@@ -600,12 +659,12 @@ class ClientDemoDataSeeder extends Seeder
                         $stock -= $secondQty;
                         $this->insertMovement(
                             $item,
-                            'DEMO-ISSUE-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT).'-B',
+                            'ISS-'.$item['item_code'].'-W'.str_pad((string) $week, 2, '0', STR_PAD_LEFT).'-B',
                             'Stock Out',
                             -$secondQty,
                             $previous,
                             $stock,
-                            'Secondary DEMO issuance during the same week.',
+                            'Secondary issuance during the same week.',
                             $actorId,
                             $weekDate->copy()->addDays(3)->setTime(10, 30)
                         );
@@ -623,7 +682,7 @@ class ClientDemoDataSeeder extends Seeder
                         $received,
                         $previous,
                         $stock,
-                        'DEMO receipt linked to '.$story['purchase_order_no'].'.',
+                        'Receipt linked to '.$story['purchase_order_no'].'.',
                         $actorId,
                         $weekDate->copy()->addDays(4)->setTime(15, 0)
                     );
@@ -662,7 +721,7 @@ class ClientDemoDataSeeder extends Seeder
             'unit' => $item['unit_of_measurement'],
             'remarks' => $remarks,
             'created_by' => $actorId,
-            'source' => 'demo',
+            'source' => 'simulated',
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ]);
@@ -671,23 +730,23 @@ class ClientDemoDataSeeder extends Seeder
     private function reportCounts(): void
     {
         $counts = [
-            'Demo trips' => DB::table('trip_schedules')->where('trip_code', 'like', self::TRIP_PREFIX.'%')->count(),
-            'Demo DDR rows' => DB::table('daily_driver_reports')->where('ddr_no', 'like', self::DDR_PREFIX.'%')->count(),
-            'Demo incidents' => DB::table('incidents')->where('incident_no', 'like', self::INCIDENT_PREFIX.'%')->count(),
-            'Demo inventory parts' => DB::table('inventory_items')->where('item_code', 'like', self::PART_PREFIX.'%')->count(),
-            'Demo stock movements' => DB::table('stock_movements')->where('source', 'demo')->where('reference_no', 'like', 'DEMO-%')->count(),
-            'Demo job orders' => DB::table('job_orders')->where('job_order_no', 'like', self::JO_PREFIX.'%')->count(),
-            'Demo purchase requests' => DB::table('purchase_requests')->where('pr_no', 'like', self::PR_PREFIX.'%')->count(),
-            'Demo purchase orders' => DB::table('purchase_orders')->where('po_no', 'like', self::PO_PREFIX.'%')->count(),
+            'Simulated trips' => DB::table('trip_schedules')->where('trip_code', 'like', self::TRIP_PREFIX.'%')->count(),
+            'Simulated DDR rows' => DB::table('daily_driver_reports')->where('ddr_no', 'like', self::DDR_PREFIX.'%')->count(),
+            'Simulated incidents' => DB::table('incidents')->where('incident_no', 'like', self::INCIDENT_PREFIX.'%')->count(),
+            'Simulated inventory parts' => DB::table('inventory_items')->where('item_code', 'like', self::PART_PREFIX.'%')->count(),
+            'Simulated stock movements' => DB::table('stock_movements')->where('source', 'simulated')->count(),
+            'Simulated job orders' => DB::table('job_orders')->where('job_order_no', 'like', self::JO_PREFIX.'%')->count(),
+            'Simulated purchase requests' => DB::table('purchase_requests')->where('pr_no', 'like', self::PR_PREFIX.'%')->count(),
+            'Simulated purchase orders' => DB::table('purchase_orders')->where('po_no', 'like', self::PO_PREFIX.'%')->count(),
         ];
 
         if ($this->command) {
-            $this->command->info('Client DEMO dataset seeded without truncating genuine records.');
+            $this->command->info('Realistic simulated dataset seeded without truncating genuine records.');
             $this->command->table(
                 ['Dataset', 'Rows'],
                 collect($counts)->map(fn (int $count, string $label): array => [$label, $count])->values()->all()
             );
-            $this->command->warn('All generated rows are DEMO / SYNTHETIC. Do not present them as genuine GCT operational history.');
+            $this->command->warn('All generated rows are SIMULATED. Do not present them as genuine GCT operational history.');
         }
     }
 }

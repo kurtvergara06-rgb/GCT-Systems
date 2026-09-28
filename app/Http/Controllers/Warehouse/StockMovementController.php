@@ -50,7 +50,6 @@ class StockMovementController extends Controller
         $stockOut = StockMovement::where('movement_type', 'Stock Out')->count();
         $adjustments = StockMovement::where('movement_type', 'Adjustment')->count();
         $genuineTransactions = StockMovement::where('source', 'app')->count();
-        $demoTransactions = StockMovement::where('source', 'demo')->count();
 
         return compact(
             'stockMovements',
@@ -58,8 +57,7 @@ class StockMovementController extends Controller
             'stockIn',
             'stockOut',
             'adjustments',
-            'genuineTransactions',
-            'demoTransactions'
+            'genuineTransactions'
         );
     }
 }

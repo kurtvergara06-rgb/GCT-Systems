@@ -105,7 +105,12 @@ class DelayPredictionController extends Controller
         }
 
         $status = $delayService->status();
-        $modelReady = ($status['model_ready'] ?? false) === true;
+        $modelReportedReady = ($status['model_ready'] ?? false) === true;
+        $isProductionModel = ($status['is_production_model'] ?? false) === true;
+        $demoModeEnabled = ! app()->environment('production')
+            && (bool) config('services.ai.allow_demo_models', false);
+        $modelReady = $modelReportedReady
+            && ($isProductionModel || $demoModeEnabled);
 
         $responses = $modelReady && $payloads !== []
             ? $delayService->predictBatch($payloads)
@@ -129,6 +134,8 @@ class DelayPredictionController extends Controller
         return response()->json([
             'success' => true,
             'model_ready' => $modelReady,
+            'model_reported_ready' => $modelReportedReady,
+            'demo_mode_enabled' => $demoModeEnabled,
             'dataset_type' => $status['dataset_type'] ?? null,
             'model_source' => $status['model_source'] ?? $status['data_source'] ?? null,
             'is_production_model' => (bool) ($status['is_production_model'] ?? false),

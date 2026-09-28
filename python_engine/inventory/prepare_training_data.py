@@ -2,7 +2,7 @@
 
 Modes:
 - sample: deterministic generated development CSV
-- demo: frontend-visible synthetic warehouse movements (source='demo')
+- demo: realistic simulated warehouse movements (source='simulated')
 - genuine: application-written warehouse movements (source='app')
 """
 
@@ -76,7 +76,7 @@ def main() -> int:
     if loaded_source == "genuine":
         label = "GENUINE GCT INVENTORY LEDGER"
     elif loaded_source == "demo":
-        label = "FRONTEND DEMO / SYNTHETIC WAREHOUSE DATA"
+        label = "REALISTIC SIMULATED WAREHOUSE DATA"
     else:
         label = "SAMPLE / DEVELOPMENT"
 
@@ -106,7 +106,7 @@ def main() -> int:
         print(f"Features:       {len(INVENTORY_FEATURE_COLUMNS)}")
         print(f"Source:         {loaded_source}")
         if loaded_source == "demo":
-            print("DEMO / SYNTHETIC ONLY - not genuine GCT operational history.")
+            print("SIMULATED DATA ONLY - not genuine GCT operational history.")
         return 0
 
     print("\nDataset is not ready for model training:")
@@ -115,7 +115,7 @@ def main() -> int:
     if loaded_source == "genuine":
         print("No synthetic fallback was used.")
     elif loaded_source == "demo":
-        print("Run ClientDemoDataSeeder first and verify source='demo' stock movements exist.")
+        print("Run RealisticSampleDataSeeder first and verify source='simulated' stock movements exist.")
     return 1
 
 

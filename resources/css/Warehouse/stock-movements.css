@@ -125,8 +125,9 @@
 
   grid-template-columns:
     minmax(280px, 1fr)
-    150px
-    150px;
+    minmax(130px, 150px)
+    minmax(130px, 150px)
+    minmax(150px, 170px);
 
   align-items: end;
 
@@ -576,7 +577,7 @@
 
   .stock-movement-toolbar {
     grid-template-columns:
-      1fr 1fr;
+      repeat(3, minmax(0, 1fr));
   }
 
   .stock-movement-toolbar .search-box {
@@ -647,7 +648,7 @@
   color: #156a44;
 }
 
-.source-badge--demo {
+.source-badge--simulated {
   border: 1px solid #d6dce5;
   background: #f1f5f9;
   color: #64748b;
@@ -680,7 +681,7 @@
   margin: 14px 0;
 }
 
-.history-demo-notice {
+.history-simulated-notice {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -694,7 +695,7 @@
   line-height: 1.5;
 }
 
-.history-demo-notice i {
+.history-simulated-notice i {
   margin-top: 2px;
   color: #d99a2b;
 }

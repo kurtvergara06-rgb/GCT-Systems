@@ -1,4 +1,4 @@
-"""Frontend-visible DEMO warehouse data adapter for Inventory Model #4."""
+"""Realistic simulated warehouse-data adapter for Inventory Model #4."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_demo_stock_movements() -> pd.DataFrame:
-    """Read only ClientDemoDataSeeder warehouse movements (source='demo')."""
+    """Read only realistic generated movements (source='simulated')."""
     from operation_ai.ml.database import DbConnection
 
     db = DbConnection()
@@ -35,8 +35,7 @@ def fetch_demo_stock_movements() -> pd.DataFrame:
             FROM stock_movements sm
             LEFT JOIN inventory_items ii
               ON ii.id = sm.inventory_item_id
-            WHERE sm.source = 'demo'
-              AND sm.reference_no LIKE 'DEMO-%'
+            WHERE sm.source = 'simulated'
               AND sm.inventory_item_id IS NOT NULL
             ORDER BY sm.inventory_item_id, sm.created_at, sm.id
         """
@@ -46,7 +45,7 @@ def fetch_demo_stock_movements() -> pd.DataFrame:
 
     if raw.empty:
         logger.warning(
-            "No source='demo' stock movements found. Run ClientDemoDataSeeder first."
+            "No source='simulated' stock movements found. Run RealisticSampleDataSeeder first."
         )
         return pd.DataFrame(columns=REQUIRED_COLUMNS + ["stock_out_events", "data_source"])
 
