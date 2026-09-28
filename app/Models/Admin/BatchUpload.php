@@ -64,13 +64,11 @@ class BatchUpload extends Model
                 );
             }
 
-            $origin = strtolower(trim((string) $batchUpload->data_origin));
-            if ($origin === '') {
-                // Eloquent-created batches come from the authenticated upload
-                // workflow. Seeders that insert directly with DB::table bypass
-                // this hook and retain the migration's fail-closed `unknown`.
-                $origin = 'genuine';
-            }
+            // Provenance is deliberately fail-closed. A file arriving through
+            // the normal upload UI is not proof that its rows are genuine GCT
+            // operational history; demo/sample files can be uploaded there too.
+            // Only an explicit verification step may set `genuine`.
+            $origin = strtolower(trim((string) ($batchUpload->data_origin ?: 'unknown')));
             if (! in_array($origin, self::DATA_ORIGINS, true)) {
                 throw new InvalidArgumentException(
                     "Unsupported batch data origin: {$origin}."
