@@ -126,7 +126,7 @@ class EtaModelProductionSafetyTest extends TestCase
 
         $this->assertFalse($eta->ready);
         $this->assertSame('Development Only', $eta->state);
-        $this->assertSame('Synthetic Data', $eta->data_source);
+        $this->assertSame('Simulated Data', $eta->data_source);
     }
 
     private function notReadyStatus(): array
