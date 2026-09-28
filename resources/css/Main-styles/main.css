@@ -81,18 +81,47 @@ a {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 26px;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+.topbar::after,
+.topbar::before,
+.topbar-heading::after,
+.topbar-heading::before,
+.page-header::after,
+.page-header::before,
+.dashboard-header::after,
+.dashboard-header::before,
+header.topbar::after,
+header.topbar::before {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  height: 0 !important;
+}
+
+.topbar-heading,
+.page-header,
+.dashboard-header,
+header.topbar {
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
 
 .topbar h1 {
   font-size: 32px;
   font-weight: 800;
   color: var(--text);
+  border-bottom: none !important;
 }
 
 .topbar p {
   font-size: 15px;
   color: var(--muted);
   margin-top: 4px;
+  border-bottom: none !important;
 }
 
 .top-actions {
@@ -1892,4 +1921,59 @@ textarea[readonly] {
     width: 100%;
   }
 
+}
+
+/* =========================================================
+   GLOBAL TARGET HIGHLIGHT PULSE ("View Details")
+========================================================= */
+@keyframes gctHighlightPulseAnim {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+    outline: 2px solid rgba(37, 99, 235, 0.75);
+    outline-offset: -1px;
+  }
+  35% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.15);
+    outline: 2px solid rgba(37, 99, 235, 0.9);
+    outline-offset: -1px;
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.05);
+    outline: 2px solid rgba(37, 99, 235, 0.4);
+    outline-offset: -1px;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    outline: 2px solid transparent;
+    outline-offset: -1px;
+  }
+}
+
+@keyframes gctHighlightRowPulseAnim {
+  0% {
+    background-color: #dbeafe !important;
+  }
+  40% {
+    background-color: #eff6ff !important;
+  }
+  100% {
+    background-color: transparent !important;
+  }
+}
+
+.gct-highlight-pulse {
+  animation: gctHighlightPulseAnim 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+  position: relative;
+  z-index: 3;
+}
+
+tr.gct-highlight-pulse td,
+.gct-highlight-pulse.diag-list-row,
+.gct-highlight-pulse.risk-item,
+.gct-highlight-pulse.refined-ranking-row,
+.gct-highlight-pulse.bus-health-attention-row,
+.gct-highlight-pulse.inv-reorder-row,
+.gct-highlight-pulse.prescriptive-queue-item,
+.gct-highlight-pulse.priority-finding {
+  animation: gctHighlightRowPulseAnim 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
 }
