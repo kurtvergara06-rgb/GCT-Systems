@@ -90,16 +90,6 @@
             </select>
           </div>
 
-          <button type="button" class="secondary-btn" id="openIssueModal">
-            <i class="fa-solid fa-arrow-up-from-bracket"></i>
-            Issue Stock
-          </button>
-
-          <button type="button" class="secondary-btn" id="openImportModal">
-            <i class="fa-solid fa-file-import"></i>
-            Import Inventory Data
-          </button>
-
           <button type="button" class="primary-btn" id="openAddModal">
             <i class="fa-solid fa-plus"></i>
             Add Item
@@ -169,18 +159,6 @@
                       >
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </a>
-
-                      <button
-                        type="button"
-                        class="action-btn openIssueModal"
-                        title="Issue Stock"
-                        data-item-id="{{ $item->id }}"
-                        data-item-name="{{ $item->item_name }}"
-                        data-quantity="{{ $item->on_hand }}"
-                        data-unit="{{ $item->unit_of_measurement }}"
-                      >
-                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                      </button>
 
                       <button
                           type="button"
@@ -451,142 +429,6 @@
       <div class="modal-actions full-width">
         <button type="button" class="secondary-btn cancel-btn closeModal">Close</button>
       </div>
-
-    </div>
-  </div>
-
-  {{-- IMPORT MODAL --}}
-  <div class="modal-overlay" id="importModal">
-    <div class="modal-box">
-
-      <div class="modal-header">
-        <h2>Import Inventory Data</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
-      </div>
-
-      <form
-        action="/inventory/import"
-        method="POST"
-        enctype="multipart/form-data"
-        data-confirm-form
-        data-confirm-title="Import Inventory Data?"
-        data-confirm-message="Are you sure you want to import this inventory data file?"
-        data-confirm-button="Yes, Import Data"
-        data-confirm-type="warning"
-      >
-        @csrf
-
-        <div class="form-group full-width">
-          <label>Upload CSV File</label>
-          <input
-            type="file"
-            name="inventory_file"
-            id="inventoryFile"
-            accept=".csv,.txt"
-            required
-          >
-
-          <small>
-            CSV format: item_code, parts_name, category, on_hand, unit, reorder_level, supplier, storage_location
-          </small>
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
-          <button type="submit" class="primary-btn">Import Data</button>
-        </div>
-
-      </form>
-
-    </div>
-  </div>
-
-{{-- ISSUE STOCK MODAL --}}
-  <div class="modal-overlay" id="issueModal">
-    <div class="modal-box wide-modal">
-
-      <div class="modal-header">
-        <h2>Issue Stock</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
-      </div>
-
-      <form
-        id="issueForm"
-        action="{{ route('inventory.issue') }}"
-        method="POST"
-        data-confirm-form
-        data-confirm-title="Issue Stock?"
-        data-confirm-message="Confirm the stock out transaction. On-hand inventory will be reduced and a Stock Out movement will be recorded."
-        data-confirm-button="Yes, Issue Stock"
-        data-confirm-type="warning"
-      >
-        @csrf
-
-        <div class="issue-stock-preview">
-          <div>
-            <p class="preview-label">Item</p>
-            <p class="preview-value" id="issue_preview_name">—</p>
-          </div>
-          <div class="preview-quantity">
-            <p class="preview-label">On Hand</p>
-            <p class="preview-value" id="issue_preview_quantity">—</p>
-            <small id="issue_preview_unit">—</small>
-          </div>
-        </div>
-
-        <div class="form-grid">
-
-          <div class="form-group full-width">
-            <label>Inventory Item</label>
-            <select name="inventory_item_id" id="issue_item" required>
-              <option value="" disabled selected>Select an item...</option>
-
-              @foreach($issueItems as $item)
-                <option
-                  value="{{ $item->id }}"
-                  data-quantity="{{ $item->quantity_available }}"
-                  data-unit="{{ $item->unit_of_measurement }}"
-                >
-                  {{ $item->item_name }}
-                  @if($item->item_code) ({{ $item->item_code }}) @endif —
-                  on hand: {{ $item->quantity_available }} {{ $item->unit_of_measurement }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Quantity to Issue</label>
-            <input type="number" name="quantity" id="issue_quantity" min="1" required>
-          </div>
-
-          <div class="form-group">
-            <label>Issued To</label>
-            <input type="text" name="issued_to" required placeholder="e.g., Maintenance">
-          </div>
-
-          <div class="form-group full-width">
-            <label>Purpose</label>
-            <input type="text" name="purpose" required placeholder="e.g., Preventive Maintenance">
-          </div>
-
-          <div class="form-group full-width">
-            <label>Reference No. (optional)</label>
-            <input type="text" name="reference_no" placeholder="e.g., JO-2026-015">
-            <small>An Issue No. is generated automatically (e.g., ISS-2026-0001).</small>
-          </div>
-
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
-          <button type="submit" class="primary-btn" id="issueSubmitBtn">
-            <i class="fa-solid fa-arrow-up-from-bracket"></i>
-            Confirm Issue
-          </button>
-        </div>
-
-      </form>
 
     </div>
   </div>

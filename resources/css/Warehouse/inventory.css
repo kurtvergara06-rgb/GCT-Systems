@@ -55,7 +55,7 @@
 .inventory-toolbar {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px auto auto auto;
+  grid-template-columns: minmax(280px, 1fr) 150px auto;
   align-items: end;
   gap: 10px;
   padding: 10px 12px;
@@ -286,7 +286,7 @@
 
 .inventory-table th:nth-child(8),
 .inventory-table td:nth-child(8) {
-  width: 160px;
+  width: 128px;
 }
 
 /* Alignment */
@@ -676,48 +676,4 @@
   border: 1px solid #d6dce5;
   background: #f1f5f9;
   color: #64748b;
-}
-
-/* =====================================================
-   ISSUE STOCK MODAL
-===================================================== */
-
-.issue-stock-preview {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border: 1px dashed var(--border);
-  border-radius: 9px;
-  background: #f8fafc;
-}
-
-.issue-stock-preview .preview-label {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.issue-stock-preview .preview-value {
-  margin: 2px 0 0;
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.issue-stock-preview .preview-quantity {
-  text-align: right;
-}
-
-.issue-stock-preview .preview-quantity small {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  margin-top: 2px;
 }

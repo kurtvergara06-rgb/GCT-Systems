@@ -570,7 +570,14 @@ class FrontendUiUxComprehensiveTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->warehouseUser)->get(route('inventory'));
-        $response->assertOk();
+        $response
+            ->assertOk()
+            ->assertDontSee('Issue Stock')
+            ->assertDontSee('Import Inventory Data')
+            ->assertDontSee('openIssueModal', false)
+            ->assertDontSee('openImportModal', false)
+            ->assertDontSee('issueModal', false)
+            ->assertDontSee('importModal', false);
 
         preg_match('/<table class="inventory-table">.*?<\/table>/s', $response->getContent(), $matches);
         $table = $matches[0] ?? '';
