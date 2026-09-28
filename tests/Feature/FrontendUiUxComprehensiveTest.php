@@ -538,6 +538,23 @@ class FrontendUiUxComprehensiveTest extends TestCase
         }
     }
 
+    public function test_warehouse_dashboard_operational_sections(): void
+    {
+        $response = $this->actingAs($this->warehouseUser)->get(route('warehouse.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('Warehouse Dashboard')
+            ->assertSee('Active Part Requests')
+            ->assertSee('MAINTENANCE REQUISITIONS')
+            ->assertSee('Incoming Deliveries')
+            ->assertSee('PURCHASE SHIPMENTS')
+            ->assertSee('Stock Status')
+            ->assertSee('Recent Stock Movements')
+            ->assertSee('TRANSACTION AUDIT')
+            ->assertDontSee('QUICK ACCESS')
+            ->assertDontSee('Warehouse Actions');
+    }
+
     public function test_stock_movement_filters_are_compact_and_clearly_label_record_origin(): void
     {
         $response = $this->actingAs($this->warehouseUser)->get(route('stock-movements'));
