@@ -2,6 +2,8 @@ import fitz
 import re
 from typing import Any
 
+from fastapi import HTTPException
+
 
 KEY_VALUE_LABELS = {
     "record no",
@@ -109,6 +111,17 @@ KEY_VALUE_LABELS = {
 }
 
 
+def _open_pdf(pdf_path: str):
+    """Open a PDF and surface malformed uploads as a client error."""
+    try:
+        return fitz.open(pdf_path)
+    except fitz.FileDataError as error:
+        raise HTTPException(
+            status_code=400,
+            detail="Corrupted or unreadable PDF document.",
+        ) from error
+
+
 def clean_cell(value: Any) -> str:
     """
     Convert a PDF table cell to a clean single-line string.
@@ -187,7 +200,7 @@ def extract_pdf_text(pdf_path: str) -> str:
     """
     Extract plain text from every page of the PDF.
     """
-    document = fitz.open(pdf_path)
+    document = _open_pdf(pdf_path)
     extracted_pages: list[str] = []
 
     try:
@@ -325,7 +338,7 @@ def extract_pdf_rows(
     - mixed_tables
     - None
     """
-    document = fitz.open(pdf_path)
+    document = _open_pdf(pdf_path)
 
     extracted_rows: list[dict] = []
     found_standard_table = False
