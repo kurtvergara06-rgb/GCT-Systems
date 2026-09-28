@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
@@ -553,6 +554,45 @@ class FrontendUiUxComprehensiveTest extends TestCase
             ->assertSee('TRANSACTION AUDIT')
             ->assertDontSee('QUICK ACCESS')
             ->assertDontSee('Warehouse Actions');
+    }
+
+    public function test_warehouse_dashboard_counts_all_active_requests_and_prioritizes_oldest_approved(): void
+    {
+        $initialActiveCount = app(WarehouseDashboardController::class)->data()['activePartRequestCount'];
+
+        $requests = [
+            ['PR-ACTIVE-001', 'Approved', now()->subDays(2)],
+            ['PR-ACTIVE-002', 'Approved', now()->subDays(5)],
+            ['PR-ACTIVE-003', 'For Purchase', now()->subDays(8)],
+            ['PR-ACTIVE-004', 'Ordered', now()->subDays(7)],
+            ['PR-ACTIVE-005', 'For Pick-up', now()->subDays(6)],
+            ['PR-ACTIVE-006', 'For Delivery', now()->subDays(4)],
+            ['PR-INACTIVE-001', 'Issued', now()->subDays(10)],
+        ];
+
+        foreach ($requests as [$prNo, $status, $createdAt]) {
+            $request = PurchaseRequest::create([
+                'pr_no' => $prNo,
+                'job_order_no' => 'JO-'.$prNo,
+                'bus_no' => 'BUS-001',
+                'item' => 'Brake Pad',
+                'quantity' => 2,
+                'status' => $status,
+                'source_type' => 'Maintenance Request',
+            ]);
+
+            $request->forceFill([
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ])->saveQuietly();
+        }
+
+        $data = app(WarehouseDashboardController::class)->data();
+
+        $this->assertSame($initialActiveCount + 6, $data['activePartRequestCount']);
+        $this->assertCount(5, $data['activePartRequests']);
+        $this->assertSame('PR-ACTIVE-002', $data['activePartRequests']->first()->pr_no);
+        $this->assertSame('Approved', $data['activePartRequests']->first()->status);
     }
 
     public function test_stock_movement_filters_are_compact_and_clearly_label_record_origin(): void

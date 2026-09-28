@@ -11,15 +11,13 @@
   @php
     $totalInventory = $totalInventory ?? 0;
     $lowStockItems = $lowStockItems ?? 0;
-    $pendingPartRequests = $pendingPartRequests ?? 0;
+    $activePartRequestCount = $activePartRequestCount ?? 0;
     $incomingDeliveries = $incomingDeliveries ?? 0;
 
     $availableStock = $availableStock ?? 0;
     $outOfStock = $outOfStock ?? 0;
     $issuedToday = $issuedToday ?? 0;
 
-    $recentInventoryItems = $recentInventoryItems ?? collect();
-    $recentPartRequests = $recentPartRequests ?? collect();
     $activePartRequests = $activePartRequests ?? collect();
     $expectedDeliveries = $expectedDeliveries ?? collect();
     $criticalStockItems = $criticalStockItems ?? collect();
@@ -39,7 +37,7 @@
       <section data-ajax-region="summary" class="stats-grid warehouse-stats-grid">
         <x-ui.summary-card label="Inventory Items" value="{{ $totalInventory }}" small="Registered stock items" icon="fa-boxes-stacked" color="blue" />
         <x-ui.summary-card label="Stockout & Low Stock" value="{{ $lowStockItems + $outOfStock }}" small="Needs replenishment" icon="fa-triangle-exclamation" color="red" />
-        <x-ui.summary-card label="Part Requests" value="{{ $pendingPartRequests }}" small="Waiting for warehouse action" icon="fa-clipboard-list" color="yellow" />
+        <x-ui.summary-card label="Part Requests" value="{{ $activePartRequestCount }}" small="Waiting for warehouse action" icon="fa-clipboard-list" color="yellow" />
         <x-ui.summary-card label="Incoming Deliveries" value="{{ $incomingDeliveries }}" small="Expected shipments" icon="fa-truck-ramp-box" color="green" />
       </section>
 

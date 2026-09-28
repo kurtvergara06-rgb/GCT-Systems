@@ -50,14 +50,24 @@ class WarehouseDashboardController extends Controller
                     ->orWhere('source_type', 'Maintenance Request');
             });
 
-        $pendingPartRequests = (clone $maintenanceRequestBase)
-            ->where('status', 'Approved')
+        $activeStatuses = ['Approved', 'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery'];
+
+        $activePartRequestCount = (clone $maintenanceRequestBase)
+            ->whereIn('status', $activeStatuses)
             ->count();
 
         // Active part requests waiting for warehouse issuance or processing
         $activePartRequests = (clone $maintenanceRequestBase)
-            ->whereIn('status', ['Approved', 'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery'])
-            ->latest()
+            ->whereIn('status', $activeStatuses)
+            ->orderByRaw("CASE status
+                WHEN 'Approved' THEN 0
+                WHEN 'For Purchase' THEN 1
+                WHEN 'Ordered' THEN 2
+                WHEN 'For Pick-up' THEN 3
+                WHEN 'For Delivery' THEN 4
+                ELSE 5
+            END")
+            ->oldest()
             ->limit(5)
             ->get();
 
@@ -78,19 +88,6 @@ class WarehouseDashboardController extends Controller
             ->whereDate('updated_at', today())
             ->count();
 
-        $recentInventoryItems = InventoryItem::query()
-            ->latest('updated_at')
-            ->limit(5)
-            ->get()
-            ->each(function (InventoryItem $item) {
-                $item->setAttribute('quantity', $item->on_hand ?? $item->quantity_available ?? 0);
-            });
-
-        $recentPartRequests = (clone $maintenanceRequestBase)
-            ->latest()
-            ->limit(5)
-            ->get();
-
         // Recent stock movements (audit trail)
         $recentStockMovements = StockMovement::query()
             ->latest()
@@ -100,13 +97,11 @@ class WarehouseDashboardController extends Controller
         return compact(
             'totalInventory',
             'lowStockItems',
-            'pendingPartRequests',
+            'activePartRequestCount',
             'incomingDeliveries',
             'availableStock',
             'outOfStock',
             'issuedToday',
-            'recentInventoryItems',
-            'recentPartRequests',
             'activePartRequests',
             'expectedDeliveries',
             'criticalStockItems',
