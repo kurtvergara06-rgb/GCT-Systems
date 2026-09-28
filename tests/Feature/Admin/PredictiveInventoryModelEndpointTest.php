@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Admin\User;
 use App\Models\Warehouse\InventoryItem;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -18,6 +19,8 @@ class PredictiveInventoryModelEndpointTest extends TestCase
 
     public function test_inventory_prediction_endpoint_returns_frontend_item_forecast(): void
     {
+        config()->set('services.ai.allow_demo_models', true);
+
         $user = User::factory()->create();
         $item = InventoryItem::create([
             'item_code' => 'DEMO-PART-001',
@@ -129,6 +132,92 @@ class PredictiveInventoryModelEndpointTest extends TestCase
             ->assertJsonPath('model_ready', false)
             ->assertJsonPath("predictions.{$item->item_code}.available", false)
             ->assertJsonPath("predictions.{$item->item_code}.prediction", null);
+
+        Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/inventory/predict'));
+    }
+
+    public function test_inventory_prediction_endpoint_blocks_demo_model_when_demo_mode_is_disabled(): void
+    {
+        config()->set('services.ai.allow_demo_models', false);
+
+        $user = User::factory()->create();
+        $item = InventoryItem::create([
+            'item_code' => 'DEMO-PART-BLOCKED',
+            'parts_name' => 'Blocked Demo Part',
+            'item_name' => 'Blocked Demo Part',
+            'category' => 'Demo',
+            'on_hand' => 5,
+            'quantity_available' => 5,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 10,
+            'status' => 'Low Stock',
+        ]);
+
+        Http::fake([
+            self::STATUS_URL => Http::response([
+                'success' => true,
+                'model_ready' => true,
+                'dataset_type' => 'SYNTHETIC / DEVELOPMENT',
+                'data_source' => 'synthetic',
+                'is_production_model' => false,
+            ]),
+            self::PREDICT_URL => Http::response([
+                'success' => true,
+                'predicted_quantity_issued' => 99,
+            ]),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('analytics.inventory-predictions'), [
+                'item_codes' => [$item->item_code],
+            ])
+            ->assertOk()
+            ->assertJsonPath('model_ready', false)
+            ->assertJsonPath('model_reported_ready', true)
+            ->assertJsonPath('demo_mode_enabled', false)
+            ->assertJsonPath("predictions.{$item->item_code}.available", false);
+
+        Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/inventory/predict'));
+    }
+
+    public function test_inventory_prediction_endpoint_blocks_demo_model_in_production_even_when_opted_in(): void
+    {
+        $this->app->detectEnvironment(fn (): string => 'production');
+        config()->set('services.ai.allow_demo_models', true);
+        $this->withoutMiddleware(PreventRequestForgery::class);
+
+        $user = User::factory()->create();
+        $item = InventoryItem::create([
+            'item_code' => 'DEMO-PART-PRODUCTION-BLOCKED',
+            'parts_name' => 'Production Blocked Demo Part',
+            'item_name' => 'Production Blocked Demo Part',
+            'category' => 'Demo',
+            'on_hand' => 5,
+            'quantity_available' => 5,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 10,
+            'status' => 'Low Stock',
+        ]);
+
+        Http::fake([
+            self::STATUS_URL => Http::response([
+                'success' => true,
+                'model_ready' => true,
+                'data_source' => 'synthetic',
+                'is_production_model' => false,
+            ]),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('analytics.inventory-predictions'), [
+                'item_codes' => [$item->item_code],
+            ])
+            ->assertOk()
+            ->assertJsonPath('model_ready', false)
+            ->assertJsonPath('model_reported_ready', true)
+            ->assertJsonPath('demo_mode_enabled', false);
 
         Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/inventory/predict'));
     }

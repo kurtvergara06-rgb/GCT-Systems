@@ -84,6 +84,8 @@ class AiModelStatusServiceTest extends TestCase
 
     public function test_it_never_marks_sample_or_synthetic_models_as_production_ready(): void
     {
+        config()->set('services.ai.allow_demo_models', true);
+
         Http::fake([
             '*/eta/status' => Http::response([
                 'success' => true,
@@ -108,6 +110,7 @@ class AiModelStatusServiceTest extends TestCase
                 'data_source' => 'sample',
                 'dataset_type' => 'SYNTHETIC / DEVELOPMENT',
                 'is_production_model' => false,
+                'runtime_mode' => 'development',
                 'sample_count' => 500,
                 'reason' => 'Development sample model is loaded.',
             ]),
@@ -117,6 +120,7 @@ class AiModelStatusServiceTest extends TestCase
                 'data_source' => 'sample',
                 'dataset_type' => 'SYNTHETIC / DEVELOPMENT',
                 'is_production_model' => false,
+                'runtime_mode' => 'development',
                 'sample_count' => 600,
                 'reason' => 'Development sample model is loaded.',
             ]),
@@ -135,12 +139,16 @@ class AiModelStatusServiceTest extends TestCase
         $models = collect(app(AiModelStatusService::class)->all())->keyBy('key');
 
         $this->assertFalse($models['delay']->ready);
-        $this->assertSame('Development Only', $models['delay']->state);
-        $this->assertSame('Sample Data', $models['delay']->data_source);
+        $this->assertTrue($models['delay']->demo_ready);
+        $this->assertSame('Demo Ready', $models['delay']->state);
+        $this->assertSame('partial', $models['delay']->tone);
+        $this->assertSame('Demo / Sample Data', $models['delay']->data_source);
 
         $this->assertFalse($models['inventory']->ready);
-        $this->assertSame('Development Only', $models['inventory']->state);
-        $this->assertSame('Sample Data', $models['inventory']->data_source);
+        $this->assertTrue($models['inventory']->demo_ready);
+        $this->assertSame('Demo Ready', $models['inventory']->state);
+        $this->assertSame('partial', $models['inventory']->tone);
+        $this->assertSame('Demo / Sample Data', $models['inventory']->data_source);
     }
 
     public function test_it_reports_unreachable_status_endpoints_without_inventing_readiness(): void

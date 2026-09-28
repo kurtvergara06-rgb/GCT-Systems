@@ -167,6 +167,40 @@ Sample-model output must be treated as development/demo output, not as a product
 
 Do not change the model to claim genuine readiness until real stock movements satisfy its readiness checks.
 
+## ML readiness and demo cleanup
+
+Local/client-demo deployments may explicitly allow sample-backed Models #3 and #4:
+
+```env
+APP_ENV=local
+ML_RUNTIME_MODE=development
+ALLOW_DEMO_ML=true
+DELAY_DATA_SOURCE=demo
+INVENTORY_DATA_SOURCE=demo
+```
+
+Laravel always disables demo-model serving when `APP_ENV=production`, even if `ALLOW_DEMO_ML` is accidentally enabled. Genuine production serving requires the Python status endpoint to report `is_production_model=true`.
+
+Run the read-only five-model audit while FastAPI is available:
+
+```bash
+python_engine/.venv/Scripts/python.exe python_engine/run_comprehensive_ml_audit.py
+```
+
+Before removing demo artifacts, inspect the exact cleanup plan:
+
+```bash
+php artisan ml:cleanup-demo
+```
+
+When sufficient genuine data exists, execute the reviewed cleanup and switch `.env` to genuine sources:
+
+```bash
+php artisan ml:cleanup-demo --execute --switch-to-genuine
+```
+
+The command backs up `.env`, removes only its explicit Model #3/#4 demo artifact and exported-training targets, and leaves database records unchanged. It then prints the genuine retraining commands. Do not execute cleanup until the client demonstration no longer depends on the demo models.
+
 ## Testing
 
 ### Laravel

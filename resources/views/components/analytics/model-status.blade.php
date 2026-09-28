@@ -15,7 +15,7 @@
             <h2 id="ai-model-status-heading">AI Model Status</h2>
             <p>
                 Live readiness and training-data provenance reported by the Python engine.
-                Synthetic or sample artifacts are never treated as production-ready.
+                Demo-ready models can use sample data locally, while production readiness still requires genuine data.
             </p>
         </div>
 
@@ -87,7 +87,8 @@
         <span>
             <strong>Production rule:</strong>
             a model is marked Ready only when its status endpoint confirms a genuine GCT data source and a usable production model.
-            Insufficient genuine history is shown as <strong>MODEL NOT READY</strong> instead of falling back to synthetic predictions.
+            A usable sample model is marked <strong>Demo Ready</strong> only when the explicit demo-ML setting is enabled, and remains visibly identified as sample data.
+            Insufficient genuine history in production is shown as <strong>MODEL NOT READY</strong>.
         </span>
     </div>
 </section>

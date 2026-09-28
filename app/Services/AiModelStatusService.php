@@ -161,6 +161,12 @@ class AiModelStatusService
 
         $genuine = $dataSource === 'genuine';
         $productionReady = $modelReady && $genuine && $productionFlag;
+        $runtimeMode = strtolower(trim((string) ($status['runtime_mode'] ?? '')));
+        $demoReady = ! app()->environment('production')
+            && (bool) config('services.ai.allow_demo_models', false)
+            && $modelReady
+            && ! $genuine
+            && in_array($runtimeMode, ['development', 'dev', 'demo', 'local', 'testing', 'test'], true);
         $sampleCount = (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0);
         $datasetType = trim((string) ($status['dataset_type'] ?? ''));
         if ($datasetType === '' && $genuine) {
@@ -170,6 +176,9 @@ class AiModelStatusService
         if ($productionReady) {
             $state = 'Ready';
             $tone = 'ready';
+        } elseif ($demoReady) {
+            $state = 'Demo Ready';
+            $tone = 'partial';
         } elseif ($modelReady && ! $genuine) {
             $state = 'Development Only';
             $tone = 'warning';
@@ -186,8 +195,9 @@ class AiModelStatusService
             'state' => $state,
             'tone' => $tone,
             'ready' => $productionReady,
+            'demo_ready' => $demoReady,
             'reachable' => true,
-            'data_source' => $genuine ? 'Genuine Data' : ($dataSource !== '' ? ucfirst($dataSource).' Data' : 'Unknown Source'),
+            'data_source' => $this->sourceDisplayName($dataSource),
             'dataset_type' => $datasetType !== '' ? $datasetType : 'Source not reported',
             'sample_count' => $sampleCount,
             'reason' => trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
@@ -236,6 +246,7 @@ class AiModelStatusService
             'state' => $state,
             'tone' => $tone,
             'ready' => $fullyReady,
+            'demo_ready' => false,
             'reachable' => true,
             'data_source' => $genuine ? 'Genuine Data' : ucfirst($dataSource).' Data',
             'dataset_type' => (string) ($status['dataset_type'] ?? 'GENUINE GCT GPS + ATTENDANCE RECORDS'),
@@ -285,6 +296,16 @@ class AiModelStatusService
         };
     }
 
+    private function sourceDisplayName(string $source): string
+    {
+        return match ($source) {
+            'genuine' => 'Genuine Data',
+            'sample', 'synthetic', 'demo', 'generated', 'development' => 'Demo / Sample Data',
+            '' => 'Unknown Source',
+            default => ucfirst($source).' Data',
+        };
+    }
+
     private function unavailable(string $key, string $name, string $number, string $icon): object
     {
         return (object) [
@@ -295,6 +316,7 @@ class AiModelStatusService
             'state' => 'Service Unavailable',
             'tone' => 'offline',
             'ready' => false,
+            'demo_ready' => false,
             'reachable' => false,
             'data_source' => 'Unavailable',
             'dataset_type' => 'Status endpoint unavailable',
