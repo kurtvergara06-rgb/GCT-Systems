@@ -488,9 +488,20 @@
             <div class="profile-menu-divider"></div>
 
             @if(\Illuminate\Support\Facades\Route::has('logout'))
-                <form action="{{ route('logout', [], false) }}" method="POST" class="profile-logout-form">
+                <form
+                    action="{{ route('logout', [], false) }}"
+                    method="POST"
+                    class="profile-logout-form"
+                    id="profileLogoutForm"
+                    data-confirm-form
+                    data-confirm-title="Log Out"
+                    data-confirm-message="Are you sure you want to log out?"
+                    data-confirm-button="Log Out"
+                    data-confirm-type="logout"
+                    data-confirm-loading-text="Logging out..."
+                >
                     @csrf
-                    <button type="submit" class="profile-menu-item logout">
+                    <button type="submit" class="profile-menu-item logout" id="sidebarLogoutBtn">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Log out</span>
                     </button>

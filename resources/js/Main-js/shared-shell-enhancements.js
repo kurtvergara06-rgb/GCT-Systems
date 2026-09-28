@@ -71,11 +71,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.dataset.logoutConfirmationBound = 'true';
 
-    form.addEventListener('submit', (event) => {
-      const confirmed = window.confirm('Are you sure you want to log out?');
+    // If already handled by data-confirm-form, confirmation-modal.js handles the modal
+    if (form.matches('[data-confirm-form]')) {
+      return;
+    }
 
-      if (!confirmed) {
-        event.preventDefault();
+    form.addEventListener('submit', (event) => {
+      if (form.dataset.confirmed === 'true') {
+        form.dataset.confirmed = 'false';
+        return;
+      }
+
+      event.preventDefault();
+
+      if (typeof window.openSystemConfirmation === 'function') {
+        window.openSystemConfirmation({
+          title: 'Log Out',
+          message: 'Are you sure you want to log out?',
+          button: 'Log Out',
+          type: 'logout',
+          loadingText: 'Logging out...',
+        }, () => {
+          form.dataset.confirmed = 'true';
+          if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+          } else {
+            form.submit();
+          }
+        });
+      } else {
+        form.dataset.confirmed = 'true';
+        form.submit();
       }
     });
   });
