@@ -129,6 +129,11 @@ class AiModelStatusService
 
         // Fail closed. Missing provenance is unknown, never implicitly genuine.
         $genuine = $dataSource === 'genuine';
+        $developmentSource = in_array(
+            $dataSource,
+            ['sample', 'synthetic', 'generated', 'demo', 'development'],
+            true
+        );
         $productionReady = $modelReady && $genuine && $productionFlag;
         $sampleCount = (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0);
         $datasetType = trim((string) ($status['dataset_type'] ?? ''));
@@ -139,7 +144,7 @@ class AiModelStatusService
         if ($productionReady) {
             $state = 'Ready';
             $tone = 'ready';
-        } elseif ($modelReady && ! $genuine) {
+        } elseif ($modelReady && $developmentSource) {
             $state = 'Development Only';
             $tone = 'warning';
         } else {
