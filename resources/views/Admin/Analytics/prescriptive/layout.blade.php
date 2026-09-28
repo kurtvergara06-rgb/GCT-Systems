@@ -32,6 +32,7 @@
         'resources/css/Admin/Analytics/overview/live-data.css',
         'resources/css/Admin/Analytics/model-status-stage.css',
         'resources/css/Admin/Analytics/prescriptive/all.css',
+        'resources/css/Admin/Analytics/prescriptive/readiness.css',
     ];
 
     if ($activeDomain !== 'all') {
