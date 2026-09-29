@@ -5,19 +5,16 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\MaintenanceReferral;
-use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class ReferralJobOrderController extends Controller
 {
-    use SystemDataUpdateBroadcaster;
-
     public function store(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
         $this->authorizeMaintenanceStaff();
 
-        $maintenanceReferral->load(['incident.bus', 'incident.tripSchedule.shuttleRoute', 'jobOrder']);
+        $maintenanceReferral->load(['incident.bus', 'jobOrder']);
 
         if ($maintenanceReferral->status !== 'Approved') {
             return back()->with('error', 'Only approved maintenance referrals can create a Job Order.');
@@ -78,24 +75,6 @@ class ReferralJobOrderController extends Controller
                 $problem = 'Bus breakdown reported at ' . ($incident->location ?: 'an unspecified location') . '.';
             }
 
-            if ($incident->is_unplanned_breakdown) {
-                $tripCode = $incident->tripSchedule?->trip_code ?: 'Active Trip';
-                $routeName = $incident->tripSchedule?->shuttleRoute?->route_name;
-                $source = "Unplanned Breakdown - {$tripCode}";
-
-                if ($routeName) {
-                    $source .= " / {$routeName}";
-                }
-
-                if (! str_starts_with($problem, '[Unplanned Breakdown]')) {
-                    $problem = "[Unplanned Breakdown] {$source}: {$problem}";
-                }
-            }
-
-            if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
-                $incident->bus->update(['status' => 'Under Maintenance']);
-            }
-
             $jobOrder = JobOrder::create([
                 'job_order_no' => $jobOrderNo,
                 'bus_no' => $busNo,
@@ -108,31 +87,13 @@ class ReferralJobOrderController extends Controller
                 'start_date' => now(),
                 'completion_date' => null,
                 'status' => 'On Hold',
-                'part_status' => 'No Parts Required',
+                'part_status' => 'No Parts Needed',
             ]);
 
             $lockedReferral->update(['status' => 'Job Order Created']);
 
             return $jobOrder;
         });
-
-        $this->broadcastSystemDataUpdated(
-            'Maintenance',
-            'JobOrder',
-            'created',
-            $jobOrder->id,
-            $incident->is_unplanned_breakdown
-                ? "Urgent Job Order {$jobOrder->job_order_no} created from unplanned breakdown {$incident->incident_no}."
-                : "Job Order {$jobOrder->job_order_no} created from referral."
-        );
-
-        $this->broadcastSystemDataUpdated(
-            'Maintenance',
-            'MaintenanceReferral',
-            'updated',
-            $maintenanceReferral->id,
-            'Referral status updated to Job Order Created.'
-        );
 
         return redirect()
             ->route('job-orders', ['search' => $jobOrder->job_order_no])
