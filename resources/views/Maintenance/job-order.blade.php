@@ -47,7 +47,7 @@
                             @foreach([
                                 'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
                                 'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
-                                'Picked Up', 'Issued', 'No Parts Needed'
+                                'Picked Up', 'Issued', 'No Parts Required'
                             ] as $partStatusOption)
                                 <option
                                     value="{{ $partStatusOption }}"
@@ -89,7 +89,7 @@
                                     $isCompleted = $jobOrder->status === 'Completed';
                                     $isOnHold = $jobOrder->status === 'On Hold';
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
-                                    $hasNeededParts = !empty($jobOrder->part_needed);
+                                    $hasNeededParts = trim((string) $jobOrder->part_needed) !== '';
                                     $joStatus = $jobOrder->status === 'On Going'
                                         ? 'In Progress'
                                         : ($jobOrder->status ?: 'In Progress');
@@ -97,8 +97,8 @@
 
                                     $partStatus = $jobOrder->part_status;
                                     if (!$hasNeededParts) {
-                                        $partStatus = '----';
-                                    } elseif (!$partStatus || $partStatus === 'Unknown' || $partStatus === 'No Parts Needed') {
+                                        $partStatus = 'No Parts Required';
+                                    } elseif (!$partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
                                         $partStatus = 'Not Requested';
                                     }
 
@@ -152,7 +152,7 @@
                                         'Delivered' => 'delivered',
                                         'Picked Up' => 'picked-up',
                                         'Issued' => 'issued',
-                                        'No Parts Needed' => 'no-parts-needed',
+                                        'No Parts Required' => 'no-parts-needed',
                                         default => 'not-requested',
                                     };
                                 @endphp
@@ -236,11 +236,7 @@
                                     </td>
 
                                     <td class="status-col part-status-cell">
-                                        @if(!$hasNeededParts || $partStatus === '----')
-                                            <span class="empty">----</span>
-                                        @else
-                                            <span class="part-status-badge {{ $partStatusClass }}">{{ $partStatus }}</span>
-                                        @endif
+                                        <span class="part-status-badge {{ $partStatusClass }}">{{ $partStatus }}</span>
                                     </td>
 
                                     <td>
