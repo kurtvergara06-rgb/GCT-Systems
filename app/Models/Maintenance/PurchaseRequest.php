@@ -15,6 +15,12 @@ class PurchaseRequest extends Model
         'item',
         'quantity',
         'status',
+        'warehouse_status',
+        'warehouse_approved_by',
+        'warehouse_approved_at',
+        'warehouse_prepared_by',
+        'warehouse_prepared_at',
+        'warehouse_issue_quantities',
         'source_type',
         'remarks',
         'approved_at',
@@ -26,6 +32,9 @@ class PurchaseRequest extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'issued_at' => 'datetime',
+        'warehouse_approved_at' => 'datetime',
+        'warehouse_prepared_at' => 'datetime',
+        'warehouse_issue_quantities' => 'array',
     ];
 
     public function purchaseOrder(): HasOne
