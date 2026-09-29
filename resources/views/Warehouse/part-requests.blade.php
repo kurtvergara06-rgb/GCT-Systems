@@ -348,7 +348,7 @@
   </div>
 
   <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay">
-    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal">
+    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal">
       @csrf
       <div class="warehouse-edit-header">
         <div>

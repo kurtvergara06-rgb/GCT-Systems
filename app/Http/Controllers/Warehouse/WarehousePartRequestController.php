@@ -213,23 +213,21 @@ class WarehousePartRequestController extends Controller
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
-        $validated = request()->validate([
-            'issued_quantities' => ['required', 'array', 'size:'.count($parts)],
-            'issued_quantities.*' => ['required', 'integer', 'min:1'],
-        ]);
-        $issuedQuantities = array_values($validated['issued_quantities']);
+
+        if (empty($parts)) {
+            return redirect()
+                ->back()
+                ->with('error', 'No requested parts found on this requisition.');
+        }
+
+        $issuedQuantities = [];
         $issueDetails = [];
 
         foreach ($parts as $index => $part) {
-            $requested = (int) $part['quantity'];
-            $actual = (int) $issuedQuantities[$index];
+            $requested = (int) ($part['quantity'] ?? 1);
+            $actual = $requested; // Requested Quantity = Issued Quantity
 
-            if ($actual > $requested) {
-                throw ValidationException::withMessages([
-                    "issued_quantities.{$index}" => 'Actual issued quantity cannot exceed the requested quantity.',
-                ]);
-            }
-
+            $issuedQuantities[$index] = $actual;
             $issueDetails[] = [
                 'name' => $part['name'],
                 'requested' => $requested,
@@ -253,14 +251,14 @@ class WarehousePartRequestController extends Controller
 
                 if (! $inventoryItem || (int) $inventoryItem->quantity_available < $actual) {
                     throw ValidationException::withMessages([
-                        "issued_quantities.{$index}" => "Insufficient stock for {$part['name']}.",
+                        'stock' => "Insufficient stock for {$part['name']}.",
                     ]);
                 }
 
                 $this->ledger->stockOut(
                     $inventoryItem,
                     $actual,
-                    $lockedRequest->pr_no ?? $lockedRequest->id,
+                    $lockedRequest->pr_no ?? (string) $lockedRequest->id,
                     'Issued through Warehouse Part Request.',
                     auth()->id()
                 );

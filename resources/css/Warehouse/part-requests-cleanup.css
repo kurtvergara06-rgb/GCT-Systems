@@ -417,6 +417,82 @@
   white-space: nowrap;
 }
 
+/* Issue Prepared Parts Simplified Modal */
+.warehouse-issue-modal {
+  max-width: 520px;
+  width: min(520px, 95vw);
+}
+
+.issue-parts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.issue-part-item-card {
+  padding: 12px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.issue-part-item-name strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #061f3d;
+}
+
+.issue-part-item-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.issue-detail-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.detail-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.issue-confirm-prompt {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  text-align: center;
+}
+
+.issue-confirm-prompt p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.issue-empty-state {
+  padding: 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .warehouse-part-toolbar {
