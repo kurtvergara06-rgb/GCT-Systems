@@ -112,15 +112,9 @@
 .warehouse-history-card .table-wrap {
   width: 100%;
   overflow-x: auto;
-  border-radius: 10px;
-}
-
-.warehouse-part-card .table-wrap:has(tbody > tr:nth-child(8)),
-.warehouse-history-card .table-wrap:has(tbody > tr:nth-child(8)) {
-  max-height: 480px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  overflow-y: visible;
+  border-radius: 12px;
+  border: 1px solid var(--border);
 }
 
 .warehouse-part-card .table-wrap::-webkit-scrollbar,

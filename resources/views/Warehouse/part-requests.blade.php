@@ -4,7 +4,9 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Warehouse/part-requests.css',
-    'resources/js/Warehouse/part-requests.js'
+    'resources/css/Warehouse/part-requests-cleanup.css',
+    'resources/js/Warehouse/part-requests.js',
+    'resources/js/Warehouse/part-requests-cleanup.js'
   ]"
 >
   @php
@@ -15,66 +17,75 @@
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
 
-    <main class="main">
+    <main class="main warehouse-part-main">
       <x-layout.topbar
         title="Part Requests"
-        subtitle="Head-authorized part releases prepared and issued by Warehouse Staff"
+        subtitle="Review stock availability, authorize releases, and issue parts for maintenance"
         notification-count="6"
       />
 
       <section data-ajax-region="summary" class="stats-grid inventory-stats">
-        <x-ui.summary-card label="Approved" value="{{ $approved ?? 0 }}" small="Ready to process" icon="fa-check" color="green" />
-        <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable" icon="fa-cart-shopping" color="blue" />
-        <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-box" color="yellow" />
-        <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released parts" icon="fa-box-open" color="gray" />
+        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse Head" icon="fa-clipboard-check" color="yellow" />
+        <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable in stock" icon="fa-cart-shopping" color="blue" />
+        <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-truck-ramp-box" color="green" />
+        <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released to maintenance" icon="fa-box-open" color="gray" />
       </section>
 
       <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header">
           <div>
+            <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
             <h2>Warehouse Part Request Records</h2>
-            <p>Track active approved requests, unavailable parts, and inventory availability.</p>
+            <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
         </div>
 
         <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, or item..."
-            >
+          <div class="toolbar-left">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Search PR no., JO no., bus, or item..."
+              >
+            </div>
+
+            <div class="filter-group">
+              <select
+                name="status"
+                id="warehouseStatusFilter"
+                class="warehouse-status-select"
+                onchange="this.form.requestSubmit()"
+              >
+                <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
+                @foreach(($statuses ?? []) as $status)
+                  <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                @endforeach
+              </select>
+            </div>
           </div>
 
-          <div class="filter-group">
-            <select
-              name="status"
-              id="warehouseStatusFilter"
-              class="warehouse-status-select"
-              onchange="this.form.requestSubmit()"
-            >
-              <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
-              @foreach(($statuses ?? []) as $status)
-                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-              @endforeach
-            </select>
+          <div class="toolbar-right">
+            <span class="toolbar-count-chip">
+              <i class="fa-solid fa-list-check"></i>
+              {{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}
+            </span>
           </div>
         </form>
 
         <div class="table-wrap">
-          <table class="inventory-table warehouse-part-table">
+          <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
             <thead>
               <tr>
                 <th>PR #</th>
                 <th>Item</th>
-                <th class="qty-col">Quantity</th>
+                <th class="qty-col">Qty</th>
                 <th class="qty-col">On Hand</th>
                 <th class="status-col">Inventory</th>
-                <th class="status-col">Purchase Status</th>
-                <th class="status-col">Warehouse Status</th>
-                <th>Date</th>
+                <th class="status-col">Purchase</th>
+                <th class="status-col">Warehouse</th>
                 <th class="actions-col">Actions</th>
               </tr>
             </thead>
@@ -98,23 +109,64 @@
                   $canHold = ($partRequest->can_hold ?? false) && $isWarehouseHead;
                   $canPrepare = ($partRequest->can_prepare ?? false) && $isWarehouseStaff;
                   $warehouseStatus = $partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval';
+                  $warehouseStatusLabel = match ($warehouseStatus) {
+                    'Pending Warehouse Approval' => 'Pending Approval',
+                    'Approved for Issue' => 'Approved',
+                    default => $warehouseStatus,
+                  };
+                  $warehouseStatusClass = match ($warehouseStatus) {
+                    'Pending Warehouse Approval' => 'pending',
+                    'Approved for Issue' => 'approved',
+                    'Preparing' => 'preparing',
+                    'On Hold' => 'hold',
+                    'Issued' => 'issued',
+                    default => 'neutral',
+                  };
                 @endphp
 
                 <tr>
-                  <td><strong>{{ $partRequest->pr_no ?? '—' }}</strong></td>
-                  <td class="item-col">{{ $itemName }}</td>
-                  <td class="qty-col">{{ $quantity }}</td>
-                  <td class="qty-col"><span class="on-hand-pill {{ $onHandClass }}">{{ $onHand }}</span></td>
+                  <td>
+                    <div class="pr-ref-cell">
+                      <strong class="pr-main-num">{{ $partRequest->pr_no ?? '—' }}</strong>
+                      @if($partRequest->job_order_no || $partRequest->bus_no)
+                        <div class="pr-sub-tags">
+                          @if($partRequest->job_order_no)
+                            <span class="pr-meta-tag jo-tag" title="Job Order"><i class="fa-solid fa-wrench"></i> {{ $partRequest->job_order_no }}</span>
+                          @endif
+                          @if($partRequest->bus_no)
+                            <span class="pr-meta-tag bus-tag" title="Bus Number"><i class="fa-solid fa-bus"></i> {{ $partRequest->bus_no }}</span>
+                          @endif
+                        </div>
+                      @endif
+                    </div>
+                  </td>
+                  <td class="item-col" title="{{ $itemName }}">
+                    <div class="item-display-cell">
+                      <strong class="item-name-text">{{ $itemName }}</strong>
+                    </div>
+                  </td>
+                  <td class="qty-col">
+                    <span class="qty-needed-badge">{{ $quantity }}</span>
+                  </td>
+                  <td class="qty-col">
+                    <span class="on-hand-pill {{ $onHandClass }}" title="Quantity on hand in inventory">
+                      <i class="fa-solid {{ $onHandClass === 'enough' ? 'fa-circle-check' : 'fa-triangle-exclamation' }}"></i>
+                      {{ $onHand }}
+                    </span>
+                  </td>
                   <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
                   <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
-                  <td class="status-col"><x-ui.status-badge :status="$warehouseStatus" type="purchase" /></td>
-                  <td>{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}</td>
+                  <td class="status-col">
+                    <span class="warehouse-status-pill {{ $warehouseStatusClass }}" title="{{ $warehouseStatus }}">
+                      {{ $warehouseStatusLabel }}
+                    </span>
+                  </td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
-                        title="View Details"
+                        title="View Requisition Details"
                         data-pr-no="{{ $partRequest->pr_no }}"
                         data-job-order-no="{{ $partRequest->job_order_no }}"
                         data-bus-no="{{ $partRequest->bus_no }}"
@@ -123,6 +175,12 @@
                         data-on-hand="{{ $onHand }}"
                         data-inventory-status="{{ $inventoryStatus }}"
                         data-status="{{ $status }}"
+                        data-warehouse-status="{{ $warehouseStatusLabel }}"
+                        data-approved-by="{{ $partRequest->warehouse_approved_by ? 'User #'.$partRequest->warehouse_approved_by : '—' }}"
+                        data-approved-at="{{ $partRequest->warehouse_approved_at?->format('M d, Y h:i A') ?? '—' }}"
+                        data-prepared-by="{{ $partRequest->warehouse_prepared_by ? 'User #'.$partRequest->warehouse_prepared_by : '—' }}"
+                        data-prepared-at="{{ $partRequest->warehouse_prepared_at?->format('M d, Y h:i A') ?? '—' }}"
+                        data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
                         data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
                         data-parts='@json($partRequest->parts_breakdown ?? [])'
@@ -200,7 +258,7 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="9" message="No active part requests found." />
+                <x-ui.empty-row colspan="8" message="No active part requests found." />
               @endforelse
             </tbody>
           </table>
@@ -212,22 +270,26 @@
   </div>
 
   <div id="viewPrModal" class="modal-overlay warehouse-view-overlay">
-    <div class="warehouse-edit-style-modal">
+    <div class="warehouse-edit-style-modal warehouse-request-details-modal">
       <div class="warehouse-edit-header">
         <div>
           <h2>Purchase Request Details</h2>
           <h3>PR Information</h3>
-          <p>This is a read-only view of the selected purchase request.</p>
+          <p>Request, approval, preparation, and issuance details.</p>
         </div>
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="warehouse-edit-form-grid">
+      <div class="warehouse-edit-form-grid warehouse-request-meta-grid">
         <div class="warehouse-field">
           <label>PR No.</label>
           <input id="view_pr_no" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Date Created</label>
+          <input id="view_created" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
           <label>JO No.</label>
@@ -238,13 +300,39 @@
           <input id="view_bus_no" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
-          <label>Date Created</label>
-          <input id="view_created" type="text" value="—" readonly>
+          <label>Purchase Status</label>
+          <input id="view_purchase_status" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Warehouse Status</label>
+          <input id="view_warehouse_status" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Approved By</label>
+          <input id="view_approved_by" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Approved At</label>
+          <input id="view_approved_at" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Prepared By</label>
+          <input id="view_prepared_by" type="text" value="—" readonly>
+        </div>
+        <div class="warehouse-field">
+          <label>Prepared At</label>
+          <input id="view_prepared_at" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field full">
           <label>Requested Parts Breakdown</label>
           <div id="view_parts_breakdown" class="parts-breakdown-box">
             <div class="parts-breakdown-empty">No parts found.</div>
+          </div>
+        </div>
+        <div class="warehouse-field full">
+          <label>Actual Issued Quantities</label>
+          <div id="view_issue_quantities" class="warehouse-issued-quantities">
+            <div class="parts-breakdown-empty">No parts have been issued yet.</div>
           </div>
         </div>
         <div class="warehouse-field full">
@@ -260,7 +348,7 @@
   </div>
 
   <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay">
-    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal">
+    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal">
       @csrf
       <div class="warehouse-edit-header">
         <div>
