@@ -51,14 +51,11 @@ class JobOrderController extends Controller
             $request->filled('part_status')
             && $request->part_status !== 'All Part Statuses'
         ) {
-            if ($request->part_status === 'No Parts Needed') {
+            if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
-                        ->orWhere('part_needed', '')
-                        ->orWhere(
-                            'part_status',
-                            'No Parts Needed'
-                        );
+                        ->orWhereRaw("TRIM(part_needed) = ''")
+                        ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
                 });
             } else {
                 $query->where(
@@ -105,7 +102,7 @@ class JobOrderController extends Controller
 
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
-            ->where('part_needed', '!=', '')
+            ->whereRaw("TRIM(part_needed) <> ''")
             ->where('status', '!=', 'Completed')
             ->whereNotIn('part_status', ['Issued'])
             ->count();
@@ -332,7 +329,7 @@ class JobOrderController extends Controller
             ? $this->partParser->formatParts($parts)
             : null;
 
-        $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Needed';
+        $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Required';
 
         $jobOrder = JobOrder::create([
             'job_order_no' => $this->generateJobOrderNo(),
@@ -428,12 +425,12 @@ class JobOrderController extends Controller
         $partStatus = $jobOrder->part_status;
 
         if (! $newMechanic || ! $partNeeded) {
-            $partStatus = 'No Parts Needed';
-        } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed'], true)) {
+            $partStatus = 'No Parts Required';
+        } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
             $partStatus = 'Not Requested';
         }
 
-        if ($jobOrder->part_status === 'Rejected') {
+        if ($jobOrder->part_status === 'Rejected' && $partNeeded) {
             $partStatus = 'Rejected';
         }
 
@@ -667,7 +664,7 @@ class JobOrderController extends Controller
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
     {
-        $hasNeededParts = ! empty(trim((string) $jobOrder->part_needed)) && $jobOrder->part_status !== 'No Parts Needed';
+        $hasNeededParts = trim((string) $jobOrder->part_needed) !== '';
 
         if (! $hasNeededParts) {
             return true;
