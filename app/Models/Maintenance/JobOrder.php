@@ -40,6 +40,20 @@ class JobOrder extends Model
     protected static function booted(): void
     {
         static::saving(function (JobOrder $jobOrder): void {
+            $partNeeded = trim((string) $jobOrder->part_needed);
+
+            if ($partNeeded === '') {
+                $jobOrder->part_needed = null;
+                $jobOrder->part_status = 'No Parts Required';
+                return;
+            }
+
+            if (in_array($jobOrder->part_status, [null, '', 'Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
+                $jobOrder->part_status = 'Not Requested';
+            }
+        });
+
+        static::saving(function (JobOrder $jobOrder): void {
             if (app()->runningInConsole()) {
                 return;
             }

@@ -1799,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   fa-spin
                 "
               ></i>
-              Finishing...
+              Completing...
             `;
 
 
@@ -2238,11 +2238,11 @@ document.addEventListener('DOMContentLoaded', () => {
       finishButton.disabled = true;
       finishButton.type = 'button';
       finishButton.title =
-        'Revise and resubmit the rejected Purchase Request before finishing this Job Order.';
+        'Cannot complete until required parts are issued by warehouse.';
 
       finishButton.innerHTML = `
         <i class="fa-solid fa-lock"></i>
-        Locked
+        Complete
       `;
     });
 });
