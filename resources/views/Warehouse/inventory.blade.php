@@ -2,6 +2,7 @@
   title="FROMS - Warehouse Inventory"
   :assets="[
     'resources/css/Warehouse/inventory.css',
+    'resources/css/Warehouse/stock-movements.css',
     'resources/css/Main-styles/main.css',
     'resources/js/Warehouse/inventory.js'
   ]"
@@ -79,6 +80,18 @@
           </div>
 
           <div class="filter-group">
+            <select
+              name="source"
+              id="inventorySourceFilter"
+              aria-label="Filter inventory by record source"
+            >
+              <option value="app" @selected($sourceFilter === 'app')>Application Records</option>
+              <option value="simulated" @selected($sourceFilter === 'simulated')>Simulated Records</option>
+              <option value="all" @selected($sourceFilter === 'all')>All Sources</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
             <select name="category" aria-label="Filter inventory by category">
               <option value="All Categories" selected>All Categories</option>
 
@@ -123,11 +136,16 @@
                   };
                 @endphp
 
-                <tr class="{{ $rowClass }}">
+                <tr class="{{ $rowClass }}" data-source="{{ $item->source }}">
                   <td>
                     <div class="inventory-item-cell">
                       <strong>{{ $item->item_name }}</strong>
-                      <small>{{ $item->item_code }}</small>
+                      <div class="inventory-item-meta">
+                        <small>{{ $item->item_code }}</small>
+                        <span class="source-badge source-badge--{{ $item->source === 'app' ? 'app' : 'simulated' }}">
+                          {{ $item->source === 'app' ? 'Application' : 'Simulated' }}
+                        </span>
+                      </div>
                     </div>
                   </td>
                   <td>{{ $item->category }}</td>
@@ -154,8 +172,11 @@
 
                       <a
                         href="{{ route('inventory.movements', $item) }}"
-                        class="action-btn"
+                        class="action-btn openMovementHistory"
                         title="Movement History"
+                        aria-haspopup="dialog"
+                        aria-controls="movementHistoryModal"
+                        data-url="{{ route('inventory.movements', $item) }}"
                       >
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </a>
@@ -213,6 +234,37 @@
         </div>
 
         <x-ui.table-footer :items="$inventoryItems" />
+      </section>
+    </main>
+  </div>
+
+  {{-- MOVEMENT HISTORY MODAL --}}
+  <div
+    class="modal-overlay"
+    id="movementHistoryModal"
+    aria-hidden="true"
+  >
+    <div
+      class="modal-box inventory-movement-modal stock-movement-page"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="movementHistoryModalTitle"
+    >
+      <div class="modal-header inventory-movement-modal__header">
+        <h2 id="movementHistoryModalTitle">Movement History</h2>
+        <button type="button" class="close-btn closeModal" aria-label="Close movement history">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="movementHistoryContent" class="inventory-movement-modal__body" aria-live="polite">
+        <div class="movement-history-loading">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>Select an inventory item to view its movement history.</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   {{-- ADD MODAL --}}
   <div class="modal-overlay" id="addModal">

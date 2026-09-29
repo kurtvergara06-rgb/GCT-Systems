@@ -908,6 +908,7 @@ class DemoDataSeeder extends Seeder
                 'unit_of_measurement' => $unit,
                 'reorder_level' => $reorder,
                 'status' => $status,
+                'source' => 'simulated',
                 'supplier' => $supplier,
                 'location' => 'Warehouse Bay ' . str_pad((string) (($i % 4) + 1), 2, '0', STR_PAD_LEFT) . '-' . str_pad((string) (($i % 10) + 1), 2, '0', STR_PAD_LEFT),
                 'storage_location' => 'Bay ' . (($i % 4) + 1),

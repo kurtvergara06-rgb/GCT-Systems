@@ -650,6 +650,99 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('Southern Luzon Parts Supply', $table);
     }
 
+    public function test_inventory_defaults_to_application_records_and_labels_simulated_items(): void
+    {
+        $applicationItem = InventoryItem::create([
+            'item_code' => 'APP-INV-001',
+            'item_name' => 'Application Brake Pad',
+            'category' => 'Brakes',
+            'on_hand' => 8,
+            'quantity_available' => 8,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 2,
+            'source' => 'app',
+        ]);
+
+        $simulatedItem = InventoryItem::create([
+            'item_code' => 'SIM-INV-001',
+            'item_name' => 'Simulated Brake Pad',
+            'category' => 'Brakes',
+            'on_hand' => 12,
+            'quantity_available' => 12,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 3,
+            'source' => 'simulated',
+        ]);
+
+        $applicationView = $this->actingAs($this->warehouseUser)
+            ->get(route('inventory'));
+
+        $applicationView
+            ->assertOk()
+            ->assertSee($applicationItem->item_name)
+            ->assertDontSee($simulatedItem->item_name)
+            ->assertSee('Application Records')
+            ->assertSee('source-badge--app', false);
+
+        $simulatedView = $this->actingAs($this->warehouseUser)
+            ->get(route('inventory', ['source' => 'simulated']));
+
+        $simulatedView
+            ->assertOk()
+            ->assertSee($simulatedItem->item_name)
+            ->assertDontSee($applicationItem->item_name)
+            ->assertSee('Simulated Records')
+            ->assertSee('source-badge--simulated', false);
+    }
+
+    public function test_inventory_movement_history_opens_as_a_modal_without_the_simulated_notice(): void
+    {
+        $item = InventoryItem::create([
+            'item_code' => 'MODAL-001',
+            'item_name' => 'Modal Test Battery',
+            'category' => 'Electrical',
+            'on_hand' => 8,
+            'quantity_available' => 8,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 2,
+        ]);
+
+        StockMovement::create([
+            'inventory_item_id' => $item->id,
+            'item_code' => $item->item_code,
+            'item_name' => $item->item_name,
+            'reference_no' => 'SIM-MODAL-001',
+            'movement_type' => 'Stock Out',
+            'quantity_change' => -2,
+            'previous_stock' => 10,
+            'new_stock' => 8,
+            'unit' => 'pcs',
+            'remarks' => 'Modal test movement.',
+            'source' => 'simulated',
+        ]);
+
+        $inventory = $this->actingAs($this->warehouseUser)->get(route('inventory'));
+
+        $inventory
+            ->assertOk()
+            ->assertSee('openMovementHistory', false)
+            ->assertSee('id="movementHistoryModal"', false)
+            ->assertSee(route('inventory.movements', $item), false);
+
+        $modal = $this->actingAs($this->warehouseUser)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('inventory.movements', $item));
+
+        $modal
+            ->assertOk()
+            ->assertSee('data-movement-history-content', false)
+            ->assertSee('Modal Test Battery')
+            ->assertSee('Simulated')
+            ->assertDontSee('This item has')
+            ->assertDontSee('These rows are isolated from application records')
+            ->assertDontSee('Back to Inventory');
+    }
+
     // =========================================================================
     // 6. PURCHASE MODULE PAGES
     // =========================================================================

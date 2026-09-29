@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.classList.remove('show');
     modal.classList.remove('active');
     modal.style.display = 'none';
+
+    if (modal.id === 'movementHistoryModal') {
+      movementHistoryRequest?.abort();
+      modal.setAttribute('aria-hidden', 'true');
+    }
   }
 
   function closeAllModals() {
@@ -53,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
   const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
   const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
+  const sourceSelect = inventoryToolbar?.querySelector('select[name="source"]');
 
   function inventoryRows() {
     if (!inventoryTable?.tBodies?.[0]) {
@@ -107,12 +113,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     inventoryRows().forEach(function (row) {
       const cells = row.cells;
-      const categoryText = String(cells[2]?.textContent || '').trim().toLowerCase();
+      const categoryText = String(cells[1]?.textContent || '').trim().toLowerCase();
       const searchableText = [
         cells[0]?.textContent,
         cells[1]?.textContent,
-        cells[7]?.textContent,
-        cells[8]?.textContent,
+        cells[5]?.textContent,
+        cells[6]?.textContent,
       ].join(' ').toLowerCase();
 
       const matchesSearch = !search || searchableText.includes(search);
@@ -158,6 +164,15 @@ document.addEventListener('DOMContentLoaded', function () {
       categorySelect.addEventListener('input', applyInventoryFilters);
     }
 
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set('source', sourceSelect.value || 'app');
+        url.searchParams.delete('page');
+        window.location.assign(url.toString());
+      });
+    }
+
     applyInventoryFilters();
   }
 
@@ -165,6 +180,123 @@ document.addEventListener('DOMContentLoaded', function () {
     if (event.detail?.table === inventoryTable) {
       window.setTimeout(applyInventoryFilters, 0);
     }
+  });
+
+  /*
+  |--------------------------------------------------------------------------
+  | MOVEMENT HISTORY MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const movementHistoryModal = document.getElementById('movementHistoryModal');
+  const movementHistoryContent = document.getElementById('movementHistoryContent');
+  let movementHistoryRequest = null;
+
+  function movementHistoryUrl(url) {
+    const requestUrl = new URL(url, window.location.origin);
+    requestUrl.searchParams.set('modal', '1');
+
+    return requestUrl.toString();
+  }
+
+  function showMovementHistoryLoading() {
+    if (!movementHistoryContent) {
+      return;
+    }
+
+    movementHistoryContent.innerHTML = `
+      <div class="movement-history-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Loading movement history...</span>
+      </div>
+    `;
+  }
+
+  function showMovementHistoryError(url) {
+    if (!movementHistoryContent) {
+      return;
+    }
+
+    movementHistoryContent.innerHTML = `
+      <div class="movement-history-error" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div>
+          <strong>Movement history could not be loaded.</strong>
+          <a href="${url}">Open the full history page</a>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadMovementHistory(url) {
+    if (!movementHistoryContent) {
+      window.location.assign(url);
+      return;
+    }
+
+    movementHistoryRequest?.abort();
+    movementHistoryRequest = new AbortController();
+    showMovementHistoryLoading();
+
+    try {
+      const response = await fetch(movementHistoryUrl(url), {
+        headers: {
+          Accept: 'text/html',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        signal: movementHistoryRequest.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Movement history request failed: ${response.status}`);
+      }
+
+      movementHistoryContent.innerHTML = await response.text();
+      document.dispatchEvent(new CustomEvent('ajax:content-updated'));
+      movementHistoryContent.querySelector('select[name="type"]')?.focus();
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Unable to load movement history.', error);
+        showMovementHistoryError(url);
+      }
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    const trigger = event.target.closest('.openMovementHistory');
+
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const url = trigger.dataset.url || trigger.getAttribute('href');
+
+    if (!url || !movementHistoryModal) {
+      window.location.assign(url || trigger.href);
+      return;
+    }
+
+    openModal(movementHistoryModal);
+    movementHistoryModal.setAttribute('aria-hidden', 'false');
+    loadMovementHistory(url);
+  });
+
+  movementHistoryModal?.addEventListener('change', function (event) {
+    const form = event.target.closest('[data-movement-history-filter]');
+
+    if (!form || event.target.name !== 'type') {
+      return;
+    }
+
+    const url = new URL(form.action, window.location.origin);
+    new FormData(form).forEach(function (value, key) {
+      url.searchParams.set(key, value);
+    });
+    loadMovementHistory(url.toString());
   });
 
   /*

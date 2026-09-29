@@ -58,6 +58,11 @@ class FiveModuleWorkflowTest extends TestCase
             'role' => 'head',
             'status' => 'Active',
         ]);
+        $warehouseStaff = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
         $purchaseUser = User::factory()->create([
             'department' => 'Purchase',
             'role' => 'head',
@@ -148,7 +153,15 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
 
         $this->actingAs($warehouseUser)
-            ->post(route('part-requests.issue', $originalPr))
+            ->post(route('part-requests.approve-for-issue', $originalPr))
+            ->assertRedirect();
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.prepare', $originalPr))
+            ->assertRedirect();
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $originalPr), ['issued_quantities' => [2]])
             ->assertRedirect();
 
         $this->assertSame('Issued', $originalPr->fresh()->status);

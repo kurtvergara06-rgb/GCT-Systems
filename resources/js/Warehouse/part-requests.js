@@ -146,6 +146,70 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  const issuePartsModal = document.getElementById('issuePartsModal');
+  const issuePartsForm = document.getElementById('issuePartsForm');
+  const issuePartsFields = document.getElementById('issue_parts_fields');
+  const closeIssuePartsModal = document.getElementById('closeIssuePartsModal');
+  const cancelIssueParts = document.getElementById('cancelIssueParts');
+
+  function renderIssueFields(parts) {
+    if (!issuePartsFields) return;
+
+    issuePartsFields.innerHTML = parts.map(function (part, index) {
+      const requested = Number.parseInt(part.needed || 1, 10);
+      const unit = escapeHtml(part.unit || 'pcs');
+
+      return `
+        <div class="issue-quantity-row">
+          <div class="issue-part-description">
+            <strong>${escapeHtml(part.name || 'Part')}</strong>
+            <span>Requested: ${requested} ${unit} | On hand: ${escapeHtml(part.available_display || part.available || '0')}</span>
+          </div>
+          <label>
+            Actual Issued
+            <input type="number" name="issued_quantities[${index}]" min="1" max="${requested}" value="${requested}" required>
+          </label>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-issue-modal');
+
+    if (!button || !issuePartsForm) return;
+
+    event.preventDefault();
+
+    let parts = [];
+    try {
+      parts = JSON.parse(button.dataset.parts || '[]');
+    } catch (error) {
+      parts = [];
+    }
+
+    issuePartsForm.action = button.dataset.action || '';
+    setField('issue_pr_no', button.dataset.prNo, 'Purchase Request');
+    renderIssueFields(parts);
+    openModal(issuePartsModal);
+  });
+
+  [closeIssuePartsModal, cancelIssueParts].forEach(function (button) {
+    if (button) {
+      button.addEventListener('click', function () {
+        closeModal(issuePartsModal);
+      });
+    }
+  });
+
+  if (issuePartsModal) {
+    issuePartsModal.addEventListener('click', function (event) {
+      if (event.target === issuePartsModal) {
+        closeModal(issuePartsModal);
+      }
+    });
+  }
+
   const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
 
   function updateWarehouseStatusFilterColor() {
@@ -159,6 +223,10 @@ document.addEventListener('DOMContentLoaded', function () {
       'for-delivery',
       'delivered',
       'picked-up',
+      'pending-warehouse-approval',
+      'approved-for-issue',
+      'preparing',
+      'on-hold',
       'issued'
     );
 

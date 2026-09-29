@@ -527,6 +527,7 @@ class SystemBackendFullAuditTest extends TestCase
         $maintHead = User::factory()->create(['department' => 'Maintenance', 'role' => 'head', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
         $maintStaff = User::factory()->create(['department' => 'Maintenance', 'role' => 'staff', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
         $warehouseHead = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
+        $warehouseStaff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
         $purchaseHead = User::factory()->create(['department' => 'Purchase', 'role' => 'head', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
 
         // 7.2 Trip Creation
@@ -711,9 +712,15 @@ class SystemBackendFullAuditTest extends TestCase
         $inventoryItem = InventoryItem::where('item_name', 'Clutch Master Cylinder 24V')->firstOrFail();
         $this->assertSame(1, (int) $inventoryItem->quantity_available);
 
-        // 7.10 Warehouse issues part to Maintenance
+        // 7.10 Warehouse Head authorizes; Warehouse Staff prepares and issues.
         $this->actingAs($warehouseHead)
-            ->post(route('part-requests.issue', $originalPr))
+            ->post(route('part-requests.approve-for-issue', $originalPr))
+            ->assertRedirect();
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.prepare', $originalPr))
+            ->assertRedirect();
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $originalPr), ['issued_quantities' => [1]])
             ->assertRedirect();
 
         $this->assertSame('Issued', $originalPr->fresh()->status);
