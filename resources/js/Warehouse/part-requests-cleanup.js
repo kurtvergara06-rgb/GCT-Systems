@@ -24,6 +24,47 @@ document.addEventListener('DOMContentLoaded', function () {
       .replaceAll('>', '&gt;');
   }
 
+  function normalizeText(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function applyWarehouseDisplayStates() {
+    document.querySelectorAll('.warehouse-part-table-clean tbody tr').forEach(function (row) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 8) return;
+
+      const purchaseStatus = normalizeText(cells[5]?.textContent);
+      const warehousePill = cells[6]?.querySelector('.warehouse-status-pill');
+      if (!warehousePill) return;
+
+      const warehouseStatus = normalizeText(warehousePill.textContent);
+      if (warehouseStatus !== 'pending approval') return;
+
+      let label = null;
+      let className = null;
+
+      if (purchaseStatus === 'for purchase') {
+        label = 'Waiting for Purchase';
+        className = 'waiting-purchase';
+      } else if (purchaseStatus === 'ordered' || purchaseStatus === 'for pick-up' || purchaseStatus === 'for delivery') {
+        label = 'Waiting for Delivery';
+        className = 'waiting-delivery';
+      }
+
+      if (!label) return;
+
+      warehousePill.textContent = label;
+      warehousePill.title = label;
+      warehousePill.classList.remove('pending');
+      warehousePill.classList.add(className);
+
+      const viewButton = row.querySelector('.open-view-pr-modal');
+      if (viewButton) {
+        viewButton.dataset.warehouseStatus = label;
+      }
+    });
+  }
+
   function renderIssuedQuantities(items) {
     const container = document.getElementById('view_issue_quantities');
     if (!container) return;
@@ -50,6 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
     `;
   }
+
+  applyWarehouseDisplayStates();
 
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.open-view-pr-modal');
