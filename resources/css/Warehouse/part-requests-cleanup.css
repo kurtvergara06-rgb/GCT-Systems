@@ -92,6 +92,18 @@
   color: #475569;
 }
 
+.warehouse-status-pill.waiting-purchase {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.warehouse-status-pill.waiting-delivery {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .warehouse-status-pill.approved,
 .warehouse-status-pill.issued {
   border-color: #b7efca;
