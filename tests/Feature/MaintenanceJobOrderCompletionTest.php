@@ -48,8 +48,10 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_needed' => null,
             'start_date' => now(),
             'status' => 'On Going',
-            'part_status' => 'No Parts Needed',
+            'part_status' => 'No Parts Required',
         ]);
+
+        $this->assertSame('No Parts Required', $jobOrder->fresh()->part_status);
 
         $response = $this
             ->actingAs($this->maintenanceUser)
@@ -62,8 +64,33 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $this->assertSame('Completed', $jobOrder->status);
         $this->assertNotNull($jobOrder->completion_date);
 
-        // Mechanic released back to Present
         $this->assertSame('Present', $mechanic->fresh()->status);
+    }
+
+    public function test_legacy_no_parts_job_order_is_normalized_and_can_be_completed(): void
+    {
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-2026-LEGACY',
+            'bus_no' => 'BUS-LEGACY',
+            'problem_issue' => 'Legacy inspection',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Legacy Mechanic',
+            'part_needed' => '   ',
+            'start_date' => now(),
+            'status' => 'On Going',
+            'part_status' => 'Not Requested',
+        ]);
+
+        $jobOrder->refresh();
+        $this->assertNull($jobOrder->part_needed);
+        $this->assertSame('No Parts Required', $jobOrder->part_status);
+
+        $response = $this
+            ->actingAs($this->maintenanceUser)
+            ->post(route('job-orders.finish', $jobOrder));
+
+        $response->assertRedirect(route('job-orders', [], false));
+        $this->assertSame('Completed', $jobOrder->fresh()->status);
     }
 
     public function test_job_order_with_parts_not_requested_cannot_be_completed(): void
@@ -207,7 +234,6 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $this->assertSame('Completed', $jobOrder->status);
         $this->assertNotNull($jobOrder->completion_date);
 
-        // Mechanic released back to Present
         $this->assertSame('Present', $mechanic->fresh()->status);
     }
 
@@ -222,7 +248,7 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_needed' => null,
             'start_date' => null,
             'status' => 'On Hold',
-            'part_status' => 'No Parts Needed',
+            'part_status' => 'No Parts Required',
         ]);
 
         $response = $this
@@ -251,7 +277,7 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'start_date' => now()->subDay(),
             'completion_date' => $initialCompletionDate,
             'status' => 'Completed',
-            'part_status' => 'No Parts Needed',
+            'part_status' => 'No Parts Required',
         ]);
 
         $response = $this
@@ -271,7 +297,6 @@ class MaintenanceJobOrderCompletionTest extends TestCase
 
     public function test_ui_renders_complete_buttons_and_modal_correctly(): void
     {
-        // 1. JO Ongoing, no parts -> enabled Complete button
         $joNoParts = JobOrder::create([
             'job_order_no' => 'JO-UI-001',
             'bus_no' => 'BUS-101',
@@ -281,10 +306,9 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_needed' => null,
             'start_date' => now(),
             'status' => 'On Going',
-            'part_status' => 'No Parts Needed',
+            'part_status' => 'No Parts Required',
         ]);
 
-        // 2. JO Ongoing, parts not requested -> locked Complete button
         $joPartsPending = JobOrder::create([
             'job_order_no' => 'JO-UI-002',
             'bus_no' => 'BUS-102',
@@ -297,7 +321,6 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_status' => 'Not Requested',
         ]);
 
-        // 3. JO Ongoing, parts issued -> enabled Complete button
         $joPartsIssued = JobOrder::create([
             'job_order_no' => 'JO-UI-003',
             'bus_no' => 'BUS-103',
@@ -310,7 +333,6 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_status' => 'Issued',
         ]);
 
-        // 4. JO On Hold -> locked Complete button
         $joOnHold = JobOrder::create([
             'job_order_no' => 'JO-UI-004',
             'bus_no' => 'BUS-104',
@@ -320,10 +342,9 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_needed' => null,
             'start_date' => null,
             'status' => 'On Hold',
-            'part_status' => 'No Parts Needed',
+            'part_status' => 'No Parts Required',
         ]);
 
-        // 5. JO Completed -> shows completion date & time, no button
         $joCompleted = JobOrder::create([
             'job_order_no' => 'JO-UI-005',
             'bus_no' => 'BUS-105',
@@ -342,24 +363,20 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             ->get(route('job-orders'));
 
         $response->assertOk();
-
-        // Modal wording assertions
         $response->assertSee('Complete Job Order?');
         $response->assertSee('Confirm that all maintenance work for this Job Order has been completed.');
         $response->assertSee('Completion date and time will be recorded automatically.');
         $response->assertSee('Yes, Complete');
+        $response->assertSee('No Parts Required');
         $response->assertDontSee('Yes, Finish');
         $response->assertDontSee('Finish Job Order?');
 
-        // Form actions for enabled complete buttons
         $response->assertSee('action="' . route('job-orders.finish', $joNoParts->id) . '"', false);
         $response->assertSee('action="' . route('job-orders.finish', $joPartsIssued->id) . '"', false);
+        $response->assertDontSee('action="' . route('job-orders.finish', $joPartsPending->id) . '"', false);
 
-        // Locked buttons with appropriate reasons
         $response->assertSee('Cannot complete until required parts are issued by warehouse.');
         $response->assertSee('Cannot complete while job order is on hold.');
-
-        // Completed row displays completion date format
         $response->assertSee(date('M d, Y', strtotime($joCompleted->completion_date)));
         $response->assertDontSee('action="' . route('job-orders.finish', $joCompleted->id) . '"', false);
     }
