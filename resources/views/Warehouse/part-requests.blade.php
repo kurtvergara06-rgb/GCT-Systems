@@ -17,51 +17,61 @@
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
 
-    <main class="main">
+    <main class="main warehouse-part-main">
       <x-layout.topbar
         title="Part Requests"
-        subtitle="Head-authorized part releases prepared and issued by Warehouse Staff"
+        subtitle="Review stock availability, authorize releases, and issue parts for maintenance"
         notification-count="6"
       />
 
       <section data-ajax-region="summary" class="stats-grid inventory-stats">
-        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse Head" icon="fa-clipboard-check" color="green" />
-        <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable" icon="fa-cart-shopping" color="blue" />
-        <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-box" color="yellow" />
-        <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released parts" icon="fa-box-open" color="gray" />
+        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse Head" icon="fa-clipboard-check" color="yellow" />
+        <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable in stock" icon="fa-cart-shopping" color="blue" />
+        <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-truck-ramp-box" color="green" />
+        <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released to maintenance" icon="fa-box-open" color="gray" />
       </section>
 
       <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header">
           <div>
+            <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
             <h2>Warehouse Part Request Records</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
         </div>
 
         <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, or item..."
-            >
+          <div class="toolbar-left">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Search PR no., JO no., bus, or item..."
+              >
+            </div>
+
+            <div class="filter-group">
+              <select
+                name="status"
+                id="warehouseStatusFilter"
+                class="warehouse-status-select"
+                onchange="this.form.requestSubmit()"
+              >
+                <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
+                @foreach(($statuses ?? []) as $status)
+                  <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                @endforeach
+              </select>
+            </div>
           </div>
 
-          <div class="filter-group">
-            <select
-              name="status"
-              id="warehouseStatusFilter"
-              class="warehouse-status-select"
-              onchange="this.form.requestSubmit()"
-            >
-              <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
-              @foreach(($statuses ?? []) as $status)
-                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-              @endforeach
-            </select>
+          <div class="toolbar-right">
+            <span class="toolbar-count-chip">
+              <i class="fa-solid fa-list-check"></i>
+              {{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}
+            </span>
           </div>
         </form>
 
@@ -115,10 +125,35 @@
                 @endphp
 
                 <tr>
-                  <td><strong>{{ $partRequest->pr_no ?? '—' }}</strong></td>
-                  <td class="item-col" title="{{ $itemName }}">{{ $itemName }}</td>
-                  <td class="qty-col">{{ $quantity }}</td>
-                  <td class="qty-col"><span class="on-hand-pill {{ $onHandClass }}">{{ $onHand }}</span></td>
+                  <td>
+                    <div class="pr-ref-cell">
+                      <strong class="pr-main-num">{{ $partRequest->pr_no ?? '—' }}</strong>
+                      @if($partRequest->job_order_no || $partRequest->bus_no)
+                        <div class="pr-sub-tags">
+                          @if($partRequest->job_order_no)
+                            <span class="pr-meta-tag jo-tag" title="Job Order"><i class="fa-solid fa-wrench"></i> {{ $partRequest->job_order_no }}</span>
+                          @endif
+                          @if($partRequest->bus_no)
+                            <span class="pr-meta-tag bus-tag" title="Bus Number"><i class="fa-solid fa-bus"></i> {{ $partRequest->bus_no }}</span>
+                          @endif
+                        </div>
+                      @endif
+                    </div>
+                  </td>
+                  <td class="item-col" title="{{ $itemName }}">
+                    <div class="item-display-cell">
+                      <strong class="item-name-text">{{ $itemName }}</strong>
+                    </div>
+                  </td>
+                  <td class="qty-col">
+                    <span class="qty-needed-badge">{{ $quantity }}</span>
+                  </td>
+                  <td class="qty-col">
+                    <span class="on-hand-pill {{ $onHandClass }}" title="Quantity on hand in inventory">
+                      <i class="fa-solid {{ $onHandClass === 'enough' ? 'fa-circle-check' : 'fa-triangle-exclamation' }}"></i>
+                      {{ $onHand }}
+                    </span>
+                  </td>
                   <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
                   <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
                   <td class="status-col">
@@ -131,7 +166,7 @@
                       <button
                         type="button"
                         class="view-btn open-view-pr-modal"
-                        title="View Details"
+                        title="View Requisition Details"
                         data-pr-no="{{ $partRequest->pr_no }}"
                         data-job-order-no="{{ $partRequest->job_order_no }}"
                         data-bus-no="{{ $partRequest->bus_no }}"

@@ -1,87 +1,163 @@
-/* Warehouse Part Requests compact desktop layout */
+/* =========================================================
+   WAREHOUSE PART REQUESTS - MODERN CLEANUP & DESKTOP POLISH
+========================================================= */
 
 .warehouse-part-card .table-wrap {
-  overflow-x: hidden;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  border: 1px solid var(--border, #dce5f2);
+  border-radius: 12px;
+  background: #ffffff;
+  -webkit-overflow-scrolling: touch;
 }
 
 .warehouse-part-table-clean {
   width: 100%;
-  min-width: 0 !important;
-  table-layout: fixed;
+  min-width: 1060px;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.warehouse-part-table-clean th,
-.warehouse-part-table-clean td {
-  padding-left: 9px;
-  padding-right: 9px;
-}
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(1),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(1) { width: 12%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(2),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(2) { width: 22%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(3),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(3) { width: 8%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(4),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(4) { width: 9%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(5),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(5) { width: 12%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(6),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(6) { width: 12%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(7),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(7) { width: 14%; }
-
-.warehouse-part-card .warehouse-part-table-clean th:nth-child(8),
-.warehouse-part-card .warehouse-part-table-clean td:nth-child(8) { width: 11%; }
-
-.warehouse-part-table-clean .item-col {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.warehouse-part-table-clean th {
+  padding: 13px 14px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
-.warehouse-part-table-clean .on-hand-pill {
-  min-width: 54px;
-  padding: 4px 8px;
+.warehouse-part-table-clean td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text, #0f172a);
+  font-size: 13px;
+  vertical-align: middle;
 }
 
-.warehouse-part-table-clean .warehouse-actions {
+.warehouse-part-table-clean tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.warehouse-part-table-clean tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Column Alignments */
+.warehouse-part-table-clean .qty-col,
+.warehouse-part-table-clean .status-col,
+.warehouse-part-table-clean .actions-col {
+  text-align: center;
+}
+
+/* PR Reference Cell */
+.pr-ref-cell {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
 }
 
-.warehouse-part-table-clean .view-btn,
-.warehouse-part-table-clean .send-purchase-btn,
-.warehouse-part-table-clean .approve-issue-btn,
-.warehouse-part-table-clean .hold-issue-btn,
-.warehouse-part-table-clean .prepare-part-btn,
-.warehouse-part-table-clean .issue-part-btn {
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  min-height: 30px;
-  border-radius: 7px;
-  font-size: 12px;
+.pr-main-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0b40b5;
+  letter-spacing: -0.01em;
 }
 
-.warehouse-status-pill {
+.pr-sub-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pr-meta-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.pr-meta-tag.jo-tag {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.pr-meta-tag.bus-tag {
+  background: #eff6ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+/* Item Name Cell */
+.item-display-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-name-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.qty-needed-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* On-Hand Quantity Pill */
+.on-hand-pill {
+  min-width: 64px;
   min-height: 26px;
-  padding: 4px 9px;
-  border: 1px solid #dbe5f1;
+  padding: 3px 9px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1.15;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.on-hand-pill.enough {
+  border: 1px solid #bbf7d0;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.on-hand-pill.low {
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Warehouse Status Pill */
+.warehouse-status-pill {
+  min-height: 26px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
   text-align: center;
   white-space: nowrap;
 }
@@ -94,35 +170,197 @@
 
 .warehouse-status-pill.waiting-purchase {
   border-color: #fde68a;
-  background: #fffbeb;
+  background: #fef3c7;
   color: #92400e;
 }
 
 .warehouse-status-pill.waiting-delivery {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: #c7d2fe;
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
-.warehouse-status-pill.approved,
-.warehouse-status-pill.issued {
-  border-color: #b7efca;
+.warehouse-status-pill.approved {
+  border-color: #bbf7d0;
   background: #dcfce7;
-  color: #15803d;
+  color: #166534;
 }
 
 .warehouse-status-pill.preparing {
   border-color: #bfdbfe;
   background: #dbeafe;
-  color: #1d4ed8;
+  color: #1e40af;
 }
 
 .warehouse-status-pill.hold {
   border-color: #fecaca;
   background: #fee2e2;
+  color: #991b1b;
+}
+
+.warehouse-status-pill.issued {
+  border-color: #e9d5ff;
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+/* Action Buttons */
+.warehouse-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.warehouse-part-table-clean .view-btn,
+.warehouse-part-table-clean .send-purchase-btn,
+.warehouse-part-table-clean .approve-issue-btn,
+.warehouse-part-table-clean .hold-issue-btn,
+.warehouse-part-table-clean .prepare-part-btn,
+.warehouse-part-table-clean .issue-part-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.warehouse-part-table-clean .view-btn {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.warehouse-part-table-clean .view-btn:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(29, 78, 216, 0.25);
+}
+
+.warehouse-part-table-clean .approve-issue-btn {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+}
+
+.warehouse-part-table-clean .approve-issue-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.25);
+}
+
+.warehouse-part-table-clean .hold-issue-btn {
+  background: #fef2f2;
+  border-color: #fecaca;
   color: #dc2626;
 }
 
+.warehouse-part-table-clean .hold-issue-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+
+.warehouse-part-table-clean .send-purchase-btn {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #d97706;
+}
+
+.warehouse-part-table-clean .send-purchase-btn:hover {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+  transform: translateY(-1px);
+}
+
+.warehouse-part-table-clean .prepare-part-btn {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.warehouse-part-table-clean .prepare-part-btn:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.warehouse-part-table-clean .issue-part-btn {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+.warehouse-part-table-clean .issue-part-btn:hover {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* Toolbar Polish */
+.warehouse-part-toolbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border, #dce5f2);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.warehouse-part-toolbar .toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 580px;
+}
+
+.warehouse-part-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.toolbar-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.toolbar-count-chip i {
+  color: #0b40b5;
+}
+
+/* Modal Details */
 .warehouse-request-details-modal {
   width: min(820px, 95vw);
 }
@@ -167,13 +405,17 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1180px) {
-  .warehouse-part-card .table-wrap {
-    overflow-x: auto;
+/* Responsive */
+@media (max-width: 900px) {
+  .warehouse-part-toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .warehouse-part-table-clean {
-    min-width: 900px !important;
+  .warehouse-part-toolbar .toolbar-left {
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
