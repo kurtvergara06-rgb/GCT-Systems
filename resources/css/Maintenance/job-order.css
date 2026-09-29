@@ -1189,7 +1189,8 @@ textarea[readonly] {
 }
 
 .jo-page .job-orders-table .part-status-badge.not-requested,
-.jo-page .job-orders-table .part-status-badge.no-parts-needed {
+.jo-page .job-orders-table .part-status-badge.no-parts-needed,
+.jo-page .job-orders-table .part-status-badge.no-parts-required {
   background: #f1f5f9;
   color: #475569;
   border: 1px solid #dce5f2;

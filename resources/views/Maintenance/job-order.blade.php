@@ -51,7 +51,7 @@
                             ] as $partStatusOption)
                                 <option
                                     value="{{ $partStatusOption }}"
-                                    {{ request('part_status', 'All Part Statuses') === $partStatusOption ? 'selected' : '' }}
+                                    {{ (request('part_status', 'All Part Statuses') === $partStatusOption || ($partStatusOption === 'No Parts Required' && request('part_status') === 'No Parts Needed')) ? 'selected' : '' }}
                                 >
                                     {{ $partStatusOption }}
                                 </option>
@@ -88,6 +88,7 @@
                                 @php
                                     $isCompleted = $jobOrder->status === 'Completed';
                                     $isOnHold = $jobOrder->status === 'On Hold';
+                                    $isOngoing = $jobOrder->status === 'On Going';
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
                                     $hasNeededParts = trim((string) $jobOrder->part_needed) !== '';
                                     $joStatus = $jobOrder->status === 'On Going'
@@ -95,11 +96,13 @@
                                         : ($jobOrder->status ?: 'In Progress');
                                     $isOverdue = $jobOrder->is_overdue;
 
-                                    $partStatus = $jobOrder->part_status;
                                     if (!$hasNeededParts) {
                                         $partStatus = 'No Parts Required';
-                                    } elseif (!$partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
-                                        $partStatus = 'Not Requested';
+                                    } else {
+                                        $partStatus = $jobOrder->part_status;
+                                        if (!$partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
+                                            $partStatus = 'Not Requested';
+                                        }
                                     }
 
                                     $linkedPr = \App\Models\Maintenance\PurchaseRequest::query()
@@ -120,8 +123,6 @@
                                         && !$isCompleted
                                         && !$hasLinkedPr
                                         && in_array($jobOrder->part_status, [null, 'Not Requested'], true);
-
-                                    $isOngoing = $jobOrder->status === 'On Going';
 
                                     $canComplete = !$isCompleted
                                         && $isOngoing
@@ -152,7 +153,7 @@
                                         'Delivered' => 'delivered',
                                         'Picked Up' => 'picked-up',
                                         'Issued' => 'issued',
-                                        'No Parts Required' => 'no-parts-needed',
+                                        'No Parts Required', 'No Parts Needed' => 'no-parts-required',
                                         default => 'not-requested',
                                     };
                                 @endphp

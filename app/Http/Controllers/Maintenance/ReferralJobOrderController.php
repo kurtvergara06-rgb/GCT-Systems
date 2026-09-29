@@ -108,7 +108,7 @@ class ReferralJobOrderController extends Controller
                 'start_date' => now(),
                 'completion_date' => null,
                 'status' => 'On Hold',
-                'part_status' => 'No Parts Needed',
+                'part_status' => 'No Parts Required',
             ]);
 
             $lockedReferral->update(['status' => 'Job Order Created']);

@@ -54,9 +54,13 @@ class JobOrderController extends Controller
             if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
-                        ->orWhereRaw("TRIM(part_needed) = ''")
+                        ->orWhereRaw("TRIM(COALESCE(part_needed, '')) = ''")
                         ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
                 });
+            } elseif ($request->part_status === 'Not Requested') {
+                $query->where('part_status', 'Not Requested')
+                    ->whereNotNull('part_needed')
+                    ->whereRaw("TRIM(part_needed) != ''");
             } else {
                 $query->where(
                     'part_status',

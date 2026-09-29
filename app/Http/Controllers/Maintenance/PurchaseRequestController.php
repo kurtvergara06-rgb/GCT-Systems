@@ -932,7 +932,7 @@ class PurchaseRequestController extends Controller
                                     ->part_needed
                             )
                                 ? 'Not Requested'
-                                : 'No Parts Needed',
+                                : 'No Parts Required',
                     ]);
                 }
             }
