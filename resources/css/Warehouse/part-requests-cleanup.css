@@ -372,6 +372,29 @@
   color: #0b40b5;
 }
 
+/* Requested cleanup: hide section eyebrow/count and keep filter on the far right */
+.warehouse-part-card .section-header .dashboard-eyebrow,
+.warehouse-part-toolbar .toolbar-right,
+.warehouse-part-toolbar .toolbar-count-chip {
+  display: none !important;
+}
+
+.warehouse-part-toolbar .toolbar-left {
+  width: 100%;
+  max-width: none;
+}
+
+.warehouse-part-toolbar .search-box {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.warehouse-part-toolbar .filter-group {
+  flex: 0 0 150px;
+  width: 150px;
+  margin-left: auto;
+}
+
 /* Modal Details */
 .warehouse-request-details-modal {
   width: min(820px, 95vw);
@@ -504,6 +527,12 @@
     max-width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .warehouse-part-toolbar .filter-group {
+    width: 100%;
+    flex-basis: auto;
+    margin-left: 0;
   }
 }
 
