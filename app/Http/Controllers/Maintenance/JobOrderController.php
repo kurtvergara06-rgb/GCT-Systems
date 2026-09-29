@@ -54,11 +54,7 @@ class JobOrderController extends Controller
             if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
-<<<<<<< HEAD
-                        ->orWhereRaw("TRIM(part_needed) = ''")
-=======
                         ->orWhereRaw("TRIM(COALESCE(part_needed, '')) = ''")
->>>>>>> e4c071c3 (fix(maintenance): resolve no-parts Job Order completion workflow and No Parts Required status)
                         ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
                 });
             } elseif ($request->part_status === 'Not Requested') {
@@ -672,11 +668,7 @@ class JobOrderController extends Controller
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
     {
-<<<<<<< HEAD
         $hasNeededParts = trim((string) $jobOrder->part_needed) !== '';
-=======
-        $hasNeededParts = ! empty(trim((string) $jobOrder->part_needed));
->>>>>>> e4c071c3 (fix(maintenance): resolve no-parts Job Order completion workflow and No Parts Required status)
 
         if (! $hasNeededParts) {
             return true;
