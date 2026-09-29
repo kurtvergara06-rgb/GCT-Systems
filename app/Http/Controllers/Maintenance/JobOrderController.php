@@ -527,12 +527,12 @@ class JobOrderController extends Controller
             return redirect()->back()->with('error', 'Job order is already completed.');
         }
 
-        if ($jobOrder->status === 'On Hold') {
-            return redirect()->back()->with('error', 'This job order cannot be finished because it is currently on hold.');
+        if ($jobOrder->status !== 'On Going') {
+            return redirect()->back()->with('error', 'Only Job Orders that are In Progress can be completed.');
         }
 
         if (! $this->canFinishWithPartStatus($jobOrder)) {
-            return redirect()->back()->with('error', 'This job order cannot be finished yet. The part status must be Issued or Rejected first.');
+            return redirect()->back()->with('error', 'This Job Order cannot be completed until all required parts have been issued by Warehouse.');
         }
 
         if ($jobOrder->maintenance_type === 'PMS') {
@@ -667,7 +667,7 @@ class JobOrderController extends Controller
             return true;
         }
 
-        return in_array($jobOrder->part_status, ['Issued', 'Rejected'], true);
+        return $jobOrder->part_status === 'Issued';
     }
 
     private function generateJobOrderNo(): string
@@ -705,7 +705,7 @@ class JobOrderController extends Controller
             return "PR-{$year}-0001";
         }
 
-        preg_match('/PR-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
+        preg_match('/JO-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
         $nextNumber = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
         $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
