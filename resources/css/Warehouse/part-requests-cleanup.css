@@ -1,0 +1,176 @@
+/* Warehouse Part Requests compact desktop layout */
+
+.warehouse-part-card .table-wrap {
+  overflow-x: hidden;
+}
+
+.warehouse-part-table-clean {
+  width: 100%;
+  min-width: 0 !important;
+  table-layout: fixed;
+}
+
+.warehouse-part-table-clean th,
+.warehouse-part-table-clean td {
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(1),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(1) { width: 12%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(2),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(2) { width: 22%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(3),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(3) { width: 8%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(4),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(4) { width: 9%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(5),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(5) { width: 12%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(6),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(6) { width: 12%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(7),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(7) { width: 14%; }
+
+.warehouse-part-card .warehouse-part-table-clean th:nth-child(8),
+.warehouse-part-card .warehouse-part-table-clean td:nth-child(8) { width: 11%; }
+
+.warehouse-part-table-clean .item-col {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.warehouse-part-table-clean .on-hand-pill {
+  min-width: 54px;
+  padding: 4px 8px;
+}
+
+.warehouse-part-table-clean .warehouse-actions {
+  gap: 4px;
+}
+
+.warehouse-part-table-clean .view-btn,
+.warehouse-part-table-clean .send-purchase-btn,
+.warehouse-part-table-clean .approve-issue-btn,
+.warehouse-part-table-clean .hold-issue-btn,
+.warehouse-part-table-clean .prepare-part-btn,
+.warehouse-part-table-clean .issue-part-btn {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.warehouse-status-pill {
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid #dbe5f1;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.warehouse-status-pill.pending {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.warehouse-status-pill.approved,
+.warehouse-status-pill.issued {
+  border-color: #b7efca;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.warehouse-status-pill.preparing {
+  border-color: #bfdbfe;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.warehouse-status-pill.hold {
+  border-color: #fecaca;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-request-details-modal {
+  width: min(820px, 95vw);
+}
+
+.warehouse-request-meta-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.warehouse-issued-quantities {
+  min-height: 52px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.warehouse-issued-list {
+  display: grid;
+  gap: 8px;
+}
+
+.warehouse-issued-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.warehouse-issued-row strong {
+  color: #061f3d;
+  font-size: 12px;
+}
+
+.warehouse-issued-row span {
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .warehouse-part-card .table-wrap {
+    overflow-x: auto;
+  }
+
+  .warehouse-part-table-clean {
+    min-width: 900px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .warehouse-request-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-request-meta-grid .warehouse-field.full {
+    grid-column: auto;
+  }
+}
