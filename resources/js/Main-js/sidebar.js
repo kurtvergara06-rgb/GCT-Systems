@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const collapseBtn =
         document.getElementById('sidebarCollapseBtn');
 
+    const shellId = sidebar?.dataset.gctShell || 'default';
+    const dropdownStorageKey = `gct-sidebar-dropdowns:${shellId}`;
+
 
     /* =========================================================
        DEFAULT SIDEBAR STATE
@@ -101,6 +104,64 @@ document.addEventListener('DOMContentLoaded', function () {
        SIDEBAR DROPDOWNS
     ========================================================= */
 
+    const getDropdownKey = (dropdown) => {
+        const button = dropdown?.querySelector('.dropdown-toggle');
+        const raw = button?.getAttribute('title') || button?.textContent || '';
+
+        return raw
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    };
+
+    const readDropdownState = () => {
+        try {
+            const raw = sessionStorage.getItem(dropdownStorageKey);
+            const parsed = raw ? JSON.parse(raw) : {};
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch {
+            return {};
+        }
+    };
+
+    const writeDropdownState = (state) => {
+        try {
+            sessionStorage.setItem(dropdownStorageKey, JSON.stringify(state));
+        } catch {
+            // Keep sidebar usable even when sessionStorage is unavailable.
+        }
+    };
+
+    const applyDropdownState = () => {
+        const currentSidebar = document.getElementById('appSidebar');
+        if (!currentSidebar) return;
+
+        const saved = readDropdownState();
+
+        currentSidebar.querySelectorAll('.menu-dropdown').forEach((dropdown) => {
+            const key = getDropdownKey(dropdown);
+            if (!key || !Object.prototype.hasOwnProperty.call(saved, key)) return;
+
+            const open = saved[key] === true;
+            dropdown.classList.toggle('open', open);
+            dropdown.querySelector('.dropdown-toggle')?.setAttribute('aria-expanded', String(open));
+        });
+    };
+
+    const persistDropdownState = (dropdown, open) => {
+        const key = getDropdownKey(dropdown);
+        if (!key) return;
+
+        const saved = readDropdownState();
+        saved[key] = Boolean(open);
+        writeDropdownState(saved);
+    };
+
+    // Blade may initially open the parent for the current route. Preserve that
+    // default only until the user explicitly opens/closes the group.
+    applyDropdownState();
+
     document.addEventListener(
         'click',
         function (event) {
@@ -152,6 +213,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         'true'
                     );
 
+                    persistDropdownState(dropdown, true);
+
                 }, 150);
 
                 return;
@@ -163,21 +226,37 @@ document.addEventListener('DOMContentLoaded', function () {
                     'open'
                 );
 
+            const nextOpen = !isOpen;
+
 
             dropdown.classList.toggle(
                 'open',
-                !isOpen
+                nextOpen
             );
 
 
             button.setAttribute(
                 'aria-expanded',
-                !isOpen
+                nextOpen
                     ? 'true'
                     : 'false'
             );
+
+            persistDropdownState(dropdown, nextOpen);
         }
     );
+
+    // Partial navigation re-syncs the server-rendered sidebar state. Restore the
+    // user's manual dropdown choices immediately after the destination is ready.
+    window.addEventListener('gct:navigation-ready', function () {
+        applyDropdownState();
+    });
+
+    // Expose the restore helper so the partial-navigation layer can reapply it
+    // immediately after syncing active links if needed.
+    window.GCTSidebarState = Object.freeze({
+        restoreDropdowns: applyDropdownState,
+    });
 
 
     /* =========================================================
