@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
             #appSidebar,
             .main {
                 transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-                transition-duration: 240ms !important;
+                transition-duration: 320ms !important;
             }
 
             #appSidebar .brand-text,
@@ -30,12 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
             #appSidebar .dropdown-arrow,
             #appSidebar .user-box-text,
             #appSidebar .profile-chevron {
-                transition: opacity 110ms ease, transform 110ms ease !important;
+                transition: opacity 150ms ease, transform 150ms ease !important;
                 will-change: opacity, transform;
             }
 
             #appSidebar .submenu {
-                transition: opacity 90ms ease !important;
+                transition: opacity 130ms ease !important;
             }
 
             #appSidebar.is-collapsing .brand-text,
@@ -161,11 +161,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 sidebar.classList.add('collapsed');
                 body.classList.add('sidebar-collapsed');
                 updateCollapseButton(true);
-            }, 90);
+            }, 120);
 
             sidebarMotionTimer = window.setTimeout(() => {
                 finishSidebarMotion();
-            }, 350);
+            }, 470);
 
             return;
         }
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         sidebarMotionTimer = window.setTimeout(() => {
             finishSidebarMotion();
-        }, 250);
+        }, 360);
     }
 
 
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     persistDropdownState(dropdown, true);
 
-                }, 280);
+                }, 400);
 
                 return;
             }
