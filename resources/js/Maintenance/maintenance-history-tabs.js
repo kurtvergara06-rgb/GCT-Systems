@@ -95,10 +95,6 @@ const ensureStyles = () => {
             font-size: 11px;
         }
 
-        tr[data-maintenance-record-hidden="true"] {
-            display: none !important;
-        }
-
         @media (max-width: 760px) {
             .maintenance-record-header {
                 align-items: flex-start;
@@ -182,33 +178,6 @@ const insertTabs = (card, pageType, view) => {
     }
 };
 
-const setRowVisible = (row, visible) => {
-    if (visible) {
-        row.hidden = false;
-        row.removeAttribute('data-maintenance-record-hidden');
-        row.style.removeProperty('display');
-        return;
-    }
-
-    row.hidden = true;
-    row.dataset.maintenanceRecordHidden = 'true';
-    row.style.setProperty('display', 'none', 'important');
-};
-
-const normalizeStatus = (value) => String(value || '').trim().toLowerCase();
-
-const getPurchaseRequestStatus = (row) => {
-    const viewAction = row.querySelector('.open-view-pr-modal');
-    const rawActionStatus = normalizeStatus(viewAction?.getAttribute('data-status'));
-    if (rawActionStatus) return rawActionStatus;
-
-    const editAction = row.querySelector('.open-edit-pr-modal');
-    const rawEditStatus = normalizeStatus(editAction?.getAttribute('data-status'));
-    if (rawEditStatus) return rawEditStatus;
-
-    return normalizeStatus(row.querySelector('.status-col')?.textContent);
-};
-
 const applyJobOrderView = () => {
     const page = document.querySelector('.jo-page');
     const card = page?.querySelector('.jo-table-card');
@@ -217,14 +186,7 @@ const applyJobOrderView = () => {
     const view = getRecordView();
     insertTabs(card, 'job-order', view);
 
-    const rows = card.querySelectorAll('.job-orders-table tbody tr');
-    rows.forEach((row) => {
-        const statusCells = row.querySelectorAll('td.status-col');
-        const joStatus = normalizeStatus(statusCells[0]?.textContent);
-        const completed = joStatus === 'completed';
-        setRowVisible(row, view === 'history' ? completed : !completed);
-    });
-
+    // Row filtering is server-side. JS only controls presentation/state.
     const newButton = card.querySelector('#openJobModal');
     if (newButton) newButton.hidden = view === 'history';
 };
@@ -237,14 +199,7 @@ const applyPurchaseRequestView = () => {
     const view = getRecordView();
     insertTabs(card, 'purchase-request', view);
 
-    const rows = card.querySelectorAll('.purchase-request-table tbody tr');
-    rows.forEach((row) => {
-        const status = getPurchaseRequestStatus(row);
-        row.dataset.maintenanceRecordStatus = status;
-        const issued = status === 'issued';
-        setRowVisible(row, view === 'history' ? issued : !issued);
-    });
-
+    // Row filtering is server-side. JS only controls presentation/state.
     const newButton = card.querySelector('#openPrModal');
     if (newButton) newButton.hidden = view === 'history';
 };
@@ -260,10 +215,6 @@ const initializeMaintenanceRecordViews = () => {
     window.setTimeout(applyMaintenanceRecordViews, 100);
 };
 
-// Delegated handler survives AJAX/partial-navigation DOM replacements. The old
-// implementation attached handlers to tabs that were repeatedly removed and
-// recreated by its own MutationObserver, which could replace the clicked node
-// between pointer-down and click and make History appear unresponsive.
 document.addEventListener('click', (event) => {
     const link = event.target.closest('[data-maintenance-record-tab-link]');
     if (!link) return;
