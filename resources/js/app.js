@@ -34,6 +34,7 @@ import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
+import './Maintenance/maintenance-history-tabs.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
 import '../css/Operation/Attendance/batch-attendance.css';
