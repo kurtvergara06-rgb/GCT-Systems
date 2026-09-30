@@ -1,0 +1,91 @@
+#gctPageLoader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(248, 250, 252, 0.98);
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+#gctPageLoader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.gct-page-loader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #183153;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+.gct-page-loader-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #d9e2ef;
+    border-top-color: #183153;
+    border-radius: 50%;
+    animation: gctPageLoaderSpin .72s linear infinite;
+}
+
+@keyframes gctPageLoaderSpin {
+    to { transform: rotate(360deg); }
+}
+
+body.gct-page-entering main,
+body.gct-page-entering .main {
+    opacity: 0;
+    transform: translateY(6px);
+}
+
+body.gct-page-ready main,
+body.gct-page-ready .main {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 220ms ease, transform 220ms ease;
+}
+
+body.gct-initial-reveal .stats-grid,
+body.gct-initial-reveal .table-card,
+body.gct-initial-reveal .dashboard-card,
+body.gct-initial-reveal .analytics-card {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: gctSectionReveal 280ms ease forwards;
+}
+
+body.gct-initial-reveal .table-card,
+body.gct-initial-reveal .dashboard-card,
+body.gct-initial-reveal .analytics-card {
+    animation-delay: 70ms;
+}
+
+@keyframes gctSectionReveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #gctPageLoader,
+    body.gct-page-ready main,
+    body.gct-page-ready .main,
+    body.gct-initial-reveal .stats-grid,
+    body.gct-initial-reveal .table-card,
+    body.gct-initial-reveal .dashboard-card,
+    body.gct-initial-reveal .analytics-card {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+    }
+}
