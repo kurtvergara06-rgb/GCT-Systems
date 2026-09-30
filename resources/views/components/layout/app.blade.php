@@ -52,14 +52,61 @@
   >
 
   <style>
+    @view-transition {
+      navigation: auto;
+    }
+
+    #appSidebar {
+      view-transition-name: gct-sidebar;
+    }
+
+    main,
+    .main {
+      view-transition-name: gct-main-content;
+    }
+
+    ::view-transition-old(gct-sidebar),
+    ::view-transition-new(gct-sidebar) {
+      animation: none;
+    }
+
+    ::view-transition-old(gct-main-content) {
+      animation: 120ms ease both gctCriticalMainOut;
+    }
+
+    ::view-transition-new(gct-main-content) {
+      animation: 240ms ease both gctCriticalMainIn;
+    }
+
+    @keyframes gctCriticalMainOut {
+      to {
+        opacity: 0;
+        transform: translateY(3px);
+      }
+    }
+
+    @keyframes gctCriticalMainIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     #gctPageLoader {
       position: fixed;
-      inset: 0;
-      z-index: 99999;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 290px;
+      z-index: 999;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f8fafc;
+      background: rgba(248, 250, 252, 0.96);
     }
 
     .gct-page-loader-inner {
@@ -84,6 +131,12 @@
 
     @keyframes gctCriticalLoaderSpin {
       to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 900px) {
+      #gctPageLoader {
+        left: 0;
+      }
     }
   </style>
 
