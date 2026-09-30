@@ -9,6 +9,7 @@
     'resources/css/Main-styles/theme.css',
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-styles/sidebar-state.css',
     'resources/css/Main-styles/admin-records.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Main-js/confirmation-modal.js',
