@@ -71,24 +71,28 @@
     }
 
     ::view-transition-old(gct-main-content) {
-      animation: 120ms ease both gctCriticalMainOut;
+      animation: 180ms cubic-bezier(.4, 0, .2, 1) both gctCriticalMainOut;
     }
 
     ::view-transition-new(gct-main-content) {
-      animation: 260ms cubic-bezier(.22, 1, .36, 1) both gctCriticalMainIn;
+      animation: 360ms cubic-bezier(.22, 1, .36, 1) both gctCriticalMainIn;
     }
 
     @keyframes gctCriticalMainOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
       to {
-        opacity: 0;
-        transform: translateY(2px);
+        opacity: .72;
+        transform: translateY(1px);
       }
     }
 
     @keyframes gctCriticalMainIn {
       from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(3px);
       }
       to {
         opacity: 1;
@@ -106,15 +110,23 @@
       pointer-events: none;
       opacity: 0;
       overflow: hidden;
+      transition: opacity 180ms ease;
+    }
+
+    #gctNavigationProgress.is-visible {
+      opacity: 1;
     }
 
     #gctNavigationProgress > span {
       display: block;
-      width: 0;
+      width: 100%;
       height: 100%;
       background: #f9b817;
-      box-shadow: 0 0 8px rgba(249, 184, 23, .35);
-      transition: width 180ms ease, opacity 160ms ease;
+      box-shadow: 0 0 8px rgba(249, 184, 23, .30);
+      transform: scaleX(0);
+      transform-origin: left center;
+      will-change: transform;
+      transition: transform 220ms cubic-bezier(.22, 1, .36, 1);
     }
 
     @media (max-width: 900px) {
