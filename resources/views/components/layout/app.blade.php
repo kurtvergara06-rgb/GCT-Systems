@@ -51,11 +51,54 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
+  <style>
+    #gctPageLoader {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+    }
+
+    .gct-page-loader-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #183153;
+      font-family: Poppins, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .gct-page-loader-spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #d9e2ef;
+      border-top-color: #183153;
+      border-radius: 50%;
+      animation: gctCriticalLoaderSpin .72s linear infinite;
+    }
+
+    @keyframes gctCriticalLoaderSpin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
   @vite($viteAssets)
   @stack('styles')
 </head>
 
-<body>
+<body class="gct-page-entering">
+  <div id="gctPageLoader" role="status" aria-live="polite" aria-label="Loading page">
+    <div class="gct-page-loader-inner">
+      <div class="gct-page-loader-spinner" aria-hidden="true"></div>
+      <span>Loading...</span>
+    </div>
+  </div>
+
   {{ $slot }}
 
   <x-ui.action-buttom-modal
