@@ -97,6 +97,7 @@ class GctDateTimePicker {
     buildPopover() {
         const popover = document.createElement('div');
         popover.className = 'gct-picker-popover';
+        popover.dataset.pageOwned = 'true';
         popover.setAttribute('role', 'dialog');
         popover.setAttribute('aria-modal', 'false');
         popover.hidden = true;

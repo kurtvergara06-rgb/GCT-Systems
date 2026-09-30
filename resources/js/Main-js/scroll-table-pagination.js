@@ -59,7 +59,9 @@
     const appendModals = (parsed) => {
         parsed.querySelectorAll('.modal-overlay[id], .pms-modal-overlay[id], .ui-modal-overlay[id], .popup-overlay[id]').forEach((modal) => {
             if (!document.getElementById(modal.id)) {
-                document.body.appendChild(document.importNode(modal, true));
+                const pageModal = document.importNode(modal, true);
+                pageModal.dataset.pageOwned = 'true';
+                document.body.appendChild(pageModal);
             }
         });
     };

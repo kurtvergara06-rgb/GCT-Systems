@@ -1,7 +1,7 @@
 const getMainElement = () => document.querySelector('main.main, main');
 
 const show = () => {
-    getMainElement()?.classList.add('gct-main-fetching');
+    getMainElement()?.classList.add('gct-main-leaving');
 };
 
 const hide = () => {

@@ -4,6 +4,60 @@ const BEFORE_NAVIGATION_EVENT = 'gct:navigation-before';
 const loadedAssets = new Set();
 const initializerCleanups = new Map();
 
+const PAGE_OVERLAY_SELECTOR = [
+    '.modal',
+    '.modal-overlay',
+    '.delete-modal-overlay',
+    '.feedback-modal-overlay',
+    '.success-modal-overlay',
+    '.ui-form-overlay',
+    '.admin-modal-overlay',
+    '.records-modal-overlay',
+    '.history-modal-overlay',
+    '.activity-modal-overlay',
+    '.transfer-activity-modal-overlay',
+    '.fuel-modal-overlay',
+    '.pms-modal-overlay',
+    '.personnel-modal-overlay',
+    '.route-modal-overlay',
+    '.trip-modal-overlay',
+    '.batch-time-modal-overlay',
+    '.batch-attendance-overlay',
+    '.ai-resolution-modal-overlay',
+    '.restock-view-overlay',
+    '.requested-pr-view-overlay',
+    '.schedule-modal-overlay',
+    '.po-status-modal-overlay',
+    '.warehouse-view-overlay',
+    '.edit-trip-modal-overlay',
+    '.confirm-modal-overlay',
+    '.confirmation-modal-overlay',
+    '[data-modal-overlay]',
+    '[data-gct-modal-overlay]',
+].join(', ');
+
+const PAGE_PORTAL_SELECTOR = [
+    '[data-page-owned]',
+    '.gct-picker-popover',
+    '.modal-backdrop',
+    '.ui-modal-backdrop',
+    '.global-modal-backdrop',
+    '[data-modal-backdrop]',
+    '[role="tooltip"]',
+    '.tooltip',
+    '.popover',
+].join(', ');
+
+const PERSISTENT_OVERLAY_SELECTOR = [
+    '#globalConfirmationModal',
+    '.global-confirmation-overlay',
+    '[data-global-confirmation-modal]',
+    '#systemToastContainer',
+    '.system-toast-container',
+    '.system-toast-root',
+    '[data-gct-persistent-ui]',
+].join(', ');
+
 let activeRequest = null;
 
 const runInitializer = (key, rootSelector, initializer) => {
@@ -100,9 +154,127 @@ const rememberLoadedAssets = () => {
     });
 
     const main = document.querySelector(MAIN_SELECTOR);
+    const app = main?.closest('.app') || document.body;
+
+    Array.from(app?.children || []).forEach((element) => {
+        if (
+            element !== main
+            && element.id !== 'appSidebar'
+            && element.tagName !== 'SCRIPT'
+            && !element.matches(PERSISTENT_OVERLAY_SELECTOR)
+        ) {
+            element.dataset.pageOwned = 'true';
+        }
+    });
+
     document.body.querySelectorAll('script').forEach((script) => {
         if (!main?.contains(script)) script.dataset.gctTransientScript = 'true';
     });
+};
+
+const markPageOwned = (element) => {
+    if (element instanceof HTMLElement) element.dataset.pageOwned = 'true';
+    return element;
+};
+
+const closeOverlay = (overlay) => {
+    if (overlay instanceof HTMLDialogElement && overlay.open) {
+        overlay.close();
+    }
+
+    overlay.classList.remove(
+        'show',
+        'active',
+        'open',
+        'is-open',
+        'visible',
+        'is-visible',
+        'is-stacked-modal',
+    );
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.removeAttribute('inert');
+
+    if (overlay instanceof HTMLElement) {
+        overlay.style.display = 'none';
+    }
+};
+
+const cleanupPageOverlays = () => {
+    document.querySelectorAll('dialog[open]').forEach((dialog) => dialog.close());
+
+    document.querySelectorAll(PAGE_OVERLAY_SELECTOR).forEach((overlay) => {
+        closeOverlay(overlay);
+
+        if (!overlay.matches(PERSISTENT_OVERLAY_SELECTOR) && !overlay.closest(MAIN_SELECTOR)) {
+            overlay.remove();
+        }
+    });
+
+    document.querySelectorAll(PAGE_PORTAL_SELECTOR).forEach((element) => {
+        if (!element.matches(PERSISTENT_OVERLAY_SELECTOR) && !element.closest('#appSidebar')) {
+            element.remove();
+        }
+    });
+
+    const transientClasses = [
+        'modal-open',
+        'has-stacked-modal',
+        'overflow-hidden',
+        'batch-modal-open',
+        'transfer-activity-modal-open',
+        'ai-modal-open',
+    ];
+
+    document.body.classList.remove(...transientClasses);
+    document.documentElement.classList.remove(...transientClasses);
+
+    [document.body, document.documentElement].forEach((element) => {
+        element.style.removeProperty('overflow');
+        element.style.removeProperty('padding-right');
+        element.style.removeProperty('touch-action');
+        element.removeAttribute('aria-hidden');
+        element.removeAttribute('inert');
+    });
+
+    document.querySelectorAll('#appSidebar, main').forEach((element) => {
+        element.removeAttribute('aria-hidden');
+        element.removeAttribute('inert');
+    });
+
+    window.GCTModalBackdrop?.sync?.();
+};
+
+const syncPageOwnedElements = (nextDocument) => {
+    const currentMain = document.querySelector(MAIN_SELECTOR);
+    const nextMain = nextDocument.querySelector(MAIN_SELECTOR);
+    const currentApp = currentMain?.closest('.app') || document.body;
+    const nextApp = nextMain?.closest('.app') || nextDocument.body;
+    if (!currentApp || !nextApp) return;
+
+    currentApp.querySelectorAll(':scope > [data-page-owned]').forEach((element) => element.remove());
+
+    Array.from(nextApp.children).forEach((element) => {
+        if (
+            element === nextMain
+            || element.id === 'appSidebar'
+            || element.tagName === 'SCRIPT'
+            || element.matches(PERSISTENT_OVERLAY_SELECTOR)
+        ) return;
+        currentApp.appendChild(markPageOwned(document.importNode(element, true)));
+    });
+};
+
+const beginMainExit = (main) => {
+    window.dispatchEvent(new CustomEvent(BEFORE_NAVIGATION_EVENT));
+    cleanupPageOverlays();
+    main.classList.remove('gct-main-entering', 'gct-main-entered', 'gct-main-fetching');
+    main.classList.add('gct-main-leaving');
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => window.setTimeout(resolve, 150));
 };
 
 const shellId = (root) => root.querySelector('#appSidebar')?.dataset.gctShell || null;
@@ -293,13 +465,10 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     const parsedMain = nextDocument.querySelector(MAIN_SELECTOR);
     if (!currentMain || !parsedMain) throw new Error('Missing main content');
 
-    window.dispatchEvent(new CustomEvent(BEFORE_NAVIGATION_EVENT));
-    currentMain.classList.add('gct-main-leaving');
-    await new Promise((resolve) => window.setTimeout(resolve, 150));
-
     const nextMain = document.importNode(parsedMain, true);
     nextMain.classList.add('gct-main-entering');
     currentMain.replaceWith(nextMain);
+    syncPageOwnedElements(nextDocument);
 
     syncStylesheetState(nextDocument, finalUrl);
     syncSidebarState(nextDocument);
@@ -339,10 +508,16 @@ const navigate = async (url, options = {}) => {
     activeRequest?.abort();
     const controller = new AbortController();
     activeRequest = controller;
-    document.querySelector(MAIN_SELECTOR)?.classList.add('gct-main-fetching');
+    const currentMain = document.querySelector(MAIN_SELECTOR);
+    if (!currentMain) {
+        fallback(targetUrl);
+        return;
+    }
+
+    const exitPromise = beginMainExit(currentMain);
 
     try {
-        const response = await fetch(targetUrl, {
+        const responsePromise = fetch(targetUrl, {
             method: 'GET',
             headers: {
                 Accept: 'text/html,application/xhtml+xml',
@@ -351,6 +526,9 @@ const navigate = async (url, options = {}) => {
             credentials: 'same-origin',
             signal: controller.signal,
         });
+
+        await exitPromise;
+        const response = await responsePromise;
 
         const contentType = response.headers.get('content-type') || '';
         if (!response.ok || !contentType.includes('text/html')) {
@@ -424,4 +602,9 @@ window.addEventListener('scroll', () => {
 
 rememberLoadedAssets();
 
-window.GCTPartialNavigation = Object.freeze({ navigate, registerInitializer });
+window.GCTPartialNavigation = Object.freeze({
+    navigate,
+    registerInitializer,
+    cleanupPageOverlays,
+    markPageOwned,
+});

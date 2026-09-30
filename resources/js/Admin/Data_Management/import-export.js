@@ -271,6 +271,7 @@ function initImportExportPage() {
                 </div>
             `;
 
+            overlay.dataset.pageOwned = 'true';
             document.body.appendChild(overlay);
             document.body.classList.add('transfer-activity-modal-open');
             overlay.querySelector('.transfer-activity-modal-close')?.addEventListener('click', closeActivityModal);

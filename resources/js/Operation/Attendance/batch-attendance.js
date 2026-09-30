@@ -1,4 +1,4 @@
-window.GCTPartialNavigation.registerInitializer('shared-batch-attendance', '.attendance-page, .driver-attendance-page, .mechanic-attendance-page', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname.replace(/\/$/, '');
     const type = path.endsWith('/driver-attendance')
         ? 'driver'
@@ -106,6 +106,7 @@ window.GCTPartialNavigation.registerInitializer('shared-batch-attendance', '.att
                 </div>
             </div>`;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('batch-modal-open');
 

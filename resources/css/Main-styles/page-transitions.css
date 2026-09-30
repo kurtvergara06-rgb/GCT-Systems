@@ -1,25 +1,24 @@
-/* The application shell stays mounted; only the current main region transitions. */
+/* The shell remains mounted; only main content fades during partial navigation. */
 main.main,
 main {
+    opacity: 1;
+    transform: translateY(0);
     transition:
-        opacity 180ms cubic-bezier(0.4, 0, 0.2, 1),
-        transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-main.gct-main-fetching {
-    opacity: 0.72;
-    pointer-events: none;
+        opacity 190ms cubic-bezier(0.4, 0, 0.2, 1),
+        transform 190ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 main.gct-main-leaving {
     opacity: 0;
     transform: translateY(2px);
+    transition-duration: 150ms;
     pointer-events: none;
 }
 
 main.gct-main-entering {
     opacity: 0;
     transform: translateY(2px);
+    pointer-events: none;
 }
 
 main.gct-main-entered {
@@ -30,7 +29,6 @@ main.gct-main-entered {
 @media (prefers-reduced-motion: reduce) {
     main.main,
     main,
-    main.gct-main-fetching,
     main.gct-main-leaving,
     main.gct-main-entering,
     main.gct-main-entered {
