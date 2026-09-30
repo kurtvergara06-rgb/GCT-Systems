@@ -102,9 +102,7 @@ const insertTabs = (card, pageType, view) => {
     if (!card) return;
 
     const existing = card.querySelector('[data-maintenance-record-tabs]');
-    if (existing) {
-        existing.remove();
-    }
+    if (existing) existing.remove();
     card.querySelector('.maintenance-history-note')?.remove();
 
     const toolbar = card.querySelector('.toolbar');
@@ -163,6 +161,20 @@ const setRowVisible = (row, visible) => {
     row.style.setProperty('display', 'none', 'important');
 };
 
+const normalizeStatus = (value) => String(value || '').trim().toLowerCase();
+
+const getPurchaseRequestStatus = (row) => {
+    const viewAction = row.querySelector('.open-view-pr-modal');
+    const rawActionStatus = normalizeStatus(viewAction?.getAttribute('data-status'));
+    if (rawActionStatus) return rawActionStatus;
+
+    const editAction = row.querySelector('.open-edit-pr-modal');
+    const rawEditStatus = normalizeStatus(editAction?.getAttribute('data-status'));
+    if (rawEditStatus) return rawEditStatus;
+
+    return normalizeStatus(row.querySelector('.status-col')?.textContent);
+};
+
 const applyJobOrderView = () => {
     const page = document.querySelector('.jo-page');
     const card = page?.querySelector('.jo-table-card');
@@ -174,28 +186,13 @@ const applyJobOrderView = () => {
     const rows = card.querySelectorAll('.job-orders-table tbody tr');
     rows.forEach((row) => {
         const statusCells = row.querySelectorAll('td.status-col');
-        const joStatus = statusCells[0]?.textContent?.trim().toLowerCase() || '';
+        const joStatus = normalizeStatus(statusCells[0]?.textContent);
         const completed = joStatus === 'completed';
         setRowVisible(row, view === 'history' ? completed : !completed);
     });
 
     const newButton = card.querySelector('#openJobModal');
     if (newButton) newButton.hidden = view === 'history';
-};
-
-const readPurchaseRequestStatus = (row) => {
-    // Use the raw backend status already attached to the row's View action.
-    // The visual status badge maps several statuses to shared CSS aliases
-    // (for example Issued -> active), so it is not a reliable source for
-    // deciding whether a record belongs in Active or History.
-    const recordAction = row.querySelector('.open-view-pr-modal[data-status]');
-    const rawStatus = recordAction?.dataset?.status?.trim();
-
-    if (rawStatus) {
-        return rawStatus.toLowerCase();
-    }
-
-    return row.querySelector('.status-col')?.textContent?.trim().toLowerCase() || '';
 };
 
 const applyPurchaseRequestView = () => {
@@ -208,10 +205,8 @@ const applyPurchaseRequestView = () => {
 
     const rows = card.querySelectorAll('.purchase-request-table tbody tr');
     rows.forEach((row) => {
-        // Skip the shared empty-state row if the table has no records.
-        if (!row.querySelector('td')) return;
-
-        const status = readPurchaseRequestStatus(row);
+        const status = getPurchaseRequestStatus(row);
+        row.dataset.maintenanceRecordStatus = status;
         const issued = status === 'issued';
         setRowVisible(row, view === 'history' ? issued : !issued);
     });
@@ -226,11 +221,39 @@ const applyMaintenanceRecordViews = () => {
     applyPurchaseRequestView();
 };
 
-document.addEventListener('DOMContentLoaded', applyMaintenanceRecordViews);
-window.addEventListener('load', applyMaintenanceRecordViews);
-window.addEventListener('ajax:content-updated', applyMaintenanceRecordViews);
-window.addEventListener('system-regions-refreshed', applyMaintenanceRecordViews);
+let maintenanceRecordObserver = null;
+let maintenanceRecordObserverTimer = null;
 
-// Some shared table helpers can finalize row visibility after DOMContentLoaded.
-// Re-apply once after those initializers without changing the realtime behavior.
-window.setTimeout(applyMaintenanceRecordViews, 250);
+const startMaintenanceRecordObserver = () => {
+    if (maintenanceRecordObserver) maintenanceRecordObserver.disconnect();
+
+    const target = document.querySelector('.jo-table-card, .purchase-request-card');
+    if (!target) return;
+
+    maintenanceRecordObserver = new MutationObserver(() => {
+        if (maintenanceRecordObserverTimer) clearTimeout(maintenanceRecordObserverTimer);
+        maintenanceRecordObserverTimer = window.setTimeout(() => {
+            maintenanceRecordObserverTimer = null;
+            applyMaintenanceRecordViews();
+        }, 25);
+    });
+
+    maintenanceRecordObserver.observe(target, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class', 'hidden'],
+    });
+};
+
+const initializeMaintenanceRecordViews = () => {
+    applyMaintenanceRecordViews();
+    startMaintenanceRecordObserver();
+    window.setTimeout(applyMaintenanceRecordViews, 100);
+    window.setTimeout(applyMaintenanceRecordViews, 500);
+};
+
+document.addEventListener('DOMContentLoaded', initializeMaintenanceRecordViews);
+window.addEventListener('load', initializeMaintenanceRecordViews);
+window.addEventListener('ajax:content-updated', initializeMaintenanceRecordViews);
+window.addEventListener('system-regions-refreshed', initializeMaintenanceRecordViews);
