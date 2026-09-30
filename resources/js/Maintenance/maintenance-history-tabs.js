@@ -24,6 +24,16 @@ const buildUrl = (view, pageType) => {
     return `${url.pathname}${url.search}`;
 };
 
+const navigateRecordTab = (event, link) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    if (window.GCTPartialNavigation?.navigate) {
+        event.preventDefault();
+        window.GCTPartialNavigation.navigate(link.href);
+    }
+};
+
 const ensureStyles = () => {
     if (document.getElementById('maintenanceRecordTabsStyles')) return;
 
@@ -118,16 +128,20 @@ const insertTabs = (card, pageType, view) => {
     const active = document.createElement('a');
     active.className = `maintenance-record-tab${view === 'active' ? ' is-active' : ''}`;
     active.href = buildUrl('active', pageType);
+    active.dataset.partialNavigation = 'true';
     active.innerHTML = '<i class="fa-solid fa-list-check"></i><span>Active</span>';
     active.setAttribute('role', 'tab');
     active.setAttribute('aria-selected', view === 'active' ? 'true' : 'false');
+    active.addEventListener('click', (event) => navigateRecordTab(event, active));
 
     const history = document.createElement('a');
     history.className = `maintenance-record-tab${view === 'history' ? ' is-active' : ''}`;
     history.href = buildUrl('history', pageType);
+    history.dataset.partialNavigation = 'true';
     history.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i><span>History</span>';
     history.setAttribute('role', 'tab');
     history.setAttribute('aria-selected', view === 'history' ? 'true' : 'false');
+    history.addEventListener('click', (event) => navigateRecordTab(event, history));
 
     tabs.append(active, history);
 
