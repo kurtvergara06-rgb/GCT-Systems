@@ -183,6 +183,21 @@ const applyJobOrderView = () => {
     if (newButton) newButton.hidden = view === 'history';
 };
 
+const readPurchaseRequestStatus = (row) => {
+    // Use the raw backend status already attached to the row's View action.
+    // The visual status badge maps several statuses to shared CSS aliases
+    // (for example Issued -> active), so it is not a reliable source for
+    // deciding whether a record belongs in Active or History.
+    const recordAction = row.querySelector('.open-view-pr-modal[data-status]');
+    const rawStatus = recordAction?.dataset?.status?.trim();
+
+    if (rawStatus) {
+        return rawStatus.toLowerCase();
+    }
+
+    return row.querySelector('.status-col')?.textContent?.trim().toLowerCase() || '';
+};
+
 const applyPurchaseRequestView = () => {
     const page = document.querySelector('.purchase-page');
     const card = page?.querySelector('.purchase-request-card');
@@ -193,7 +208,10 @@ const applyPurchaseRequestView = () => {
 
     const rows = card.querySelectorAll('.purchase-request-table tbody tr');
     rows.forEach((row) => {
-        const status = row.querySelector('.status-col')?.textContent?.trim().toLowerCase() || '';
+        // Skip the shared empty-state row if the table has no records.
+        if (!row.querySelector('td')) return;
+
+        const status = readPurchaseRequestStatus(row);
         const issued = status === 'issued';
         setRowVisible(row, view === 'history' ? issued : !issued);
     });
@@ -212,3 +230,7 @@ document.addEventListener('DOMContentLoaded', applyMaintenanceRecordViews);
 window.addEventListener('load', applyMaintenanceRecordViews);
 window.addEventListener('ajax:content-updated', applyMaintenanceRecordViews);
 window.addEventListener('system-regions-refreshed', applyMaintenanceRecordViews);
+
+// Some shared table helpers can finalize row visibility after DOMContentLoaded.
+// Re-apply once after those initializers without changing the realtime behavior.
+window.setTimeout(applyMaintenanceRecordViews, 250);
