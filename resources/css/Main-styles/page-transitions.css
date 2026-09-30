@@ -17,24 +17,24 @@ main {
 }
 
 ::view-transition-old(gct-main-content) {
-    animation: 140ms ease both gctMainFadeOut;
+    animation: 120ms ease both gctMainFadeOut;
 }
 
 ::view-transition-new(gct-main-content) {
-    animation: 220ms ease both gctMainFadeIn;
+    animation: 260ms cubic-bezier(.22, 1, .36, 1) both gctMainFadeIn;
 }
 
 @keyframes gctMainFadeOut {
     to {
         opacity: 0;
-        transform: translateY(3px);
+        transform: translateY(2px);
     }
 }
 
 @keyframes gctMainFadeIn {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px);
     }
 
     to {
@@ -75,6 +75,7 @@ main {
     font-size: 12px;
     font-weight: 600;
     letter-spacing: .01em;
+    animation: gctLoaderEnter 180ms ease both;
 }
 
 .gct-page-loader-spinner {
@@ -86,6 +87,18 @@ main {
     animation: gctPageLoaderSpin .72s linear infinite;
 }
 
+@keyframes gctLoaderEnter {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes gctPageLoaderSpin {
     to { transform: rotate(360deg); }
 }
@@ -93,14 +106,26 @@ main {
 body.gct-page-entering main,
 body.gct-page-entering .main {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(8px);
 }
 
 body.gct-page-ready main,
 body.gct-page-ready .main {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 220ms ease, transform 220ms ease;
+    animation: gctPageContentReveal 320ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes gctPageContentReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 body.gct-initial-reveal .stats-grid,
@@ -108,17 +133,26 @@ body.gct-initial-reveal .table-card,
 body.gct-initial-reveal .dashboard-card,
 body.gct-initial-reveal .analytics-card {
     opacity: 0;
-    transform: translateY(8px);
-    animation: gctSectionReveal 280ms ease forwards;
+    transform: translateY(6px);
+    animation: gctSectionReveal 300ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+body.gct-initial-reveal .stats-grid {
+    animation-delay: 35ms;
 }
 
 body.gct-initial-reveal .table-card,
 body.gct-initial-reveal .dashboard-card,
 body.gct-initial-reveal .analytics-card {
-    animation-delay: 70ms;
+    animation-delay: 90ms;
 }
 
 @keyframes gctSectionReveal {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -135,6 +169,7 @@ body.gct-initial-reveal .analytics-card {
     ::view-transition-old(gct-main-content),
     ::view-transition-new(gct-main-content),
     #gctPageLoader,
+    .gct-page-loader-inner,
     body.gct-page-ready main,
     body.gct-page-ready .main,
     body.gct-initial-reveal .stats-grid,
