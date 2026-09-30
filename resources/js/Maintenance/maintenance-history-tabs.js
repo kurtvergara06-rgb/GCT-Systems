@@ -28,10 +28,15 @@ const navigateRecordTab = (event, link) => {
     if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
+    event.preventDefault();
+
+    const target = link.href;
     if (window.GCTPartialNavigation?.navigate) {
-        event.preventDefault();
-        window.GCTPartialNavigation.navigate(link.href);
+        window.GCTPartialNavigation.navigate(target);
+        return;
     }
+
+    window.location.assign(target);
 };
 
 const ensureStyles = () => {
@@ -108,57 +113,72 @@ const ensureStyles = () => {
     document.head.appendChild(style);
 };
 
+const createTab = (viewName, pageType) => {
+    const link = document.createElement('a');
+    link.className = 'maintenance-record-tab';
+    link.dataset.maintenanceRecordTabLink = viewName;
+    link.dataset.partialNavigation = 'true';
+    link.setAttribute('role', 'tab');
+    link.innerHTML = viewName === 'history'
+        ? '<i class="fa-solid fa-clock-rotate-left"></i><span>History</span>'
+        : '<i class="fa-solid fa-list-check"></i><span>Active</span>';
+    link.href = buildUrl(viewName, pageType);
+    return link;
+};
+
+const updateTab = (link, viewName, pageType, currentView) => {
+    if (!link) return;
+
+    link.href = buildUrl(viewName, pageType);
+    link.dataset.maintenanceRecordTabLink = viewName;
+    link.dataset.partialNavigation = 'true';
+    link.classList.toggle('is-active', currentView === viewName);
+    link.setAttribute('aria-selected', currentView === viewName ? 'true' : 'false');
+};
+
 const insertTabs = (card, pageType, view) => {
     if (!card) return;
-
-    const existing = card.querySelector('[data-maintenance-record-tabs]');
-    if (existing) existing.remove();
-    card.querySelector('.maintenance-history-note')?.remove();
 
     const toolbar = card.querySelector('.toolbar');
     const header = card.querySelector('.section-header');
     if (!toolbar) return;
 
-    const tabs = document.createElement('div');
-    tabs.className = 'maintenance-record-tabs';
-    tabs.dataset.maintenanceRecordTabs = 'true';
-    tabs.setAttribute('role', 'tablist');
-    tabs.setAttribute('aria-label', 'Maintenance record view');
+    let tabs = card.querySelector('[data-maintenance-record-tabs]');
 
-    const active = document.createElement('a');
-    active.className = `maintenance-record-tab${view === 'active' ? ' is-active' : ''}`;
-    active.href = buildUrl('active', pageType);
-    active.dataset.partialNavigation = 'true';
-    active.innerHTML = '<i class="fa-solid fa-list-check"></i><span>Active</span>';
-    active.setAttribute('role', 'tab');
-    active.setAttribute('aria-selected', view === 'active' ? 'true' : 'false');
-    active.addEventListener('click', (event) => navigateRecordTab(event, active));
+    if (!tabs) {
+        tabs = document.createElement('div');
+        tabs.className = 'maintenance-record-tabs';
+        tabs.dataset.maintenanceRecordTabs = 'true';
+        tabs.setAttribute('role', 'tablist');
+        tabs.setAttribute('aria-label', 'Maintenance record view');
+        tabs.append(
+            createTab('active', pageType),
+            createTab('history', pageType),
+        );
 
-    const history = document.createElement('a');
-    history.className = `maintenance-record-tab${view === 'history' ? ' is-active' : ''}`;
-    history.href = buildUrl('history', pageType);
-    history.dataset.partialNavigation = 'true';
-    history.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i><span>History</span>';
-    history.setAttribute('role', 'tab');
-    history.setAttribute('aria-selected', view === 'history' ? 'true' : 'false');
-    history.addEventListener('click', (event) => navigateRecordTab(event, history));
-
-    tabs.append(active, history);
-
-    if (header) {
-        header.classList.add('maintenance-record-header');
-        header.appendChild(tabs);
-    } else {
-        toolbar.before(tabs);
+        if (header) {
+            header.classList.add('maintenance-record-header');
+            header.appendChild(tabs);
+        } else {
+            toolbar.before(tabs);
+        }
     }
 
+    updateTab(tabs.querySelector('[data-maintenance-record-tab-link="active"]'), 'active', pageType, view);
+    updateTab(tabs.querySelector('[data-maintenance-record-tab-link="history"]'), 'history', pageType, view);
+
+    let note = card.querySelector('.maintenance-history-note');
     if (view === 'history') {
-        const note = document.createElement('p');
-        note.className = 'maintenance-history-note';
+        if (!note) {
+            note = document.createElement('p');
+            note.className = 'maintenance-history-note';
+            toolbar.before(note);
+        }
         note.textContent = pageType === 'job-order'
             ? 'Completed Job Orders are kept here for reference and audit history.'
             : 'Issued Purchase Requests are kept here for reference and audit history.';
-        toolbar.before(note);
+    } else {
+        note?.remove();
     }
 };
 
@@ -235,37 +255,20 @@ const applyMaintenanceRecordViews = () => {
     applyPurchaseRequestView();
 };
 
-let maintenanceRecordObserver = null;
-let maintenanceRecordObserverTimer = null;
-
-const startMaintenanceRecordObserver = () => {
-    if (maintenanceRecordObserver) maintenanceRecordObserver.disconnect();
-
-    const target = document.querySelector('.jo-table-card, .purchase-request-card');
-    if (!target) return;
-
-    maintenanceRecordObserver = new MutationObserver(() => {
-        if (maintenanceRecordObserverTimer) clearTimeout(maintenanceRecordObserverTimer);
-        maintenanceRecordObserverTimer = window.setTimeout(() => {
-            maintenanceRecordObserverTimer = null;
-            applyMaintenanceRecordViews();
-        }, 25);
-    });
-
-    maintenanceRecordObserver.observe(target, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class', 'hidden'],
-    });
-};
-
 const initializeMaintenanceRecordViews = () => {
     applyMaintenanceRecordViews();
-    startMaintenanceRecordObserver();
     window.setTimeout(applyMaintenanceRecordViews, 100);
-    window.setTimeout(applyMaintenanceRecordViews, 500);
 };
+
+// Delegated handler survives AJAX/partial-navigation DOM replacements. The old
+// implementation attached handlers to tabs that were repeatedly removed and
+// recreated by its own MutationObserver, which could replace the clicked node
+// between pointer-down and click and make History appear unresponsive.
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-maintenance-record-tab-link]');
+    if (!link) return;
+    navigateRecordTab(event, link);
+});
 
 document.addEventListener('DOMContentLoaded', initializeMaintenanceRecordViews);
 window.addEventListener('load', initializeMaintenanceRecordViews);
