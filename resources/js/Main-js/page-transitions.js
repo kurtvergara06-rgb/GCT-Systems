@@ -1,6 +1,7 @@
 const MAIN_SELECTOR = 'main.main, main';
 const LOADER_ID = 'gctNavigationLoader';
 const MIN_LOADER_MS = 180;
+const LOADER_FADE_OUT_MS = 190;
 let loaderShownAt = 0;
 let hideTimer = null;
 
@@ -71,6 +72,12 @@ const hideLoader = async ({ revealMain = true } = {}) => {
     loader.classList.remove('is-visible');
     loader.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('gct-navigation-loading');
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        await wait(LOADER_FADE_OUT_MS);
+    }
+
+    loader.classList.remove('is-hiding');
 
     if (revealMain) {
         const main = getMainElement();
