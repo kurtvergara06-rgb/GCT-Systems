@@ -52,7 +52,7 @@
     }
 @endphp
 
-<x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 

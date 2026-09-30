@@ -1,4 +1,5 @@
 import './echo';
+import './Main-js/partial-navigation.js';
 
 /*
  * Shared application assets only.
@@ -43,7 +44,7 @@ import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
-document.addEventListener('DOMContentLoaded', () => {
+const initializePageOnlyControls = () => {
     document.querySelectorAll('.descriptive-overview-kpi em, .descriptive-insight-card strong').forEach((node) => {
         if (node.textContent.trim() === 'New') {
             node.textContent = 'No prior data';
@@ -74,4 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.fuel-page')) {
         import('./Maintenance/fuel-reports-refinement.js');
     }
-});
+};
+
+document.addEventListener('DOMContentLoaded', initializePageOnlyControls);
+window.addEventListener('gct:navigation-ready', initializePageOnlyControls);

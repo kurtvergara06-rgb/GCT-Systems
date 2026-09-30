@@ -43,7 +43,7 @@
     $pageAssets[] = 'resources/js/Admin/Analytics/prescriptive/charts.js';
 @endphp
 
-<x-layout.app title="FROMS - Prescriptive Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Prescriptive Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 

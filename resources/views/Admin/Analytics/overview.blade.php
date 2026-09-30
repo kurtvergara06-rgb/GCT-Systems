@@ -1,4 +1,5 @@
 <x-layout.app
+    :partial-navigation="false"
     title="FROMS - Analytics Overview"
     :assets="[
         'resources/css/Admin/Analytics/overview/overview.css',

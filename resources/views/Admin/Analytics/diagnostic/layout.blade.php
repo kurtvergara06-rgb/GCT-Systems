@@ -33,7 +33,7 @@
     ];
 @endphp
 
-<x-layout.app title="FROMS - Diagnostic Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Diagnostic Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 

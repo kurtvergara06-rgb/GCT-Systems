@@ -22,7 +22,7 @@
     ];
 @endphp
 
-<x-layout.app title="FROMS - {{ $stageLabel }} Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - {{ $stageLabel }} Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 

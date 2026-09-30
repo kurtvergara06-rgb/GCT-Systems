@@ -122,7 +122,7 @@
     $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
 @endphp
 
-<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
