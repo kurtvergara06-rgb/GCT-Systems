@@ -2,10 +2,26 @@ const loaderId = 'gctPageLoader';
 
 const getLoader = () => document.getElementById(loaderId);
 
+const syncSidebarOffset = () => {
+    const sidebar = document.getElementById('appSidebar');
+    const root = document.documentElement;
+
+    if (!root) return;
+
+    if (!sidebar || window.matchMedia('(max-width: 900px)').matches) {
+        root.style.setProperty('--gct-sidebar-offset', '0px');
+        return;
+    }
+
+    const width = Math.max(0, Math.round(sidebar.getBoundingClientRect().width));
+    root.style.setProperty('--gct-sidebar-offset', `${width}px`);
+};
+
 const showLoader = () => {
     const loader = getLoader();
     if (!loader) return;
 
+    syncSidebarOffset();
     loader.classList.remove('is-hidden');
     document.body?.classList.add('gct-page-entering');
     document.body?.classList.remove('gct-page-ready');
@@ -14,6 +30,7 @@ const showLoader = () => {
 const hideLoader = () => {
     const loader = getLoader();
 
+    syncSidebarOffset();
     document.body?.classList.remove('gct-page-entering');
     document.body?.classList.add('gct-page-ready', 'gct-initial-reveal');
 
@@ -67,13 +84,18 @@ document.addEventListener('submit', (event) => {
     showLoader();
 }, true);
 
+window.addEventListener('resize', syncSidebarOffset);
 window.addEventListener('load', hideLoader, { once: true });
 
 window.addEventListener('pageshow', (event) => {
+    syncSidebarOffset();
     if (event.persisted) hideLoader();
 });
+
+document.addEventListener('DOMContentLoaded', syncSidebarOffset, { once: true });
 
 window.GCTPageTransition = Object.freeze({
     show: showLoader,
     hide: hideLoader,
+    syncSidebarOffset,
 });
