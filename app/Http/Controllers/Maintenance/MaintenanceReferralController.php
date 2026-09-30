@@ -15,6 +15,16 @@ class MaintenanceReferralController extends Controller
 
     public function index(Request $request): View
     {
+        $recordView = $request->input('record_view') === 'history'
+            ? 'history'
+            : 'active';
+
+        $activeStatuses = ['Pending', 'Approved'];
+        $historyStatuses = ['Job Order Created', 'Rejected'];
+        $viewStatuses = $recordView === 'history'
+            ? $historyStatuses
+            : $activeStatuses;
+
         $query = MaintenanceReferral::query()
             ->with([
                 'incident.bus',
@@ -22,7 +32,8 @@ class MaintenanceReferralController extends Controller
                 'referrer',
                 'reviewer',
                 'jobOrder',
-            ]);
+            ])
+            ->whereIn('status', $viewStatuses);
 
         if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->input('status'));
@@ -49,6 +60,10 @@ class MaintenanceReferralController extends Controller
 
         return view('Maintenance.referrals', [
             'referrals' => $referrals,
+            'recordView' => $recordView,
+            'viewStatuses' => $viewStatuses,
+            'activeCount' => MaintenanceReferral::whereIn('status', $activeStatuses)->count(),
+            'historyCount' => MaintenanceReferral::whereIn('status', $historyStatuses)->count(),
             'pendingCount' => MaintenanceReferral::where('status', 'Pending')->count(),
             'approvedCount' => MaintenanceReferral::where('status', 'Approved')->count(),
             'createdCount' => MaintenanceReferral::where('status', 'Job Order Created')->count(),
