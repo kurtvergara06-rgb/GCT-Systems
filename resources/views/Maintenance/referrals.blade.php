@@ -55,7 +55,6 @@
                         >
                             <i class="fa-solid fa-list-check"></i>
                             <span>Active</span>
-                            <strong>{{ $activeCount }}</strong>
                         </a>
 
                         <a
@@ -70,7 +69,6 @@
                         >
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>History</span>
-                            <strong>{{ $historyCount }}</strong>
                         </a>
                     </div>
                 </div>
