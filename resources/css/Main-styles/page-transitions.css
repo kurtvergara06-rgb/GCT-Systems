@@ -1,14 +1,63 @@
+@view-transition {
+    navigation: auto;
+}
+
+#appSidebar {
+    view-transition-name: gct-sidebar;
+}
+
+.main,
+main {
+    view-transition-name: gct-main-content;
+}
+
+::view-transition-old(gct-sidebar),
+::view-transition-new(gct-sidebar) {
+    animation: none;
+}
+
+::view-transition-old(gct-main-content) {
+    animation: 140ms ease both gctMainFadeOut;
+}
+
+::view-transition-new(gct-main-content) {
+    animation: 220ms ease both gctMainFadeIn;
+}
+
+@keyframes gctMainFadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+}
+
+@keyframes gctMainFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 #gctPageLoader {
     position: fixed;
-    inset: 0;
-    z-index: 99999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: var(--gct-sidebar-offset, 290px);
+    z-index: 999;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(248, 250, 252, 0.98);
+    background: rgba(248, 250, 252, 0.94);
+    backdrop-filter: blur(2px);
     opacity: 1;
     visibility: visible;
-    transition: opacity 200ms ease, visibility 200ms ease;
+    transition: opacity 180ms ease, visibility 180ms ease;
 }
 
 #gctPageLoader.is-hidden {
@@ -44,7 +93,7 @@
 body.gct-page-entering main,
 body.gct-page-entering .main {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
 }
 
 body.gct-page-ready main,
@@ -76,7 +125,15 @@ body.gct-initial-reveal .analytics-card {
     }
 }
 
+@media (max-width: 900px) {
+    #gctPageLoader {
+        left: 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(gct-main-content),
+    ::view-transition-new(gct-main-content),
     #gctPageLoader,
     body.gct-page-ready main,
     body.gct-page-ready .main,
