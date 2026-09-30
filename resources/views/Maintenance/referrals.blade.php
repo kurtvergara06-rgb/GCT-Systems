@@ -37,22 +37,62 @@
             </section>
 
             <section class="table-card referrals-card">
-                <div class="section-header">
+                <div class="section-header referral-section-header">
                     <div>
                         <h2>Operation Referrals</h2>
                         <p>Every Job Order created here keeps the source incident and referral reference.</p>
                     </div>
+
+                    <div class="referral-record-tabs" role="tablist" aria-label="Maintenance referral record view">
+                        <a
+                            href="{{ route('maintenance-referrals', array_filter([
+                                'search' => request('search'),
+                                'status' => 'all',
+                            ])) }}"
+                            class="referral-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
+                            role="tab"
+                            aria-selected="{{ $recordView === 'active' ? 'true' : 'false' }}"
+                        >
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Active</span>
+                            <strong>{{ $activeCount }}</strong>
+                        </a>
+
+                        <a
+                            href="{{ route('maintenance-referrals', array_filter([
+                                'record_view' => 'history',
+                                'search' => request('search'),
+                                'status' => 'all',
+                            ])) }}"
+                            class="referral-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}"
+                            role="tab"
+                            aria-selected="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                        >
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>History</span>
+                            <strong>{{ $historyCount }}</strong>
+                        </a>
+                    </div>
                 </div>
 
+                @if($recordView === 'history')
+                    <p class="referral-history-note">Job Order Created and Rejected referrals are kept here for reference and audit history.</p>
+                @endif
+
                 <form method="GET" action="{{ route('maintenance-referrals') }}" class="toolbar referral-toolbar">
+                    @if($recordView === 'history')
+                        <input type="hidden" name="record_view" value="history">
+                    @endif
+
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search incident, bus, location, or problem...">
                     </div>
-                    <div class="filter-group">
+
+                    <div class="filter-group referral-status-filter">
                         <select name="status" onchange="this.form.submit()">
                             <option value="all">All Statuses</option>
-                            @foreach(['Pending', 'Approved', 'Job Order Created', 'Rejected'] as $status)
+                            @foreach($viewStatuses as $status)
                                 <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                             @endforeach
                         </select>
@@ -165,7 +205,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row colspan="6" message="No maintenance referrals found." />
+                                <x-ui.empty-row colspan="6" :message="$recordView === 'history' ? 'No referral history found.' : 'No active maintenance referrals found.'" />
                             @endforelse
                         </tbody>
                     </table>
