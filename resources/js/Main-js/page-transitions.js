@@ -27,7 +27,7 @@ const revealPageSections = () => {
 
     window.setTimeout(() => {
         body.classList.remove('gct-initial-reveal');
-    }, 500);
+    }, 420);
 };
 
 const resetProgressTimers = () => {
@@ -37,57 +37,60 @@ const resetProgressTimers = () => {
     progressTickTimer = null;
 };
 
+const setProgress = (value) => {
+    const bar = getProgressBar();
+    if (!bar) return;
+    const clamped = Math.max(0, Math.min(1, value));
+    bar.style.transform = `scaleX(${clamped})`;
+};
+
 const showProgress = () => {
     const progress = getProgress();
-    const bar = getProgressBar();
-    if (!progress || !bar) return;
+    if (!progress) return;
 
     sessionStorage.setItem(progressKey, '1');
-    progress.style.opacity = '1';
-    bar.style.width = '18%';
+    progress.classList.add('is-visible');
+    setProgress(0.12);
 
-    let width = 18;
+    let value = 0.12;
     progressTickTimer = window.setInterval(() => {
-        width = Math.min(86, width + Math.max(2, (86 - width) * 0.12));
-        bar.style.width = `${width}%`;
-    }, 180);
+        value += (0.88 - value) * 0.08;
+        setProgress(value);
+    }, 140);
 };
 
 const startNavigationProgress = () => {
     resetProgressTimers();
     syncSidebarOffset();
 
-    progressDelayTimer = window.setTimeout(() => {
-        showProgress();
-    }, 110);
+    progressDelayTimer = window.setTimeout(showProgress, 120);
 };
 
 const finishNavigationProgress = () => {
     resetProgressTimers();
 
     const progress = getProgress();
-    const bar = getProgressBar();
-    if (!progress || !bar) return;
+    if (!progress) return;
 
     const wasNavigating = sessionStorage.getItem(progressKey) === '1';
     sessionStorage.removeItem(progressKey);
 
     if (!wasNavigating) {
-        progress.style.opacity = '0';
-        bar.style.width = '0';
+        progress.classList.remove('is-visible');
+        setProgress(0);
         return;
     }
 
-    progress.style.opacity = '1';
-    bar.style.width = '100%';
+    progress.classList.add('is-visible');
+    setProgress(1);
 
     window.setTimeout(() => {
-        progress.style.opacity = '0';
-    }, 120);
+        progress.classList.remove('is-visible');
+    }, 180);
 
     window.setTimeout(() => {
-        bar.style.width = '0';
-    }, 300);
+        setProgress(0);
+    }, 460);
 };
 
 const shouldTrackLink = (link, event) => {
