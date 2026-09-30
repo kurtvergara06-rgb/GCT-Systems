@@ -15,6 +15,33 @@ const getCsrfToken = () => {
 let activeRefreshPromise = null;
 let lastRefreshTime = 0;
 
+const getRealtimeMutationState = () => {
+    if (!window.GCTRealtimeLocalMutation) {
+        window.GCTRealtimeLocalMutation = {
+            pending: 0,
+            quietUntil: 0,
+        };
+    }
+
+    return window.GCTRealtimeLocalMutation;
+};
+
+const markRealtimeMutationStart = () => {
+    const state = getRealtimeMutationState();
+    state.pending += 1;
+    // Broadcasts can arrive before the AJAX response returns. Keep the
+    // initiating tab quiet while its own mutation is still in flight.
+    state.quietUntil = Math.max(state.quietUntil, Date.now() + 3000);
+};
+
+const markRealtimeMutationEnd = () => {
+    const state = getRealtimeMutationState();
+    state.pending = Math.max(0, state.pending - 1);
+    // Leave a short grace period for broadcasts delivered immediately after
+    // the HTTP response. Other tabs/devices are unaffected by this state.
+    state.quietUntil = Math.max(state.quietUntil, Date.now() + 1200);
+};
+
 /**
  * Perform a unified AJAX request.
  * @param {string} url
@@ -44,9 +71,14 @@ async function ajaxRequest(url, options = {}) {
 
     const button = options.button || null;
     const loadingText = options.loadingText || '';
+    const isMutationRequest = !['GET', 'HEAD', 'OPTIONS'].includes(rawMethod);
 
     if (button && window.GCTLoading?.set) {
         window.GCTLoading.set(button, loadingText);
+    }
+
+    if (isMutationRequest) {
+        markRealtimeMutationStart();
     }
 
     try {
@@ -157,6 +189,10 @@ async function ajaxRequest(url, options = {}) {
 
         return { ok: false, error: msg, data: null, status: 0 };
     } finally {
+        if (isMutationRequest) {
+            markRealtimeMutationEnd();
+        }
+
         if (button && window.GCTLoading?.reset) {
             window.GCTLoading.reset(button);
         }
