@@ -39,16 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openModal() {
-        const openProfileMenu = document.querySelector('.sidebar-profile-menu.show');
-        if (openProfileMenu) {
-            openProfileMenu.classList.remove('show');
-            const toggle = document.querySelector('.sidebar-profile-toggle.active');
-            if (toggle) {
-                toggle.classList.remove('active');
-                toggle.setAttribute('aria-expanded', 'false');
-            }
-        }
-
         modal.style.display = 'flex';
         modal.classList.add('show', 'active');
         modal.setAttribute('aria-hidden', 'false');
@@ -90,8 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
         switch (type) {
             case 'delete':
                 return { className: 'danger', icon: 'fa-triangle-exclamation' };
-            case 'logout':
-                return { className: 'danger', icon: 'fa-right-from-bracket' };
             case 'create':
                 return { className: 'create', icon: 'fa-plus' };
             case 'update':
@@ -113,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
         switch (type) {
             case 'approve':
                 return ['global-confirm-btn', 'approve-confirm-btn'];
-            case 'logout':
             case 'reject':
             case 'delete':
                 return ['global-confirm-btn', 'danger-btn'];
@@ -171,38 +158,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formToSubmit = pendingForm;
         const submitter = pendingSubmitter;
-
-        if (
-            formToSubmit.matches('[data-ajax-submit="true"], [data-ajax-submit]') ||
-            formToSubmit.dataset.ajaxSubmit === 'true'
-        ) {
-            if (window.GCTAjax?.submitForm) {
-                window.GCTAjax.submitForm(formToSubmit, {
-                    button: confirmButton,
-                    submitter: submitter,
-                    onSuccess: (data) => {
-                        const targetModalId = formToSubmit.dataset.parentModalId || formToSubmit.closest('.modal, .ui-modal, [id$="Modal"]')?.id;
-                        closeModal();
-                        if (targetModalId) {
-                            const parentModal = document.getElementById(targetModalId);
-                            if (parentModal) {
-                                parentModal.classList.remove('show', 'active');
-                                parentModal.style.display = 'none';
-                                parentModal.setAttribute('aria-hidden', 'true');
-                            }
-                        }
-                        if (typeof formToSubmit.reset === 'function' && formToSubmit.dataset.noReset !== 'true') {
-                            formToSubmit.reset();
-                        }
-                    },
-                    onError: () => {
-                        resetConfirmButton();
-                        isSubmitting = false;
-                    },
-                });
-                return;
-            }
-        }
 
         if (submitter && typeof formToSubmit.requestSubmit === 'function') {
             formToSubmit.requestSubmit(submitter);

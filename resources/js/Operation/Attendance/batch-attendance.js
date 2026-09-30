@@ -435,13 +435,9 @@ document.addEventListener('DOMContentLoaded', () => {
             toast(data.message || 'Attendance saved successfully.', 'success');
             closeModal();
 
-            if (window.GCTAjax?.refreshRegions) {
-                window.GCTAjax.refreshRegions(['records', 'summary']);
-            } else {
-                window.setTimeout(() => {
-                    window.location.reload();
-                }, 450);
-            }
+            window.setTimeout(() => {
+                window.location.reload();
+            }, 450);
         } catch (error) {
             toast(error.message || 'Unable to save attendance.', 'error');
         } finally {

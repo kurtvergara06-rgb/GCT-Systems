@@ -28,7 +28,7 @@
         <div><h2>Recurring Purchase Schedules</h2><p>Track items, suppliers, frequency, due dates, and estimated costs.</p></div>
       </div>
 
-      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar" data-ajax-filter="true">
+      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" name="search" value="{{ request('search') }}" placeholder="Search schedule, supplier, item, or frequency...">
@@ -36,7 +36,7 @@
 
         <div class="filter-group">
           <label for="frequencyFilter">Frequency</label>
-          <select name="frequency" id="frequencyFilter" onchange="this.form.requestSubmit()">
+          <select name="frequency" id="frequencyFilter">
             <option value="All Frequencies" {{ request('frequency', 'All Frequencies') === 'All Frequencies' ? 'selected' : '' }}>All Frequencies</option>
             @foreach($frequencies as $frequency)
               <option value="{{ $frequency }}" {{ request('frequency') === $frequency ? 'selected' : '' }}>{{ $frequency }}</option>
@@ -46,7 +46,7 @@
 
         <div class="filter-group">
           <label for="statusFilter">Status</label>
-          <select name="status" id="statusFilter" onchange="this.form.requestSubmit()">
+          <select name="status" id="statusFilter">
             @foreach(['All Statuses','Active','Due Soon','Overdue','Paused','Completed'] as $status)
               <option value="{{ $status }}" {{ request('status', 'All Statuses') === $status ? 'selected' : '' }}>{{ $status }}</option>
             @endforeach
@@ -86,7 +86,7 @@
                     <button type="button" class="action-btn edit open-edit-schedule" title="Edit" data-schedule='@json($schedule)' data-update-url="{{ route('scheduled-purchase.update', $schedule) }}"><i class="fa-solid fa-pen-to-square"></i></button>
 
                     @if($schedule->status !== 'Completed')
-                      <form method="POST" action="{{ route('scheduled-purchase.toggle-status', $schedule) }}" data-confirm-form data-confirm-title="{{ $schedule->status === 'Paused' ? 'Resume Scheduled Purchase?' : 'Pause Scheduled Purchase?' }}" data-confirm-message="Are you sure you want to {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }} {{ $schedule->schedule_name }}?" data-confirm-button="{{ $schedule->status === 'Paused' ? 'Yes, Resume' : 'Yes, Pause' }}" data-confirm-type="status" data-ajax-submit="true" data-ajax-regions="records,summary">
+                      <form method="POST" action="{{ route('scheduled-purchase.toggle-status', $schedule) }}" data-confirm-form data-confirm-title="{{ $schedule->status === 'Paused' ? 'Resume Scheduled Purchase?' : 'Pause Scheduled Purchase?' }}" data-confirm-message="Are you sure you want to {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }} {{ $schedule->schedule_name }}?" data-confirm-button="{{ $schedule->status === 'Paused' ? 'Yes, Resume' : 'Yes, Pause' }}" data-confirm-type="status">
                         @csrf @method('PATCH')
                         <button type="submit" class="action-btn {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }}" title="{{ $schedule->status === 'Paused' ? 'Resume' : 'Pause' }}"><i class="fa-solid {{ $schedule->status === 'Paused' ? 'fa-play' : 'fa-pause' }}"></i></button>
                       </form>
@@ -99,7 +99,7 @@
                       </form>
                     @endif
 
-                    <form method="POST" action="{{ route('scheduled-purchase.destroy', $schedule) }}" data-confirm-form data-confirm-title="Delete Scheduled Purchase?" data-confirm-message="Are you sure you want to delete {{ $schedule->schedule_name }}? This action cannot be undone." data-confirm-button="Yes, Delete" data-confirm-type="delete" data-ajax-submit="true" data-ajax-regions="records,summary">
+                    <form method="POST" action="{{ route('scheduled-purchase.destroy', $schedule) }}" data-confirm-form data-confirm-title="Delete Scheduled Purchase?" data-confirm-message="Are you sure you want to delete {{ $schedule->schedule_name }}? This action cannot be undone." data-confirm-button="Yes, Delete" data-confirm-type="delete">
                       @csrf @method('DELETE')
                       <button type="submit" class="action-btn delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
                     </form>
@@ -124,7 +124,7 @@
         <button type="button" id="closeScheduleModal" class="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <form id="scheduleForm" method="POST" action="{{ route('scheduled-purchase.store') }}" data-store-url="{{ route('scheduled-purchase.store') }}" data-confirm-form data-confirm-title="Create Scheduled Purchase?" data-confirm-message="Are you sure you want to create this scheduled purchase?" data-confirm-button="Yes, Create Schedule" data-confirm-type="create" data-ajax-submit="true" data-parent-modal-id="scheduleModal" data-ajax-regions="records,summary">
+      <form id="scheduleForm" method="POST" action="{{ route('scheduled-purchase.store') }}" data-store-url="{{ route('scheduled-purchase.store') }}" data-confirm-form data-confirm-title="Create Scheduled Purchase?" data-confirm-message="Are you sure you want to create this scheduled purchase?" data-confirm-button="Yes, Create Schedule" data-confirm-type="create">
         @csrf
         <input type="hidden" name="_method" id="scheduleFormMethod" value="POST">
         <input type="hidden" name="status" id="scheduleStatus" value="Active">

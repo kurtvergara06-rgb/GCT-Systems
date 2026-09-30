@@ -608,7 +608,7 @@ class RouteController extends Controller
 
     public function store(
         Request $request
-    ): JsonResponse|RedirectResponse {
+    ): RedirectResponse {
         $validated = $this->validateRoute(
             $request
         );
@@ -642,13 +642,6 @@ class RouteController extends Controller
             }
         );
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Route created successfully.',
-            ]);
-        }
-
         session()->flash(
             'success',
             'Route created successfully.'
@@ -668,7 +661,7 @@ class RouteController extends Controller
     public function update(
         Request $request,
         ShuttleRoute $shuttleRoute
-    ): JsonResponse|RedirectResponse {
+    ): RedirectResponse {
         $validated = $this->validateRoute(
             $request,
             $shuttleRoute
@@ -700,13 +693,6 @@ class RouteController extends Controller
             }
         );
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Route updated successfully.',
-            ]);
-        }
-
         session()->flash(
             'success',
             'Route updated successfully.'
@@ -724,9 +710,8 @@ class RouteController extends Controller
     */
 
     public function destroy(
-        Request $request,
         ShuttleRoute $shuttleRoute
-    ): JsonResponse|RedirectResponse {
+    ): RedirectResponse {
         /*
          * A route referenced by Trip Schedule must
          * remain available for historical records.
@@ -736,12 +721,6 @@ class RouteController extends Controller
                 ->tripSchedules()
                 ->exists()
         ) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return new JsonResponse([
-                    'message' => 'This route cannot be deleted because it is already used by one or more trip schedules. Set the route to Inactive instead.',
-                ], 422);
-            }
-
             session()->flash(
                 'error',
                 'This route cannot be deleted because it is already used by one or more trip schedules. Set the route to Inactive instead.'
@@ -769,13 +748,6 @@ class RouteController extends Controller
                 $shuttleRoute->delete();
             }
         );
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Route deleted successfully.',
-            ]);
-        }
 
         session()->flash(
             'success',

@@ -30,7 +30,6 @@ import './Main-js/searchable-select.js';
 import './Main-js/date-time-picker.js';
 import './Main-js/loading-state.js';
 import './Main-js/ajax-regions.js';
-import './Main-js/ajax-helper.js';
 import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';

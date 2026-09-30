@@ -32,14 +32,14 @@
           </div>
         </div>
 
-        <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-ajax-filter="true">
+        <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO no., supplier, item, or delivery...">
           </div>
 
           <div class="filter-group">
-            <select name="status" id="deliveryStatus" onchange="this.form.requestSubmit()">
+            <select name="status" id="deliveryStatus">
               @foreach(['All Statuses', 'For Delivery', 'For Pick-up', 'Delivered', 'Picked Up', 'Received'] as $status)
                 <option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>
               @endforeach
@@ -97,8 +97,6 @@
                         data-confirm-message="Confirm that {{ $delivery->po_no }} has been physically received by Warehouse. Inventory will be updated automatically."
                         data-confirm-button="Yes, Receive Delivery"
                         data-confirm-type="approve"
-                        data-ajax-submit="true"
-                        data-ajax-regions="records,summary"
                       >
                         @csrf
                         @method('PATCH')

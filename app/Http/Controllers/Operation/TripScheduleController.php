@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -124,7 +123,7 @@ class TripScheduleController extends Controller
         );
     }
 
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         if ($request->input('schedule_action') === 'generate_daily') {
             return $this->duplicateSchedule($request);
@@ -179,13 +178,6 @@ class TripScheduleController extends Controller
             ]);
         });
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Trip schedule created successfully.',
-            ]);
-        }
-
         session()->flash(
             'success',
             'Trip schedule created successfully.'
@@ -197,7 +189,7 @@ class TripScheduleController extends Controller
     public function update(
         Request $request,
         TripSchedule $tripSchedule
-    ): JsonResponse|RedirectResponse {
+    ): RedirectResponse {
         if (
             in_array(
                 $tripSchedule->status,
@@ -205,12 +197,6 @@ class TripScheduleController extends Controller
                 true
             )
         ) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Dispatched or completed trips can no longer be edited.',
-                ], 422);
-            }
-
             session()->flash(
                 'error',
                 'Dispatched or completed trips can no longer be edited.'
@@ -250,13 +236,6 @@ class TripScheduleController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Trip schedule updated successfully.',
-            ]);
-        }
-
         session()->flash(
             'success',
             'Trip schedule updated successfully.'
@@ -266,9 +245,8 @@ class TripScheduleController extends Controller
     }
 
     public function destroy(
-        Request $request,
         TripSchedule $tripSchedule
-    ): JsonResponse|RedirectResponse {
+    ): RedirectResponse {
         if (
             ! in_array(
                 $tripSchedule->status,
@@ -276,12 +254,6 @@ class TripScheduleController extends Controller
                 true
             )
         ) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Only scheduled or cancelled trips may be deleted.',
-                ], 422);
-            }
-
             session()->flash(
                 'error',
                 'Only scheduled or cancelled trips may be deleted.'
@@ -291,12 +263,6 @@ class TripScheduleController extends Controller
         }
 
         if ($tripSchedule->assignment_status === 'Assigned') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Remove the driver and bus assignment before deleting this trip.',
-                ], 422);
-            }
-
             session()->flash(
                 'error',
                 'Remove the driver and bus assignment before deleting this trip.'
@@ -307,13 +273,6 @@ class TripScheduleController extends Controller
 
         $tripSchedule->delete();
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Trip schedule deleted successfully.',
-            ]);
-        }
-
         session()->flash(
             'success',
             'Trip schedule deleted successfully.'
@@ -322,7 +281,7 @@ class TripScheduleController extends Controller
         return new RedirectResponse('/operation/trip-schedule');
     }
 
-    private function duplicateSchedule(Request $request): JsonResponse|RedirectResponse
+    private function duplicateSchedule(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'source_date' => ['required', 'date'],
@@ -333,12 +292,6 @@ class TripScheduleController extends Controller
         $sourceDate = Carbon::parse($validated['source_date'])->toDateString();
 
         if ($sourceDate === $targetDate) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Source and target dates must be different.',
-                ], 422);
-            }
-
             return redirect()
                 ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
                 ->withInput()
@@ -354,12 +307,6 @@ class TripScheduleController extends Controller
             ->get();
 
         if ($sourceTrips->isEmpty()) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'No reusable trips were found on the selected source date.',
-                ], 422);
-            }
-
             return redirect()
                 ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
                 ->withInput()
@@ -422,12 +369,6 @@ class TripScheduleController extends Controller
         });
 
         if ($created === 0) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => "No new trips were created. {$skipped} matching trip(s) already exist on the target date.",
-                ], 422);
-            }
-
             return redirect()
                 ->to(route('trip-schedule', ['trip_date' => $targetDate], false))
                 ->with(
@@ -442,13 +383,6 @@ class TripScheduleController extends Controller
 
         if ($skipped > 0) {
             $message .= " {$skipped} duplicate trip(s) were skipped.";
-        }
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-            ]);
         }
 
         return redirect()

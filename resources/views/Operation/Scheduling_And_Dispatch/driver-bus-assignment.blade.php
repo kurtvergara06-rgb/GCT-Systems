@@ -29,7 +29,7 @@
                 </div>
             @endif
 
-            <section data-ajax-region="summary" class="assignment-summary-grid">
+            <section class="assignment-summary-grid">
                 <article class="assignment-summary-card">
                     <div class="summary-icon blue">
                         <i class="fa-solid fa-calendar-days"></i>
@@ -75,7 +75,7 @@
                 </article>
             </section>
 
-            <section data-ajax-region="records" class="assignment-card">
+            <section class="assignment-card">
                 <div class="assignment-card-header">
                     <div>
                         <h2>Trip Assignments</h2>
@@ -96,7 +96,6 @@
                     method="GET"
                     action="{{ route('driver-bus-assignment', [], false) }}"
                     class="assignment-toolbar"
-                    data-ajax-filter="true"
                 >
                     <div class="assignment-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -266,8 +265,6 @@
                                                     id="removeAssignmentForm-{{ $assignment->id }}"
                                                     method="POST"
                                                     action="{{ route('driver-bus-assignment.destroy', $assignment->id, false) }}"
-                                                    data-ajax-submit="true"
-                                                    data-ajax-regions="records,summary"
                                                 >
                                                     @csrf
                                                     @method('DELETE')
@@ -381,8 +378,6 @@
         form-id="assignmentForm"
         :action="route('driver-bus-assignment.store', [], false)"
         method="POST"
-        :ajax="true"
-        data-ajax-regions="records,summary"
         submit-text="Confirm Assignment"
         submit-text-id="assignmentSubmitText"
         submit-icon="fa-check"

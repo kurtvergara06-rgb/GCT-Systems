@@ -34,8 +34,6 @@
     'showActions' => true,
 
     'closeDataAttribute' => null,
-
-    'ajax' => false,
 ])
 
 @php
@@ -150,11 +148,6 @@
 
             @if($confirm)
                 data-confirm-type="{{ $confirmType }}"
-            @endif
-
-            @if($ajax)
-                data-ajax-submit="true"
-                data-parent-modal-id="{{ $id }}"
             @endif
         >
 

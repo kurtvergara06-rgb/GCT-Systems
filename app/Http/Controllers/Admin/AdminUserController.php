@@ -104,7 +104,7 @@ class AdminUserController extends Controller
             'status' => ['required', 'string', Rule::in($this->statuses)],
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -115,14 +115,6 @@ class AdminUserController extends Controller
             'role' => $validated['role'],
             'status' => $validated['status'],
         ]);
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User account created successfully. The user must change the temporary password and complete the welcome setup at first login.',
-                'data' => $user,
-            ]);
-        }
 
         return redirect()
             ->route('admin.users')
@@ -165,13 +157,6 @@ class AdminUserController extends Controller
     public function update(Request $request, User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The protected System Admin account cannot be edited from Account Management.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be edited from Account Management.');
         }
 
@@ -184,13 +169,6 @@ class AdminUserController extends Controller
         ]);
 
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot deactivate or place your own account in Pending status.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'You cannot deactivate or place your own account in Pending status.');
         }
 
@@ -202,27 +180,12 @@ class AdminUserController extends Controller
             'status' => $validated['status'],
         ]);
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User account updated successfully.',
-                'data' => $user,
-            ]);
-        }
-
         return redirect()->route('admin.users')->with('success', 'User account updated successfully.');
     }
 
     public function updateStatus(Request $request, User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The protected System Admin account must remain Active.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account must remain Active.');
         }
 
@@ -231,13 +194,6 @@ class AdminUserController extends Controller
         ]);
 
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot deactivate your own account.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'You cannot deactivate your own account.');
         }
 
@@ -253,13 +209,6 @@ class AdminUserController extends Controller
             default => 'User status updated successfully.',
         };
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-            ]);
-        }
-
         return redirect()->route('admin.users')->with('success', $message);
     }
 
@@ -270,13 +219,6 @@ class AdminUserController extends Controller
         abort_unless($actor && $actor->hasSystemPermission('administration', 'full_control'), 403);
 
         if ($this->isProtectedSystemAdmin($user)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The protected System Admin password must be changed from Security & Password.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'The protected System Admin password must be changed from Security & Password.');
         }
 
@@ -289,13 +231,6 @@ class AdminUserController extends Controller
             'must_change_password' => true,
         ]);
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Password reset successfully. The user must change the temporary password at next login.',
-            ]);
-        }
-
         return redirect()
             ->route('admin.users')
             ->with('success', 'Password reset successfully. The user must change the temporary password at next login.');
@@ -304,35 +239,14 @@ class AdminUserController extends Controller
     public function destroy(User $user)
     {
         if ($this->isProtectedSystemAdmin($user)) {
-            if (request()->ajax() || request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The protected System Admin account cannot be deleted.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be deleted.');
         }
 
         if (Auth::id() === $user->id) {
-            if (request()->ajax() || request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot delete your own account.',
-                ], 422);
-            }
-
             return redirect()->route('admin.users')->with('error', 'You cannot delete your own account.');
         }
 
         $user->delete();
-
-        if (request()->ajax() || request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User deleted successfully.',
-            ]);
-        }
 
         return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }

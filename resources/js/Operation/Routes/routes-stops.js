@@ -254,18 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('confirmDeleteRoute')?.addEventListener(
         'click',
-        () => {
-            if (!selectedDeleteForm) return;
-
-            if (window.GCTAjax) {
-                window.GCTAjax.submitForm(selectedDeleteForm, {
-                    closeModal: () => closeModal(deleteRouteModal),
-                    refreshRegions: ['records', 'summary'],
-                });
-            } else {
-                selectedDeleteForm?.requestSubmit();
-            }
-        }
+        () => selectedDeleteForm?.requestSubmit()
     );
 
     $('closeRouteValidationModal')?.addEventListener(

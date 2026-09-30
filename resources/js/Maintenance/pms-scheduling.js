@@ -849,86 +849,199 @@ document.addEventListener('DOMContentLoaded', () => {
        Close PMS Task View before opening Edit.
     ========================================================= */
 
-    document.addEventListener('click', event => {
-        const button = event.target.closest('.open-edit-pms');
-        if (!button) return;
-        if (!editPmsForm) return;
+    document
+        .querySelectorAll(
+            '.open-edit-pms'
+        )
+        .forEach(button => {
 
-        /* =========================================
-           CLOSE CURRENT VIEW POPUP FIRST
-        ========================================= */
-        const currentTaskModal = button.closest('.pms-modal-overlay');
-        if (currentTaskModal) {
-            closeModal(currentTaskModal);
-        }
+            button.addEventListener(
+                'click',
+                () => {
 
-        /* =========================================
-           FORM ACTION
-        ========================================= */
-        editPmsForm.action = button.dataset.updateUrl || '#';
+                    if (!editPmsForm) {
+                        return;
+                    }
 
-        /* =========================================
-           BUS
-        ========================================= */
-        if (editBusNo) {
-            editBusNo.value = button.dataset.busNo || '';
-        }
 
-        /* =========================================
-           PMS TYPE
-        ========================================= */
-        const savedType = button.dataset.maintenanceType || '';
+                    /* =========================================
+                       CLOSE CURRENT VIEW POPUP FIRST
+                    ========================================= */
 
-        if (editMaintenanceType && editCustomMaintenanceType) {
-            if (standardPmsTypes.includes(savedType)) {
-                editMaintenanceType.value = savedType;
-                editCustomMaintenanceType.value = '';
-            } else {
-                editMaintenanceType.value = 'Other';
-                editCustomMaintenanceType.value = savedType;
-            }
-        }
+                    const currentTaskModal =
+                        button.closest(
+                            '.pms-modal-overlay'
+                        );
 
-        /* =========================================
-           LAST PMS KM
-        ========================================= */
-        if (editLastPmsKm) {
-            editLastPmsKm.value = button.dataset.lastPmsKm || 0;
-        }
 
-        /* =========================================
-           PMS INTERVAL
-        ========================================= */
-        if (editPmsIntervalKm) {
-            editPmsIntervalKm.value = button.dataset.pmsIntervalKm || 5000;
-        }
+                    if (currentTaskModal) {
 
-        /* =========================================
-           CURRENT KM
-        ========================================= */
-        editCurrentKm = button.dataset.currentKm !== ''
-            ? Number(button.dataset.currentKm)
-            : null;
+                        closeModal(
+                            currentTaskModal
+                        );
 
-        /* =========================================
-           GPS DATE
-        ========================================= */
-        editGpsDate = button.dataset.gpsDateIso || button.dataset.gpsDate || null;
+                    }
 
-        /* =========================================
-           SAVED RECOMMENDED DATE
-        ========================================= */
-        if (editRecommendedDate) {
-            editRecommendedDate.value = button.dataset.recommendedDate || '';
-        }
 
-        updateEditMaintenanceType();
-        updateEditPmsPreview();
+                    /* =========================================
+                       FORM ACTION
+                    ========================================= */
 
-        window.setTimeout(() => {
-            openModal(editPmsModal);
-        }, 50);
-    });
+                    editPmsForm.action =
+                        button.dataset.updateUrl ||
+                        '#';
+
+
+                    /* =========================================
+                       BUS
+                    ========================================= */
+
+                    if (editBusNo) {
+
+                        editBusNo.value =
+                            button.dataset.busNo ||
+                            '';
+
+                    }
+
+
+                    /* =========================================
+                       PMS TYPE
+                    ========================================= */
+
+                    const savedType =
+                        button
+                            .dataset
+                            .maintenanceType ||
+                        '';
+
+
+                    if (
+                        editMaintenanceType &&
+                        editCustomMaintenanceType
+                    ) {
+
+                        if (
+                            standardPmsTypes.includes(
+                                savedType
+                            )
+                        ) {
+
+                            editMaintenanceType.value =
+                                savedType;
+
+                            editCustomMaintenanceType.value =
+                                '';
+
+                        } else {
+
+                            editMaintenanceType.value =
+                                'Other';
+
+                            editCustomMaintenanceType.value =
+                                savedType;
+
+                        }
+
+                    }
+
+
+                    /* =========================================
+                       LAST PMS KM
+                    ========================================= */
+
+                    if (editLastPmsKm) {
+
+                        editLastPmsKm.value =
+                            button
+                                .dataset
+                                .lastPmsKm ||
+                            0;
+
+                    }
+
+
+                    /* =========================================
+                       PMS INTERVAL
+                    ========================================= */
+
+                    if (editPmsIntervalKm) {
+
+                        editPmsIntervalKm.value =
+                            button
+                                .dataset
+                                .pmsIntervalKm ||
+                            5000;
+
+                    }
+
+
+                    /* =========================================
+                       CURRENT KM
+                    ========================================= */
+
+                    editCurrentKm =
+                        button.dataset.currentKm !== ''
+                            ? Number(
+                                button.dataset.currentKm
+                            )
+                            : null;
+
+
+                    /* =========================================
+                       GPS DATE
+                    ========================================= */
+
+                    editGpsDate =
+                        button
+                            .dataset
+                            .gpsDateIso ||
+                        button
+                            .dataset
+                            .gpsDate ||
+                        null;
+
+
+                    /* =========================================
+                       SAVED RECOMMENDED DATE
+                    ========================================= */
+
+                    if (editRecommendedDate) {
+
+                        editRecommendedDate.value =
+                            button
+                                .dataset
+                                .recommendedDate ||
+                            '';
+
+                    }
+
+
+                    updateEditMaintenanceType();
+
+                    updateEditPmsPreview();
+
+
+                    /*
+                     * Give the previous overlay time to close
+                     * before the global Edit form appears.
+                     */
+                    window.setTimeout(
+                        () => {
+
+                            openModal(
+                                editPmsModal
+                            );
+
+                        },
+                        50
+                    );
+
+                }
+            );
+
+        });
+
 
     document
         .querySelectorAll(
@@ -954,25 +1067,60 @@ document.addEventListener('DOMContentLoaded', () => {
        PMS TASK LIST VIEW
     ========================================================= */
 
-    document.addEventListener('click', event => {
-        const button = event.target.closest('.open-pms-tasks-modal');
-        if (!button) return;
+    document
+        .querySelectorAll(
+            '.open-pms-tasks-modal'
+        )
+        .forEach(button => {
 
-        const modal = document.getElementById(button.dataset.modalTarget);
-        if (modal) {
-            openModal(modal);
-        }
-    });
+            button.addEventListener(
+                'click',
+                () => {
 
-    document.addEventListener('click', event => {
-        const button = event.target.closest('.close-pms-tasks-modal');
-        if (!button) return;
+                    const modal =
+                        document.getElementById(
+                            button
+                                .dataset
+                                .modalTarget
+                        );
 
-        const modal = document.getElementById(button.dataset.modalTarget);
-        if (modal) {
-            closeModal(modal);
-        }
-    });
+
+                    openModal(
+                        modal
+                    );
+
+                }
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(
+            '.close-pms-tasks-modal'
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                'click',
+                () => {
+
+                    const modal =
+                        document.getElementById(
+                            button
+                                .dataset
+                                .modalTarget
+                        );
+
+
+                    closeModal(
+                        modal
+                    );
+
+                }
+            );
+
+        });
 
 
     /* =========================================================

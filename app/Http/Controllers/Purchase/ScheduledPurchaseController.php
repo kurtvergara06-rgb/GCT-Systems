@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\ScheduledPurchase;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -67,48 +66,24 @@ class ScheduledPurchaseController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse|JsonResponse
+    public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
         $data['schedule_no'] = $this->generateScheduleNo();
-        $schedule = ScheduledPurchase::create($data);
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase schedule created successfully.',
-                'data' => $schedule,
-            ]);
-        }
+        ScheduledPurchase::create($data);
 
         return back()->with('success', 'Purchase schedule created successfully.');
     }
 
-    public function update(Request $request, ScheduledPurchase $scheduledPurchase): RedirectResponse|JsonResponse
+    public function update(Request $request, ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
         $scheduledPurchase->update($this->validated($request));
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase schedule updated successfully.',
-                'data' => $scheduledPurchase,
-            ]);
-        }
-
         return back()->with('success', 'Purchase schedule updated successfully.');
     }
 
-    public function toggleStatus(ScheduledPurchase $scheduledPurchase): RedirectResponse|JsonResponse
+    public function toggleStatus(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
         if ($scheduledPurchase->status === 'Completed') {
-            if (request()->ajax() || request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Completed schedules can no longer be resumed.',
-                ], 422);
-            }
-
             return back()->with('error', 'Completed schedules can no longer be resumed.');
         }
 
@@ -116,41 +91,18 @@ class ScheduledPurchaseController extends Controller
             'status' => $scheduledPurchase->status === 'Paused' ? 'Active' : 'Paused',
         ]);
 
-        if (request()->ajax() || request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Schedule status updated.',
-            ]);
-        }
-
         return back()->with('success', 'Schedule status updated.');
     }
 
-    public function complete(ScheduledPurchase $scheduledPurchase): RedirectResponse|JsonResponse
+    public function complete(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
         $scheduledPurchase->update(['status' => 'Completed']);
-
-        if (request()->ajax() || request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Schedule marked as completed.',
-            ]);
-        }
-
         return back()->with('success', 'Schedule marked as completed.');
     }
 
-    public function destroy(ScheduledPurchase $scheduledPurchase): RedirectResponse|JsonResponse
+    public function destroy(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
         $scheduledPurchase->delete();
-
-        if (request()->ajax() || request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase schedule deleted.',
-            ]);
-        }
-
         return back()->with('success', 'Purchase schedule deleted.');
     }
 

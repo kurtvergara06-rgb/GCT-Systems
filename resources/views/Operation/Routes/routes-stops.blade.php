@@ -89,7 +89,7 @@
             ====================================================== --}}
 
 
-<section data-ajax-region="summary" class="route-summary-grid" aria-label="Route summary">
+<section class="route-summary-grid" aria-label="Route summary">
     <x-ui.summary-card
         label="Total Routes"
         :value="$routeStats['total']"
@@ -154,7 +154,6 @@
                     method="GET"
                     action="{{ route('operation.routes', [], false) }}"
                     class="toolbar routes-toolbar"
-                    data-ajax-filter="true"
                 >
 
                     <div class="search-box">
@@ -443,8 +442,6 @@
                                                 action="{{ route('operation.routes.destroy', $route->id, false) }}"
                                                 method="POST"
                                                 class="route-delete-form"
-                                                data-ajax-submit="true"
-                                                data-ajax-regions="records,summary"
                                             >
 
                                                 @csrf
@@ -527,8 +524,6 @@
         form-id="routeForm"
 
         :action="route('operation.routes.store', [], false)"
-        :ajax="true"
-        data-ajax-regions="records,summary"
 
         submit-text="Save Route"
         submit-text-id="saveRouteText"

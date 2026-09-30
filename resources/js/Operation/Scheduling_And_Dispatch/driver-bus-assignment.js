@@ -827,58 +827,105 @@ document.addEventListener('DOMContentLoaded', () => {
     |--------------------------------------------------------------------------
     */
 
-    document.addEventListener('click', (event) => {
-        const editBtn = event.target.closest('.edit-assignment');
-        if (editBtn) {
-            if (!assignmentForm) {
-                return;
-            }
+    document
+        .querySelectorAll('.edit-assignment')
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => {
+                    if (!assignmentForm) {
+                        return;
+                    }
 
-            const assignmentId = editBtn.dataset.assignmentId;
-            const fallbackUrl = `/operation/driver-bus-assignment/${assignmentId}`;
+                    const assignmentId =
+                        button.dataset.assignmentId;
 
-            assignmentForm.setAttribute(
-                'action',
-                normalizePath(
-                    editBtn.dataset.updateUrl,
-                    fallbackUrl
-                )
+                    const fallbackUrl =
+                        `/operation/driver-bus-assignment/${assignmentId}`;
+
+                    assignmentForm.setAttribute(
+                        'action',
+                        normalizePath(
+                            button.dataset.updateUrl,
+                            fallbackUrl
+                        )
+                    );
+
+                    if (assignmentFormMethod) {
+                        assignmentFormMethod.disabled =
+                            false;
+
+                        assignmentFormMethod.value =
+                            'PUT';
+                    }
+
+                    if (assignmentTrip) {
+                        assignmentTrip.value =
+                            button.dataset.tripId
+                            || '';
+
+                        assignmentTrip.disabled =
+                            true;
+
+                        assignmentTrip.required =
+                            false;
+                    }
+
+                    selectDriverById(
+                        button.dataset.driverId
+                        || ''
+                    );
+
+                    selectBusById(
+                        button.dataset.busId
+                        || ''
+                    );
+
+                    if (assignmentModalTitle) {
+                        assignmentModalTitle.textContent =
+                            'Edit Assignment';
+                    }
+
+                    if (assignmentSubmitText) {
+                        assignmentSubmitText.textContent =
+                            'Update Assignment';
+                    }
+
+                    openModal(
+                        assignmentModal
+                    );
+                }
             );
+        });
 
-            if (assignmentFormMethod) {
-                assignmentFormMethod.disabled = false;
-                assignmentFormMethod.value = 'PUT';
-            }
 
-            if (assignmentTrip) {
-                assignmentTrip.value = editBtn.dataset.tripId || '';
-                assignmentTrip.disabled = true;
-                assignmentTrip.required = false;
-            }
+    /*
+    |--------------------------------------------------------------------------
+    | View Assignment
+    |--------------------------------------------------------------------------
+    */
 
-            selectDriverById(editBtn.dataset.driverId || '');
-            selectBusById(editBtn.dataset.busId || '');
+    document
+        .querySelectorAll('.view-assignment')
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => {
+                    const details =
+                        parseAssignmentDetails(
+                            button.dataset.details
+                        );
 
-            if (assignmentModalTitle) {
-                assignmentModalTitle.textContent = 'Edit Assignment';
-            }
+                    renderAssignmentDetails(
+                        details
+                    );
 
-            if (assignmentSubmitText) {
-                assignmentSubmitText.textContent = 'Update Assignment';
-            }
-
-            openModal(assignmentModal);
-            return;
-        }
-
-        const viewBtn = event.target.closest('.view-assignment');
-        if (viewBtn) {
-            const details = parseAssignmentDetails(viewBtn.dataset.details);
-            renderAssignmentDetails(details);
-            openModal(viewAssignmentModal);
-            return;
-        }
-    });
+                    openModal(
+                        viewAssignmentModal
+                    );
+                }
+            );
+        });
 
 
     function parseAssignmentDetails(rawData) {
@@ -1002,21 +1049,33 @@ document.addEventListener('DOMContentLoaded', () => {
     |--------------------------------------------------------------------------
     */
 
-    document.addEventListener('click', (event) => {
-        const removeBtn = event.target.closest('.remove-assignment');
-        if (removeBtn) {
-            const formId = removeBtn.dataset.formId;
-            selectedRemoveForm = document.getElementById(formId);
+    document
+        .querySelectorAll('.remove-assignment')
+        .forEach((button) => {
+            button.addEventListener(
+                'click',
+                () => {
+                    const formId =
+                        button.dataset.formId;
 
-            if (removeAssignmentName) {
-                removeAssignmentName.textContent =
-                    removeBtn.dataset.tripCode
-                    || 'this trip';
-            }
+                    selectedRemoveForm =
+                        document.getElementById(
+                            formId
+                        );
 
-            openModal(removeAssignmentModal);
-        }
-    });
+                    if (removeAssignmentName) {
+                        removeAssignmentName.textContent =
+                            button.dataset.tripCode
+                            || 'this trip';
+                    }
+
+                    openModal(
+                        removeAssignmentModal
+                    );
+                }
+            );
+        });
+
 
     if (cancelRemoveAssignment) {
         cancelRemoveAssignment.addEventListener(
@@ -1031,6 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
+
     if (confirmRemoveAssignment) {
         confirmRemoveAssignment.addEventListener(
             'click',
@@ -1039,14 +1099,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (window.GCTAjax) {
-                    window.GCTAjax.submitForm(selectedRemoveForm, {
-                        closeModal: () => closeModal(removeAssignmentModal),
-                        refreshRegions: ['records', 'summary'],
-                    });
-                } else {
-                    selectedRemoveForm.requestSubmit();
-                }
+                selectedRemoveForm
+                    .requestSubmit();
             }
         );
     }

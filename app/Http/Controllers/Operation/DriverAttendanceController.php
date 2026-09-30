@@ -74,7 +74,7 @@ class DriverAttendanceController extends Controller
         ));
     }
 
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',

@@ -40,15 +40,14 @@
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
                     button-id="openJobModal"
                     button-label="New JO"
-                    data-ajax-filter="true"
                 >
                     <div class="filter-group">
                         <label for="partStatusFilter"></label>
-                        <select name="part_status" id="partStatusFilter" class="part-status-select">
+                        <select name="part_status" id="partStatusFilter" class="part-status-select" onchange="this.form.submit()">
                             @foreach([
                                 'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
                                 'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
-                                'Picked Up', 'Issued', 'No Parts Required'
+                                'Picked Up', 'Issued', 'No Parts Needed'
                             ] as $partStatusOption)
                                 <option
                                     value="{{ $partStatusOption }}"
@@ -62,7 +61,7 @@
 
                     <div class="filter-group">
                         <label for="maintenanceTypeFilter"></label>
-                        <select name="maintenance_type" id="maintenanceTypeFilter">
+                        <select name="maintenance_type" id="maintenanceTypeFilter" onchange="this.form.submit()">
                             <option value="All Types" {{ request('maintenance_type', 'All Types') === 'All Types' ? 'selected' : '' }}>All Types</option>
                             <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
                             <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
@@ -270,12 +269,10 @@
                                                     method="POST"
                                                     class="create-pr-form"
                                                     data-confirm-form
-                                                    data-ajax-submit="true"
                                                     data-confirm-title="Create Purchase Request?"
                                                     data-confirm-message="Are you sure you want to create a Purchase Request from job order {{ $jobOrder->job_order_no }}?"
                                                     data-confirm-button="Yes, Create PR"
                                                     data-confirm-type="create"
-                                                    data-confirm-loading-text="Creating PR..."
                                                 >
                                                     @csrf
                                                     <button type="submit" class="action-btn create-pr-btn" title="Create Purchase Request">
@@ -352,7 +349,6 @@
         confirm-message="Are you sure you want to create this Job Order?"
         confirm-button="Yes, Create Job Order"
         confirm-type="create"
-        :ajax="true"
     >
         <input type="hidden" name="pms_schedule_id" id="pms_schedule_id" value="">
 
@@ -507,7 +503,6 @@
         confirm-button="Yes, Update Job Order"
         confirm-type="update"
         :show-actions="false"
-        :ajax="true"
     >
         <div class="ui-form-grid">
             <x-ui.form-field

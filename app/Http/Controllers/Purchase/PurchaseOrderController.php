@@ -179,14 +179,6 @@ class PurchaseOrderController extends Controller
             $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'created', $newPurchaseOrder->id, 'A new purchase order was created.');
         }
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase order created successfully.',
-                'purchase_order' => $newPurchaseOrder,
-            ]);
-        }
-
         session()->flash('success', 'Purchase order created successfully.');
 
         return new RedirectResponse('/purchase-orders');
@@ -261,15 +253,6 @@ class PurchaseOrderController extends Controller
         });
 
         $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'updated', $purchaseOrder->id, 'A purchase order was updated.');
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase order updated successfully.',
-                'purchase_order' => $purchaseOrder,
-            ]);
-        }
-
         session()->flash('success', 'Purchase order updated successfully.');
 
         return new RedirectResponse('/purchase-orders');
@@ -293,9 +276,6 @@ class PurchaseOrderController extends Controller
             ];
 
         if (! in_array($validated['status'], $allowedTransitions[$purchaseOrder->status] ?? [], true)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'That purchase order status change is not allowed from the current workflow state.'], 422);
-            }
             return redirect()->back()->with('error', 'That purchase order status change is not allowed from the current workflow state.');
         }
 
@@ -316,14 +296,6 @@ class PurchaseOrderController extends Controller
             $warehouseReceive ? 'Warehouse received a purchase order.' : 'A purchase order status was updated.'
         );
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $warehouseReceive ? 'Delivery received and inventory updated successfully.' : 'Purchase order status updated successfully.',
-                'purchase_order' => $purchaseOrder,
-            ]);
-        }
-
         session()->flash(
             'success',
             $warehouseReceive ? 'Delivery received and inventory updated successfully.' : 'Purchase order status updated successfully.'
@@ -332,7 +304,7 @@ class PurchaseOrderController extends Controller
         return new RedirectResponse($warehouseReceive ? '/warehouse/incoming-deliveries' : '/purchase-orders');
     }
 
-    public function destroy(Request $request, PurchaseOrder $purchaseOrder)
+    public function destroy(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrderId = $purchaseOrder->id;
 
@@ -347,14 +319,6 @@ class PurchaseOrderController extends Controller
         });
 
         $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'deleted', $purchaseOrderId, 'A purchase order was deleted.');
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase order deleted successfully.',
-            ]);
-        }
-
         session()->flash('success', 'Purchase order deleted successfully.');
 
         return new RedirectResponse('/purchase-orders');

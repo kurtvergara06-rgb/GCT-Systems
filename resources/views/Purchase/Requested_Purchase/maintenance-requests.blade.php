@@ -60,7 +60,6 @@
           action="{{ route('maintenance-requests', [], false) }}"
           method="GET"
           class="toolbar requested-toolbar"
-          data-ajax-filter="true"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -77,7 +76,6 @@
               name="status"
               id="requestedStatusFilter"
               aria-label="Status"
-              onchange="this.form.requestSubmit()"
             >
               <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
                 All States

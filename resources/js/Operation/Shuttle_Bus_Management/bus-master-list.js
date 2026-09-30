@@ -219,62 +219,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /*
     |--------------------------------------------------------------------------
-    | Edit & Delete Delegated Events
+    | Edit Bus Modal
     |--------------------------------------------------------------------------
     */
 
-    document.addEventListener('click', (event) => {
-        const editBtn = event.target.closest('.open-edit-bus');
-        if (editBtn) {
-            event.preventDefault();
+    document
+        .querySelectorAll('.open-edit-bus')
+        .forEach((button) => {
 
-            if (!editBusForm) {
-                return;
-            }
+            button.addEventListener('click', (event) => {
 
-            editBusForm.setAttribute(
-                'action',
-                normalizeBusPath(
-                    editBtn.dataset.updateUrl,
-                    `/bus-master-list/${editBtn.dataset.id}`
-                )
-            );
+                event.preventDefault();
 
-            const editBusNo = document.getElementById('edit_bus_no');
-            const editPlateNo = document.getElementById('edit_plate_no');
-            const editBusModel = document.getElementById('edit_bus_model');
-            const editYearModel = document.getElementById('edit_year_model');
-            const editCapacity = document.getElementById('edit_capacity');
-            const editRouteGrouping = document.getElementById('edit_route_grouping');
-            const editStatus = document.getElementById('edit_status');
+                if (!editBusForm) {
+                    return;
+                }
 
-            if (editBusNo) editBusNo.value = editBtn.dataset.busNo || '';
-            if (editPlateNo) editPlateNo.value = editBtn.dataset.plateNo || '';
-            if (editBusModel) editBusModel.value = editBtn.dataset.busModel || '';
-            if (editYearModel) editYearModel.value = editBtn.dataset.yearModel || '';
-            if (editCapacity) editCapacity.value = editBtn.dataset.capacity || '';
-            if (editRouteGrouping) editRouteGrouping.value = editBtn.dataset.routeGrouping || '';
-            if (editStatus) editStatus.value = editBtn.dataset.status || 'Active';
 
-            openModal(editBusModal);
-            return;
-        }
+                /*
+                |--------------------------------------------------------------------------
+                | Update Form URL
+                |--------------------------------------------------------------------------
+                */
 
-        const deleteBtn = event.target.closest('.open-delete-bus');
-        if (deleteBtn) {
-            event.preventDefault();
+                editBusForm.setAttribute(
+                    'action',
+                    normalizeBusPath(
+                        button.dataset.updateUrl,
+                        `/bus-master-list/${button.dataset.id}`
+                    )
+                );
 
-            const id = deleteBtn.dataset.id;
-            selectedDeleteForm = document.getElementById(`deleteBusForm-${id}`);
 
-            if (deleteBusNo) {
-                deleteBusNo.textContent = deleteBtn.dataset.busNo || 'this bus';
-            }
+                /*
+                |--------------------------------------------------------------------------
+                | Get Edit Inputs
+                |--------------------------------------------------------------------------
+                */
 
-            openModal(deleteBusModal);
-            return;
-        }
-    });
+                const editBusNo =
+                    document.getElementById('edit_bus_no');
+
+                const editPlateNo =
+                    document.getElementById('edit_plate_no');
+
+                const editBusModel =
+                    document.getElementById('edit_bus_model');
+
+                const editYearModel =
+                    document.getElementById('edit_year_model');
+
+                const editCapacity =
+                    document.getElementById('edit_capacity');
+
+                const editRouteGrouping =
+                    document.getElementById('edit_route_grouping');
+
+                const editStatus =
+                    document.getElementById('edit_status');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Fill Form
+                |--------------------------------------------------------------------------
+                */
+
+                if (editBusNo) {
+                    editBusNo.value =
+                        button.dataset.busNo || '';
+                }
+
+
+                if (editPlateNo) {
+                    editPlateNo.value =
+                        button.dataset.plateNo || '';
+                }
+
+
+                if (editBusModel) {
+                    editBusModel.value =
+                        button.dataset.busModel || '';
+                }
+
+
+                if (editYearModel) {
+                    editYearModel.value =
+                        button.dataset.yearModel || '';
+                }
+
+
+                if (editCapacity) {
+                    editCapacity.value =
+                        button.dataset.capacity || '';
+                }
+
+
+                if (editRouteGrouping) {
+                    editRouteGrouping.value =
+                        button.dataset.routeGrouping || '';
+                }
+
+
+                if (editStatus) {
+                    editStatus.value =
+                        button.dataset.status || 'Active';
+                }
+
+
+                openModal(editBusModal);
+            });
+        });
+
 
     if (closeEditBusModal) {
         closeEditBusModal.addEventListener('click', () => {
@@ -282,31 +338,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
     if (cancelEditBusModal) {
         cancelEditBusModal.addEventListener('click', () => {
             closeModal(editBusModal);
         });
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete Bus Modal
+    |--------------------------------------------------------------------------
+    */
+
+    document
+        .querySelectorAll('.open-delete-bus')
+        .forEach((button) => {
+
+            button.addEventListener('click', (event) => {
+
+                event.preventDefault();
+
+                const id =
+                    button.dataset.id;
+
+
+                selectedDeleteForm =
+                    document.getElementById(
+                        `deleteBusForm-${id}`
+                    );
+
+
+                if (deleteBusNo) {
+                    deleteBusNo.textContent =
+                        button.dataset.busNo
+                        || 'this bus';
+                }
+
+
+                openModal(deleteBusModal);
+            });
+        });
+
+
     if (cancelDeleteBus) {
         cancelDeleteBus.addEventListener('click', () => {
+
             selectedDeleteForm = null;
+
             closeModal(deleteBusModal);
         });
     }
 
+
     if (confirmDeleteBus) {
         confirmDeleteBus.addEventListener('click', () => {
-            if (!selectedDeleteForm) {
-                return;
-            }
 
-            if (window.GCTAjax) {
-                window.GCTAjax.submitForm(selectedDeleteForm, {
-                    closeModal: () => closeModal(deleteBusModal),
-                    refreshRegions: ['records', 'summary'],
-                });
-            } else {
+            if (selectedDeleteForm) {
                 selectedDeleteForm.requestSubmit();
             }
         });

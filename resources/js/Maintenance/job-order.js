@@ -1197,9 +1197,15 @@ document.addEventListener('DOMContentLoaded', () => {
      OPEN EDIT / VIEW
   ========================================================= */
 
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-edit-modal');
-    if (!button) return;
+  document
+    .querySelectorAll(
+      '.open-edit-modal'
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        'click',
+        (event) => {
 
           event.preventDefault();
 
@@ -1311,6 +1317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
       );
+    });
 
 
   /* =========================================================
@@ -1523,78 +1530,144 @@ document.addEventListener('DOMContentLoaded', () => {
     null;
 
 
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-delete-modal');
-    if (!button || button.disabled) return;
+  document
+    .querySelectorAll(
+      '.open-delete-modal'
+    )
+    .forEach((button) => {
 
-    event.preventDefault();
-    event.stopPropagation();
+      button.addEventListener(
+        'click',
+        (event) => {
 
-    const id = button.dataset.id;
-    const joNo = button.dataset.joNo;
+          event.preventDefault();
+          event.stopPropagation();
 
-    selectedDeleteForm = document.getElementById(`deleteForm-${id}`);
 
-    if (!selectedDeleteForm) {
-      console.error(`Delete form deleteForm-${id} was not found.`);
-      return;
-    }
+          if (button.disabled) {
+            return;
+          }
 
-    if (deleteJoNo) {
-      deleteJoNo.textContent = joNo || 'this job order';
-    }
 
-    if (confirmDeleteJob) {
-      confirmDeleteJob.disabled = false;
-      confirmDeleteJob.innerHTML = 'Yes, Delete';
-    }
+          const id =
+            button.dataset.id;
 
-    openModal(deleteJobModal);
-  });
+
+          const joNo =
+            button.dataset.joNo;
+
+
+          selectedDeleteForm =
+            document.getElementById(
+              `deleteForm-${id}`
+            );
+
+
+          if (!selectedDeleteForm) {
+
+            console.error(
+              `Delete form deleteForm-${id} was not found.`
+            );
+
+            return;
+          }
+
+
+          if (deleteJoNo) {
+
+            deleteJoNo.textContent =
+              joNo ||
+              'this job order';
+          }
+
+
+          if (confirmDeleteJob) {
+
+            confirmDeleteJob.disabled =
+              false;
+
+
+            confirmDeleteJob.innerHTML =
+              'Yes, Delete';
+          }
+
+
+          openModal(
+            deleteJobModal
+          );
+
+        }
+      );
+    });
+
 
   if (cancelDeleteJob) {
-    cancelDeleteJob.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      selectedDeleteForm = null;
-      closeModal(deleteJobModal);
-    });
+
+    cancelDeleteJob
+      .addEventListener(
+        'click',
+        (event) => {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+
+          selectedDeleteForm =
+            null;
+
+
+          closeModal(
+            deleteJobModal
+          );
+
+        }
+      );
   }
 
+
   if (confirmDeleteJob) {
-    confirmDeleteJob.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
 
-      if (!selectedDeleteForm) {
-        console.error('No Job Order delete form was selected.');
-        return;
-      }
+    confirmDeleteJob
+      .addEventListener(
+        'click',
+        (event) => {
 
-      if (window.GCTAjax?.submitForm) {
-        window.GCTAjax.submitForm(selectedDeleteForm, {
-          button: confirmDeleteJob,
-          loadingText: 'Deleting...',
-          onSuccess: () => {
-            selectedDeleteForm = null;
-            closeModal(deleteJobModal);
-          },
-          onError: () => {
-            confirmDeleteJob.disabled = false;
-            confirmDeleteJob.innerHTML = 'Yes, Delete';
-          },
-        });
-        return;
-      }
+          event.preventDefault();
+          event.stopPropagation();
 
-      confirmDeleteJob.disabled = true;
-      confirmDeleteJob.innerHTML = `
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        Deleting...
-      `;
 
-      selectedDeleteForm.requestSubmit();
-    });
+          if (!selectedDeleteForm) {
+
+            console.error(
+              'No Job Order delete form was selected.'
+            );
+
+            return;
+          }
+
+
+          confirmDeleteJob.disabled =
+            true;
+
+
+          confirmDeleteJob.innerHTML =
+            `
+              <i
+                class="
+                  fa-solid
+                  fa-spinner
+                  fa-spin
+                "
+              ></i>
+              Deleting...
+            `;
+
+
+          selectedDeleteForm
+            .requestSubmit();
+
+        }
+      );
   }
 
 
@@ -1630,70 +1703,111 @@ document.addEventListener('DOMContentLoaded', () => {
     null;
 
 
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-finish-modal');
-    if (!button || button.disabled) return;
+  document
+    .querySelectorAll(
+      '.open-finish-modal'
+    )
+    .forEach((button) => {
 
-    event.preventDefault();
-    event.stopPropagation();
+      button.addEventListener(
+        'click',
+        () => {
 
-    const id = button.dataset.id;
-    const joNo = button.dataset.joNo;
+          const id =
+            button.dataset.id;
 
-    selectedFinishForm = document.getElementById(`finishForm-${id}`);
 
-    if (!selectedFinishForm) {
-      console.error(`Finish form finishForm-${id} was not found.`);
-      return;
-    }
+          const joNo =
+            button.dataset.joNo;
 
-    if (finishJoNo) {
-      finishJoNo.textContent = joNo || 'this job order';
-    }
 
-    if (confirmFinishJob) {
-      confirmFinishJob.disabled = false;
-      confirmFinishJob.innerHTML = 'Yes, Complete';
-    }
+          selectedFinishForm =
+            document.getElementById(
+              `finishForm-${id}`
+            );
 
-    openModal(finishJobModal);
-  });
+
+          if (!selectedFinishForm) {
+
+            console.error(
+              `Finish form finishForm-${id} was not found.`
+            );
+
+            return;
+          }
+
+
+          if (finishJoNo) {
+
+            finishJoNo.textContent =
+              joNo ||
+              'this job order';
+          }
+
+
+          openModal(
+            finishJobModal
+          );
+
+        }
+      );
+    });
+
 
   if (cancelFinishJob) {
-    cancelFinishJob.addEventListener('click', () => {
-      selectedFinishForm = null;
-      closeModal(finishJobModal);
-    });
+
+    cancelFinishJob
+      .addEventListener(
+        'click',
+        () => {
+
+          selectedFinishForm =
+            null;
+
+
+          closeModal(
+            finishJobModal
+          );
+
+        }
+      );
   }
 
+
   if (confirmFinishJob) {
-    confirmFinishJob.addEventListener('click', () => {
-      if (!selectedFinishForm) return;
 
-      if (window.GCTAjax?.submitForm) {
-        window.GCTAjax.submitForm(selectedFinishForm, {
-          button: confirmFinishJob,
-          loadingText: 'Completing...',
-          onSuccess: () => {
-            selectedFinishForm = null;
-            closeModal(finishJobModal);
-          },
-          onError: () => {
-            confirmFinishJob.disabled = false;
-            confirmFinishJob.innerHTML = 'Yes, Complete';
-          },
-        });
-        return;
-      }
+    confirmFinishJob
+      .addEventListener(
+        'click',
+        () => {
 
-      confirmFinishJob.disabled = true;
-      confirmFinishJob.innerHTML = `
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        Completing...
-      `;
+          if (!selectedFinishForm) {
+            return;
+          }
 
-      selectedFinishForm.requestSubmit();
-    });
+
+          confirmFinishJob.disabled =
+            true;
+
+
+          confirmFinishJob.innerHTML =
+            `
+              <i
+                class="
+                  fa-solid
+                  fa-spinner
+                  fa-spin
+                "
+              ></i>
+              Completing...
+            `;
+
+
+          selectedFinishForm
+            .requestSubmit();
+
+        }
+      );
   }
 
 
@@ -2394,14 +2508,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-edit-modal');
-    if (!button) return;
-    window.setTimeout(() => {
-      lockCurrentBus();
-      renderOptions();
-      syncDisabledState();
-    }, 0);
+  document.querySelectorAll('.open-edit-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      window.setTimeout(() => {
+        lockCurrentBus();
+        renderOptions();
+        syncDisabledState();
+      }, 0);
+    });
   });
 
   const mechanicObserver = new MutationObserver(() => {

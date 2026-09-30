@@ -65,7 +65,6 @@
           action="{{ route('mechanic-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
-          data-ajax-filter="true"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -78,7 +77,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="status" onchange="this.form.requestSubmit()" aria-label="Status">
+            <select name="status" onchange="this.form.submit()" aria-label="Status">
               <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>All Status</option>
               <option value="Present" {{ request('status') == 'Present' ? 'selected' : '' }}>Present</option>
               <option value="Late" {{ request('status') == 'Late' ? 'selected' : '' }}>Late</option>
@@ -167,8 +166,6 @@
                         id="deleteAttendanceForm-{{ $attendance->id }}"
                         action="{{ route('mechanic-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
-                        data-ajax-submit="true"
-                        data-ajax-regions="records,summary"
                       >
                         @csrf
                         @method('DELETE')
@@ -248,9 +245,6 @@
         id="editMechanicAttendanceForm"
         method="POST"
         class="job-form wide-form"
-        data-ajax-submit="true"
-        data-parent-modal-id="editMechanicAttendanceModal"
-        data-ajax-regions="records,summary"
         data-confirm-form
         data-confirm-title="Update Mechanic Attendance?"
         data-confirm-message="Are you sure you want to update this mechanic attendance record?"

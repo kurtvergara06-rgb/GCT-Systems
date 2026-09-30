@@ -32,14 +32,14 @@
           </div>
         </div>
 
-        <form action="{{ route('stock-movements') }}" method="GET" class="toolbar stock-movement-toolbar" data-ajax-filter="true">
+        <form action="{{ route('stock-movements') }}" method="GET" class="toolbar stock-movement-toolbar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search item, reference no., or movement...">
           </div>
 
           <div class="filter-group">
-            <select name="type" id="movementTypeFilter" aria-label="Movement type" onchange="this.form.requestSubmit()">
+            <select name="type" id="movementTypeFilter" aria-label="Movement type">
               @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
                 <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
               @endforeach
@@ -47,7 +47,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="date_filter" id="movementDateFilter" aria-label="Date range" onchange="this.form.requestSubmit()">
+            <select name="date_filter" id="movementDateFilter" aria-label="Date range">
               @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
                 <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
               @endforeach
@@ -55,7 +55,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="source" id="movementSourceFilter" aria-label="Record origin" onchange="this.form.requestSubmit()">
+            <select name="source" id="movementSourceFilter" aria-label="Record origin">
               <option value="All Sources" @selected(request('source', 'All Sources') === 'All Sources')>All Records</option>
               <option value="app" @selected(request('source') === 'app')>System Transactions</option>
               <option value="simulated" @selected(request('source') === 'simulated')>Simulated</option>

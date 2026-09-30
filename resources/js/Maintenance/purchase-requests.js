@@ -1738,22 +1738,9 @@ document.addEventListener(
                 approvePrForm.action =
                   actionUrl;
 
-                if (window.GCTAjax) {
-                  window.GCTAjax.submitForm(approvePrForm, {
-                    onSuccess: (data) => {
-                      window.GCTToast?.success?.(
-                        data?.message || 'Purchase request approved successfully.'
-                      );
-                      window.GCTRegions?.refresh?.(
-                        window.location.href,
-                        ['records', 'summary']
-                      );
-                    },
-                  });
-                } else {
-                  approvePrForm
-                    .requestSubmit();
-                }
+
+                approvePrForm
+                  .requestSubmit();
 
               }
             );
@@ -1811,22 +1798,8 @@ document.addEventListener(
                   actionUrl;
 
 
-                if (window.GCTAjax) {
-                  window.GCTAjax.submitForm(rejectPrForm, {
-                    onSuccess: (data) => {
-                      window.GCTToast?.success?.(
-                        data?.message || 'Purchase request rejected successfully.'
-                      );
-                      window.GCTRegions?.refresh?.(
-                        window.location.href,
-                        ['records', 'summary']
-                      );
-                    },
-                  });
-                } else {
-                  rejectPrForm
-                    .requestSubmit();
-                }
+                rejectPrForm
+                  .requestSubmit();
 
               }
             );
@@ -2010,28 +1983,8 @@ document.addEventListener(
             `;
 
 
-          if (window.GCTAjax) {
-            window.GCTAjax.submitForm(selectedDeleteForm, {
-              parentModalId: 'deletePrModal',
-              onSuccess: (data) => {
-                window.GCTToast?.success?.(
-                  data?.message || 'Purchase request deleted successfully.'
-                );
-                closeDeleteModal();
-                window.GCTRegions?.refresh?.(
-                  window.location.href,
-                  ['records', 'summary']
-                );
-              },
-              onComplete: () => {
-                confirmDeletePr.disabled = false;
-                confirmDeletePr.innerHTML = 'Delete Purchase Request';
-              },
-            });
-          } else {
-            selectedDeleteForm
-              .requestSubmit();
-          }
+          selectedDeleteForm
+            .requestSubmit();
 
         }
       );

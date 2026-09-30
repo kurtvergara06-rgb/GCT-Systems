@@ -110,7 +110,6 @@
                 <form
                     method="GET"
                     action="{{ route('PMS-Scheduling') }}"
-                    data-ajax-filter="true"
                 >
 
                     <div class="toolbar pms-toolbar">
@@ -137,7 +136,7 @@
                             <select
                                 name="status"
                                 id="pmsStatusFilter"
-                                onchange="this.form.requestSubmit()"
+                                onchange="this.form.submit()"
                             >
 
                                 <option value="All Status">
@@ -309,7 +308,6 @@
         VIEW PMS TASKS
         VIEW ONLY - NO UPDATE / CANCEL
     ========================================================== --}}
-    <div data-ajax-region="pms-modals">
     @foreach($rows as $row)
 
         @php
@@ -531,8 +529,6 @@
                                                 data-confirm-message="Are you sure you want to delete this PMS task? This action cannot be undone."
                                                 data-confirm-button="Yes, Delete"
                                                 data-confirm-type="delete"
-                                                data-ajax-submit="true"
-                                                data-ajax-regions="records,summary,pms-modals"
                                             >
 
                                                 @csrf
@@ -590,7 +586,6 @@
         </div>
 
     @endforeach
-    </div>
 
 
     {{-- =========================================================
@@ -623,8 +618,6 @@
         confirm-message="Are you sure you want to create this PMS task?"
         confirm-button="Yes, Create PMS Task"
         confirm-type="create"
-        :ajax="true"
-        data-ajax-regions="records,summary,pms-modals"
     >
 
         <div class="ui-form-grid">
@@ -889,8 +882,6 @@
         confirm-message="Are you sure you want to update this PMS task?"
         confirm-button="Yes, Update PMS Task"
         confirm-type="update"
-        :ajax="true"
-        data-ajax-regions="records,summary,pms-modals"
     >
 
         <div class="ui-form-grid">

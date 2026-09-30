@@ -50,7 +50,6 @@
           action="{{ route('driver-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
-          data-ajax-filter="true"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -64,7 +63,7 @@
 
           <div class="filter-group">
             <label>Status</label>
-            <select name="status" onchange="this.form.requestSubmit()">
+            <select name="status" onchange="this.form.submit()">
               <option value="All Status" {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}>All Status</option>
               <option value="Present" {{ request('status') === 'Present' ? 'selected' : '' }}>Present</option>
               <option value="Late" {{ request('status') === 'Late' ? 'selected' : '' }}>Late</option>
@@ -213,8 +212,6 @@
                         id="deleteDriverAttendanceForm-{{ $attendance->id }}"
                         action="{{ route('driver-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
-                        data-ajax-submit="true"
-                        data-ajax-regions="records,summary"
                       >
                         @csrf
                         @method('DELETE')
@@ -296,8 +293,6 @@
     form-id="driverAttendanceForm"
     :action="route('driver-attendance.store', [], false)"
     method="POST"
-    :ajax="true"
-    data-ajax-regions="records,summary"
     submit-text="Save Record"
     submit-text-id="driverAttendanceSubmitText"
     submit-icon="fa-floppy-disk"
