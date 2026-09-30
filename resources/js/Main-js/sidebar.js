@@ -11,6 +11,76 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const shellId = sidebar?.dataset.gctShell || 'default';
     const dropdownStorageKey = `gct-sidebar-dropdowns:${shellId}`;
+    let sidebarMotionTimer = null;
+
+    const ensureSidebarMotionStyles = () => {
+        if (document.getElementById('gctSidebarMotionStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'gctSidebarMotionStyles';
+        style.textContent = `
+            #appSidebar,
+            .main {
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+                transition-duration: 240ms !important;
+            }
+
+            #appSidebar .brand-text,
+            #appSidebar .menu-item > span,
+            #appSidebar .dropdown-arrow,
+            #appSidebar .user-box-text,
+            #appSidebar .profile-chevron {
+                transition: opacity 110ms ease, transform 110ms ease !important;
+                will-change: opacity, transform;
+            }
+
+            #appSidebar .submenu {
+                transition: opacity 90ms ease !important;
+            }
+
+            #appSidebar.is-collapsing .brand-text,
+            #appSidebar.is-collapsing .menu-item > span,
+            #appSidebar.is-collapsing .dropdown-arrow,
+            #appSidebar.is-collapsing .user-box-text,
+            #appSidebar.is-collapsing .profile-chevron,
+            #appSidebar.is-expanding .brand-text,
+            #appSidebar.is-expanding .menu-item > span,
+            #appSidebar.is-expanding .dropdown-arrow,
+            #appSidebar.is-expanding .user-box-text,
+            #appSidebar.is-expanding .profile-chevron {
+                opacity: 0 !important;
+                transform: translateX(-4px) !important;
+                pointer-events: none !important;
+            }
+
+            #appSidebar.is-collapsing .submenu,
+            #appSidebar.is-expanding .submenu {
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            #appSidebar.is-collapsing .menu,
+            #appSidebar.is-expanding .menu {
+                overflow: hidden;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #appSidebar,
+                .main,
+                #appSidebar .brand-text,
+                #appSidebar .menu-item > span,
+                #appSidebar .dropdown-arrow,
+                #appSidebar .user-box-text,
+                #appSidebar .profile-chevron,
+                #appSidebar .submenu {
+                    transition: none !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    };
+
+    ensureSidebarMotionStyles();
 
 
     /* =========================================================
@@ -37,43 +107,79 @@ document.addEventListener('DOMContentLoaded', function () {
        SIDEBAR STATE
     ========================================================= */
 
+    function updateCollapseButton(isCollapsed) {
+        if (!collapseBtn) return;
+
+        collapseBtn.setAttribute(
+            'aria-expanded',
+            isCollapsed ? 'false' : 'true'
+        );
+
+        collapseBtn.setAttribute(
+            'title',
+            isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
+        );
+    }
+
+    function finishSidebarMotion() {
+        if (!sidebar) return;
+
+        sidebar.classList.remove('is-collapsing', 'is-expanding');
+        if (sidebarMotionTimer) {
+            window.clearTimeout(sidebarMotionTimer);
+            sidebarMotionTimer = null;
+        }
+    }
+
     function setSidebarCollapsed(isCollapsed) {
 
         if (!sidebar) {
             return;
         }
 
+        finishSidebarMotion();
+
         html.classList.remove(
             'sidebar-start-collapsed'
         );
 
-        sidebar.classList.toggle(
-            'collapsed',
-            isCollapsed
-        );
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        body.classList.toggle(
-            'sidebar-collapsed',
-            isCollapsed
-        );
-
-
-        if (collapseBtn) {
-
-            collapseBtn.setAttribute(
-                'aria-expanded',
-                isCollapsed
-                    ? 'false'
-                    : 'true'
-            );
-
-            collapseBtn.setAttribute(
-                'title',
-                isCollapsed
-                    ? 'Expand sidebar'
-                    : 'Collapse sidebar'
-            );
+        if (reduceMotion) {
+            sidebar.classList.toggle('collapsed', isCollapsed);
+            body.classList.toggle('sidebar-collapsed', isCollapsed);
+            updateCollapseButton(isCollapsed);
+            return;
         }
+
+        if (isCollapsed) {
+            // Hide labels/submenus first so they never get squeezed while the
+            // sidebar width is shrinking.
+            sidebar.classList.add('is-collapsing');
+
+            window.setTimeout(() => {
+                sidebar.classList.add('collapsed');
+                body.classList.add('sidebar-collapsed');
+                updateCollapseButton(true);
+            }, 90);
+
+            sidebarMotionTimer = window.setTimeout(() => {
+                finishSidebarMotion();
+            }, 350);
+
+            return;
+        }
+
+        // Expand the shell first while labels remain hidden, then reveal the
+        // labels after the width transition has nearly completed.
+        sidebar.classList.add('is-expanding');
+        sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-collapsed');
+        updateCollapseButton(false);
+
+        sidebarMotionTimer = window.setTimeout(() => {
+            finishSidebarMotion();
+        }, 250);
     }
 
 
@@ -86,6 +192,10 @@ document.addEventListener('DOMContentLoaded', function () {
         collapseBtn.addEventListener(
             'click',
             function () {
+
+                if (sidebar.classList.contains('is-collapsing') || sidebar.classList.contains('is-expanding')) {
+                    return;
+                }
 
                 const isCollapsed =
                     sidebar.classList.contains(
@@ -215,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     persistDropdownState(dropdown, true);
 
-                }, 150);
+                }, 280);
 
                 return;
             }
