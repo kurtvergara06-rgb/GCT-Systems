@@ -1,5 +1,6 @@
-document.addEventListener(
-  'DOMContentLoaded',
+window.GCTPartialNavigation.registerInitializer(
+  'maintenance-purchase-requests',
+  '.purchase-page',
   () => {
 
     /* =========================================================

@@ -72,7 +72,7 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main">
+    <main class="main purchase-orders-page">
       <x-layout.topbar
         title="Purchase Order"
         subtitle="Manage procurement records for vehicle parts, equipment & operational materials"

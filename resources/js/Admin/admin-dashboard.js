@@ -1,6 +1,12 @@
 import Chart from 'chart.js/auto';
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('gct:navigation-before', () => {
+  document.querySelectorAll('.admin-dashboard-main canvas').forEach((canvas) => {
+    Chart.getChart(canvas)?.destroy();
+  });
+});
+
+window.GCTPartialNavigation.registerInitializer('admin-dashboard', '.admin-dashboard-main', () => {
   const data = window.adminDashboardData || {};
 
   createDepartmentDistribution(data.distribution || {});

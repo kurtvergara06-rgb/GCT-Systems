@@ -9,7 +9,7 @@
 >
   <x-layout.sidebar department="Purchase" />
 
-  <main class="main">
+  <main class="main scheduled-purchase-page">
     <x-layout.topbar
       title="Scheduled Purchase"
       subtitle="Plan recurring purchases and create purchase orders when schedules become due"

@@ -1,6 +1,12 @@
 import Chart from 'chart.js/auto';
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('gct:navigation-before', () => {
+  document.querySelectorAll('.fuel-page canvas').forEach((canvas) => {
+    Chart.getChart(canvas)?.destroy();
+  });
+});
+
+window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fuel-page', () => {
 
   const page =
     document.querySelector(
@@ -1971,7 +1977,7 @@ const enhanceFuelModal = () => {
   }
 };
 
-window.addEventListener('load', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-fuel-report-charts', '.fuel-page', () => {
   if (!document.querySelector('.fuel-page')) {
     return;
   }

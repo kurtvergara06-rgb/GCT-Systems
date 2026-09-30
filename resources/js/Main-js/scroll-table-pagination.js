@@ -158,4 +158,5 @@
     }
 
     document.addEventListener('ajax:content-updated', initialize);
+    window.addEventListener('gct:navigation-ready', initialize);
 })();

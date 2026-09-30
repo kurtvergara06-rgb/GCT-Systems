@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.personnel-master-page', () => {
     const modal = document.querySelector('[data-personnel-modal]');
     const form = modal?.querySelector('[data-personnel-form]');
 

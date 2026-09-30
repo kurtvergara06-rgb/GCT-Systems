@@ -553,16 +553,11 @@ class GctDateTimePicker {
 }
 
 function bootGctDateTimePicker() {
-    if (document.body.dataset.gctDateTimePickerReady === 'true') {
-        return;
-    }
-
-    document.body.dataset.gctDateTimePickerReady = 'true';
     new GctDateTimePicker();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootGctDateTimePicker);
-} else {
-    bootGctDateTimePicker();
-}
+window.GCTPartialNavigation.registerInitializer(
+    'shared-date-time-picker',
+    'main',
+    bootGctDateTimePicker,
+);

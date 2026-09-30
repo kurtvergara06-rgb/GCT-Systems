@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehouse-inventory-page', function () {
   function openModal(modal) {
     if (!modal) {
       return;

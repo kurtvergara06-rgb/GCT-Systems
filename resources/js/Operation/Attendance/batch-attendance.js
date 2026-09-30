@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('shared-batch-attendance', '.attendance-page, .driver-attendance-page, .mechanic-attendance-page', () => {
     const path = window.location.pathname.replace(/\/$/, '');
     const type = path.endsWith('/driver-attendance')
         ? 'driver'

@@ -12,7 +12,7 @@
 
   <x-layout.sidebar department="Warehouse" />
 
-    <main class="main">
+    <main class="main warehouse-inventory-page">
 
       <x-layout.topbar
         title="Warehouse Inventory"

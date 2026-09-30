@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
 
   /* =========================================================
      MODAL HELPERS
@@ -2211,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-finish-guard.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-finish-guard', '.jo-page', () => {
   document
     .querySelectorAll('.job-orders-table tbody tr')
     .forEach((row) => {
@@ -2251,7 +2251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-edit-combobox.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-combobox', '.jo-page', () => {
   const editModal = document.getElementById('editJobModal');
   const editForm = document.getElementById('editJobForm');
   const busSelect = document.getElementById('edit_bus_no');
@@ -2538,7 +2538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-new-combobox.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combobox', '.jo-page', () => {
   const modal = document.getElementById('jobModal');
   const busSelect = document.getElementById('jobBusNo');
   const mechanicSelect = document.getElementById('jobAssignedMechanic');

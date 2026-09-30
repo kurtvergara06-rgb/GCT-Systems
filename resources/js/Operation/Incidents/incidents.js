@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-incidents', '.inc-page', () => {
     initSearchableCombos();
     initTripPrefill();
     initIncidentReportModal();

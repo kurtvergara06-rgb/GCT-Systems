@@ -446,8 +446,8 @@ function initImportExportPage() {
     bindRecentActivityButtons();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initImportExportPage, { once: true });
-} else {
-    initImportExportPage();
-}
+window.GCTPartialNavigation.registerInitializer(
+    'admin-import-export',
+    '.import-export-page',
+    initImportExportPage,
+);

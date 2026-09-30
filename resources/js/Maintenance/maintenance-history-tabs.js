@@ -257,3 +257,4 @@ document.addEventListener('DOMContentLoaded', initializeMaintenanceRecordViews);
 window.addEventListener('load', initializeMaintenanceRecordViews);
 window.addEventListener('ajax:content-updated', initializeMaintenanceRecordViews);
 window.addEventListener('system-regions-refreshed', initializeMaintenanceRecordViews);
+window.addEventListener('gct:navigation-ready', initializeMaintenanceRecordViews);

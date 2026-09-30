@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', () => {
   const toolbarSelector = [
     '.toolbar',
     '.requested-toolbar',
