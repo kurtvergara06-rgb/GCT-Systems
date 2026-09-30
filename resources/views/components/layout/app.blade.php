@@ -95,6 +95,33 @@
         transform: translateY(0);
       }
     }
+
+    #gctNavigationProgress {
+      position: fixed;
+      top: 0;
+      left: var(--gct-sidebar-offset, 290px);
+      right: 0;
+      height: 3px;
+      z-index: 5000;
+      pointer-events: none;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    #gctNavigationProgress > span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: #f9b817;
+      box-shadow: 0 0 8px rgba(249, 184, 23, .35);
+      transition: width 180ms ease, opacity 160ms ease;
+    }
+
+    @media (max-width: 900px) {
+      #gctNavigationProgress {
+        left: 0;
+      }
+    }
   </style>
 
   @vite($viteAssets)
@@ -102,6 +129,8 @@
 </head>
 
 <body>
+  <div id="gctNavigationProgress" aria-hidden="true"><span></span></div>
+
   {{ $slot }}
 
   <x-ui.action-buttom-modal
