@@ -13,7 +13,7 @@ class PartialNavigationLifecycleTest extends TestCase
         $this->assertStringContainsString('const cleanupPageOverlays = () => {', $source);
         $this->assertStringContainsString("'[data-page-owned]'", $source);
         $this->assertStringContainsString('syncPageOwnedElements(nextDocument);', $source);
-        $this->assertStringContainsString("document.body.classList.remove(...transientClasses)", $source);
+        $this->assertStringContainsString('document.body.classList.remove(...transientClasses)', $source);
         $this->assertStringContainsString("element.style.removeProperty('overflow')", $source);
         $this->assertStringContainsString("document.querySelectorAll('dialog[open]')", $source);
     }
@@ -40,8 +40,8 @@ class PartialNavigationLifecycleTest extends TestCase
     {
         $styles = file_get_contents(resource_path('css/Main-styles/page-transitions.css'));
 
-        $this->assertStringContainsString('transition-duration: 150ms', $styles);
-        $this->assertStringContainsString('opacity 190ms', $styles);
+        $this->assertStringContainsString('transition-duration: 120ms', $styles);
+        $this->assertStringContainsString('opacity 180ms', $styles);
         $this->assertStringContainsString('translateY(2px)', $styles);
         $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $styles);
     }
