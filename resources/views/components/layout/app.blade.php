@@ -75,67 +75,24 @@
     }
 
     ::view-transition-new(gct-main-content) {
-      animation: 240ms ease both gctCriticalMainIn;
+      animation: 260ms cubic-bezier(.22, 1, .36, 1) both gctCriticalMainIn;
     }
 
     @keyframes gctCriticalMainOut {
       to {
         opacity: 0;
-        transform: translateY(3px);
+        transform: translateY(2px);
       }
     }
 
     @keyframes gctCriticalMainIn {
       from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
-      }
-    }
-
-    #gctPageLoader {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 290px;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(248, 250, 252, 0.96);
-    }
-
-    .gct-page-loader-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      color: #183153;
-      font-family: Poppins, sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .gct-page-loader-spinner {
-      width: 30px;
-      height: 30px;
-      border: 3px solid #d9e2ef;
-      border-top-color: #183153;
-      border-radius: 50%;
-      animation: gctCriticalLoaderSpin .72s linear infinite;
-    }
-
-    @keyframes gctCriticalLoaderSpin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 900px) {
-      #gctPageLoader {
-        left: 0;
       }
     }
   </style>
@@ -144,14 +101,7 @@
   @stack('styles')
 </head>
 
-<body class="gct-page-entering">
-  <div id="gctPageLoader" role="status" aria-live="polite" aria-label="Loading page">
-    <div class="gct-page-loader-inner">
-      <div class="gct-page-loader-spinner" aria-hidden="true"></div>
-      <span>Loading...</span>
-    </div>
-  </div>
-
+<body>
   {{ $slot }}
 
   <x-ui.action-buttom-modal
