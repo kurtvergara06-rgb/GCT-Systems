@@ -44,6 +44,7 @@
                     :show-button="false"
                     id="activityFilterForm"
                     data-activity-filter-form
+                    data-ajax-filter="true"
                     data-no-loading
                     autocomplete="off"
                 >

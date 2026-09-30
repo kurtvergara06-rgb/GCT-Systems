@@ -59,7 +59,7 @@
                     <x-ui.id-badge :value="number_format($history->count()) . ' Records'" />
                 </div>
 
-                <form method="GET" action="{{ route('admin.data-history') }}" class="history-toolbar">
+                <form method="GET" action="{{ route('admin.data-history') }}" class="history-toolbar" data-ajax-filter="true">
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input
@@ -71,7 +71,7 @@
                     </div>
 
                     <div class="filter-group">
-                        <select name="type" onchange="this.form.submit()">
+                        <select name="type" onchange="this.form.requestSubmit()">
                             @foreach(['All Types', 'Batch Processing', 'Import', 'Export'] as $type)
                                 <option value="{{ $type }}" {{ request('type', 'All Types') === $type ? 'selected' : '' }}>
                                     {{ $type }}
@@ -81,7 +81,7 @@
                     </div>
 
                     <div class="filter-group">
-                        <select name="module" onchange="this.form.submit()">
+                        <select name="module" onchange="this.form.requestSubmit()">
                             @foreach(['All Modules', 'Admin', 'Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $module)
                                 <option value="{{ $module }}" {{ request('module', 'All Modules') === $module ? 'selected' : '' }}>
                                     {{ $module }}
@@ -91,7 +91,7 @@
                     </div>
 
                     <div class="filter-group">
-                        <select name="status" onchange="this.form.submit()">
+                        <select name="status" onchange="this.form.requestSubmit()">
                             @foreach(['All Status', 'Completed', 'For Review', 'Needs Correction', 'Failed', 'Processing', 'Deleted'] as $status)
                                 <option value="{{ $status }}" {{ request('status', 'All Status') === $status ? 'selected' : '' }}>
                                     {{ $status }}

@@ -60,6 +60,7 @@
           action="{{ route('maintenance-requests', [], false) }}"
           method="GET"
           class="toolbar requested-toolbar"
+          data-ajax-filter="true"
         >
           <input type="hidden" name="view" value="history">
 
@@ -74,7 +75,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="source" aria-label="Source">
+            <select name="source" aria-label="Source" onchange="this.form.requestSubmit()">
               @foreach(['All Sources', 'Maintenance Request', 'Inventory Restock'] as $source)
                 <option value="{{ $source }}" {{ request('source', 'All Sources') === $source ? 'selected' : '' }}>
                   {{ $source }}
@@ -84,7 +85,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="status" aria-label="Status">
+            <select name="status" aria-label="Status" onchange="this.form.requestSubmit()">
               @foreach(['All Statuses', 'Delivered', 'Picked Up', 'Issued'] as $status)
                 <option value="{{ $status }}" {{ request('status', 'All Statuses') === $status ? 'selected' : '' }}>
                   {{ $status }}

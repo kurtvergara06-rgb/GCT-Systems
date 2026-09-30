@@ -235,6 +235,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  if (issuePartsForm) {
+    issuePartsForm.addEventListener('submit', function (event) {
+      if (window.GCTAjax) {
+        event.preventDefault();
+        window.GCTAjax.submitForm(issuePartsForm, {
+          parentModalId: 'issuePartsModal',
+          onSuccess: function (data) {
+            window.GCTToast?.success?.(data?.message || 'Parts issued successfully.');
+            closeModal(issuePartsModal);
+            window.GCTRegions?.refresh?.(window.location.href, ['records', 'summary']);
+          },
+        });
+      }
+    });
+  }
+
   const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
 
   function updateWarehouseStatusFilterColor() {

@@ -99,12 +99,13 @@
                     button-id="openAddUserModal"
                     button-label="Add Account"
                     button-icon="fa-user-plus"
+                    data-ajax-filter="true"
                 >
                     <div class="filter-group">
                         <select
                             name="department"
                             id="departmentFilter"
-                            onchange="this.form.submit()"
+                            onchange="this.form.requestSubmit()"
                             aria-label="Department"
                         >
                             <option
@@ -130,7 +131,7 @@
                         <select
                             name="role"
                             id="roleFilter"
-                            onchange="this.form.submit()"
+                            onchange="this.form.requestSubmit()"
                         >
                             <option
                                 value="All Roles"
@@ -155,7 +156,7 @@
                         <select
                             name="status"
                             id="statusFilter"
-                            onchange="this.form.submit()"
+                            onchange="this.form.requestSubmit()"
                         >
                             <option
                                 value="All Status"
@@ -325,6 +326,8 @@
                                                     data-confirm-message="Are you sure you want to deactivate {{ $user->name }}?"
                                                     data-confirm-button="Yes, Deactivate"
                                                     data-confirm-type="status"
+                                                    data-ajax-submit="true"
+                                                    data-ajax-regions="records,summary"
                                                 >
                                                     @csrf
                                                     @method('PATCH')
@@ -348,6 +351,8 @@
                                                     data-confirm-message="Are you sure you want to activate {{ $user->name }}?"
                                                     data-confirm-button="Yes, Activate"
                                                     data-confirm-type="approve"
+                                                    data-ajax-submit="true"
+                                                    data-ajax-regions="records,summary"
                                                 >
                                                     @csrf
                                                     @method('PATCH')
@@ -372,6 +377,8 @@
                                                     data-confirm-message="Are you sure you want to delete {{ $user->name }}? This action cannot be undone."
                                                     data-confirm-button="Yes, Delete"
                                                     data-confirm-type="delete"
+                                                    data-ajax-submit="true"
+                                                    data-ajax-regions="records,summary"
                                                 >
                                                     @csrf
                                                     @method('DELETE')
@@ -434,6 +441,9 @@
                 data-confirm-message="Are you sure you want to create this system account?"
                 data-confirm-button="Yes, Create Account"
                 data-confirm-type="create"
+                data-ajax-submit="true"
+                data-parent-modal-id="userFormModal"
+                data-ajax-regions="records,summary"
             >
                 @csrf
 
@@ -556,6 +566,9 @@
                 data-confirm-message="Are you sure you want to reset this account password?"
                 data-confirm-button="Yes, Reset Password"
                 data-confirm-type="warning"
+                data-ajax-submit="true"
+                data-parent-modal-id="resetPasswordModal"
+                data-ajax-regions="records,summary"
             >
                 @csrf
 

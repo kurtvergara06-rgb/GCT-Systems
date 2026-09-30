@@ -381,18 +381,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
-  | CLOSE BUTTONS
+  | CLOSE BUTTONS & REGION REFRESH SYNC
   |--------------------------------------------------------------------------
   */
 
-  document.querySelectorAll('.closeModal').forEach(function (button) {
-    button.addEventListener('click', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.closeModal');
+    if (!button) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    const modal = button.closest('.modal-overlay');
+    closeModal(modal);
+  });
 
-      const modal = button.closest('.modal-overlay');
-      closeModal(modal);
-    });
+  window.addEventListener('system-regions-refreshed', function () {
+    filterInventory();
   });
 
   /*

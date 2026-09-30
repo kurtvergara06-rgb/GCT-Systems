@@ -1414,48 +1414,19 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
-  document
-    .querySelectorAll(
-      '[data-edit-fuel]'
-    )
-    .forEach(
-      button => {
+  document.addEventListener('click', event => {
+    const editBtn = event.target.closest('[data-edit-fuel]');
+    if (editBtn) {
+      fillEditForm(editBtn);
+      return;
+    }
 
-        button.addEventListener(
-          'click',
-          () => {
-
-            fillEditForm(
-              button
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-  document
-    .querySelectorAll(
-      '[data-view-fuel]'
-    )
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          'click',
-          () => {
-
-            fillViewModal(
-              button
-            );
-
-          }
-        );
-
-      }
-    );
+    const viewBtn = event.target.closest('[data-view-fuel]');
+    if (viewBtn) {
+      fillViewModal(viewBtn);
+      return;
+    }
+  });
 
 
   document.addEventListener(

@@ -172,6 +172,38 @@ document.addEventListener('DOMContentLoaded', function () {
         const formToSubmit = pendingForm;
         const submitter = pendingSubmitter;
 
+        if (
+            formToSubmit.matches('[data-ajax-submit="true"], [data-ajax-submit]') ||
+            formToSubmit.dataset.ajaxSubmit === 'true'
+        ) {
+            if (window.GCTAjax?.submitForm) {
+                window.GCTAjax.submitForm(formToSubmit, {
+                    button: confirmButton,
+                    submitter: submitter,
+                    onSuccess: (data) => {
+                        const targetModalId = formToSubmit.dataset.parentModalId || formToSubmit.closest('.modal, .ui-modal, [id$="Modal"]')?.id;
+                        closeModal();
+                        if (targetModalId) {
+                            const parentModal = document.getElementById(targetModalId);
+                            if (parentModal) {
+                                parentModal.classList.remove('show', 'active');
+                                parentModal.style.display = 'none';
+                                parentModal.setAttribute('aria-hidden', 'true');
+                            }
+                        }
+                        if (typeof formToSubmit.reset === 'function' && formToSubmit.dataset.noReset !== 'true') {
+                            formToSubmit.reset();
+                        }
+                    },
+                    onError: () => {
+                        resetConfirmButton();
+                        isSubmitting = false;
+                    },
+                });
+                return;
+            }
+        }
+
         if (submitter && typeof formToSubmit.requestSubmit === 'function') {
             formToSubmit.requestSubmit(submitter);
             return;

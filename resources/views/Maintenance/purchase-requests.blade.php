@@ -107,6 +107,8 @@
                       action="{{ route('purchase-requests') }}"
                       method="GET"
                       class="toolbar purchase-toolbar"
+                      data-ajax-filter="true"
+                      data-ajax-target="records summary"
                   >
                       <div class="search-box">
                           <i class="fa-solid fa-magnifying-glass"></i>
@@ -124,7 +126,6 @@
                               name="status"
                               id="prStatusFilter"
                               class="pr-status-select"
-                              onchange="this.form.requestSubmit()"
                           >
                               <option
                                   value="All Statuses"
@@ -317,6 +318,7 @@
           submit-icon="fa-file-circle-plus"
           close-id="closePrModal"
           cancel-id="cancelPrModal"
+          :ajax="true"
           :confirm="true"
           confirm-title="Create Purchase Request?"
           confirm-message="Are you sure you want to create this Purchase Request?"
@@ -418,6 +420,7 @@
           method="PUT"
           close-id="closeEditPrModal"
           :show-actions="false"
+          :ajax="true"
           :confirm="true"
           confirm-title="Save Purchase Request Changes?"
           confirm-message="Are you sure you want to save these Purchase Request changes?"

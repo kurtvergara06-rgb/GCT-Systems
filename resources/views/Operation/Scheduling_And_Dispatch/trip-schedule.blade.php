@@ -29,7 +29,7 @@
                 </div>
             @endif
 
-            <section class="trip-summary-grid">
+            <section data-ajax-region="summary" class="trip-summary-grid">
                 <article class="trip-summary-card">
                     <div class="trip-summary-icon blue">
                         <i class="fa-solid fa-calendar-days"></i>
@@ -75,7 +75,7 @@
                 </article>
             </section>
 
-            <section class="trip-card">
+            <section data-ajax-region="records" class="trip-card">
                 <div class="trip-card-header">
                     <div>
                         <h2>Trip Records</h2>
@@ -110,6 +110,7 @@
                     method="GET"
                     action="{{ route('trip-schedule', [], false) }}"
                     class="trip-toolbar"
+                    data-ajax-filter="true"
                 >
                     <div class="trip-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -260,6 +261,8 @@
                                                     id="deleteTripForm-{{ $trip->id }}"
                                                     method="POST"
                                                     action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
+                                                    data-ajax-submit="true"
+                                                    data-ajax-regions="records,summary"
                                                 >
                                                     @csrf
                                                     @method('DELETE')
@@ -302,6 +305,8 @@
         form-id="generateTripsForm"
         :action="route('trip-schedule.store', [], false)"
         method="POST"
+        :ajax="true"
+        data-ajax-regions="records,summary"
         submit-text="Generate Trips"
         submit-icon="fa-bolt"
         cancel-text="Cancel"
@@ -371,6 +376,8 @@
         form-id="tripForm"
         :action="route('trip-schedule.store', [], false)"
         method="POST"
+        :ajax="true"
+        data-ajax-regions="records,summary"
         submit-text="Save Trip"
         submit-text-id="tripSubmitText"
         submit-icon="fa-floppy-disk"

@@ -95,7 +95,7 @@
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
         </div>
 
-        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar">
+        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar" data-ajax-filter="true" data-ajax-target="records summary">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO number, item, request no., or status...">
@@ -184,7 +184,7 @@
                       @endif
 
                       @if($isDraft)
-                        <form id="deletePoForm-{{ $purchaseOrder->id }}" action="/purchase-orders/{{ $purchaseOrder->id }}" method="POST">
+                        <form id="deletePoForm-{{ $purchaseOrder->id }}" action="/purchase-orders/{{ $purchaseOrder->id }}" method="POST" data-ajax-submit="true" data-parent-modal-id="deletePoModal">
                           @csrf @method('DELETE')
                           <button type="button" class="action-btn delete open-delete-po-modal" title="Delete" data-id="{{ $purchaseOrder->id }}" data-po-no="{{ $purchaseOrder->po_no }}"><i class="fa-solid fa-trash"></i></button>
                         </form>
@@ -224,6 +224,8 @@
         data-confirm-message="Are you sure you want to create this Purchase Order?"
         data-confirm-button="Yes, Create PO"
         data-confirm-type="create"
+        data-ajax-submit="true"
+        data-parent-modal-id="poModal"
       >
         @csrf
         <input type="hidden" name="_method" id="poFormMethod" value="POST">
@@ -295,6 +297,8 @@
         data-confirm-message="Are you sure you want to update this purchase order status?"
         data-confirm-button="Yes, Update Status"
         data-confirm-type="status"
+        data-ajax-submit="true"
+        data-parent-modal-id="poStatusModal"
       >
         @csrf @method('PATCH')
         <div class="po-status-choice-list" id="poStatusChoiceList"></div>

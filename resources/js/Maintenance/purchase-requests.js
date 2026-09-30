@@ -1738,9 +1738,22 @@ document.addEventListener(
                 approvePrForm.action =
                   actionUrl;
 
-
-                approvePrForm
-                  .requestSubmit();
+                if (window.GCTAjax) {
+                  window.GCTAjax.submitForm(approvePrForm, {
+                    onSuccess: (data) => {
+                      window.GCTToast?.success?.(
+                        data?.message || 'Purchase request approved successfully.'
+                      );
+                      window.GCTRegions?.refresh?.(
+                        window.location.href,
+                        ['records', 'summary']
+                      );
+                    },
+                  });
+                } else {
+                  approvePrForm
+                    .requestSubmit();
+                }
 
               }
             );
@@ -1798,8 +1811,22 @@ document.addEventListener(
                   actionUrl;
 
 
-                rejectPrForm
-                  .requestSubmit();
+                if (window.GCTAjax) {
+                  window.GCTAjax.submitForm(rejectPrForm, {
+                    onSuccess: (data) => {
+                      window.GCTToast?.success?.(
+                        data?.message || 'Purchase request rejected successfully.'
+                      );
+                      window.GCTRegions?.refresh?.(
+                        window.location.href,
+                        ['records', 'summary']
+                      );
+                    },
+                  });
+                } else {
+                  rejectPrForm
+                    .requestSubmit();
+                }
 
               }
             );
@@ -1983,8 +2010,28 @@ document.addEventListener(
             `;
 
 
-          selectedDeleteForm
-            .requestSubmit();
+          if (window.GCTAjax) {
+            window.GCTAjax.submitForm(selectedDeleteForm, {
+              parentModalId: 'deletePrModal',
+              onSuccess: (data) => {
+                window.GCTToast?.success?.(
+                  data?.message || 'Purchase request deleted successfully.'
+                );
+                closeDeleteModal();
+                window.GCTRegions?.refresh?.(
+                  window.location.href,
+                  ['records', 'summary']
+                );
+              },
+              onComplete: () => {
+                confirmDeletePr.disabled = false;
+                confirmDeletePr.innerHTML = 'Delete Purchase Request';
+              },
+            });
+          } else {
+            selectedDeleteForm
+              .requestSubmit();
+          }
 
         }
       );

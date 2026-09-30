@@ -293,7 +293,15 @@ class PmsSchedulingController extends Controller
                     : null
             );
 
-        PmsSchedule::create($validated);
+        $pmsSchedule = PmsSchedule::create($validated);
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'PMS task created successfully.',
+                'data' => $pmsSchedule,
+            ]);
+        }
 
         return redirect()
             ->to(route('PMS-Scheduling', [], false))
@@ -370,6 +378,14 @@ class PmsSchedulingController extends Controller
 
         $pmsSchedule->update($validated);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'PMS task updated successfully.',
+                'data' => $pmsSchedule,
+            ]);
+        }
+
         return redirect()
             ->to(route('PMS-Scheduling', [], false))
             ->with(
@@ -386,6 +402,13 @@ class PmsSchedulingController extends Controller
             ->exists();
 
         if ($hasActiveJobOrder) {
+            if (request()->ajax() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This PMS task cannot be deleted while it has an active Job Order.',
+                ], 422);
+            }
+
             return redirect()
                 ->to(route('PMS-Scheduling', [], false))
                 ->with(
@@ -395,6 +418,13 @@ class PmsSchedulingController extends Controller
         }
 
         $pmsSchedule->delete();
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'PMS task deleted successfully.',
+            ]);
+        }
 
         return redirect()
             ->to(route('PMS-Scheduling', [], false))

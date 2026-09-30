@@ -63,6 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    window.addEventListener('system-regions-refreshed', () => {
+        if (loading) {
+            loading.hidden = true;
+        }
+    });
+
     const modal = document.getElementById('activityDetailsModal');
     const closeButton = document.getElementById('closeActivityModal');
     const closeFooterButton = document.getElementById('closeActivityModalFooter');

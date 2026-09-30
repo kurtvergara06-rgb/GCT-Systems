@@ -81,30 +81,49 @@ document.addEventListener('DOMContentLoaded', function () {
   const editTimeOut = document.getElementById('edit_time_out');
   const editStatus = document.getElementById('edit_status');
 
-  document
-    .querySelectorAll('.open-edit-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', () => {
-        editMechanicAttendanceForm?.setAttribute(
-          'action',
-          normalizeMechanicAttendancePath(
-            button.dataset.updateUrl,
-            `/mechanic-attendance/${button.dataset.id}`
-          )
-        );
+  document.addEventListener('click', (event) => {
+    const editBtn = event.target.closest('.open-edit-attendance-modal');
+    if (editBtn) {
+      editMechanicAttendanceForm?.setAttribute(
+        'action',
+        normalizeMechanicAttendancePath(
+          editBtn.dataset.updateUrl,
+          `/mechanic-attendance/${editBtn.dataset.id}`
+        )
+      );
 
-        if (editMechanicId) editMechanicId.value = button.dataset.mechanicId || '';
-        if (editMechanicName) editMechanicName.value = button.dataset.mechanicName || '';
-        if (editShift) editShift.value = button.dataset.shift || 'Morning';
-        if (editAssignedJob) editAssignedJob.value = button.dataset.assignedJob || '';
-        if (editAttendanceDate) editAttendanceDate.value = button.dataset.attendanceDate || '';
-        if (editTimeIn) editTimeIn.value = button.dataset.timeIn || '';
-        if (editTimeOut) editTimeOut.value = button.dataset.timeOut || '';
-        if (editStatus) editStatus.value = button.dataset.status || 'Present';
+      if (editMechanicId) editMechanicId.value = editBtn.dataset.mechanicId || '';
+      if (editMechanicName) editMechanicName.value = editBtn.dataset.mechanicName || '';
+      if (editShift) editShift.value = editBtn.dataset.shift || 'Morning';
+      if (editAssignedJob) editAssignedJob.value = editBtn.dataset.assignedJob || '';
+      if (editAttendanceDate) editAttendanceDate.value = editBtn.dataset.attendanceDate || '';
+      if (editTimeIn) editTimeIn.value = editBtn.dataset.timeIn || '';
+      if (editTimeOut) editTimeOut.value = editBtn.dataset.timeOut || '';
+      if (editStatus) editStatus.value = editBtn.dataset.status || 'Present';
 
-        openModal(editMechanicAttendanceModal);
-      });
-    });
+      openModal(editMechanicAttendanceModal);
+      return;
+    }
+
+    const deleteBtn = event.target.closest('.open-delete-attendance-modal');
+    if (deleteBtn) {
+      event.preventDefault();
+
+      selectedDeleteForm = document.getElementById(
+        `deleteAttendanceForm-${deleteBtn.dataset.id}`
+      );
+
+      if (deleteAttendanceName) {
+        deleteAttendanceName.textContent =
+          deleteBtn.dataset.mechanicName
+          || deleteBtn.dataset.mechanicId
+          || 'this attendance record';
+      }
+
+      openModal(deleteAttendanceModal);
+      return;
+    }
+  });
 
   document
     .getElementById('closeEditMechanicAttendanceModal')
@@ -119,27 +138,6 @@ document.addEventListener('DOMContentLoaded', function () {
   let selectedDeleteForm = null;
 
   document
-    .querySelectorAll('.open-delete-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
-
-        selectedDeleteForm = document.getElementById(
-          `deleteAttendanceForm-${button.dataset.id}`
-        );
-
-        if (deleteAttendanceName) {
-          deleteAttendanceName.textContent =
-            button.dataset.mechanicName
-            || button.dataset.mechanicId
-            || 'this attendance record';
-        }
-
-        openModal(deleteAttendanceModal);
-      });
-    });
-
-  document
     .getElementById('cancelDeleteAttendance')
     ?.addEventListener('click', () => {
       selectedDeleteForm = null;
@@ -148,7 +146,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document
     .getElementById('confirmDeleteAttendance')
-    ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
+    ?.addEventListener('click', () => {
+      if (!selectedDeleteForm) return;
+
+      if (window.GCTAjax) {
+        window.GCTAjax.submitForm(selectedDeleteForm, {
+          closeModal: () => closeModal(deleteAttendanceModal),
+          refreshRegions: ['records', 'summary'],
+        });
+      } else {
+        selectedDeleteForm.requestSubmit();
+      }
+    });
 
   document
     .querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay')

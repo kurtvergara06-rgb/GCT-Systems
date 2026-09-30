@@ -105,7 +105,7 @@ class InventoryController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
             'item_code' => [
@@ -181,6 +181,14 @@ class InventoryController extends Controller
             );
         }
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory item added successfully.',
+                'item' => $inventoryItem,
+            ]);
+        }
+
         session()->flash(
             'success',
             'Inventory item added successfully.'
@@ -192,7 +200,7 @@ class InventoryController extends Controller
     public function update(
         Request $request,
         InventoryItem $inventoryItem
-    ): RedirectResponse {
+    ): RedirectResponse|\Illuminate\Http\JsonResponse {
         $validated = $request->validate([
             'item_code' => [
                 'required',
@@ -272,6 +280,14 @@ class InventoryController extends Controller
             'An inventory item was updated.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory item updated successfully.',
+                'item' => $inventoryItem,
+            ]);
+        }
+
         session()->flash(
             'success',
             'Inventory item updated successfully.'
@@ -281,8 +297,9 @@ class InventoryController extends Controller
     }
 
     public function destroy(
+        Request $request,
         InventoryItem $inventoryItem
-    ): RedirectResponse {
+    ): RedirectResponse|\Illuminate\Http\JsonResponse {
         $inventoryItem->delete();
 
         $this->broadcastSystemDataUpdated(
@@ -292,6 +309,13 @@ class InventoryController extends Controller
             $inventoryItem->id,
             'An inventory item was deleted.'
         );
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory item deleted successfully.',
+            ]);
+        }
 
         session()->flash(
             'success',

@@ -79,46 +79,111 @@ document.addEventListener('DOMContentLoaded', () => {
       button.addEventListener('click', () => closeModal(attendanceModal));
     });
 
-  document
-    .querySelectorAll('.open-edit-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', () => {
-        if (!attendanceForm) {
-          return;
-        }
+  document.addEventListener('click', (event) => {
+    const editBtn = event.target.closest('.open-edit-driver-attendance-modal');
+    if (editBtn) {
+      if (!attendanceForm) {
+        return;
+      }
 
-        const fallbackUrl = `/driver-attendance/${button.dataset.id}`;
+      const fallbackUrl = `/driver-attendance/${editBtn.dataset.id}`;
 
-        attendanceForm.setAttribute(
-          'action',
-          normalizeDriverAttendancePath(button.dataset.updateUrl, fallbackUrl)
-        );
+      attendanceForm.setAttribute(
+        'action',
+        normalizeDriverAttendancePath(editBtn.dataset.updateUrl, fallbackUrl)
+      );
 
-        if (attendanceFormMethod) {
-          attendanceFormMethod.disabled = false;
-          attendanceFormMethod.value = 'PUT';
-        }
+      if (attendanceFormMethod) {
+        attendanceFormMethod.disabled = false;
+        attendanceFormMethod.value = 'PUT';
+      }
 
-        if (modalTitle) modalTitle.textContent = 'Edit Driver Attendance';
-        if (submitText) submitText.textContent = 'Update Record';
+      if (modalTitle) modalTitle.textContent = 'Edit Driver Attendance';
+      if (submitText) submitText.textContent = 'Update Record';
 
-        attendanceForm.dataset.confirmTitle = 'Update Driver Attendance?';
-        attendanceForm.dataset.confirmMessage =
-          'Are you sure you want to update this driver attendance record?';
-        attendanceForm.dataset.confirmButton = 'Yes, Update Record';
-        attendanceForm.dataset.confirmType = 'update';
+      attendanceForm.dataset.confirmTitle = 'Update Driver Attendance?';
+      attendanceForm.dataset.confirmMessage =
+        'Are you sure you want to update this driver attendance record?';
+      attendanceForm.dataset.confirmButton = 'Yes, Update Record';
+      attendanceForm.dataset.confirmType = 'update';
 
-        if (driverId) driverId.value = button.dataset.driverId || '';
-        if (driverName) driverName.value = button.dataset.driverName || '';
-        if (shift) shift.value = button.dataset.shift || 'Morning';
-        if (attendanceDate) attendanceDate.value = button.dataset.attendanceDate || '';
-        if (timeIn) timeIn.value = button.dataset.timeIn || '';
-        if (timeOut) timeOut.value = button.dataset.timeOut || '';
-        if (status) status.value = button.dataset.status || 'Present';
+      if (driverId) driverId.value = editBtn.dataset.driverId || '';
+      if (driverName) driverName.value = editBtn.dataset.driverName || '';
+      if (shift) shift.value = editBtn.dataset.shift || 'Morning';
+      if (attendanceDate) attendanceDate.value = editBtn.dataset.attendanceDate || '';
+      if (timeIn) timeIn.value = editBtn.dataset.timeIn || '';
+      if (timeOut) timeOut.value = editBtn.dataset.timeOut || '';
+      if (status) status.value = editBtn.dataset.status || 'Present';
 
-        openModal(attendanceModal);
-      });
-    });
+      openModal(attendanceModal);
+      return;
+    }
+
+    const viewBtn = event.target.closest('.open-view-driver-attendance-modal');
+    if (viewBtn) {
+      const statusValue = viewBtn.dataset.status || 'Present';
+      const statusClass = getAttendanceStatusClass(statusValue);
+
+      const details = [
+        ['Driver ID', viewBtn.dataset.driverId],
+        ['Driver Name', viewBtn.dataset.driverName],
+        ['Role', 'Driver'],
+        ['Shift', viewBtn.dataset.shift],
+        ['Current Assignment', viewBtn.dataset.busAssignment || 'Unassigned'],
+        ['Date', viewBtn.dataset.attendanceDate],
+        ['Time-in', viewBtn.dataset.timeIn],
+        ['Time-out', viewBtn.dataset.timeOut],
+      ];
+
+      if (viewAttendanceContent) {
+        viewAttendanceContent.innerHTML =
+          details
+            .map(
+              ([label, value]) => `
+                <div class="attendance-detail-card">
+                  <label>${escapeAttendanceHtml(label)}</label>
+                  <div class="attendance-detail-value">
+                    ${escapeAttendanceHtml(value || '—')}
+                  </div>
+                </div>
+              `
+            )
+            .join('')
+          + `
+            <div class="attendance-detail-card">
+              <label>Status</label>
+              <div>
+                <span class="attendance-detail-status ${statusClass}">
+                  ${escapeAttendanceHtml(statusValue)}
+                </span>
+              </div>
+            </div>
+          `;
+      }
+
+      openModal(viewAttendanceModal);
+      return;
+    }
+
+    const deleteBtn = event.target.closest('.open-delete-driver-attendance-modal');
+    if (deleteBtn) {
+      event.preventDefault();
+
+      selectedDeleteForm = document.getElementById(
+        `deleteDriverAttendanceForm-${deleteBtn.dataset.id}`
+      );
+
+      if (deleteName) {
+        deleteName.textContent =
+          deleteBtn.dataset.driverName
+          || deleteBtn.dataset.driverId
+          || 'this driver attendance record';
+      }
+
+      openModal(deleteModal);
+      return;
+    }
+  });
 
   const viewAttendanceModal = document.getElementById('viewDriverAttendanceModal');
   const viewAttendanceContent = document.getElementById('viewDriverAttendanceContent');
@@ -147,54 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replaceAll("'", '&#039;');
   }
 
-  document
-    .querySelectorAll('.open-view-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', () => {
-        const statusValue = button.dataset.status || 'Present';
-        const statusClass = getAttendanceStatusClass(statusValue);
-
-        const details = [
-          ['Driver ID', button.dataset.driverId],
-          ['Driver Name', button.dataset.driverName],
-          ['Role', 'Driver'],
-          ['Shift', button.dataset.shift],
-          ['Current Assignment', button.dataset.busAssignment || 'Unassigned'],
-          ['Date', button.dataset.attendanceDate],
-          ['Time-in', button.dataset.timeIn],
-          ['Time-out', button.dataset.timeOut],
-        ];
-
-        if (viewAttendanceContent) {
-          viewAttendanceContent.innerHTML =
-            details
-              .map(
-                ([label, value]) => `
-                  <div class="attendance-detail-card">
-                    <label>${escapeAttendanceHtml(label)}</label>
-                    <div class="attendance-detail-value">
-                      ${escapeAttendanceHtml(value || '—')}
-                    </div>
-                  </div>
-                `
-              )
-              .join('')
-            + `
-              <div class="attendance-detail-card">
-                <label>Status</label>
-                <div>
-                  <span class="attendance-detail-status ${statusClass}">
-                    ${escapeAttendanceHtml(statusValue)}
-                  </span>
-                </div>
-              </div>
-            `;
-        }
-
-        openModal(viewAttendanceModal);
-      });
-    });
-
   [
     document.getElementById('closeViewDriverAttendanceModal'),
     document.getElementById('closeViewDriverAttendanceButton'),
@@ -209,27 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedDeleteForm = null;
 
   document
-    .querySelectorAll('.open-delete-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
-
-        selectedDeleteForm = document.getElementById(
-          `deleteDriverAttendanceForm-${button.dataset.id}`
-        );
-
-        if (deleteName) {
-          deleteName.textContent =
-            button.dataset.driverName
-            || button.dataset.driverId
-            || 'this driver attendance record';
-        }
-
-        openModal(deleteModal);
-      });
-    });
-
-  document
     .getElementById('cancelDeleteDriverAttendance')
     ?.addEventListener('click', () => {
       selectedDeleteForm = null;
@@ -238,7 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document
     .getElementById('confirmDeleteDriverAttendance')
-    ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
+    ?.addEventListener('click', () => {
+      if (!selectedDeleteForm) return;
+
+      if (window.GCTAjax) {
+        window.GCTAjax.submitForm(selectedDeleteForm, {
+          closeModal: () => closeModal(deleteModal),
+          refreshRegions: ['records', 'summary'],
+        });
+      } else {
+        selectedDeleteForm.requestSubmit();
+      }
+    });
 
   document
     .querySelectorAll(

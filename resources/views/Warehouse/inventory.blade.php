@@ -206,6 +206,7 @@
                         data-confirm-message="Are you sure you want to delete {{ $item->item_name }}? This action cannot be undone."
                         data-confirm-button="Yes, Delete"
                         data-confirm-type="delete"
+                        data-ajax-submit="true"
                       >
                         @csrf
                         @method('DELETE')
@@ -283,6 +284,8 @@
         data-confirm-message="Are you sure you want to add this inventory item?"
         data-confirm-button="Yes, Add Item"
         data-confirm-type="create"
+        data-ajax-submit="true"
+        data-parent-modal-id="addModal"
       >
         @csrf
 
@@ -357,6 +360,8 @@
         data-confirm-message="Are you sure you want to update this inventory item?"
         data-confirm-button="Yes, Update Item"
         data-confirm-type="update"
+        data-ajax-submit="true"
+        data-parent-modal-id="editModal"
       >
         @csrf
         @method('PUT')

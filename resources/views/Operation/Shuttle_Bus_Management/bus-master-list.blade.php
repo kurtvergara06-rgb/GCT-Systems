@@ -70,6 +70,7 @@
                     method="GET"
                     action="/bus-master-list"
                     class="toolbar bus-toolbar"
+                    data-ajax-filter="true"
                 >
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -88,7 +89,7 @@
                         <select
                             name="status"
                             id="busStatusFilter"
-                            onchange="this.form.submit()"
+                            onchange="this.form.requestSubmit()"
                         >
                             <option value="All Status">
                                 All Status
@@ -211,6 +212,8 @@
                                                 id="deleteBusForm-{{ $bus->id }}"
                                                 action="/bus-master-list/{{ $bus->id }}"
                                                 method="POST"
+                                                data-ajax-submit="true"
+                                                data-ajax-regions="records,summary"
                                             >
                                                 @csrf
                                                 @method('DELETE')
@@ -249,6 +252,8 @@
         description="Add an official bus record for Operations, GPS matching, PMS, and Job Orders."
         action="/bus-master-list"
         method="POST"
+        :ajax="true"
+        data-ajax-regions="records,summary"
         submit-text="Save Bus"
         close-id="closeBusModal"
         cancel-id="cancelBusModal"
@@ -442,6 +447,9 @@
                 action="#"
                 method="POST"
                 class="job-form wide-form"
+                data-ajax-submit="true"
+                data-parent-modal-id="editBusModal"
+                data-ajax-regions="records,summary"
                 data-confirm-form
                 data-confirm-title="Update Bus?"
                 data-confirm-message="Are you sure you want to update this bus record?"

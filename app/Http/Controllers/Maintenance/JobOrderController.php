@@ -319,6 +319,9 @@ class JobOrderController extends Controller
                 ->exists();
 
             if (! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Selected mechanic is not available.'], 422);
+                }
                 return redirect()->back()->withInput()->with('error', 'Selected mechanic is not available.');
             }
 
@@ -359,17 +362,30 @@ class JobOrderController extends Controller
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
 
+        $successMsg = $jobOrder->status === 'On Hold'
+            ? 'Job order created and placed on hold because no mechanic was assigned.'
+            : 'Job order created successfully.';
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMsg,
+                'job_order' => $jobOrder,
+            ]);
+        }
+
         return redirect()->to(route('job-orders', [], false))->with(
             'success',
-            $jobOrder->status === 'On Hold'
-                ? 'Job order created and placed on hold because no mechanic was assigned.'
-                : 'Job order created successfully.'
+            $successMsg
         );
     }
 
     public function update(Request $request, JobOrder $jobOrder)
     {
         if ($jobOrder->status === 'Completed') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Completed job orders can only be viewed.'], 422);
+            }
             return redirect()->back()->with('error', 'Completed job orders can only be viewed.');
         }
 
@@ -377,6 +393,9 @@ class JobOrderController extends Controller
             'Approved', 'For Purchase', 'Ordered', 'For Pick-up',
             'For Delivery', 'Delivered', 'Picked Up', 'Issued',
         ], true)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This Job Order can no longer be edited because its Purchase Request is already approved or being processed.'], 422);
+            }
             return redirect()->back()->with('error', 'This Job Order can no longer be edited because its Purchase Request is already approved or being processed.');
         }
 
@@ -404,6 +423,9 @@ class JobOrderController extends Controller
                 ->first();
 
             if (! $mechanic) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Selected mechanic has no attendance record for today.'], 422);
+                }
                 return redirect()->back()->withInput()->with('error', 'Selected mechanic has no attendance record for today.');
             }
 
@@ -413,6 +435,9 @@ class JobOrderController extends Controller
                 ->exists();
 
             if (! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Selected mechanic is already on duty.'], 422);
+                }
                 return redirect()->back()->withInput()->with('error', 'Selected mechanic is already on duty.');
             }
         }
@@ -459,29 +484,52 @@ class JobOrderController extends Controller
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'updated', $jobOrder->id, 'A job order was updated.');
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Job order updated successfully.',
+                'job_order' => $jobOrder,
+            ]);
+        }
+
         return redirect()->to(route('job-orders', [], false))->with('success', 'Job order updated successfully.');
     }
 
-    public function createPurchaseRequest(JobOrder $jobOrder)
+    public function createPurchaseRequest(Request $request, JobOrder $jobOrder)
     {
         if (empty($jobOrder->assigned_mechanic)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Assign a mechanic before creating a Purchase Request.'], 422);
+            }
             return redirect()->back()->with('error', 'Assign a mechanic before creating a Purchase Request.');
         }
 
         if (empty($jobOrder->part_needed)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order has no requested parts.'], 422);
+            }
             return redirect()->back()->with('error', 'Cannot create PR because this Job Order has no requested parts.');
         }
 
         if ($jobOrder->status === 'Completed') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order is already completed.'], 422);
+            }
             return redirect()->back()->with('error', 'Cannot create PR because this Job Order is already completed.');
         }
 
         if ($jobOrder->part_status === 'Rejected') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.'], 422);
+            }
             return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
                 ->with('error', 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.');
         }
 
         if (! in_array($jobOrder->part_status, [null, 'Not Requested'], true)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This Job Order already has a Purchase Request.'], 422);
+            }
             return redirect()->back()->with('error', 'This Job Order already has a Purchase Request.');
         }
 
@@ -490,15 +538,22 @@ class JobOrderController extends Controller
             ->first();
 
         if ($existingPr) {
+            $existingMsg = $existingPr->status === 'Rejected'
+                ? 'The existing Purchase Request is rejected. Revise and resubmit it.'
+                : 'This Job Order already has a Purchase Request.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $existingMsg], 422);
+            }
             return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
-                ->with('error', $existingPr->status === 'Rejected'
-                    ? 'The existing Purchase Request is rejected. Revise and resubmit it.'
-                    : 'This Job Order already has a Purchase Request.');
+                ->with('error', $existingMsg);
         }
 
         $parts = $this->partParser->parsePartText($jobOrder->part_needed);
 
         if (count($parts) === 0) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'No valid requested parts were found for this Job Order.'], 422);
+            }
             return redirect()->back()->with('error', 'No valid requested parts were found for this Job Order.');
         }
 
@@ -519,41 +574,70 @@ class JobOrderController extends Controller
         $this->broadcastSystemDataUpdated('Maintenance', 'PurchaseRequest', 'created', $purchaseRequest->id, 'A purchase request was created from a job order.');
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Submitted.');
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request created successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
+
         return redirect()->to(route('job-orders', [], false))->with('success', 'Purchase request created successfully.');
     }
 
-    public function finish(JobOrder $jobOrder)
+    public function finish(Request $request, JobOrder $jobOrder)
     {
         if ($jobOrder->status === 'Completed') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Job order is already completed.'], 422);
+            }
             return redirect()->back()->with('error', 'Job order is already completed.');
         }
 
         if ($jobOrder->status === 'On Hold') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This job order cannot be completed because it is currently on hold.'], 422);
+            }
             return redirect()->back()->with('error', 'This job order cannot be completed because it is currently on hold.');
         }
 
         if ($jobOrder->status !== 'On Going') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only active job orders can be completed.'], 422);
+            }
             return redirect()->back()->with('error', 'Only active job orders can be completed.');
         }
 
         if (! $this->canFinishWithPartStatus($jobOrder)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This job order cannot be completed yet. Required parts must be issued first.'], 422);
+            }
             return redirect()->back()->with('error', 'This job order cannot be completed yet. Required parts must be issued first.');
         }
 
         if ($jobOrder->maintenance_type === 'PMS') {
             if (! $jobOrder->pms_schedule_id) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'This PMS Job Order is not linked to a PMS schedule.'], 422);
+                }
                 return redirect()->back()->with('error', 'This PMS Job Order is not linked to a PMS schedule.');
             }
 
             $pmsSchedule = PmsSchedule::find($jobOrder->pms_schedule_id);
 
             if (! $pmsSchedule) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'The linked PMS schedule was not found.'], 422);
+                }
                 return redirect()->back()->with('error', 'The linked PMS schedule was not found.');
             }
 
             $bus = Bus::whereRaw('UPPER(TRIM(bus_no)) = ?', [strtoupper(trim($jobOrder->bus_no))])->first();
 
             if (! $bus) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'The matching bus was not found in Bus Master List.'], 422);
+                }
                 return redirect()->back()->with('error', 'The matching bus was not found in Bus Master List.');
             }
 
@@ -610,16 +694,27 @@ class JobOrderController extends Controller
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'A job order was marked as completed.');
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Job order marked as completed.',
+                'job_order' => $jobOrder,
+            ]);
+        }
+
         return redirect()->to(route('job-orders', [], false))->with('success', 'Job order marked as completed.');
     }
 
-    public function destroy(JobOrder $jobOrder)
+    public function destroy(Request $request, JobOrder $jobOrder)
     {
         $hasLinkedPurchaseRequest = $this
             ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
             ->exists();
 
         if ($hasLinkedPurchaseRequest) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This Job Order cannot be deleted because it already has a linked Purchase Request.'], 422);
+            }
             return redirect()->back()->with('error', 'This Job Order cannot be deleted because it already has a linked Purchase Request.');
         }
 
@@ -632,6 +727,13 @@ class JobOrderController extends Controller
         }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'deleted', $jobOrderId, 'A job order was deleted.');
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Job order deleted successfully.',
+            ]);
+        }
 
         return redirect()->to(route('job-orders', [], false))->with('success', 'Job order deleted successfully.');
     }

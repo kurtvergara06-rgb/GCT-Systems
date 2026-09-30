@@ -196,17 +196,23 @@ class WarehousePartRequestController extends Controller
         ));
     }
 
-    public function issue(PurchaseRequest $purchaseRequest)
+    public function issue(Request $request, PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseRole('staff');
 
         if ($this->isRestockRequest($purchaseRequest)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be issued from Warehouse Part Requests.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'Inventory restock requests cannot be issued from Warehouse Part Requests.');
         }
 
         if ($purchaseRequest->warehouse_status !== 'Preparing') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only requests prepared by Warehouse Staff can be issued.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'Only requests prepared by Warehouse Staff can be issued.');
@@ -215,6 +221,9 @@ class WarehousePartRequestController extends Controller
         $parts = $this->parseParts($purchaseRequest->item);
 
         if (empty($parts)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'No requested parts found on this requisition.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'No requested parts found on this requisition.');
@@ -294,16 +303,26 @@ class WarehousePartRequestController extends Controller
             'Warehouse issued a purchase request.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Parts issued successfully.',
+            ]);
+        }
+
         return redirect()
             ->back()
             ->with('success', 'Parts issued successfully.');
     }
 
-    public function approveForIssue(PurchaseRequest $purchaseRequest)
+    public function approveForIssue(Request $request, PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseRole('head');
 
         if ($this->isRestockRequest($purchaseRequest) || $purchaseRequest->status === 'Issued') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request cannot be approved for issuance.'], 422);
+            }
             return redirect()->back()->with('error', 'This request cannot be approved for issuance.');
         }
 
@@ -311,6 +330,9 @@ class WarehousePartRequestController extends Controller
         $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
 
         if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true) || ! $inventoryCheck['available']) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'All requested parts must be available before issuance approval.'], 422);
+            }
             return redirect()->back()->with('error', 'All requested parts must be available before issuance approval.');
         }
 
@@ -322,14 +344,24 @@ class WarehousePartRequestController extends Controller
             'warehouse_prepared_at' => null,
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Part issuance approved. Warehouse Staff may now prepare the request.',
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Part issuance approved. Warehouse Staff may now prepare the request.');
     }
 
-    public function hold(PurchaseRequest $purchaseRequest)
+    public function hold(Request $request, PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseRole('head');
 
         if ($purchaseRequest->status === 'Issued' || $purchaseRequest->warehouse_status === 'Issued') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Issued requests cannot be placed on hold.'], 422);
+            }
             return redirect()->back()->with('error', 'Issued requests cannot be placed on hold.');
         }
 
@@ -339,20 +371,33 @@ class WarehousePartRequestController extends Controller
             'warehouse_prepared_at' => null,
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Part issuance placed on hold.',
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Part issuance placed on hold.');
     }
 
-    public function prepare(PurchaseRequest $purchaseRequest)
+    public function prepare(Request $request, PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseRole('staff');
 
         if ($purchaseRequest->warehouse_status !== 'Approved for Issue') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Warehouse Head approval is required before preparation.'], 422);
+            }
             return redirect()->back()->with('error', 'Warehouse Head approval is required before preparation.');
         }
 
         $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
 
         if (! $inventoryCheck['available']) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Stock is no longer sufficient for this request.'], 422);
+            }
             return redirect()->back()->with('error', 'Stock is no longer sufficient for this request.');
         }
 
@@ -362,26 +407,42 @@ class WarehousePartRequestController extends Controller
             'warehouse_prepared_at' => now(),
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Parts marked as preparing. Record actual quantities when issuing.',
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Parts marked as preparing. Record actual quantities when issuing.');
     }
 
-    public function sendToPurchase(PurchaseRequest $purchaseRequest)
+    public function sendToPurchase(Request $request, PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseRole('head');
 
         if ($this->isRestockRequest($purchaseRequest)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be sent from Warehouse Part Requests.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
         }
 
         if ($purchaseRequest->status !== 'Approved') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only approved purchase requests can be sent to purchasing department.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'Only approved purchase requests can be sent to purchasing department.');
         }
 
         if ($this->missingPurchaseRequestExists($purchaseRequest)) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Missing parts were already sent to the Purchase Department.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'Missing parts were already sent to the Purchase Department.');
@@ -391,6 +452,9 @@ class WarehousePartRequestController extends Controller
         $inventoryCheck = $this->checkInventoryAvailability($parts);
 
         if ($inventoryCheck['available']) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'All requested parts are available. Please issue the parts instead.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'All requested parts are available. Please issue the parts instead.');
@@ -399,6 +463,9 @@ class WarehousePartRequestController extends Controller
         $missingParts = $inventoryCheck['missing'] ?? [];
 
         if (count($missingParts) === 0) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'No missing parts found to send to Purchase Department.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with('error', 'No missing parts found to send to Purchase Department.');
@@ -438,6 +505,13 @@ class WarehousePartRequestController extends Controller
             ->update([
                 'part_status' => 'For Purchase',
             ]);
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Only unavailable parts were sent to Purchase Department.',
+            ]);
+        }
 
         return redirect()
             ->back()

@@ -226,18 +226,19 @@ document.addEventListener('DOMContentLoaded', () => {
     departureTime?.addEventListener('change', calculateArrival);
     tripRoute?.addEventListener('change', calculateArrival);
 
-    document.querySelectorAll('.edit-trip').forEach((button) => {
-        button.addEventListener('click', () => {
+    document.addEventListener('click', (event) => {
+        const editBtn = event.target.closest('.edit-trip');
+        if (editBtn) {
             if (!tripForm) {
                 return;
             }
 
-            const tripId = button.dataset.id;
+            const tripId = editBtn.dataset.id;
             const fallbackUrl = `/operation/trip-schedule/${tripId}`;
 
             tripForm.setAttribute(
                 'action',
-                normalizePath(button.dataset.updateUrl, fallbackUrl)
+                normalizePath(editBtn.dataset.updateUrl, fallbackUrl)
             );
 
             if (tripFormMethod) {
@@ -246,31 +247,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (tripCode) {
-                tripCode.value = button.dataset.tripCode || '';
+                tripCode.value = editBtn.dataset.tripCode || '';
             }
 
             if (tripDate) {
-                tripDate.value = button.dataset.tripDate || '';
+                tripDate.value = editBtn.dataset.tripDate || '';
             }
 
             if (tripRoute) {
-                tripRoute.value = button.dataset.routeId || '';
+                tripRoute.value = editBtn.dataset.routeId || '';
             }
 
             if (departureTime) {
-                departureTime.value = button.dataset.departureTime || '';
+                departureTime.value = editBtn.dataset.departureTime || '';
             }
 
             if (arrivalTime) {
-                arrivalTime.value = button.dataset.arrivalTime || '';
+                arrivalTime.value = editBtn.dataset.arrivalTime || '';
             }
 
             if (tripStatus) {
-                tripStatus.value = button.dataset.status || 'Scheduled';
+                tripStatus.value = editBtn.dataset.status || 'Scheduled';
             }
 
             if (tripNotes) {
-                tripNotes.value = button.dataset.notes || '';
+                tripNotes.value = editBtn.dataset.notes || '';
             }
 
             if (tripShift) {
@@ -286,15 +287,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             openModal(tripModal);
-        });
-    });
+            return;
+        }
 
-    document.querySelectorAll('.view-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            const tripData = parseTripData(button.dataset.trip);
+        const viewBtn = event.target.closest('.view-trip');
+        if (viewBtn) {
+            const tripData = parseTripData(viewBtn.dataset.trip);
             renderTripDetails(tripData);
             openModal(viewTripModal);
-        });
+            return;
+        }
+
+        const deleteBtn = event.target.closest('.delete-trip');
+        if (deleteBtn) {
+            selectedDeleteForm = document.getElementById(deleteBtn.dataset.formId);
+
+            if (deleteTripName) {
+                deleteTripName.textContent = deleteBtn.dataset.tripCode || 'this trip';
+            }
+
+            openModal(deleteTripModal);
+            return;
+        }
     });
 
     function parseTripData(rawData) {
@@ -356,18 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => closeModal(viewTripModal));
         });
 
-    document.querySelectorAll('.delete-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            selectedDeleteForm = document.getElementById(button.dataset.formId);
-
-            if (deleteTripName) {
-                deleteTripName.textContent = button.dataset.tripCode || 'this trip';
-            }
-
-            openModal(deleteTripModal);
-        });
-    });
-
     cancelDeleteTrip?.addEventListener('click', () => {
         selectedDeleteForm = null;
         closeModal(deleteTripModal);
@@ -378,7 +380,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        selectedDeleteForm.requestSubmit();
+        if (window.GCTAjax) {
+            window.GCTAjax.submitForm(selectedDeleteForm, {
+                closeModal: () => closeModal(deleteTripModal),
+                refreshRegions: ['records', 'summary'],
+            });
+        } else {
+            selectedDeleteForm.requestSubmit();
+        }
     });
 
     document

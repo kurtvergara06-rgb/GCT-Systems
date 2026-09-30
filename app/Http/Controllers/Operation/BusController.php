@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class BusController extends Controller
 {
@@ -155,6 +156,13 @@ class BusController extends Controller
             'route_grouping' => $validated['route_grouping'] ?? null,
             'status' => $validated['status'],
         ]);
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bus added successfully.',
+            ]);
+        }
 
         session()->flash(
             'success',
@@ -379,6 +387,13 @@ class BusController extends Controller
             'status' => $validated['status'],
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bus information updated successfully.',
+            ]);
+        }
+
         session()->flash(
             'success',
             'Bus information updated successfully.'
@@ -387,9 +402,16 @@ class BusController extends Controller
         return new RedirectResponse('/bus-master-list');
     }
 
-    public function destroy(Bus $bus): RedirectResponse
+    public function destroy(Request $request, Bus $bus): JsonResponse|RedirectResponse
     {
         $bus->delete();
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bus deleted successfully.',
+            ]);
+        }
 
         session()->flash(
             'success',

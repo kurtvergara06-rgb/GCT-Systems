@@ -140,7 +140,7 @@
       </section>
 
       {{-- DAILY FUEL MONITORING --}}
-      <section data-ajax-region="records" class="table-card fuel-card daily-monitoring-card">
+      <section data-ajax-region="daily-monitoring" class="table-card fuel-card daily-monitoring-card">
 
         <div class="section-header daily-monitoring-header">
           <div>
@@ -156,7 +156,7 @@
         </div>
 
         <div class="daily-monitoring-toolbar">
-          <form method="GET" action="{{ route('fuel-reports') }}" class="daily-monitoring-filters">
+          <form method="GET" action="{{ route('fuel-reports') }}" class="daily-monitoring-filters" data-ajax-filter="true">
             <div class="daily-filter-field">
               <label for="monitorDate">Monitoring Date</label>
               <input
@@ -164,7 +164,7 @@
                 id="monitorDate"
                 name="monitor_date"
                 value="{{ $monitorDate }}"
-                onchange="this.form.submit()"
+                onchange="this.form.requestSubmit()"
               >
             </div>
 
@@ -173,7 +173,7 @@
               <select
                 id="monitorFilter"
                 name="monitor_filter"
-                onchange="this.form.submit()"
+                onchange="this.form.requestSubmit()"
               >
                 <option value="all" @selected($monitorFilter === 'all')>All Buses</option>
                 <option value="needs-entry" @selected($monitorFilter === 'needs-entry')>Needs Fuel Entry</option>
@@ -198,6 +198,8 @@
           method="POST"
           action="{{ route('fuel-reports.store') }}"
           class="daily-monitoring-form"
+          data-ajax-submit="true"
+          data-ajax-regions="daily-monitoring,recent-records,summary"
         >
           @csrf
           <input type="hidden" name="daily_monitoring" value="1">
@@ -334,7 +336,7 @@
 
 
       {{-- RECENT FUEL ENTRIES --}}
-      <section data-ajax-region="records" class="table-card fuel-card recent-fuel-card">
+      <section data-ajax-region="recent-records" class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>
@@ -483,6 +485,8 @@
                         data-confirm-message="This fuel record will be permanently removed."
                         data-confirm-button="Yes, Delete"
                         data-confirm-type="delete"
+                        data-ajax-submit="true"
+                        data-ajax-regions="daily-monitoring,recent-records,summary"
                       >
 
                         @csrf
@@ -556,6 +560,9 @@
         data-confirm-message="The system will calculate the fuel efficiency using the selected distance."
         data-confirm-button="Yes, Save Record"
         data-confirm-type="create"
+        data-ajax-submit="true"
+        data-parent-modal-id="fuelModal"
+        data-ajax-regions="daily-monitoring,recent-records,summary"
       >
 
         @csrf

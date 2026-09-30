@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
+        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar" data-ajax-filter="true" data-ajax-target="records summary">
           <div class="toolbar-left">
             <div class="search-box">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -57,7 +57,6 @@
                 name="status"
                 id="warehouseStatusFilter"
                 class="warehouse-status-select"
-                onchange="this.form.requestSubmit()"
               >
                 <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
                 @foreach(($statuses ?? []) as $status)
@@ -198,6 +197,7 @@
                           data-confirm-message="Are you sure you want to send the missing parts for {{ $partRequest->pr_no }} to Purchase?"
                           data-confirm-button="Yes, Send to Purchase"
                           data-confirm-type="warning"
+                          data-ajax-submit="true"
                         >
                           @csrf
                           <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
@@ -216,6 +216,7 @@
                           data-confirm-message="Authorize Warehouse Staff to prepare {{ $partRequest->pr_no }} for release?"
                           data-confirm-button="Yes, Approve"
                           data-confirm-type="approve"
+                          data-ajax-submit="true"
                         >
                           @csrf
                           <button type="submit" class="approve-issue-btn icon-only-btn" title="Approve for Issue">
@@ -225,7 +226,7 @@
                       @endif
 
                       @if($canHold)
-                        <form action="{{ route('part-requests.hold', $partRequest->id) }}" method="POST" class="inline-action-form" data-confirm-form data-confirm-title="Hold Part Issuance?" data-confirm-message="Place {{ $partRequest->pr_no }} on hold?" data-confirm-button="Yes, Hold" data-confirm-type="warning">
+                        <form action="{{ route('part-requests.hold', $partRequest->id) }}" method="POST" class="inline-action-form" data-confirm-form data-confirm-title="Hold Part Issuance?" data-confirm-message="Place {{ $partRequest->pr_no }} on hold?" data-confirm-button="Yes, Hold" data-confirm-type="warning" data-ajax-submit="true">
                           @csrf
                           <button type="submit" class="hold-issue-btn icon-only-btn" title="Reject or Hold Release">
                             <i class="fa-solid fa-ban"></i>
@@ -234,7 +235,7 @@
                       @endif
 
                       @if($canPrepare)
-                        <form action="{{ route('part-requests.prepare', $partRequest->id) }}" method="POST" class="inline-action-form">
+                        <form action="{{ route('part-requests.prepare', $partRequest->id) }}" method="POST" class="inline-action-form" data-confirm-form data-confirm-title="Prepare Parts?" data-confirm-message="Mark parts for {{ $partRequest->pr_no }} as preparing?" data-confirm-button="Yes, Prepare" data-confirm-type="update" data-ajax-submit="true">
                           @csrf
                           <button type="submit" class="prepare-part-btn icon-only-btn" title="Prepare Parts">
                             <i class="fa-solid fa-box"></i>
@@ -348,7 +349,7 @@
   </div>
 
   <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay">
-    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal">
+    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal" data-ajax-submit="true" data-parent-modal-id="issuePartsModal">
       @csrf
       <div class="warehouse-edit-header">
         <div>

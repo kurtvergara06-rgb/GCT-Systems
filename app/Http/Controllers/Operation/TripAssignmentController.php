@@ -7,6 +7,7 @@ use App\Models\Maintenance\Bus;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +132,7 @@ class TripAssignmentController extends Controller
         );
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $this->validateAssignment($request);
 
@@ -174,6 +175,13 @@ class TripAssignmentController extends Controller
             ]);
         });
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver and bus assigned successfully.',
+            ]);
+        }
+
         session()->flash(
             'success',
             'Driver and bus assigned successfully.'
@@ -185,7 +193,7 @@ class TripAssignmentController extends Controller
     public function update(
         Request $request,
         TripAssignment $tripAssignment
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         $tripAssignment->load('tripSchedule');
 
         $trip = $tripAssignment->tripSchedule;
@@ -194,6 +202,12 @@ class TripAssignmentController extends Controller
             ! $trip
             || in_array($trip->status, ['Dispatched', 'Completed'], true)
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Dispatched or completed assignments cannot be changed.',
+                ], 422);
+            }
+
             session()->flash(
                 'error',
                 'Dispatched or completed assignments cannot be changed.'
@@ -232,6 +246,13 @@ class TripAssignmentController extends Controller
             'bus_id' => $bus->id,
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Assignment updated successfully.',
+            ]);
+        }
+
         session()->flash(
             'success',
             'Assignment updated successfully.'
@@ -241,8 +262,9 @@ class TripAssignmentController extends Controller
     }
 
     public function destroy(
+        Request $request,
         TripAssignment $tripAssignment
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         $tripAssignment->load('tripSchedule');
 
         $trip = $tripAssignment->tripSchedule;
@@ -251,6 +273,12 @@ class TripAssignmentController extends Controller
             $trip
             && in_array($trip->status, ['Dispatched', 'Completed'], true)
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Dispatched or completed assignments cannot be removed.',
+                ], 422);
+            }
+
             session()->flash(
                 'error',
                 'Dispatched or completed assignments cannot be removed.'
@@ -267,6 +295,13 @@ class TripAssignmentController extends Controller
                 'status' => 'Scheduled',
             ]);
         });
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Assignment removed successfully.',
+            ]);
+        }
 
         session()->flash(
             'success',

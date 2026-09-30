@@ -473,7 +473,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   confirmDeletePo?.addEventListener('click', () => {
-    selectedDeleteForm?.requestSubmit();
+    if (!selectedDeleteForm) return;
+
+    if (window.GCTAjax) {
+      window.GCTAjax.submitForm(selectedDeleteForm, {
+        parentModalId: 'deletePoModal',
+        onSuccess: (data) => {
+          window.GCTToast?.success?.(data?.message || 'Purchase order deleted successfully.');
+          selectedDeleteForm = null;
+          closeModal(deletePoModal);
+          window.GCTRegions?.refresh?.(window.location.href, ['records', 'summary']);
+        },
+      });
+    } else {
+      selectedDeleteForm.requestSubmit();
+    }
   });
 
   poModal.addEventListener('click', (event) => {
