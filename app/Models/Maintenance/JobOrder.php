@@ -20,6 +20,7 @@ class JobOrder extends Model
         'maintenance_referral_id',
         'incident_id',
         'problem_issue',
+        'work_to_perform',
         'maintenance_type',
         'assigned_mechanic',
         'part_needed',
@@ -51,6 +52,34 @@ class JobOrder extends Model
             if (in_array($jobOrder->part_status, [null, '', 'Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
                 $jobOrder->part_status = 'Not Requested';
             }
+        });
+
+        static::saving(function (JobOrder $jobOrder): void {
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            $request = request();
+
+            if (! $request->has('work_to_perform')) {
+                return;
+            }
+
+            $workToPerform = trim((string) $request->input('work_to_perform'));
+
+            if ($workToPerform === '') {
+                throw ValidationException::withMessages([
+                    'work_to_perform' => 'Describe the repair or maintenance work to perform.',
+                ]);
+            }
+
+            if (mb_strlen($workToPerform) > 2000) {
+                throw ValidationException::withMessages([
+                    'work_to_perform' => 'Work to perform must not exceed 2000 characters.',
+                ]);
+            }
+
+            $jobOrder->work_to_perform = $workToPerform;
         });
 
         static::saving(function (JobOrder $jobOrder): void {
