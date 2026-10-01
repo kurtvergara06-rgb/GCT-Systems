@@ -25,10 +25,41 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     unitSelect: durationField?.querySelector('select[name="estimated_duration_unit"]') || null,
   });
 
+  const removeLegacyWorkField = (form) => {
+    if (!form) return '';
+
+    let legacyValue = '';
+
+    form
+      .querySelectorAll('textarea[name="work_to_perform"], input[name="work_to_perform"]')
+      .forEach((field) => {
+        if (field.matches('[data-work-to-perform]')) return;
+
+        if (!legacyValue) {
+          legacyValue = String(field.value || '').trim();
+        }
+
+        field.required = false;
+        field.disabled = true;
+        field.removeAttribute('name');
+
+        const group = field.closest('.ui-form-group');
+        if (group) {
+          group.remove();
+        } else {
+          field.remove();
+        }
+      });
+
+    return legacyValue;
+  };
+
   const createPresetField = ({ idPrefix, form, durationField }) => {
     if (!form || !durationField || form.querySelector(`[data-maintenance-job-presets="${idPrefix}"]`)) {
       return null;
     }
+
+    const legacyWork = removeLegacyWorkField(form);
 
     const group = document.createElement('div');
     group.className = 'ui-form-group ui-form-full';
@@ -51,6 +82,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         </select>
       </div>
       <div data-custom-work-wrap hidden style="margin-top:10px;">
+        <label for="${idPrefix}CustomWork" style="display:block;margin-bottom:6px;">
+          Custom Work / Repair <span class="ui-required">*</span>
+        </label>
         <textarea
           id="${idPrefix}CustomWork"
           data-custom-work
@@ -110,7 +144,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     customInput?.addEventListener('input', syncHiddenValue);
 
-    return {
+    const api = {
       group,
       select,
       customWrap,
@@ -142,6 +176,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         if (customInput) customInput.disabled = readonly;
       },
     };
+
+    if (legacyWork) {
+      api.setWork(legacyWork, { preserveDuration: true, readonly: false });
+    }
+
+    return api;
   };
 
   const newDurationField = document.getElementById('newJoEstimatedDuration');
@@ -160,7 +200,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     durationField: editDurationField,
   });
 
-  if (newPresetField) {
+  if (newPresetField && !newPresetField.hiddenInput?.value) {
     newPresetField.setWork('', { preserveDuration: true, readonly: false });
   }
 
