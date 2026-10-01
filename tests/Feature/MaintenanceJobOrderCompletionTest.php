@@ -22,6 +22,7 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $this->maintenanceUser = User::factory()->create([
             'department' => 'Maintenance',
             'role' => 'staff',
+            'status' => 'Active',
         ]);
     }
 
