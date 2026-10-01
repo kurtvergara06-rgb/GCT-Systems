@@ -29,29 +29,81 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     if (!form) return '';
 
     let legacyValue = '';
+    const legacyFields = new Set([
+      ...form.querySelectorAll('textarea[name="work_to_perform"], input[name="work_to_perform"]'),
+      ...form.querySelectorAll('#jobWorkToPerform, #edit_work_to_perform, #work_to_perform'),
+    ]);
 
-    form
-      .querySelectorAll('textarea[name="work_to_perform"], input[name="work_to_perform"]')
-      .forEach((field) => {
-        if (field.matches('[data-work-to-perform]')) return;
+    legacyFields.forEach((field) => {
+      if (!field || field.matches('[data-work-to-perform]')) return;
 
-        if (!legacyValue) {
+      if (!legacyValue) {
+        legacyValue = String(field.value || '').trim();
+      }
+
+      field.required = false;
+      field.disabled = true;
+      field.removeAttribute('name');
+
+      const group = field.closest('.ui-form-group');
+      if (group) {
+        group.remove();
+      } else {
+        field.remove();
+      }
+    });
+
+    form.querySelectorAll('.ui-form-group').forEach((group) => {
+      const label = group.querySelector('label');
+      if (!label) return;
+
+      const text = label.textContent.replace(/\*/g, '').trim().toLowerCase();
+      if (text === 'work / repair to perform' || text === 'work/repair to perform') {
+        const field = group.querySelector('textarea, input');
+        if (field && !legacyValue) {
           legacyValue = String(field.value || '').trim();
         }
-
-        field.required = false;
-        field.disabled = true;
-        field.removeAttribute('name');
-
-        const group = field.closest('.ui-form-group');
-        if (group) {
-          group.remove();
-        } else {
-          field.remove();
-        }
-      });
+        group.remove();
+      }
+    });
 
     return legacyValue;
+  };
+
+  const hideMaintenanceTypeField = (form, { idPrefix, fallback = 'Repair' } = {}) => {
+    if (!form) return null;
+
+    const existingHidden = form.querySelector(`input[data-maintenance-type-hidden="${idPrefix}"]`);
+    if (existingHidden) return existingHidden;
+
+    const select = form.querySelector('select[name="maintenance_type"], #jobMaintenanceType, #edit_maintenance_type');
+    const initialValue = String(select?.value || fallback || 'Repair').trim() || 'Repair';
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'maintenance_type';
+    hidden.value = initialValue;
+    hidden.dataset.maintenanceTypeHidden = idPrefix;
+    form.appendChild(hidden);
+
+    if (select) {
+      select.required = false;
+      select.disabled = true;
+      select.removeAttribute('name');
+      const group = select.closest('.ui-form-group');
+      if (group) group.remove();
+    }
+
+    form.querySelectorAll('.ui-form-group').forEach((group) => {
+      const label = group.querySelector('label');
+      if (!label) return;
+      const text = label.textContent.replace(/\*/g, '').trim().toLowerCase();
+      if (text === 'maintenance type') {
+        group.remove();
+      }
+    });
+
+    return hidden;
   };
 
   const createPresetField = ({ idPrefix, form, durationField }) => {
@@ -188,6 +240,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
   const newJobForm = document.getElementById('newJobOrderForm');
   const editJobForm = document.getElementById('editJobForm');
 
+  const newMaintenanceType = hideMaintenanceTypeField(newJobForm, {
+    idPrefix: 'newJo',
+    fallback: 'Repair',
+  });
+
+  const editMaintenanceType = hideMaintenanceTypeField(editJobForm, {
+    idPrefix: 'editJo',
+    fallback: 'Repair',
+  });
+
   const newPresetField = createPresetField({
     idPrefix: 'newJo',
     form: newJobForm,
@@ -202,6 +264,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
   if (newPresetField && !newPresetField.hiddenInput?.value) {
     newPresetField.setWork('', { preserveDuration: true, readonly: false });
+  }
+
+  if (newJobForm && newMaintenanceType) {
+    newJobForm.addEventListener('submit', () => {
+      const pmsScheduleId = newJobForm.querySelector('input[name="pms_schedule_id"]')?.value;
+      newMaintenanceType.value = pmsScheduleId ? 'PMS' : 'Repair';
+    });
   }
 
   let workDetailsPromise = null;
@@ -234,6 +303,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
       if (unitSelect) {
         unitSelect.value = button.dataset.estimatedDurationUnit || 'Hours';
+      }
+
+      if (editMaintenanceType) {
+        editMaintenanceType.value = button.dataset.maintenanceType || 'Repair';
       }
 
       if (!editPresetField) return;
