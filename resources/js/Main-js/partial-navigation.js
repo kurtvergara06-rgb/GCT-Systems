@@ -571,6 +571,10 @@ const eligibleLink = (link, event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
     if (link.hasAttribute('data-no-partial-navigation') || link.closest('[data-ajax-region]')) return false;
+    // Maintenance page controls rely on page-local initializers and modal state.
+    // Use a normal browser navigation for Maintenance sidebar links so each page
+    // starts from a clean DOM/runtime instead of carrying partial-navigation state.
+    if (link.closest('#appSidebar[data-gct-shell="maintenance"]')) return false;
     if (link.closest('form') || link.getAttribute('role') === 'button') return false;
 
     const target = (link.getAttribute('target') || '').toLowerCase();
