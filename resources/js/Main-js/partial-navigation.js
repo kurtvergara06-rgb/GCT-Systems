@@ -60,11 +60,23 @@ const PERSISTENT_OVERLAY_SELECTOR = [
 
 let activeRequest = null;
 
+const cleanupInitializer = (key) => {
+    initializerCleanups.get(key)?.();
+    initializerCleanups.delete(key);
+};
+
+const cleanupAllInitializers = () => {
+    Array.from(initializerCleanups.keys()).forEach(cleanupInitializer);
+};
+
 const runInitializer = (key, rootSelector, initializer) => {
+    // Always clear the previous page instance first. The old implementation
+    // returned when the selector was absent, leaving document/window listeners
+    // from the previous page alive after a partial-navigation swap.
+    cleanupInitializer(key);
+
     const root = document.querySelector(rootSelector);
     if (!root) return;
-
-    initializerCleanups.get(key)?.();
 
     const controller = new AbortController();
     const observers = [];
@@ -266,6 +278,7 @@ const syncPageOwnedElements = (nextDocument) => {
 
 const beginMainExit = (main) => {
     window.dispatchEvent(new CustomEvent(BEFORE_NAVIGATION_EVENT));
+    cleanupAllInitializers();
     cleanupPageOverlays();
     main.classList.remove('gct-main-entering', 'gct-main-entered', 'gct-main-fetching');
     main.classList.add('gct-main-leaving');
