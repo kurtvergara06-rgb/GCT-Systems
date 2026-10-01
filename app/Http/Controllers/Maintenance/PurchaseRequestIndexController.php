@@ -133,7 +133,7 @@ class PurchaseRequestIndexController extends Controller
         }
 
         $user = Auth::user();
-        $department = strtolower(trim((string) ($user->department ?? ''));
+        $department = strtolower(trim((string) ($user->department ?? '')));
         $role = strtolower(trim((string) ($user->role ?? '')));
 
         $department = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $department));
