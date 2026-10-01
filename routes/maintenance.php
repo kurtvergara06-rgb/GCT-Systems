@@ -60,6 +60,12 @@ Route::middleware([
     Route::controller(JobOrderController::class)
         ->prefix('job-orders')
         ->group(function () {
+            Route::get('/work-details', function () {
+                return response()->json(
+                    \App\Models\Maintenance\JobOrder::query()
+                        ->pluck('work_to_perform', 'id')
+                );
+            })->name('job-orders.work-details');
             Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
             Route::post('/', 'store')->name('job-orders.store');
             Route::put('/{jobOrder}', 'update')->name('job-orders.update');
