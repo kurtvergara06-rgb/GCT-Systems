@@ -72,6 +72,10 @@ const initializePageOnlyControls = () => {
         import('./Admin/Data_Management/data-history.js');
     }
 
+    if (document.querySelector('.jo-page')) {
+        import('./Maintenance/job-order-work-details.js');
+    }
+
     if (document.querySelector('.fuel-page')) {
         import('./Maintenance/fuel-reports-refinement.js');
     }
