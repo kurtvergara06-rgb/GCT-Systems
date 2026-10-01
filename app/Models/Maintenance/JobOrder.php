@@ -55,10 +55,6 @@ class JobOrder extends Model
         });
 
         static::saving(function (JobOrder $jobOrder): void {
-            if (app()->runningInConsole()) {
-                return;
-            }
-
             $request = request();
 
             if (! $request->has('work_to_perform')) {
