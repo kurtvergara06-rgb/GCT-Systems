@@ -510,6 +510,19 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     window.scrollTo({ top: restoreScroll ?? 0, left: 0, behavior: 'auto' });
 };
 
+const cleanupTransitionState = () => {
+    const main = document.querySelector(MAIN_SELECTOR);
+    if (main) {
+        main.classList.remove(
+            'gct-main-fetching',
+            'gct-main-leaving',
+            'gct-main-entering',
+            'gct-main-loader-hold'
+        );
+    }
+    window.GCTPageTransition?.hideLoader?.({ revealMain: true });
+};
+
 const fallback = (url) => {
     window.location.href = url;
 };
@@ -559,10 +572,19 @@ const navigate = async (url, options = {}) => {
         await loadDocumentAssets(nextDocument, response.url || targetUrl);
         await replaceMain(nextDocument, response.url || targetUrl, options);
     } catch (error) {
-        if (error.name !== 'AbortError') fallback(targetUrl);
+        if (error.name === 'AbortError') {
+            if (activeRequest === controller) {
+                cleanupTransitionState();
+            }
+        } else {
+            cleanupTransitionState();
+            fallback(targetUrl);
+        }
     } finally {
-        if (activeRequest === controller) activeRequest = null;
-        document.querySelector(MAIN_SELECTOR)?.classList.remove('gct-main-fetching');
+        if (activeRequest === controller) {
+            activeRequest = null;
+            document.querySelector(MAIN_SELECTOR)?.classList.remove('gct-main-fetching');
+        }
     }
 };
 
@@ -570,7 +592,8 @@ const eligibleLink = (link, event) => {
     if (!link || event.defaultPrevented || event.button !== 0) return false;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
-    if (link.hasAttribute('data-no-partial-navigation') || link.closest('[data-ajax-region]')) return false;
+    if (link.hasAttribute('data-no-partial-navigation')) return false;
+    if (link.closest('[data-ajax-region]') && !link.hasAttribute('data-allow-partial-navigation')) return false;
     // Maintenance page controls rely on page-local initializers and modal state.
     // Use a normal browser navigation for Maintenance sidebar links so each page
     // starts from a clean DOM/runtime instead of carrying partial-navigation state.

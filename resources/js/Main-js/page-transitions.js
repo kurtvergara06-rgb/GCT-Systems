@@ -87,6 +87,7 @@ const hideLoader = async ({ revealMain = true } = {}) => {
                 'gct-main-leaving',
                 'gct-main-entering',
                 'gct-main-entered',
+                'gct-main-loader-hold',
             );
             main.classList.add('gct-main-after-loader');
             hideTimer = window.setTimeout(() => {

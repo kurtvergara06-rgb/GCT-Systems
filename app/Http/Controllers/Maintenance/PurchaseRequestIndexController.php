@@ -89,7 +89,9 @@ class PurchaseRequestIndexController extends Controller
             $selectedJobOrder = JobOrder::find($request->job_order_id);
         }
 
-        $statuses = $this->statuses;
+        $statuses = $recordView === 'history'
+            ? ['Issued']
+            : array_values(array_filter($this->statuses, fn ($status) => $status !== 'Issued'));
         $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
 
         return view('Maintenance.purchase-requests', compact(

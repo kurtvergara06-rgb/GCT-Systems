@@ -5,20 +5,14 @@ const getRecordView = () => {
     return value === 'history' ? 'history' : 'active';
 };
 
-const buildUrl = (view, pageType) => {
+const buildUrl = (view) => {
     const url = new URL(window.location.href);
     url.searchParams.delete('page');
 
     if (view === 'history') {
         url.searchParams.set(TAB_PARAM, 'history');
-        if (pageType === 'purchase-request') {
-            url.searchParams.set('status', 'Issued');
-        }
     } else {
         url.searchParams.delete(TAB_PARAM);
-        if (pageType === 'purchase-request') {
-            url.searchParams.set('status', 'All Statuses');
-        }
     }
 
     return `${url.pathname}${url.search}`;
@@ -170,9 +164,7 @@ const insertTabs = (card, pageType, view) => {
             note.className = 'maintenance-history-note';
             toolbar.before(note);
         }
-        note.textContent = pageType === 'job-order'
-            ? 'Completed Job Orders are kept here for reference and audit history.'
-            : 'Issued Purchase Requests are kept here for reference and audit history.';
+        note.textContent = 'Completed Job Orders are kept here for reference and audit history.';
     } else {
         note?.remove();
     }
@@ -191,23 +183,9 @@ const applyJobOrderView = () => {
     if (newButton) newButton.hidden = view === 'history';
 };
 
-const applyPurchaseRequestView = () => {
-    const page = document.querySelector('.purchase-page');
-    const card = page?.querySelector('.purchase-request-card');
-    if (!page || !card) return;
-
-    const view = getRecordView();
-    insertTabs(card, 'purchase-request', view);
-
-    // Row filtering is server-side. JS only controls presentation/state.
-    const newButton = card.querySelector('#openPrModal');
-    if (newButton) newButton.hidden = view === 'history';
-};
-
 const applyMaintenanceRecordViews = () => {
     ensureStyles();
     applyJobOrderView();
-    applyPurchaseRequestView();
 };
 
 const initializeMaintenanceRecordViews = () => {
@@ -216,7 +194,7 @@ const initializeMaintenanceRecordViews = () => {
 };
 
 document.addEventListener('click', (event) => {
-    const link = event.target.closest('[data-maintenance-record-tab-link]');
+    const link = event.target.closest('.jo-page [data-maintenance-record-tab-link]');
     if (!link) return;
     navigateRecordTab(event, link);
 });

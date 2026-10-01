@@ -96,18 +96,52 @@
               </section>
 
               <section data-ajax-region="records" class="table-card purchase-request-card">
-                  <div class="section-header">
+                  <div class="section-header maintenance-record-header">
                       <div>
                           <h2>Purchase Request Records</h2>
                           <p>Track requested parts, approval status, warehouse issuance, and purchasing progress</p>
                       </div>
+
+                      <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
+                          <a
+                              href="{{ route('purchase-requests', array_filter(['search' => request('search'), 'status' => 'All Statuses'])) }}"
+                              class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
+                              data-allow-partial-navigation="true"
+                              data-maintenance-record-tab-link="active"
+                              role="tab"
+                              aria-selected="{{ $recordView === 'active' ? 'true' : 'false' }}"
+                          >
+                              <i class="fa-solid fa-list-check"></i>
+                              <span>Active</span>
+                          </a>
+
+                          <a
+                              href="{{ route('purchase-requests', array_filter(['record_view' => 'history', 'search' => request('search'), 'status' => 'Issued'])) }}"
+                              class="maintenance-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}"
+                              data-allow-partial-navigation="true"
+                              data-maintenance-record-tab-link="history"
+                              role="tab"
+                              aria-selected="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                          >
+                              <i class="fa-solid fa-clock-rotate-left"></i>
+                              <span>History</span>
+                          </a>
+                      </div>
                   </div>
+
+                  @if($recordView === 'history')
+                      <p class="maintenance-history-note">Issued Purchase Requests are kept here for reference and audit history.</p>
+                  @endif
 
                   <form
                       action="{{ route('purchase-requests') }}"
                       method="GET"
                       class="toolbar purchase-toolbar"
                   >
+                      @if($recordView === 'history')
+                          <input type="hidden" name="record_view" value="history">
+                      @endif
+
                       <div class="search-box">
                           <i class="fa-solid fa-magnifying-glass"></i>
                           <input
@@ -140,10 +174,12 @@
                           </select>
                       </div>
 
-                      <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
-                          <i class="fa-solid fa-plus"></i>
-                          New PR
-                      </button>
+                      @if($recordView !== 'history')
+                          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
+                              <i class="fa-solid fa-plus"></i>
+                              New PR
+                          </button>
+                      @endif
                   </form>
 
                   <div class="table-wrap purchase-table-wrap">
