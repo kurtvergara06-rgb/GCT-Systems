@@ -20,6 +20,7 @@ import '../css/Main-styles/spinner.css';
 import '../css/Main-styles/topbar.css';
 import '../css/Main-styles/page-transitions.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
+import '../css/Maintenance/purchase-request-modal-cleanup.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/global-modal-backdrop.js';
