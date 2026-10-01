@@ -32,6 +32,7 @@ class JobOrderIndexController extends Controller
                 $q->where('job_order_no', 'like', "%{$search}%")
                     ->orWhere('bus_no', 'like', "%{$search}%")
                     ->orWhere('problem_issue', 'like', "%{$search}%")
+                    ->orWhere('work_to_perform', 'like', "%{$search}%")
                     ->orWhere('maintenance_type', 'like', "%{$search}%")
                     ->orWhere('assigned_mechanic', 'like', "%{$search}%")
                     ->orWhere('part_needed', 'like', "%{$search}%")
