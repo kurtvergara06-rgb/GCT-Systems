@@ -56,8 +56,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       select.required = false;
       select.disabled = true;
       select.removeAttribute('name');
-      const group = select.closest('.ui-form-group');
-      if (group) group.remove();
+      select.closest('.ui-form-group')?.remove();
     }
 
     return hidden;
@@ -66,10 +65,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
   const ensureWorkField = (form, problemField, idPrefix) => {
     if (!form || !problemField) return null;
 
-    let workInput = form.querySelector('textarea[name="work_to_perform"]');
+    const problemGroup = problemField.closest('.ui-form-group');
+    if (!problemGroup) return null;
+
+    const candidates = Array.from(form.querySelectorAll('textarea[name="work_to_perform"], textarea[id*="WorkToPerform"], textarea[id*="work_to_perform"]'));
+    let workInput = candidates[0] || null;
     let workGroup = workInput?.closest('.ui-form-group') || null;
 
-    if (!workInput) {
+    candidates.slice(1).forEach((duplicate) => {
+      const duplicateGroup = duplicate.closest('.ui-form-group');
+      if (duplicateGroup && duplicateGroup !== workGroup) {
+        duplicateGroup.remove();
+      } else {
+        duplicate.remove();
+      }
+    });
+
+    if (!workInput || !workGroup || !document.contains(workGroup)) {
       workGroup = document.createElement('div');
       workGroup.className = 'ui-form-group';
       workGroup.innerHTML = `
@@ -84,22 +96,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           required
         ></textarea>
       `;
-
-      const problemGroup = problemField.closest('.ui-form-group');
-      problemGroup?.insertAdjacentElement('afterend', workGroup);
       workInput = workGroup.querySelector('textarea[name="work_to_perform"]');
     }
 
-    const problemGroup = problemField.closest('.ui-form-group');
-    problemGroup?.classList.remove('ui-form-full');
-    workGroup?.classList.remove('ui-form-full');
+    problemGroup.classList.remove('ui-form-full');
+    workGroup.classList.remove('ui-form-full');
 
-    if (workGroup) {
-      const label = workGroup.querySelector('label');
-      if (label) {
-        label.innerHTML = 'Work / Repair to Perform <span class="ui-required">*</span>';
-      }
+    const label = workGroup.querySelector('label');
+    if (label) {
+      label.innerHTML = 'Work / Repair to Perform <span class="ui-required">*</span>';
     }
+
+    workGroup.querySelectorAll('small, .ui-form-help, .form-text, .helper-text').forEach((helper) => helper.remove());
 
     if (workInput) {
       workInput.required = true;
@@ -108,13 +116,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       workInput.placeholder = 'Describe the actual maintenance or repair work that will be performed...';
     }
 
+    // The form grid uses source order for the two-column layout. Force the
+    // work field directly beside Problem / Issue and remove any stale duplicate.
+    problemGroup.insertAdjacentElement('afterend', workGroup);
+
     return workInput;
   };
 
   const ensureMaintenanceJobField = ({ form, durationField, idPrefix }) => {
     if (!form || !durationField) return null;
 
-    let group = form.querySelector(`[data-maintenance-job-presets="${idPrefix}"]`);
+    const existingGroups = Array.from(form.querySelectorAll(`[data-maintenance-job-presets="${idPrefix}"]`));
+    let group = existingGroups.shift() || null;
+    existingGroups.forEach((duplicate) => duplicate.remove());
 
     if (!group) {
       group = document.createElement('div');
@@ -138,8 +152,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           </select>
         </div>
       `;
-
-      durationField.insertAdjacentElement('beforebegin', group);
     }
 
     group.classList.remove('ui-form-full');
@@ -149,6 +161,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     if (durationLabel) {
       durationLabel.innerHTML = 'Estimated Time <span class="ui-required">*</span>';
     }
+
+    // Keep Maintenance Job immediately before Estimated Time so both occupy
+    // the same two-column row.
+    durationField.insertAdjacentElement('beforebegin', group);
 
     const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
     const { valueInput, unitSelect } = findDurationControls(durationField);
