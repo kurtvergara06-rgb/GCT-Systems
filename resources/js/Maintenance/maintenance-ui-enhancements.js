@@ -1,10 +1,4 @@
 window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '.jo-page, .pms-page, .purchase-page, .referrals-page, .fuel-page, .mechanic-page', () => {
-  const editDurationField = document.getElementById('editJoEstimatedDuration');
-
-  if (!editDurationField) {
-    return;
-  }
-
   const maintenanceJobPresets = [
     { label: 'Change Oil', value: 5, unit: 'Hours' },
     { label: 'Oil Filter Replacement', value: 2, unit: 'Hours' },
@@ -25,49 +19,21 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     unitSelect: durationField?.querySelector('select[name="estimated_duration_unit"]') || null,
   });
 
-  const removeLegacyWorkField = (form) => {
-    if (!form) return '';
+  const setDurationReadonly = (durationField, readonly) => {
+    const { valueInput, unitSelect } = findDurationControls(durationField);
 
-    let legacyValue = '';
-    const legacyFields = new Set([
-      ...form.querySelectorAll('textarea[name="work_to_perform"], input[name="work_to_perform"]'),
-      ...form.querySelectorAll('#jobWorkToPerform, #edit_work_to_perform, #work_to_perform'),
-    ]);
+    if (valueInput) {
+      valueInput.readOnly = readonly;
+      valueInput.setAttribute('aria-readonly', readonly ? 'true' : 'false');
+      valueInput.style.cursor = readonly ? 'default' : '';
+    }
 
-    legacyFields.forEach((field) => {
-      if (!field || field.matches('[data-work-to-perform]')) return;
-
-      if (!legacyValue) {
-        legacyValue = String(field.value || '').trim();
-      }
-
-      field.required = false;
-      field.disabled = true;
-      field.removeAttribute('name');
-
-      const group = field.closest('.ui-form-group');
-      if (group) {
-        group.remove();
-      } else {
-        field.remove();
-      }
-    });
-
-    form.querySelectorAll('.ui-form-group').forEach((group) => {
-      const label = group.querySelector('label');
-      if (!label) return;
-
-      const text = label.textContent.replace(/\*/g, '').trim().toLowerCase();
-      if (text === 'work / repair to perform' || text === 'work/repair to perform') {
-        const field = group.querySelector('textarea, input');
-        if (field && !legacyValue) {
-          legacyValue = String(field.value || '').trim();
-        }
-        group.remove();
-      }
-    });
-
-    return legacyValue;
+    if (unitSelect) {
+      unitSelect.setAttribute('aria-readonly', readonly ? 'true' : 'false');
+      unitSelect.style.pointerEvents = readonly ? 'none' : '';
+      unitSelect.style.cursor = readonly ? 'default' : '';
+      unitSelect.tabIndex = readonly ? -1 : 0;
+    }
   };
 
   const hideMaintenanceTypeField = (form, { idPrefix, fallback = 'Repair' } = {}) => {
@@ -94,182 +60,179 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       if (group) group.remove();
     }
 
-    form.querySelectorAll('.ui-form-group').forEach((group) => {
-      const label = group.querySelector('label');
-      if (!label) return;
-      const text = label.textContent.replace(/\*/g, '').trim().toLowerCase();
-      if (text === 'maintenance type') {
-        group.remove();
-      }
-    });
-
     return hidden;
   };
 
-  const createPresetField = ({ idPrefix, form, durationField }) => {
-    if (!form || !durationField || form.querySelector(`[data-maintenance-job-presets="${idPrefix}"]`)) {
+  const ensureWorkField = (form, problemField, idPrefix) => {
+    if (!form || !problemField) return null;
+
+    let workInput = form.querySelector('textarea[name="work_to_perform"]');
+    let workGroup = workInput?.closest('.ui-form-group') || null;
+
+    if (!workInput) {
+      workGroup = document.createElement('div');
+      workGroup.className = 'ui-form-group';
+      workGroup.innerHTML = `
+        <label for="${idPrefix}WorkToPerform">
+          Work / Repair to Perform <span class="ui-required">*</span>
+        </label>
+        <textarea
+          name="work_to_perform"
+          id="${idPrefix}WorkToPerform"
+          maxlength="2000"
+          placeholder="Describe the actual maintenance or repair work that will be performed..."
+          required
+        ></textarea>
+      `;
+
+      const problemGroup = problemField.closest('.ui-form-group');
+      problemGroup?.insertAdjacentElement('afterend', workGroup);
+      workInput = workGroup.querySelector('textarea[name="work_to_perform"]');
+    }
+
+    const problemGroup = problemField.closest('.ui-form-group');
+    problemGroup?.classList.remove('ui-form-full');
+    workGroup?.classList.remove('ui-form-full');
+
+    if (workGroup) {
+      const label = workGroup.querySelector('label');
+      if (label) {
+        label.innerHTML = 'Work / Repair to Perform <span class="ui-required">*</span>';
+      }
+    }
+
+    if (workInput) {
+      workInput.required = true;
+      workInput.disabled = false;
+      workInput.name = 'work_to_perform';
+      workInput.placeholder = 'Describe the actual maintenance or repair work that will be performed...';
+    }
+
+    return workInput;
+  };
+
+  const ensureMaintenanceJobField = ({ form, durationField, idPrefix }) => {
+    if (!form || !durationField) return null;
+
+    let group = form.querySelector(`[data-maintenance-job-presets="${idPrefix}"]`);
+
+    if (!group) {
+      group = document.createElement('div');
+      group.className = 'ui-form-group';
+      group.dataset.maintenanceJobPresets = idPrefix;
+
+      const options = maintenanceJobPresets
+        .map((preset) => `<option value="${preset.label}">${preset.label}</option>`)
+        .join('');
+
+      group.innerHTML = `
+        <label for="${idPrefix}MaintenanceJob">
+          Maintenance Job <span class="ui-required">*</span>
+        </label>
+        <div class="ui-input-wrap has-icon">
+          <span class="ui-input-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+          <select id="${idPrefix}MaintenanceJob" required>
+            <option value="">Select Maintenance Job</option>
+            ${options}
+            <option value="Other">Other / Custom Work</option>
+          </select>
+        </div>
+      `;
+
+      durationField.insertAdjacentElement('beforebegin', group);
+    }
+
+    group.classList.remove('ui-form-full');
+    durationField.classList.remove('ui-form-full');
+
+    const durationLabel = durationField.querySelector('label');
+    if (durationLabel) {
+      durationLabel.innerHTML = 'Estimated Time <span class="ui-required">*</span>';
+    }
+
+    const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
+    const { valueInput, unitSelect } = findDurationControls(durationField);
+
+    const applySelectedJob = () => {
+      const preset = maintenanceJobPresets.find((item) => item.label === select?.value);
+      const isOther = select?.value === 'Other';
+
+      if (preset) {
+        if (valueInput) valueInput.value = preset.value;
+        if (unitSelect) unitSelect.value = preset.unit;
+        setDurationReadonly(durationField, true);
+      } else {
+        setDurationReadonly(durationField, !isOther);
+      }
+    };
+
+    select?.addEventListener('change', applySelectedJob);
+    setDurationReadonly(durationField, true);
+
+    return {
+      select,
+      setSelectionFromWork(work) {
+        const normalized = String(work || '').trim();
+
+        if (!select) return;
+
+        if (presetLabels.has(normalized)) {
+          select.value = normalized;
+        } else if (normalized) {
+          select.value = 'Other';
+        } else {
+          select.value = '';
+        }
+
+        applySelectedJob();
+      },
+    };
+  };
+
+  const setupJoForm = ({ formId, durationId, problemSelector, idPrefix }) => {
+    const form = document.getElementById(formId);
+    const durationField = document.getElementById(durationId);
+    const problemField = form?.querySelector(problemSelector);
+
+    if (!form || !durationField || !problemField) {
       return null;
     }
 
-    const legacyWork = removeLegacyWorkField(form);
-
-    const group = document.createElement('div');
-    group.className = 'ui-form-group ui-form-full';
-    group.dataset.maintenanceJobPresets = idPrefix;
-
-    const options = maintenanceJobPresets
-      .map((preset) => `<option value="${preset.label}">${preset.label} — about ${preset.value} ${preset.unit}</option>`)
-      .join('');
-
-    group.innerHTML = `
-      <label for="${idPrefix}MaintenanceJob">
-        Maintenance Job <span class="ui-required">*</span>
-      </label>
-      <div class="ui-input-wrap has-icon">
-        <span class="ui-input-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
-        <select id="${idPrefix}MaintenanceJob" required>
-          <option value="">Select Maintenance Job</option>
-          ${options}
-          <option value="Other">Other / Custom Work</option>
-        </select>
-      </div>
-      <div data-custom-work-wrap hidden style="margin-top:10px;">
-        <label for="${idPrefix}CustomWork" style="display:block;margin-bottom:6px;">
-          Custom Work / Repair <span class="ui-required">*</span>
-        </label>
-        <textarea
-          id="${idPrefix}CustomWork"
-          data-custom-work
-          rows="2"
-          maxlength="2000"
-          placeholder="Describe the maintenance work to perform..."
-        ></textarea>
-      </div>
-      <input type="hidden" name="work_to_perform" data-work-to-perform>
-      <small style="display:block;margin-top:6px;color:#64748b;font-size:11px;">
-        Selecting a preset fills the usual estimated duration. You can still adjust the duration manually.
-      </small>
-    `;
-
-    durationField.parentNode?.insertBefore(group, durationField);
-
-    const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
-    const customWrap = group.querySelector('[data-custom-work-wrap]');
-    const customInput = group.querySelector('[data-custom-work]');
-    const hiddenInput = group.querySelector('[data-work-to-perform]');
-    const { valueInput, unitSelect } = findDurationControls(durationField);
-
-    const syncHiddenValue = () => {
-      if (!hiddenInput || !select) return;
-
-      if (select.value === 'Other') {
-        hiddenInput.value = customInput?.value.trim() || '';
-      } else {
-        hiddenInput.value = select.value;
-      }
-    };
-
-    const applyPresetDuration = () => {
-      if (!select) return;
-
-      const preset = maintenanceJobPresets.find((item) => item.label === select.value);
-      if (!preset) return;
-
-      if (valueInput) valueInput.value = preset.value;
-      if (unitSelect) unitSelect.value = preset.unit;
-    };
-
-    const syncCustomVisibility = () => {
-      const isOther = select?.value === 'Other';
-      if (customWrap) customWrap.hidden = !isOther;
-      if (customInput) {
-        customInput.required = Boolean(isOther);
-        if (!isOther) customInput.value = '';
-      }
-      syncHiddenValue();
-    };
-
-    select?.addEventListener('change', () => {
-      syncCustomVisibility();
-      applyPresetDuration();
+    const maintenanceType = hideMaintenanceTypeField(form, {
+      idPrefix,
+      fallback: 'Repair',
     });
 
-    customInput?.addEventListener('input', syncHiddenValue);
+    const workInput = ensureWorkField(form, problemField, idPrefix);
+    const jobField = ensureMaintenanceJobField({ form, durationField, idPrefix });
 
-    const api = {
-      group,
-      select,
-      customWrap,
-      customInput,
-      hiddenInput,
-      valueInput,
-      unitSelect,
-      setWork(work, { preserveDuration = true, readonly = false } = {}) {
-        const normalizedWork = String(work || '').trim();
-
-        if (!normalizedWork) {
-          if (select) select.value = '';
-          if (customInput) customInput.value = '';
-        } else if (presetLabels.has(normalizedWork)) {
-          if (select) select.value = normalizedWork;
-          if (customInput) customInput.value = '';
-        } else {
-          if (select) select.value = 'Other';
-          if (customInput) customInput.value = normalizedWork;
-        }
-
-        syncCustomVisibility();
-
-        if (!preserveDuration) {
-          applyPresetDuration();
-        }
-
-        if (select) select.disabled = readonly;
-        if (customInput) customInput.disabled = readonly;
-      },
+    return {
+      form,
+      durationField,
+      maintenanceType,
+      workInput,
+      jobField,
     };
-
-    if (legacyWork) {
-      api.setWork(legacyWork, { preserveDuration: true, readonly: false });
-    }
-
-    return api;
   };
 
-  const newDurationField = document.getElementById('newJoEstimatedDuration');
-  const newJobForm = document.getElementById('newJobOrderForm');
-  const editJobForm = document.getElementById('editJobForm');
-
-  const newMaintenanceType = hideMaintenanceTypeField(newJobForm, {
+  const newJo = setupJoForm({
+    formId: 'newJobOrderForm',
+    durationId: 'newJoEstimatedDuration',
+    problemSelector: 'textarea[name="problem_issue"]',
     idPrefix: 'newJo',
-    fallback: 'Repair',
   });
 
-  const editMaintenanceType = hideMaintenanceTypeField(editJobForm, {
+  const editJo = setupJoForm({
+    formId: 'editJobForm',
+    durationId: 'editJoEstimatedDuration',
+    problemSelector: 'textarea[name="problem_issue"]',
     idPrefix: 'editJo',
-    fallback: 'Repair',
   });
 
-  const newPresetField = createPresetField({
-    idPrefix: 'newJo',
-    form: newJobForm,
-    durationField: newDurationField,
-  });
-
-  const editPresetField = createPresetField({
-    idPrefix: 'editJo',
-    form: editJobForm,
-    durationField: editDurationField,
-  });
-
-  if (newPresetField && !newPresetField.hiddenInput?.value) {
-    newPresetField.setWork('', { preserveDuration: true, readonly: false });
-  }
-
-  if (newJobForm && newMaintenanceType) {
-    newJobForm.addEventListener('submit', () => {
-      const pmsScheduleId = newJobForm.querySelector('input[name="pms_schedule_id"]')?.value;
-      newMaintenanceType.value = pmsScheduleId ? 'PMS' : 'Repair';
+  if (newJo?.form && newJo.maintenanceType) {
+    newJo.form.addEventListener('submit', () => {
+      const pmsScheduleId = newJo.form.querySelector('input[name="pms_schedule_id"]')?.value;
+      newJo.maintenanceType.value = pmsScheduleId ? 'PMS' : 'Repair';
     });
   }
 
@@ -295,7 +258,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
     button.addEventListener('click', async () => {
-      const { valueInput, unitSelect } = findDurationControls(editDurationField);
+      const { valueInput, unitSelect } = findDurationControls(editJo?.durationField);
 
       if (valueInput) {
         valueInput.value = button.dataset.estimatedDurationValue || '';
@@ -305,20 +268,34 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         unitSelect.value = button.dataset.estimatedDurationUnit || 'Hours';
       }
 
-      if (editMaintenanceType) {
-        editMaintenanceType.value = button.dataset.maintenanceType || 'Repair';
+      if (editJo?.maintenanceType) {
+        editJo.maintenanceType.value = button.dataset.maintenanceType || 'Repair';
       }
 
-      if (!editPresetField) return;
+      if (!editJo) return;
 
       const details = await loadWorkDetails();
       const work = details?.[button.dataset.id] || '';
+
+      if (editJo.workInput) {
+        editJo.workInput.value = work;
+      }
+
+      editJo.jobField?.setSelectionFromWork(work);
+
       const readonly = button.dataset.viewOnly === '1' || button.dataset.status === 'Completed';
 
-      editPresetField.setWork(work, {
-        preserveDuration: true,
-        readonly,
-      });
+      if (editJo.workInput) {
+        editJo.workInput.disabled = readonly;
+      }
+
+      if (editJo.jobField?.select) {
+        editJo.jobField.select.disabled = readonly;
+      }
+
+      if (readonly) {
+        setDurationReadonly(editJo.durationField, true);
+      }
     });
   });
 });
