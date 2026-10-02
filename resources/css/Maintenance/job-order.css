@@ -1941,3 +1941,69 @@ textarea[readonly] {
     max-height: 45vh;
   }
 }
+
+
+/* =========================================================
+   JOB ORDER ACTIVE / HISTORY TABS
+========================================================= */
+
+.jo-page .maintenance-record-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.jo-page .maintenance-record-tabs {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 6px;
+    padding: 5px;
+    margin-left: auto;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f6f8fb;
+}
+
+.jo-page .maintenance-record-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    color: #5a6678;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.jo-page .maintenance-record-tab:hover {
+    background: #ffffff;
+    color: #102a56;
+}
+
+.jo-page .maintenance-record-tab.is-active {
+    background: #ffffff;
+    color: #102a56;
+    box-shadow: 0 2px 8px rgba(16, 42, 86, .09);
+}
+
+.jo-page .maintenance-history-note {
+    margin: 4px 0 12px;
+    color: #7b8798;
+    font-size: 11px;
+}
+
+@media (max-width: 760px) {
+    .jo-page .maintenance-record-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .jo-page .maintenance-record-tabs {
+        margin-left: 0;
+    }
+}
