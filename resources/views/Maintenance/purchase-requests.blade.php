@@ -408,7 +408,6 @@
           title="Purchase Request Details"
           title-id="editPrModalTitle"
           description="Review the purchase request information and take the appropriate action."
-          icon="fa-file-invoice"
           size="wide"
           form-id="editPrForm"
           action="#"
