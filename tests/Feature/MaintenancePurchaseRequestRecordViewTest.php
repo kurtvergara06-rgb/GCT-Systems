@@ -52,6 +52,8 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertSee('data-maintenance-record-tab-link="active"', false);
         $response->assertSee('class="maintenance-record-tab is-active"', false);
         $response->assertSee('id="openPrModal"', false);
+        $response->assertSee('data-lazy-pagination="false"', false);
+        $response->assertSee('data-server-filter="false"', false);
     }
 
     public function test_history_request_returns_200_and_includes_issued_and_marks_history_tab(): void
