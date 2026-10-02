@@ -13,6 +13,8 @@ use App\Http\Controllers\Operation\TripRecordController;
 use App\Http\Controllers\Operation\TripScheduleController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware('role:operation:head,operation:staff,admin:head')->group(function () {
+
 Route::view('/operation/dashboard', 'Operation.dashboard-operation')->name('dashboard-operation');
 
 Route::controller(BusController::class)->prefix('bus-master-list')->group(function () {
@@ -93,4 +95,5 @@ Route::controller(IncidentController::class)->prefix('operation/incidents')->gro
     Route::put('/{incident}', 'update')->name('incidents.update');
     Route::post('/{incident}/dispatch', 'dispatchReplacement')->name('incidents.dispatch');
     Route::post('/{incident}/response', 'addResponse')->name('incidents.response');
+});
 });
