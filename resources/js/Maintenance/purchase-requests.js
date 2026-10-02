@@ -226,6 +226,174 @@ window.GCTPartialNavigation.registerInitializer(
 
 
     /* =========================================================
+       RENDER REVIEW ITEMS
+    ========================================================= */
+
+    function renderReviewParts(
+      partText,
+      fallbackQuantity = ''
+    ) {
+
+      const body =
+        document.getElementById(
+          'reviewPrItemsBody'
+        );
+
+
+      const countLabel =
+        document.getElementById(
+          'reviewPrItemCount'
+        );
+
+
+      if (!body) {
+        return;
+      }
+
+
+      const parts =
+        parseParts(
+          partText
+        );
+
+
+      if (
+        parts.length === 1 &&
+        !parts[0].quantity &&
+        fallbackQuantity
+      ) {
+
+        parts[0].quantity =
+          fallbackQuantity;
+
+      }
+
+
+      body.innerHTML =
+        '';
+
+
+      if (
+        parts.length === 0
+      ) {
+
+        const row =
+          document.createElement(
+            'tr'
+          );
+
+
+        const cell =
+          document.createElement(
+            'td'
+          );
+
+
+        cell.colSpan = 4;
+        cell.className =
+          'pr-review-empty';
+        cell.textContent =
+          'No requested items recorded.';
+
+
+        row.appendChild(
+          cell
+        );
+
+
+        body.appendChild(
+          row
+        );
+
+      } else {
+
+        parts.forEach(
+          (part, index) => {
+
+            const row =
+              document.createElement(
+                'tr'
+              );
+
+
+            const numberCell =
+              document.createElement(
+                'td'
+              );
+
+            numberCell.textContent =
+              String(
+                index + 1
+              );
+
+
+            const nameCell =
+              document.createElement(
+                'td'
+              );
+
+            nameCell.textContent =
+              part.name || '—';
+
+
+            const quantityCell =
+              document.createElement(
+                'td'
+              );
+
+            quantityCell.textContent =
+              part.quantity || '—';
+
+
+            const unitCell =
+              document.createElement(
+                'td'
+              );
+
+            unitCell.textContent =
+              part.unit || '—';
+
+
+            row.append(
+              numberCell,
+              nameCell,
+              quantityCell,
+              unitCell
+            );
+
+
+            body.appendChild(
+              row
+            );
+
+          }
+        );
+
+      }
+
+
+      if (
+        countLabel
+      ) {
+
+        const count =
+          parts.length;
+
+
+        countLabel.textContent =
+          String(count) + ' ' +
+          (
+            count === 1
+              ? 'item'
+              : 'items'
+          );
+
+      }
+
+    }
+
+
+    /* =========================================================
        CREATE PART ROW
     ========================================================= */
 
@@ -955,6 +1123,94 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
+    const reviewPrNo =
+      document.getElementById(
+        'reviewPrNo'
+      );
+
+
+    const reviewPrStatus =
+      document.getElementById(
+        'reviewPrStatus'
+      );
+
+
+    const reviewPrCreated =
+      document.getElementById(
+        'reviewPrCreated'
+      );
+
+
+    const reviewPrJobOrderNo =
+      document.getElementById(
+        'reviewPrJobOrderNo'
+      );
+
+
+    const reviewPrBusNo =
+      document.getElementById(
+        'reviewPrBusNo'
+      );
+
+
+    const reviewPrRemarks =
+      document.getElementById(
+        'reviewPrRemarks'
+      );
+
+
+    const prReviewItemsSection =
+      document.getElementById(
+        'prReviewItemsSection'
+      );
+
+
+    const prEditableSection =
+      document.getElementById(
+        'prEditableSection'
+      );
+
+
+    const reviewDecisionBlock =
+      document.getElementById(
+        'reviewDecisionBlock'
+      );
+
+
+    const reviewDecisionRemarks =
+      document.getElementById(
+        'reviewDecisionRemarks'
+      );
+
+
+    const reviewEditPrBtn =
+      document.getElementById(
+        'reviewEditPrBtn'
+      );
+
+
+    const reviewApprovePrBtn =
+      document.getElementById(
+        'reviewApprovePrBtn'
+      );
+
+
+    const reviewRejectPrBtn =
+      document.getElementById(
+        'reviewRejectPrBtn'
+      );
+
+
+    const reviewDeletePrBtn =
+      document.getElementById(
+        'reviewDeletePrBtn'
+      );
+
+
+    let activePrTrigger =
+      null;
+
+
     /* =========================================================
        GET METHOD SPOOF FIELD
     ========================================================= */
@@ -1118,6 +1374,153 @@ window.GCTPartialNavigation.registerInitializer(
 
 
     /* =========================================================
+       REVIEW ACTIONS
+    ========================================================= */
+
+    function configureReviewActions(
+      button,
+      mode,
+      status
+    ) {
+
+      const isView =
+        mode === 'view';
+
+
+      const canEdit =
+        isView &&
+        button?.dataset
+          .canEdit === '1';
+
+
+      const canApprove =
+        isView &&
+        button?.dataset
+          .canApprove === '1';
+
+
+      const canDelete =
+        isView &&
+        button?.dataset
+          .canDelete === '1';
+
+
+      if (
+        reviewEditPrBtn
+      ) {
+
+        reviewEditPrBtn.hidden =
+          !canEdit;
+
+
+        const label =
+          reviewEditPrBtn
+            .querySelector(
+              'span'
+            );
+
+
+        if (label) {
+
+          label.textContent =
+            status === 'Rejected'
+              ? 'Revise'
+              : 'Edit';
+
+        }
+
+      }
+
+
+      [
+        [
+          reviewApprovePrBtn,
+          canApprove,
+          button?.dataset
+            .approveUrl
+        ],
+        [
+          reviewRejectPrBtn,
+          canApprove,
+          button?.dataset
+            .rejectUrl
+        ],
+      ].forEach(
+        ([
+          control,
+          visible,
+          actionUrl,
+        ]) => {
+
+          if (!control) {
+            return;
+          }
+
+
+          control.hidden =
+            !visible;
+
+
+          if (visible) {
+
+            control.dataset
+              .actionUrl =
+              actionUrl || '';
+
+
+            control.dataset
+              .prNo =
+              button?.dataset
+                .prNo
+              || '';
+
+          }
+
+        }
+      );
+
+
+      if (
+        reviewDeletePrBtn
+      ) {
+
+        reviewDeletePrBtn.hidden =
+          !canDelete;
+
+
+        if (canDelete) {
+
+          reviewDeletePrBtn.dataset
+            .id =
+            button?.dataset
+              .id
+            || '';
+
+
+          reviewDeletePrBtn.dataset
+            .prNo =
+            button?.dataset
+              .prNo
+            || '';
+
+        }
+
+      }
+
+
+      if (
+        reviewDecisionBlock
+      ) {
+
+        reviewDecisionBlock.hidden =
+          !canApprove;
+
+      }
+
+    }
+
+
+    /* =========================================================
        MODAL MODE
     ========================================================= */
 
@@ -1157,7 +1560,7 @@ window.GCTPartialNavigation.registerInitializer(
 
           editPrModalTitle
             .textContent =
-            'Purchase Request Details';
+            'Purchase Request Review';
 
         } else if (
           isRejected
@@ -1273,7 +1676,30 @@ window.GCTPartialNavigation.registerInitializer(
 
 
       /*
-       * View Close
+       * Review / Edit workspace
+       */
+      if (
+        prReviewItemsSection
+      ) {
+
+        prReviewItemsSection.hidden =
+          !isView;
+
+      }
+
+
+      if (
+        prEditableSection
+      ) {
+
+        prEditableSection.hidden =
+          isView;
+
+      }
+
+
+      /*
+       * Review footer
        */
       if (
         viewOnlyActions
@@ -1282,11 +1708,18 @@ window.GCTPartialNavigation.registerInitializer(
         viewOnlyActions
           .style
           .display =
-          isReadonly
+          isView
             ? 'flex'
             : 'none';
 
       }
+
+
+      configureReviewActions(
+        activePrTrigger,
+        mode,
+        status
+      );
 
     }
 
@@ -1303,6 +1736,63 @@ window.GCTPartialNavigation.registerInitializer(
       const status =
         button.dataset.status
         || 'Submitted';
+
+
+      activePrTrigger =
+        button;
+
+
+      if (reviewPrNo) {
+        reviewPrNo.textContent =
+          button.dataset.prNo || '—';
+      }
+
+
+      if (reviewPrStatus) {
+        reviewPrStatus.textContent =
+          status;
+        reviewPrStatus.dataset.status =
+          status.toLowerCase().replaceAll(' ', '-');
+      }
+
+
+      if (reviewPrCreated) {
+        reviewPrCreated.textContent =
+          button.dataset.createdAt || '—';
+      }
+
+
+      if (reviewPrJobOrderNo) {
+        reviewPrJobOrderNo.textContent =
+          button.dataset.jobOrderNo || '—';
+      }
+
+
+      if (reviewPrBusNo) {
+        reviewPrBusNo.textContent =
+          button.dataset.busNo || '—';
+      }
+
+
+      if (reviewPrRemarks) {
+        reviewPrRemarks.textContent =
+          button.dataset.remarks?.trim()
+            || 'No remarks provided.';
+      }
+
+
+      if (
+        reviewDecisionRemarks &&
+        mode === 'view'
+      ) {
+        reviewDecisionRemarks.value = '';
+      }
+
+
+      renderReviewParts(
+        button.dataset.item || '',
+        button.dataset.quantity || ''
+      );
 
 
       const isRejected =
@@ -1449,6 +1939,25 @@ window.GCTPartialNavigation.registerInitializer(
     );
 
 
+    reviewEditPrBtn
+      ?.addEventListener(
+        'click',
+        () => {
+
+          if (!activePrTrigger) {
+            return;
+          }
+
+
+          openPrDetails(
+            activePrTrigger,
+            'edit'
+          );
+
+        }
+      );
+
+
     /* =========================================================
        EDIT / REVISE BUTTON
     ========================================================= */
@@ -1590,6 +2099,21 @@ window.GCTPartialNavigation.registerInitializer(
         'click',
         () => {
 
+          if (
+            activePrTrigger
+          ) {
+
+            openPrDetails(
+              activePrTrigger,
+              'view'
+            );
+
+
+            return;
+
+          }
+
+
           closeModal(
             editPrModal
           );
@@ -1625,6 +2149,12 @@ window.GCTPartialNavigation.registerInitializer(
     const rejectPrForm =
       document.getElementById(
         'rejectPrForm'
+      );
+
+
+    const rejectPrRemarks =
+      document.getElementById(
+        'rejectPrRemarks'
       );
 
 
@@ -1797,6 +2327,19 @@ window.GCTPartialNavigation.registerInitializer(
 
                 rejectPrForm.action =
                   actionUrl;
+
+
+                if (
+                  rejectPrRemarks
+                ) {
+
+                  rejectPrRemarks.value =
+                    reviewDecisionRemarks
+                      ?.value
+                      ?.trim()
+                    || 'Rejected by Maintenance Head';
+
+                }
 
 
                 rejectPrForm
