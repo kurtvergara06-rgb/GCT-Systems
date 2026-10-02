@@ -234,7 +234,10 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$inventoryItems" />
+        <x-ui.table-footer
+          :items="$inventoryItems"
+          data-lazy-pagination="true"
+        />
       </section>
     </main>
   </div>
