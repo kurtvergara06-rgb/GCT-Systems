@@ -85,6 +85,8 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertSee('class="maintenance-record-tab is-active"', false);
         $response->assertSee('Issued Purchase Requests are kept here for reference and audit history.');
         $response->assertDontSee('id="openPrModal"', false);
+        $response->assertSee('data-lazy-pagination="true"', false);
+        $response->assertSee('data-server-filter="true"', false);
     }
 
     public function test_search_and_filter_on_history_preserves_record_view(): void
