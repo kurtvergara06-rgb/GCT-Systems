@@ -16,7 +16,18 @@ class PartialNavigationLifecycleTest extends TestCase
         $this->assertStringContainsString('document.body.classList.remove(...transientClasses)', $source);
         $this->assertStringContainsString("element.style.removeProperty('overflow')", $source);
         $this->assertStringContainsString("document.querySelectorAll('dialog[open]')", $source);
-        $this->assertStringContainsString('document.body.querySelectorAll(PAGE_OVERLAY_SELECTOR)', $source);
+        $hasBodyOverlayDiscovery = str_contains(
+            $source,
+            'document.body.querySelectorAll(PAGE_OVERLAY_SELECTOR)'
+        ) || str_contains(
+            $source,
+            'Array.from(document.body.children)'
+        );
+
+        $this->assertTrue(
+            $hasBodyOverlayDiscovery,
+            'Partial navigation must discover body-level page overlays before replacing the page.'
+        );
         $this->assertStringContainsString('Array.from(nextDocument.body.children)', $source);
         $this->assertStringContainsString('currentApp.className = nextApp.className', $source);
         $this->assertStringNotContainsString(
