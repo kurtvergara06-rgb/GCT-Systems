@@ -253,6 +253,10 @@
                                                   data-status="{{ $pr->status }}"
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
+                                                  data-approved-at="{{ $pr->approved_at?->format('M d, Y · h:i A') }}"
+                                                  data-rejected-at="{{ $pr->rejected_at?->format('M d, Y · h:i A') }}"
+                                                  data-issued-at="{{ $pr->issued_at?->format('M d, Y · h:i A') }}"
+                                                  data-source-type="{{ $pr->source_type ?: 'Maintenance Request' }}"
                                                   data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
                                                   data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
                                                   data-approve-url="{{ route('purchase-requests.approve', $pr->id, false) }}"
@@ -400,9 +404,9 @@
 
       <x-ui.form-modal
           id="editPrModal"
-          title="Purchase Request Review"
+          title="Purchase Request Details"
           title-id="editPrModalTitle"
-          description="Review the complete request before taking action."
+          description="Review the purchase request information and take the appropriate action."
           icon="fa-file-invoice"
           size="wide"
           form-id="editPrForm"
@@ -422,36 +426,95 @@
           <input type="hidden" name="bus_no" id="edit_bus_no">
           <input type="hidden" name="status_display" id="edit_status_display">
 
-          <div class="pr-review-hero">
-              <div class="pr-review-hero-main">
+          <div class="pr-review-summary">
+              <div class="pr-review-summary-main">
                   <div class="pr-review-doc-icon">
-                      <i class="fa-solid fa-file-lines"></i>
+                      <i class="fa-solid fa-clipboard-list"></i>
                   </div>
+
                   <div>
-                      <span class="pr-review-eyebrow">Purchase Request</span>
-                      <div class="pr-review-title-line">
-                          <strong id="reviewPrNo">—</strong>
-                          <span id="reviewPrStatus" class="pr-review-status-pill">—</span>
-                      </div>
+                      <strong id="reviewPrNo">—</strong>
+                      <span id="reviewPrStatus" class="pr-review-status-pill">—</span>
                   </div>
               </div>
 
               <div class="pr-review-created">
-                  <span><i class="fa-regular fa-calendar"></i> Created</span>
+                  <span>
+                      <i class="fa-regular fa-calendar"></i>
+                      Created
+                  </span>
                   <strong id="reviewPrCreated">—</strong>
               </div>
           </div>
 
-          <section class="pr-review-info-card">
-              <div class="pr-review-info-item">
-                  <span>Job Order No.</span>
-                  <strong id="reviewPrJobOrderNo">—</strong>
+          <nav class="pr-review-tabs" aria-label="Purchase request review sections">
+              <button
+                  type="button"
+                  class="pr-review-tab is-active"
+                  data-pr-review-target="prReviewInformation"
+              >
+                  Request Information
+              </button>
+
+              <button
+                  type="button"
+                  class="pr-review-tab"
+                  data-pr-review-target="prReviewItemsSection"
+              >
+                  <span>Items</span>
+                  <span id="reviewPrTabItemCount" class="pr-review-tab-count">0</span>
+              </button>
+
+              <button
+                  type="button"
+                  class="pr-review-tab"
+                  data-pr-review-target="prReviewHistory"
+              >
+                  History
+              </button>
+          </nav>
+
+          <section id="prReviewInformation" class="pr-review-information">
+              <div class="pr-review-information-column">
+                  <div class="pr-review-detail-row">
+                      <span>Job Order No.</span>
+                      <strong id="reviewPrJobOrderNo">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Bus No.</span>
+                      <strong id="reviewPrBusNo">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Department</span>
+                      <strong>Maintenance</strong>
+                  </div>
               </div>
-              <div class="pr-review-info-item">
-                  <span>Bus No.</span>
-                  <strong id="reviewPrBusNo">—</strong>
+
+              <div class="pr-review-information-column">
+                  <div class="pr-review-detail-row">
+                      <span>Request Date</span>
+                      <strong id="reviewPrRequestDate">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Status</span>
+                      <strong id="reviewPrStatusText">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Total Quantity</span>
+                      <strong id="reviewPrTotalQuantity">—</strong>
+                  </div>
               </div>
-              <div class="pr-review-info-item pr-review-info-wide">
+
+              <div class="pr-review-detail-row pr-review-detail-full">
+                  <span>Source</span>
+                  <strong id="reviewPrSource">Maintenance Request</strong>
+              </div>
+
+              <div class="pr-review-detail-row pr-review-detail-full">
                   <span>Remarks</span>
                   <strong id="reviewPrRemarks">No remarks provided.</strong>
               </div>
@@ -459,10 +522,16 @@
 
           <section id="prReviewItemsSection" class="pr-review-section">
               <div class="pr-review-section-heading">
-                  <div>
-                      <span class="section-kicker">Requested Items</span>
-                      <h3>Parts included in this request</h3>
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-clipboard-list"></i>
+                      </span>
+                      <div>
+                          <h3>Requested Items</h3>
+                          <p>Parts included in this purchase request.</p>
+                      </div>
                   </div>
+
                   <span id="reviewPrItemCount" class="pr-review-count">0 items</span>
               </div>
 
@@ -485,15 +554,39 @@
               </div>
           </section>
 
-          <section id="reviewDecisionBlock" class="pr-review-decision" hidden>
-              <div>
-                  <span class="section-kicker">Approval / Rejection</span>
-                  <h3>Decision remarks</h3>
-                  <p>Optional. If rejecting, this text will be saved as the rejection remarks.</p>
+          <section id="prReviewHistory" class="pr-review-history">
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-clock-rotate-left"></i>
+                      </span>
+                      <div>
+                          <h3>Request History</h3>
+                          <p>Status events recorded for this purchase request.</p>
+                      </div>
+                  </div>
               </div>
+
+              <div id="reviewPrHistoryList" class="pr-review-history-list"></div>
+          </section>
+
+          <section id="reviewDecisionBlock" class="pr-review-decision" hidden>
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-user-check"></i>
+                      </span>
+                      <div>
+                          <h3>Approval / Rejection</h3>
+                          <p>Optional remarks. Rejection remarks will be saved with the request.</p>
+                      </div>
+                  </div>
+              </div>
+
+              <label for="reviewDecisionRemarks">Remarks / Reason (Optional)</label>
               <textarea
                   id="reviewDecisionRemarks"
-                  placeholder="Enter optional remarks or reason for rejection..."
+                  placeholder="Enter remarks or reason here..."
               ></textarea>
           </section>
 
@@ -528,53 +621,46 @@
                   Close
               </button>
 
-              <button
-                  type="button"
-                  id="reviewDeletePrBtn"
-                  class="ui-form-btn pr-review-btn-delete open-delete-pr-modal"
-                  hidden
-              >
-                  <i class="fa-solid fa-trash"></i>
-                  Delete
-              </button>
+              <div class="pr-review-footer-actions">
+                  <button
+                      type="button"
+                      id="reviewEditPrBtn"
+                      class="ui-form-btn pr-review-btn-edit"
+                      hidden
+                  >
+                      <i class="fa-solid fa-pen"></i>
+                      <span>Edit</span>
+                  </button>
 
-              <button
-                  type="button"
-                  id="reviewEditPrBtn"
-                  class="ui-form-btn pr-review-btn-edit"
-                  hidden
-              >
-                  <i class="fa-solid fa-pen"></i>
-                  <span>Edit</span>
-              </button>
+                  <button
+                      type="button"
+                      id="reviewRejectPrBtn"
+                      class="ui-form-btn pr-review-btn-reject open-pr-confirmation"
+                      data-action="reject"
+                      hidden
+                  >
+                      <i class="fa-solid fa-xmark"></i>
+                      Reject
+                  </button>
 
-              <button
-                  type="button"
-                  id="reviewRejectPrBtn"
-                  class="ui-form-btn pr-review-btn-reject open-pr-confirmation"
-                  data-action="reject"
-                  hidden
-              >
-                  <i class="fa-solid fa-xmark"></i>
-                  Reject
-              </button>
-
-              <button
-                  type="button"
-                  id="reviewApprovePrBtn"
-                  class="ui-form-btn pr-review-btn-approve open-pr-confirmation"
-                  data-action="approve"
-                  hidden
-              >
-                  <i class="fa-solid fa-check"></i>
-                  Approve
-              </button>
+                  <button
+                      type="button"
+                      id="reviewApprovePrBtn"
+                      class="ui-form-btn pr-review-btn-approve open-pr-confirmation"
+                      data-action="approve"
+                      hidden
+                  >
+                      <i class="fa-solid fa-check"></i>
+                      Approve
+                  </button>
+              </div>
           </div>
 
           <div class="ui-form-actions" id="editPrMainActions" style="display: none;">
               <button type="button" id="cancelEditPrModal" class="ui-form-btn ui-form-btn-cancel">
-                  Cancel Edit
+                  Cancel
               </button>
+
               <button type="submit" id="submitEditPrBtn" class="ui-form-btn ui-form-btn-primary">
                   <i id="submitEditPrIcon" class="fa-solid fa-floppy-disk"></i>
                   <span id="submitEditPrText">Save Changes</span>
