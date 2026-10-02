@@ -95,7 +95,7 @@
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
         </div>
 
-        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar">
+        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar" data-server-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO number, item, request no., or status...">
@@ -199,7 +199,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$purchaseOrders" />
+        <x-ui.table-footer :items="$purchaseOrders" data-lazy-pagination="true" />
       </section>
     </main>
   </div>
