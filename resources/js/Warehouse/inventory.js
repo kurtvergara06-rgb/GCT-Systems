@@ -94,6 +94,15 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     body.appendChild(row);
   }
 
+  function requestAllInventoryRows() {
+    if (
+      inventoryFooter?.dataset.lazyPagination === 'true'
+      && inventoryFooter.dataset.hasMore === 'true'
+    ) {
+      inventoryFooter.dispatchEvent(new CustomEvent('gct:load-all-records'));
+    }
+  }
+
   function applyInventoryFilters() {
     if (!inventoryTable) {
       return;
@@ -142,11 +151,18 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
-      searchInput.addEventListener('input', applyInventoryFilters);
-      searchInput.addEventListener('search', applyInventoryFilters);
+      searchInput.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      searchInput.addEventListener('search', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
       searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
           searchInput.value = '';
+          requestAllInventoryRows();
           applyInventoryFilters();
         }
       });
@@ -154,8 +170,14 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     if (categorySelect) {
       categorySelect.removeAttribute('onchange');
-      categorySelect.addEventListener('change', applyInventoryFilters);
-      categorySelect.addEventListener('input', applyInventoryFilters);
+      categorySelect.addEventListener('change', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      categorySelect.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
     }
 
     applyInventoryFilters();
