@@ -2047,3 +2047,448 @@
     }
 
 }
+
+/* =========================================================
+   PURCHASE REQUEST REVIEW WORKFLOW
+   One table action opens a centered review modal.
+========================================================= */
+
+.purchase-page .pr-review-action-cell {
+    justify-content: center;
+}
+
+.purchase-page .pr-review-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid #c9dcfb;
+    border-radius: 8px;
+    background: #eef5ff;
+    color: #0b40b5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        background-color .16s ease,
+        border-color .16s ease,
+        color .16s ease,
+        transform .16s ease;
+}
+
+.purchase-page .pr-review-btn:hover {
+    border-color: #0b40b5;
+    background: #0b40b5;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.pr-review-modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.pr-review-modal-overlay > .ui-form-modal {
+    width: min(960px, 100%);
+    max-width: 960px;
+    margin: auto;
+}
+
+.pr-review-hero {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border: 1px solid #dce5f2;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #f8fbff, #ffffff);
+}
+
+.pr-review-hero-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pr-review-doc-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eaf2ff;
+    color: #0b40b5;
+    font-size: 17px;
+}
+
+.pr-review-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.pr-review-title-line {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.pr-review-title-line > strong {
+    color: #061f3d;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.pr-review-status-pill {
+    min-height: 25px;
+    padding: 0 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef3c7;
+    color: #9a6700;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.pr-review-status-pill[data-status="rejected"] {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.pr-review-status-pill[data-status="approved"],
+.pr-review-status-pill[data-status="issued"],
+.pr-review-status-pill[data-status="delivered"] {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.pr-review-status-pill[data-status="for-purchase"],
+.pr-review-status-pill[data-status="ordered"],
+.pr-review-status-pill[data-status="for-pick-up"],
+.pr-review-status-pill[data-status="picked-up"],
+.pr-review-status-pill[data-status="for-delivery"] {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.pr-review-created {
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.pr-review-created span,
+.pr-review-created strong {
+    display: block;
+}
+
+.pr-review-created span {
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.pr-review-created strong {
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.pr-review-info-card {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid #dce5f2;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.pr-review-info-item {
+    min-width: 0;
+    padding: 13px 15px;
+    border-right: 1px solid #e7edf5;
+    border-bottom: 1px solid #e7edf5;
+}
+
+.pr-review-info-item:nth-child(2n) {
+    border-right: 0;
+}
+
+.pr-review-info-wide {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 0;
+}
+
+.pr-review-info-item span,
+.pr-review-info-item strong {
+    display: block;
+}
+
+.pr-review-info-item span {
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.pr-review-info-item strong {
+    color: #0f172a;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.pr-review-section {
+    margin-top: 18px;
+}
+
+.pr-review-section-heading {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pr-review-section-heading h3,
+.pr-review-decision h3 {
+    margin: 0;
+    color: #061f3d;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.pr-review-count {
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    background: #eaf2ff;
+    color: #0b40b5;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.pr-review-items-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #dce5f2;
+    border-radius: 12px;
+}
+
+.pr-review-items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pr-review-items-table th {
+    padding: 10px 12px;
+    background: #f3f7fc;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.pr-review-items-table td {
+    padding: 11px 12px;
+    border-top: 1px solid #e7edf5;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pr-review-items-table th:first-child,
+.pr-review-items-table td:first-child {
+    width: 52px;
+    text-align: center;
+}
+
+.pr-review-items-table th:nth-child(3),
+.pr-review-items-table td:nth-child(3) {
+    width: 90px;
+    text-align: center;
+}
+
+.pr-review-items-table th:nth-child(4),
+.pr-review-items-table td:nth-child(4) {
+    width: 110px;
+}
+
+.pr-review-empty {
+    padding: 24px !important;
+    color: #64748b !important;
+    text-align: center !important;
+    font-weight: 500 !important;
+}
+
+.pr-review-decision {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #dce5f2;
+    border-radius: 12px;
+    background: #f8fbff;
+}
+
+.pr-review-decision[hidden],
+.pr-edit-workspace[hidden],
+.pr-review-section[hidden],
+.pr-review-footer button[hidden] {
+    display: none !important;
+}
+
+.pr-review-decision p {
+    margin: 3px 0 10px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.pr-review-decision textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 82px;
+    padding: 11px 12px;
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 12px;
+    resize: vertical;
+    outline: none;
+}
+
+.pr-review-decision textarea:focus {
+    border-color: #0b40b5;
+    box-shadow: 0 0 0 3px rgba(11, 64, 181, .10);
+}
+
+.pr-edit-workspace {
+    margin-top: 4px;
+}
+
+.pr-edit-workspace .ui-form-section {
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+.pr-edit-remarks {
+    margin-top: 16px;
+}
+
+.pr-review-footer {
+    flex-wrap: wrap;
+}
+
+.pr-review-footer #closeViewOnlyPr {
+    margin-right: auto;
+}
+
+.pr-review-btn-edit,
+.pr-review-btn-delete,
+.pr-review-btn-reject,
+.pr-review-btn-approve {
+    min-width: 106px;
+    border: 1px solid transparent;
+}
+
+.pr-review-btn-edit {
+    background: #eaf2ff;
+    border-color: #bfd4ff;
+    color: #0b40b5;
+}
+
+.pr-review-btn-edit:hover {
+    background: #0b40b5;
+    border-color: #0b40b5;
+    color: #ffffff;
+}
+
+.pr-review-btn-delete,
+.pr-review-btn-reject {
+    background: #fff1f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.pr-review-btn-delete:hover,
+.pr-review-btn-reject:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+.pr-review-btn-approve {
+    background: #dcfce7;
+    border-color: #a7f3d0;
+    color: #15803d;
+}
+
+.pr-review-btn-approve:hover {
+    background: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
+}
+
+@media (max-width: 760px) {
+    .pr-review-modal-overlay {
+        align-items: flex-start !important;
+    }
+
+    .pr-review-hero,
+    .pr-review-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pr-review-created {
+        width: 100%;
+        text-align: left;
+    }
+
+    .pr-review-info-card {
+        grid-template-columns: 1fr;
+    }
+
+    .pr-review-info-item,
+    .pr-review-info-item:nth-child(2n) {
+        border-right: 0;
+    }
+
+    .pr-review-info-wide {
+        grid-column: auto;
+    }
+
+    .pr-review-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .pr-review-footer #closeViewOnlyPr {
+        margin-right: 0;
+    }
+
+    .pr-review-footer .ui-form-btn {
+        width: 100%;
+    }
+}
