@@ -360,8 +360,12 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $response->assertSee('Cannot complete until required parts are issued by warehouse.');
         $response->assertSee('Cannot complete while job order is on hold.');
 
-        // Completed row displays completion date format
-        $response->assertSee(date('M d, Y', strtotime($joCompleted->completion_date)));
-        $response->assertDontSee('action="' . route('job-orders.finish', $joCompleted->id) . '"', false);
+        // Completed row displays completion date format on the history tab
+        $historyResponse = $this
+            ->actingAs($this->maintenanceUser)
+            ->get(route('job-orders', ['record_view' => 'history']));
+        $historyResponse->assertOk();
+        $historyResponse->assertSee(date('M d, Y', strtotime($joCompleted->completion_date)));
+        $historyResponse->assertDontSee('action="' . route('job-orders.finish', $joCompleted->id) . '"', false);
     }
 }

@@ -179,12 +179,16 @@ const rememberLoadedAssets = () => {
         }
     });
 
-    document.body.querySelectorAll(PAGE_OVERLAY_SELECTOR).forEach((overlay) => {
+    Array.from(document.body.children).forEach((element) => {
         if (
-            !overlay.closest('.app')
-            && !overlay.matches(PERSISTENT_OVERLAY_SELECTOR)
+            element !== app
+            && element !== main
+            && element.id !== 'appSidebar'
+            && element.tagName !== 'SCRIPT'
+            && !element.matches(PERSISTENT_OVERLAY_SELECTOR)
+            && element.matches(PAGE_OVERLAY_SELECTOR)
         ) {
-            overlay.dataset.pageOwned = 'true';
+            element.dataset.pageOwned = 'true';
         }
     });
 
@@ -237,6 +241,16 @@ const cleanupPageOverlays = () => {
         }
     });
 
+    document.querySelectorAll('[data-page-owned="true"]').forEach((element) => {
+        if (
+            !element.matches(PERSISTENT_OVERLAY_SELECTOR)
+            && !element.closest('#appSidebar')
+            && !element.closest(MAIN_SELECTOR)
+        ) {
+            element.remove();
+        }
+    });
+
     const transientClasses = [
         'modal-open',
         'has-stacked-modal',
@@ -268,44 +282,57 @@ const cleanupPageOverlays = () => {
 const syncPageOwnedElements = (nextDocument) => {
     const currentMain = document.querySelector(MAIN_SELECTOR);
     const nextMain = nextDocument.querySelector(MAIN_SELECTOR);
-    const currentApp = currentMain?.closest('.app') || document.body;
-    const nextApp = nextMain?.closest('.app') || nextDocument.body;
-    if (!currentApp || !nextApp) return;
+    const currentApp = currentMain?.closest('.app');
+    const nextApp = nextMain?.closest('.app');
 
-    if (currentApp !== document.body && nextApp !== nextDocument.body) {
+    if (currentApp && nextApp && nextApp.className) {
         currentApp.className = nextApp.className;
     }
 
-    currentApp.querySelectorAll(':scope > [data-page-owned]').forEach((element) => element.remove());
-
-    document.body
-        .querySelectorAll(`[data-page-owned="true"]${PAGE_OVERLAY_SELECTOR}`)
-        .forEach((element) => {
-            if (!element.closest('.app')) element.remove();
+    if (currentApp) {
+        Array.from(currentApp.children).forEach((element) => {
+            if (element.hasAttribute('data-page-owned') || element.dataset.pageOwned === 'true') {
+                element.remove();
+            }
         });
+    }
 
-    Array.from(nextApp.children).forEach((element) => {
+    Array.from(document.body.children).forEach((element) => {
         if (
-            element === nextMain
-            || element.id === 'appSidebar'
-            || element.tagName === 'SCRIPT'
-            || element.matches(PERSISTENT_OVERLAY_SELECTOR)
-        ) return;
-
-        currentApp.appendChild(markPageOwned(document.importNode(element, true)));
+            element !== currentApp
+            && (
+                element.hasAttribute('data-page-owned')
+                || element.dataset.pageOwned === 'true'
+                || (element.matches?.(PAGE_OVERLAY_SELECTOR) && !element.matches?.(PERSISTENT_OVERLAY_SELECTOR))
+            )
+        ) {
+            element.remove();
+        }
     });
+
+    if (currentApp && nextApp) {
+        Array.from(nextApp.children).forEach((element) => {
+            if (
+                element === nextMain
+                || element.id === 'appSidebar'
+                || element.tagName === 'SCRIPT'
+                || element.matches(PERSISTENT_OVERLAY_SELECTOR)
+                || element.matches(PAGE_OVERLAY_SELECTOR)
+            ) return;
+            currentApp.appendChild(markPageOwned(document.importNode(element, true)));
+        });
+    }
 
     Array.from(nextDocument.body.children).forEach((element) => {
         if (
-            !element.matches?.(PAGE_OVERLAY_SELECTOR)
-            || element.closest('.app')
+            element === nextApp
+            || element === nextMain
+            || element.id === 'appSidebar'
+            || element.tagName === 'SCRIPT'
             || element.matches(PERSISTENT_OVERLAY_SELECTOR)
-        ) {
-            return;
-        }
-
-        const imported = document.importNode(element, true);
-        document.body.appendChild(markPageOwned(imported));
+            || !element.matches(PAGE_OVERLAY_SELECTOR)
+        ) return;
+        document.body.appendChild(markPageOwned(document.importNode(element, true)));
     });
 };
 
@@ -550,11 +577,12 @@ const cleanupTransitionState = () => {
             'gct-main-fetching',
             'gct-main-leaving',
             'gct-main-entering',
-            'gct-main-entered',
             'gct-main-loader-hold'
         );
     }
-    window.GCTPageTransition?.hideLoader?.({ revealMain: true });
+    document.body.classList.remove('gct-main-loader-hold');
+    document.documentElement.classList.remove('gct-main-loader-hold');
+    (window.GCTPageTransition || window.GCTPageTransitions)?.hideLoader?.({ revealMain: true });
 };
 
 const fallback = (url) => {
