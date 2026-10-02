@@ -206,11 +206,7 @@
 
                 if (distanceFromBottom > 48) return;
 
-                const hasMore = await loadNextPage();
-
-                if (hasMore) {
-                    window.requestAnimationFrame(maybeLoadNextPage);
-                }
+                await loadNextPage();
             };
 
             context.wrap.addEventListener('scroll', () => {
