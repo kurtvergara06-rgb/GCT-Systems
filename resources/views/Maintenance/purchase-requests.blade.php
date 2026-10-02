@@ -254,76 +254,78 @@
                                                   data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
                                               />
 
-                                              @if($canEdit)
-                                                  <x-ui.action-button
-                                                      type="edit"
-                                                      title="{{ $isRejected ? 'Revise and Resubmit Purchase Request' : 'Edit Purchase Request' }}"
-                                                      class="open-edit-pr-modal {{ $isRejected ? 'revise-pr-action' : '' }}"
-                                                      data-id="{{ $pr->id }}"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-job-order-no="{{ $pr->job_order_no }}"
-                                                      data-bus-no="{{ $pr->bus_no }}"
-                                                      data-item="{{ $pr->item }}"
-                                                      data-quantity="{{ $pr->quantity }}"
-                                                      data-status="{{ $pr->status }}"
-                                                      data-remarks="{{ $pr->remarks }}"
-                                                      data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
-                                                      data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
-                                                  />
-                                              @else
-                                                  <x-ui.action-button
-                                                      type="edit"
-                                                      title="This Purchase Request can no longer be edited."
-                                                      class="disabled-pr-edit-btn"
-                                                      :disabled="true"
-                                                  />
-                                              @endif
-
-                                              @if($canApproveOrReject)
-                                                  <x-ui.action-button
-                                                      type="approve"
-                                                      title="Approve Purchase Request"
-                                                      class="open-pr-confirmation"
-                                                      data-action="approve"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-action-url="{{ route('purchase-requests.approve', $pr->id) }}"
-                                                  />
-                                                  <x-ui.action-button
-                                                      type="reject"
-                                                      title="Reject Purchase Request"
-                                                      class="open-pr-confirmation"
-                                                      data-action="reject"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-action-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                                                  />
-                                              @endif
-
-                                              <form
-                                                  id="deletePrForm-{{ $pr->id }}"
-                                                  action="{{ route('purchase-requests.destroy', $pr->id) }}"
-                                                  method="POST"
-                                              >
-                                                  @csrf
-                                                  @method('DELETE')
-
-                                                  @if($canDelete)
+                                              @if($recordView !== 'history')
+                                                  @if($canEdit)
                                                       <x-ui.action-button
-                                                          type="delete"
-                                                          title="Delete Purchase Request"
-                                                          class="open-delete-pr-modal"
+                                                          type="edit"
+                                                          title="{{ $isRejected ? 'Revise and Resubmit Purchase Request' : 'Edit Purchase Request' }}"
+                                                          class="open-edit-pr-modal {{ $isRejected ? 'revise-pr-action' : '' }}"
                                                           data-id="{{ $pr->id }}"
                                                           data-pr-no="{{ $pr->pr_no }}"
+                                                          data-job-order-no="{{ $pr->job_order_no }}"
+                                                          data-bus-no="{{ $pr->bus_no }}"
+                                                          data-item="{{ $pr->item }}"
+                                                          data-quantity="{{ $pr->quantity }}"
+                                                          data-status="{{ $pr->status }}"
+                                                          data-remarks="{{ $pr->remarks }}"
+                                                          data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
+                                                          data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
                                                       />
                                                   @else
                                                       <x-ui.action-button
-                                                          type="delete"
-                                                          title="{{ $isRejected
-                                                              ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
-                                                              : 'This PR can no longer be deleted because it is already being processed.' }}"
+                                                          type="edit"
+                                                          title="This Purchase Request can no longer be edited."
+                                                          class="disabled-pr-edit-btn"
                                                           :disabled="true"
                                                       />
                                                   @endif
-                                              </form>
+
+                                                  @if($canApproveOrReject)
+                                                      <x-ui.action-button
+                                                          type="approve"
+                                                          title="Approve Purchase Request"
+                                                          class="open-pr-confirmation"
+                                                          data-action="approve"
+                                                          data-pr-no="{{ $pr->pr_no }}"
+                                                          data-action-url="{{ route('purchase-requests.approve', $pr->id) }}"
+                                                      />
+                                                      <x-ui.action-button
+                                                          type="reject"
+                                                          title="Reject Purchase Request"
+                                                          class="open-pr-confirmation"
+                                                          data-action="reject"
+                                                          data-pr-no="{{ $pr->pr_no }}"
+                                                          data-action-url="{{ route('purchase-requests.reject', $pr->id) }}"
+                                                      />
+                                                  @endif
+
+                                                  <form
+                                                      id="deletePrForm-{{ $pr->id }}"
+                                                      action="{{ route('purchase-requests.destroy', $pr->id) }}"
+                                                      method="POST"
+                                                  >
+                                                      @csrf
+                                                      @method('DELETE')
+
+                                                      @if($canDelete)
+                                                          <x-ui.action-button
+                                                              type="delete"
+                                                              title="Delete Purchase Request"
+                                                              class="open-delete-pr-modal"
+                                                              data-id="{{ $pr->id }}"
+                                                              data-pr-no="{{ $pr->pr_no }}"
+                                                          />
+                                                      @else
+                                                          <x-ui.action-button
+                                                              type="delete"
+                                                              title="{{ $isRejected
+                                                                  ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
+                                                                  : 'This PR can no longer be deleted because it is already being processed.' }}"
+                                                              :disabled="true"
+                                                          />
+                                                      @endif
+                                                  </form>
+                                              @endif
                                           </div>
                                       </td>
                                   </tr>
