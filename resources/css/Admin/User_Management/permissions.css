@@ -639,6 +639,23 @@
     min-width: 0;
 }
 
+/*
+ * Reset the legacy generic ".permission-option > div" styling for the
+ * descriptive copy column used by the isolated role layout.
+ */
+.isolated-permission-row.permission-option > .permission-row-copy {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    display: block;
+    align-items: initial;
+    justify-content: initial;
+    font-size: inherit;
+}
+
 .permission-row-copy strong,
 .permission-row-copy span {
     display: block;
