@@ -77,7 +77,12 @@
                     <p class="referral-history-note">Job Order Created and Rejected referrals are kept here for reference and audit history.</p>
                 @endif
 
-                <form method="GET" action="{{ route('maintenance-referrals') }}" class="toolbar referral-toolbar">
+                <form
+                    method="GET"
+                    action="{{ route('maintenance-referrals') }}"
+                    class="toolbar referral-toolbar"
+                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                >
                     @if($recordView === 'history')
                         <input type="hidden" name="record_view" value="history">
                     @endif
@@ -209,7 +214,10 @@
                     </table>
                 </div>
 
-                <x-ui.table-footer :items="$referrals" />
+                <x-ui.table-footer
+                    :items="$referrals"
+                    data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                />
             </section>
         </main>
     </div>
