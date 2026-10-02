@@ -1,5 +1,4 @@
 import './echo';
-import './Main-js/partial-navigation.js';
 
 /*
  * Shared application assets only.
@@ -39,10 +38,6 @@ import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 import './Maintenance/maintenance-history-tabs.js';
-
-/* Shared by Driver and Mechanic Attendance pages. */
-import '../css/Operation/Attendance/batch-attendance.css';
-import './Operation/Attendance/batch-attendance.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
 const initializePageOnlyControls = () => {
