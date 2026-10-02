@@ -27,7 +27,7 @@ class InactiveAccountLoginTest extends TestCase
             ->from(route('login'))
             ->post(route('login.submit'), [
                 'email' => $user->email,
-                'password' => 'Password123!',
+                'password' => 'WrongPasswordStillBlocked!',
                 'remember' => '1',
             ]);
 
@@ -47,6 +47,36 @@ class InactiveAccountLoginTest extends TestCase
             ->assertSee('Account Deactivated')
             ->assertSee('This account has been deactivated and cannot sign in.')
             ->assertSee('data-account-status-modal', false);
+    }
+
+    public function test_inactive_account_notice_takes_precedence_over_login_rate_limit(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'blocked.rate.limit@gct.test',
+            'password' => Hash::make('Password123!'),
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Inactive',
+        ]);
+
+        for ($attempt = 0; $attempt < 6; $attempt++) {
+            $this->post(route('login.submit'), [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this
+            ->from(route('login'))
+            ->post(route('login.submit'), [
+                'email' => $user->email,
+                'password' => 'still-wrong',
+            ])
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('blocked_account_status', 'Inactive')
+            ->assertSessionDoesntHaveErrors();
+
+        $this->assertGuest();
     }
 
     public function test_pending_account_receives_pending_activation_notice(): void
