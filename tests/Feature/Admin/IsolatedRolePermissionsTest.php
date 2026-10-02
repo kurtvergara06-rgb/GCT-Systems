@@ -102,6 +102,58 @@ class IsolatedRolePermissionsTest extends TestCase
         }
     }
 
+    public function test_department_accounts_cannot_open_other_department_modules_by_url(): void
+    {
+        $warehouseHead = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->actingAs($warehouseHead)
+            ->get(route('dashboard-purchase'))
+            ->assertForbidden();
+
+        $this->actingAs($warehouseHead)
+            ->get(route('dashboard-operation'))
+            ->assertForbidden();
+
+        $maintenanceStaff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->actingAs($maintenanceStaff)
+            ->get(route('warehouse.dashboard'))
+            ->assertForbidden();
+    }
+
+    public function test_system_admin_can_cross_department_module_boundaries(): void
+    {
+        $admin = $this->systemAdmin();
+
+        $this->actingAs($admin)
+            ->get(route('warehouse.dashboard'))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('dashboard-purchase'))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('dashboard-operation'))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('analytics.fleet-trip'))
+            ->assertRedirect('/analytics/descriptive?domain=fleet-trip');
+    }
+
     public function test_non_admin_department_cannot_open_analytics_routes(): void
     {
         $warehouseHead = User::factory()->create([
