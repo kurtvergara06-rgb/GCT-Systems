@@ -5,8 +5,10 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
+    'resources/css/Operation/Attendance/batch-attendance.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Operation/Attendance/driver-attendance.js'
+    'resources/js/Operation/Attendance/driver-attendance.js',
+    'resources/js/Operation/Attendance/batch-attendance.js'
   ]"
 >
 
