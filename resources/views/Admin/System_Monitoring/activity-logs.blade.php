@@ -44,6 +44,8 @@
                     :show-button="false"
                     id="activityFilterForm"
                     data-activity-filter-form
+                    data-server-filter="true"
+                    data-server-filter-owned="true"
                     data-no-loading
                     autocomplete="off"
                 >
@@ -180,7 +182,7 @@
                     </table>
                 </div>
 
-                <x-ui.table-footer :items="$logs" />
+                <x-ui.table-footer :items="$logs" data-lazy-pagination="true" />
             </x-ui.ajax-region>
         </main>
     </div>

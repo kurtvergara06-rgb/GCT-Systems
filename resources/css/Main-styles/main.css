@@ -847,6 +847,34 @@ tbody tr:last-child td {
   font-size: 13px;
 }
 
+.table-footer .table-loading-all {
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.table-footer .table-loading-all:not([hidden]) {
+  display: inline-flex;
+}
+
+.table-footer[data-lazy-pagination="true"][data-has-more="true"][data-lazy-loading="false"]::after {
+  content: "Scroll inside the table to load more records";
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid #dbe7f5;
+  border-radius: 999px;
+  background: #f8fbff;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .custom-pagination,
 .pagination {
   display: flex;

@@ -52,6 +52,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
   const inventoryTable = document.querySelector('.inventory-table');
   const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
   const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
+  const sourceSelect = inventoryToolbar?.querySelector('select[name="source"]');
   const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
 
   function inventoryRows() {
@@ -92,6 +93,15 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     row.className = 'empty-row inventory-client-empty';
     row.innerHTML = '<td colspan="11">No inventory items match the current filters.</td>';
     body.appendChild(row);
+  }
+
+  function requestAllInventoryRows() {
+    if (
+      inventoryFooter?.dataset.lazyPagination === 'true'
+      && inventoryFooter.dataset.hasMore === 'true'
+    ) {
+      inventoryFooter.dispatchEvent(new CustomEvent('gct:load-all-records'));
+    }
   }
 
   function applyInventoryFilters() {
@@ -140,13 +150,35 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
   if (inventoryToolbar) {
     inventoryToolbar.dataset.clientFilter = 'true';
 
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set('source', sourceSelect.value || 'app');
+        url.searchParams.delete('page');
+
+        if (window.GCTPartialNavigation?.navigate) {
+          window.GCTPartialNavigation.navigate(url.href);
+          return;
+        }
+
+        window.location.assign(url.href);
+      });
+    }
+
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
-      searchInput.addEventListener('input', applyInventoryFilters);
-      searchInput.addEventListener('search', applyInventoryFilters);
+      searchInput.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      searchInput.addEventListener('search', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
       searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
           searchInput.value = '';
+          requestAllInventoryRows();
           applyInventoryFilters();
         }
       });
@@ -154,8 +186,14 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     if (categorySelect) {
       categorySelect.removeAttribute('onchange');
-      categorySelect.addEventListener('change', applyInventoryFilters);
-      categorySelect.addEventListener('input', applyInventoryFilters);
+      categorySelect.addEventListener('change', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      categorySelect.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
     }
 
     applyInventoryFilters();

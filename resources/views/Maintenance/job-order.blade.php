@@ -74,6 +74,7 @@
                     button-id="openJobModal"
                     button-label="New JO"
                     :show-button="$recordView !== 'history'"
+                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                 >
                     @if($recordView === 'history')
                         <input type="hidden" name="record_view" value="history">
@@ -364,7 +365,10 @@
                     </table>
                 </div>
 
-                <x-ui.table-footer :items="$jobOrders" />
+                <x-ui.table-footer
+                    :items="$jobOrders"
+                    data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                />
             </section>
         </main>
     </div>

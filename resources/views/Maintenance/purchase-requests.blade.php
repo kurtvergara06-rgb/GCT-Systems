@@ -136,6 +136,7 @@
                       action="{{ route('purchase-requests') }}"
                       method="GET"
                       class="toolbar purchase-toolbar"
+                      data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                   >
                       @if($recordView === 'history')
                           <input type="hidden" name="record_view" value="history">
@@ -337,7 +338,10 @@
                       </table>
                   </div>
 
-                  <x-ui.table-footer :items="$purchaseRequests" />
+                  <x-ui.table-footer
+                      :items="$purchaseRequests"
+                      data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                  />
               </section>
           </main>
       </div>

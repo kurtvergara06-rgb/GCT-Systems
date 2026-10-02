@@ -63,7 +63,7 @@ class JobOrderIndexController extends Controller
 
         $jobOrders = $query
             ->latest()
-            ->paginate(1000)
+            ->paginate($recordView === 'history' ? 20 : 1000)
             ->withQueryString();
 
         $onHold = JobOrder::where('status', 'On Hold')->count();

@@ -248,6 +248,27 @@ export default defineConfig({
         tailwindcss(),
     ],
 
+    build: {
+        rolldownOptions: {
+            output: {
+                codeSplitting: {
+                    groups: [
+                        {
+                            name: 'vendor-charts',
+                            test: /node_modules[\\/](?:chart\.js|@kurkle[\\/]color)[\\/]/,
+                            priority: 20,
+                        },
+                        {
+                            name: 'vendor-realtime',
+                            test: /node_modules[\\/](?:laravel-echo|pusher-js|tweetnacl)[\\/]/,
+                            priority: 20,
+                        },
+                    ],
+                },
+            },
+        },
+    },
+
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

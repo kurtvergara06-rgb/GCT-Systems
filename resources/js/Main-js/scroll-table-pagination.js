@@ -100,18 +100,47 @@
         const context = findContext(footer);
         if (!context) return;
 
+        const lazy = footer.dataset.lazyPagination === 'true' && context.type === 'table';
         let nextUrl = footer.dataset.nextUrl || '';
+        let isLoading = false;
         const visited = new Set();
         const loading = footer.querySelector('[data-table-loading]');
         const loadingTarget = context.type === 'table' ? context.wrap : context.list;
 
-        if (loading && nextUrl) loading.hidden = false;
-        loadingTarget?.classList.toggle('is-loading-all-rows', Boolean(nextUrl));
+        const setNextUrl = (value) => {
+            nextUrl = value || '';
+            footer.dataset.nextUrl = nextUrl;
+            footer.dataset.hasMore = nextUrl ? 'true' : 'false';
+        };
 
-        try {
-            while (nextUrl && !visited.has(nextUrl)) {
-                visited.add(nextUrl);
-                const response = await fetch(nextUrl, {
+        const setLoading = (state) => {
+            isLoading = state;
+            footer.dataset.lazyLoading = state ? 'true' : 'false';
+
+            if (loading) {
+                loading.hidden = !state;
+
+                const label = loading.querySelector('[data-table-loading-label]');
+                if (label) {
+                    label.textContent = lazy ? 'Loading more records...' : 'Loading all records...';
+                }
+            }
+
+            loadingTarget?.classList.toggle('is-loading-all-rows', state && !lazy);
+            loadingTarget?.classList.toggle('is-loading-more-rows', state && lazy);
+        };
+
+        const loadNextPage = async () => {
+            if (!nextUrl || isLoading || visited.has(nextUrl)) {
+                return false;
+            }
+
+            const requestUrl = nextUrl;
+            visited.add(requestUrl);
+            setLoading(true);
+
+            try {
+                const response = await fetch(requestUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'text/html' },
                     credentials: 'same-origin',
                 });
@@ -126,7 +155,8 @@
                 const parsedContext = parsedFooter ? findContext(parsedFooter, parsed) : null;
 
                 if (!parsedFooter || !parsedContext || parsedContext.type !== context.type) {
-                    break;
+                    setNextUrl('');
+                    return false;
                 }
 
                 if (context.type === 'table') {
@@ -136,17 +166,66 @@
                 }
 
                 appendModals(parsed);
-                nextUrl = parsedFooter.dataset.nextUrl || '';
+                setNextUrl(parsedFooter.dataset.nextUrl || '');
+                updateCount(footer, context);
+                dispatchLoaded(context);
+
+                return Boolean(nextUrl);
+            } catch (error) {
+                console.error('Unable to load more records.', error);
+                footer.dataset.loadError = 'true';
+                return false;
+            } finally {
+                setLoading(false);
                 updateCount(footer, context);
             }
+        };
 
-            dispatchLoaded(context);
-        } catch (error) {
-            console.error('Unable to load all records.', error);
-            footer.dataset.loadError = 'true';
+        setNextUrl(nextUrl);
+        setLoading(false);
+        updateCount(footer, context);
+
+        if (lazy) {
+            footer.addEventListener('gct:load-all-records', async () => {
+                while (nextUrl && !visited.has(nextUrl)) {
+                    await loadNextPage();
+
+                    if (footer.dataset.loadError === 'true') {
+                        break;
+                    }
+                }
+            });
+
+            const maybeLoadNextPage = async () => {
+                if (isLoading || !nextUrl) return;
+
+                const distanceFromBottom =
+                    context.wrap.scrollHeight
+                    - context.wrap.scrollTop
+                    - context.wrap.clientHeight;
+
+                if (distanceFromBottom > 48) return;
+
+                await loadNextPage();
+            };
+
+            context.wrap.addEventListener('scroll', () => {
+                void maybeLoadNextPage();
+            }, { passive: true });
+
+            return;
+        }
+
+        try {
+            while (nextUrl && !visited.has(nextUrl)) {
+                await loadNextPage();
+
+                if (footer.dataset.loadError === 'true') {
+                    break;
+                }
+            }
         } finally {
-            if (loading) loading.hidden = true;
-            loadingTarget?.classList.remove('is-loading-all-rows');
+            setLoading(false);
             updateCount(footer, context);
         }
     };
