@@ -70,6 +70,29 @@ class LoginController extends Controller
             (string) $request->ip()
         );
 
+        /** @var User|null $user */
+        $user = User::query()
+            ->where('email', $credentials['email'])
+            ->first();
+
+        /*
+         * Account availability is checked before rate limiting and password
+         * hashing. Deactivated/pending accounts cannot authenticate anyway, so
+         * avoid the expensive password hash check and show the correct status
+         * notice immediately.
+         */
+        if ($user !== null) {
+            $status = strtolower(trim((string) ($user->status ?? 'Active')));
+
+            if ($status !== 'active') {
+                RateLimiter::clear($loginKey);
+
+                return back()
+                    ->withInput($request->only('email', 'remember'))
+                    ->with('blocked_account_status', ucfirst($status));
+            }
+        }
+
         if (RateLimiter::tooManyAttempts($loginKey, 5)) {
             return back()
                 ->withInput($request->only('email', 'remember'))
@@ -80,11 +103,6 @@ class LoginController extends Controller
                     ),
                 ]);
         }
-
-        /** @var User|null $user */
-        $user = User::query()
-            ->where('email', $credentials['email'])
-            ->first();
 
         if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($loginKey, 60);
@@ -97,14 +115,6 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($loginKey);
-
-        $status = strtolower(trim((string) ($user->status ?? 'Active')));
-
-        if ($status !== 'active') {
-            return back()
-                ->withInput($request->only('email', 'remember'))
-                ->with('blocked_account_status', ucfirst($status));
-        }
 
         Auth::login($user, $remember);
 
