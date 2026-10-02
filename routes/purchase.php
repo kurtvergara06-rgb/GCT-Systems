@@ -6,6 +6,8 @@ use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\ScheduledPurchaseController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(function () {
+
 Route::view(
     '/purchase/dashboard',
     'Purchase.dashboard-purchase'
@@ -50,3 +52,4 @@ Route::controller(ScheduledPurchaseController::class)
             ->name('scheduled-purchase.create-po');
         Route::delete('/{scheduledPurchase}', 'destroy')->name('scheduled-purchase.destroy');
     });
+});
