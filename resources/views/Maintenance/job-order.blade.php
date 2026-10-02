@@ -28,7 +28,7 @@
 
             <section data-ajax-region="records" class="table-card jo-table-card">
                 @php
-                    $jobOrderTabQuery = request()->except(['record_view', 'page']);
+                    $jobOrderTabQuery = array_filter(['search' => request('search')]);
                     $activeJobOrderUrl = route('job-orders', $jobOrderTabQuery);
                     $historyJobOrderUrl = route('job-orders', array_merge($jobOrderTabQuery, ['record_view' => 'history']));
                 @endphp
@@ -78,32 +78,34 @@
                     @if($recordView === 'history')
                         <input type="hidden" name="record_view" value="history">
                     @endif
-                    <div class="filter-group">
-                        <label for="partStatusFilter"></label>
-                        <select name="part_status" id="partStatusFilter" class="part-status-select" onchange="this.form.submit()">
-                            @foreach([
-                                'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
-                                'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
-                                'Picked Up', 'Issued', 'No Parts Needed'
-                            ] as $partStatusOption)
-                                <option
-                                    value="{{ $partStatusOption }}"
-                                    {{ request('part_status', 'All Part Statuses') === $partStatusOption ? 'selected' : '' }}
-                                >
-                                    {{ $partStatusOption }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if($recordView !== 'history')
+                        <div class="filter-group">
+                            <label for="partStatusFilter"></label>
+                            <select name="part_status" id="partStatusFilter" class="part-status-select" onchange="this.form.submit()">
+                                @foreach([
+                                    'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
+                                    'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
+                                    'Picked Up', 'Issued', 'No Parts Needed'
+                                ] as $partStatusOption)
+                                    <option
+                                        value="{{ $partStatusOption }}"
+                                        {{ request('part_status', 'All Part Statuses') === $partStatusOption ? 'selected' : '' }}
+                                    >
+                                        {{ $partStatusOption }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                    <div class="filter-group">
-                        <label for="maintenanceTypeFilter"></label>
-                        <select name="maintenance_type" id="maintenanceTypeFilter" onchange="this.form.submit()">
-                            <option value="All Types" {{ request('maintenance_type', 'All Types') === 'All Types' ? 'selected' : '' }}>All Types</option>
-                            <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
-                            <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
-                        </select>
-                    </div>
+                        <div class="filter-group">
+                            <label for="maintenanceTypeFilter"></label>
+                            <select name="maintenance_type" id="maintenanceTypeFilter" onchange="this.form.submit()">
+                                <option value="All Types" {{ request('maintenance_type', 'All Types') === 'All Types' ? 'selected' : '' }}>All Types</option>
+                                <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
+                                <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
+                            </select>
+                        </div>
+                    @endif
                 </x-ui.table-toolbar>
 
                 <div class="table-wrap">
