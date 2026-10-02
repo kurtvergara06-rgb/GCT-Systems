@@ -57,6 +57,8 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
         $response->assertSee('JO-ACTIVE-001');
         $response->assertDontSee('JO-HISTORY-001');
         $response->assertSee('New JO');
+        $response->assertSee('data-lazy-pagination="false"', false);
+        $response->assertSee('data-server-filter="false"', false);
         $response->assertSee('Track job order details, assigned mechanics, completion status, and parts progress');
     }
 
