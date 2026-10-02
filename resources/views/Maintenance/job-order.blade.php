@@ -27,12 +27,49 @@
             </section>
 
             <section data-ajax-region="records" class="table-card jo-table-card">
-                <div class="section-header">
+                @php
+                    $jobOrderTabQuery = request()->except(['record_view', 'page']);
+                    $activeJobOrderUrl = route('job-orders', $jobOrderTabQuery);
+                    $historyJobOrderUrl = route('job-orders', array_merge($jobOrderTabQuery, ['record_view' => 'history']));
+                @endphp
+
+                <div class="section-header maintenance-record-header">
                     <div>
                         <h2>Job Orders</h2>
-                        <p>Track job order details, assigned mechanics, completion status, and parts progress</p>
+                        @if($recordView !== 'history')
+                            <p>Track job order details, assigned mechanics, completion status, and parts progress</p>
+                        @endif
+                    </div>
+
+                    <div class="maintenance-record-tabs" role="tablist" aria-label="Job Order record view">
+                        <a
+                            href="{{ $activeJobOrderUrl }}"
+                            class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
+                            role="tab"
+                            aria-selected="{{ $recordView === 'active' ? 'true' : 'false' }}"
+                            data-allow-partial-navigation="true"
+                        >
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Active</span>
+                        </a>
+                        <a
+                            href="{{ $historyJobOrderUrl }}"
+                            class="maintenance-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}"
+                            role="tab"
+                            aria-selected="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                            data-allow-partial-navigation="true"
+                        >
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>History</span>
+                        </a>
                     </div>
                 </div>
+
+                @if($recordView === 'history')
+                    <p class="maintenance-history-note">
+                        Completed Job Orders are kept here for reference and audit history.
+                    </p>
+                @endif
 
                 <x-ui.table-toolbar
                     :action="route('job-orders')"
