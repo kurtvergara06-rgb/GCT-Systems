@@ -253,6 +253,7 @@
                                                   data-status="{{ $pr->status }}"
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
+                                                  data-updated-at="{{ $pr->updated_at?->format('M d, Y · h:i A') }}"
                                                   data-approved-at="{{ $pr->approved_at?->format('M d, Y · h:i A') }}"
                                                   data-rejected-at="{{ $pr->rejected_at?->format('M d, Y · h:i A') }}"
                                                   data-issued-at="{{ $pr->issued_at?->format('M d, Y · h:i A') }}"
