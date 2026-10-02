@@ -30,10 +30,10 @@ return new class extends Migration
         ];
 
         $adminPermissions = [
-            'operation' => ['view' => true, 'edit' => false, 'approve' => false],
-            'maintenance' => ['view' => true, 'edit' => false, 'approve' => false],
-            'purchase' => ['view' => true, 'edit' => false, 'approve' => false],
-            'warehouse' => ['view' => true, 'edit' => false, 'approve' => false],
+            'operation' => ['view' => true, 'edit' => true, 'approve' => true],
+            'maintenance' => ['view' => true, 'edit' => true, 'approve' => true],
+            'purchase' => ['view' => true, 'edit' => true, 'approve' => true],
+            'warehouse' => ['view' => true, 'edit' => true, 'approve' => true],
             'analytics' => ['view' => true, 'analyze' => true, 'recommendations' => true],
             'administration' => ['view' => true, 'manage' => true, 'full_control' => true],
         ];
@@ -47,7 +47,6 @@ return new class extends Migration
 
             $headPermissions = $restricted;
             $headPermissions[$module] = ['view' => true, 'edit' => true, 'approve' => true];
-            $headPermissions['analytics'] = ['view' => true, 'analyze' => true, 'recommendations' => false];
 
             $staffPermissions = $restricted;
             $staffPermissions[$module] = ['view' => true, 'edit' => true, 'approve' => false];
