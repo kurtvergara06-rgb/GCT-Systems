@@ -16,6 +16,13 @@ class PartialNavigationLifecycleTest extends TestCase
         $this->assertStringContainsString('document.body.classList.remove(...transientClasses)', $source);
         $this->assertStringContainsString("element.style.removeProperty('overflow')", $source);
         $this->assertStringContainsString("document.querySelectorAll('dialog[open]')", $source);
+        $this->assertStringContainsString('document.body.querySelectorAll(PAGE_OVERLAY_SELECTOR)', $source);
+        $this->assertStringContainsString('Array.from(nextDocument.body.children)', $source);
+        $this->assertStringContainsString('currentApp.className = nextApp.className', $source);
+        $this->assertStringNotContainsString(
+            'if (link.closest(\'#appSidebar[data-gct-shell="maintenance"]\')) return false;',
+            $source
+        );
     }
 
     public function test_cleanup_runs_before_the_old_main_fades_out(): void
