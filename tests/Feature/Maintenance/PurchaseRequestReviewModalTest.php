@@ -45,8 +45,11 @@ class PurchaseRequestReviewModalTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Purchase Request Review')
+            ->assertSee('Purchase Request Details')
             ->assertSee('pr-review-modal-overlay', false)
+            ->assertSee('Request Information')
+            ->assertSee('Items')
+            ->assertSee('History')
             ->assertSee('pr-review-btn open-view-pr-modal', false)
             ->assertSee('data-can-approve="1"', false)
             ->assertSee('reviewEditPrBtn', false)
@@ -110,7 +113,11 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'width: min(960px, 100%);',
+            '#editPrModal.pr-review-modal-overlay > .ui-form-modal',
+            $css
+        );
+        $this->assertStringContainsString(
+            'width: min(820px, calc(100vw - 44px)) !important;',
             $css
         );
     }
