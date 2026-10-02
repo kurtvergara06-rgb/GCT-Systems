@@ -179,6 +179,15 @@ const rememberLoadedAssets = () => {
         }
     });
 
+    document.body.querySelectorAll(PAGE_OVERLAY_SELECTOR).forEach((overlay) => {
+        if (
+            !overlay.closest('.app')
+            && !overlay.matches(PERSISTENT_OVERLAY_SELECTOR)
+        ) {
+            overlay.dataset.pageOwned = 'true';
+        }
+    });
+
     document.body.querySelectorAll('script').forEach((script) => {
         if (!main?.contains(script)) script.dataset.gctTransientScript = 'true';
     });
@@ -263,7 +272,17 @@ const syncPageOwnedElements = (nextDocument) => {
     const nextApp = nextMain?.closest('.app') || nextDocument.body;
     if (!currentApp || !nextApp) return;
 
+    if (currentApp !== document.body && nextApp !== nextDocument.body) {
+        currentApp.className = nextApp.className;
+    }
+
     currentApp.querySelectorAll(':scope > [data-page-owned]').forEach((element) => element.remove());
+
+    document.body
+        .querySelectorAll(`[data-page-owned="true"]${PAGE_OVERLAY_SELECTOR}`)
+        .forEach((element) => {
+            if (!element.closest('.app')) element.remove();
+        });
 
     Array.from(nextApp.children).forEach((element) => {
         if (
@@ -272,7 +291,21 @@ const syncPageOwnedElements = (nextDocument) => {
             || element.tagName === 'SCRIPT'
             || element.matches(PERSISTENT_OVERLAY_SELECTOR)
         ) return;
+
         currentApp.appendChild(markPageOwned(document.importNode(element, true)));
+    });
+
+    Array.from(nextDocument.body.children).forEach((element) => {
+        if (
+            !element.matches?.(PAGE_OVERLAY_SELECTOR)
+            || element.closest('.app')
+            || element.matches(PERSISTENT_OVERLAY_SELECTOR)
+        ) {
+            return;
+        }
+
+        const imported = document.importNode(element, true);
+        document.body.appendChild(markPageOwned(imported));
     });
 };
 
@@ -517,6 +550,7 @@ const cleanupTransitionState = () => {
             'gct-main-fetching',
             'gct-main-leaving',
             'gct-main-entering',
+            'gct-main-entered',
             'gct-main-loader-hold'
         );
     }
@@ -594,10 +628,6 @@ const eligibleLink = (link, event) => {
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
     if (link.hasAttribute('data-no-partial-navigation')) return false;
     if (link.closest('[data-ajax-region]') && !link.hasAttribute('data-allow-partial-navigation')) return false;
-    // Maintenance page controls rely on page-local initializers and modal state.
-    // Use a normal browser navigation for Maintenance sidebar links so each page
-    // starts from a clean DOM/runtime instead of carrying partial-navigation state.
-    if (link.closest('#appSidebar[data-gct-shell="maintenance"]')) return false;
     if (link.closest('form') || link.getAttribute('role') === 'button') return false;
 
     const target = (link.getAttribute('target') || '').toLowerCase();
