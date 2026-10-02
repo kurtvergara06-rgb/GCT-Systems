@@ -30,6 +30,16 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     return toolbar?.dataset?.clientFilter !== undefined;
   };
 
+  const usesServerFilter = (toolbar) => {
+    return toolbar?.dataset?.serverFilter === 'true';
+  };
+
+  const ownsServerFilter = (toolbar) => {
+    return toolbar?.dataset?.serverFilterOwned === 'true';
+  };
+
+  const serverFilterTimers = new WeakMap();
+
   const closestToolbar = (element) => element?.closest?.(toolbarSelector) || null;
 
   const searchableRows = (table) => {
@@ -87,8 +97,84 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     }).filter(Boolean);
   };
 
+  const requestRemainingLazyRows = (toolbar) => {
+    const context = findTableContext(toolbar);
+    const footer = context?.footer;
+
+    if (
+      footer?.dataset?.lazyPagination === 'true'
+      && footer.dataset.hasMore === 'true'
+    ) {
+      footer.dispatchEvent(new CustomEvent('gct:load-all-records'));
+    }
+  };
+
+  const hasActiveClientCriteria = (toolbar) => {
+    const input = toolbar?.querySelector(searchInputSelector);
+    const query = String(input?.value || '').trim();
+
+    return query !== '' || activeFilterValues(toolbar).length > 0;
+  };
+
+  const buildServerFilterUrl = (toolbar) => {
+    if (!(toolbar instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    const method = String(toolbar.getAttribute('method') || 'GET').toUpperCase();
+    if (method !== 'GET') {
+      return null;
+    }
+
+    const target = new URL(
+      toolbar.getAttribute('action') || window.location.href,
+      window.location.href
+    );
+    const params = new URLSearchParams();
+
+    new FormData(toolbar).forEach((value, key) => {
+      if (typeof value === 'string') {
+        params.append(key, value);
+      }
+    });
+
+    params.delete('page');
+    params.delete('history_page');
+    target.search = params.toString();
+
+    return target;
+  };
+
+  const runServerFilter = (toolbar) => {
+    const target = buildServerFilterUrl(toolbar);
+    if (!target) {
+      return;
+    }
+
+    if (window.GCTPartialNavigation?.navigate) {
+      window.GCTPartialNavigation.navigate(target.href);
+      return;
+    }
+
+    window.location.assign(target.href);
+  };
+
+  const scheduleServerFilter = (toolbar, delay = 300) => {
+    const previousTimer = serverFilterTimers.get(toolbar);
+    if (previousTimer) {
+      window.clearTimeout(previousTimer);
+    }
+
+    const timer = window.setTimeout(() => {
+      serverFilterTimers.delete(toolbar);
+      runServerFilter(toolbar);
+    }, delay);
+
+    serverFilterTimers.set(toolbar, timer);
+  };
+
   const applyToolbarFilters = (toolbar) => {
-    if (!toolbar || usesOwnClientFilter(toolbar)) {
+    if (!toolbar || usesOwnClientFilter(toolbar) || usesServerFilter(toolbar)) {
       return;
     }
 
@@ -131,13 +217,31 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
+    const input = toolbar.querySelector(searchInputSelector);
+
+    if (usesServerFilter(toolbar)) {
+      toolbar.dataset.instantSearch = 'server';
+
+      if (!ownsServerFilter(toolbar)) {
+        toolbar.querySelectorAll('select[onchange]').forEach((select) => {
+          select.removeAttribute('onchange');
+        });
+      }
+
+      if (input) {
+        input.dataset.autoSearchBound = 'true';
+        input.setAttribute('autocomplete', 'off');
+      }
+
+      return;
+    }
+
     toolbar.dataset.instantSearch = 'true';
 
     toolbar.querySelectorAll('select[onchange]').forEach((select) => {
       select.removeAttribute('onchange');
     });
 
-    const input = toolbar.querySelector(searchInputSelector);
     if (input) {
       input.dataset.autoSearchBound = 'true';
       input.setAttribute('autocomplete', 'off');
@@ -160,6 +264,17 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
+    if (usesServerFilter(toolbar)) {
+      if (!ownsServerFilter(toolbar)) {
+        scheduleServerFilter(toolbar);
+      }
+      return;
+    }
+
+    if (hasActiveClientCriteria(toolbar)) {
+      requestRemainingLazyRows(toolbar);
+    }
+
     applyToolbarFilters(toolbar);
   }, true);
 
@@ -169,6 +284,17 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
     if (!select || !toolbar) {
       return;
+    }
+
+    if (usesServerFilter(toolbar)) {
+      if (!ownsServerFilter(toolbar)) {
+        runServerFilter(toolbar);
+      }
+      return;
+    }
+
+    if (hasActiveClientCriteria(toolbar)) {
+      requestRemainingLazyRows(toolbar);
     }
 
     applyToolbarFilters(toolbar);
@@ -182,14 +308,43 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
+    if (usesServerFilter(toolbar)) {
+      if (ownsServerFilter(toolbar)) {
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        runServerFilter(toolbar);
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        input.value = '';
+        runServerFilter(toolbar);
+      }
+
+      return;
+    }
+
     if (event.key === 'Enter') {
       event.preventDefault();
+
+      if (hasActiveClientCriteria(toolbar)) {
+        requestRemainingLazyRows(toolbar);
+      }
+
       applyToolbarFilters(toolbar);
     }
 
     if (event.key === 'Escape') {
       event.preventDefault();
       input.value = '';
+
+      if (hasActiveClientCriteria(toolbar)) {
+        requestRemainingLazyRows(toolbar);
+      }
+
       applyToolbarFilters(toolbar);
     }
   }, true);
@@ -205,7 +360,22 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
+    if (usesServerFilter(form)) {
+      if (ownsServerFilter(form)) {
+        return;
+      }
+
+      event.preventDefault();
+      runServerFilter(form);
+      return;
+    }
+
     event.preventDefault();
+
+    if (hasActiveClientCriteria(form)) {
+      requestRemainingLazyRows(form);
+    }
+
     applyToolbarFilters(form);
   }, true);
 
