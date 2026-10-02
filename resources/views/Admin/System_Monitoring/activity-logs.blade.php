@@ -109,6 +109,7 @@
                                         substr($nameParts->get(0, ''), 0, 1)
                                         . substr($nameParts->get(1, ''), 0, 1)
                                     ) ?: 'U';
+                                    $profilePhotoUrl = $log->user?->profilePhotoUrl();
                                     $moduleClass = strtolower(str_replace(' ', '-', $log->module ?? 'system'));
                                     $eventClass = strtolower(str_replace([' ', '/'], '-', $log->event_type ?? 'updated'));
                                     $createdAt = $log->created_at;
@@ -117,7 +118,19 @@
                                 <tr data-activity-row>
                                     <td>
                                         <div class="user-cell">
-                                            <div class="user-avatar">{{ $initials }}</div>
+                                            <div class="user-avatar">
+                                                @if($profilePhotoUrl)
+                                                    <img
+                                                        src="{{ $profilePhotoUrl }}"
+                                                        alt=""
+                                                        class="activity-user-avatar-image"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                    >
+                                                @else
+                                                    <span>{{ $initials }}</span>
+                                                @endif
+                                            </div>
                                             <div>
                                                 <strong>{{ $log->user_name }}</strong>
                                                 <span>{{ $log->user_role ?: ($log->department ?: 'System User') }}</span>
