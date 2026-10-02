@@ -12,6 +12,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/js/app.js',
+                'resources/js/Main-js/partial-navigation.js',
 
                 // ======================================================
                 // SHARED LAYOUT ASSETS
@@ -22,12 +23,10 @@ export default defineConfig({
                 'resources/css/Main-styles/sidebar.css',
                 'resources/css/Main-styles/admin-records.css',
                 'resources/css/Main-styles/form-components.css',
-                'resources/css/Main-styles/system-toast.css',
                 'resources/css/Account/account.css',
 
                 'resources/js/Main-js/sidebar.js',
                 'resources/js/Main-js/confirmation-modal.js',
-                'resources/js/Main-js/system-toast.js',
                 'resources/js/Account/account.js',
 
                 // ======================================================
@@ -63,7 +62,6 @@ export default defineConfig({
                 'resources/css/Admin/Data_Management/uploading-data.css',
 
                 'resources/js/Admin/Data_Management/batch-file-processing.js',
-                'resources/js/Admin/Data_Management/data-history.js',
 
                 // ======================================================
                 // ADMIN — SYSTEM MONITORING
@@ -154,8 +152,10 @@ export default defineConfig({
                 'resources/css/Operation/Attendance/driver-attendance.css',
                 'resources/css/Operation/Attendance/available-mechanics.css',
                 'resources/css/Operation/Attendance/personnel-master.css',
+                'resources/css/Operation/Attendance/batch-attendance.css',
 
                 'resources/js/Operation/Attendance/driver-attendance.js',
+                'resources/js/Operation/Attendance/batch-attendance.js',
                 'resources/js/Operation/Attendance/mechanic-attendance.js',
                 'resources/js/Operation/Attendance/personnel-master-modal.js',
 
