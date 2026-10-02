@@ -52,6 +52,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
   const inventoryTable = document.querySelector('.inventory-table');
   const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
   const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
+  const sourceSelect = inventoryToolbar?.querySelector('select[name="source"]');
   const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
 
   function inventoryRows() {
@@ -148,6 +149,21 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
   if (inventoryToolbar) {
     inventoryToolbar.dataset.clientFilter = 'true';
+
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set('source', sourceSelect.value || 'app');
+        url.searchParams.delete('page');
+
+        if (window.GCTPartialNavigation?.navigate) {
+          window.GCTPartialNavigation.navigate(url.href);
+          return;
+        }
+
+        window.location.assign(url.href);
+      });
+    }
 
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
