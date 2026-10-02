@@ -57,4 +57,28 @@ class InventoryLazyPaginationPrototypeTest extends TestCase
             $source
         );
     }
+
+    public function test_inventory_source_filter_loads_the_selected_dataset(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Warehouse/inventory.js')
+        );
+
+        $this->assertStringContainsString(
+            "const sourceSelect = inventoryToolbar?.querySelector('select[name=\"source\"]');",
+            $source
+        );
+        $this->assertStringContainsString(
+            "url.searchParams.set('source', sourceSelect.value || 'app');",
+            $source
+        );
+        $this->assertStringContainsString(
+            "url.searchParams.delete('page');",
+            $source
+        );
+        $this->assertStringContainsString(
+            'window.GCTPartialNavigation.navigate(url.href);',
+            $source
+        );
+    }
 }
