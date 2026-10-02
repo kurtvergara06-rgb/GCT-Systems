@@ -98,6 +98,14 @@ class LoginController extends Controller
 
         RateLimiter::clear($loginKey);
 
+        $status = strtolower(trim((string) ($user->status ?? 'Active')));
+
+        if ($status !== 'active') {
+            return back()
+                ->withInput($request->only('email', 'remember'))
+                ->with('blocked_account_status', ucfirst($status));
+        }
+
         Auth::login($user, $remember);
 
         $request->session()->regenerate();
@@ -114,19 +122,6 @@ class LoginController extends Controller
             return redirect()
                 ->route('login')
                 ->with('error', 'Authentication failed. Please try again.');
-        }
-
-        $status = strtolower(trim((string) ($authenticatedUser->status ?? 'Active')));
-
-        if ($status !== 'active') {
-            Auth::logout();
-
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()
-                ->route('login')
-                ->with('error', 'Your account is not active. Please contact the system administrator.');
         }
 
         $authenticatedUser->forceFill([
