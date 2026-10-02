@@ -40,7 +40,11 @@
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
                     button-id="openJobModal"
                     button-label="New JO"
+                    :show-button="$recordView !== 'history'"
                 >
+                    @if($recordView === 'history')
+                        <input type="hidden" name="record_view" value="history">
+                    @endif
                     <div class="filter-group">
                         <label for="partStatusFilter"></label>
                         <select name="part_status" id="partStatusFilter" class="part-status-select" onchange="this.form.submit()">
