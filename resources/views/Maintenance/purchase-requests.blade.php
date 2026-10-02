@@ -99,7 +99,6 @@
                   <div class="section-header maintenance-record-header">
                       <div>
                           <h2>Purchase Request Records</h2>
-                          <p>Track requested parts, approval status, warehouse issuance, and purchasing progress</p>
                       </div>
 
                       <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
