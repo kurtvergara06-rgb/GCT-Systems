@@ -36,9 +36,11 @@
                 <div class="section-header maintenance-record-header">
                     <div>
                         <h2>Job Orders</h2>
-                        @if($recordView !== 'history')
-                            <p>Track job order details, assigned mechanics, completion status, and parts progress</p>
-                        @endif
+                        <p>
+                            {{ $recordView === 'history'
+                                ? 'Completed Job Orders are kept here for reference and audit history.'
+                                : 'Track job order details, assigned mechanics, completion status, and parts progress' }}
+                        </p>
                     </div>
 
                     <div class="maintenance-record-tabs" role="tablist" aria-label="Job Order record view">
@@ -64,12 +66,6 @@
                         </a>
                     </div>
                 </div>
-
-                @if($recordView === 'history')
-                    <p class="maintenance-history-note">
-                        Completed Job Orders are kept here for reference and audit history.
-                    </p>
-                @endif
 
                 <x-ui.table-toolbar
                     :action="route('job-orders')"
