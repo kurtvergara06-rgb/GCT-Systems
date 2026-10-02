@@ -2664,7 +2664,7 @@
     z-index: 4;
     margin-top: 14px;
     padding: 14px 0 2px;
-    display: flex !important;
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
