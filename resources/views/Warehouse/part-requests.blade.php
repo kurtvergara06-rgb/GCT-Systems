@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar">
+        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar" data-server-filter="true">
           <div class="toolbar-left">
             <div class="search-box">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -264,7 +264,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$purchaseRequests" />
+        <x-ui.table-footer :items="$purchaseRequests" data-lazy-pagination="true" />
       </section>
     </main>
   </div>
