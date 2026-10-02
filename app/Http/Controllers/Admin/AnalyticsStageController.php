@@ -1387,7 +1387,7 @@ class AnalyticsStageController extends Controller
             $topCount = (int) $factors->max();
 
             $alert = [
-                'title' => $topFactor . ' Detected',
+                'title' => ucwords($topFactor) . ' Detected',
                 'message' => sprintf(
                     '%d processed trip record(s) exceeded the recorded route baseline for %s.',
                     $topCount,
