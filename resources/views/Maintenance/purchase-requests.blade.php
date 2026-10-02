@@ -115,7 +115,7 @@
                           </a>
 
                           <a
-                              href="{{ route('purchase-requests', array_filter(['record_view' => 'history', 'search' => request('search'), 'status' => 'Issued'])) }}"
+                              href="{{ route('purchase-requests', array_filter(['record_view' => 'history', 'search' => request('search')])) }}"
                               class="maintenance-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}"
                               data-allow-partial-navigation="true"
                               data-maintenance-record-tab-link="history"
@@ -151,27 +151,29 @@
                           >
                       </div>
 
-                      <div class="filter-group">
-                          <label for="prStatusFilter" class="sr-only"></label>
-                          <select
-                              name="status"
-                              id="prStatusFilter"
-                              class="pr-status-select"
-                              onchange="this.form.requestSubmit()"
-                          >
-                              <option
-                                  value="All Statuses"
-                                  @selected(request('status', 'All Statuses') === 'All Statuses')
+                      @if($recordView !== 'history')
+                          <div class="filter-group">
+                              <label for="prStatusFilter" class="sr-only"></label>
+                              <select
+                                  name="status"
+                                  id="prStatusFilter"
+                                  class="pr-status-select"
+                                  onchange="this.form.requestSubmit()"
                               >
-                                  All Statuses
-                              </option>
-                              @foreach($statuses as $status)
-                                  <option value="{{ $status }}" @selected(request('status') === $status)>
-                                      {{ $status }}
+                                  <option
+                                      value="All Statuses"
+                                      @selected(request('status', 'All Statuses') === 'All Statuses')
+                                  >
+                                      All Statuses
                                   </option>
-                              @endforeach
-                          </select>
-                      </div>
+                                  @foreach($statuses as $status)
+                                      <option value="{{ $status }}" @selected(request('status') === $status)>
+                                          {{ $status }}
+                                      </option>
+                                  @endforeach
+                              </select>
+                          </div>
+                      @endif
 
                       @if($recordView !== 'history')
                           <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
