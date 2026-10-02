@@ -106,6 +106,26 @@ class LazyPaginationRolloutTest extends TestCase
         );
     }
 
+    public function test_lazy_loaded_job_order_history_actions_use_delegated_click_handlers(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringNotContainsString(
+            "document.querySelectorAll('.open-edit-modal')",
+            $source
+        );
+        $this->assertStringContainsString(
+            "event.target.closest(\n          '.open-edit-modal'",
+            $source
+        );
+        $this->assertStringContainsString(
+            "event.target.closest(\n          '.open-delete-modal'",
+            $source
+        );
+    }
+
     public function test_shared_styles_expose_lazy_loading_feedback(): void
     {
         $styles = file_get_contents(
