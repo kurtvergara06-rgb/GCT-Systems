@@ -3,6 +3,7 @@
 namespace App\Models\Admin;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityLog extends Model
 {
@@ -19,4 +20,9 @@ class ActivityLog extends Model
         'ip_address',
         'user_agent',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
