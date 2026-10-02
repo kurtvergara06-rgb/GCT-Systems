@@ -28,7 +28,7 @@
         <div><h2>Recurring Purchase Schedules</h2><p>Track items, suppliers, frequency, due dates, and estimated costs.</p></div>
       </div>
 
-      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar">
+      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar" data-server-filter="true">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" name="search" value="{{ request('search') }}" placeholder="Search schedule, supplier, item, or frequency...">
@@ -113,7 +113,7 @@
         </table>
       </div>
 
-      <x-ui.table-footer :items="$schedules" />
+      <x-ui.table-footer :items="$schedules" data-lazy-pagination="true" />
     </section>
   </main>
 
