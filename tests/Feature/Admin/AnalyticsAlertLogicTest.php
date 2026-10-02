@@ -94,7 +94,7 @@ class AnalyticsAlertLogicTest extends TestCase
         );
 
         $this->assertNotNull($alert);
-        $this->assertSame('Delay spike Detected', $alert['title']);
+        $this->assertSame('Delay Spike Detected', $alert['title']);
         $this->assertSame('3 trips flagged for review', $alert['metric']);
         $this->assertStringContainsString(
             'recorded route baseline',
