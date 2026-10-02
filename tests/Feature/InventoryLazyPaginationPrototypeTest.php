@@ -40,6 +40,10 @@ class InventoryLazyPaginationPrototypeTest extends TestCase
             'Loading more records...',
             $source
         );
+        $this->assertStringNotContainsString(
+            'window.requestAnimationFrame(maybeLoadNextPage);',
+            $source
+        );
     }
 
     public function test_inventory_filters_can_request_the_remaining_lazy_rows(): void
