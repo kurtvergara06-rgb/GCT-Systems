@@ -5,6 +5,8 @@ use App\Http\Controllers\Warehouse\InventoryMovementController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware('role:warehouse:head,warehouse:staff,admin:head')->group(function () {
+
 Route::view(
     '/warehouse/dashboard',
     'Warehouse.dashboard-warehouse'
@@ -50,3 +52,4 @@ Route::view(
     '/warehouse/incoming-deliveries',
     'Warehouse.incoming-deliveries'
 )->name('incoming-deliveries');
+});
