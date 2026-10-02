@@ -85,6 +85,13 @@ class AnalyticsStageController extends Controller
             ? $this->buildPrescriptiveData($request, $fleet, $fuel, $diagnostic, $predictive)
             : null;
 
+        $analyticsAlert = $this->buildAnalyticsAlert(
+            $stage,
+            $domain,
+            $diagnostic,
+            $predictive
+        );
+
         $viewName = match ($stage) {
             'diagnostic' => 'Admin.Analytics.diagnostic.layout',
             'predictive' => 'Admin.Analytics.predictive.layout',
@@ -102,6 +109,7 @@ class AnalyticsStageController extends Controller
             'diagnostic' => $diagnostic,
             'predictive' => $predictive,
             'prescriptive' => $prescriptive,
+            'analyticsAlert' => $analyticsAlert,
             'stats' => $predictive?->fleet->stats ?? null,
             'issues' => $predictive?->fleet->issues ?? null,
             'predictions' => $predictive?->fleet->predictions ?? null,
@@ -1332,6 +1340,171 @@ class AnalyticsStageController extends Controller
             'bus_health' => $busHealthPrescriptive,
             'inventory' => $inventoryPrescriptive,
         ];
+    }
+
+    private function buildAnalyticsAlert(
+        string $stage,
+        string $domain,
+        ?object $diagnostic,
+        ?object $predictive
+    ): ?array {
+        if ($diagnostic === null) {
+            return null;
+        }
+
+        $target = match ($domain) {
+            'fleet-trip' => '.diag-table tbody tr:first-child, .fleet-main-grid .diag-list-row:first-child, .diag-evidence-card, #tripPredictionsTable .ft-table tbody tr:first-child',
+            'fuel' => '.diag-table tbody tr:first-child, .fuel-secondary-grid .diag-list-row:first-child, .predictive-table tbody tr:first-child',
+            'bus-health' => '.health-card-attention .diag-list-row:first-child, .health-table tbody tr:first-child, .predictive-health-table tbody tr:first-child',
+            'inventory' => '.inv-card-reorder .diag-list-row:first-child, .inv-table tbody tr:first-child, .predictive-inventory-table tbody tr:first-child',
+            default => '.diag-primary-causes .diag-list-row:first-child, .diag-table-detailed tbody tr:first-child, .risk-list .risk-item:first-child',
+        };
+
+        $alert = null;
+
+        if ($domain === 'fleet-trip') {
+            $fleet = $diagnostic->fleet->diagnostics ?? (object) [];
+            $delay = (int) ($fleet->delay_count ?? 0);
+            $slow = (int) ($fleet->slow_movement_count ?? 0);
+            $idle = (int) ($fleet->high_idle_count ?? 0);
+            $review = (int) ($fleet->review_count ?? 0);
+
+            if ($review <= 0) {
+                return null;
+            }
+
+            $factors = collect([
+                'Delay spike' => $delay,
+                'Slow movement' => $slow,
+                'High idling' => $idle,
+            ])->filter(fn ($count) => $count > 0);
+
+            if ($factors->isEmpty()) {
+                return null;
+            }
+
+            $topFactor = (string) $factors->sortDesc()->keys()->first();
+            $topCount = (int) $factors->max();
+
+            $alert = [
+                'title' => $topFactor . ' Detected',
+                'message' => sprintf(
+                    '%d processed trip record(s) exceeded the recorded route baseline for %s.',
+                    $topCount,
+                    strtolower($topFactor)
+                ),
+                'metric' => sprintf('%d trip%s flagged for review', $review, $review === 1 ? '' : 's'),
+                'priority' => $review >= 5 || $delay >= 3 ? 'critical' : 'warning',
+                'icon' => 'fa-solid fa-triangle-exclamation',
+            ];
+        } elseif ($domain === 'fuel') {
+            $reviewCount = (int) ($diagnostic->fuel->review_units?->count() ?? 0);
+            $idleCount = (int) ($diagnostic->fuel->high_idling_units?->count() ?? 0);
+
+            if ($reviewCount <= 0 && $idleCount <= 0) {
+                return null;
+            }
+
+            $alert = [
+                'title' => $idleCount > 0 ? 'High Idling Detected' : 'Fuel Usage Anomaly Detected',
+                'message' => $idleCount > 0
+                    ? sprintf('%d bus%s exceeded the current idling review threshold.', $idleCount, $idleCount === 1 ? '' : 'es')
+                    : sprintf('%d bus%s require fuel-efficiency review.', $reviewCount, $reviewCount === 1 ? '' : 'es'),
+                'metric' => sprintf('%d fuel review · %d high idle', $reviewCount, $idleCount),
+                'priority' => $reviewCount >= 3 || $idleCount >= 3 ? 'critical' : 'warning',
+                'icon' => 'fa-solid fa-gas-pump',
+            ];
+        } elseif ($domain === 'bus-health') {
+            $attentionCount = (int) ($diagnostic->bus_health->attention_buses?->count() ?? 0);
+            $overdueCount = (int) ($diagnostic->bus_health->overdue_orders?->count() ?? 0);
+
+            if ($attentionCount <= 0 && $overdueCount <= 0) {
+                return null;
+            }
+
+            $alert = [
+                'title' => $overdueCount > 0 ? 'Overdue Maintenance Detected' : 'Bus Health Attention Required',
+                'message' => $overdueCount > 0
+                    ? sprintf('%d maintenance job order%s are past the recorded due date.', $overdueCount, $overdueCount === 1 ? '' : 's')
+                    : sprintf('%d bus%s currently require maintenance review.', $attentionCount, $attentionCount === 1 ? '' : 'es'),
+                'metric' => sprintf('%d attention · %d overdue', $attentionCount, $overdueCount),
+                'priority' => $overdueCount > 0 ? 'critical' : 'warning',
+                'icon' => 'fa-solid fa-screwdriver-wrench',
+            ];
+        } elseif ($domain === 'inventory') {
+            $attentionCount = (int) ($diagnostic->inventory->attention_rows?->count() ?? 0);
+            $critical = (int) ($diagnostic->inventory->critical ?? 0);
+            $low = (int) ($diagnostic->inventory->low ?? 0);
+
+            if ($attentionCount <= 0) {
+                return null;
+            }
+
+            $alert = [
+                'title' => $critical > 0 ? 'Stockout Detected' : 'Low Stock Threshold Reached',
+                'message' => $critical > 0
+                    ? sprintf('%d inventory item%s have zero on-hand quantity.', $critical, $critical === 1 ? '' : 's')
+                    : sprintf('%d inventory item%s are at or below reorder level.', $low, $low === 1 ? '' : 's'),
+                'metric' => sprintf('%d critical · %d low stock', $critical, $low),
+                'priority' => $critical > 0 ? 'critical' : 'warning',
+                'icon' => 'fa-solid fa-boxes-stacked',
+            ];
+        } else {
+            $signals = (int) ($diagnostic->all->signals ?? 0);
+            $highImpact = (int) ($diagnostic->all->high_impact ?? 0);
+
+            if ($signals <= 0) {
+                return null;
+            }
+
+            $alert = [
+                'title' => 'Operational Anomaly Detected',
+                'message' => sprintf(
+                    '%d current diagnostic signal%s require review across recorded operations.',
+                    $signals,
+                    $signals === 1 ? '' : 's'
+                ),
+                'metric' => sprintf('%d signals · %d high impact', $signals, $highImpact),
+                'priority' => $highImpact > 0 ? 'critical' : 'warning',
+                'icon' => 'fa-solid fa-triangle-exclamation',
+            ];
+        }
+
+        if ($alert === null) {
+            return null;
+        }
+
+        if ($stage === 'predictive') {
+            $highRisk = (int) ($predictive?->all?->risk?->high ?? 0);
+            $mediumRisk = (int) ($predictive?->all?->risk?->medium ?? 0);
+
+            if ($domain === 'all' && $highRisk <= 0 && $mediumRisk <= 0) {
+                return null;
+            }
+
+            $alert['label'] = 'Predictive Alert';
+            $alert['title'] = 'Forecast Risk Detected';
+            $alert['message'] = $domain === 'all'
+                ? sprintf('%d high-risk and %d medium-risk forecast signal(s) require review.', $highRisk, $mediumRisk)
+                : $alert['message'];
+            $alert['metric'] = $domain === 'all'
+                ? sprintf('%d high · %d medium', $highRisk, $mediumRisk)
+                : $alert['metric'];
+            $alert['priority'] = $highRisk > 0 ? 'critical' : 'warning';
+        } elseif ($stage === 'prescriptive') {
+            $alert['label'] = 'Action Required';
+            $alert['title'] = 'Operational Action Recommended';
+            $alert['message'] = 'A current recorded issue has crossed a review threshold and has an associated action recommendation.';
+        } else {
+            $alert['label'] = 'Diagnostic Finding';
+        }
+
+        $alert['action'] = $stage === 'prescriptive'
+            ? 'Review Recommendation'
+            : 'View Details';
+        $alert['target'] = $target;
+
+        return $alert;
     }
 
     private function levelWeight(string $level): int
