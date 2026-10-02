@@ -1197,127 +1197,131 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      OPEN EDIT / VIEW
   ========================================================= */
 
-  document
-    .querySelectorAll(
-      '.open-edit-modal'
-    )
-    .forEach((button) => {
+  document.addEventListener(
+    'click',
+    (event) => {
 
-      button.addEventListener(
-        'click',
-        (event) => {
-
-          event.preventDefault();
+      const button =
+        event.target.closest(
+          '.open-edit-modal'
+        );
 
 
-          const id =
-            button.dataset.id;
+      if (!button) {
+        return;
+      }
 
 
-          const status =
-            button.dataset.status ||
-            'On Going';
+      event.preventDefault();
 
 
-          const isCompleted =
-            status === 'Completed';
+      const id =
+        button.dataset.id;
 
 
-          const isViewOnly =
-            button.dataset
-              .viewOnly ===
-            '1';
+      const status =
+        button.dataset.status ||
+        'On Going';
 
 
-          const shouldBeViewOnly =
-            isCompleted ||
-            isViewOnly;
+      const isCompleted =
+        status === 'Completed';
 
 
-          if (editJobForm) {
-
-            editJobForm.action =
-              button.dataset.updateUrl || '';
-          }
-
-
-          if (editJobOrderNo) {
-
-            editJobOrderNo.value =
-              button.dataset
-                .jobOrderNo ||
-              '';
-          }
+      const isViewOnly =
+        button.dataset
+          .viewOnly ===
+        '1';
 
 
-          if (editBusNo) {
-
-            editBusNo.value =
-              button.dataset
-                .busNo ||
-              '';
-          }
+      const shouldBeViewOnly =
+        isCompleted ||
+        isViewOnly;
 
 
-          if (editProblemIssue) {
+      if (editJobForm) {
 
-            editProblemIssue.value =
-              button.dataset
-                .problemIssue ||
-              '';
-          }
+        editJobForm.action =
+          button.dataset.updateUrl || '';
+      }
 
 
-          if (editMaintenanceType) {
+      if (editJobOrderNo) {
 
-            editMaintenanceType.value =
-              button.dataset
-                .maintenanceType ||
-              '';
-          }
-
-
-          if (editStatus) {
-
-            editStatus.value =
-              status;
-          }
+        editJobOrderNo.value =
+          button.dataset
+            .jobOrderNo ||
+          '';
+      }
 
 
-          setEditMechanicOptions(
-            button.dataset
-              .assignedMechanic ||
-            ''
-          );
+      if (editBusNo) {
+
+        editBusNo.value =
+          button.dataset
+            .busNo ||
+          '';
+      }
 
 
-          renderEditParts(
-            button.dataset
-              .partNeeded ||
-            '',
-            shouldBeViewOnly
-          );
+      if (editProblemIssue) {
+
+        editProblemIssue.value =
+          button.dataset
+            .problemIssue ||
+          '';
+      }
 
 
-          setEditModalReadonly(
-            shouldBeViewOnly
-          );
+      if (editMaintenanceType) {
+
+        editMaintenanceType.value =
+          button.dataset
+            .maintenanceType ||
+          '';
+      }
 
 
-          if (!shouldBeViewOnly) {
+      if (editStatus) {
 
-            updateEditJoPartsState();
+        editStatus.value =
+          status;
+      }
 
-          }
 
-
-          openModal(
-            editJobModal
-          );
-
-        }
+      setEditMechanicOptions(
+        button.dataset
+          .assignedMechanic ||
+        ''
       );
-    });
+
+
+      renderEditParts(
+        button.dataset
+          .partNeeded ||
+        '',
+        shouldBeViewOnly
+      );
+
+
+      setEditModalReadonly(
+        shouldBeViewOnly
+      );
+
+
+      if (!shouldBeViewOnly) {
+
+        updateEditJoPartsState();
+
+      }
+
+
+      openModal(
+        editJobModal
+      );
+
+    }
+  );
 
 
   /* =========================================================
@@ -1530,75 +1534,79 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     null;
 
 
-  document
-    .querySelectorAll(
-      '.open-delete-modal'
-    )
-    .forEach((button) => {
+  document.addEventListener(
+    'click',
+    (event) => {
 
-      button.addEventListener(
-        'click',
-        (event) => {
-
-          event.preventDefault();
-          event.stopPropagation();
+      const button =
+        event.target.closest(
+          '.open-delete-modal'
+        );
 
 
-          if (button.disabled) {
-            return;
-          }
+      if (!button) {
+        return;
+      }
 
 
-          const id =
-            button.dataset.id;
+      event.preventDefault();
+      event.stopPropagation();
 
 
-          const joNo =
-            button.dataset.joNo;
+      if (button.disabled) {
+        return;
+      }
 
 
-          selectedDeleteForm =
-            document.getElementById(
-              `deleteForm-${id}`
-            );
+      const id =
+        button.dataset.id;
 
 
-          if (!selectedDeleteForm) {
-
-            console.error(
-              `Delete form deleteForm-${id} was not found.`
-            );
-
-            return;
-          }
+      const joNo =
+        button.dataset.joNo;
 
 
-          if (deleteJoNo) {
-
-            deleteJoNo.textContent =
-              joNo ||
-              'this job order';
-          }
+      selectedDeleteForm =
+        document.getElementById(
+          `deleteForm-${id}`
+        );
 
 
-          if (confirmDeleteJob) {
+      if (!selectedDeleteForm) {
 
-            confirmDeleteJob.disabled =
-              false;
+        console.error(
+          `Delete form deleteForm-${id} was not found.`
+        );
+
+        return;
+      }
 
 
-            confirmDeleteJob.innerHTML =
-              'Yes, Delete';
-          }
+      if (deleteJoNo) {
+
+        deleteJoNo.textContent =
+          joNo ||
+          'this job order';
+      }
 
 
-          openModal(
-            deleteJobModal
-          );
+      if (confirmDeleteJob) {
 
-        }
+        confirmDeleteJob.disabled =
+          false;
+
+
+        confirmDeleteJob.innerHTML =
+          'Yes, Delete';
+      }
+
+
+      openModal(
+        deleteJobModal
       );
-    });
+
+    }
+  );
 
 
   if (cancelDeleteJob) {
@@ -2508,14 +2516,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-comb
     }
   });
 
-  document.querySelectorAll('.open-edit-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      window.setTimeout(() => {
-        lockCurrentBus();
-        renderOptions();
-        syncDisabledState();
-      }, 0);
-    });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.open-edit-modal')) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      lockCurrentBus();
+      renderOptions();
+      syncDisabledState();
+    }, 0);
   });
 
   const mechanicObserver = new MutationObserver(() => {
