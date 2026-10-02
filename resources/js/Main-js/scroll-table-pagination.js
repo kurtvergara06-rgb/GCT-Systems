@@ -186,6 +186,16 @@
         updateCount(footer, context);
 
         if (lazy) {
+            footer.addEventListener('gct:load-all-records', async () => {
+                while (nextUrl && !visited.has(nextUrl)) {
+                    await loadNextPage();
+
+                    if (footer.dataset.loadError === 'true') {
+                        break;
+                    }
+                }
+            });
+
             const maybeLoadNextPage = async () => {
                 if (isLoading || !nextUrl) return;
 
