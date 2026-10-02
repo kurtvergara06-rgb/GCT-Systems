@@ -50,7 +50,7 @@
         <main class="main analytics-stage-page prescriptive-analytics-page prescriptive-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Prescriptive Analytics" subtitle="AI-driven action playbooks and operational optimization to maximize transit performance." />
 
-            <x-analytics.insight-toast stage="prescriptive" :domain="$activeDomain" />
+            <x-analytics.insight-toast stage="prescriptive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
             <section class="analytics-domain-toolbar prescriptive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Prescriptive analytics domains">
