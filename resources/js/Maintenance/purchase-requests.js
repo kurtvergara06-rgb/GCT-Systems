@@ -1750,7 +1750,9 @@ window.GCTPartialNavigation.registerInitializer(
 
       if (reviewPrStatus) {
         reviewPrStatus.textContent =
-          status;
+          status === 'Submitted'
+            ? 'Under Review'
+            : status;
         reviewPrStatus.dataset.status =
           status.toLowerCase().replaceAll(' ', '-');
       }
