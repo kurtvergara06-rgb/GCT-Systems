@@ -50,6 +50,10 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
             ->get(route('job-orders'));
 
         $response->assertOk();
+        $response->assertViewHas(
+            'jobOrders',
+            fn ($jobOrders) => $jobOrders->perPage() === 1000
+        );
         $response->assertSee('JO-ACTIVE-001');
         $response->assertDontSee('JO-HISTORY-001');
         $response->assertSee('New JO');
@@ -82,6 +86,10 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
             ->get(route('job-orders', ['record_view' => 'history']));
 
         $response->assertOk();
+        $response->assertViewHas(
+            'jobOrders',
+            fn ($jobOrders) => $jobOrders->perPage() === 20
+        );
         $response->assertSee('JO-HISTORY-002');
         $response->assertDontSee('JO-ACTIVE-002');
         $response->assertDontSee('New JO');
@@ -89,5 +97,7 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
         $response->assertSee('Completed Job Orders are kept here for reference and audit history.');
         $response->assertSee('name="record_view"', false);
         $response->assertSee('value="history"', false);
+        $response->assertSee('data-lazy-pagination="true"', false);
+        $response->assertSee('data-server-filter="true"', false);
     }
 }
