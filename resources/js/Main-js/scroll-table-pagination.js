@@ -217,7 +217,6 @@
                 void maybeLoadNextPage();
             }, { passive: true });
 
-            window.requestAnimationFrame(maybeLoadNextPage);
             return;
         }
 
