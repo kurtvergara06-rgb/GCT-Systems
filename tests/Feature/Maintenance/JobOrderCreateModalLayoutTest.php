@@ -128,6 +128,22 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
+    public function test_edit_job_order_validation_accepts_only_the_existing_saved_bus(): void
+    {
+        $controller = file_get_contents(
+            app_path('Http/Controllers/Maintenance/JobOrderController.php')
+        );
+
+        $this->assertStringContainsString(
+            'Rule::in([$jobOrder->bus_no])',
+            $controller
+        );
+        $this->assertStringContainsString(
+            'use Illuminate\\Validation\\Rule;',
+            $controller
+        );
+    }
+
     public function test_edit_job_order_keeps_current_bus_available_even_if_missing_from_options(): void
     {
         $js = file_get_contents(
