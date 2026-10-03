@@ -2056,32 +2056,58 @@
     justify-content: center;
 }
 
-.purchase-page .pr-review-btn {
-    min-height: 34px;
-    padding: 0 12px;
-    border: 1px solid #c9dcfb;
+.purchase-page .purchase-request-table .actions .pr-review-btn {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 92px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    border: 1px solid #d4e3ff;
     border-radius: 8px;
-    background: #eef5ff;
-    color: #0b40b5;
+    background: #eaf2ff;
+    color: var(--pr-blue, #0b40b5);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     font-size: 11px;
     font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: none;
     cursor: pointer;
     transition:
         background-color .16s ease,
         border-color .16s ease,
         color .16s ease,
-        transform .16s ease;
+        transform .16s ease,
+        box-shadow .16s ease;
 }
 
-.purchase-page .pr-review-btn:hover {
-    border-color: #0b40b5;
-    background: #0b40b5;
+.purchase-page .purchase-request-table .actions .pr-review-btn i {
+    width: 13px;
+    flex: 0 0 13px;
+    margin: 0;
+    color: inherit;
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    pointer-events: none;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn span {
+    display: inline-block;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn:hover {
+    border-color: var(--pr-blue, #0b40b5);
+    background: var(--pr-blue, #0b40b5);
     color: #ffffff;
     transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(11, 64, 181, .16);
 }
 
 .pr-review-doc-icon {
