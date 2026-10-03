@@ -496,7 +496,12 @@
                             >
                         </div>
 
-                        <select name="estimated_duration_unit" required>
+                        <select
+                            name="estimated_duration_unit"
+                            id="jobEstimatedDurationUnit"
+                            class="jo-duration-unit-select"
+                            required
+                        >
                             @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
                                 <option
                                     value="{{ $durationUnit }}"
