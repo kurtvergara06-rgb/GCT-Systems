@@ -155,7 +155,7 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'pointer-events: auto !important;',
+            'pointer-events: auto;',
             $css
         );
         $this->assertStringContainsString(
@@ -165,6 +165,26 @@ class JobOrderCreateModalLayoutTest extends TestCase
         $this->assertStringContainsString(
             'flex: 0 0 auto;',
             $css
+        );
+    }
+
+    public function test_duration_unit_stays_editable_but_locks_in_view_only_mode(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/maintenance-ui-enhancements.js')
+        );
+
+        $this->assertStringContainsString(
+            'lockUnit = false',
+            $js
+        );
+        $this->assertStringContainsString(
+            'const unitReadonly = readonly && lockUnit;',
+            $js
+        );
+        $this->assertStringContainsString(
+            'setDurationReadonly(editJo.durationField, true, true);',
+            $js
         );
     }
 
@@ -223,7 +243,7 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'pointer-events: auto !important;',
+            'pointer-events: auto;',
             $css
         );
     }
