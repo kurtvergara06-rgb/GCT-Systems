@@ -137,7 +137,15 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'min-height: 42px;',
+            'height: 40px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'border-radius: 9px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'var(--pr-yellow, #ffc400)',
             $css
         );
         $this->assertStringContainsString(
