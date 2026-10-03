@@ -128,6 +128,30 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
+    public function test_edit_job_order_keeps_current_bus_available_even_if_missing_from_options(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            'function setEditBusOption',
+            $js
+        );
+        $this->assertStringContainsString(
+            'data-current-job-bus',
+            $js
+        );
+        $this->assertStringContainsString(
+            'editBusNo.appendChild',
+            $js
+        );
+        $this->assertStringContainsString(
+            'editBusNo.value =',
+            $js
+        );
+    }
+
     public function test_edit_job_order_modal_keeps_footer_visible_and_dropdowns_usable(): void
     {
         $css = file_get_contents(
@@ -164,6 +188,14 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
         $this->assertStringContainsString(
             'flex: 0 0 auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'position: sticky;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'scroll-padding-bottom: 72px;',
             $css
         );
     }
