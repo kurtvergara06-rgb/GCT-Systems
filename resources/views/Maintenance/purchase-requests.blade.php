@@ -253,10 +253,6 @@
                                                   data-status="{{ $pr->status }}"
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
-                                                  data-updated-at="{{ $pr->updated_at?->format('M d, Y · h:i A') }}"
-                                                  data-approved-at="{{ $pr->approved_at?->format('M d, Y · h:i A') }}"
-                                                  data-rejected-at="{{ $pr->rejected_at?->format('M d, Y · h:i A') }}"
-                                                  data-issued-at="{{ $pr->issued_at?->format('M d, Y · h:i A') }}"
                                                   data-source-type="{{ $pr->source_type ?: 'Maintenance Request' }}"
                                                   data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
                                                   data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
@@ -447,34 +443,20 @@
               </div>
           </div>
 
-          <nav class="pr-review-tabs" aria-label="Purchase request review sections">
-              <button
-                  type="button"
-                  class="pr-review-tab is-active"
-                  data-pr-review-target="prReviewInformation"
-              >
-                  Request Information
-              </button>
+          <section id="prReviewInformation" class="pr-review-information-section">
+              <div class="pr-review-section-heading pr-review-information-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-file-lines"></i>
+                      </span>
+                      <div>
+                          <h3>Request Information</h3>
+                          <p>Review the source Job Order and request details.</p>
+                      </div>
+                  </div>
+              </div>
 
-              <button
-                  type="button"
-                  class="pr-review-tab"
-                  data-pr-review-target="prReviewItemsSection"
-              >
-                  <span>Items</span>
-                  <span id="reviewPrTabItemCount" class="pr-review-tab-count">0</span>
-              </button>
-
-              <button
-                  type="button"
-                  class="pr-review-tab"
-                  data-pr-review-target="prReviewHistory"
-              >
-                  History
-              </button>
-          </nav>
-
-          <section id="prReviewInformation" class="pr-review-information">
+              <div class="pr-review-information">
               <div class="pr-review-information-column">
                   <div class="pr-review-detail-row">
                       <span>Job Order No.</span>
@@ -518,6 +500,7 @@
                   <span>Remarks</span>
                   <strong id="reviewPrRemarks">No remarks provided.</strong>
               </div>
+              </div>
           </section>
 
           <section id="prReviewItemsSection" class="pr-review-section">
@@ -552,22 +535,6 @@
                       </tbody>
                   </table>
               </div>
-          </section>
-
-          <section id="prReviewHistory" class="pr-review-history">
-              <div class="pr-review-section-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon">
-                          <i class="fa-solid fa-clock-rotate-left"></i>
-                      </span>
-                      <div>
-                          <h3>Request History</h3>
-                          <p>Status events recorded for this purchase request.</p>
-                      </div>
-                  </div>
-              </div>
-
-              <div id="reviewPrHistoryList" class="pr-review-history-list"></div>
           </section>
 
           <section id="reviewDecisionBlock" class="pr-review-decision" hidden>
