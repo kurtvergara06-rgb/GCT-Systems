@@ -736,6 +736,92 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
   /* =========================================================
+     CURRENT JOB ORDER BUS
+  ========================================================= */
+
+  function setEditBusOption(
+    currentBus = ''
+  ) {
+
+    if (!editBusNo) {
+      return;
+    }
+
+
+    const busValue =
+      String(
+        currentBus || ''
+      ).trim();
+
+
+    editBusNo
+      .querySelectorAll(
+        'option[data-current-job-bus="true"]'
+      )
+      .forEach(
+        option =>
+          option.remove()
+      );
+
+
+    if (!busValue) {
+
+      editBusNo.value = '';
+      return;
+    }
+
+
+    const existingOption =
+      Array.from(
+        editBusNo.options
+      )
+      .find(
+        option =>
+          String(option.value) ===
+          busValue
+      );
+
+
+    if (!existingOption) {
+
+      const currentOption =
+        document.createElement(
+          'option'
+        );
+
+
+      currentOption.value =
+        busValue;
+
+
+      currentOption.textContent =
+        busValue;
+
+
+      currentOption.dataset
+        .currentJobBus =
+        'true';
+
+
+      editBusNo.appendChild(
+        currentOption
+      );
+
+    }
+
+
+    editBusNo.value =
+      busValue;
+
+
+    editBusNo.dataset
+      .lockedValue =
+      busValue;
+
+  }
+
+
+  /* =========================================================
      EDIT READONLY MODE
   ========================================================= */
 
@@ -1255,13 +1341,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       }
 
 
-      if (editBusNo) {
-
-        editBusNo.value =
-          button.dataset
-            .busNo ||
-          '';
-      }
+      setEditBusOption(
+        button.dataset
+          .busNo ||
+        ''
+      );
 
 
       if (editProblemIssue) {
