@@ -88,5 +88,21 @@ class JobOrderCreateModalLayoutTest extends TestCase
             'background: linear-gradient(135deg, #ffc400, #f5a800);',
             $css
         );
+        $this->assertStringContainsString(
+            '#jobModal .ui-form-content',
+            $css
+        );
+        $this->assertStringContainsString(
+            'flex: 1 1 auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'max-height: none;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'flex: 0 0 auto;',
+            $css
+        );
     }
 }
