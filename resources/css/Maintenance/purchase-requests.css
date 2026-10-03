@@ -2966,36 +2966,78 @@
 
 #editPrModal .pr-review-footer .ui-form-btn,
 #editPrModal #editPrMainActions .ui-form-btn {
-    min-height: 42px;
-    min-width: 108px;
-    padding: 0 17px;
-    border-radius: 10px;
-    font-size: 12.5px;
-    font-weight: 700;
+    height: 40px;
+    min-height: 40px;
+    min-width: 0;
+    padding: 0 16px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 5px 12px rgba(6, 31, 61, .10);
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        background-color .18s ease,
+        border-color .18s ease;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn:hover,
+#editPrModal #editPrMainActions .ui-form-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(6, 31, 61, .16);
 }
 
 #editPrModal #closeViewOnlyPr,
 #editPrModal #cancelEditPrModal {
     background: #ffffff;
-    border-color: var(--border-soft, #dce5f2);
+    border: 1px solid var(--border-soft, #dce5f2);
     color: var(--brand-navy, #061f3d);
+    box-shadow: none;
+}
+
+#editPrModal #closeViewOnlyPr:hover,
+#editPrModal #cancelEditPrModal:hover {
+    border-color: var(--brand-blue, #0b40b5);
+    color: var(--brand-blue, #0b40b5);
+    background: #f8fbff;
 }
 
 #editPrModal .pr-review-btn-edit {
-    background: linear-gradient(135deg, var(--brand-blue, #0b40b5), #07338f);
-    border-color: var(--brand-blue, #0b40b5);
-    color: #ffffff;
+    background:
+        linear-gradient(
+            135deg,
+            var(--pr-yellow, #ffc400),
+            var(--pr-yellow-dark, #f5a800)
+        );
+    border: 1px solid var(--pr-yellow-dark, #f5a800);
+    color: var(--pr-navy, #061f3d);
+    box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+}
+
+#editPrModal .pr-review-btn-edit i,
+#editPrModal .pr-review-btn-edit span {
+    color: var(--pr-navy, #061f3d);
+}
+
+#editPrModal .pr-review-btn-edit:hover {
+    box-shadow: 0 8px 18px rgba(255, 196, 0, .32);
 }
 
 #editPrModal .pr-review-btn-reject {
     background: linear-gradient(135deg, #ef4444, #dc2626);
-    border-color: #dc2626;
+    border: 1px solid #dc2626;
     color: #ffffff;
 }
 
 #editPrModal .pr-review-btn-approve {
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    border-color: #16a34a;
+    border: 1px solid #16a34a;
     color: #ffffff;
 }
 
