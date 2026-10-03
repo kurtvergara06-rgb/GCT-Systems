@@ -2712,3 +2712,354 @@
         max-height: calc(100vh - 150px);
     }
 }
+
+
+/* =========================================================
+   PURCHASE REQUEST DETAILS - GCT SYSTEM THEME SCALE
+   Match the shared system visual language and improve
+   readability without changing workflow behavior.
+========================================================= */
+
+#editPrModal.pr-review-modal-overlay {
+    padding: 28px !important;
+}
+
+#editPrModal.pr-review-modal-overlay > .ui-form-modal {
+    width: min(900px, calc(100vw - 56px)) !important;
+    max-width: 900px !important;
+    max-height: calc(100vh - 56px);
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 18px;
+    background: var(--surface, #ffffff);
+    box-shadow: 0 24px 70px rgba(6, 31, 61, .24);
+}
+
+#editPrModal .ui-form-modal-header {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--border-soft, #dce5f2);
+    background: #ffffff;
+}
+
+#editPrModal .ui-form-heading h2,
+#editPrModal .ui-form-title-wrap h2 {
+    color: var(--brand-navy, #061f3d);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+#editPrModal .ui-form-heading p,
+#editPrModal .ui-form-title-wrap p {
+    margin-top: 5px;
+    color: var(--text-muted, #64748b);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+#editPrModal .ui-form-close {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 11px;
+    color: var(--brand-navy, #061f3d);
+    background: #f8fafc;
+    border-color: var(--border-soft, #dce5f2);
+    font-size: 14px;
+}
+
+#editPrModal .ui-form-modal-body {
+    padding: 20px 24px 22px;
+}
+
+#editPrModal .ui-form-modal-scrollable {
+    max-height: calc(100vh - 176px);
+    padding-right: 4px;
+}
+
+#editPrModal .pr-review-summary {
+    padding: 15px 16px;
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .04);
+}
+
+#editPrModal .pr-review-summary-main {
+    gap: 13px;
+}
+
+#editPrModal .pr-review-doc-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border: 1px solid #ffe7a3;
+    border-radius: 13px;
+    background: #fff3cd;
+    color: #e5a600;
+    font-size: 18px;
+}
+
+#editPrModal #reviewPrNo {
+    color: var(--brand-navy, #061f3d);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-status-pill {
+    min-height: 28px;
+    padding: 0 11px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-created span {
+    margin-bottom: 4px;
+    color: var(--text-muted, #64748b);
+    font-size: 11px;
+}
+
+#editPrModal .pr-review-created strong {
+    max-width: 190px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+#editPrModal .pr-review-information-section,
+#editPrModal .pr-review-section,
+#editPrModal .pr-review-decision {
+    margin-top: 18px;
+}
+
+#editPrModal .pr-review-section-heading {
+    margin-bottom: 10px;
+}
+
+#editPrModal .pr-review-section-title {
+    gap: 11px;
+}
+
+#editPrModal .pr-review-section-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border: 1px solid #d8e8ff;
+    border-radius: 10px;
+    background: #eaf2ff;
+    color: var(--brand-blue, #0b40b5);
+    font-size: 13px;
+}
+
+#editPrModal .pr-review-section-title h3 {
+    color: var(--brand-navy, #061f3d);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-section-title p {
+    margin-top: 3px;
+    color: var(--text-muted, #64748b);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+#editPrModal .pr-review-information {
+    margin-top: 10px;
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .035);
+}
+
+#editPrModal .pr-review-detail-row {
+    min-height: 56px;
+    padding: 12px 15px;
+    grid-template-columns: 125px minmax(0, 1fr);
+    gap: 12px;
+}
+
+#editPrModal .pr-review-detail-full {
+    min-height: 52px;
+    grid-template-columns: 125px minmax(0, 1fr);
+}
+
+#editPrModal .pr-review-detail-row > span {
+    color: var(--text-muted, #64748b);
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+#editPrModal .pr-review-detail-row > strong {
+    color: var(--text-main, #1e293b);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+#editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
+    color: var(--brand-blue, #0b40b5);
+}
+
+#editPrModal .pr-review-count {
+    min-height: 27px;
+    padding: 0 10px;
+    background: #eaf2ff;
+    color: var(--brand-blue, #0b40b5);
+    font-size: 10.5px;
+}
+
+#editPrModal .pr-review-items-table-wrap {
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .03);
+}
+
+#editPrModal .pr-review-items-table th {
+    padding: 11px 13px;
+    background: #f8fafc;
+    color: var(--text-muted, #64748b);
+    font-size: 10.5px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-items-table td {
+    padding: 12px 13px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+#editPrModal .pr-review-decision {
+    padding: 15px;
+    border: 1px solid #d8e8ff;
+    border-radius: 14px;
+    background: #f8fbff;
+}
+
+#editPrModal .pr-review-decision > label {
+    margin-bottom: 7px;
+    color: var(--text-main, #1e293b);
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+#editPrModal .pr-review-decision textarea {
+    min-height: 92px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+#editPrModal .pr-review-footer {
+    margin-top: 18px;
+    padding: 16px 0 2px;
+    gap: 12px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-soft, #dce5f2);
+}
+
+#editPrModal .pr-review-footer-actions {
+    gap: 10px;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn,
+#editPrModal #editPrMainActions .ui-form-btn {
+    min-height: 42px;
+    min-width: 108px;
+    padding: 0 17px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+#editPrModal #closeViewOnlyPr,
+#editPrModal #cancelEditPrModal {
+    background: #ffffff;
+    border-color: var(--border-soft, #dce5f2);
+    color: var(--brand-navy, #061f3d);
+}
+
+#editPrModal .pr-review-btn-edit {
+    background: linear-gradient(135deg, var(--brand-blue, #0b40b5), #07338f);
+    border-color: var(--brand-blue, #0b40b5);
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-reject {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-approve {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-color: #16a34a;
+    color: #ffffff;
+}
+
+#editPrModal #editPrMainActions {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft, #dce5f2);
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary {
+    min-width: 140px;
+    background: linear-gradient(
+        135deg,
+        var(--brand-yellow, #ffc400),
+        var(--brand-yellow-dark, #f5a800)
+    );
+    border-color: var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary i,
+#editPrModal #editPrMainActions .ui-form-btn-primary span {
+    color: var(--brand-navy, #061f3d);
+}
+
+@media (max-width: 760px) {
+    #editPrModal.pr-review-modal-overlay {
+        padding: 10px !important;
+    }
+
+    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100vh - 20px);
+    }
+
+    #editPrModal .ui-form-modal-header {
+        padding: 17px 16px 14px;
+    }
+
+    #editPrModal .ui-form-heading h2,
+    #editPrModal .ui-form-title-wrap h2 {
+        font-size: 19px;
+    }
+
+    #editPrModal .ui-form-modal-body {
+        padding: 14px 16px 16px;
+    }
+
+    #editPrModal .pr-review-detail-row,
+    #editPrModal .pr-review-detail-full {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    #editPrModal .pr-review-footer,
+    #editPrModal .pr-review-footer-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    #editPrModal .pr-review-footer .ui-form-btn,
+    #editPrModal #editPrMainActions .ui-form-btn {
+        width: 100%;
+    }
+}
