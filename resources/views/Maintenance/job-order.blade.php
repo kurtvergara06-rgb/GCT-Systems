@@ -609,126 +609,197 @@
         confirm-button="Yes, Update Job Order"
         confirm-type="update"
         :show-actions="false"
+        class="jo-edit-modal-overlay"
     >
-        <div class="ui-form-grid">
-            <x-ui.form-field
-                label="JO No."
-                name="job_order_no"
-                id="edit_job_order_no"
-                icon="fa-hashtag"
-                readonly
-                required
-            />
+        <section class="jo-edit-section jo-edit-basic">
+            <div class="jo-edit-section-header">
+                <span class="jo-edit-section-icon">
+                    <i class="fa-solid fa-file-lines"></i>
+                </span>
 
-            <x-ui.form-select
-                label="Bus #"
-                name="bus_no"
-                id="edit_bus_no"
-                icon="fa-bus"
-                placeholder="Select Bus"
-                :options="$buses
-                    ->mapWithKeys(function ($bus) {
-                        return [
-                            $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
-                        ];
-                    })
-                    ->toArray()"
-                required
-            />
-
-            <div class="ui-form-group ui-form-full">
-                <label for="edit_problem_issue">Problem / Issue <span class="ui-required">*</span></label>
-                <textarea name="problem_issue" id="edit_problem_issue" required></textarea>
+                <div>
+                    <h3>Basic Information</h3>
+                    <p>Review the Job Order reference, affected bus, and reported issue.</p>
+                </div>
             </div>
 
-            <x-ui.form-select
-                label="Maintenance Type"
-                name="maintenance_type"
-                id="edit_maintenance_type"
-                icon="fa-screwdriver-wrench"
-                :options="['PMS' => 'PMS', 'Repair' => 'Repair']"
-                required
-            />
+            <div class="ui-form-grid jo-edit-basic-grid">
+                <x-ui.form-field
+                    label="JO No."
+                    name="job_order_no"
+                    id="edit_job_order_no"
+                    icon="fa-hashtag"
+                    readonly
+                    required
+                />
 
-            <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                <label>
-                    Estimated Work Duration
-                    <span class="ui-required">*</span>
-                </label>
-                <div class="jo-duration-control">
-                    <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
-                        <input
-                            type="number"
-                            name="estimated_duration_value"
-                            min="0.25"
-                            step="0.25"
-                            placeholder="e.g. 4"
+                <x-ui.form-select
+                    label="Bus #"
+                    name="bus_no"
+                    id="edit_bus_no"
+                    icon="fa-bus"
+                    placeholder="Select Bus"
+                    :options="$buses
+                        ->mapWithKeys(function ($bus) {
+                            return [
+                                $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+                            ];
+                        })
+                        ->toArray()"
+                    required
+                />
+
+                <div class="ui-form-group ui-form-full jo-edit-problem-field">
+                    <label for="edit_problem_issue">
+                        Problem / Issue
+                        <span class="ui-required">*</span>
+                    </label>
+
+                    <textarea
+                        name="problem_issue"
+                        id="edit_problem_issue"
+                        placeholder="Describe the problem or issue..."
+                        required
+                    ></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="jo-edit-section jo-edit-details">
+            <div class="jo-edit-section-header">
+                <span class="jo-edit-section-icon">
+                    <i class="fa-solid fa-gears"></i>
+                </span>
+
+                <div>
+                    <h3>Job Details</h3>
+                    <p>Review the maintenance work, duration, status, and assigned mechanic.</p>
+                </div>
+            </div>
+
+            <div class="jo-edit-details-grid">
+                <x-ui.form-select
+                    label="Maintenance Type"
+                    name="maintenance_type"
+                    id="edit_maintenance_type"
+                    icon="fa-screwdriver-wrench"
+                    :options="['PMS' => 'PMS', 'Repair' => 'Repair']"
+                    required
+                />
+
+                <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
+                    <label>
+                        Estimated Work Duration
+                        <span class="ui-required">*</span>
+                    </label>
+
+                    <div class="jo-duration-control">
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon">
+                                <i class="fa-solid fa-clock"></i>
+                            </span>
+
+                            <input
+                                type="number"
+                                name="estimated_duration_value"
+                                min="0.25"
+                                step="0.25"
+                                placeholder="e.g. 4"
+                                required
+                            >
+                        </div>
+
+                        <select
+                            name="estimated_duration_unit"
+                            id="editJobEstimatedDurationUnit"
+                            class="jo-duration-unit-select"
                             required
                         >
+                            <option value="Hours">Hours</option>
+                            <option value="Minutes">Minutes</option>
+                            <option value="Days">Days</option>
+                        </select>
                     </div>
-                    <select name="estimated_duration_unit" required>
-                        <option value="Hours">Hours</option>
-                        <option value="Minutes">Minutes</option>
-                        <option value="Days">Days</option>
-                    </select>
+                </div>
+
+                <x-ui.form-select
+                    label="Status"
+                    name="status"
+                    id="edit_status"
+                    icon="fa-circle-check"
+                    :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
+                />
+
+                <x-ui.form-select
+                    label="Assigned Mechanic"
+                    name="assigned_mechanic"
+                    id="edit_assigned_mechanic"
+                    icon="fa-user-gear"
+                    placeholder="No mechanic assigned"
+                    :options="$availableMechanics->pluck('mechanic_name', 'mechanic_name')->toArray()"
+                />
+            </div>
+        </section>
+
+        <section
+            id="editRequestedPartsSection"
+            class="jo-edit-section jo-edit-parts jo-parts-section"
+        >
+            <div class="jo-edit-section-header jo-edit-parts-header">
+                <span class="jo-edit-section-icon">
+                    <i class="fa-solid fa-box-open"></i>
+                </span>
+
+                <div>
+                    <h3>Requested Parts</h3>
+                    <p>Review or update the parts required for this job order.</p>
+                </div>
+
+                <button type="button" id="editAddPartBtn" class="jo-edit-add-part-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Part
+                </button>
+            </div>
+
+            <div id="editPartsLockedNotice" class="jo-parts-locked-notice" style="display: none;">
+                <span class="jo-parts-lock-icon">
+                    <i class="fa-solid fa-lock"></i>
+                </span>
+
+                <div>
+                    <strong>Assign a mechanic first</strong>
+                    <span>Requested parts can only be entered after a mechanic is assigned to inspect the bus.</span>
                 </div>
             </div>
 
-            <x-ui.form-select
-                label="Status"
-                name="status"
-                id="edit_status"
-                icon="fa-circle-check"
-                :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
-            />
-
-            <x-ui.form-select
-                label="Assigned Mechanic"
-                name="assigned_mechanic"
-                id="edit_assigned_mechanic"
-                icon="fa-user-gear"
-                placeholder="No mechanic assigned"
-                :options="$availableMechanics->pluck('mechanic_name', 'mechanic_name')->toArray()"
-                full
-            />
-        </div>
-
-        <div id="editRequestedPartsSection" class="jo-parts-section">
-            <x-ui.form-section
-                title="Requested Parts"
-                subtitle="Review or update the parts required for this job order."
-                icon="fa-gears"
-            >
-                <x-slot:action>
-                    <button type="button" id="editAddPartBtn" class="ui-btn-small">
-                        <i class="fa-solid fa-plus"></i>
-                        Add Part
-                    </button>
-                </x-slot:action>
-
-                <div id="editPartsLockedNotice" class="jo-parts-locked-notice" style="display: none;">
-                    <i class="fa-solid fa-lock"></i>
-                    <div>
-                        <strong>Assign a mechanic first</strong>
-                        <span>Requested parts can only be entered after a mechanic is assigned to inspect the bus.</span>
-                    </div>
+            <div class="jo-edit-parts-table">
+                <div class="jo-edit-parts-table-head" aria-hidden="true">
+                    <span>#</span>
+                    <span>Item / Part</span>
+                    <span>Qty</span>
+                    <span>Unit</span>
+                    <span>Actions</span>
                 </div>
 
-                <div id="editPartsNeededWrapper" class="jo-parts-repeater"></div>
-            </x-ui.form-section>
-        </div>
+                <div id="editPartsNeededWrapper" class="jo-parts-repeater jo-edit-parts-repeater"></div>
+            </div>
+        </section>
 
-        <div class="ui-form-actions" id="editJobMainActions">
-            <button type="button" id="cancelEditJobModal" class="ui-form-btn ui-form-btn-cancel">Cancel</button>
+        <div class="ui-form-actions jo-edit-footer" id="editJobMainActions">
+            <button type="button" id="cancelEditJobModal" class="ui-form-btn ui-form-btn-cancel">
+                Cancel
+            </button>
+
             <button type="submit" id="updateJobOrderBtn" class="ui-form-btn ui-form-btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
                 <span>Update Job Order</span>
             </button>
         </div>
 
-        <div class="ui-form-actions" id="viewOnlyJobActions" style="display: none;">
-            <button type="button" id="closeViewOnlyJob" class="ui-form-btn ui-form-btn-cancel">Close</button>
+        <div class="ui-form-actions jo-edit-footer" id="viewOnlyJobActions" style="display: none;">
+            <button type="button" id="closeViewOnlyJob" class="ui-form-btn ui-form-btn-cancel">
+                Close
+            </button>
         </div>
     </x-ui.form-modal>
 
