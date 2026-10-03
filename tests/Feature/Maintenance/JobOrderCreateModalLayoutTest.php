@@ -54,6 +54,14 @@ class JobOrderCreateModalLayoutTest extends TestCase
             'id="addPartBtn"',
             $view
         );
+        $this->assertStringContainsString(
+            'id="jobEstimatedDurationUnit"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'class="jo-duration-unit-select"',
+            $view
+        );
 
         // Do not invent a persistence field that the Job Order backend does not support.
         $this->assertStringNotContainsString(
@@ -102,6 +110,22 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
         $this->assertStringContainsString(
             'flex: 0 0 auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#jobModal .jo-create-section.jo-create-details',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow: visible;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#jobModal .jo-duration-control .jo-duration-unit-select',
+            $css
+        );
+        $this->assertStringContainsString(
+            'pointer-events: auto !important;',
             $css
         );
     }
