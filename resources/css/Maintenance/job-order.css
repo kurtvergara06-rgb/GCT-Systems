@@ -3170,3 +3170,44 @@ textarea[readonly] {
     padding-bottom: 14px;
   }
 }
+
+
+/* =========================================================
+   EDIT JOB ORDER - STICKY ACTION FOOTER
+   Keep Update/Close actions visible while the form body
+   scrolls inside the modal.
+========================================================= */
+
+#editJobModal .jo-edit-footer {
+  position: sticky;
+  bottom: -4px;
+  z-index: 220;
+  margin-top: 16px;
+  padding: 14px 0 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, .94) 0%,
+    #ffffff 22%,
+    #ffffff 100%
+  );
+  border-top: 1px solid #e4ebf4;
+  box-shadow: 0 -8px 18px rgba(6, 31, 61, .045);
+}
+
+#editJobModal #editJobMainActions,
+#editJobModal #viewOnlyJobActions {
+  position: sticky;
+  bottom: -4px;
+}
+
+#editJobModal .ui-form-modal-scrollable {
+  padding-bottom: 0;
+  scroll-padding-bottom: 72px;
+}
+
+@media (max-width: 700px) {
+  #editJobModal .jo-edit-footer {
+    bottom: -2px;
+    padding-bottom: 6px;
+  }
+}
