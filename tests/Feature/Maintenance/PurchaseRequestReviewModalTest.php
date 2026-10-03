@@ -48,15 +48,15 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('Purchase Request Details')
             ->assertSee('pr-review-modal-overlay', false)
             ->assertSee('Request Information')
-            ->assertSee('Items')
-            ->assertSee('History')
+            ->assertSee('Requested Items')
+            ->assertDontSee('id="prReviewHistory"', false)
+            ->assertDontSee('data-pr-review-target', false)
             ->assertSee('pr-review-btn open-view-pr-modal', false)
             ->assertSee('data-can-approve="1"', false)
             ->assertSee('reviewEditPrBtn', false)
             ->assertSee('reviewRejectPrBtn', false)
             ->assertSee('reviewApprovePrBtn', false)
-            ->assertSee('reviewDecisionRemarks', false)
-            ->assertSee('Requested Items');
+            ->assertSee('reviewDecisionRemarks', false);
     }
 
     public function test_staff_can_review_and_edit_submitted_pr_but_cannot_approve_or_reject(): void
@@ -65,6 +65,18 @@ class PurchaseRequestReviewModalTest extends TestCase
         $this->purchaseRequest();
 
         $this->actingAs($staff)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('data-can-edit="1"', false)
+            ->assertSee('data-can-approve="0"', false);
+    }
+
+    public function test_rejected_pr_exposes_revise_but_not_decision_permissions(): void
+    {
+        $head = $this->maintenanceUser('head');
+        $this->purchaseRequest('Rejected');
+
+        $this->actingAs($head)
             ->get(route('purchase-requests'))
             ->assertOk()
             ->assertSee('data-can-edit="1"', false)
@@ -117,7 +129,11 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'width: min(820px, calc(100vw - 44px)) !important;',
+            'width: min(780px, calc(100vw - 44px)) !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#editPrModal .pr-review-footer [hidden]',
             $css
         );
     }
