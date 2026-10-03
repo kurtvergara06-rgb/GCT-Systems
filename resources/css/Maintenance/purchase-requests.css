@@ -2619,19 +2619,6 @@
         width: 100%;
     }
 
-    #editPrModal .pr-review-tabs {
-        grid-template-columns: 1fr;
-    }
-
-    #editPrModal .pr-review-tab {
-        border-right: 0;
-        border-bottom: 1px solid #e7edf5;
-    }
-
-    #editPrModal .pr-review-tab:last-child {
-        border-bottom: 0;
-    }
-
     #editPrModal .pr-review-information {
         grid-template-columns: 1fr;
     }
