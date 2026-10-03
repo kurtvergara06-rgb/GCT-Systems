@@ -377,7 +377,7 @@
         id="jobModal"
         title="New Job Order"
         description="Enter the required job order information."
-        icon="fa-clipboard-list"
+        icon="fa-screwdriver-wrench"
         size="large"
         form-id="newJobOrderForm"
         :action="route('job-orders.store')"
@@ -392,117 +392,174 @@
         confirm-message="Are you sure you want to create this Job Order?"
         confirm-button="Yes, Create Job Order"
         confirm-type="create"
+        class="jo-create-modal-overlay"
     >
         <input type="hidden" name="pms_schedule_id" id="pms_schedule_id" value="">
 
-        <div class="ui-form-grid">
-            <x-ui.form-field
-                label="JO No."
-                name="display_job_order_no"
-                id="jobOrderNo"
-                :value="$nextJobOrderNo"
-                icon="fa-hashtag"
-                readonly
-            />
+        <section class="jo-create-section jo-create-basic">
+            <div class="jo-create-section-header">
+                <span class="jo-create-section-icon">
+                    <i class="fa-solid fa-file-lines"></i>
+                </span>
 
-            <x-ui.form-select
-                label="Bus #"
-                name="bus_no"
-                id="jobBusNo"
-                icon="fa-bus"
-                placeholder="Select Bus"
-                :options="$availableBuses
-                    ->mapWithKeys(function ($bus) {
-                        return [
-                            $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
-                        ];
-                    })
-                    ->toArray()"
-                required
-            />
+                <div>
+                    <h3>Basic Information</h3>
+                    <p>Provide the Job Order reference, affected bus, and reported issue.</p>
+                </div>
+            </div>
 
-            <div class="ui-form-group ui-form-full">
-                <label for="jobProblemIssue">Problem / Issue <span class="ui-required">*</span></label>
-                <textarea
-                    name="problem_issue"
-                    id="jobProblemIssue"
-                    placeholder="Describe the problem or issue..."
+            <div class="ui-form-grid jo-create-basic-grid">
+                <x-ui.form-field
+                    label="JO No."
+                    name="display_job_order_no"
+                    id="jobOrderNo"
+                    :value="$nextJobOrderNo"
+                    icon="fa-hashtag"
+                    readonly
+                />
+
+                <x-ui.form-select
+                    label="Bus #"
+                    name="bus_no"
+                    id="jobBusNo"
+                    icon="fa-bus"
+                    placeholder="Select Bus"
+                    :options="$availableBuses
+                        ->mapWithKeys(function ($bus) {
+                            return [
+                                $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+                            ];
+                        })
+                        ->toArray()"
                     required
-                >{{ old('problem_issue') }}</textarea>
+                />
+
+                <div class="ui-form-group ui-form-full jo-create-problem-field">
+                    <label for="jobProblemIssue">
+                        Problem / Issue
+                        <span class="ui-required">*</span>
+                    </label>
+
+                    <textarea
+                        name="problem_issue"
+                        id="jobProblemIssue"
+                        placeholder="Describe the problem or issue..."
+                        required
+                    >{{ old('problem_issue') }}</textarea>
+                </div>
             </div>
+        </section>
 
-            <x-ui.form-select
-                label="Maintenance Type"
-                name="maintenance_type"
-                id="jobMaintenanceType"
-                icon="fa-screwdriver-wrench"
-                placeholder="Select Maintenance Type"
-                :options="['Repair' => 'Repair']"
-                required
-            />
+        <section class="jo-create-section jo-create-details">
+            <div class="jo-create-section-header">
+                <span class="jo-create-section-icon">
+                    <i class="fa-solid fa-gears"></i>
+                </span>
 
-            <div id="newJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                <label>
-                    Estimated Work Duration
-                    <span class="ui-required">*</span>
-                </label>
-                <div class="jo-duration-control">
-                    <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
-                        <input
-                            type="number"
-                            name="estimated_duration_value"
-                            min="0.25"
-                            step="0.25"
-                            value="{{ old('estimated_duration_value') }}"
-                            placeholder="e.g. 4"
-                            required
-                        >
-                    </div>
-                    <select name="estimated_duration_unit" required>
-                        @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
-                            <option value="{{ $durationUnit }}" {{ old('estimated_duration_unit', 'Hours') === $durationUnit ? 'selected' : '' }}>
-                                {{ $durationUnit }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div>
+                    <h3>Job Details</h3>
+                    <p>Specify the maintenance work, estimated duration, and assigned mechanic.</p>
                 </div>
             </div>
 
-            <x-ui.form-select
-                label="Assigned Mechanic"
-                name="assigned_mechanic"
-                id="jobAssignedMechanic"
-                icon="fa-user-gear"
-                :placeholder="$availableMechanics->count()
-                    ? 'Select Available Mechanic'
-                    : 'No available mechanic - JO will be On Hold'"
-                :options="$availableMechanics->pluck('mechanic_name', 'mechanic_name')->toArray()"
-            />
-        </div>
+            <div class="jo-create-details-grid">
+                <x-ui.form-select
+                    label="Maintenance Job"
+                    name="maintenance_type"
+                    id="jobMaintenanceType"
+                    icon="fa-screwdriver-wrench"
+                    placeholder="Select Maintenance Job"
+                    :options="['Repair' => 'Repair']"
+                    required
+                />
 
-        <div id="newRequestedPartsSection" class="jo-parts-section is-locked">
-            <x-ui.form-section
-                title="Requested Parts"
-                subtitle="Add each part separately so Warehouse can check inventory correctly."
-                icon="fa-gears"
-            >
-                <x-slot:action>
-                    <button type="button" id="addPartBtn" class="ui-btn-small" disabled>
-                        <i class="fa-solid fa-plus"></i>
-                        Add Part
-                    </button>
-                </x-slot:action>
+                <div id="newJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
+                    <label>
+                        Estimated Time
+                        <span class="ui-required">*</span>
+                    </label>
 
-                <div id="newPartsLockedNotice" class="jo-parts-locked-notice">
+                    <div class="jo-duration-control">
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon">
+                                <i class="fa-solid fa-clock"></i>
+                            </span>
+
+                            <input
+                                type="number"
+                                name="estimated_duration_value"
+                                min="0.25"
+                                step="0.25"
+                                value="{{ old('estimated_duration_value') }}"
+                                placeholder="e.g. 4"
+                                required
+                            >
+                        </div>
+
+                        <select name="estimated_duration_unit" required>
+                            @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
+                                <option
+                                    value="{{ $durationUnit }}"
+                                    {{ old('estimated_duration_unit', 'Hours') === $durationUnit ? 'selected' : '' }}
+                                >
+                                    {{ $durationUnit }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <x-ui.form-select
+                    label="Assigned Mechanic"
+                    name="assigned_mechanic"
+                    id="jobAssignedMechanic"
+                    icon="fa-user-gear"
+                    :placeholder="$availableMechanics->count()
+                        ? 'Select Available Mechanic'
+                        : 'No available mechanic - JO will be On Hold'"
+                    :options="$availableMechanics->pluck('mechanic_name', 'mechanic_name')->toArray()"
+                />
+            </div>
+        </section>
+
+        <section id="newRequestedPartsSection" class="jo-create-section jo-create-parts jo-parts-section is-locked">
+            <div class="jo-create-section-header jo-create-parts-header">
+                <span class="jo-create-section-icon">
+                    <i class="fa-solid fa-box-open"></i>
+                </span>
+
+                <div>
+                    <h3>Requested Parts</h3>
+                    <p>Add each part separately so Warehouse can check inventory correctly.</p>
+                </div>
+
+                <button type="button" id="addPartBtn" class="jo-create-add-part-btn" disabled>
+                    <i class="fa-solid fa-plus"></i>
+                    Add Part
+                </button>
+            </div>
+
+            <div id="newPartsLockedNotice" class="jo-parts-locked-notice">
+                <span class="jo-parts-lock-icon">
                     <i class="fa-solid fa-lock"></i>
-                    <div>
-                        <strong>Assign a mechanic first</strong>
-                        <span>Requested parts can be added after a mechanic is assigned to inspect the bus.</span>
-                    </div>
+                </span>
+
+                <div>
+                    <strong>Assign a mechanic first</strong>
+                    <span>Requested parts can be added after a mechanic is assigned to inspect the bus.</span>
+                </div>
+            </div>
+
+            <div class="jo-create-parts-table">
+                <div class="jo-create-parts-table-head" aria-hidden="true">
+                    <span>#</span>
+                    <span>Item / Part</span>
+                    <span>Qty</span>
+                    <span>Unit</span>
+                    <span>Actions</span>
                 </div>
 
-                <div id="partsNeededWrapper" class="jo-parts-repeater">
+                <div id="partsNeededWrapper" class="jo-parts-repeater jo-create-parts-repeater">
                     <div class="jo-part-row part-needed-row">
                         <input type="text" name="parts[0][name]" placeholder="Part name" disabled>
                         <input type="number" name="parts[0][quantity]" min="1" placeholder="Qty" disabled>
@@ -521,13 +578,14 @@
                             <option value="roll">roll</option>
                             <option value="tube">tube</option>
                         </select>
+
                         <button type="button" class="remove-part-btn" title="Remove Part" disabled>
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
-            </x-ui.form-section>
-        </div>
+            </div>
+        </section>
     </x-ui.form-modal>
 
     <x-ui.form-modal
