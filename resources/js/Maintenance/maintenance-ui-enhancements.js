@@ -19,7 +19,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     unitSelect: durationField?.querySelector('select[name="estimated_duration_unit"]') || null,
   });
 
-  const setDurationReadonly = (durationField, readonly) => {
+  const setDurationReadonly = (
+    durationField,
+    readonly,
+    lockUnit = false
+  ) => {
     const { valueInput, unitSelect } = findDurationControls(durationField);
 
     if (valueInput) {
@@ -29,10 +33,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     }
 
     if (unitSelect) {
-      unitSelect.setAttribute('aria-readonly', readonly ? 'true' : 'false');
-      unitSelect.style.pointerEvents = readonly ? 'none' : '';
-      unitSelect.style.cursor = readonly ? 'default' : '';
-      unitSelect.tabIndex = readonly ? -1 : 0;
+      const unitReadonly = readonly && lockUnit;
+
+      unitSelect.setAttribute('aria-readonly', unitReadonly ? 'true' : 'false');
+      unitSelect.style.pointerEvents = unitReadonly ? 'none' : '';
+      unitSelect.style.cursor = unitReadonly ? 'default' : '';
+      unitSelect.tabIndex = unitReadonly ? -1 : 0;
     }
   };
 
@@ -310,7 +316,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       }
 
       if (readonly) {
-        setDurationReadonly(editJo.durationField, true);
+        setDurationReadonly(editJo.durationField, true, true);
       }
     });
   });
