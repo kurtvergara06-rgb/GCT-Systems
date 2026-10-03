@@ -2563,3 +2563,92 @@ textarea[readonly] {
     padding-bottom: 14px;
   }
 }
+
+
+/* =========================================================
+   NEW JOB ORDER - DROPDOWN LAYERING FIX
+   Allow the searchable mechanic menu to escape the Job
+   Details card and keep Estimated Time controls clickable.
+========================================================= */
+
+#jobModal .jo-create-section.jo-create-details {
+  position: relative;
+  overflow: visible;
+  z-index: 6;
+}
+
+#jobModal .jo-create-details .jo-create-section-header {
+  position: relative;
+  z-index: 1;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+#jobModal .jo-create-details-grid {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+}
+
+#jobModal .jo-create-details-grid .ui-form-group {
+  position: relative;
+  min-width: 0;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox {
+  position: relative;
+  z-index: 20;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox.is-open {
+  z-index: 120;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox-menu {
+  z-index: 130;
+  max-height: 260px;
+  overflow: hidden;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox-options {
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+#jobModal .jo-estimated-duration-field,
+#jobModal .jo-duration-control {
+  position: relative;
+  z-index: 10;
+}
+
+#jobModal .jo-duration-control .jo-duration-unit-select {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto !important;
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+#jobModal .jo-duration-control .jo-duration-unit-select:disabled {
+  pointer-events: none !important;
+  cursor: not-allowed;
+}
+
+#jobModal .jo-duration-control .ui-input-wrap {
+  position: relative;
+  z-index: 10;
+}
+
+#jobModal .jo-duration-control .ui-input-icon {
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  #jobModal .jo-create-section.jo-create-details {
+    z-index: 8;
+  }
+}
