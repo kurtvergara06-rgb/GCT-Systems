@@ -12,6 +12,7 @@ use App\Models\Operation\MechanicAttendance;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class JobOrderController extends Controller
 {
@@ -401,7 +402,11 @@ class JobOrderController extends Controller
 
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
-            'bus_no' => 'required|string|exists:buses,bus_no',
+            'bus_no' => [
+                'required',
+                'string',
+                Rule::in([$jobOrder->bus_no]),
+            ],
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'nullable|string|max:255',
