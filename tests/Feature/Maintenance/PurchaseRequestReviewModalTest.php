@@ -160,5 +160,17 @@ class PurchaseRequestReviewModalTest extends TestCase
             '#editPrModal .pr-review-footer [hidden]',
             $css
         );
+        $this->assertStringContainsString(
+            '.purchase-page .purchase-request-table .actions .pr-review-btn',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-width: 92px !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'width: auto !important;',
+            $css
+        );
     }
 }
