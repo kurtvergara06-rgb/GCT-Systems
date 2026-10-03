@@ -2492,3 +2492,74 @@ textarea[readonly] {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   NEW JOB ORDER MODAL - VISIBLE FOOTER / INTERNAL SCROLL
+   Keep action buttons fully visible while only the form
+   content scrolls inside the modal.
+========================================================= */
+
+#jobModal.jo-create-modal-overlay > .ui-form-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-header {
+  flex: 0 0 auto;
+}
+
+#jobModal .ui-form-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-scrollable {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-bottom: 4px;
+}
+
+#jobModal .ui-form-actions {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  padding: 15px 0 0;
+  background: #ffffff;
+}
+
+@media (max-height: 760px) and (min-width: 701px) {
+  #jobModal.jo-create-modal-overlay {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  #jobModal.jo-create-modal-overlay > .ui-form-modal {
+    max-height: calc(100vh - 28px);
+  }
+
+  #jobModal .ui-form-modal-header {
+    padding-top: 16px;
+    padding-bottom: 14px;
+  }
+
+  #jobModal .ui-form-modal-body {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
