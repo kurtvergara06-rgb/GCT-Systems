@@ -391,243 +391,6 @@ window.GCTPartialNavigation.registerInitializer(
       }
 
 
-      const tabCount =
-        document.getElementById(
-          'reviewPrTabItemCount'
-        );
-
-
-      if (
-        tabCount
-      ) {
-
-        tabCount.textContent =
-          String(count);
-
-      }
-
-    }
-
-
-    /* =========================================================
-       RENDER REVIEW HISTORY
-    ========================================================= */
-
-    function renderReviewHistory(
-      button,
-      status
-    ) {
-
-      const list =
-        document.getElementById(
-          'reviewPrHistoryList'
-        );
-
-
-      if (!list) {
-        return;
-      }
-
-
-      const events = [];
-
-
-      if (
-        button.dataset.createdAt
-      ) {
-
-        events.push({
-          icon: 'fa-file-circle-plus',
-          title: 'Purchase request created',
-          time: button.dataset.createdAt,
-          tone: 'blue',
-        });
-
-      }
-
-
-      if (
-        button.dataset.approvedAt
-      ) {
-
-        events.push({
-          icon: 'fa-circle-check',
-          title: 'Approved by Maintenance',
-          time: button.dataset.approvedAt,
-          tone: 'green',
-        });
-
-      }
-
-
-      if (
-        button.dataset.rejectedAt
-      ) {
-
-        events.push({
-          icon: 'fa-circle-xmark',
-          title: 'Rejected by Maintenance',
-          time: button.dataset.rejectedAt,
-          tone: 'red',
-        });
-
-      }
-
-
-      if (
-        button.dataset.issuedAt
-      ) {
-
-        events.push({
-          icon: 'fa-box-open',
-          title: 'Parts issued',
-          time: button.dataset.issuedAt,
-          tone: 'green',
-        });
-
-      }
-
-
-      const terminalStatuses = [
-        'Submitted',
-        'Approved',
-        'Rejected',
-        'Issued',
-      ];
-
-
-      if (
-        !terminalStatuses.includes(
-          status
-        ) &&
-        button.dataset.updatedAt
-      ) {
-
-        events.push({
-          icon: 'fa-arrows-rotate',
-          title: 'Status updated to ' + status,
-          time: button.dataset.updatedAt,
-          tone: 'blue',
-        });
-
-      }
-
-
-      list.innerHTML =
-        '';
-
-
-      if (
-        events.length === 0
-      ) {
-
-        const empty =
-          document.createElement(
-            'div'
-          );
-
-
-        empty.className =
-          'pr-review-history-empty';
-        empty.textContent =
-          'No dated history events are recorded for this request.';
-
-
-        list.appendChild(
-          empty
-        );
-
-
-        return;
-
-      }
-
-
-      events.forEach(
-        event => {
-
-          const row =
-            document.createElement(
-              'div'
-            );
-
-
-          row.className =
-            'pr-review-history-row';
-
-
-          const icon =
-            document.createElement(
-              'span'
-            );
-
-
-          icon.className =
-            'pr-review-history-icon ' +
-            event.tone;
-
-
-          const iconGlyph =
-            document.createElement(
-              'i'
-            );
-
-
-          iconGlyph.className =
-            'fa-solid ' +
-            event.icon;
-
-
-          icon.appendChild(
-            iconGlyph
-          );
-
-
-          const copy =
-            document.createElement(
-              'div'
-            );
-
-
-          const title =
-            document.createElement(
-              'strong'
-            );
-
-
-          title.textContent =
-            event.title;
-
-
-          const time =
-            document.createElement(
-              'span'
-            );
-
-
-          time.textContent =
-            event.time;
-
-
-          copy.append(
-            title,
-            time
-          );
-
-
-          row.append(
-            icon,
-            copy
-          );
-
-
-          list.appendChild(
-            row
-          );
-
-        }
-      );
-
     }
 
 
@@ -1427,19 +1190,6 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
-    const prReviewHistory =
-      document.getElementById(
-        'prReviewHistory'
-      );
-
-
-    const prReviewTabs =
-      editPrModal
-        ?.querySelector(
-          '.pr-review-tabs'
-        );
-
-
     const prReviewItemsSection =
       document.getElementById(
         'prReviewItemsSection'
@@ -1670,6 +1420,7 @@ window.GCTPartialNavigation.registerInitializer(
 
       const canApprove =
         isView &&
+        status === 'Submitted' &&
         button?.dataset
           .canApprove === '1';
 
@@ -1920,10 +1671,8 @@ window.GCTPartialNavigation.registerInitializer(
        * Review / Edit workspace
        */
       [
-        prReviewTabs,
         prReviewInformation,
         prReviewItemsSection,
-        prReviewHistory,
       ].forEach(
         element => {
 
@@ -2058,12 +1807,6 @@ window.GCTPartialNavigation.registerInitializer(
       }
 
 
-      renderReviewHistory(
-        button,
-        status
-      );
-
-
       if (
         reviewDecisionRemarks &&
         mode === 'view'
@@ -2184,92 +1927,11 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
-      if (
-        mode === 'view'
-      ) {
-
-        editPrModal
-          ?.querySelectorAll(
-            '[data-pr-review-target]'
-          )
-          .forEach(
-            (tab, index) =>
-              tab.classList.toggle(
-                'is-active',
-                index === 0
-              )
-          );
-
-      }
-
-
       openModal(
         editPrModal
       );
 
     }
-
-
-    /* =========================================================
-       REVIEW SECTION TABS
-    ========================================================= */
-
-    editPrModal
-      ?.querySelectorAll(
-        '[data-pr-review-target]'
-      )
-      .forEach(
-        tab => {
-
-          tab.addEventListener(
-            'click',
-            () => {
-
-              const targetId =
-                tab.dataset
-                  .prReviewTarget;
-
-
-              const target =
-                targetId
-                  ? document.getElementById(
-                      targetId
-                    )
-                  : null;
-
-
-              if (!target) {
-                return;
-              }
-
-
-              editPrModal
-                .querySelectorAll(
-                  '[data-pr-review-target]'
-                )
-                .forEach(
-                  item =>
-                    item.classList.remove(
-                      'is-active'
-                    )
-                );
-
-
-              tab.classList.add(
-                'is-active'
-              );
-
-
-              target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-              });
-
-            }
-          );
-
-        }
-      );
 
 
     /* =========================================================
