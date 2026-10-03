@@ -129,7 +129,15 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'width: min(780px, calc(100vw - 44px)) !important;',
+            'width: min(900px, calc(100vw - 56px)) !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'font-size: 22px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-height: 42px;',
             $css
         );
         $this->assertStringContainsString(
