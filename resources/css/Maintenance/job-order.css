@@ -2627,14 +2627,14 @@ textarea[readonly] {
 #jobModal .jo-duration-control .jo-duration-unit-select {
   position: relative;
   z-index: 11;
-  pointer-events: auto !important;
+  pointer-events: auto;
   cursor: pointer;
   appearance: auto;
   -webkit-appearance: menulist;
 }
 
 #jobModal .jo-duration-control .jo-duration-unit-select:disabled {
-  pointer-events: none !important;
+  pointer-events: none;
   cursor: not-allowed;
 }
 
@@ -2901,14 +2901,14 @@ textarea[readonly] {
 #editJobModal .jo-duration-control .jo-duration-unit-select {
   position: relative;
   z-index: 11;
-  pointer-events: auto !important;
+  pointer-events: auto;
   cursor: pointer;
   appearance: auto;
   -webkit-appearance: menulist;
 }
 
 #editJobModal .jo-duration-control .jo-duration-unit-select:disabled {
-  pointer-events: none !important;
+  pointer-events: none;
   cursor: not-allowed;
 }
 
