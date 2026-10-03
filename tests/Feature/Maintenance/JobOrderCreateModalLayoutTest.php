@@ -70,6 +70,104 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
+    public function test_edit_job_order_modal_matches_structured_gct_layout(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Maintenance/job-order.blade.php')
+        );
+
+        $this->assertStringContainsString(
+            'class="jo-edit-modal-overlay"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'class="jo-edit-section jo-edit-basic"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'class="jo-edit-section jo-edit-details"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="editRequestedPartsSection"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'jo-edit-parts-table-head',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="editJobEstimatedDurationUnit"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'class="jo-duration-unit-select"',
+            $view
+        );
+
+        // Existing edit workflow hooks must remain intact.
+        $this->assertStringContainsString(
+            'id="edit_assigned_mechanic"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="editPartsNeededWrapper"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="editAddPartBtn"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="editJobMainActions"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="viewOnlyJobActions"',
+            $view
+        );
+    }
+
+    public function test_edit_job_order_modal_keeps_footer_visible_and_dropdowns_usable(): void
+    {
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        $this->assertStringContainsString(
+            '#editJobModal.jo-edit-modal-overlay > .ui-form-modal',
+            $css
+        );
+        $this->assertStringContainsString(
+            'width: min(920px, calc(100vw - 56px)) !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#editJobModal .jo-edit-details',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow: visible;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#editJobModal .jo-duration-control .jo-duration-unit-select',
+            $css
+        );
+        $this->assertStringContainsString(
+            'pointer-events: auto !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#editJobModal .jo-edit-footer',
+            $css
+        );
+        $this->assertStringContainsString(
+            'flex: 0 0 auto;',
+            $css
+        );
+    }
+
     public function test_new_job_order_modal_css_is_centered_and_matches_gct_scale(): void
     {
         $css = file_get_contents(
