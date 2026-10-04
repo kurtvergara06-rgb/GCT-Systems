@@ -61,6 +61,39 @@ class PmsStatusServiceTest extends TestCase
         );
     }
 
+    public function test_overall_status_uses_the_most_urgent_task_status(): void
+    {
+        $this->assertSame(
+            'Overdue',
+            $this->service->overallStatus(
+                collect([
+                    (object) ['status' => 'Upcoming'],
+                    (object) ['status' => 'Due Soon'],
+                    (object) ['status' => 'Overdue'],
+                ])
+            )
+        );
+
+        $this->assertSame(
+            'Due Soon',
+            $this->service->overallStatus(
+                collect([
+                    (object) ['status' => 'Upcoming'],
+                    (object) ['status' => 'Due Soon'],
+                ])
+            )
+        );
+
+        $this->assertSame(
+            'Upcoming',
+            $this->service->overallStatus(
+                collect([
+                    (object) ['status' => 'Upcoming'],
+                ])
+            )
+        );
+    }
+
     public function test_task_outside_warning_range_and_not_past_date_is_upcoming(): void
     {
         $this->assertSame(
