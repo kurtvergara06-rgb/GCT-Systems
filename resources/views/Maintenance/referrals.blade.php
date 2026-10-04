@@ -139,6 +139,20 @@
                                     } elseif ($department === 'admin') {
                                         $canCreateJo = in_array($role, $adminRoles, true);
                                     }
+
+                                    $linkedJobOrder = $referral->jobOrder;
+                                    $displayBusNo = $linkedJobOrder?->bus_no
+                                        ?: $incident?->bus?->bus_no
+                                        ?: '—';
+                                    $jobOrderRecordView = $linkedJobOrder?->status === 'Completed'
+                                        ? 'history'
+                                        : 'active';
+                                    $jobOrderUrl = $linkedJobOrder
+                                        ? route('job-orders', [
+                                            'record_view' => $jobOrderRecordView,
+                                            'search' => $linkedJobOrder->job_order_no,
+                                        ])
+                                        : null;
                                 @endphp
                                 <tr>
                                     <td>
@@ -152,7 +166,7 @@
                                     </td>
                                     <td>
                                         <span class="bus-badge-pill">
-                                            <i class="fa-solid fa-bus"></i> {{ $incident?->bus?->bus_no ?? '—' }}
+                                            <i class="fa-solid fa-bus"></i> {{ $displayBusNo }}
                                         </span>
                                     </td>
                                     <td>
@@ -165,9 +179,9 @@
                                     </td>
                                     <td><x-ui.status-badge :status="$referral->status" /></td>
                                     <td>
-                                        @if($referral->jobOrder)
-                                            <a href="{{ route('job-orders', ['search' => $referral->jobOrder->job_order_no]) }}" class="linked-jo-pill">
-                                                <i class="fa-solid fa-clipboard-check"></i> {{ $referral->jobOrder->job_order_no }}
+                                        @if($linkedJobOrder)
+                                            <a href="{{ $jobOrderUrl }}" class="linked-jo-pill">
+                                                <i class="fa-solid fa-clipboard-check"></i> {{ $linkedJobOrder->job_order_no }}
                                             </a>
                                         @else
                                             <span class="text-muted">—</span>
@@ -199,8 +213,8 @@
                                                 </form>
                                             @endif
 
-                                            @if($referral->status === 'Job Order Created' && $referral->jobOrder)
-                                                <a href="{{ route('job-orders', ['search' => $referral->jobOrder->job_order_no]) }}" class="btn-ref-action btn-view-jo" title="View Job Order">
+                                            @if($referral->status === 'Job Order Created' && $linkedJobOrder)
+                                                <a href="{{ $jobOrderUrl }}" class="btn-ref-action btn-view-jo" title="View Job Order">
                                                     <i class="fa-solid fa-arrow-up-right-from-square"></i> View JO
                                                 </a>
                                             @endif
