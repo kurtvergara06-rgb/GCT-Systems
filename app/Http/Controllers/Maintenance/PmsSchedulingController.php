@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\PmsSchedule;
 use App\Services\Maintenance\PmsStatusService;
@@ -340,12 +341,12 @@ class PmsSchedulingController extends Controller
             (float) $validated['last_pms_km']
             + (float) $validated['pms_interval_km'];
 
-        $latestGps = $this->getLatestProcessedGpsForBus(
+        $latestGps = $this->pmsStatusService->latestProcessedGpsForBus(
             $validated['bus_no']
         );
 
         $validated['recommended_date'] =
-            $this->getRecommendedDate(
+            $this->pmsStatusService->recommendedDate(
                 $latestGps
                     ? (float) $latestGps->mileage_km
                     : null,
@@ -356,7 +357,7 @@ class PmsSchedulingController extends Controller
                         ?? $latestGps->created_at
                     )
                     : null
-            );
+            )?->toDateString();
 
         $pmsSchedule->update($validated);
 
