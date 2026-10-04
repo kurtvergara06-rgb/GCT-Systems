@@ -868,6 +868,89 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     );
 
 
+  const isPmsCreateFlow =
+    jobModal?.dataset
+      .pmsCreate ===
+    'true';
+
+
+  function cleanPmsCreateUrl() {
+
+    const cleanUrl =
+      new URL(
+        window.location.href
+      );
+
+
+    [
+      'create_pms',
+      'pms_schedule_id',
+      'bus_no',
+      'maintenance_type',
+      'problem_issue',
+    ].forEach(
+      (key) =>
+        cleanUrl.searchParams
+          .delete(key)
+    );
+
+
+    return cleanUrl.href;
+  }
+
+
+  function cancelNewJobOrder() {
+
+    closeModal(jobModal);
+
+
+    if (!isPmsCreateFlow) {
+      return;
+    }
+
+
+    if (jobModal) {
+      jobModal.dataset.pmsCreate =
+        'false';
+    }
+
+
+    const cleanUrl =
+      cleanPmsCreateUrl();
+
+
+    window.setTimeout(
+      () => {
+
+        if (
+          window
+            .GCTPartialNavigation
+            ?.navigate
+        ) {
+          void window
+            .GCTPartialNavigation
+            .navigate(
+              cleanUrl,
+              {
+                push: false,
+              }
+            );
+
+          return;
+        }
+
+
+        window.location.replace(
+          cleanUrl
+        );
+      },
+      prefersReducedMotion
+        ? 0
+        : 240
+    );
+  }
+
+
   if (openJobModal) {
 
     openJobModal.addEventListener(
@@ -894,7 +977,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       'click',
       () => {
 
-        closeModal(jobModal);
+        cancelNewJobOrder();
 
       }
     );
@@ -907,7 +990,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       'click',
       () => {
 
-        closeModal(jobModal);
+        cancelNewJobOrder();
 
       }
     );
@@ -1056,6 +1139,24 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
   updateNewJoPartsState();
+
+
+  /*
+   * PMS-created Job Orders are opened only after all page initializers
+   * have had a chance to build the standard JO layout/comboboxes.
+   * This avoids the old inline script opening the raw modal too early.
+   */
+  if (isPmsCreateFlow) {
+
+    window.requestAnimationFrame(
+      () => {
+
+        void refreshAvailableMechanicsDropdown();
+
+        openModal(jobModal);
+      }
+    );
+  }
 
 
   /* =========================================================
