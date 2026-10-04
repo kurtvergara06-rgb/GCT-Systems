@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
@@ -252,6 +253,13 @@ class MaintenanceDashboardController extends Controller
         // Bus master status is the authoritative source of readiness. An active
         // job order alone must not silently mark an otherwise Active bus as
         // unavailable, and an Inactive bus must never count as operational.
+        //
+        // This query intentionally lives here rather than in the PMS section.
+        // PMS status now uses processed GPS records, while fleet readiness uses
+        // the Bus master record. Keeping the sources separate prevents one
+        // refactor from silently removing data required by the other.
+        $buses = Bus::query()->get();
+
         $totalBuses = $buses->count();
         $activeBusesCount = $buses->filter(
             fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Active') === 0
