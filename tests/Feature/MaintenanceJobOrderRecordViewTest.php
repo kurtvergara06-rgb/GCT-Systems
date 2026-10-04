@@ -101,5 +101,36 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
         $response->assertSee('value="history"', false);
         $response->assertSee('data-lazy-pagination="true"', false);
         $response->assertSee('data-server-filter="true"', false);
+        $response->assertDontSee('deleteForm-', false);
+        $response->assertDontSee('open-delete-modal', false);
+    }
+
+    public function test_completed_job_order_cannot_be_deleted_even_by_direct_request(): void
+    {
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-HISTORY-DELETE-GUARD',
+            'bus_no' => 'BUS-HISTORY-GUARD',
+            'problem_issue' => 'Completed repair kept for audit history',
+            'maintenance_type' => 'Repair',
+            'status' => 'Completed',
+            'completion_date' => now(),
+            'part_status' => 'Issued',
+        ]);
+
+        $response = $this
+            ->actingAs($this->maintenanceUser)
+            ->delete(route('job-orders.destroy', $jobOrder));
+
+        $response->assertRedirect();
+        $response->assertSessionHas(
+            'error',
+            'Completed Job Orders are history records and cannot be deleted.'
+        );
+
+        $this->assertDatabaseHas('job_orders', [
+            'id' => $jobOrder->id,
+            'job_order_no' => 'JO-HISTORY-DELETE-GUARD',
+            'status' => 'Completed',
+        ]);
     }
 }
