@@ -72,15 +72,15 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'scale: reduced ? 0.985 : 0.965',
+            'startScale',
             $source
         );
         $this->assertStringContainsString(
-            '? 0.46',
+            '? 0.78',
             $source
         );
         $this->assertStringContainsString(
-            ': 0.64',
+            ': 1.15',
             $source
         );
         $this->assertStringContainsString(
@@ -181,11 +181,11 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'y: reduced ? 24 : 44',
+            'initialOpen',
             $shared
         );
         $this->assertStringContainsString(
-            'scale: reduced ? 0.985 : 0.965',
+            'startScale',
             $shared
         );
         $this->assertStringContainsString(
@@ -217,6 +217,42 @@ class MaintenanceGsapAnimationTest extends TestCase
         $this->assertStringNotContainsString(
             'animateMaintenancePage',
             $shared
+        );
+    }
+
+    public function test_direct_page_open_uses_a_slow_visible_gsap_reveal(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/maintenance-animations.js')
+        );
+
+        $this->assertStringContainsString(
+            'initialOpen = false',
+            $source
+        );
+        $this->assertStringContainsString(
+            'initialOpen',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? (reduced ? 34 : 72)',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? (reduced ? 0.975 : 0.94)',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? (reduced ? 0.78 : 1.15)',
+            $source
+        );
+        $this->assertStringContainsString(
+            'initialOpen: true',
+            $source
+        );
+        $this->assertStringContainsString(
+            '120',
+            $source
         );
     }
 
