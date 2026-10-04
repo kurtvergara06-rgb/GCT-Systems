@@ -1,0 +1,76 @@
+/* Purchase Request modal cleanup.
+ * Scoped to the New PR modal so shared form components are not affected.
+ */
+
+#prModal .ui-form-modal {
+    width: min(650px, calc(100vw - 32px));
+    max-width: 650px;
+}
+
+#prModal .ui-form-content,
+#prModal .ui-form-body {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* The generic form-section component adds horizontal separators. The New PR
+ * form is short enough that spacing is clearer than repeated divider lines. */
+#prModal .ui-form-section {
+    margin: 0 0 14px !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+}
+
+#prModal .ui-form-section + .ui-form-section {
+    margin-top: 4px !important;
+}
+
+#prModal .ui-form-section-header {
+    margin-bottom: 10px !important;
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+}
+
+#prModal .ui-form-section-title p {
+    margin-top: 2px;
+    line-height: 1.35;
+}
+
+#prModal .ui-form-grid {
+    gap: 12px 14px;
+}
+
+#prModal .pr-parts-container {
+    gap: 8px;
+}
+
+#prModal .pr-part-row {
+    gap: 8px;
+}
+
+#prModal #newPrRemarks {
+    min-height: 72px;
+}
+
+/* Keep the footer visually connected to the form instead of adding another
+ * full-width separator line. */
+#prModal .ui-form-actions {
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+    border-top: 0 !important;
+}
+
+/* Make the eligibility rule visible where the user chooses a JO. */
+#prModal #jobOrderSelect + .pr-eligibility-note,
+#prModal .pr-eligibility-note {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+    #prModal .ui-form-modal {
+        width: min(100% - 20px, 650px);
+    }
+}

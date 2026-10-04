@@ -7,6 +7,7 @@ use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -82,6 +83,15 @@ class MechanicAttendanceController extends Controller
             ->first();
 
         if (! $mechanic) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Select an existing mechanic from the Mechanic Master List.',
+                    'errors' => [
+                        'mechanic_name' => ['Select an existing mechanic from the Mechanic Master List.'],
+                    ],
+                ], 422);
+            }
+
             return back()->withInput()->with('error', 'Select an existing mechanic from the Mechanic Master List.');
         }
 
@@ -99,11 +109,19 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was created.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mechanic attendance record created successfully.',
+                'attendance' => $attendance,
+            ]);
+        }
+
         return redirect()->route('mechanic-attendance')
             ->with('success', 'Mechanic attendance record created successfully.');
     }
 
-    public function update(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
+    public function update(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
@@ -120,6 +138,15 @@ class MechanicAttendanceController extends Controller
             ->first();
 
         if (! $mechanic) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Select an existing mechanic from the Mechanic Master List.',
+                    'errors' => [
+                        'mechanic_name' => ['Select an existing mechanic from the Mechanic Master List.'],
+                    ],
+                ], 422);
+            }
+
             return back()->withInput()->with('error', 'Select an existing mechanic from the Mechanic Master List.');
         }
 
@@ -137,11 +164,19 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was updated.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mechanic attendance record updated successfully.',
+                'attendance' => $mechanicAttendance,
+            ]);
+        }
+
         return redirect()->route('mechanic-attendance')
             ->with('success', 'Mechanic attendance record updated successfully.');
     }
 
-    public function destroy(MechanicAttendance $mechanicAttendance): RedirectResponse
+    public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
         $attendanceId = $mechanicAttendance->id;
         $mechanicAttendance->delete();
@@ -153,6 +188,13 @@ class MechanicAttendanceController extends Controller
             $attendanceId,
             'A mechanic attendance record was deleted.'
         );
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mechanic attendance record deleted successfully.',
+            ]);
+        }
 
         return redirect()->route('mechanic-attendance')
             ->with('success', 'Mechanic attendance record deleted successfully.');

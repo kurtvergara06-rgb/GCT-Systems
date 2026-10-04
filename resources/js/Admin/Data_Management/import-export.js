@@ -271,6 +271,7 @@ function initImportExportPage() {
                 </div>
             `;
 
+            overlay.dataset.pageOwned = 'true';
             document.body.appendChild(overlay);
             document.body.classList.add('transfer-activity-modal-open');
             overlay.querySelector('.transfer-activity-modal-close')?.addEventListener('click', closeActivityModal);
@@ -446,8 +447,8 @@ function initImportExportPage() {
     bindRecentActivityButtons();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initImportExportPage, { once: true });
-} else {
-    initImportExportPage();
-}
+window.GCTPartialNavigation.registerInitializer(
+    'admin-import-export',
+    '.import-export-page',
+    initImportExportPage,
+);

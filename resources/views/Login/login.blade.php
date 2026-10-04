@@ -76,6 +76,13 @@
             </div>
           @endif
 
+          @if (session('error'))
+            <div class="login-alert" role="alert">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <span>{{ session('error') }}</span>
+            </div>
+          @endif
+
           <form id="loginForm" method="POST" action="{{ route('login.submit') }}" novalidate>
             @csrf
 
@@ -168,6 +175,53 @@
       </div>
     </section>
   </main>
+
+  @php
+    $blockedAccountStatus = strtolower(trim((string) session('blocked_account_status')));
+    $blockedAccountTitle = match ($blockedAccountStatus) {
+        'inactive' => 'Account Deactivated',
+        'pending' => 'Account Pending Activation',
+        default => 'Account Unavailable',
+    };
+    $blockedAccountMessage = match ($blockedAccountStatus) {
+        'inactive' => 'This account has been deactivated and cannot sign in. Please contact your system administrator if you need the account reactivated.',
+        'pending' => 'This account is still pending activation. Please contact your system administrator before trying to sign in again.',
+        default => 'This account is not currently allowed to sign in. Please contact your system administrator.',
+    };
+  @endphp
+
+  @if ($blockedAccountStatus !== '')
+    <div
+      class="account-status-modal is-open"
+      id="accountStatusModal"
+      data-account-status-modal
+      role="presentation"
+    >
+      <div
+        class="account-status-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="accountStatusTitle"
+        aria-describedby="accountStatusMessage"
+      >
+        <div class="account-status-icon" aria-hidden="true">
+          <i class="fa-solid fa-user-lock"></i>
+        </div>
+
+        <h2 id="accountStatusTitle">{{ $blockedAccountTitle }}</h2>
+        <p id="accountStatusMessage">{{ $blockedAccountMessage }}</p>
+
+        <button
+          type="button"
+          class="account-status-confirm"
+          data-account-status-close
+          autofocus
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  @endif
 
   <script>
     window.addEventListener('pageshow', (event) => {

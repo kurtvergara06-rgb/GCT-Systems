@@ -123,7 +123,7 @@ class AdminUserController extends Controller
 
     private function updateRolePermissions(Request $request)
     {
-        $modules = app(RolePermissionService::class)->modules();
+        $permissionService = app(RolePermissionService::class);
 
         $validated = $request->validate([
             'role_key' => ['required', 'string', 'exists:role_permissions,role_key'],
@@ -133,16 +133,21 @@ class AdminUserController extends Controller
         $rolePermission = RolePermission::where('role_key', $validated['role_key'])->firstOrFail();
 
         if ($rolePermission->role_key === 'admin_head') {
-            return redirect()->route('admin.roles-permissions')->with('error', 'System Admin permissions are protected.');
+            return redirect()
+                ->route('admin.roles-permissions')
+                ->with('error', 'System Admin permissions are protected and always have full system access.');
         }
 
-        $normalized = [];
-
-        foreach ($modules as $moduleKey => $module) {
-            foreach (array_keys($module['capabilities']) as $capabilityKey) {
-                $normalized[$moduleKey][$capabilityKey] = $request->boolean("permissions.{$moduleKey}.{$capabilityKey}");
-            }
+        if ($permissionService->roleModuleKey($rolePermission) === null) {
+            return redirect()
+                ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
+                ->with('error', 'This role is not mapped to a valid department module.');
         }
+
+        $normalized = $permissionService->isolatedPermissions(
+            $rolePermission,
+            $validated['permissions']
+        );
 
         $rolePermission->update([
             'permissions' => $normalized,

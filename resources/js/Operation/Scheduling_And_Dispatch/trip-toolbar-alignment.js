@@ -13,8 +13,8 @@ function alignTripScheduleToolbar() {
     toolbar.appendChild(actions);
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', alignTripScheduleToolbar, { once: true });
-} else {
-    alignTripScheduleToolbar();
-}
+window.GCTPartialNavigation.registerInitializer(
+    'operation-trip-toolbar-alignment',
+    '.trip-schedule-page',
+    alignTripScheduleToolbar,
+);

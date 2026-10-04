@@ -1,5 +1,28 @@
 <?php
 
+$defaultAllowedOrigin = parse_url(
+    (string) env('APP_URL', 'http://localhost'),
+    PHP_URL_HOST
+) ?: 'localhost';
+
+$configuredAllowedOrigins = (string) env(
+    'REVERB_ALLOWED_ORIGINS',
+    env('REVERB_ALLOWED_ORIGIN', $defaultAllowedOrigin)
+);
+
+$allowedOrigins = array_values(array_unique(array_filter(array_map(
+    static function (string $origin): string {
+        $origin = trim($origin);
+
+        if ($origin === '' || $origin === '*') {
+            return $origin;
+        }
+
+        return parse_url($origin, PHP_URL_HOST) ?: $origin;
+    },
+    explode(',', $configuredAllowedOrigins)
+))));
+
 return [
 
     /*
@@ -82,7 +105,7 @@ return [
                     'scheme' => env('REVERB_SCHEME', 'https'),
                     'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
                 ],
-                'allowed_origins' => [env('REVERB_ALLOWED_ORIGIN', 'https://gct-systems.onrender.com')],
+                'allowed_origins' => $allowedOrigins,
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_connections' => env('REVERB_APP_MAX_CONNECTIONS'),

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('admin-activity-logs', '.activity-logs-page', () => {
     const form = document.getElementById('activityFilterForm');
     const searchInput = form?.querySelector('input[name="search"]');
     const loading = document.getElementById('activityTableLoading');

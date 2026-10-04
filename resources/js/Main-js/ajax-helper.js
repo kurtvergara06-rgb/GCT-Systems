@@ -1,0 +1,231 @@
+/**
+ * GCT-Systems Reusable AJAX Helper
+ * Handles unified fetch requests, form submissions, CSRF, loading state,
+ * error handling, toast notifications, and partial region refresh.
+ */
+
+const getCsrfToken = () => {
+    return (
+        document.querySelector('meta[name="csrf-token"]')?.content ||
+        document.querySelector('input[name="_token"]')?.value ||
+        ''
+    );
+};
+
+let activeRefreshPromise = null;
+let lastRefreshTime = 0;
+
+const getRealtimeMutationState = () => {
+    if (!window.GCTRealtimeLocalMutation) {
+        window.GCTRealtimeLocalMutation = {
+            pending: 0,
+            quietUntil: 0,
+        };
+    }
+
+    return window.GCTRealtimeLocalMutation;
+};
+
+const markRealtimeMutationStart = () => {
+    const state = getRealtimeMutationState();
+    state.pending += 1;
+    // Broadcasts can arrive before the AJAX response returns. Keep the
+    // initiating tab quiet while its own mutation is still in flight.
+    state.quietUntil = Math.max(state.quietUntil, Date.now() + 3000);
+};
+
+const markRealtimeMutationEnd = () => {
+    const state = getRealtimeMutationState();
+    state.pending = Math.max(0, state.pending - 1);
+    // Leave a short grace period for broadcasts delivered immediately after
+    // the HTTP response. Other tabs/devices are unaffected by this state.
+    state.quietUntil = Math.max(state.quietUntil, Date.now() + 1200);
+};
+
+/**
+ * Perform a unified AJAX request.
+ * @param {string} url
+ * @param {Object} options
+ * @returns {Promise<{ ok: boolean, data?: any, error?: string, status?: number }>}
+ */
+async function ajaxRequest(url, options = {}) {
+    const rawMethod = (options.method || 'GET').toUpperCase();
+    const headers = {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json, text/plain, */*',
+        ...(options.headers || {}),
+    };
+
+    const csrf = getCsrfToken();
+    if (csrf && !headers['X-CSRF-TOKEN'] && rawMethod !== 'GET' && rawMethod !== 'HEAD') {
+        headers['X-CSRF-TOKEN'] = csrf;
+    }
+
+    let body = options.body;
+    let method = rawMethod;
+
+    if (body && !(body instanceof FormData) && typeof body === 'object') {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(body);
+    }
+
+    const button = options.button || null;
+    const loadingText = options.loadingText || '';
+    const isMutationRequest = !['GET', 'HEAD', 'OPTIONS'].includes(rawMethod);
+
+    if (button && window.GCTLoading?.set) {
+        window.GCTLoading.set(button, loadingText);
+    }
+
+    if (isMutationRequest) {
+        markRealtimeMutationStart();
+    }
+
+    try {
+        const response = await fetch(url, {
+            method,
+            headers,
+            body,
+            cache: options.cache || 'no-store',
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        let data = null;
+
+        if (contentType.includes('application/json')) {
+            try {
+                data = await response.json();
+            } catch (jsonErr) {
+                console.warn('Failed to parse JSON response:', jsonErr);
+            }
+        } else {
+            try {
+                data = await response.text();
+            } catch (textErr) {
+                console.warn('Failed to read response text:', textErr);
+            }
+        }
+
+        if (!response.ok) {
+            let errorMessage = 'An unexpected error occurred.';
+
+            if (response.status === 419) {
+                errorMessage = 'Your session has expired. Please refresh the page.';
+            } else if (response.status === 422) {
+                if (data && typeof data === 'object') {
+                    if (data.message && !data.errors) {
+                        errorMessage = data.message;
+                    } else if (data.errors && typeof data.errors === 'object') {
+                        const firstKey = Object.keys(data.errors)[0];
+                        errorMessage = data.errors[firstKey]?.[0] || data.message || 'Validation error.';
+                    } else {
+                        errorMessage = data.message || 'Validation failed. Please check your input.';
+                    }
+                }
+            } else if (data && typeof data === 'object' && data.message) {
+                errorMessage = data.message;
+            } else if (typeof data === 'string' && data.length > 0 && data.length < 200) {
+                errorMessage = data;
+            } else {
+                errorMessage = `Action failed (HTTP ${response.status}).`;
+            }
+
+            if (options.showToast !== false && typeof window.showSystemToast === 'function') {
+                window.showSystemToast(errorMessage, 'error', options.errorTitle || 'Action Failed');
+            }
+
+            if (typeof options.onError === 'function') {
+                options.onError(errorMessage, data, response.status);
+            }
+
+            return { ok: false, error: errorMessage, data, status: response.status };
+        }
+
+        // Success (200-299)
+        const successMessage = (data && typeof data === 'object' && data.message)
+            ? data.message
+            : (options.successMessage || null);
+
+        if (successMessage && options.showToast !== false && typeof window.showSystemToast === 'function') {
+            window.showSystemToast(successMessage, 'success', options.toastTitle || 'Success');
+        }
+
+        if (options.closeModal) {
+            const modalEl = typeof options.closeModal === 'string'
+                ? document.getElementById(options.closeModal)
+                : options.closeModal;
+            if (modalEl) {
+                modalEl.classList.remove('show', 'active');
+                modalEl.style.display = 'none';
+                modalEl.setAttribute('aria-hidden', 'true');
+                if (window.GCTModalBackdrop?.sync) {
+                    window.GCTModalBackdrop.sync();
+                } else {
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+
+        if (options.refreshRegions !== false && window.GCTRegions?.refresh) {
+            await window.GCTRegions.refresh(options.refreshUrl || window.location.href, options.regions || null);
+        }
+
+        if (typeof options.onSuccess === 'function') {
+            options.onSuccess(data, response.status);
+        }
+
+        return { ok: true, data, status: response.status };
+    } catch (networkError) {
+        console.error('AJAX request network error:', networkError);
+        const msg = networkError?.message || 'Network request failed. Please check your connection.';
+
+        if (options.showToast !== false && typeof window.showSystemToast === 'function') {
+            window.showSystemToast(msg, 'error', 'Connection Error');
+        }
+
+        if (typeof options.onError === 'function') {
+            options.onError(msg, null, 0);
+        }
+
+        return { ok: false, error: msg, data: null, status: 0 };
+    } finally {
+        if (isMutationRequest) {
+            markRealtimeMutationEnd();
+        }
+
+        if (button && window.GCTLoading?.reset) {
+            window.GCTLoading.reset(button);
+        }
+    }
+}
+
+/**
+ * Submit an HTMLFormElement via AJAX.
+ * @param {HTMLFormElement} form
+ * @param {Object} options
+ */
+async function submitForm(form, options = {}) {
+    if (!(form instanceof HTMLFormElement)) {
+        throw new Error('GCTAjax.submitForm requires an HTMLFormElement.');
+    }
+
+    const url = form.getAttribute('action') || window.location.href;
+    const method = (form.getAttribute('method') || 'POST').toUpperCase();
+    const formData = new FormData(form, options.submitter || undefined);
+
+    return ajaxRequest(url, {
+        method,
+        body: formData,
+        button: options.button || form.querySelector('button[type="submit"], input[type="submit"]'),
+        loadingText: options.loadingText || form.dataset.loadingText || '',
+        ...options,
+    });
+}
+
+window.GCTAjax = Object.freeze({
+    request: ajaxRequest,
+    submitForm,
+    getCsrfToken,
+});
+
+export { ajaxRequest, submitForm, getCsrfToken };

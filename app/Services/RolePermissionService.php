@@ -7,6 +7,56 @@ use Illuminate\Support\Facades\Schema;
 
 class RolePermissionService
 {
+    public function roleModuleKey(RolePermission $rolePermission): ?string
+    {
+        if ($rolePermission->role_key === 'admin_head') {
+            return null;
+        }
+
+        $moduleKey = strtolower(trim((string) $rolePermission->department));
+
+        return array_key_exists($moduleKey, $this->modules())
+            ? $moduleKey
+            : null;
+    }
+
+    public function isolatedPermissions(RolePermission $rolePermission, array $submittedPermissions): array
+    {
+        $normalized = [];
+
+        foreach ($this->modules() as $moduleKey => $module) {
+            foreach (array_keys($module['capabilities']) as $capabilityKey) {
+                $normalized[$moduleKey][$capabilityKey] = false;
+            }
+        }
+
+        if ($rolePermission->role_key === 'admin_head') {
+            foreach ($normalized as $moduleKey => $capabilities) {
+                foreach (array_keys($capabilities) as $capabilityKey) {
+                    $normalized[$moduleKey][$capabilityKey] = true;
+                }
+            }
+
+            return $normalized;
+        }
+
+        $roleModuleKey = $this->roleModuleKey($rolePermission);
+
+        if ($roleModuleKey === null) {
+            return $normalized;
+        }
+
+        foreach (array_keys($this->modules()[$roleModuleKey]['capabilities']) as $capabilityKey) {
+            $normalized[$roleModuleKey][$capabilityKey] = (bool) data_get(
+                $submittedPermissions,
+                $roleModuleKey.'.'.$capabilityKey,
+                false
+            );
+        }
+
+        return $normalized;
+    }
+
     public function data(?string $selectedRoleKey = null): array
     {
         if (! Schema::hasTable('role_permissions')) {

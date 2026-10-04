@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batch-processing-page', function () {
     const fileInput = document.getElementById('gpsFileInput');
     const dropzone = document.getElementById('gpsDropzone');
     const chooseFileBtn = document.getElementById('chooseGpsFileBtn');

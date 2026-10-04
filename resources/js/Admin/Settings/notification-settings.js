@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('admin-notification-settings', '.notification-settings-page', () => {
     // 1. Master System Notifications Toggle
     const masterToggle = document.getElementById('masterSystemNotifications');
     const sectionsToDisable = [

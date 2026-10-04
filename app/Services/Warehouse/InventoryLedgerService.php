@@ -128,7 +128,14 @@ class InventoryLedgerService
                 throw new InvalidArgumentException('Inventory item no longer exists.');
             }
 
-            $previous = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+            /*
+             * quantity_available is the stock field used by the Warehouse inventory
+             * page and part-request availability checks. Some legacy/imported rows
+             * can still have a stale on_hand value (for example 0) while
+             * quantity_available contains the real stock. Use the same operational
+             * source here, then write both columns below so the row is healed.
+             */
+            $previous = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
 
             if ($absoluteTarget !== null) {
                 $signedChange = $absoluteTarget - $previous;
