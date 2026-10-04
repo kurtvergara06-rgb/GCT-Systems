@@ -738,47 +738,15 @@ class JobOrderController extends Controller
                 return redirect()->back()->with('error', $message);
             }
 
-            $plan = $this->linkedJobOrderResetService->plan($jobOrder->job_order_no);
-
-            $plannedPurchaseRequestIds = $plan['purchase_requests']
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->sort()
-                ->values()
-                ->all();
-
-            $rejectedPurchaseRequestIds = $linkedPurchaseRequests
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->sort()
-                ->values()
-                ->all();
-
-            $hasDownstreamRecords = $plan['purchase_orders']->isNotEmpty()
-                || $plan['scheduled_purchases']->isNotEmpty()
-                || $plan['issuances']->isNotEmpty()
-                || $plan['movements']->isNotEmpty();
-
-            if (
-                $plan['action'] === 'BLOCK'
-                || $hasDownstreamRecords
-                || $plannedPurchaseRequestIds !== $rejectedPurchaseRequestIds
-            ) {
-                $message = 'This rejected Job Order cannot be deleted safely because it still has downstream or unrelated linked records.';
-
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => $message], 422);
-                }
-
-                return redirect()->back()->with('error', $message);
-            }
-
             $jobOrderId = $jobOrder->id;
 
             try {
-                $this->linkedJobOrderResetService->reset($jobOrder->job_order_no);
-            } catch (\RuntimeException) {
-                $message = 'This rejected Job Order changed while it was being checked and was not deleted. Please try again.';
+                $this->linkedJobOrderResetService->deleteRejectedWorkflow(
+                    $jobOrder->job_order_no
+                );
+            } catch (\RuntimeException $exception) {
+                $message = 'This rejected Job Order could not be deleted safely: '
+                    .$exception->getMessage();
 
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json(['success' => false, 'message' => $message], 422);
@@ -792,10 +760,10 @@ class JobOrderController extends Controller
                 'JobOrder',
                 'deleted',
                 $jobOrderId,
-                'A rejected job order and its rejected purchase request were deleted.'
+                'A rejected job order and its linked purchase-request data were deleted.'
             );
 
-            $message = 'Rejected Job Order and its rejected Purchase Request were deleted successfully.';
+            $message = 'Rejected Job Order and its linked Purchase Request data were deleted successfully.';
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
