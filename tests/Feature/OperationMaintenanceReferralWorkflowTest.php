@@ -227,6 +227,191 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame(0, MaintenanceReferral::count());
     }
 
+    public function test_completed_referral_job_order_link_opens_job_order_history_and_uses_saved_job_order_bus(): void
+    {
+        $maintenanceHead = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+
+        $incidentBus = Bus::create([
+            'bus_no' => 'GCT-205',
+            'status' => 'Active',
+        ]);
+
+        $incident = Incident::create([
+            'incident_no' => 'INC-HIST-JO-001',
+            'bus_id' => $incidentBus->id,
+            'incident_type' => 'Bus Breakdown',
+            'location' => 'Referral History Test',
+            'description' => 'Historical referral bus differs from saved Job Order bus.',
+            'incident_reported_at' => now(),
+            'status' => 'Reported',
+            'reported_by' => $maintenanceHead->id,
+        ]);
+
+        $referral = MaintenanceReferral::create([
+            'incident_id' => $incident->id,
+            'status' => 'Job Order Created',
+            'referred_by' => $maintenanceHead->id,
+            'reviewed_by' => $maintenanceHead->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-2026-9001',
+            'bus_no' => 'DEMO-BUS-105',
+            'maintenance_referral_id' => $referral->id,
+            'incident_id' => $incident->id,
+            'problem_issue' => 'Historical repair',
+            'maintenance_type' => 'Repair',
+            'start_date' => now()->subDay(),
+            'completion_date' => now(),
+            'status' => 'Completed',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $response = $this
+            ->actingAs($maintenanceHead)
+            ->get(route('maintenance-referrals', [
+                'record_view' => 'history',
+            ]));
+
+        $response->assertOk();
+        $response->assertSee('DEMO-BUS-105');
+        $response->assertDontSee('GCT-205');
+        $response->assertSee(
+            route('job-orders', [
+                'record_view' => 'history',
+                'search' => $jobOrder->job_order_no,
+            ]),
+            false
+        );
+    }
+
+    public function test_non_completed_referral_job_order_link_opens_active_job_orders(): void
+    {
+        $maintenanceHead = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+
+        $incidentBus = Bus::create([
+            'bus_no' => 'BUS-REF-ACTIVE-SOURCE',
+            'status' => 'Active',
+        ]);
+
+        $incident = Incident::create([
+            'incident_no' => 'INC-ACTIVE-JO-001',
+            'bus_id' => $incidentBus->id,
+            'incident_type' => 'Bus Breakdown',
+            'location' => 'Active Referral Test',
+            'description' => 'Referral already created an active Job Order.',
+            'incident_reported_at' => now(),
+            'status' => 'Responding',
+            'reported_by' => $maintenanceHead->id,
+        ]);
+
+        $referral = MaintenanceReferral::create([
+            'incident_id' => $incident->id,
+            'status' => 'Job Order Created',
+            'referred_by' => $maintenanceHead->id,
+            'reviewed_by' => $maintenanceHead->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-2026-9002',
+            'bus_no' => 'BUS-REF-ACTIVE-JO',
+            'maintenance_referral_id' => $referral->id,
+            'incident_id' => $incident->id,
+            'problem_issue' => 'Active repair',
+            'maintenance_type' => 'Repair',
+            'start_date' => now(),
+            'completion_date' => null,
+            'status' => 'On Hold',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $response = $this
+            ->actingAs($maintenanceHead)
+            ->get(route('maintenance-referrals', [
+                'record_view' => 'history',
+            ]));
+
+        $response->assertOk();
+        $response->assertSee(
+            route('job-orders', [
+                'record_view' => 'active',
+                'search' => $jobOrder->job_order_no,
+            ]),
+            false
+        );
+    }
+
+    public function test_referral_history_search_matches_linked_job_order_number_and_bus(): void
+    {
+        $maintenanceHead = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+
+        $incidentBus = Bus::create([
+            'bus_no' => 'BUS-SEARCH-SOURCE',
+            'status' => 'Active',
+        ]);
+
+        $incident = Incident::create([
+            'incident_no' => 'INC-SEARCH-JO-001',
+            'bus_id' => $incidentBus->id,
+            'incident_type' => 'Bus Breakdown',
+            'location' => 'Search Test',
+            'description' => 'Search should include linked Job Order data.',
+            'incident_reported_at' => now(),
+            'status' => 'Reported',
+            'reported_by' => $maintenanceHead->id,
+        ]);
+
+        $referral = MaintenanceReferral::create([
+            'incident_id' => $incident->id,
+            'status' => 'Job Order Created',
+            'referred_by' => $maintenanceHead->id,
+        ]);
+
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-9003',
+            'bus_no' => 'DEMO-LINKED-BUS',
+            'maintenance_referral_id' => $referral->id,
+            'incident_id' => $incident->id,
+            'problem_issue' => 'Searchable repair',
+            'maintenance_type' => 'Repair',
+            'start_date' => now(),
+            'status' => 'On Hold',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $this
+            ->actingAs($maintenanceHead)
+            ->get(route('maintenance-referrals', [
+                'record_view' => 'history',
+                'search' => 'JO-2026-9003',
+            ]))
+            ->assertOk()
+            ->assertSee('JO-2026-9003');
+
+        $this
+            ->actingAs($maintenanceHead)
+            ->get(route('maintenance-referrals', [
+                'record_view' => 'history',
+                'search' => 'DEMO-LINKED-BUS',
+            ]))
+            ->assertOk()
+            ->assertSee('JO-2026-9003');
+    }
+
     public function test_complete_operation_maintenance_warehouse_end_to_end_workflow_and_traceability(): void
     {
         // 1. Setup multi-department personnel
