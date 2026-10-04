@@ -382,7 +382,66 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
-  animateJobOrderPageEntrance();
+  function waitForJobOrderReveal(
+    attempt = 0
+  ) {
+
+    const root =
+      document.querySelector(
+        '.jo-page'
+      );
+
+
+    if (!root) {
+      return;
+    }
+
+
+    const loaderVisible =
+      document.body
+        .classList
+        .contains(
+          'gct-navigation-loading'
+        );
+
+
+    const mainHeld =
+      root.classList
+        .contains(
+          'gct-main-loader-hold'
+        )
+      || root.classList
+        .contains(
+          'gct-main-entering'
+        );
+
+
+    if (
+      (loaderVisible || mainHeld)
+      && attempt < 30
+    ) {
+
+      window.setTimeout(
+        () => waitForJobOrderReveal(
+          attempt + 1
+        ),
+        24
+      );
+
+
+      return;
+    }
+
+
+    window.requestAnimationFrame(
+      () => window.requestAnimationFrame(
+        animateJobOrderPageEntrance
+      )
+    );
+  }
+
+
+  waitForJobOrderReveal();
 
 
   /* =========================================================
