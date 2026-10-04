@@ -644,8 +644,6 @@
           <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance Head">
       </form>
 
-      <x-ui.action-buttom-modal mode="global-confirmation" />
-
       <x-ui.action-buttom-modal
           mode="delete"
           id="deletePrModal"
