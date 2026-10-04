@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\PmsSchedule;
-use Carbon\Carbon;
+use App\Services\Maintenance\PmsStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +13,12 @@ use Illuminate\Validation\Rule;
 
 class PmsSchedulingController extends Controller
 {
-    private const WARNING_RANGE_KM = 500;
     private const PER_PAGE = 20;
-    private const DEFAULT_AVERAGE_DAILY_KM = 250;
+
+    public function __construct(
+        private readonly PmsStatusService $pmsStatusService
+    ) {
+    }
 
     public function index(Request $request)
     {
@@ -38,7 +40,7 @@ class PmsSchedulingController extends Controller
             ->orderBy('maintenance_type')
             ->get();
 
-        $gpsByBus = $this->getLatestProcessedGpsByBus();
+        $gpsByBus = $this->pmsStatusService->latestProcessedGpsByBus();
 
         $processedBuses = $gpsByBus
             ->map(function (array $gps) {
@@ -59,36 +61,24 @@ class PmsSchedulingController extends Controller
 
                 $gps = $gpsByBus->get($normalizedBusNo);
 
-                $currentKm = $gps['current_km'] ?? null;
-                $kmTraveled = $gps['km_traveled'] ?? 0;
-                $gpsReportDate = $gps['gps_report_date'] ?? null;
-
-                $status = $this->getPmsStatus(
-                    $currentKm,
-                    (float) $schedule->next_pms_km
+                $assessment = $this->pmsStatusService->assess(
+                    $schedule,
+                    $gps
                 );
-
-                $remainingKm = $currentKm !== null
-                    ? (float) $schedule->next_pms_km - $currentKm
-                    : null;
 
                 return (object) [
                     'schedule' => $schedule,
                     'bus_no' => $schedule->bus_no,
-                    'gps_report_date' => $gpsReportDate,
-                    'current_km' => $currentKm,
-                    'km_traveled' => $kmTraveled,
+                    'gps_report_date' => $assessment['gps_report_date'],
+                    'current_km' => $assessment['current_km'],
+                    'km_traveled' => $assessment['km_traveled'],
                     'last_pms_km' => (float) $schedule->last_pms_km,
-                    'next_pms_km' => (float) $schedule->next_pms_km,
+                    'next_pms_km' => $assessment['next_pms_km'],
                     'pms_interval_km' => (float) $schedule->pms_interval_km,
                     'maintenance_type' => $schedule->maintenance_type,
-                    'recommended_date' => $this->getRecommendedDate(
-                        $currentKm,
-                        (float) $schedule->next_pms_km,
-                        $gpsReportDate
-                    ),
-                    'remaining_km' => $remainingKm,
-                    'status' => $status,
+                    'recommended_date' => $assessment['recommended_date'],
+                    'remaining_km' => $assessment['remaining_km'],
+                    'status' => $assessment['status'],
                 ];
             }
         );
@@ -275,12 +265,12 @@ class PmsSchedulingController extends Controller
             (float) $validated['last_pms_km']
             + (float) $validated['pms_interval_km'];
 
-        $latestGps = $this->getLatestProcessedGpsForBus(
+        $latestGps = $this->pmsStatusService->latestProcessedGpsForBus(
             $validated['bus_no']
         );
 
         $validated['recommended_date'] =
-            $this->getRecommendedDate(
+            $this->pmsStatusService->recommendedDate(
                 $latestGps
                     ? (float) $latestGps->mileage_km
                     : null,
@@ -291,7 +281,7 @@ class PmsSchedulingController extends Controller
                         ?? $latestGps->created_at
                     )
                     : null
-            );
+            )?->toDateString();
 
         PmsSchedule::create($validated);
 
@@ -406,7 +396,7 @@ class PmsSchedulingController extends Controller
 
     public function createJobOrder(PmsSchedule $pmsSchedule)
     {
-        $latestGps = $this->getLatestProcessedGpsForBus(
+        $latestGps = $this->pmsStatusService->latestProcessedGpsForBus(
             $pmsSchedule->bus_no
         );
 
@@ -421,11 +411,13 @@ class PmsSchedulingController extends Controller
 
         $currentKm = (float) $latestGps->mileage_km;
 
-        if (
-            $currentKm
-            < (float) $pmsSchedule->next_pms_km
-                - self::WARNING_RANGE_KM
-        ) {
+        $status = $this->pmsStatusService->determineStatus(
+            $currentKm,
+            (float) $pmsSchedule->next_pms_km,
+            $pmsSchedule->recommended_date
+        );
+
+        if ($status === 'Upcoming') {
             return redirect()
                 ->to(route('PMS-Scheduling', [], false))
                 ->with(
@@ -434,15 +426,10 @@ class PmsSchedulingController extends Controller
                 );
         }
 
-        $statusText =
-            $currentKm >= (float) $pmsSchedule->next_pms_km
-                ? 'overdue'
-                : 'due soon';
-
         $issue = $pmsSchedule->maintenance_type
             . ' is '
-            . $statusText
-            . ' based on processed GPS mileage. '
+            . strtolower($status)
+            . ' based on the PMS schedule threshold. '
             . 'Current KM: '
             . number_format($currentKm, 2)
             . ' km. Next PMS KM: '
@@ -450,7 +437,14 @@ class PmsSchedulingController extends Controller
                 (float) $pmsSchedule->next_pms_km,
                 2
             )
-            . ' km.';
+            . ' km.'
+            . (
+                $pmsSchedule->recommended_date
+                    ? ' Recommended Date: '
+                        . $pmsSchedule->recommended_date->format('M d, Y')
+                        . '.'
+                    : ''
+            );
 
         return redirect()->to(
             route(
@@ -594,148 +588,5 @@ class PmsSchedulingController extends Controller
         });
     }
 
-    private function getPmsStatus(
-        ?float $currentKm,
-        float $nextPmsKm
-    ): string {
-        if ($currentKm === null) {
-            return 'Upcoming';
-        }
 
-        if ($currentKm >= $nextPmsKm) {
-            return 'Overdue';
-        }
-
-        if (
-            $currentKm
-            >= ($nextPmsKm - self::WARNING_RANGE_KM)
-        ) {
-            return 'Due Soon';
-        }
-
-        return 'Upcoming';
-    }
-
-    private function getOverallStatus($tasks): string
-    {
-        if (
-            $tasks->contains(
-                fn ($task) => $task->status === 'Overdue'
-            )
-        ) {
-            return 'Overdue';
-        }
-
-        if (
-            $tasks->contains(
-                fn ($task) => $task->status === 'Due Soon'
-            )
-        ) {
-            return 'Due Soon';
-        }
-
-        return 'Upcoming';
-    }
-
-    private function getRecommendedDate(
-        ?float $currentKm,
-        float $nextPmsKm,
-        $gpsReportDate
-    ): ?string {
-        if ($currentKm === null || ! $gpsReportDate) {
-            return null;
-        }
-
-        $remainingKm = $nextPmsKm - $currentKm;
-
-        if ($remainingKm <= 0) {
-            return Carbon::parse(
-                $gpsReportDate
-            )->toDateString();
-        }
-
-        $daysUntilPms = (int) ceil(
-            $remainingKm
-            / self::DEFAULT_AVERAGE_DAILY_KM
-        );
-
-        return Carbon::parse($gpsReportDate)
-            ->addDays(max(1, $daysUntilPms))
-            ->toDateString();
-    }
-
-    private function getLatestProcessedGpsForBus(
-        string $busNo
-    ): ?GpsTripRecord {
-        return GpsTripRecord::query()
-            ->whereRaw(
-                'UPPER(TRIM(bus_no)) = ?',
-                [strtoupper(trim($busNo))]
-            )
-            ->whereNotNull('mileage_km')
-            ->whereHas(
-                'batchUpload',
-                function ($query) {
-                    $query->where(
-                        'status',
-                        'Processed'
-                    );
-                }
-            )
-            ->orderByDesc('beginning_at')
-            ->orderByDesc('id')
-            ->first();
-    }
-
-    private function getLatestProcessedGpsByBus()
-    {
-        return GpsTripRecord::query()
-            ->whereNotNull('bus_no')
-            ->whereNotNull('mileage_km')
-            ->whereHas(
-                'batchUpload',
-                function ($query) {
-                    $query->where(
-                        'status',
-                        'Processed'
-                    );
-                }
-            )
-            ->orderBy('bus_no')
-            ->orderByDesc('beginning_at')
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy(function (GpsTripRecord $record) {
-                return strtoupper(
-                    trim((string) $record->bus_no)
-                );
-            })
-            ->map(function ($records) {
-                $latestRecord = $records->first();
-                $previousRecord = $records
-                    ->skip(1)
-                    ->first();
-
-                $currentKm =
-                    (float) $latestRecord->mileage_km;
-
-                $previousKm = $previousRecord
-                    ? (float) $previousRecord->mileage_km
-                    : null;
-
-                return [
-                    'bus_no' => $latestRecord->bus_no,
-                    'current_km' => $currentKm,
-                    'km_traveled' => $previousKm !== null
-                        ? max(
-                            0,
-                            $currentKm - $previousKm
-                        )
-                        : 0,
-                    'gps_report_date' =>
-                        $latestRecord->beginning_at
-                        ?? $latestRecord->created_at,
-                ];
-            });
-    }
 }
