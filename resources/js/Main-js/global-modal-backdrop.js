@@ -43,6 +43,33 @@ const OVERLAY_SELECTORS = [
 const OVERLAY_QUERY = OVERLAY_SELECTORS.join(', ');
 
 /**
+ * Modal interaction policy:
+ * clicking the backdrop itself must never dismiss a modal.
+ * Users must use an explicit X / Cancel / action button so an
+ * accidental outside click cannot discard form state.
+ */
+function preventBackdropDismissal(event) {
+  const target = event.target;
+
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  if (!target.matches(OVERLAY_QUERY)) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+document.addEventListener(
+  'click',
+  preventBackdropDismissal,
+  true
+);
+
+/**
  * Checks whether a given modal overlay element is currently open and visible to the user.
  *
  * @param {HTMLElement} el
