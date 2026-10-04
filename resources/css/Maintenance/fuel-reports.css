@@ -3035,3 +3035,656 @@
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   FUEL RECORD MODAL REDESIGN
+   Keeps existing GPS/manual-distance workflow and IDs intact.
+========================================================= */
+
+#fuelModal {
+  padding: 24px;
+}
+
+#fuelModal .fuel-record-redesign-modal {
+  width: min(980px, calc(100vw - 48px));
+  max-width: 980px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 28px 78px rgba(6, 31, 61, .26);
+}
+
+#fuelModal .fuel-record-modal-header {
+  flex: 0 0 auto;
+  padding: 20px 24px 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #e5ebf3;
+  background: #ffffff;
+}
+
+#fuelModal .fuel-record-modal-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+#fuelModal .fuel-record-title-icon {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f5d66f;
+  border-radius: 14px;
+  background: #fff5d7;
+  color: #d99a00;
+  font-size: 19px;
+}
+
+#fuelModal .fuel-record-modal-heading h2 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
+
+#fuelModal .fuel-record-modal-heading p {
+  max-width: 690px;
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+#fuelModal .fuel-modal-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #061f3d;
+}
+
+#fuelModal #fuelForm {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+#fuelModal .fuel-record-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 20px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df transparent;
+}
+
+#fuelModal .fuel-record-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#fuelModal .fuel-record-modal-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #c5d1df;
+}
+
+#fuelModal .fuel-record-section {
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(6, 31, 61, .035);
+}
+
+#fuelModal .fuel-record-section:last-child {
+  margin-bottom: 0;
+}
+
+#fuelModal .fuel-record-top-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+#fuelModal .form-group {
+  min-width: 0;
+  margin: 0;
+}
+
+#fuelModal .form-group > label,
+#fuelModal .fuel-record-field-card label {
+  display: block;
+  margin: 0 0 7px;
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+#fuelModal .fuel-field-required {
+  color: #dc2626;
+}
+
+#fuelModal .fuel-field-control {
+  position: relative;
+}
+
+#fuelModal .fuel-field-control.has-leading-icon > input,
+#fuelModal .fuel-field-control.has-leading-icon > select {
+  padding-left: 40px;
+}
+
+#fuelModal .fuel-field-icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  z-index: 2;
+  transform: translateY(-50%);
+  color: #315481;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+#fuelModal .fuel-field-help {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+#fuelModal input,
+#fuelModal select,
+#fuelModal textarea {
+  width: 100%;
+  border: 1px solid #d5e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #17233a;
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+#fuelModal input,
+#fuelModal select {
+  min-height: 43px;
+  padding: 0 12px;
+}
+
+#fuelModal textarea {
+  min-height: 88px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+#fuelModal input:focus,
+#fuelModal select:focus,
+#fuelModal textarea:focus {
+  border-color: #6f9de8;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
+}
+
+#fuelModal .fuel-record-field-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+#fuelModal .fuel-record-field-card.fuel-added-card {
+  border-color: #f2d58e;
+  background: linear-gradient(135deg, #fffaf0 0%, #fff5d9 100%);
+}
+
+#fuelModal .fuel-record-field-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+#fuelModal .fuel-record-field-card-heading label {
+  margin: 0;
+}
+
+#fuelModal .fuel-record-field-card-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+#fuelModal .fuel-record-field-card-icon.blue {
+  background: #e7f0ff;
+  color: #0b40b5;
+}
+
+#fuelModal .fuel-record-field-card-icon.yellow {
+  background: #fff0bd;
+  color: #d99a00;
+}
+
+#fuelModal .fuel-record-field-card small {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 10.5px;
+}
+
+#fuelModal .fuel-added-control input {
+  padding-right: 74px;
+}
+
+#fuelModal .fuel-added-control > span {
+  right: 12px;
+  color: #475569;
+  font-weight: 700;
+}
+
+#fuelModal .fuel-record-section-heading,
+#fuelModal .fuel-record-section-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+#fuelModal .fuel-record-section-heading {
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+#fuelModal .fuel-record-section-title {
+  min-width: 0;
+}
+
+#fuelModal .fuel-record-section-title.compact {
+  margin-bottom: 10px;
+}
+
+#fuelModal .fuel-record-section-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#fuelModal .fuel-record-section-icon.blue {
+  border: 1px solid #cfe0ff;
+  background: #eaf2ff;
+  color: #1456d5;
+}
+
+#fuelModal .fuel-record-section-icon.green {
+  border: 1px solid #ccefe4;
+  background: #dff7ef;
+  color: #0b8a6d;
+}
+
+#fuelModal .fuel-record-section-icon.slate {
+  border: 1px solid #dce5f2;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+#fuelModal .fuel-record-section-title h3 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+#fuelModal .fuel-record-section-title h3 span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#fuelModal .fuel-record-section-title p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+#fuelModal .fuel-gps-lookup-section {
+  border-color: #cfe0ff;
+  background: linear-gradient(180deg, #f7fbff 0%, #f3f8ff 100%);
+}
+
+#fuelModal .fuel-gps-refresh-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #bcd2f7;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #ffffff;
+  color: #0b40b5;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#fuelModal .fuel-gps-refresh-btn:hover {
+  background: #eef5ff;
+  border-color: #8cb0ea;
+}
+
+#fuelModal .fuel-gps-status-card {
+  margin: 0 0 12px;
+  min-height: 72px;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+#fuelModal .fuel-gps-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#fuelModal .fuel-gps-metric-card {
+  min-height: 82px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+#fuelModal .fuel-gps-metric-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #edf2f8;
+  color: #315481;
+  font-size: 13px;
+}
+
+#fuelModal .fuel-gps-metric-card span:not(.fuel-gps-metric-icon) {
+  display: block;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#fuelModal .fuel-gps-metric-card strong {
+  display: block;
+  margin-top: 2px;
+  color: #061f3d;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+#fuelModal .fuel-gps-metric-card small {
+  display: block;
+  margin-top: 2px;
+  color: #7b8798;
+  font-size: 9.5px;
+}
+
+#fuelModal .fuel-manual-toggle-card {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: rgba(255,255,255,.75);
+}
+
+#fuelModal .manual-distance-fields {
+  margin-top: 12px;
+}
+
+#fuelModal .manual-distance-fields[hidden] {
+  display: none;
+}
+
+#fuelModal .fuel-efficiency-section {
+  border-color: #ccefe4;
+  background: linear-gradient(135deg, #f4fcf9 0%, #f9fffd 100%);
+}
+
+#fuelModal .fuel-efficiency-redesign {
+  margin-top: 13px;
+  min-height: 94px;
+  padding: 13px 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: center;
+  gap: 0;
+  border: 1px solid #cde9df;
+  border-radius: 12px;
+  background: rgba(255,255,255,.82);
+}
+
+#fuelModal .fuel-efficiency-metric {
+  min-width: 0;
+  padding: 0 14px;
+  border-right: 1px solid #dce9e5;
+}
+
+#fuelModal .fuel-efficiency-metric:first-child {
+  padding-left: 0;
+}
+
+#fuelModal .fuel-efficiency-metric.emphasis {
+  border-right: 0;
+}
+
+#fuelModal .fuel-efficiency-metric > span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#fuelModal .fuel-efficiency-metric > strong {
+  display: block;
+  margin-top: 4px;
+  color: #0b40b5;
+  font-size: 18px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+#fuelModal .fuel-efficiency-metric.emphasis > strong {
+  color: #0b8a6d;
+}
+
+#fuelModal .fuel-efficiency-redesign > .badge {
+  min-width: 86px;
+  margin-left: 14px;
+}
+
+#fuelModal .fuel-remarks-section {
+  position: relative;
+}
+
+#fuelModal .fuel-remarks-counter {
+  margin-top: 5px;
+  text-align: right;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+#fuelModal .fuel-record-modal-actions {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 15px 20px 17px;
+  border-top: 1px solid #e5ebf3;
+  background: #ffffff;
+  box-shadow: 0 -10px 20px rgba(6,31,61,.035);
+}
+
+#fuelModal .fuel-record-modal-actions .secondary-btn,
+#fuelModal .fuel-record-modal-actions .primary-btn {
+  min-height: 42px;
+  height: 42px;
+  padding: 0 17px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#fuelModal .fuel-record-modal-actions .secondary-btn {
+  border: 1px solid #d5e0ed;
+  background: #ffffff;
+  color: #334155;
+}
+
+#fuelModal .fuel-record-modal-actions .primary-btn {
+  border: 1px solid #efb500;
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  color: #061f3d;
+  box-shadow: 0 5px 12px rgba(255,196,0,.22);
+}
+
+#fuelModal .fuel-record-modal-actions .primary-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  background: #ffca18;
+  box-shadow: 0 8px 18px rgba(255,196,0,.3);
+}
+
+#fuelModal .fuel-record-modal-actions .primary-btn:disabled {
+  border-color: #dce4ee;
+  background: #edf2f7;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (max-width: 820px) {
+  #fuelModal .fuel-record-top-grid,
+  #fuelModal .fuel-gps-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #fuelModal .fuel-efficiency-redesign {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 14px;
+  }
+
+  #fuelModal .fuel-efficiency-metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  #fuelModal .fuel-efficiency-metric.emphasis {
+    padding-left: 0;
+  }
+
+  #fuelModal .fuel-efficiency-redesign > .badge {
+    justify-self: start;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  #fuelModal {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  #fuelModal .fuel-record-redesign-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    border-radius: 15px;
+  }
+
+  #fuelModal .fuel-record-modal-header {
+    padding: 16px;
+  }
+
+  #fuelModal .fuel-record-title-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  #fuelModal .fuel-record-modal-heading h2 {
+    font-size: 19px;
+  }
+
+  #fuelModal .fuel-record-modal-body {
+    padding: 14px;
+  }
+
+  #fuelModal .fuel-record-section {
+    padding: 12px;
+  }
+
+  #fuelModal .fuel-record-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #fuelModal .fuel-gps-refresh-btn {
+    width: 100%;
+  }
+
+  #fuelModal .fuel-efficiency-redesign {
+    grid-template-columns: 1fr;
+  }
+
+  #fuelModal .fuel-efficiency-metric,
+  #fuelModal .fuel-efficiency-metric:first-child,
+  #fuelModal .fuel-efficiency-metric.emphasis {
+    padding: 8px 0;
+    border-right: 0;
+    border-bottom: 1px solid #dce9e5;
+  }
+
+  #fuelModal .fuel-efficiency-metric.emphasis {
+    border-bottom: 0;
+  }
+
+  #fuelModal .fuel-record-modal-actions {
+    padding: 13px 14px 14px;
+    flex-direction: column-reverse;
+  }
+
+  #fuelModal .fuel-record-modal-actions .secondary-btn,
+  #fuelModal .fuel-record-modal-actions .primary-btn {
+    width: 100%;
+  }
+}
