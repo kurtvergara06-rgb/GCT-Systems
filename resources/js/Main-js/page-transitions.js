@@ -60,13 +60,20 @@ const showLoader = () => {
     document.body.classList.add('gct-navigation-loading');
 };
 
-const hideLoader = async ({ revealMain = true } = {}) => {
+const hideLoader = async ({
+    revealMain = true,
+    beforeFade = null,
+} = {}) => {
     const loader = ensureLoader();
     const elapsed = performance.now() - loaderShownAt;
     const remaining = Math.max(0, MIN_LOADER_MS - elapsed);
 
     if (remaining > 0) await wait(remaining);
     await nextFrames();
+
+    if (typeof beforeFade === 'function') {
+        await beforeFade();
+    }
 
     loader.classList.add('is-hiding');
     loader.classList.remove('is-visible');
@@ -149,6 +156,41 @@ window.addEventListener('gct:navigation-before', () => {
 window.addEventListener('gct:navigation-ready', async () => {
     holdIncomingMain();
     normalizeSidebarActiveState();
+
+    const maintenanceReveal =
+        window.GCTMaintenanceReveal;
+
+    const useMaintenanceReveal =
+        maintenanceReveal?.isApplicable?.() === true
+        && await maintenanceReveal.prepare();
+
+    if (useMaintenanceReveal) {
+        await hideLoader({
+            revealMain: false,
+            beforeFade: () => {
+                const main = getMainElement();
+                if (!main) return;
+
+                /*
+                 * The Maintenance root has already completed font/layout
+                 * stabilization while hidden. Release the main content and
+                 * crossfade the finished UI with the loader.
+                 */
+                main.classList.remove(
+                    'gct-main-fetching',
+                    'gct-main-leaving',
+                    'gct-main-entering',
+                    'gct-main-entered',
+                    'gct-main-loader-hold',
+                    'gct-main-after-loader',
+                );
+
+                maintenanceReveal.reveal();
+            },
+        });
+
+        return;
+    }
 
     await hideLoader({ revealMain: false });
 
