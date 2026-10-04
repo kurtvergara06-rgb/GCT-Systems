@@ -795,24 +795,30 @@ const animateOpenedSubmenu = (
   }
 
   if (toggle) {
-    gsap.fromTo(
-      toggle,
-      {
-        scale: 1,
-      },
-      {
-        scale: reduced
-          ? 0.99
-          : 0.975,
-        duration: reduced
-          ? 0.14
-          : 0.20,
-        ease: 'power1.inOut',
-        yoyo: true,
-        repeat: 1,
-        clearProps: 'transform',
-      }
-    );
+    gsap.timeline()
+      .to(
+        toggle,
+        {
+          scale: reduced
+            ? 0.99
+            : 0.975,
+          duration: reduced
+            ? 0.10
+            : 0.14,
+          ease: 'power1.in',
+        }
+      )
+      .to(
+        toggle,
+        {
+          scale: 1,
+          duration: reduced
+            ? 0.10
+            : 0.14,
+          ease: 'power1.out',
+          clearProps: 'transform',
+        }
+      );
   }
 
   if (arrow) {
