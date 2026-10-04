@@ -70,15 +70,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       row,
       {
         opacity: 0,
-        y: -10,
-        scale: 0.985,
+        x: -28,
+        y: -8,
+        scale: 0.96,
       },
       {
         opacity: 1,
+        x: 0,
         y: 0,
         scale: 1,
-        duration: 0.22,
-        ease: 'power2.out',
+        duration: 0.42,
+        ease: 'back.out(1.7)',
         clearProps:
           'opacity,transform',
       }
@@ -156,14 +158,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         summaryCards,
         {
           opacity: 0,
-          y: 14,
+          y: 34,
+          scale: 0.94,
         },
         {
           opacity: 1,
           y: 0,
-          duration: 0.34,
-          stagger: 0.06,
-          ease: 'power2.out',
+          scale: 1,
+          duration: 0.58,
+          stagger: 0.11,
+          ease: 'back.out(1.35)',
           clearProps:
             'opacity,transform',
         }
@@ -177,14 +181,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         tableCard,
         {
           opacity: 0,
-          y: 18,
+          y: 44,
+          scale: 0.985,
         },
         {
           opacity: 1,
           y: 0,
-          duration: 0.38,
-          delay: 0.12,
-          ease: 'power2.out',
+          scale: 1,
+          duration: 0.68,
+          delay: 0.18,
+          ease: 'power3.out',
           clearProps:
             'opacity,transform',
         }
@@ -252,8 +258,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       },
       {
         opacity: 1,
-        duration: 0.18,
-        ease: 'power1.out',
+        duration: 0.32,
+        ease: 'power2.out',
       }
     );
 
@@ -264,20 +270,55 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 22,
-          scale: 0.97,
+          y: 64,
+          scale: 0.88,
+          rotateX: -4,
+          transformOrigin:
+            '50% 20%',
         },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.30,
-          ease: 'power3.out',
+          rotateX: 0,
+          duration: 0.58,
+          ease: 'back.out(1.45)',
           clearProps:
-            'opacity,transform',
+            'opacity,transform,transformOrigin',
         },
-        0.02
+        0.03
       );
+
+
+      const contentItems =
+        surface.querySelectorAll(
+          '.jo-create-section, ' +
+          '.jo-edit-section, ' +
+          '.jo-edit-footer, ' +
+          '.ui-form-actions'
+        );
+
+
+      if (contentItems.length) {
+
+        timeline.fromTo(
+          contentItems,
+          {
+            opacity: 0,
+            y: 24,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.38,
+            stagger: 0.09,
+            ease: 'power2.out',
+            clearProps:
+              'opacity,transform',
+          },
+          0.18
+        );
+      }
     }
 
 
@@ -360,9 +401,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 12,
-          scale: 0.985,
-          duration: 0.16,
+          y: 34,
+          scale: 0.93,
+          duration: 0.28,
           ease: 'power2.in',
         },
         0
@@ -374,11 +415,26 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       modal,
       {
         opacity: 0,
-        duration: 0.18,
-        ease: 'power1.in',
+        duration: 0.30,
+        ease: 'power2.in',
       },
       0
     );
+  }
+
+
+  if (prefersReducedMotion) {
+
+    console.info(
+      '[JO GSAP demo] Animations are disabled because the device/browser requests reduced motion.'
+    );
+
+  } else {
+
+    console.info(
+      '[JO GSAP demo] Enhanced GSAP animations are active.'
+    );
+
   }
 
 
