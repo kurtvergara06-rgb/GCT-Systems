@@ -2793,6 +2793,34 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     refreshAvailableMechanicsDropdown;
 
 
+  /*
+   * When attendance is recorded from another browser tab, the JO tab may
+   * have missed the broadcast while it was in the background. Refresh the
+   * open modal as soon as this tab becomes active again.
+   */
+  if (window.GCTJobOrderMechanicFocusHandler) {
+    window.removeEventListener(
+      'focus',
+      window.GCTJobOrderMechanicFocusHandler
+    );
+  }
+
+  window.GCTJobOrderMechanicFocusHandler =
+    () => {
+      if (
+        jobModal?.classList.contains('show') ||
+        jobModal?.classList.contains('active')
+      ) {
+        void refreshAvailableMechanicsDropdown();
+      }
+    };
+
+  window.addEventListener(
+    'focus',
+    window.GCTJobOrderMechanicFocusHandler
+  );
+
+
   /* =========================================================
      REAL-TIME ATTENDANCE UPDATE
   ========================================================= */
