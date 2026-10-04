@@ -158,6 +158,27 @@ class PmsStatusService
         return 'Upcoming';
     }
 
+    public function overallStatus(Collection $tasks): string
+    {
+        if (
+            $tasks->contains(
+                fn ($task) => ($task->status ?? null) === 'Overdue'
+            )
+        ) {
+            return 'Overdue';
+        }
+
+        if (
+            $tasks->contains(
+                fn ($task) => ($task->status ?? null) === 'Due Soon'
+            )
+        ) {
+            return 'Due Soon';
+        }
+
+        return 'Upcoming';
+    }
+
     public function recommendedDate(
         ?float $currentKm,
         float $nextPmsKm,
