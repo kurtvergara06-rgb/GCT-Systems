@@ -919,6 +919,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       cleanPmsCreateUrl();
 
 
+    /*
+     * Replace the PMS-prefill URL immediately so refresh/back/initializer
+     * re-runs cannot reopen a cancelled Job Order modal.
+     */
+    window.history.replaceState(
+      {
+        ...window.history.state,
+      },
+      '',
+      cleanUrl
+    );
+
+
     window.setTimeout(
       () => {
 
