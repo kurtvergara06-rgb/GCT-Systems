@@ -145,7 +145,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'background: #fff8dc;',
+            'background: var(--brand-yellow, #ffc400);',
             $css
         );
         $this->assertStringContainsString(
