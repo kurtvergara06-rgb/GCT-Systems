@@ -1184,6 +1184,12 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
+    const reviewPrWorkToPerform =
+      document.getElementById(
+        'reviewPrWorkToPerform'
+      );
+
+
     const prReviewInformation =
       document.getElementById(
         'prReviewInformation'
@@ -1804,6 +1810,13 @@ window.GCTPartialNavigation.registerInitializer(
         reviewPrSource.textContent =
           button.dataset.sourceType
             || 'Maintenance Request';
+      }
+
+
+      if (reviewPrWorkToPerform) {
+        reviewPrWorkToPerform.textContent =
+          button.dataset.workToPerform?.trim()
+            || 'No work / repair details recorded.';
       }
 
 
