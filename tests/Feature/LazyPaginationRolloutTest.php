@@ -21,11 +21,47 @@ class LazyPaginationRolloutTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "window.GCTPartialNavigation.navigate(target.href);",
+            "replaceServerFilteredTable",
+            $source
+        );
+        $this->assertStringContainsString(
+            "await fetch(",
+            $source
+        );
+        $this->assertStringContainsString(
+            "window.history.replaceState(",
+            $source
+        );
+        $this->assertStringContainsString(
+            "'ajax:content-updated'",
             $source
         );
         $this->assertStringContainsString(
             "params.delete('page');",
+            $source
+        );
+    }
+
+    public function test_server_filtered_search_does_not_require_full_page_navigation(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Main-js/automatic-table-search.js')
+        );
+
+        $this->assertStringContainsString(
+            "currentBody.replaceWith(",
+            $source
+        );
+        $this->assertStringContainsString(
+            "currentContext.footer.replaceWith(",
+            $source
+        );
+        $this->assertStringContainsString(
+            "event.preventDefault();\n      void runServerFilter(form);",
+            $source
+        );
+        $this->assertStringContainsString(
+            "AbortController",
             $source
         );
     }
