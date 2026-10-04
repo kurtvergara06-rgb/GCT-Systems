@@ -3165,21 +3165,21 @@
 }
 
 #editPrModal .pr-review-btn-edit {
-    background: #fff8dc;
-    border: 1px solid #f6d56a;
-    color: #8a6200;
+    background: var(--brand-yellow, #ffc400);
+    border: 1px solid var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
 }
 
 #editPrModal .pr-review-btn-edit i,
 #editPrModal .pr-review-btn-edit span {
-    color: #8a6200;
+    color: var(--brand-navy, #061f3d);
 }
 
 #editPrModal .pr-review-btn-edit:hover {
-    background: #ffefb0;
-    border-color: #e8bd35;
-    color: #6f4f00;
-    box-shadow: 0 8px 18px rgba(245, 168, 0, .16);
+    background: var(--brand-yellow-dark, #f5a800);
+    border-color: var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
+    box-shadow: 0 8px 18px rgba(245, 168, 0, .24);
 }
 
 #editPrModal .pr-review-btn-reject {
@@ -3209,20 +3209,20 @@
 }
 
 #editPrModal #editPrMainActions .ui-form-btn-primary {
-    background: #fff8dc;
-    border: 1px solid #f6d56a;
-    color: #8a6200;
+    background: var(--brand-yellow, #ffc400);
+    border: 1px solid var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
     box-shadow: none;
 }
 
 #editPrModal #editPrMainActions .ui-form-btn-primary i,
 #editPrModal #editPrMainActions .ui-form-btn-primary span {
-    color: #8a6200;
+    color: var(--brand-navy, #061f3d);
 }
 
 #editPrModal #editPrMainActions .ui-form-btn-primary:hover {
-    background: #ffefb0;
-    border-color: #e8bd35;
-    color: #6f4f00;
-    box-shadow: 0 8px 18px rgba(245, 168, 0, .16);
+    background: var(--brand-yellow-dark, #f5a800);
+    border-color: var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
+    box-shadow: 0 8px 18px rgba(245, 168, 0, .24);
 }
