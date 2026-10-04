@@ -29,11 +29,21 @@ let modalObserver = null;
 let sidebarObserver = null;
 let globalInteractionsBound = false;
 
-const prefersReducedMotion = () => (
-  window.matchMedia?.(
-    '(prefers-reduced-motion: reduce)'
-  )?.matches ?? false
-);
+const prefersReducedMotion = () => {
+  if (
+    window.__GCT_FORCE_MOTION__ === true
+    || window.__GCT_ENABLE_MOTION__ === true
+    || document.documentElement.dataset.gctMotion === 'enabled'
+  ) {
+    return false;
+  }
+
+  return (
+    window.matchMedia?.(
+      '(prefers-reduced-motion: reduce)'
+    )?.matches ?? false
+  );
+};
 
 const getMaintenanceRoot = () => (
   document.querySelector(
@@ -64,10 +74,7 @@ const visibleRows = (root) => (
 );
 
 const animateRows = (root) => {
-  if (
-    !root
-    || prefersReducedMotion()
-  ) {
+  if (!root) {
     return;
   }
 
@@ -77,18 +84,22 @@ const animateRows = (root) => {
     return;
   }
 
+  const reduced = prefersReducedMotion();
+  const yOffset = reduced ? 3 : 5;
+  const duration = reduced ? 0.16 : 0.22;
+
   gsap.killTweensOf(rows);
 
   gsap.fromTo(
     rows,
     {
-      opacity: 0.72,
-      y: 5,
+      opacity: 0.65,
+      y: yOffset,
     },
     {
       opacity: 1,
       y: 0,
-      duration: 0.18,
+      duration: duration,
       stagger: 0.015,
       ease: 'power2.out',
       clearProps: 'opacity,transform',
@@ -97,10 +108,7 @@ const animateRows = (root) => {
 };
 
 const animateSummaryRefresh = (root) => {
-  if (
-    !root
-    || prefersReducedMotion()
-  ) {
+  if (!root) {
     return;
   }
 
@@ -112,18 +120,22 @@ const animateSummaryRefresh = (root) => {
     return;
   }
 
+  const reduced = prefersReducedMotion();
+  const yOffset = reduced ? 3 : 6;
+  const duration = reduced ? 0.16 : 0.22;
+
   gsap.killTweensOf(cards);
 
   gsap.fromTo(
     cards,
     {
-      opacity: 0.86,
-      y: 3,
+      opacity: 0.75,
+      y: yOffset,
     },
     {
       opacity: 1,
       y: 0,
-      duration: 0.18,
+      duration: duration,
       stagger: 0.025,
       ease: 'power1.out',
       clearProps: 'opacity,transform',
@@ -132,32 +144,49 @@ const animateSummaryRefresh = (root) => {
 };
 
 const animateMaintenancePage = (root) => {
-  if (
-    !root
-    || prefersReducedMotion()
-    || root.classList.contains('jo-page')
-  ) {
+  if (!root) {
     return;
   }
 
+  // Prevent duplicate execution within the same navigation tick
+  if (root.dataset.gsapPageAnimated === 'true') {
+    return;
+  }
+  root.dataset.gsapPageAnimated = 'true';
+  window.setTimeout(() => {
+    delete root.dataset.gsapPageAnimated;
+  }, 500);
+
+  const reduced = prefersReducedMotion();
+  const topbarY = reduced ? 4 : 10;
+  const cardY = reduced ? 6 : 18;
+  const blockY = reduced ? 6 : 20;
+  const durationScale = reduced ? 0.8 : 1;
+
   const topbar = root.querySelector(
-    ':scope > .topbar'
+    ':scope > .topbar, :scope > header.topbar'
   );
 
   const summaryCards = root.querySelectorAll(
-    ':scope > .stats-grid > *'
+    ':scope > .stats-grid > *, '
+    + ':scope > [data-ajax-region="summary"] > *'
   );
 
   const blocks = Array.from(
     root.querySelectorAll(
       ':scope > .table-card, '
+      + ':scope > [data-ajax-region="records"], '
       + ':scope > .maintenance-dashboard-grid > *, '
+      + ':scope > .maintenance-two-col-grid > *, '
       + ':scope > .fuel-analytics-grid > *, '
-      + ':scope > .fuel-monitoring-refined'
+      + ':scope > .fuel-insights-grid > *, '
+      + ':scope > .fuel-monitoring-refined, '
+      + ':scope > .jo-table-card'
     )
   );
 
   if (topbar) {
+    gsap.killTweensOf(topbar);
     gsap.fromTo(
       topbar,
       {
@@ -167,7 +196,7 @@ const animateMaintenancePage = (root) => {
       {
         opacity: 1,
         y: 0,
-        duration: 0.30,
+        duration: 0.30 * durationScale,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
@@ -175,17 +204,18 @@ const animateMaintenancePage = (root) => {
   }
 
   if (summaryCards.length) {
+    gsap.killTweensOf(summaryCards);
     gsap.fromTo(
       summaryCards,
       {
         opacity: 0,
-        y: 18,
+        y: cardY,
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.36,
-        stagger: 0.06,
+        duration: 0.36 * durationScale,
+        stagger: 0.05,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
@@ -193,19 +223,20 @@ const animateMaintenancePage = (root) => {
   }
 
   if (blocks.length) {
+    gsap.killTweensOf(blocks);
     gsap.fromTo(
       blocks,
       {
         opacity: 0,
-        y: 20,
+        y: blockY,
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.40,
-        stagger: 0.07,
+        duration: 0.40 * durationScale,
+        stagger: 0.06,
         delay: summaryCards.length
-          ? 0.08
+          ? 0.06
           : 0,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
@@ -215,7 +246,7 @@ const animateMaintenancePage = (root) => {
 
   window.setTimeout(
     () => animateRows(root),
-    90
+    100
   );
 };
 
@@ -245,7 +276,7 @@ const waitForMaintenanceReveal = (
 
   if (
     (loaderVisible || mainHeld)
-    && attempt < 30
+    && attempt < 35
   ) {
     window.setTimeout(
       () => waitForMaintenanceReveal(
@@ -258,13 +289,12 @@ const waitForMaintenanceReveal = (
     return;
   }
 
-  window.requestAnimationFrame(
-    () => window.requestAnimationFrame(
-      () => animateMaintenancePage(
-        root
-      )
-    )
-  );
+  // Ensure DOM is ready and visible before triggering entrance animation
+  window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      animateMaintenancePage(root);
+    }, 48);
+  });
 };
 
 const getModalSurface = (overlay) => (
@@ -324,7 +354,6 @@ const isModalOpen = (overlay) => {
 const animateModalOpen = (overlay) => {
   if (
     !overlay
-    || prefersReducedMotion()
     || JO_OWNED_MODAL_IDS.has(
       overlay.id
     )
@@ -346,6 +375,11 @@ const animateModalOpen = (overlay) => {
     getModalSurface(
       overlay
     );
+
+  const reduced = prefersReducedMotion();
+  const surfaceY = reduced ? 6 : 16;
+  const surfaceScale = reduced ? 0.99 : 0.975;
+  const duration = reduced ? 0.20 : 0.30;
 
   gsap.killTweensOf(
     overlay
@@ -376,14 +410,14 @@ const animateModalOpen = (overlay) => {
     surface,
     {
       opacity: 0,
-      y: 16,
+      y: surfaceY,
       scale: 0.975,
     },
     {
       opacity: 1,
       y: 0,
       scale: 1,
-      duration: 0.30,
+      duration: duration,
       ease: 'power2.out',
       clearProps: 'opacity,transform',
     }
@@ -566,7 +600,6 @@ const ensureModalObserver = () => {
 const animateSidebarActiveItem = () => {
   if (
     !isMaintenanceShell()
-    || prefersReducedMotion()
   ) {
     return;
   }
@@ -581,11 +614,14 @@ const animateSidebarActiveItem = () => {
     return;
   }
 
+  const reduced = prefersReducedMotion();
+  const xOffset = reduced ? -1 : -3;
+
   gsap.fromTo(
     activeItems,
     {
       opacity: 0.82,
-      x: -3,
+      x: xOffset,
     },
     {
       opacity: 1,
@@ -605,7 +641,6 @@ const animateOpenedSubmenu = (
     || !dropdown.classList.contains(
       'open'
     )
-    || prefersReducedMotion()
   ) {
     return;
   }
@@ -624,11 +659,15 @@ const animateOpenedSubmenu = (
       '.submenu-item'
     );
 
+  const reduced = prefersReducedMotion();
+  const subY = reduced ? -2 : -4;
+  const itemX = reduced ? -1 : -3;
+
   gsap.fromTo(
     submenu,
     {
       opacity: 0,
-      y: -4,
+      y: subY,
     },
     {
       opacity: 1,
@@ -644,7 +683,7 @@ const animateOpenedSubmenu = (
       items,
       {
         opacity: 0.78,
-        x: -3,
+        x: itemX,
       },
       {
         opacity: 1,
@@ -783,10 +822,7 @@ const bindGlobalInteractions = () => {
       const root =
         getMaintenanceRoot();
 
-      if (
-        !root
-        || prefersReducedMotion()
-      ) {
+      if (!root) {
         return;
       }
 
@@ -808,10 +844,13 @@ const bindGlobalInteractions = () => {
         return;
       }
 
+      const reduced = prefersReducedMotion();
+      const scaleTarget = reduced ? 0.992 : 0.985;
+
       gsap.to(
         button,
         {
-          scale: 0.985,
+          scale: scaleTarget,
           duration: 0.08,
           ease: 'power1.out',
           overwrite: true,
@@ -823,10 +862,7 @@ const bindGlobalInteractions = () => {
   const releasePressedButton = (
     event
   ) => {
-    if (
-      !getMaintenanceRoot()
-      || prefersReducedMotion()
-    ) {
+    if (!getMaintenanceRoot()) {
       return;
     }
 
@@ -864,10 +900,7 @@ const bindGlobalInteractions = () => {
   document.addEventListener(
     'pointerover',
     (event) => {
-      if (
-        !isMaintenanceShell()
-        || prefersReducedMotion()
-      ) {
+      if (!isMaintenanceShell()) {
         return;
       }
 
@@ -904,10 +937,7 @@ const bindGlobalInteractions = () => {
   document.addEventListener(
     'pointerout',
     (event) => {
-      if (
-        !isMaintenanceShell()
-        || prefersReducedMotion()
-      ) {
+      if (!isMaintenanceShell()) {
         return;
       }
 
