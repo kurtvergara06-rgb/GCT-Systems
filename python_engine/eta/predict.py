@@ -7,7 +7,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -19,7 +19,12 @@ from .training_data import ETA_FEATURE_COLUMNS, SHIFT_MAP
 logger = logging.getLogger(__name__)
 
 _paths = model_paths()
-EXPECTED_MODEL_NAME = "eta_duration_rf"
+SUPPORTED_MODEL_NAMES = {
+    "eta_duration_rf",  # Backward compatibility for the tracked v1.0 artifact.
+    "eta_duration_linear_regression",
+    "eta_duration_random_forest",
+    "eta_duration_hist_gradient_boosting",
+}
 EXPECTED_FEATURE_SCHEMA_VERSION = "1.1"
 
 
@@ -34,6 +39,11 @@ class EtaReadiness:
     dataset_type: str = "UNVERIFIED ETA DATA"
     is_production_model: bool = False
     model_path: Optional[Path] = None
+    model_version: str = ""
+    split_strategy: str = ""
+    selected_model: Dict[str, str] = field(default_factory=dict)
+    metrics: Dict[str, Optional[float]] = field(default_factory=dict)
+    candidate_models: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -78,7 +88,11 @@ def _load_artifacts() -> None:
 
     try:
         if _paths["model"].exists():
-            _model, reason = safe_load_model(_paths["model"], EXPECTED_MODEL_NAME, _state)
+            model_name = str((_state or {}).get("model_name", ""))
+            if model_name not in SUPPORTED_MODEL_NAMES:
+                _load_error = "MODEL NOT READY: ETA artifact model identity is unsupported."
+                return
+            _model, reason = safe_load_model(_paths["model"], model_name, _state)
             if _model is None:
                 _load_error = reason
     except Exception as exc:  # noqa: BLE001
@@ -118,6 +132,25 @@ def eta_readiness() -> EtaReadiness:
         data_source=data_source,
         dataset_type=_dataset_type(data_source),
         model_path=_paths["model"],
+        model_version=str(state.get("model_version", "")),
+        split_strategy=str(state.get("split_strategy", "")),
+        selected_model=(
+            state.get("selected_model")
+            if isinstance(state.get("selected_model"), dict)
+            else {
+                "key": "random_forest",
+                "name": "Random Forest",
+                "family": "Nonlinear ensemble",
+            }
+            if state.get("model_name") == "eta_duration_rf"
+            else {}
+        ),
+        metrics=state.get("metrics") if isinstance(state.get("metrics"), dict) else {},
+        candidate_models=(
+            state.get("candidate_models")
+            if isinstance(state.get("candidate_models"), list)
+            else []
+        ),
     )
 
     if _model is None or _metadata is None or not state:
@@ -129,7 +162,7 @@ def eta_readiness() -> EtaReadiness:
     if state.get("model_ready") is not True:
         return EtaReadiness(reason="MODEL NOT READY: latest ETA training run did not produce a usable artifact.", **common)
 
-    if state.get("model_name") != EXPECTED_MODEL_NAME:
+    if state.get("model_name") not in SUPPORTED_MODEL_NAMES:
         return EtaReadiness(reason="MODEL NOT READY: ETA artifact model identity does not match runtime expectations.", **common)
 
     if state.get("feature_schema_version") != EXPECTED_FEATURE_SCHEMA_VERSION:
@@ -180,7 +213,7 @@ def eta_readiness() -> EtaReadiness:
         ml_ready=True,
         source="ml",
         reason=(
-            "ETA Random Forest production model is ready."
+            f"ETA {common['selected_model'].get('name', 'selected model')} is production-ready."
             if production_model
             else "ETA development/demo model is loaded; it is not production-ready."
         ),

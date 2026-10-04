@@ -24,6 +24,11 @@ def main() -> None:
     eta = eta_response.json()
     check("ETA reports explicit provenance", eta["data_source"] in {"genuine", "synthetic", "unknown"})
     check("ETA reports dataset type", bool(eta["dataset_type"]))
+    check("ETA reports model version", "model_version" in eta)
+    check("ETA reports validation split", "split_strategy" in eta)
+    check("ETA reports selected model contract", isinstance(eta["selected_model"], dict))
+    check("ETA reports candidate comparison contract", isinstance(eta["candidate_models"], list))
+    check("ETA reports selected metrics contract", isinstance(eta["metrics"], dict))
     check(
         "ETA production flag requires genuine source",
         not eta["is_production_model"] or eta["data_source"] == "genuine",
