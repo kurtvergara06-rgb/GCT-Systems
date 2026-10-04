@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin\GpsTripRecord;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
@@ -14,6 +15,7 @@ use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MaintenanceDashboardTest extends TestCase
@@ -26,6 +28,38 @@ class MaintenanceDashboardTest extends TestCase
             'department' => 'Maintenance',
             'role' => 'head',
             'status' => 'Active',
+        ]);
+    }
+
+    private function createProcessedGps(
+        string $busNo,
+        float $mileageKm,
+        ?Carbon $beginningAt = null
+    ): GpsTripRecord {
+        $batchId = DB::table('batch_uploads')->insertGetId([
+            'file_name' => 'gps-'.$busNo.'.xlsx',
+            'stored_name' => 'gps-'.$busNo.'.xlsx',
+            'file_path' => 'testing/gps-'.$busNo.'.xlsx',
+            'file_type' => 'xlsx',
+            'module' => 'Operation',
+            'data_type' => 'GPS Trip Records',
+            'data_origin' => 'genuine',
+            'bus_no' => $busNo,
+            'status' => 'Processed',
+            'total_records' => 1,
+            'processed_records' => 1,
+            'failed_records' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return GpsTripRecord::create([
+            'batch_upload_id' => $batchId,
+            'bus_no' => $busNo,
+            'beginning_at' => $beginningAt ?? now(),
+            'ending_at' => ($beginningAt ?? now())->copy()->addHour(),
+            'mileage_km' => $mileageKm,
+            'idling_minutes' => 0,
         ]);
     }
 
@@ -173,7 +207,17 @@ class MaintenanceDashboardTest extends TestCase
             'latest_gps_km' => 19700.0,
         ]);
 
-        // Overdue schedule: latest GPS (20,500) >= next PMS (20,000)
+        $this->createProcessedGps(
+            $busOverdue->bus_no,
+            20500.0
+        );
+
+        $this->createProcessedGps(
+            $busDueSoon->bus_no,
+            19700.0
+        );
+
+        // Overdue schedule: processed GPS (20,500) >= next PMS (20,000)
         PmsSchedule::create([
             'bus_no' => $busOverdue->bus_no,
             'maintenance_type' => 'PMS Level 2',
@@ -203,6 +247,85 @@ class MaintenanceDashboardTest extends TestCase
         $response->assertSee('BUS-301');
         $response->assertSee('BUS-302');
         $response->assertSee('Create JO');
+    }
+
+    public function test_dashboard_and_pms_scheduling_agree_when_recommended_date_is_overdue(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-04 12:00:00'));
+
+        try {
+            $user = $this->createMaintenanceUser();
+
+            $bus = Bus::create([
+                'bus_no' => 'BUS-DATE-01',
+                'status' => 'Active',
+                // Intentionally stale: both modules must use processed GPS instead.
+                'latest_gps_km' => 0,
+            ]);
+
+            $this->createProcessedGps(
+                $bus->bus_no,
+                1000,
+                Carbon::parse('2026-10-04 08:00:00')
+            );
+
+            PmsSchedule::create([
+                'bus_no' => $bus->bus_no,
+                'maintenance_type' => 'Date Based PMS',
+                'last_pms_km' => 0,
+                'next_pms_km' => 10000,
+                'pms_interval_km' => 10000,
+                'recommended_date' => '2026-08-26',
+            ]);
+
+            $dashboard = $this
+                ->actingAs($user)
+                ->get(route('maintenance-dashboard'));
+
+            $dashboard->assertOk();
+            $dashboard->assertViewHas(
+                'pmsAttentionList',
+                function ($items): bool {
+                    $item = $items->firstWhere(
+                        'maintenance_type',
+                        'Date Based PMS'
+                    );
+
+                    return $item !== null
+                        && $item->status === 'Overdue'
+                        && (float) $item->latest_gps_km === 1000.0;
+                }
+            );
+
+            $scheduling = $this
+                ->actingAs($user)
+                ->get(route('PMS-Scheduling'));
+
+            $scheduling->assertOk();
+            $scheduling->assertViewHas(
+                'rows',
+                function ($rows): bool {
+                    $busRow = collect($rows->items())
+                        ->firstWhere('bus_no', 'BUS-DATE-01');
+
+                    if (! $busRow || $busRow->overall_status !== 'Overdue') {
+                        return false;
+                    }
+
+                    $task = $busRow->tasks
+                        ->firstWhere(
+                            'maintenance_type',
+                            'Date Based PMS'
+                        );
+
+                    return $task !== null
+                        && $task->status === 'Overdue'
+                        && (float) $task->current_km === 1000.0;
+                }
+            );
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_dashboard_calculates_mechanic_roster_availability(): void
