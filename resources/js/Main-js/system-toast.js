@@ -2,6 +2,8 @@ const toastRootSelector = '.system-toast-root';
 const toastSelector = '[data-system-toast]';
 const closeButtonSelector = '.system-toast-close';
 const removeDelay = 4000;
+const removeAnimationDelay = 180;
+const toastTimers = new WeakMap();
 
 const getToastRoot = () => {
     let root = document.querySelector(toastRootSelector);
@@ -17,30 +19,71 @@ const getToastRoot = () => {
     return root;
 };
 
-const attachToastBehavior = (toast) => {
-    if (toast.dataset.toastInitialized === 'true') {
+const clearToastTimers = (toast) => {
+    const timers = toastTimers.get(toast);
+    if (!timers) return;
+
+    if (timers.removeTimer) {
+        window.clearTimeout(timers.removeTimer);
+    }
+
+    if (timers.cleanupTimer) {
+        window.clearTimeout(timers.cleanupTimer);
+    }
+
+    toastTimers.delete(toast);
+};
+
+const removeToast = (toast) => {
+    if (!toast?.isConnected || toast.classList.contains('is-removing')) {
         return;
     }
 
-    toast.dataset.toastInitialized = 'true';
+    clearToastTimers(toast);
+    toast.classList.add('is-removing');
 
-    const closeButton = toast.querySelector(closeButtonSelector);
+    const cleanupTimer = window.setTimeout(() => {
+        toast.remove();
+        toastTimers.delete(toast);
+    }, removeAnimationDelay);
 
-    const removeToast = () => {
-        toast.classList.add('is-removing');
+    toastTimers.set(toast, { cleanupTimer });
+};
 
-        window.setTimeout(() => {
-            toast.remove();
-        }, 250);
-    };
+const scheduleToastRemoval = (toast, timeout = removeDelay) => {
+    if (!toast?.isConnected) return;
 
-    closeButton?.addEventListener('click', removeToast);
+    clearToastTimers(toast);
 
-    window.setTimeout(() => {
-        toast.classList.add('is-visible');
-    }, 20);
+    const duration = Number(timeout);
+    if (!Number.isFinite(duration) || duration <= 0) {
+        return;
+    }
 
-    window.setTimeout(removeToast, removeDelay);
+    const removeTimer = window.setTimeout(() => {
+        removeToast(toast);
+    }, duration);
+
+    toastTimers.set(toast, { removeTimer });
+};
+
+const attachToastBehavior = (toast, timeout = removeDelay) => {
+    if (toast.dataset.toastInitialized !== 'true') {
+        toast.dataset.toastInitialized = 'true';
+
+        const closeButton = toast.querySelector(closeButtonSelector);
+        closeButton?.addEventListener('click', () => removeToast(toast));
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (!toast.isConnected) return;
+                toast.classList.remove('is-removing');
+                toast.classList.add('is-visible');
+            });
+        });
+    }
+
+    scheduleToastRemoval(toast, timeout);
 };
 
 const initSystemToasts = () => {
@@ -81,7 +124,9 @@ window.showSystemToast = function (message, type = 'info', title = null, options
     });
 
     if (duplicateToast) {
+        duplicateToast.classList.remove('is-removing');
         duplicateToast.classList.add('is-visible');
+        scheduleToastRemoval(duplicateToast, options.timeout ?? removeDelay);
         return duplicateToast;
     }
 
@@ -128,13 +173,7 @@ window.showSystemToast = function (message, type = 'info', title = null, options
     toast.appendChild(closeButton);
     root.appendChild(toast);
 
-    attachToastBehavior(toast);
-
-    const timeout = options.timeout ?? removeDelay;
-    window.setTimeout(() => {
-        toast.classList.add('is-removing');
-        window.setTimeout(() => toast.remove(), 250);
-    }, timeout);
+    attachToastBehavior(toast, options.timeout ?? removeDelay);
 
     return toast;
 };
@@ -267,6 +306,7 @@ const showResolutionSummary = (review, responseData = {}) => {
         </div>
     `;
 
+    overlay.dataset.pageOwned = 'true';
     document.body.appendChild(overlay);
     document.body.classList.add('ai-modal-open');
 

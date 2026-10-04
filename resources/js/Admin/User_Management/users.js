@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', function () {
   const userFormModal = document.getElementById('userFormModal');
   const viewUserModal = document.getElementById('viewUserModal');
   const resetPasswordModal = document.getElementById('resetPasswordModal');

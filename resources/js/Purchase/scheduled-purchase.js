@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('purchase-scheduled', '.scheduled-purchase-page', function () {
   const modal = document.getElementById('scheduleModal');
   const form = document.getElementById('scheduleForm');
   const method = document.getElementById('scheduleFormMethod');

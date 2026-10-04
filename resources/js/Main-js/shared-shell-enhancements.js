@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('shared-shell-enhancements', 'main', () => {
   const topbarActions = document.getElementById('topbarActions');
 
   if (topbarActions) {

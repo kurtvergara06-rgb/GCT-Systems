@@ -5,6 +5,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordIcon = document.getElementById('passwordIcon');
   const loginForm = document.getElementById('loginForm');
   const loginButton = document.getElementById('loginBtn');
+  const accountStatusModal = document.querySelector('[data-account-status-modal]');
+  const accountStatusClose = document.querySelector('[data-account-status-close]');
+
+  const closeAccountStatusModal = () => {
+    if (!accountStatusModal) return;
+    accountStatusModal.remove();
+    emailInput?.focus();
+  };
+
+  accountStatusClose?.addEventListener('click', closeAccountStatusModal);
+
+  accountStatusModal?.addEventListener('click', (event) => {
+    if (event.target === accountStatusModal) {
+      closeAccountStatusModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && accountStatusModal?.isConnected) {
+      closeAccountStatusModal();
+    }
+  });
 
   const clearFieldError = (input) => {
     if (!input) return;
