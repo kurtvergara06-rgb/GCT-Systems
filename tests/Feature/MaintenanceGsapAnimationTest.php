@@ -220,6 +220,42 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
+    public function test_maintenance_dashboard_cards_fade_in_smoothly_after_layout_is_ready(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/maintenance-animations.js')
+        );
+
+        $this->assertStringContainsString(
+            'const animateDashboardPanels',
+            $source
+        );
+        $this->assertStringContainsString(
+            "'.maintenance-dashboard-card'",
+            $source
+        );
+        $this->assertStringContainsString(
+            'opacity: 0',
+            $source
+        );
+        $this->assertStringContainsString(
+            'y: reduced ? 8 : 18',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? (reduced ? 0.62 : 0.90)',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? (reduced ? 0.06 : 0.12)',
+            $source
+        );
+        $this->assertStringContainsString(
+            'animateDashboardPanels(',
+            $source
+        );
+    }
+
     public function test_direct_page_open_uses_a_slow_visible_gsap_reveal(): void
     {
         $source = file_get_contents(
