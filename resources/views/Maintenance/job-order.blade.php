@@ -399,8 +399,14 @@
         confirm-button="Yes, Create Job Order"
         confirm-type="create"
         class="jo-create-modal-overlay"
+        data-pms-create="{{ $pmsCreate ? 'true' : 'false' }}"
     >
-        <input type="hidden" name="pms_schedule_id" id="pms_schedule_id" value="">
+        <input
+            type="hidden"
+            name="pms_schedule_id"
+            id="pms_schedule_id"
+            value="{{ $pmsCreate?->id ?? '' }}"
+        >
 
         <section class="jo-create-section jo-create-basic">
             <div class="jo-create-section-header">
@@ -451,7 +457,15 @@
                         id="jobProblemIssue"
                         placeholder="Describe the problem or issue..."
                         required
-                    >{{ old('problem_issue') }}</textarea>
+                    >{{ old(
+                        'problem_issue',
+                        $pmsCreate
+                            ? request(
+                                'problem_issue',
+                                'PMS maintenance is due based on processed GPS mileage.'
+                            )
+                            : ''
+                    ) }}</textarea>
                 </div>
             </div>
         </section>
@@ -835,44 +849,5 @@
         confirm-id="confirmDeleteJob"
     />
 
-    @if(request('create_pms') && $pmsCreate)
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const modal = document.getElementById('jobModal');
-                const busSelect = document.querySelector('#jobModal select[name="bus_no"]');
-                const issueField = document.querySelector('#jobModal textarea[name="problem_issue"]');
-                const typeSelect = document.querySelector('#jobModal select[name="maintenance_type"]');
-                const pmsScheduleId = document.getElementById('pms_schedule_id');
 
-                if (busSelect) {
-                    busSelect.value = @json($pmsCreate->bus_no);
-                }
-
-                if (issueField) {
-                    issueField.value = @json(request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.'));
-                }
-
-                if (typeSelect) {
-                    const hasPms = Array.from(typeSelect.options).some(option => option.value === 'PMS');
-
-                    if (!hasPms) {
-                        const pmsOption = document.createElement('option');
-                        pmsOption.value = 'PMS';
-                        pmsOption.textContent = 'PMS';
-                        typeSelect.appendChild(pmsOption);
-                    }
-
-                    typeSelect.value = 'PMS';
-                }
-
-                if (pmsScheduleId) {
-                    pmsScheduleId.value = @json($pmsCreate->id);
-                }
-
-                if (modal) {
-                    modal.classList.add('show', 'active');
-                }
-            });
-        </script>
-    @endif
 </x-layout.app>
