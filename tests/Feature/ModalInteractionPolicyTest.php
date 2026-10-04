@@ -21,7 +21,7 @@ class ModalInteractionPolicyTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "event.stopPropagation();",
+            "event.stopImmediatePropagation();",
             $source
         );
         $this->assertStringContainsString(
@@ -121,6 +121,10 @@ class ModalInteractionPolicyTest extends TestCase
         );
         $this->assertStringContainsString(
             'function cleanPmsCreateUrl()',
+            $source
+        );
+        $this->assertStringContainsString(
+            'window.history.replaceState(',
             $source
         );
         $this->assertStringContainsString(
