@@ -56,7 +56,7 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'x: 5',
+            'x: 8',
             $source
         );
     }
@@ -72,7 +72,15 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'scale: 0.975',
+            'scale: reduced ? 0.992 : 0.982',
+            $source
+        );
+        $this->assertStringContainsString(
+            '? 0.34',
+            $source
+        );
+        $this->assertStringContainsString(
+            ': 0.52',
             $source
         );
         $this->assertStringContainsString(
@@ -128,11 +136,11 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'beforeFade',
+            'await maintenanceReveal.prepare()',
             $transitions
         );
         $this->assertStringContainsString(
-            'await maintenanceReveal.prepare()',
+            'await hideLoader({',
             $transitions
         );
         $this->assertStringContainsString(
@@ -140,7 +148,72 @@ class MaintenanceGsapAnimationTest extends TestCase
             $transitions
         );
 
+        $hidePosition = strpos(
+            $transitions,
+            'await hideLoader({'
+        );
+        $revealPosition = strpos(
+            $transitions,
+            'maintenanceReveal.reveal()'
+        );
+
+        $this->assertNotFalse($hidePosition);
+        $this->assertNotFalse($revealPosition);
+        $this->assertGreaterThan(
+            $hidePosition,
+            $revealPosition
+        );
+
         // Initial page entry must not animate cards/tables into position.
+        $this->assertStringNotContainsString(
+            'animateMaintenancePage',
+            $shared
+        );
+    }
+
+    public function test_visible_motion_strength_is_intentional_without_per_card_page_assembly(): void
+    {
+        $shared = file_get_contents(
+            resource_path('js/Maintenance/maintenance-animations.js')
+        );
+        $jobOrder = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            'y: reduced ? 10 : 28',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'scale: reduced ? 0.992 : 0.982',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'surfaceY = reduced ? 12 : 30',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'surfaceScale = reduced ? 0.985 : 0.955',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'x: 8',
+            $shared
+        );
+
+        $this->assertStringContainsString(
+            'surfaceY = isReduced ? 12 : 30',
+            $jobOrder
+        );
+        $this->assertStringContainsString(
+            'surfaceScale = isReduced ? 0.985 : 0.955',
+            $jobOrder
+        );
+
+        $this->assertStringNotContainsString(
+            'animateJobOrderPageEntrance',
+            $jobOrder
+        );
         $this->assertStringNotContainsString(
             'animateMaintenancePage',
             $shared
