@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment', '.assignment-page', () => {
     /*
     |--------------------------------------------------------------------------
     | Modal Elements

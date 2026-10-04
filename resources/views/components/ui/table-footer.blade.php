@@ -20,6 +20,6 @@
 
     <span class="table-loading-all" data-table-loading hidden>
         <x-ui.spinner size="sm" />
-        Loading all records...
+        <span data-table-loading-label>Loading all records...</span>
     </span>
 </div>

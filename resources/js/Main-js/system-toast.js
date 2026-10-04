@@ -267,6 +267,7 @@ const showResolutionSummary = (review, responseData = {}) => {
         </div>
     `;
 
+    overlay.dataset.pageOwned = 'true';
     document.body.appendChild(overlay);
     document.body.classList.add('ai-modal-open');
 

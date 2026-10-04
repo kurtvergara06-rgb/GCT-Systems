@@ -32,7 +32,7 @@
           </div>
         </div>
 
-        <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar">
+        <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-server-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO no., supplier, item, or delivery...">
@@ -128,7 +128,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$deliveries" />
+        <x-ui.table-footer :items="$deliveries" data-lazy-pagination="true" />
       </section>
     </main>
   </div>

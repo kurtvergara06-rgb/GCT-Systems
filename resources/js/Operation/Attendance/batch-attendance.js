@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('batch-modal-open');
 

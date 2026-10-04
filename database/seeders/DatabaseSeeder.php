@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        if (! app()->environment('production')) {
+        if (config('demo-data.enabled', false)) {
             $this->call(DemoDataSeeder::class);
         }
     }

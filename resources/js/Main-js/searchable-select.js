@@ -220,5 +220,6 @@ const initializeSearchableSelects = () => {
 };
 
 document.addEventListener('DOMContentLoaded', initializeSearchableSelects);
+window.addEventListener('gct:navigation-ready', initializeSearchableSelects);
 
 export { SearchableSelect, initializeSearchableSelects };

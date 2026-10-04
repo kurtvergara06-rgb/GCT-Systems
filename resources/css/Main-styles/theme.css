@@ -34,6 +34,10 @@ button {
   font-family: Inter, Arial, sans-serif;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--bg-main);
   color: var(--text-main);
@@ -407,9 +411,15 @@ button {
   display: flex;
 }
 
-/* Unified body scroll lock */
+/* Unified body scroll lock.
+   Keep the page width stable while the vertical scrollbar is locked so
+   opening a modal never makes the application shell stretch horizontally. */
 body.modal-open {
   overflow: hidden !important;
+  padding-right: calc(
+    var(--gct-modal-base-padding-right, 0px)
+    + var(--gct-modal-scrollbar-compensation, 0px)
+  ) !important;
 }
 
 .modal-card,

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance', '.mechanic-attendance-page', function () {
   function normalizeMechanicAttendancePath(
     value,
     fallback = '/mechanic-attendance'

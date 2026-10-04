@@ -2,13 +2,31 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
+
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME
+    || (window.location.protocol === 'https:' ? 'https' : 'http');
+const reverbHost = import.meta.env.VITE_REVERB_HOST || window.location.hostname;
+const configuredReverbPort = Number(import.meta.env.VITE_REVERB_PORT);
+const reverbPort = Number.isFinite(configuredReverbPort) && configuredReverbPort > 0
+    ? configuredReverbPort
+    : (reverbScheme === 'https' ? 443 : 8080);
+const reverbUsesTls = reverbScheme === 'https';
+
+window.GCTRealtimeConfig = Object.freeze({
+    host: reverbHost,
+    port: reverbPort,
+    scheme: reverbScheme,
+    channel: 'system-updates',
+    event: 'SystemDataUpdated',
+});
+
 window.Echo = window.Echo || new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    wsPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
-    wssPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
+    wsHost: reverbHost,
+    wsPort: reverbPort,
+    wssPort: reverbPort,
+    forceTLS: reverbUsesTls,
     enabledTransports: ['ws', 'wss'],
 });
 
@@ -33,6 +51,58 @@ window.showSystemNotification = function (message) {
     } catch (error) {
         console.warn('Realtime notification failed:', error);
     }
+};
+
+const realtimeNotificationState = {
+    messages: [],
+    timer: null,
+};
+
+const shouldSuppressRealtimeNotification = () => {
+    const state = window.GCTRealtimeLocalMutation;
+    if (!state) return false;
+
+    return Number(state.pending || 0) > 0
+        || Date.now() < Number(state.quietUntil || 0);
+};
+
+const flushRealtimeNotifications = () => {
+    realtimeNotificationState.timer = null;
+
+    if (realtimeNotificationState.messages.length === 0) return;
+
+    const messages = [...new Set(realtimeNotificationState.messages.map((message) => String(message || '').trim()).filter(Boolean))];
+    realtimeNotificationState.messages = [];
+
+    if (messages.length === 0) return;
+
+    const visibleMessages = messages.slice(0, 3);
+    let combinedMessage = visibleMessages.join(' ');
+
+    if (messages.length > visibleMessages.length) {
+        combinedMessage += ` ${messages.length - visibleMessages.length} more update${messages.length - visibleMessages.length === 1 ? '' : 's'} completed.`;
+    }
+
+    window.showSystemNotification(combinedMessage);
+};
+
+const queueRealtimeNotification = (message) => {
+    if (shouldSuppressRealtimeNotification()) return;
+
+    const cleanMessage = String(message || 'System data was updated.').trim();
+    if (!cleanMessage) return;
+
+    if (!realtimeNotificationState.messages.includes(cleanMessage)) {
+        realtimeNotificationState.messages.push(cleanMessage);
+    }
+
+    if (realtimeNotificationState.timer) {
+        window.clearTimeout(realtimeNotificationState.timer);
+    }
+
+    // Related backend broadcasts often arrive within the same workflow action.
+    // Keep data refresh immediate, but group their user-facing feedback.
+    realtimeNotificationState.timer = window.setTimeout(flushRealtimeNotifications, 650);
 };
 
 const normalizePath = (path) => {
@@ -99,7 +169,9 @@ window.listenForSystemUpdates = function () {
 
     if (!window.systemUpdatesConnectionBindingsStarted) {
         window.systemUpdatesConnectionBindingsStarted = true;
-        window.Echo.connector.pusher.connection.bind('connected', () => console.log('Realtime connected to Reverb.'));
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Realtime connected to Reverb.', window.GCTRealtimeConfig);
+        });
         window.Echo.connector.pusher.connection.bind('error', (error) => console.error('Realtime Reverb connection error:', error));
     }
 
@@ -107,7 +179,8 @@ window.listenForSystemUpdates = function () {
         window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
 
         try {
-            window.showSystemNotification(payload?.message || 'System data was updated.');
+            queueRealtimeNotification(payload?.message || 'System data was updated.');
+
             const currentPath = normalizePath(window.location.pathname);
             const routeKey = `${payload.module}:${payload.entity}`;
             const watched = (window.realtimePageRouteMap[routeKey] || []).map(normalizePath);

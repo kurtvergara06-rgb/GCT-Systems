@@ -14,7 +14,7 @@
 
     <x-layout.sidebar department="Operation" />
 
-    <main class="main">
+    <main class="main driver-attendance-page">
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="Manage and track driver attendance and availability"

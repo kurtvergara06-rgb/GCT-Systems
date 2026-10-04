@@ -12,7 +12,7 @@
 <div class="app">
 <x-layout.sidebar department="Operation" />
 
-    <main class="main">
+    <main class="main personnel-master-page">
         <x-layout.topbar title="Mechanic Master List" subtitle="Manage permanent mechanic profiles and employment information" notification-count="0" />
 
         <section data-ajax-region="summary" class="stats-grid personnel-stats-grid">

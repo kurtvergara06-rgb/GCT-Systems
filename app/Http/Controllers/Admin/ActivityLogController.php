@@ -18,7 +18,8 @@ class ActivityLogController extends Controller
 
     public function data(Request $request): array
     {
-        $query = ActivityLog::query();
+        $query = ActivityLog::query()
+            ->with('user:id,avatar_path');
 
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));

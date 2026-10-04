@@ -10,7 +10,7 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main">
+    <main class="main inventory-restock-page">
       <x-layout.topbar
         title="Inventory Restock"
         subtitle="Automatic restock requests from warehouse inventory"

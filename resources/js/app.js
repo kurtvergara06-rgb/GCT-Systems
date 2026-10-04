@@ -1,4 +1,5 @@
 import './echo';
+import './Main-js/partial-navigation.js';
 
 /*
  * Shared application assets only.
@@ -17,11 +18,14 @@ import '../css/Main-styles/searchable-select.css';
 import '../css/Main-styles/date-time-picker.css';
 import '../css/Main-styles/spinner.css';
 import '../css/Main-styles/topbar.css';
+import '../css/Main-styles/page-transitions.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
+import '../css/Maintenance/purchase-request-modal-cleanup.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-toast.js';
+import './Main-js/page-transitions.js';
 import './Main-js/automatic-table-search.js';
 import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
@@ -34,13 +38,14 @@ import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
+import './Maintenance/maintenance-history-tabs.js';
 
 /* Shared by Driver and Mechanic Attendance pages. */
 import '../css/Operation/Attendance/batch-attendance.css';
 import './Operation/Attendance/batch-attendance.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
-document.addEventListener('DOMContentLoaded', () => {
+const initializePageOnlyControls = () => {
     document.querySelectorAll('.descriptive-overview-kpi em, .descriptive-insight-card strong').forEach((node) => {
         if (node.textContent.trim() === 'New') {
             node.textContent = 'No prior data';
@@ -68,7 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
         import('./Admin/Data_Management/data-history.js');
     }
 
+    if (document.querySelector('.jo-page')) {
+        import('./Maintenance/job-order-work-details.js');
+    }
+
     if (document.querySelector('.fuel-page')) {
         import('./Maintenance/fuel-reports-refinement.js');
     }
-});
+};
+
+document.addEventListener('DOMContentLoaded', initializePageOnlyControls);
+window.addEventListener('gct:navigation-ready', initializePageOnlyControls);

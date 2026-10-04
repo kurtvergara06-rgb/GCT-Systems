@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-page', () => {
     'use strict';
 
     /* =========================================================

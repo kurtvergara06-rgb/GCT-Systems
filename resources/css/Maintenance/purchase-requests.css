@@ -152,6 +152,10 @@
 ========================================================= */
 
 .purchase-page .purchase-request-card .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     margin-bottom: 12px;
 }
 
@@ -171,6 +175,60 @@
     color: var(--pr-muted);
 
     font-size: 12px;
+}
+
+.purchase-page .maintenance-record-tabs {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 6px;
+    padding: 5px;
+    margin: 0 0 0 auto;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f6f8fb;
+}
+
+.purchase-page .maintenance-record-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    color: #5a6678;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.purchase-page .maintenance-record-tab:hover {
+    background: #ffffff;
+    color: #102a56;
+}
+
+.purchase-page .maintenance-record-tab.is-active {
+    background: #ffffff;
+    color: #102a56;
+    box-shadow: 0 2px 8px rgba(16, 42, 86, .09);
+}
+
+.purchase-page .maintenance-history-note {
+    margin: 4px 0 12px;
+    color: #7b8798;
+    font-size: 11px;
+}
+
+@media (max-width: 760px) {
+    .purchase-page .purchase-request-card .section-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .purchase-page .maintenance-record-tabs {
+        margin-left: 0;
+    }
 }
 
 
@@ -1988,4 +2046,1183 @@
         width: 100%;
     }
 
+}
+
+/* =========================================================
+   PURCHASE REQUEST REVIEW - SHARED BASE
+========================================================= */
+
+.purchase-page .pr-review-action-cell {
+    justify-content: center;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 92px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    border: 1px solid #d4e3ff;
+    border-radius: 8px;
+    background: #eaf2ff;
+    color: var(--pr-blue, #0b40b5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: none;
+    cursor: pointer;
+    transition:
+        background-color .16s ease,
+        border-color .16s ease,
+        color .16s ease,
+        transform .16s ease,
+        box-shadow .16s ease;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn i {
+    width: 13px;
+    flex: 0 0 13px;
+    margin: 0;
+    color: inherit;
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    pointer-events: none;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn span {
+    display: inline-block;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.purchase-page .purchase-request-table .actions .pr-review-btn:hover {
+    border-color: var(--pr-blue, #0b40b5);
+    background: var(--pr-blue, #0b40b5);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(11, 64, 181, .16);
+}
+
+.pr-review-doc-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pr-review-status-pill {
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef3c7;
+    color: #9a6700;
+    font-weight: 800;
+}
+
+.pr-review-status-pill[data-status="rejected"] {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.pr-review-status-pill[data-status="approved"],
+.pr-review-status-pill[data-status="issued"],
+.pr-review-status-pill[data-status="delivered"] {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.pr-review-status-pill[data-status="for-purchase"],
+.pr-review-status-pill[data-status="ordered"],
+.pr-review-status-pill[data-status="for-pick-up"],
+.pr-review-status-pill[data-status="picked-up"],
+.pr-review-status-pill[data-status="for-delivery"] {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.pr-review-created span,
+.pr-review-created strong {
+    display: block;
+}
+
+.pr-review-created span {
+    color: #64748b;
+    font-weight: 700;
+}
+
+.pr-review-created strong {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.pr-review-section-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pr-review-count {
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    background: #eaf2ff;
+    color: #0b40b5;
+    font-weight: 800;
+}
+
+.pr-review-items-table {
+    border-collapse: collapse;
+}
+
+.pr-review-items-table th {
+    background: #f3f7fc;
+    color: #475569;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.pr-review-items-table td {
+    border-top: 1px solid #e7edf5;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.pr-review-items-table th:first-child,
+.pr-review-items-table td:first-child,
+.pr-review-items-table th:nth-child(3),
+.pr-review-items-table td:nth-child(3) {
+    text-align: center;
+}
+
+.pr-review-empty {
+    padding: 24px !important;
+    color: #64748b !important;
+    text-align: center !important;
+    font-weight: 500 !important;
+}
+
+.pr-review-decision {
+    border: 1px solid #dce5f2;
+    background: #f8fbff;
+}
+
+.pr-review-decision textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #d3dfed;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    resize: vertical;
+    outline: none;
+}
+
+.pr-review-decision textarea:focus {
+    border-color: #0b40b5;
+    box-shadow: 0 0 0 3px rgba(11, 64, 181, .10);
+}
+
+.pr-edit-workspace .ui-form-section {
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+.pr-edit-remarks {
+    margin-top: 16px;
+}
+
+/* =========================================================
+   PURCHASE REQUEST DETAILS - APPROVED CENTERED LAYOUT
+   Overrides legacy #editPrModal sizing and matches the
+   approved Request Information / Items / History concept.
+========================================================= */
+
+#editPrModal.pr-review-modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 22px !important;
+}
+
+#editPrModal.pr-review-modal-overlay > .ui-form-modal {
+    width: min(820px, calc(100vw - 44px)) !important;
+    max-width: 820px !important;
+    max-height: calc(100vh - 44px);
+    margin: auto !important;
+    overflow: hidden;
+}
+
+#editPrModal .ui-form-modal-header {
+    padding: 18px 20px 16px;
+}
+
+#editPrModal .ui-form-title-icon {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    border-radius: 11px;
+    font-size: 17px;
+}
+
+#editPrModal .ui-form-title-wrap {
+    gap: 12px;
+}
+
+#editPrModal .ui-form-title-wrap h2,
+#editPrModal .ui-form-heading h2 {
+    font-size: 18px;
+}
+
+#editPrModal .ui-form-title-wrap p,
+#editPrModal .ui-form-heading p {
+    margin-top: 3px;
+    font-size: 10.5px;
+}
+
+#editPrModal .ui-form-content {
+    padding: 0;
+}
+
+#editPrModal .ui-form-modal-body {
+    padding: 16px 20px 18px;
+}
+
+#editPrModal .ui-form-modal-scrollable {
+    max-height: calc(100vh - 154px);
+    padding-right: 2px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+#editPrModal .pr-review-summary {
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+#editPrModal .pr-review-summary-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+#editPrModal .pr-review-summary-main > div:last-child {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+#editPrModal .pr-review-doc-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 10px;
+    background: #eaf2ff;
+    color: #0b40b5;
+    font-size: 15px;
+}
+
+#editPrModal #reviewPrNo {
+    color: #061f3d;
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+#editPrModal .pr-review-status-pill {
+    min-height: 24px;
+    padding: 0 9px;
+    font-size: 9.5px;
+}
+
+#editPrModal .pr-review-created {
+    text-align: left;
+}
+
+#editPrModal .pr-review-created span {
+    margin-bottom: 2px;
+    font-size: 9.5px;
+}
+
+#editPrModal .pr-review-created strong {
+    max-width: 155px;
+    font-size: 10.5px;
+    line-height: 1.35;
+}
+
+#editPrModal .pr-review-information {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+    background: #fbfdff;
+    overflow: hidden;
+}
+
+#editPrModal .pr-review-information[hidden] {
+    display: none !important;
+}
+
+#editPrModal .pr-review-information-column {
+    min-width: 0;
+}
+
+#editPrModal .pr-review-information-column:first-child {
+    border-right: 1px solid #e7edf5;
+}
+
+#editPrModal .pr-review-detail-row {
+    min-height: 48px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+#editPrModal .pr-review-information-column .pr-review-detail-row:last-child {
+    border-bottom: 0;
+}
+
+#editPrModal .pr-review-detail-row > span {
+    color: #64748b;
+    font-size: 9.5px;
+    font-weight: 600;
+}
+
+#editPrModal .pr-review-detail-row > strong {
+    min-width: 0;
+    color: #0f172a;
+    font-size: 10.5px;
+    font-weight: 750;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+#editPrModal .pr-review-detail-full {
+    grid-column: 1 / -1;
+    grid-template-columns: 112px minmax(0, 1fr);
+    min-height: 44px;
+    border-top: 1px solid #e7edf5;
+    border-bottom: 0;
+}
+
+#editPrModal .pr-review-information-section,
+#editPrModal .pr-review-section,
+#editPrModal .pr-review-decision {
+    margin-top: 14px;
+}
+
+#editPrModal .pr-review-information-section[hidden],
+#editPrModal .pr-review-section[hidden],
+#editPrModal .pr-review-decision[hidden],
+#editPrModal .pr-edit-workspace[hidden],
+#editPrModal .pr-review-footer [hidden] {
+    display: none !important;
+}
+
+#editPrModal .pr-review-section-heading {
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+#editPrModal .pr-review-section-title {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+#editPrModal .pr-review-section-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eaf2ff;
+    color: #0b40b5;
+    font-size: 11px;
+}
+
+#editPrModal .pr-review-section-title h3 {
+    margin: 0;
+    color: #061f3d;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-section-title p {
+    margin: 2px 0 0;
+    color: #64748b;
+    font-size: 9.5px;
+}
+
+#editPrModal .pr-review-count {
+    min-height: 23px;
+    padding: 0 8px;
+    font-size: 9px;
+}
+
+#editPrModal .pr-review-items-table-wrap {
+    overflow: hidden;
+    border-radius: 9px;
+}
+
+#editPrModal .pr-review-items-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+}
+
+#editPrModal .pr-review-items-table th {
+    padding: 8px 10px;
+    font-size: 8.5px;
+}
+
+#editPrModal .pr-review-items-table td {
+    padding: 9px 10px;
+    font-size: 10px;
+}
+
+#editPrModal .pr-review-items-table th:first-child,
+#editPrModal .pr-review-items-table td:first-child {
+    width: 46px;
+}
+
+#editPrModal .pr-review-items-table th:nth-child(2),
+#editPrModal .pr-review-items-table td:nth-child(2) {
+    width: auto;
+}
+
+#editPrModal .pr-review-items-table th:nth-child(3),
+#editPrModal .pr-review-items-table td:nth-child(3) {
+    width: 82px;
+}
+
+#editPrModal .pr-review-items-table th:nth-child(4),
+#editPrModal .pr-review-items-table td:nth-child(4) {
+    width: 96px;
+}
+
+#editPrModal .pr-review-decision {
+    padding: 12px;
+    border-radius: 10px;
+}
+
+#editPrModal .pr-review-decision > label {
+    display: block;
+    margin-bottom: 6px;
+    color: #334155;
+    font-size: 9.5px;
+    font-weight: 700;
+}
+
+#editPrModal .pr-review-decision textarea {
+    min-height: 72px;
+    font-size: 10.5px;
+}
+
+#editPrModal .pr-review-footer {
+    position: sticky;
+    bottom: -1px;
+    z-index: 4;
+    margin-top: 14px;
+    padding: 14px 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #ffffff;
+    border-top: 1px solid #e7edf5;
+}
+
+#editPrModal .pr-review-footer-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn {
+    min-height: 36px;
+    min-width: 90px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 10.5px;
+}
+
+#editPrModal .pr-review-btn-edit {
+    background: #0b63ce;
+    border-color: #0b63ce;
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-edit:hover {
+    background: #084fa7;
+    border-color: #084fa7;
+}
+
+#editPrModal .pr-review-btn-reject {
+    background: #ef2b2d;
+    border-color: #ef2b2d;
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-reject:hover {
+    background: #c91f21;
+    border-color: #c91f21;
+}
+
+#editPrModal .pr-review-btn-approve {
+    background: #13a94f;
+    border-color: #13a94f;
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-approve:hover {
+    background: #0f8c41;
+    border-color: #0f8c41;
+}
+
+#editPrModal #closeViewOnlyPr {
+    margin-right: 0;
+}
+
+#editPrModal .pr-edit-workspace {
+    margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+    #editPrModal.pr-review-modal-overlay {
+        align-items: flex-start !important;
+        padding: 10px !important;
+    }
+
+    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100vh - 20px);
+    }
+
+    #editPrModal .ui-form-modal-header {
+        padding: 14px;
+    }
+
+    #editPrModal .ui-form-modal-body {
+        padding: 12px 14px 14px;
+    }
+
+    #editPrModal .pr-review-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #editPrModal .pr-review-created {
+        width: 100%;
+    }
+
+    #editPrModal .pr-review-information {
+        grid-template-columns: 1fr;
+    }
+
+    #editPrModal .pr-review-information-column:first-child {
+        border-right: 0;
+        border-bottom: 1px solid #e7edf5;
+    }
+
+    #editPrModal .pr-review-detail-row,
+    #editPrModal .pr-review-detail-full {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    #editPrModal .pr-review-items-table th:nth-child(3),
+    #editPrModal .pr-review-items-table td:nth-child(3) {
+        width: 62px;
+    }
+
+    #editPrModal .pr-review-items-table th:nth-child(4),
+    #editPrModal .pr-review-items-table td:nth-child(4) {
+        width: 76px;
+    }
+
+    #editPrModal .pr-review-footer,
+    #editPrModal .pr-review-footer-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    #editPrModal .pr-review-footer .ui-form-btn {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   PURCHASE REQUEST REVIEW - SIMPLIFIED CONTENT
+========================================================= */
+
+#editPrModal .pr-review-information-heading {
+    margin-bottom: 8px;
+}
+
+#editPrModal .pr-review-information-section {
+    scroll-margin-top: 12px;
+}
+
+#editPrModal .pr-review-section {
+    scroll-margin-top: 12px;
+}
+
+#editPrModal .pr-review-information {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+}
+
+#editPrModal .pr-review-items-table-wrap {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+}
+
+#editPrModal .pr-review-summary {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+#editPrModal .pr-review-footer [hidden] {
+    display: none !important;
+}
+
+#editPrModal .pr-review-footer-actions:empty {
+    display: none;
+}
+
+#editPrModal .pr-review-decision {
+    border-color: #dbe7f6;
+    background: #f8fbff;
+}
+
+#editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
+    color: #0b40b5;
+}
+
+@media (min-width: 761px) {
+    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+        width: min(780px, calc(100vw - 44px)) !important;
+        max-width: 780px !important;
+    }
+
+    #editPrModal .ui-form-modal-scrollable {
+        max-height: calc(100vh - 150px);
+    }
+}
+
+
+/* =========================================================
+   PURCHASE REQUEST DETAILS - GCT SYSTEM THEME SCALE
+   Match the shared system visual language and improve
+   readability without changing workflow behavior.
+========================================================= */
+
+#editPrModal.pr-review-modal-overlay {
+    padding: 28px !important;
+}
+
+#editPrModal.pr-review-modal-overlay > .ui-form-modal {
+    width: min(900px, calc(100vw - 56px)) !important;
+    max-width: 900px !important;
+    max-height: calc(100vh - 56px);
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 18px;
+    background: var(--surface, #ffffff);
+    box-shadow: 0 24px 70px rgba(6, 31, 61, .24);
+}
+
+#editPrModal .ui-form-modal-header {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--border-soft, #dce5f2);
+    background: #ffffff;
+}
+
+#editPrModal .ui-form-heading h2,
+#editPrModal .ui-form-title-wrap h2 {
+    color: var(--brand-navy, #061f3d);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+#editPrModal .ui-form-heading p,
+#editPrModal .ui-form-title-wrap p {
+    margin-top: 5px;
+    color: var(--text-muted, #64748b);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+#editPrModal .ui-form-close {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 11px;
+    color: var(--brand-navy, #061f3d);
+    background: #f8fafc;
+    border-color: var(--border-soft, #dce5f2);
+    font-size: 14px;
+}
+
+#editPrModal .ui-form-modal-body {
+    padding: 20px 24px 22px;
+}
+
+#editPrModal .ui-form-modal-scrollable {
+    max-height: calc(100vh - 176px);
+    padding-right: 4px;
+}
+
+#editPrModal .pr-review-summary {
+    padding: 15px 16px;
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .04);
+}
+
+#editPrModal .pr-review-summary-main {
+    gap: 13px;
+}
+
+#editPrModal .pr-review-doc-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border: 1px solid #ffe7a3;
+    border-radius: 13px;
+    background: #fff3cd;
+    color: #e5a600;
+    font-size: 18px;
+}
+
+#editPrModal #reviewPrNo {
+    color: var(--brand-navy, #061f3d);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-status-pill {
+    min-height: 28px;
+    padding: 0 11px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-created span {
+    margin-bottom: 4px;
+    color: var(--text-muted, #64748b);
+    font-size: 11px;
+}
+
+#editPrModal .pr-review-created strong {
+    max-width: 190px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+#editPrModal .pr-review-information-section,
+#editPrModal .pr-review-section,
+#editPrModal .pr-review-decision {
+    margin-top: 18px;
+}
+
+#editPrModal .pr-review-section-heading {
+    margin-bottom: 10px;
+}
+
+#editPrModal .pr-review-section-title {
+    gap: 11px;
+}
+
+#editPrModal .pr-review-section-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border: 1px solid #d8e8ff;
+    border-radius: 10px;
+    background: #eaf2ff;
+    color: var(--brand-blue, #0b40b5);
+    font-size: 13px;
+}
+
+#editPrModal .pr-review-section-title h3 {
+    color: var(--brand-navy, #061f3d);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-section-title p {
+    margin-top: 3px;
+    color: var(--text-muted, #64748b);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+#editPrModal .pr-review-information {
+    margin-top: 10px;
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .035);
+}
+
+#editPrModal .pr-review-detail-row {
+    min-height: 56px;
+    padding: 12px 15px;
+    grid-template-columns: 125px minmax(0, 1fr);
+    gap: 12px;
+}
+
+#editPrModal .pr-review-detail-full {
+    min-height: 52px;
+    grid-template-columns: 125px minmax(0, 1fr);
+}
+
+#editPrModal .pr-review-detail-row > span {
+    color: var(--text-muted, #64748b);
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+#editPrModal .pr-review-detail-row > strong {
+    color: var(--text-main, #1e293b);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+#editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
+    color: var(--brand-blue, #0b40b5);
+}
+
+#editPrModal .pr-review-count {
+    min-height: 27px;
+    padding: 0 10px;
+    background: #eaf2ff;
+    color: var(--brand-blue, #0b40b5);
+    font-size: 10.5px;
+}
+
+#editPrModal .pr-review-items-table-wrap {
+    border: 1px solid var(--border-soft, #dce5f2);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(6, 31, 61, .03);
+}
+
+#editPrModal .pr-review-items-table th {
+    padding: 11px 13px;
+    background: #f8fafc;
+    color: var(--text-muted, #64748b);
+    font-size: 10.5px;
+    font-weight: 800;
+}
+
+#editPrModal .pr-review-items-table td {
+    padding: 12px 13px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+#editPrModal .pr-review-decision {
+    padding: 15px;
+    border: 1px solid #d8e8ff;
+    border-radius: 14px;
+    background: #f8fbff;
+}
+
+#editPrModal .pr-review-decision > label {
+    margin-bottom: 7px;
+    color: var(--text-main, #1e293b);
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+#editPrModal .pr-review-decision textarea {
+    min-height: 92px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    color: var(--text-main, #1e293b);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+#editPrModal .pr-review-footer {
+    margin-top: 18px;
+    padding: 16px 0 2px;
+    gap: 12px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-soft, #dce5f2);
+}
+
+#editPrModal .pr-review-footer-actions {
+    gap: 10px;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn,
+#editPrModal #editPrMainActions .ui-form-btn {
+    height: 40px;
+    min-height: 40px;
+    min-width: 0;
+    padding: 0 16px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 5px 12px rgba(6, 31, 61, .10);
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        background-color .18s ease,
+        border-color .18s ease;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn:hover,
+#editPrModal #editPrMainActions .ui-form-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(6, 31, 61, .16);
+}
+
+#editPrModal #closeViewOnlyPr,
+#editPrModal #cancelEditPrModal {
+    background: #ffffff;
+    border: 1px solid var(--border-soft, #dce5f2);
+    color: var(--brand-navy, #061f3d);
+    box-shadow: none;
+}
+
+#editPrModal #closeViewOnlyPr:hover,
+#editPrModal #cancelEditPrModal:hover {
+    border-color: var(--brand-blue, #0b40b5);
+    color: var(--brand-blue, #0b40b5);
+    background: #f8fbff;
+}
+
+#editPrModal .pr-review-btn-edit {
+    background:
+        linear-gradient(
+            135deg,
+            var(--pr-yellow, #ffc400),
+            var(--pr-yellow-dark, #f5a800)
+        );
+    border: 1px solid var(--pr-yellow-dark, #f5a800);
+    color: var(--pr-navy, #061f3d);
+    box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+}
+
+#editPrModal .pr-review-btn-edit i,
+#editPrModal .pr-review-btn-edit span {
+    color: var(--pr-navy, #061f3d);
+}
+
+#editPrModal .pr-review-btn-edit:hover {
+    box-shadow: 0 8px 18px rgba(255, 196, 0, .32);
+}
+
+#editPrModal .pr-review-btn-reject {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: 1px solid #dc2626;
+    color: #ffffff;
+}
+
+#editPrModal .pr-review-btn-approve {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: 1px solid #16a34a;
+    color: #ffffff;
+}
+
+#editPrModal #editPrMainActions {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft, #dce5f2);
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary {
+    min-width: 140px;
+    background: linear-gradient(
+        135deg,
+        var(--brand-yellow, #ffc400),
+        var(--brand-yellow-dark, #f5a800)
+    );
+    border-color: var(--brand-yellow-dark, #f5a800);
+    color: var(--brand-navy, #061f3d);
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary i,
+#editPrModal #editPrMainActions .ui-form-btn-primary span {
+    color: var(--brand-navy, #061f3d);
+}
+
+@media (max-width: 760px) {
+    #editPrModal.pr-review-modal-overlay {
+        padding: 10px !important;
+    }
+
+    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100vh - 20px);
+    }
+
+    #editPrModal .ui-form-modal-header {
+        padding: 17px 16px 14px;
+    }
+
+    #editPrModal .ui-form-heading h2,
+    #editPrModal .ui-form-title-wrap h2 {
+        font-size: 19px;
+    }
+
+    #editPrModal .ui-form-modal-body {
+        padding: 14px 16px 16px;
+    }
+
+    #editPrModal .pr-review-detail-row,
+    #editPrModal .pr-review-detail-full {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    #editPrModal .pr-review-footer,
+    #editPrModal .pr-review-footer-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    #editPrModal .pr-review-footer .ui-form-btn,
+    #editPrModal #editPrMainActions .ui-form-btn {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   PURCHASE REQUEST DETAILS - SOFT ACTION PALETTE
+   Keep semantic meaning while matching the modal's soft
+   GCT card treatment instead of using saturated fills.
+========================================================= */
+
+#editPrModal .pr-review-footer .ui-form-btn,
+#editPrModal #editPrMainActions .ui-form-btn {
+    box-shadow: none;
+}
+
+#editPrModal .pr-review-footer .ui-form-btn:hover,
+#editPrModal #editPrMainActions .ui-form-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(6, 31, 61, .10);
+}
+
+#editPrModal #closeViewOnlyPr,
+#editPrModal #cancelEditPrModal {
+    background: #ffffff;
+    border: 1px solid #dce5f2;
+    color: #334155;
+}
+
+#editPrModal #closeViewOnlyPr:hover,
+#editPrModal #cancelEditPrModal:hover {
+    background: #f8fafc;
+    border-color: #b9c9dc;
+    color: #061f3d;
+}
+
+#editPrModal .pr-review-btn-edit {
+    background: #fff8dc;
+    border: 1px solid #f6d56a;
+    color: #8a6200;
+}
+
+#editPrModal .pr-review-btn-edit i,
+#editPrModal .pr-review-btn-edit span {
+    color: #8a6200;
+}
+
+#editPrModal .pr-review-btn-edit:hover {
+    background: #ffefb0;
+    border-color: #e8bd35;
+    color: #6f4f00;
+    box-shadow: 0 8px 18px rgba(245, 168, 0, .16);
+}
+
+#editPrModal .pr-review-btn-reject {
+    background: #fff3f3;
+    border: 1px solid #f4b8b8;
+    color: #b4232a;
+}
+
+#editPrModal .pr-review-btn-reject:hover {
+    background: #ffe1e1;
+    border-color: #e98e8e;
+    color: #9f1f25;
+    box-shadow: 0 8px 18px rgba(220, 38, 38, .12);
+}
+
+#editPrModal .pr-review-btn-approve {
+    background: #eefbf3;
+    border: 1px solid #a8dfbb;
+    color: #137a3a;
+}
+
+#editPrModal .pr-review-btn-approve:hover {
+    background: #dff5e8;
+    border-color: #7fc999;
+    color: #0f6430;
+    box-shadow: 0 8px 18px rgba(22, 163, 74, .12);
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary {
+    background: #fff8dc;
+    border: 1px solid #f6d56a;
+    color: #8a6200;
+    box-shadow: none;
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary i,
+#editPrModal #editPrMainActions .ui-form-btn-primary span {
+    color: #8a6200;
+}
+
+#editPrModal #editPrMainActions .ui-form-btn-primary:hover {
+    background: #ffefb0;
+    border-color: #e8bd35;
+    color: #6f4f00;
+    box-shadow: 0 8px 18px rgba(245, 168, 0, .16);
 }

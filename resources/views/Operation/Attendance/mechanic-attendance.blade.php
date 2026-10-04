@@ -29,7 +29,7 @@
 
   <x-layout.sidebar department="Operation" />
 
-    <main class="main">
+    <main class="main mechanic-attendance-page">
       <x-layout.topbar
         title="Mechanic Attendance"
         subtitle="Manage and track mechanic attendance and availability"
