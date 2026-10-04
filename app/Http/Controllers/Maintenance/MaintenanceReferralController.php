@@ -42,13 +42,21 @@ class MaintenanceReferralController extends Controller
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
 
-            $query->whereHas('incident', function ($incidentQuery) use ($search): void {
-                $incidentQuery
-                    ->where('incident_no', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('bus', function ($busQuery) use ($search): void {
-                        $busQuery->where('bus_no', 'like', "%{$search}%");
+            $query->where(function ($referralQuery) use ($search): void {
+                $referralQuery
+                    ->whereHas('incident', function ($incidentQuery) use ($search): void {
+                        $incidentQuery
+                            ->where('incident_no', 'like', "%{$search}%")
+                            ->orWhere('location', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->orWhereHas('bus', function ($busQuery) use ($search): void {
+                                $busQuery->where('bus_no', 'like', "%{$search}%");
+                            });
+                    })
+                    ->orWhereHas('jobOrder', function ($jobOrderQuery) use ($search): void {
+                        $jobOrderQuery
+                            ->where('job_order_no', 'like', "%{$search}%")
+                            ->orWhere('bus_no', 'like', "%{$search}%");
                     });
             });
         }
