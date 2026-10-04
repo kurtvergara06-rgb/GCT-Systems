@@ -85,25 +85,21 @@ const animateRows = (root) => {
     return;
   }
 
-  const reduced = prefersReducedMotion();
-  const yOffset = reduced ? 3 : 5;
-  const duration = reduced ? 0.16 : 0.22;
-
   gsap.killTweensOf(rows);
 
   gsap.fromTo(
     rows,
     {
-      opacity: 0.65,
-      y: yOffset,
+      opacity: 0.72,
     },
     {
       opacity: 1,
-      y: 0,
-      duration: duration,
-      stagger: 0.015,
-      ease: 'power2.out',
-      clearProps: 'opacity,transform',
+      duration:
+        prefersReducedMotion()
+          ? 0.14
+          : 0.20,
+      ease: 'power1.out',
+      clearProps: 'opacity',
     }
   );
 };
@@ -121,25 +117,21 @@ const animateSummaryRefresh = (root) => {
     return;
   }
 
-  const reduced = prefersReducedMotion();
-  const yOffset = reduced ? 3 : 6;
-  const duration = reduced ? 0.16 : 0.22;
-
   gsap.killTweensOf(cards);
 
   gsap.fromTo(
     cards,
     {
-      opacity: 0.75,
-      y: yOffset,
+      opacity: 0.78,
     },
     {
       opacity: 1,
-      y: 0,
-      duration: duration,
-      stagger: 0.025,
+      duration:
+        prefersReducedMotion()
+          ? 0.14
+          : 0.20,
       ease: 'power1.out',
-      clearProps: 'opacity,transform',
+      clearProps: 'opacity',
     }
   );
 };
