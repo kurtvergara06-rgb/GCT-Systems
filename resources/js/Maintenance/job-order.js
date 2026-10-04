@@ -2067,6 +2067,38 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     );
 
 
+  const deleteJobTitle =
+    deleteJobModal
+      ?.querySelector('h2')
+    || null;
+
+
+  const deleteJobMessage =
+    deleteJobModal
+      ?.querySelector('p')
+    || null;
+
+
+  const rejectedPrDeleteWarning =
+    document.createElement(
+      'span'
+    );
+
+
+  rejectedPrDeleteWarning.textContent =
+    ' The rejected Purchase Request and its related notifications will also be removed.';
+
+
+  rejectedPrDeleteWarning.hidden =
+    true;
+
+
+  deleteJobMessage
+    ?.appendChild(
+      rejectedPrDeleteWarning
+    );
+
+
   let selectedDeleteForm =
     null;
 
@@ -2103,6 +2135,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         button.dataset.joNo;
 
 
+      const hasRejectedPr =
+        button.dataset
+          .rejectedPr ===
+        '1';
+
+
       selectedDeleteForm =
         document.getElementById(
           `deleteForm-${id}`
@@ -2127,6 +2165,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       }
 
 
+      if (deleteJobTitle) {
+
+        deleteJobTitle.textContent =
+          hasRejectedPr
+            ? 'Delete Rejected Job Order?'
+            : 'Delete Job Order?';
+      }
+
+
+      rejectedPrDeleteWarning.hidden =
+        !hasRejectedPr;
+
+
       if (confirmDeleteJob) {
 
         confirmDeleteJob.disabled =
@@ -2134,7 +2185,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
         confirmDeleteJob.innerHTML =
-          'Yes, Delete';
+          hasRejectedPr
+            ? 'Yes, Delete JO + PR'
+            : 'Yes, Delete';
       }
 
 
