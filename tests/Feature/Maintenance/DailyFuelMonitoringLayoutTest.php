@@ -42,6 +42,30 @@ class DailyFuelMonitoringLayoutTest extends TestCase
         );
     }
 
+    public function test_dynamic_refinement_keeps_filters_compact_instead_of_stretching_date_field(): void
+    {
+        $css = file_get_contents(
+            resource_path('css/Maintenance/fuel-reports-refinement.css')
+        );
+
+        $this->assertStringContainsString(
+            'grid-template-columns: minmax(230px, 320px) minmax(170px, 210px);',
+            $css
+        );
+        $this->assertStringContainsString(
+            'flex: 0 1 auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'width: fit-content;',
+            $css
+        );
+        $this->assertStringNotContainsString(
+            'grid-template-columns: minmax(260px, 1fr) minmax(180px, 220px);',
+            $css
+        );
+    }
+
     public function test_daily_fuel_monitoring_save_bar_uses_primary_yellow_action(): void
     {
         $css = file_get_contents(
