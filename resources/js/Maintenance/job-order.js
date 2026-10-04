@@ -93,8 +93,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         x: 0,
         y: 0,
         scale: 1,
-        duration: 0.42,
-        ease: 'back.out(1.7)',
+        duration: 0.28,
+        ease: 'back.out(1.55)',
         clearProps:
           'opacity,transform',
       }
@@ -179,9 +179,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.58,
-          stagger: 0.11,
-          ease: 'back.out(1.35)',
+          duration: 0.34,
+          stagger: 0.07,
+          ease: 'back.out(1.25)',
           clearProps:
             'opacity,transform',
         }
@@ -202,8 +202,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.68,
-          delay: 0.18,
+          duration: 0.42,
+          delay: 0.10,
           ease: 'power3.out',
           clearProps:
             'opacity,transform',
@@ -272,7 +272,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       },
       {
         opacity: 1,
-        duration: 0.32,
+        duration: 0.18,
         ease: 'power2.out',
       }
     );
@@ -284,10 +284,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 110,
-          scale: 0.74,
-          rotateX: -8,
-          rotateZ: -1.5,
+          y: 72,
+          scale: 0.84,
+          rotateX: -5,
+          rotateZ: -0.8,
           transformOrigin:
             '50% 20%',
         },
@@ -297,8 +297,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           scale: 1,
           rotateX: 0,
           rotateZ: 0,
-          duration: 0.78,
-          ease: 'back.out(1.55)',
+          duration: 0.42,
+          ease: 'back.out(1.4)',
           clearProps:
             'opacity,transform,transformOrigin',
         },
@@ -326,13 +326,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           {
             opacity: 1,
             y: 0,
-            duration: 0.38,
-            stagger: 0.09,
+            duration: 0.24,
+            stagger: 0.05,
             ease: 'power2.out',
             clearProps:
               'opacity,transform',
           },
-          0.18
+          0.12
         );
       }
     }
@@ -419,7 +419,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           opacity: 0,
           y: 34,
           scale: 0.93,
-          duration: 0.28,
+          duration: 0.18,
           ease: 'power2.in',
         },
         0
@@ -431,7 +431,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       modal,
       {
         opacity: 0,
-        duration: 0.30,
+        duration: 0.20,
         ease: 'power2.in',
       },
       0
