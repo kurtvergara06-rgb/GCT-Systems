@@ -67,6 +67,19 @@ class PurchaseRequestIndexController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        $visibleJobOrderNumbers = $purchaseRequests
+            ->getCollection()
+            ->pluck('job_order_no')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $workToPerformByJobOrder = $visibleJobOrderNumbers->isEmpty()
+            ? collect()
+            : JobOrder::query()
+                ->whereIn('job_order_no', $visibleJobOrderNumbers)
+                ->pluck('work_to_perform', 'job_order_no');
+
         $submitted = $this->maintenancePurchaseRequestQuery()->where('status', 'Submitted')->count();
         $approved = $this->maintenancePurchaseRequestQuery()->where('status', 'Approved')->count();
         $rejected = $this->maintenancePurchaseRequestQuery()->where('status', 'Rejected')->count();
@@ -106,7 +119,8 @@ class PurchaseRequestIndexController extends Controller
             'selectedJobOrder',
             'statuses',
             'isMaintenanceAdmin',
-            'recordView'
+            'recordView',
+            'workToPerformByJobOrder'
         ));
     }
 
