@@ -328,6 +328,64 @@ class MaintenanceDashboardTest extends TestCase
         }
     }
 
+    public function test_date_overdue_pms_can_create_job_order_even_before_mileage_warning_range(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-04 12:00:00'));
+
+        try {
+            $user = $this->createMaintenanceUser();
+
+            $bus = Bus::create([
+                'bus_no' => 'BUS-DATE-JO',
+                'status' => 'Active',
+                'latest_gps_km' => 0,
+            ]);
+
+            $this->createProcessedGps(
+                $bus->bus_no,
+                1000,
+                Carbon::parse('2026-10-04 08:00:00')
+            );
+
+            $schedule = PmsSchedule::create([
+                'bus_no' => $bus->bus_no,
+                'maintenance_type' => 'Date Overdue Service',
+                'last_pms_km' => 0,
+                'next_pms_km' => 10000,
+                'pms_interval_km' => 10000,
+                'recommended_date' => '2026-08-26',
+            ]);
+
+            $response = $this
+                ->actingAs($user)
+                ->get(
+                    route(
+                        'pms-schedules.create-job-order',
+                        $schedule
+                    )
+                );
+
+            $response->assertRedirect();
+
+            $location = (string) $response->headers->get('Location');
+
+            $this->assertStringContainsString(
+                'create_pms=1',
+                $location
+            );
+            $this->assertStringContainsString(
+                'pms_schedule_id='.$schedule->id,
+                $location
+            );
+            $this->assertStringContainsString(
+                'Date%20Overdue%20Service',
+                $location
+            );
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_dashboard_calculates_mechanic_roster_availability(): void
     {
         $user = $this->createMaintenanceUser();
