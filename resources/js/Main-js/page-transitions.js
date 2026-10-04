@@ -165,29 +165,29 @@ window.addEventListener('gct:navigation-ready', async () => {
         && await maintenanceReveal.prepare();
 
     if (useMaintenanceReveal) {
+        /*
+         * Keep the completed Maintenance layout hidden until the loader has
+         * fully faded. Starting GSAP underneath the loader makes most of the
+         * motion invisible, so reveal only after the cover is gone.
+         */
         await hideLoader({
             revealMain: false,
-            beforeFade: () => {
-                const main = getMainElement();
-                if (!main) return;
-
-                /*
-                 * The Maintenance root has already completed font/layout
-                 * stabilization while hidden. Release the main content and
-                 * crossfade the finished UI with the loader.
-                 */
-                main.classList.remove(
-                    'gct-main-fetching',
-                    'gct-main-leaving',
-                    'gct-main-entering',
-                    'gct-main-entered',
-                    'gct-main-loader-hold',
-                    'gct-main-after-loader',
-                );
-
-                maintenanceReveal.reveal();
-            },
         });
+
+        const main = getMainElement();
+        if (!main) return;
+
+        main.classList.remove(
+            'gct-main-fetching',
+            'gct-main-leaving',
+            'gct-main-entering',
+            'gct-main-entered',
+            'gct-main-loader-hold',
+            'gct-main-after-loader',
+        );
+
+        await nextFrames();
+        maintenanceReveal.reveal();
 
         return;
     }
