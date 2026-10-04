@@ -255,7 +255,9 @@ const prepareMaintenanceReveal = async () => {
   return preparedRevealPromise;
 };
 
-const revealMaintenancePage = () => {
+const revealMaintenancePage = ({
+  initialOpen = false,
+} = {}) => {
   const root = getMaintenanceRoot();
 
   if (!root) {
@@ -265,32 +267,44 @@ const revealMaintenancePage = () => {
   const reduced =
     prefersReducedMotion();
 
+  const yOffset =
+    initialOpen
+      ? (reduced ? 34 : 72)
+      : (reduced ? 28 : 56);
+
+  const startScale =
+    initialOpen
+      ? (reduced ? 0.975 : 0.94)
+      : (reduced ? 0.98 : 0.955);
+
+  const duration =
+    initialOpen
+      ? (reduced ? 0.78 : 1.15)
+      : (reduced ? 0.62 : 0.90);
+
   gsap.killTweensOf(root);
 
   root.dataset.gctRevealState =
     'revealing';
 
   /*
-   * The page has already finished layout while hidden.
-   * Animate the completed page as one unit so the motion is obvious
-   * without exposing cards/tables assembling individually.
+   * Animate the already-finished page as one unit.
+   * Direct page open is intentionally slower so the GSAP motion is obvious,
+   * while partial navigation stays a little faster.
    */
   gsap.fromTo(
     root,
     {
       opacity: 0,
-      y: reduced ? 24 : 44,
-      scale: reduced ? 0.985 : 0.965,
+      y: yOffset,
+      scale: startScale,
       transformOrigin: '50% 12%',
     },
     {
       opacity: 1,
       y: 0,
       scale: 1,
-      duration:
-        reduced
-          ? 0.46
-          : 0.64,
+      duration,
       ease: 'power3.out',
       clearProps:
         'opacity,transform,transformOrigin',
@@ -1073,7 +1087,12 @@ const initializeMaintenanceAnimations = () => {
          * On a hard load there is no navigation cover, so reveal here.
          */
         if (!navigationCovered) {
-          revealMaintenancePage();
+          window.setTimeout(
+            () => revealMaintenancePage({
+              initialOpen: true,
+            }),
+            120
+          );
         }
       }
     );
