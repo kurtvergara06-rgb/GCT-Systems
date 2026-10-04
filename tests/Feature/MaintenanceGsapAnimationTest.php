@@ -242,7 +242,7 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            '? -18',
+            ': -18,',
             $source
         );
         $this->assertStringContainsString(
