@@ -143,66 +143,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
-  function animateJobOrderPageEntrance() {
-    const isReduced = typeof prefersReducedMotion === 'function'
-      ? prefersReducedMotion()
-      : Boolean(prefersReducedMotion);
-
-    const yCards = isReduced ? 5 : 10;
-    const yTable = isReduced ? 6 : 12;
-    const durCards = isReduced ? 0.20 : 0.28;
-    const durTable = isReduced ? 0.22 : 0.30;
-
-    const summaryCards =
-      document.querySelectorAll(
-        '.jo-page .jo-stats-grid > *'
-      );
-
-    const tableCard =
-      document.querySelector(
-        '.jo-page .jo-table-card'
-      );
-
-    if (summaryCards.length) {
-      gsap.killTweensOf(summaryCards);
-      gsap.fromTo(
-        summaryCards,
-        {
-          opacity: 0,
-          y: yCards,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: durCards,
-          stagger: 0.045,
-          ease: 'power2.out',
-          clearProps:
-            'opacity,transform',
-        }
-      );
-    }
-
-    if (tableCard) {
-      gsap.killTweensOf(tableCard);
-      gsap.fromTo(
-        tableCard,
-        {
-          opacity: 0,
-          y: yTable,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: durTable,
-          delay: 0.05,
-          ease: 'power2.out',
-          clearProps:
-            'opacity,transform',
-        }
-      );
-    }
-  }
+  /*
+   * Initial Job Order page reveal is owned by maintenance-animations.js.
+   * Keeping the cards/table at their final layout prevents users from seeing
+   * the page assemble after the navigation loader disappears.
+   */
 
 
   /* =========================================================
@@ -370,69 +315,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       0
     );
   }
-
-
-  function waitForJobOrderReveal(
-    attempt = 0
-  ) {
-
-    const root =
-      document.querySelector(
-        '.jo-page'
-      );
-
-
-    if (!root) {
-      return;
-    }
-
-
-    const loaderVisible =
-      document.body
-        .classList
-        .contains(
-          'gct-navigation-loading'
-        );
-
-
-    const mainHeld =
-      root.classList
-        .contains(
-          'gct-main-loader-hold'
-        )
-      || root.classList
-        .contains(
-          'gct-main-entering'
-        );
-
-
-    if (
-      (loaderVisible || mainHeld)
-      && attempt < 35
-    ) {
-
-      window.setTimeout(
-        () => waitForJobOrderReveal(
-          attempt + 1
-        ),
-        24
-      );
-
-
-      return;
-    }
-
-
-    window.requestAnimationFrame(() => {
-      window.setTimeout(
-        animateJobOrderPageEntrance,
-        48
-      );
-    });
-  }
-
-
-  waitForJobOrderReveal();
 
 
   /* =========================================================
