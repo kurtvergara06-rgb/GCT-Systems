@@ -279,8 +279,8 @@ const revealMaintenancePage = () => {
     root,
     {
       opacity: 0,
-      y: reduced ? 10 : 28,
-      scale: reduced ? 0.992 : 0.982,
+      y: reduced ? 24 : 44,
+      scale: reduced ? 0.985 : 0.965,
       transformOrigin: '50% 12%',
     },
     {
@@ -289,8 +289,8 @@ const revealMaintenancePage = () => {
       scale: 1,
       duration:
         reduced
-          ? 0.34
-          : 0.52,
+          ? 0.46
+          : 0.64,
       ease: 'power3.out',
       clearProps:
         'opacity,transform,transformOrigin',
@@ -397,9 +397,9 @@ const animateModalOpen = (overlay) => {
     );
 
   const reduced = prefersReducedMotion();
-  const surfaceY = reduced ? 12 : 30;
-  const surfaceScale = reduced ? 0.985 : 0.955;
-  const duration = reduced ? 0.28 : 0.38;
+  const surfaceY = reduced ? 20 : 38;
+  const surfaceScale = reduced ? 0.975 : 0.94;
+  const duration = reduced ? 0.34 : 0.46;
 
   gsap.killTweensOf(
     overlay
@@ -412,7 +412,7 @@ const animateModalOpen = (overlay) => {
     },
     {
       opacity: 1,
-      duration: reduced ? 0.18 : 0.24,
+      duration: reduced ? 0.22 : 0.28,
       ease: 'power2.out',
       clearProps: 'opacity',
     }
@@ -490,7 +490,7 @@ const animateInsertedRow = (node) => {
       opacity: 1,
       x: 0,
       y: 0,
-      duration: reduced ? 0.20 : 0.28,
+      duration: reduced ? 0.26 : 0.36,
       stagger: reduced ? 0.02 : 0.04,
       ease: 'power3.out',
       clearProps: 'opacity,transform',
@@ -638,7 +638,7 @@ const animateSidebarActiveItem = () => {
   }
 
   const reduced = prefersReducedMotion();
-  const xOffset = reduced ? -4 : -10;
+  const xOffset = reduced ? -7 : -14;
 
   gsap.fromTo(
     activeItems,
@@ -649,7 +649,7 @@ const animateSidebarActiveItem = () => {
     {
       opacity: 1,
       x: 0,
-      duration: reduced ? 0.22 : 0.32,
+      duration: reduced ? 0.28 : 0.38,
       ease: 'power3.out',
       clearProps: 'opacity,transform',
     }
@@ -683,8 +683,8 @@ const animateOpenedSubmenu = (
     );
 
   const reduced = prefersReducedMotion();
-  const subY = reduced ? -4 : -10;
-  const itemX = reduced ? -3 : -8;
+  const subY = reduced ? -7 : -14;
+  const itemX = reduced ? -5 : -12;
 
   gsap.fromTo(
     submenu,
@@ -711,8 +711,8 @@ const animateOpenedSubmenu = (
       {
         opacity: 1,
         x: 0,
-        duration: reduced ? 0.20 : 0.28,
-        stagger: reduced ? 0.02 : 0.045,
+        duration: reduced ? 0.24 : 0.34,
+        stagger: reduced ? 0.03 : 0.055,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
@@ -939,8 +939,8 @@ const bindGlobalInteractions = () => {
       gsap.to(
         item,
         {
-          x: 8,
-          duration: 0.20,
+          x: 10,
+          duration: 0.24,
           ease: 'power2.out',
           overwrite: true,
         }
@@ -977,7 +977,7 @@ const bindGlobalInteractions = () => {
         item,
         {
           x: 0,
-          duration: 0.20,
+          duration: 0.24,
           ease: 'power2.out',
           overwrite: true,
           clearProps: 'transform',
