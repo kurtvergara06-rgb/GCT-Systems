@@ -3,6 +3,7 @@
 namespace Tests\Feature\Maintenance;
 
 use App\Models\Admin\User;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -108,6 +109,36 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('data-can-edit="0"', false)
             ->assertSee('data-can-approve="0"', false)
             ->assertSee('data-can-delete="0"', false);
+    }
+
+    public function test_review_modal_shows_work_repair_to_perform_from_source_job_order(): void
+    {
+        $head = $this->maintenanceUser('head');
+
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-9001',
+            'bus_no' => 'GCT-108',
+            'problem_issue' => 'Brake vibration',
+            'work_to_perform' => 'Replace brake pads and inspect calipers.',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Brake Pad - Qty: 2 pcs',
+            'start_date' => now(),
+            'status' => 'On Going',
+            'part_status' => 'Submitted',
+        ]);
+
+        $this->purchaseRequest();
+
+        $this->actingAs($head)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('Work / Repair to Perform')
+            ->assertSee('id="reviewPrWorkToPerform"', false)
+            ->assertSee(
+                'data-work-to-perform="Replace brake pads and inspect calipers."',
+                false
+            );
     }
 
     public function test_review_modal_css_is_centered_not_a_side_drawer(): void
