@@ -447,11 +447,13 @@ const animateModalOpen = (overlay) => {
 const animateInsertedRow = (node) => {
   if (
     !(node instanceof Element)
-    || prefersReducedMotion()
     || !getMaintenanceRoot()
   ) {
     return;
   }
+
+  const reduced =
+    prefersReducedMotion();
 
   const rows = [];
 
@@ -481,15 +483,15 @@ const animateInsertedRow = (node) => {
     rows,
     {
       opacity: 0,
-      x: -14,
-      y: -6,
+      x: reduced ? -7 : -14,
+      y: reduced ? -3 : -6,
     },
     {
       opacity: 1,
       x: 0,
       y: 0,
-      duration: 0.28,
-      stagger: 0.04,
+      duration: reduced ? 0.20 : 0.28,
+      stagger: reduced ? 0.02 : 0.04,
       ease: 'power3.out',
       clearProps: 'opacity,transform',
     }
@@ -721,12 +723,12 @@ const animateOpenedSubmenu = (
 const animateSidebarShellState = (
   sidebar
 ) => {
-  if (
-    !sidebar
-    || prefersReducedMotion()
-  ) {
+  if (!sidebar) {
     return;
   }
+
+  const reduced =
+    prefersReducedMotion();
 
   const icons =
     sidebar.querySelectorAll(
@@ -742,14 +744,14 @@ const animateSidebarShellState = (
   gsap.fromTo(
     icons,
     {
-      opacity: 0.6,
-      scale: 0.92,
+      opacity: reduced ? 0.78 : 0.6,
+      scale: reduced ? 0.97 : 0.92,
     },
     {
       opacity: 1,
       scale: 1,
-      duration: 0.26,
-      stagger: 0.02,
+      duration: reduced ? 0.18 : 0.26,
+      stagger: reduced ? 0.01 : 0.02,
       ease: 'power2.out',
       clearProps: 'opacity,transform',
     }
