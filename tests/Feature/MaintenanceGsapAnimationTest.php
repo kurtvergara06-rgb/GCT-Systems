@@ -56,7 +56,7 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'x: 8',
+            'x: 10',
             $source
         );
     }
@@ -72,15 +72,15 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'scale: reduced ? 0.992 : 0.982',
+            'scale: reduced ? 0.985 : 0.965',
             $source
         );
         $this->assertStringContainsString(
-            '? 0.34',
+            '? 0.46',
             $source
         );
         $this->assertStringContainsString(
-            ': 0.52',
+            ': 0.64',
             $source
         );
         $this->assertStringContainsString(
@@ -181,32 +181,32 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'y: reduced ? 10 : 28',
+            'y: reduced ? 24 : 44',
             $shared
         );
         $this->assertStringContainsString(
-            'scale: reduced ? 0.992 : 0.982',
+            'scale: reduced ? 0.985 : 0.965',
             $shared
         );
         $this->assertStringContainsString(
-            'surfaceY = reduced ? 12 : 30',
+            'surfaceY = reduced ? 20 : 38',
             $shared
         );
         $this->assertStringContainsString(
-            'surfaceScale = reduced ? 0.985 : 0.955',
+            'surfaceScale = reduced ? 0.975 : 0.94',
             $shared
         );
         $this->assertStringContainsString(
-            'x: 8',
+            'x: 10',
             $shared
         );
 
         $this->assertStringContainsString(
-            'surfaceY = isReduced ? 12 : 30',
+            'surfaceY = isReduced ? 20 : 38',
             $jobOrder
         );
         $this->assertStringContainsString(
-            'surfaceScale = isReduced ? 0.985 : 0.955',
+            'surfaceScale = isReduced ? 0.975 : 0.94',
             $jobOrder
         );
 
@@ -217,6 +217,41 @@ class MaintenanceGsapAnimationTest extends TestCase
         $this->assertStringNotContainsString(
             'animateMaintenancePage',
             $shared
+        );
+    }
+
+    public function test_navigation_loader_has_a_visible_spinner_even_with_reduced_motion(): void
+    {
+        $javascript = file_get_contents(
+            resource_path('js/Main-js/page-transitions.js')
+        );
+        $styles = file_get_contents(
+            resource_path('css/Main-styles/page-transitions.css')
+        );
+
+        $this->assertStringContainsString(
+            'const MIN_LOADER_MS = 280;',
+            $javascript
+        );
+        $this->assertStringContainsString(
+            'gct-navigation-loader__spinner',
+            $javascript
+        );
+        $this->assertStringContainsString(
+            'width: 30px;',
+            $styles
+        );
+        $this->assertStringContainsString(
+            'border-right-color: #061f3d;',
+            $styles
+        );
+        $this->assertStringContainsString(
+            'animation: gctNavigationSpin 620ms linear infinite;',
+            $styles
+        );
+        $this->assertStringContainsString(
+            'animation: gctNavigationSpin 820ms linear infinite !important;',
+            $styles
         );
     }
 
