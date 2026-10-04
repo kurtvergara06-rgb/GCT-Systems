@@ -116,7 +116,7 @@ class PmsSchedulingController extends Controller
                             )
                         )
                         ->count(),
-                    'overall_status' => $this->getOverallStatus($tasks),
+                    'overall_status' => $this->pmsStatusService->overallStatus($tasks),
                 ];
             })
             ->values();
