@@ -56,12 +56,12 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "x: 5",
+            'x: 5',
             $source
         );
     }
 
-    public function test_maintenance_motion_is_subtle_and_respects_reduced_motion(): void
+    public function test_maintenance_motion_stays_simple_and_non_repeating(): void
     {
         $source = file_get_contents(
             resource_path('js/Maintenance/maintenance-animations.js')
@@ -72,11 +72,11 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'y: 10',
+            'scale: 0.975',
             $source
         );
         $this->assertStringContainsString(
-            'scale: 0.975',
+            'duration:',
             $source
         );
         $this->assertStringNotContainsString(
@@ -93,38 +93,61 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
-    public function test_page_entrance_waits_until_navigation_loader_is_revealed(): void
+    public function test_navigation_hides_layout_construction_and_reveals_only_stable_maintenance_ui(): void
     {
         $shared = file_get_contents(
             resource_path('js/Maintenance/maintenance-animations.js')
         );
-        $jobOrder = file_get_contents(
-            resource_path('js/Maintenance/job-order.js')
+        $transitions = file_get_contents(
+            resource_path('js/Main-js/page-transitions.js')
         );
 
         $this->assertStringContainsString(
-            'waitForMaintenanceReveal',
+            'prepareMaintenanceReveal',
             $shared
         );
         $this->assertStringContainsString(
-            'gct-navigation-loading',
+            'document.fonts.ready',
             $shared
         );
         $this->assertStringContainsString(
-            'gct-main-loader-hold',
+            'measureStableMaintenanceLayout',
             $shared
         );
         $this->assertStringContainsString(
-            'waitForJobOrderReveal',
-            $jobOrder
+            'getBoundingClientRect()',
+            $shared
         );
         $this->assertStringContainsString(
-            'gct-navigation-loading',
-            $jobOrder
+            'window.GCTMaintenanceReveal',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'revealMaintenancePage',
+            $shared
+        );
+
+        $this->assertStringContainsString(
+            'beforeFade',
+            $transitions
+        );
+        $this->assertStringContainsString(
+            'await maintenanceReveal.prepare()',
+            $transitions
+        );
+        $this->assertStringContainsString(
+            'maintenanceReveal.reveal()',
+            $transitions
+        );
+
+        // Initial page entry must not animate cards/tables into position.
+        $this->assertStringNotContainsString(
+            'animateMaintenancePage',
+            $shared
         );
     }
 
-    public function test_ajax_refreshes_and_modals_use_lightweight_motion(): void
+    public function test_ajax_refreshes_and_modals_keep_lightweight_motion(): void
     {
         $source = file_get_contents(
             resource_path('js/Maintenance/maintenance-animations.js')
@@ -152,7 +175,7 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
-    public function test_job_order_demo_motion_was_reduced_to_simple_motion(): void
+    public function test_job_order_initial_layout_is_static_while_interactions_still_animate(): void
     {
         $source = file_get_contents(
             resource_path('js/Maintenance/job-order.js')
@@ -172,6 +195,22 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
         $this->assertStringNotContainsString(
             '[JO GSAP demo]',
+            $source
+        );
+        $this->assertStringNotContainsString(
+            'animateJobOrderPageEntrance',
+            $source
+        );
+        $this->assertStringNotContainsString(
+            'waitForJobOrderReveal',
+            $source
+        );
+        $this->assertStringContainsString(
+            'function openModal',
+            $source
+        );
+        $this->assertStringContainsString(
+            'function animatePartRowIn',
             $source
         );
         $this->assertStringContainsString(
