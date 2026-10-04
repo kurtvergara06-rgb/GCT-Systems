@@ -60,7 +60,7 @@ function preventBackdropDismissal(event) {
   }
 
   event.preventDefault();
-  event.stopPropagation();
+  event.stopImmediatePropagation();
 }
 
 document.addEventListener(
