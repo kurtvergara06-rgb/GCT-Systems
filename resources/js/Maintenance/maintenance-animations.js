@@ -339,6 +339,56 @@ const animateModalOpen = (overlay) => {
   );
 };
 
+const animateInsertedRow = (node) => {
+  if (
+    !(node instanceof Element)
+    || prefersReducedMotion()
+    || !getMaintenanceRoot()
+  ) {
+    return;
+  }
+
+  const rows = [];
+
+  if (
+    node.matches(
+      '.part-needed-row, '
+      + '.pms-task-row'
+    )
+  ) {
+    rows.push(node);
+  }
+
+  node
+    .querySelectorAll?.(
+      '.part-needed-row, '
+      + '.pms-task-row'
+    )
+    .forEach(
+      (row) => rows.push(row)
+    );
+
+  if (!rows.length) {
+    return;
+  }
+
+  gsap.fromTo(
+    rows,
+    {
+      opacity: 0,
+      y: 5,
+    },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.18,
+      stagger: 0.02,
+      ease: 'power2.out',
+      clearProps: 'opacity,transform',
+    }
+  );
+};
+
 const syncModalAnimation = (overlay) => {
   if (
     !(overlay instanceof Element)
@@ -417,6 +467,10 @@ const ensureModalObserver = () => {
                   ) {
                     return;
                   }
+
+                  animateInsertedRow(
+                    node
+                  );
 
                   if (
                     node.matches(
@@ -661,6 +715,100 @@ const bindGlobalInteractions = () => {
 
   globalInteractionsBound =
     true;
+
+  const pressSelector = [
+    '.primary-btn',
+    '.secondary-btn',
+    '.action-btn',
+    '.pms-add-btn',
+    '.btn-ref-action',
+    '.manual-entry-btn',
+    '.daily-save-btn',
+  ].join(', ');
+
+  document.addEventListener(
+    'pointerdown',
+    (event) => {
+      const root =
+        getMaintenanceRoot();
+
+      if (
+        !root
+        || prefersReducedMotion()
+      ) {
+        return;
+      }
+
+      const button =
+        event.target.closest?.(
+          pressSelector
+        );
+
+      if (
+        !button
+        || button.disabled
+        || !(
+          root.contains(button)
+          || button.closest(
+            MODAL_OVERLAY_SELECTOR
+          )
+        )
+      ) {
+        return;
+      }
+
+      gsap.to(
+        button,
+        {
+          scale: 0.985,
+          duration: 0.08,
+          ease: 'power1.out',
+          overwrite: true,
+        }
+      );
+    }
+  );
+
+  const releasePressedButton = (
+    event
+  ) => {
+    if (
+      !getMaintenanceRoot()
+      || prefersReducedMotion()
+    ) {
+      return;
+    }
+
+    const button =
+      event.target.closest?.(
+        pressSelector
+      );
+
+    if (!button) {
+      return;
+    }
+
+    gsap.to(
+      button,
+      {
+        scale: 1,
+        duration: 0.10,
+        ease: 'power1.out',
+        overwrite: true,
+        clearProps: 'transform',
+      }
+    );
+  };
+
+  document.addEventListener(
+    'pointerup',
+    releasePressedButton
+  );
+
+  document.addEventListener(
+    'pointercancel',
+    releasePressedButton
+  );
 
   document.addEventListener(
     'pointerover',
