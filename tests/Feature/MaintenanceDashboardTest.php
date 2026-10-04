@@ -444,6 +444,52 @@ class MaintenanceDashboardTest extends TestCase
         $response->assertSee('JO-2026-MECH1');
     }
 
+    public function test_dashboard_fleet_readiness_uses_bus_master_statuses(): void
+    {
+        $user = $this->createMaintenanceUser();
+
+        Bus::create([
+            'bus_no' => 'BUS-READY-001',
+            'status' => 'Active',
+        ]);
+
+        Bus::create([
+            'bus_no' => 'BUS-READY-002',
+            'status' => 'Active',
+        ]);
+
+        Bus::create([
+            'bus_no' => 'BUS-MAINT-001',
+            'status' => 'Under Maintenance',
+        ]);
+
+        Bus::create([
+            'bus_no' => 'BUS-INACTIVE-001',
+            'status' => 'Inactive',
+        ]);
+
+        JobOrder::create([
+            'job_order_no' => 'JO-READY-001',
+            'bus_no' => 'BUS-READY-001',
+            'problem_issue' => 'Active repair should not override bus master readiness.',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'start_date' => now(),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('maintenance-dashboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('totalBuses', 4);
+        $response->assertViewHas('activeBusesCount', 2);
+        $response->assertViewHas('underMaintenanceBusesCount', 1);
+        $response->assertViewHas('inactiveBusesCount', 1);
+        $response->assertViewHas('busesInRepairBay', 1);
+        $response->assertViewHas('operationalRate', 50.0);
+    }
+
     public function test_dashboard_tracks_purchase_requests_and_fuel_reports(): void
     {
         $user = $this->createMaintenanceUser();
