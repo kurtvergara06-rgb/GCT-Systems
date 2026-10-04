@@ -460,7 +460,7 @@ class PmsSchedulingController extends Controller
                 false
             )
         );
-            }
+    }
 
     /*
     |--------------------------------------------------------------------------
