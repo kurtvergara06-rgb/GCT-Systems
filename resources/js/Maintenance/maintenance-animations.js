@@ -262,24 +262,38 @@ const revealMaintenancePage = () => {
     return false;
   }
 
+  const reduced =
+    prefersReducedMotion();
+
   gsap.killTweensOf(root);
 
   root.dataset.gctRevealState =
     'revealing';
 
+  /*
+   * The page has already finished layout while hidden.
+   * Animate the completed page as one unit so the motion is obvious
+   * without exposing cards/tables assembling individually.
+   */
   gsap.fromTo(
     root,
     {
       opacity: 0,
+      y: reduced ? 10 : 28,
+      scale: reduced ? 0.992 : 0.982,
+      transformOrigin: '50% 12%',
     },
     {
       opacity: 1,
+      y: 0,
+      scale: 1,
       duration:
-        prefersReducedMotion()
-          ? 0.16
-          : 0.28,
-      ease: 'power1.out',
-      clearProps: 'opacity',
+        reduced
+          ? 0.34
+          : 0.52,
+      ease: 'power3.out',
+      clearProps:
+        'opacity,transform,transformOrigin',
       onComplete: () => {
         root.dataset.gctRevealState =
           'shown';
@@ -383,9 +397,9 @@ const animateModalOpen = (overlay) => {
     );
 
   const reduced = prefersReducedMotion();
-  const surfaceY = reduced ? 6 : 16;
-  const surfaceScale = reduced ? 0.99 : 0.975;
-  const duration = reduced ? 0.20 : 0.30;
+  const surfaceY = reduced ? 12 : 30;
+  const surfaceScale = reduced ? 0.985 : 0.955;
+  const duration = reduced ? 0.28 : 0.38;
 
   gsap.killTweensOf(
     overlay
@@ -398,8 +412,8 @@ const animateModalOpen = (overlay) => {
     },
     {
       opacity: 1,
-      duration: 0.16,
-      ease: 'power1.out',
+      duration: reduced ? 0.18 : 0.24,
+      ease: 'power2.out',
       clearProps: 'opacity',
     }
   );
@@ -417,7 +431,7 @@ const animateModalOpen = (overlay) => {
     {
       opacity: 0,
       y: surfaceY,
-      scale: 0.975,
+      scale: surfaceScale,
     },
     {
       opacity: 1,
@@ -467,14 +481,16 @@ const animateInsertedRow = (node) => {
     rows,
     {
       opacity: 0,
-      y: 5,
+      x: -14,
+      y: -6,
     },
     {
       opacity: 1,
+      x: 0,
       y: 0,
-      duration: 0.18,
-      stagger: 0.02,
-      ease: 'power2.out',
+      duration: 0.28,
+      stagger: 0.04,
+      ease: 'power3.out',
       clearProps: 'opacity,transform',
     }
   );
@@ -620,19 +636,19 @@ const animateSidebarActiveItem = () => {
   }
 
   const reduced = prefersReducedMotion();
-  const xOffset = reduced ? -1 : -3;
+  const xOffset = reduced ? -4 : -10;
 
   gsap.fromTo(
     activeItems,
     {
-      opacity: 0.82,
+      opacity: 0.55,
       x: xOffset,
     },
     {
       opacity: 1,
       x: 0,
-      duration: 0.2,
-      ease: 'power2.out',
+      duration: reduced ? 0.22 : 0.32,
+      ease: 'power3.out',
       clearProps: 'opacity,transform',
     }
   );
@@ -665,8 +681,8 @@ const animateOpenedSubmenu = (
     );
 
   const reduced = prefersReducedMotion();
-  const subY = reduced ? -2 : -4;
-  const itemX = reduced ? -1 : -3;
+  const subY = reduced ? -4 : -10;
+  const itemX = reduced ? -3 : -8;
 
   gsap.fromTo(
     submenu,
@@ -677,8 +693,8 @@ const animateOpenedSubmenu = (
     {
       opacity: 1,
       y: 0,
-      duration: 0.16,
-      ease: 'power1.out',
+      duration: reduced ? 0.20 : 0.28,
+      ease: 'power2.out',
       clearProps: 'opacity,transform',
     }
   );
@@ -687,15 +703,15 @@ const animateOpenedSubmenu = (
     gsap.fromTo(
       items,
       {
-        opacity: 0.78,
+        opacity: 0.55,
         x: itemX,
       },
       {
         opacity: 1,
         x: 0,
-        duration: 0.18,
-        stagger: 0.025,
-        ease: 'power1.out',
+        duration: reduced ? 0.20 : 0.28,
+        stagger: reduced ? 0.02 : 0.045,
+        ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
     );
@@ -726,15 +742,15 @@ const animateSidebarShellState = (
   gsap.fromTo(
     icons,
     {
-      opacity: 0.78,
-      scale: 0.96,
+      opacity: 0.6,
+      scale: 0.92,
     },
     {
       opacity: 1,
       scale: 1,
-      duration: 0.18,
-      stagger: 0.01,
-      ease: 'power1.out',
+      duration: 0.26,
+      stagger: 0.02,
+      ease: 'power2.out',
       clearProps: 'opacity,transform',
     }
   );
@@ -841,7 +857,7 @@ const bindGlobalInteractions = () => {
       }
 
       const reduced = prefersReducedMotion();
-      const scaleTarget = reduced ? 0.992 : 0.985;
+      const scaleTarget = reduced ? 0.985 : 0.965;
 
       gsap.to(
         button,
@@ -921,9 +937,9 @@ const bindGlobalInteractions = () => {
       gsap.to(
         item,
         {
-          x: 5,
-          duration: 0.16,
-          ease: 'power1.out',
+          x: 8,
+          duration: 0.20,
+          ease: 'power2.out',
           overwrite: true,
         }
       );
@@ -959,8 +975,8 @@ const bindGlobalInteractions = () => {
         item,
         {
           x: 0,
-          duration: 0.16,
-          ease: 'power1.out',
+          duration: 0.20,
+          ease: 'power2.out',
           overwrite: true,
           clearProps: 'transform',
         }
