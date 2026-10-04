@@ -157,16 +157,16 @@ window.addEventListener('gct:navigation-ready', async () => {
     holdIncomingMain();
     normalizeSidebarActiveState();
 
-    const maintenanceReveal =
-        window.GCTMaintenanceReveal;
+    const systemAnimations =
+        window.GCTSystemAnimations;
 
-    const useMaintenanceReveal =
-        maintenanceReveal?.isApplicable?.() === true
-        && await maintenanceReveal.prepare();
+    const useSystemReveal =
+        systemAnimations?.isPageApplicable?.() === true
+        && await systemAnimations.preparePageReveal();
 
-    if (useMaintenanceReveal) {
+    if (useSystemReveal) {
         /*
-         * Keep the completed Maintenance layout hidden until the loader has
+         * Keep the completed layout hidden until the loader has
          * fully faded. Starting GSAP underneath the loader makes most of the
          * motion invisible, so reveal only after the cover is gone.
          */
@@ -186,8 +186,7 @@ window.addEventListener('gct:navigation-ready', async () => {
             'gct-main-after-loader',
         );
 
-        await nextFrames();
-        maintenanceReveal.reveal();
+        systemAnimations.revealPage();
 
         return;
     }

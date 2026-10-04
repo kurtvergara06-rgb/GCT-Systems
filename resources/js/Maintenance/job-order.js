@@ -160,10 +160,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     }
 
 
-    const surface =
-      getModalSurface(modal);
-
-
     modal.classList.add(
       'show',
       'active'
@@ -177,63 +173,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       .gsapClosing;
 
 
-    const isReduced = typeof prefersReducedMotion === 'function'
-      ? prefersReducedMotion()
-      : Boolean(prefersReducedMotion);
-
-    const durModal = isReduced ? 0.22 : 0.28;
-    const durSurface = isReduced ? 0.34 : 0.46;
-    const surfaceY = isReduced ? 20 : 38;
-    const surfaceScale = isReduced ? 0.975 : 0.94;
-
-    gsap.killTweensOf(modal);
-
-    if (surface) {
-      gsap.killTweensOf(surface);
-    }
-
-    const timeline =
-      gsap.timeline();
-
-    timeline.fromTo(
-      modal,
-      {
-        opacity: 0,
-      },
-      {
-        opacity: 1,
-        duration: durModal,
-        ease: 'power2.out',
-      }
-    );
-
-    if (surface) {
-      timeline.fromTo(
-        surface,
-        {
-          opacity: 0,
-          y: surfaceY,
-          scale: surfaceScale,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: durSurface,
-          ease: 'power3.out',
-          clearProps:
-            'opacity,transform',
-        },
-        0.02
-      );
-    }
-
-    timeline.set(
-      modal,
-      {
-        clearProps: 'opacity',
-      }
-    );
+    window.GCTSystemAnimations
+      ?.animateModalOpen?.(modal);
   }
 
   function closeModal(modal) {
@@ -258,61 +199,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       );
     };
 
-    const isReduced = typeof prefersReducedMotion === 'function'
-      ? prefersReducedMotion()
-      : Boolean(prefersReducedMotion);
-
     if (
-      modal.dataset
-        .gsapClosing ===
-      'true'
+      !window.GCTSystemAnimations
+        ?.animateModalClose?.(
+          modal,
+          finishClose
+        )
     ) {
-      return;
+      finishClose();
     }
-
-    modal.dataset.gsapClosing =
-      'true';
-
-    gsap.killTweensOf(modal);
-
-    if (surface) {
-      gsap.killTweensOf(surface);
-    }
-
-    const timeline =
-      gsap.timeline({
-        onComplete:
-          finishClose,
-      });
-
-    const durModal = isReduced ? 0.16 : 0.24;
-    const durSurface = isReduced ? 0.20 : 0.28;
-    const exitY = isReduced ? 12 : 26;
-    const exitScale = isReduced ? 0.985 : 0.965;
-
-    if (surface) {
-      timeline.to(
-        surface,
-        {
-          opacity: 0,
-          y: exitY,
-          scale: exitScale,
-          duration: durSurface,
-          ease: 'power1.in',
-        },
-        0
-      );
-    }
-
-    timeline.to(
-      modal,
-      {
-        opacity: 0,
-        duration: durModal,
-        ease: 'power2.in',
-      },
-      0
-    );
   }
 
 

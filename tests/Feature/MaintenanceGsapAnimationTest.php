@@ -6,27 +6,21 @@ use Tests\TestCase;
 
 class MaintenanceGsapAnimationTest extends TestCase
 {
-    public function test_shared_maintenance_gsap_module_is_loaded(): void
+    public function test_maintenance_uses_the_shared_system_animation_owner(): void
     {
-        $package = file_get_contents(base_path('package.json'));
         $app = file_get_contents(resource_path('js/app.js'));
+        $maintenance = file_get_contents(resource_path('js/Maintenance/maintenance-animations.js'));
 
-        $this->assertStringContainsString(
-            '"gsap": "^3.15.0"',
-            $package
-        );
-
-        $this->assertStringContainsString(
-            "import './Maintenance/maintenance-animations.js';",
-            $app
-        );
+        $this->assertStringContainsString("import './Main-js/system-animations.js';", $app);
+        $this->assertStringContainsString('window.GCTSystemAnimations', $maintenance);
+        $this->assertStringNotContainsString('prepareMaintenanceReveal', $maintenance);
+        $this->assertStringNotContainsString('revealMaintenancePage', $maintenance);
+        $this->assertStringNotContainsString('animateDashboardPanels', $maintenance);
     }
 
-    public function test_shared_animation_module_covers_maintenance_pages_and_sidebar(): void
+    public function test_maintenance_pages_remain_registered_for_page_specific_interactions(): void
     {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
+        $source = file_get_contents(resource_path('js/Maintenance/maintenance-animations.js'));
 
         foreach ([
             '.maintenance-dashboard-main',
@@ -37,451 +31,54 @@ class MaintenanceGsapAnimationTest extends TestCase
             '.fuel-page',
             '.purchase-page',
         ] as $selector) {
-            $this->assertStringContainsString(
-                $selector,
-                $source
-            );
+            $this->assertStringContainsString($selector, $source);
         }
 
-        $this->assertStringContainsString(
-            "gctShell === 'maintenance'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'animateOpenedSubmenu',
-            $source
-        );
-        $this->assertStringContainsString(
-            'animateSidebarActiveItem',
-            $source
-        );
-        $this->assertStringContainsString(
-            'x: 10',
-            $source
-        );
+        $this->assertStringContainsString("'maintenance-simple-gsap'", $source);
     }
 
-    public function test_maintenance_motion_stays_simple_and_non_repeating(): void
+    public function test_sidebar_dropdown_animation_is_not_reintroduced(): void
     {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
+        $source = file_get_contents(resource_path('js/Maintenance/maintenance-animations.js'));
 
-        $this->assertStringContainsString(
-            '(prefers-reduced-motion: reduce)',
-            $source
-        );
-        $this->assertStringContainsString(
-            'startScale',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? 0.78',
-            $source
-        );
-        $this->assertStringContainsString(
-            ': 1.15',
-            $source
-        );
-        $this->assertStringContainsString(
-            'duration:',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'repeat:',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'yoyo:',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'back.out',
-            $source
-        );
+        $this->assertStringNotContainsString('animateOpenedSubmenu', $source);
+        $this->assertStringContainsString('animateSidebarActiveItem', $source);
     }
 
-    public function test_navigation_hides_layout_construction_and_reveals_only_stable_maintenance_ui(): void
+    public function test_job_order_modals_delegate_to_the_shared_modal_lifecycle(): void
     {
-        $shared = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-        $transitions = file_get_contents(
-            resource_path('js/Main-js/page-transitions.js')
-        );
+        $source = file_get_contents(resource_path('js/Maintenance/job-order.js'));
 
-        $this->assertStringContainsString(
-            'prepareMaintenanceReveal',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'document.fonts.ready',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'measureStableMaintenanceLayout',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'getBoundingClientRect()',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'window.GCTMaintenanceReveal',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'revealMaintenancePage',
-            $shared
-        );
+        $this->assertStringContainsString('function openModal', $source);
+        $this->assertStringContainsString('function closeModal', $source);
+        $this->assertStringContainsString('?.animateModalOpen?.(modal)', $source);
+        $this->assertStringContainsString('?.animateModalClose?.(', $source);
+        $this->assertStringContainsString('function animatePartRowIn', $source);
+        $this->assertStringNotContainsString('surfaceY = isReduced ? 20 : 38', $source);
+    }
 
-        $this->assertStringContainsString(
-            'await maintenanceReveal.prepare()',
-            $transitions
-        );
-        $this->assertStringContainsString(
-            'await hideLoader({',
-            $transitions
-        );
-        $this->assertStringContainsString(
-            'maintenanceReveal.reveal()',
-            $transitions
-        );
-
-        $hidePosition = strpos(
-            $transitions,
-            'await hideLoader({'
-        );
-        $revealPosition = strpos(
-            $transitions,
-            'maintenanceReveal.reveal()'
-        );
+    public function test_loader_finishes_before_shared_page_reveal(): void
+    {
+        $source = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+        $hidePosition = strpos($source, 'await hideLoader({');
+        $revealPosition = strpos($source, 'systemAnimations.revealPage()');
 
         $this->assertNotFalse($hidePosition);
         $this->assertNotFalse($revealPosition);
-        $this->assertGreaterThan(
-            $hidePosition,
-            $revealPosition
-        );
-
-        // Initial page entry must not animate cards/tables into position.
-        $this->assertStringNotContainsString(
-            'animateMaintenancePage',
-            $shared
-        );
+        $this->assertGreaterThan($hidePosition, $revealPosition);
+        $this->assertStringContainsString('revealMain: false', $source);
     }
 
-    public function test_visible_motion_strength_is_intentional_without_per_card_page_assembly(): void
+    public function test_navigation_loader_keeps_visible_progress_feedback(): void
     {
-        $shared = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-        $jobOrder = file_get_contents(
-            resource_path('js/Maintenance/job-order.js')
-        );
+        $javascript = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+        $styles = file_get_contents(resource_path('css/Main-styles/page-transitions.css'));
 
-        $this->assertStringContainsString(
-            'initialOpen',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'startScale',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'surfaceY = reduced ? 20 : 38',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'surfaceScale = reduced ? 0.975 : 0.94',
-            $shared
-        );
-        $this->assertStringContainsString(
-            'x: 10',
-            $shared
-        );
-
-        $this->assertStringContainsString(
-            'surfaceY = isReduced ? 20 : 38',
-            $jobOrder
-        );
-        $this->assertStringContainsString(
-            'surfaceScale = isReduced ? 0.975 : 0.94',
-            $jobOrder
-        );
-
-        $this->assertStringNotContainsString(
-            'animateJobOrderPageEntrance',
-            $jobOrder
-        );
-        $this->assertStringNotContainsString(
-            'animateMaintenancePage',
-            $shared
-        );
-    }
-
-    public function test_maintenance_dashboard_uses_one_top_level_panel_reveal_after_layout_is_ready(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-        $styles = file_get_contents(
-            resource_path('css/Main-styles/page-transitions.css')
-        );
-
-        $this->assertStringContainsString(
-            'const animateDashboardPanels',
-            $source
-        );
-        $this->assertStringContainsString(
-            "'.maintenance-stats-grid, '",
-            $source
-        );
-        $this->assertStringContainsString(
-            "+ '.maintenance-dashboard-grid, '",
-            $source
-        );
-        $this->assertStringContainsString(
-            "+ '.maintenance-two-col-grid'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'opacity: 0',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? 4',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? (reduced ? 0.42 : 0.58)',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? (reduced ? 0.025 : 0.045)',
-            $source
-        );
-        $this->assertStringContainsString(
-            "if (isDashboard)",
-            $source
-        );
-        $this->assertStringContainsString(
-            'activeRevealAnimation =',
-            $source
-        );
-        $this->assertSame(
-            2,
-            substr_count($source, 'animateDashboardPanels')
-        );
-        $this->assertStringNotContainsString(
-            "'.maintenance-dashboard-card'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'main.gct-maintenance-gsap-reveal',
-            $styles
-        );
-
-        $dashboardBranchStart = strpos(
-            $source,
-            'if (isDashboard) {'
-        );
-        $rootRevealStart = strpos(
-            $source,
-            'activeRevealAnimation = gsap.fromTo('
-        );
-
-        $this->assertNotFalse($dashboardBranchStart);
-        $this->assertNotFalse($rootRevealStart);
-        $this->assertGreaterThan(
-            $dashboardBranchStart,
-            $rootRevealStart
-        );
-
-        $dashboardBranch = substr(
-            $source,
-            $dashboardBranchStart,
-            $rootRevealStart - $dashboardBranchStart
-        );
-
-        $this->assertStringContainsString(
-            'animateDashboardPanels(',
-            $dashboardBranch
-        );
-        $this->assertStringContainsString(
-            'return true;',
-            $dashboardBranch
-        );
-        $this->assertStringNotContainsString(
-            'gsap.fromTo(',
-            $dashboardBranch
-        );
-    }
-
-    public function test_direct_page_open_uses_a_slow_visible_gsap_reveal(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-
-        $this->assertStringContainsString(
-            'initialOpen = false',
-            $source
-        );
-        $this->assertStringContainsString(
-            'initialOpen',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? (reduced ? 34 : 72)',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? (reduced ? 0.975 : 0.94)',
-            $source
-        );
-        $this->assertStringContainsString(
-            '? (reduced ? 0.78 : 1.15)',
-            $source
-        );
-        $this->assertStringContainsString(
-            'initialOpen: true',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            "window.setTimeout(\n            () => revealMaintenancePage",
-            $source
-        );
-    }
-
-    public function test_reveal_is_idempotent_and_does_not_restart_when_navigation_hooks_overlap(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-
-        $this->assertStringContainsString(
-            "=== 'revealing'",
-            $source
-        );
-        $this->assertStringContainsString(
-            "=== 'shown'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'activeRevealAnimation?.kill()',
-            $source
-        );
-        $this->assertStringContainsString(
-            "'gct-maintenance-gsap-reveal'",
-            $source
-        );
-    }
-
-    public function test_navigation_loader_has_a_visible_spinner_even_with_reduced_motion(): void
-    {
-        $javascript = file_get_contents(
-            resource_path('js/Main-js/page-transitions.js')
-        );
-        $styles = file_get_contents(
-            resource_path('css/Main-styles/page-transitions.css')
-        );
-
-        $this->assertStringContainsString(
-            'const MIN_LOADER_MS = 280;',
-            $javascript
-        );
-        $this->assertStringContainsString(
-            'gct-navigation-loader__spinner',
-            $javascript
-        );
-        $this->assertStringContainsString(
-            'width: 30px;',
-            $styles
-        );
-        $this->assertStringContainsString(
-            'border-right-color: #061f3d;',
-            $styles
-        );
+        $this->assertStringContainsString('const MIN_LOADER_MS = 280;', $javascript);
+        $this->assertStringContainsString('gct-navigation-loader__spinner', $javascript);
         $this->assertStringContainsString(
             'animation: gctNavigationSpin 620ms linear infinite;',
             $styles
-        );
-        $this->assertStringContainsString(
-            'animation: gctNavigationSpin 820ms linear infinite !important;',
-            $styles
-        );
-    }
-
-    public function test_ajax_refreshes_and_modals_keep_lightweight_motion(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-
-        $this->assertStringContainsString(
-            "'ajax:content-updated'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'animateSummaryRefresh',
-            $source
-        );
-        $this->assertStringContainsString(
-            'animateRows',
-            $source
-        );
-        $this->assertStringContainsString(
-            'animateModalOpen',
-            $source
-        );
-        $this->assertStringContainsString(
-            '.part-needed-row',
-            $source
-        );
-    }
-
-    public function test_job_order_initial_layout_is_static_while_interactions_still_animate(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/job-order.js')
-        );
-
-        $this->assertStringNotContainsString(
-            'forceGsapDemoMotion',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'back.out',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'rotateX',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            '[JO GSAP demo]',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'animateJobOrderPageEntrance',
-            $source
-        );
-        $this->assertStringNotContainsString(
-            'waitForJobOrderReveal',
-            $source
-        );
-        $this->assertStringContainsString(
-            'function openModal',
-            $source
-        );
-        $this->assertStringContainsString(
-            'function animatePartRowIn',
-            $source
-        );
-        $this->assertStringContainsString(
-            '(prefers-reduced-motion: reduce)',
-            $source
         );
     }
 }

@@ -32,7 +32,14 @@ main.gct-main-entered {
  * main transition while that reveal is active so the same content cannot be
  * animated once by CSS and again by GSAP.
  */
+main.gct-system-gsap-reveal,
 main.gct-maintenance-gsap-reveal {
+    transition: none !important;
+}
+
+.gct-system-modal-animated,
+.gct-system-modal-animated [role="dialog"] {
+    animation: none !important;
     transition: none !important;
 }
 
