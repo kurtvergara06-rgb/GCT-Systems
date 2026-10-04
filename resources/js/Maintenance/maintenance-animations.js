@@ -673,12 +673,7 @@ const animateSidebarActiveItem = () => {
 const animateOpenedSubmenu = (
   dropdown
 ) => {
-  if (
-    !dropdown
-    || !dropdown.classList.contains(
-      'open'
-    )
-  ) {
+  if (!dropdown) {
     return;
   }
 
@@ -691,44 +686,172 @@ const animateOpenedSubmenu = (
     return;
   }
 
+  const toggle =
+    dropdown.querySelector(
+      '.dropdown-toggle'
+    );
+
+  const arrow =
+    dropdown.querySelector(
+      '.dropdown-arrow'
+    );
+
   const items =
     submenu.querySelectorAll(
       '.submenu-item'
     );
 
-  const reduced = prefersReducedMotion();
-  const subY = reduced ? -7 : -14;
-  const itemX = reduced ? -5 : -12;
+  const reduced =
+    prefersReducedMotion();
 
-  gsap.fromTo(
-    submenu,
-    {
-      opacity: 0,
-      y: subY,
-    },
-    {
-      opacity: 1,
-      y: 0,
-      duration: reduced ? 0.20 : 0.28,
-      ease: 'power2.out',
-      clearProps: 'opacity,transform',
-    }
+  const isOpen =
+    dropdown.classList.contains(
+      'open'
+    );
+
+  gsap.killTweensOf(
+    [
+      toggle,
+      arrow,
+      ...items,
+    ].filter(Boolean)
   );
 
-  if (items.length) {
+  if (isOpen) {
+    if (toggle) {
+      gsap.fromTo(
+        toggle,
+        {
+          scale: reduced
+            ? 0.985
+            : 0.965,
+        },
+        {
+          scale: 1,
+          duration: reduced
+            ? 0.26
+            : 0.38,
+          ease: 'power3.out',
+          clearProps: 'transform',
+        }
+      );
+    }
+
+    if (arrow) {
+      gsap.fromTo(
+        arrow,
+        {
+          rotation: 0,
+          scale: 0.78,
+          opacity: 0.55,
+        },
+        {
+          rotation: 180,
+          scale: 1.12,
+          opacity: 1,
+          duration: reduced
+            ? 0.30
+            : 0.46,
+          ease: 'power3.out',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+    if (items.length) {
+      gsap.fromTo(
+        items,
+        {
+          opacity: 0,
+          x: reduced
+            ? -8
+            : -18,
+          y: reduced
+            ? -4
+            : -10,
+        },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          duration: reduced
+            ? 0.30
+            : 0.46,
+          stagger: reduced
+            ? 0.04
+            : 0.08,
+          delay: reduced
+            ? 0.04
+            : 0.08,
+          ease: 'power3.out',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+    return;
+  }
+
+  if (toggle) {
     gsap.fromTo(
-      items,
+      toggle,
       {
-        opacity: 0.55,
-        x: itemX,
+        scale: 1,
       },
       {
-        opacity: 1,
-        x: 0,
-        duration: reduced ? 0.24 : 0.34,
-        stagger: reduced ? 0.03 : 0.055,
-        ease: 'power2.out',
-        clearProps: 'opacity,transform',
+        scale: reduced
+          ? 0.99
+          : 0.975,
+        duration: reduced
+          ? 0.14
+          : 0.20,
+        ease: 'power1.inOut',
+        yoyo: true,
+        repeat: 1,
+        clearProps: 'transform',
+      }
+    );
+  }
+
+  if (arrow) {
+    gsap.to(
+      arrow,
+      {
+        rotation: 0,
+        scale: 1,
+        opacity: 0.75,
+        duration: reduced
+          ? 0.22
+          : 0.34,
+        ease: 'power2.inOut',
+        clearProps:
+          'opacity,transform',
+      }
+    );
+  }
+
+  if (items.length) {
+    gsap.to(
+      items,
+      {
+        opacity: 0.25,
+        x: reduced
+          ? -5
+          : -12,
+        y: reduced
+          ? -2
+          : -6,
+        duration: reduced
+          ? 0.16
+          : 0.24,
+        stagger: reduced
+          ? 0.02
+          : 0.035,
+        ease: 'power1.in',
+        clearProps:
+          'opacity,transform',
       }
     );
   }
