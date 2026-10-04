@@ -1366,6 +1366,32 @@ textarea[readonly] {
   position: relative;
 }
 
+.global-confirmation-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f8fafc;
+  color: #475569;
+
+  cursor: pointer;
+}
+
+.global-confirmation-close:hover {
+  background: #eef2f7;
+  color: var(--text);
+}
+
 
 /* =========================================================
    GLOBAL CONFIRMATION ICON
