@@ -235,24 +235,24 @@ const animateDashboardPanels = (
     panels,
     {
       opacity: 0,
-      y: reduced ? 8 : 18,
+      y: reduced ? 6 : 12,
     },
     {
       opacity: 1,
       y: 0,
       duration:
         initialOpen
-          ? (reduced ? 0.62 : 0.90)
-          : (reduced ? 0.50 : 0.76),
+          ? (reduced ? 0.66 : 0.82)
+          : (reduced ? 0.56 : 0.72),
       stagger:
         initialOpen
-          ? (reduced ? 0.06 : 0.12)
-          : (reduced ? 0.05 : 0.10),
+          ? (reduced ? 0.05 : 0.08)
+          : (reduced ? 0.04 : 0.07),
       delay:
         initialOpen
-          ? 0.18
-          : 0.12,
-      ease: 'power2.out',
+          ? 0.08
+          : 0.06,
+      ease: 'power3.out',
       clearProps:
         'opacity,transform',
     }
@@ -329,20 +329,37 @@ const revealMaintenancePage = ({
   const reduced =
     prefersReducedMotion();
 
+  const isDashboard =
+    root.classList.contains(
+      'maintenance-dashboard-main'
+    );
+
   const yOffset =
-    initialOpen
-      ? (reduced ? 34 : 72)
-      : (reduced ? 28 : 56);
+    isDashboard
+      ? 0
+      : (
+        initialOpen
+          ? (reduced ? 34 : 72)
+          : (reduced ? 28 : 56)
+      );
 
   const startScale =
-    initialOpen
-      ? (reduced ? 0.975 : 0.94)
-      : (reduced ? 0.98 : 0.955);
+    isDashboard
+      ? 1
+      : (
+        initialOpen
+          ? (reduced ? 0.975 : 0.94)
+          : (reduced ? 0.98 : 0.955)
+      );
 
   const duration =
-    initialOpen
-      ? (reduced ? 0.78 : 1.15)
-      : (reduced ? 0.62 : 0.90);
+    isDashboard
+      ? (reduced ? 0.28 : 0.36)
+      : (
+        initialOpen
+          ? (reduced ? 0.78 : 1.15)
+          : (reduced ? 0.62 : 0.90)
+      );
 
   gsap.killTweensOf(root);
 
