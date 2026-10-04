@@ -30,12 +30,18 @@
   background: #f8fafc;
 }
 
+.fuel-page .fuel-monitoring-refined .daily-monitoring-filters + .manual-entry-btn {
+  margin-left: auto;
+}
+
 .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(180px, 220px);
+  grid-template-columns: minmax(230px, 320px) minmax(170px, 210px);
   align-items: end;
   gap: 12px;
-  flex: 1;
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .fuel-page .fuel-monitoring-refined .daily-filter-field {
