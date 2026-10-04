@@ -239,15 +239,23 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'y: reduced ? 8 : 18',
+            'y: reduced ? 6 : 12',
             $source
         );
         $this->assertStringContainsString(
-            '? (reduced ? 0.62 : 0.90)',
+            '? (reduced ? 0.66 : 0.82)',
             $source
         );
         $this->assertStringContainsString(
-            '? (reduced ? 0.06 : 0.12)',
+            '? (reduced ? 0.05 : 0.08)',
+            $source
+        );
+        $this->assertStringContainsString(
+            "isDashboard",
+            $source
+        );
+        $this->assertStringContainsString(
+            "? 0",
             $source
         );
         $this->assertStringContainsString(
