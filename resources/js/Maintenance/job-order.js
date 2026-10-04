@@ -181,10 +181,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       ? prefersReducedMotion()
       : Boolean(prefersReducedMotion);
 
-    const durModal = isReduced ? 0.18 : 0.24;
-    const durSurface = isReduced ? 0.28 : 0.38;
-    const surfaceY = isReduced ? 12 : 30;
-    const surfaceScale = isReduced ? 0.985 : 0.955;
+    const durModal = isReduced ? 0.22 : 0.28;
+    const durSurface = isReduced ? 0.34 : 0.46;
+    const surfaceY = isReduced ? 20 : 38;
+    const surfaceScale = isReduced ? 0.975 : 0.94;
 
     gsap.killTweensOf(modal);
 
@@ -285,10 +285,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           finishClose,
       });
 
-    const durModal = isReduced ? 0.14 : 0.22;
-    const durSurface = isReduced ? 0.18 : 0.24;
-    const exitY = isReduced ? 8 : 20;
-    const exitScale = isReduced ? 0.99 : 0.975;
+    const durModal = isReduced ? 0.16 : 0.24;
+    const durSurface = isReduced ? 0.20 : 0.28;
+    const exitY = isReduced ? 12 : 26;
+    const exitScale = isReduced ? 0.985 : 0.965;
 
     if (surface) {
       timeline.to(
