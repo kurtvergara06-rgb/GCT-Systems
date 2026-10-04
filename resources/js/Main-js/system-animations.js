@@ -381,6 +381,16 @@ const syncModalAnimation = (overlay) => {
     if (!(overlay instanceof Element) || !overlay.matches(MODAL_OVERLAY_SELECTOR)) return;
 
     const state = modalStates.get(overlay);
+
+    /*
+     * Ignore mutations produced by our own GSAP open/close timelines.
+     * Without this guard, restoring a hidden overlay for its close animation
+     * makes the observer see it as visible and can restart the open animation.
+     */
+    if (state?.phase === 'opening' || state?.phase === 'closing') {
+        return;
+    }
+
     const visible = isModalVisible(overlay);
 
     if (visible) {
@@ -520,6 +530,18 @@ document.addEventListener('system:region-replaced', (event) => {
 document.addEventListener('ajax:content-updated', (event) => {
     const names = event.detail?.regions || event.detail?.names || [];
     names.forEach((name) => queueRegionAnimation(window.GCTRegions?.get?.(name)));
+});
+
+/*
+ * Server-side instant search replaces only the table body and intentionally
+ * does not publish named AJAX regions. Animate that replaced table content
+ * directly so search/filter updates stay local and never replay page reveal.
+ */
+document.addEventListener('system:table-filtered', (event) => {
+    const table = event.detail?.table;
+    const body = table?.tBodies?.[0];
+
+    queueRegionAnimation(body || table);
 });
 
 window.addEventListener('gct:navigation-before', resetPageReveal);
