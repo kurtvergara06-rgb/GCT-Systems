@@ -50,6 +50,7 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString('const animateModalClose', $source);
         $this->assertStringContainsString("existing?.phase === 'opening'", $source);
         $this->assertStringContainsString("previous.phase === 'closing'", $source);
+        $this->assertStringContainsString("state?.phase === 'opening' || state?.phase === 'closing'", $source);
         $this->assertStringContainsString('scale: reduced ? 0.99 : 0.975', $source);
         $this->assertStringContainsString('preventBackdropDismissal', $backdrop);
     }
@@ -73,6 +74,8 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString("'ajax:content-updated'", $source);
         $this->assertStringContainsString('queueRegionAnimation', $source);
         $this->assertStringContainsString('pendingRegionElements', $source);
+        $this->assertStringContainsString("'system:table-filtered'", $source);
+        $this->assertStringContainsString('table?.tBodies?.[0]', $source);
 
         $ajaxListener = substr(
             $source,
