@@ -336,31 +336,33 @@
                                                 </a>
                                             @endif
 
-                                            <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                @if($hasLinkedPr && !$allLinkedPrsRejected)
-                                                    <button
-                                                        type="button"
-                                                        class="action-btn disabled-action-btn"
-                                                        title="Cannot delete: this Job Order has an active linked Purchase Request."
-                                                        disabled
-                                                    >
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                @else
-                                                    <button
-                                                        type="button"
-                                                        class="action-btn delete open-delete-modal"
-                                                        title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
-                                                        data-id="{{ $jobOrder->id }}"
-                                                        data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                        data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
-                                                    >
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </form>
+                                            @if($recordView !== 'history' && !$isCompleted)
+                                                <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    @if($hasLinkedPr && !$allLinkedPrsRejected)
+                                                        <button
+                                                            type="button"
+                                                            class="action-btn disabled-action-btn"
+                                                            title="Cannot delete: this Job Order has an active linked Purchase Request."
+                                                            disabled
+                                                        >
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    @else
+                                                        <button
+                                                            type="button"
+                                                            class="action-btn delete open-delete-modal"
+                                                            title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
+                                                            data-id="{{ $jobOrder->id }}"
+                                                            data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                            data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
+                                                        >
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    @endif
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
