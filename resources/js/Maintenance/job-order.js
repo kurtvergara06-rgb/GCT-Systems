@@ -6,10 +6,24 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      GSAP MOTION HELPERS
   ========================================================= */
 
+  /*
+   * Demo branch only:
+   * force motion on so the GSAP behavior is visible even when
+   * Windows/Brave reports prefers-reduced-motion.
+   * Do not carry this override into main without review.
+   */
+  const forceGsapDemoMotion =
+    true;
+
+
   const prefersReducedMotion =
-    window.matchMedia?.(
-      '(prefers-reduced-motion: reduce)'
-    )?.matches ?? false;
+    forceGsapDemoMotion
+      ? false
+      : (
+          window.matchMedia?.(
+            '(prefers-reduced-motion: reduce)'
+          )?.matches ?? false
+        );
 
 
   function getModalSurface(modal) {
@@ -270,9 +284,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 64,
-          scale: 0.88,
-          rotateX: -4,
+          y: 110,
+          scale: 0.74,
+          rotateX: -8,
+          rotateZ: -1.5,
           transformOrigin:
             '50% 20%',
         },
@@ -281,8 +296,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           y: 0,
           scale: 1,
           rotateX: 0,
-          duration: 0.58,
-          ease: 'back.out(1.45)',
+          rotateZ: 0,
+          duration: 0.78,
+          ease: 'back.out(1.55)',
           clearProps:
             'opacity,transform,transformOrigin',
         },
@@ -423,19 +439,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
-  if (prefersReducedMotion) {
-
-    console.info(
-      '[JO GSAP demo] Animations are disabled because the device/browser requests reduced motion.'
-    );
-
-  } else {
-
-    console.info(
-      '[JO GSAP demo] Enhanced GSAP animations are active.'
-    );
-
-  }
+  console.info(
+    '[JO GSAP demo] GSAP motion is active.',
+    {
+      forcedDemoMotion:
+        forceGsapDemoMotion,
+      browserReducedMotion:
+        window.matchMedia?.(
+          '(prefers-reduced-motion: reduce)'
+        )?.matches ?? false,
+    }
+  );
 
 
   animateJobOrderPageEntrance();
