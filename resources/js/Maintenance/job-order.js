@@ -6,24 +6,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      GSAP MOTION HELPERS
   ========================================================= */
 
-  /*
-   * Demo branch only:
-   * force motion on so the GSAP behavior is visible even when
-   * Windows/Brave reports prefers-reduced-motion.
-   * Do not carry this override into main without review.
-   */
-  const forceGsapDemoMotion =
-    true;
-
-
   const prefersReducedMotion =
-    forceGsapDemoMotion
-      ? false
-      : (
-          window.matchMedia?.(
-            '(prefers-reduced-motion: reduce)'
-          )?.matches ?? false
-        );
+    window.matchMedia?.(
+      '(prefers-reduced-motion: reduce)'
+    )?.matches ?? false;
 
 
   function getModalSurface(modal) {
@@ -84,17 +70,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       row,
       {
         opacity: 0,
-        x: -28,
-        y: -8,
-        scale: 0.96,
+        x: -8,
+        y: -3,
       },
       {
         opacity: 1,
         x: 0,
         y: 0,
-        scale: 1,
-        duration: 0.28,
-        ease: 'back.out(1.55)',
+        duration: 0.20,
+        ease: 'power2.out',
         clearProps:
           'opacity,transform',
       }
@@ -172,16 +156,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         summaryCards,
         {
           opacity: 0,
-          y: 34,
-          scale: 0.94,
+          y: 10,
         },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 0.34,
-          stagger: 0.07,
-          ease: 'back.out(1.25)',
+          duration: 0.26,
+          stagger: 0.045,
+          ease: 'power2.out',
           clearProps:
             'opacity,transform',
         }
@@ -195,16 +177,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         tableCard,
         {
           opacity: 0,
-          y: 44,
-          scale: 0.985,
+          y: 12,
         },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 0.42,
-          delay: 0.10,
-          ease: 'power3.out',
+          duration: 0.28,
+          delay: 0.05,
+          ease: 'power2.out',
           clearProps:
             'opacity,transform',
         }
@@ -284,57 +264,20 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 72,
-          scale: 0.84,
-          rotateX: -5,
-          rotateZ: -0.8,
-          transformOrigin:
-            '50% 20%',
+          y: 10,
+          scale: 0.985,
         },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          rotateX: 0,
-          rotateZ: 0,
-          duration: 0.42,
-          ease: 'back.out(1.4)',
+          duration: 0.24,
+          ease: 'power2.out',
           clearProps:
-            'opacity,transform,transformOrigin',
+            'opacity,transform',
         },
-        0.03
+        0.02
       );
-
-
-      const contentItems =
-        surface.querySelectorAll(
-          '.jo-create-section, ' +
-          '.jo-edit-section, ' +
-          '.jo-edit-footer, ' +
-          '.ui-form-actions'
-        );
-
-
-      if (contentItems.length) {
-
-        timeline.fromTo(
-          contentItems,
-          {
-            opacity: 0,
-            y: 24,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.24,
-            stagger: 0.05,
-            ease: 'power2.out',
-            clearProps:
-              'opacity,transform',
-          },
-          0.12
-        );
-      }
     }
 
 
@@ -417,10 +360,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         surface,
         {
           opacity: 0,
-          y: 34,
-          scale: 0.93,
-          duration: 0.18,
-          ease: 'power2.in',
+          y: 8,
+          scale: 0.99,
+          duration: 0.16,
+          ease: 'power1.in',
         },
         0
       );
@@ -437,19 +380,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       0
     );
   }
-
-
-  console.info(
-    '[JO GSAP demo] GSAP motion is active.',
-    {
-      forcedDemoMotion:
-        forceGsapDemoMotion,
-      browserReducedMotion:
-        window.matchMedia?.(
-          '(prefers-reduced-motion: reduce)'
-        )?.matches ?? false,
-    }
-  );
 
 
   animateJobOrderPageEntrance();
