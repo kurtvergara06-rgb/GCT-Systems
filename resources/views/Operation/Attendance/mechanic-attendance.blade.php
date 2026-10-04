@@ -4,8 +4,10 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/Attendance/available-mechanics.css',
+    'resources/css/Operation/Attendance/batch-attendance.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Operation/Attendance/mechanic-attendance.js'
+    'resources/js/Operation/Attendance/mechanic-attendance.js',
+    'resources/js/Operation/Attendance/batch-attendance.js'
   ]"
 >
 
