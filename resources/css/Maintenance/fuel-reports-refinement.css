@@ -20,9 +20,9 @@
 
 .fuel-page .fuel-monitoring-refined .daily-monitoring-toolbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 14px;
   padding: 12px 14px;
   border: 1px solid #e2e8f0;
@@ -36,17 +36,18 @@
 
 .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
   display: grid;
-  grid-template-columns: minmax(230px, 320px) minmax(170px, 210px);
-  align-items: end;
-  gap: 12px;
-  flex: 0 1 auto;
-  width: fit-content;
+  grid-template-columns: 320px 210px;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  width: auto;
   max-width: 100%;
 }
 
 .fuel-page .fuel-monitoring-refined .daily-filter-field {
   display: flex;
   min-width: 0;
+  width: 100%;
   flex-direction: column;
   gap: 6px;
 }
@@ -60,10 +61,12 @@
 .fuel-page .fuel-monitoring-refined .daily-filter-field input,
 .fuel-page .fuel-monitoring-refined .daily-filter-field select {
   width: 100%;
-  min-height: 40px;
-  padding: 0 12px;
+  height: 46px;
+  min-height: 46px;
+  padding: 0 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 9px;
+  border-radius: 10px;
+  box-sizing: border-box;
   background: #ffffff;
   color: #0f172a;
   font: inherit;
@@ -72,10 +75,14 @@
 }
 
 .fuel-page .fuel-monitoring-refined .manual-entry-btn {
-  min-width: 132px;
-  min-height: 40px;
+  min-width: 142px;
+  height: 46px;
+  min-height: 46px;
   margin: 0;
-  align-self: end;
+  padding: 0 18px;
+  border-radius: 10px;
+  align-self: center;
+  white-space: nowrap;
 }
 
 .fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll {
@@ -161,7 +168,7 @@
 
   .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
     width: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .fuel-page .fuel-monitoring-refined .manual-entry-btn,
@@ -177,6 +184,10 @@
 
   .fuel-page .fuel-chart-container {
     min-height: 270px;
+  }
+
+  .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
+    grid-template-columns: 1fr;
   }
 
   .fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll {
