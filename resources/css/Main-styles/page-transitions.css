@@ -27,6 +27,15 @@ main.gct-main-entered {
     transform: translateY(0);
 }
 
+/*
+ * Maintenance owns its post-loader reveal with GSAP. Suppress the generic
+ * main transition while that reveal is active so the same content cannot be
+ * animated once by CSS and again by GSAP.
+ */
+main.gct-maintenance-gsap-reveal {
+    transition: none !important;
+}
+
 main.gct-main-after-loader {
     animation: gctMainAfterLoader 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

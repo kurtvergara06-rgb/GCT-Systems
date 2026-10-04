@@ -29,6 +29,7 @@ let modalObserver = null;
 let sidebarObserver = null;
 let preparedRevealRoot = null;
 let preparedRevealPromise = null;
+let activeRevealAnimation = null;
 
 const prefersReducedMotion = () => {
   if (
@@ -193,6 +194,8 @@ const measureStableMaintenanceLayout = (
 };
 
 const resetPreparedReveal = () => {
+  activeRevealAnimation?.kill();
+  activeRevealAnimation = null;
   preparedRevealRoot = null;
   preparedRevealPromise = null;
 };
@@ -207,8 +210,13 @@ const dashboardRevealPanels = (root) => {
   }
 
   return Array.from(
-    root.querySelectorAll(
-      '.maintenance-dashboard-card'
+    root.children
+  ).filter(
+    (element) => element.matches(
+      '.topbar, '
+      + '.maintenance-stats-grid, '
+      + '.maintenance-dashboard-grid, '
+      + '.maintenance-two-col-grid'
     )
   );
 };
@@ -217,13 +225,15 @@ const animateDashboardPanels = (
   root,
   {
     initialOpen = false,
+    onComplete = null,
   } = {}
 ) => {
   const panels =
     dashboardRevealPanels(root);
 
   if (!panels.length) {
-    return;
+    onComplete?.();
+    return null;
   }
 
   const reduced =
@@ -231,30 +241,23 @@ const animateDashboardPanels = (
 
   gsap.killTweensOf(panels);
 
-  gsap.fromTo(
+  return gsap.to(
     panels,
-    {
-      opacity: 0,
-      y: reduced ? 6 : 12,
-    },
     {
       opacity: 1,
       y: 0,
       duration:
         initialOpen
-          ? (reduced ? 0.66 : 0.82)
-          : (reduced ? 0.56 : 0.72),
+          ? (reduced ? 0.42 : 0.58)
+          : (reduced ? 0.36 : 0.50),
       stagger:
         initialOpen
-          ? (reduced ? 0.05 : 0.08)
-          : (reduced ? 0.04 : 0.07),
-      delay:
-        initialOpen
-          ? 0.08
-          : 0.06,
+          ? (reduced ? 0.025 : 0.045)
+          : (reduced ? 0.02 : 0.035),
       ease: 'power3.out',
       clearProps:
         'opacity,transform',
+      onComplete,
     }
   );
 };
@@ -278,12 +281,34 @@ const prepareMaintenanceReveal = async () => {
 
   gsap.killTweensOf(root);
 
+  root.classList.add(
+    'gct-maintenance-gsap-reveal'
+  );
+
   gsap.set(
     root,
     {
       opacity: 0,
     }
   );
+
+  const dashboardPanels =
+    dashboardRevealPanels(root);
+
+  if (dashboardPanels.length) {
+    gsap.killTweensOf(
+      dashboardPanels
+    );
+    gsap.set(
+      dashboardPanels,
+      {
+        opacity: 0,
+        y: prefersReducedMotion()
+          ? 4
+          : 10,
+      }
+    );
+  }
 
   root.dataset.gctRevealState =
     'preparing';
@@ -329,49 +354,90 @@ const revealMaintenancePage = ({
   const reduced =
     prefersReducedMotion();
 
+  if (
+    root.dataset.gctRevealState
+      === 'revealing'
+    || root.dataset.gctRevealState
+      === 'shown'
+  ) {
+    return false;
+  }
+
   const isDashboard =
     root.classList.contains(
       'maintenance-dashboard-main'
     );
 
   const yOffset =
-    isDashboard
-      ? 0
-      : (
-        initialOpen
-          ? (reduced ? 34 : 72)
-          : (reduced ? 28 : 56)
-      );
+    initialOpen
+      ? (reduced ? 34 : 72)
+      : (reduced ? 28 : 56);
 
   const startScale =
-    isDashboard
-      ? 1
-      : (
-        initialOpen
-          ? (reduced ? 0.975 : 0.94)
-          : (reduced ? 0.98 : 0.955)
-      );
+    initialOpen
+      ? (reduced ? 0.975 : 0.94)
+      : (reduced ? 0.98 : 0.955);
 
   const duration =
-    isDashboard
-      ? (reduced ? 0.28 : 0.36)
-      : (
-        initialOpen
-          ? (reduced ? 0.78 : 1.15)
-          : (reduced ? 0.62 : 0.90)
-      );
+    initialOpen
+      ? (reduced ? 0.78 : 1.15)
+      : (reduced ? 0.62 : 0.90);
 
   gsap.killTweensOf(root);
+  activeRevealAnimation?.kill();
+  activeRevealAnimation = null;
 
   root.dataset.gctRevealState =
     'revealing';
+
+  const finishReveal = () => {
+    if (!root.isConnected) {
+      return;
+    }
+
+    root.dataset.gctRevealState =
+      'shown';
+    root.classList.remove(
+      'gct-maintenance-gsap-reveal'
+    );
+    activeRevealAnimation = null;
+  };
+
+  if (isDashboard) {
+    /*
+     * The dashboard uses one panel sequence only. Making the completed root
+     * visible without tweening it prevents the generic main transition and
+     * the nested dashboard panels from animating on top of each other.
+     */
+    gsap.set(
+      root,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        clearProps:
+          'opacity,transform,transformOrigin',
+      }
+    );
+
+    activeRevealAnimation =
+      animateDashboardPanels(
+        root,
+        {
+          initialOpen,
+          onComplete: finishReveal,
+        }
+      );
+
+    return true;
+  }
 
   /*
    * Animate the already-finished page as one unit.
    * Direct page open is intentionally slower so the GSAP motion is obvious,
    * while partial navigation stays a little faster.
    */
-  gsap.fromTo(
+  activeRevealAnimation = gsap.fromTo(
     root,
     {
       opacity: 0,
@@ -387,22 +453,7 @@ const revealMaintenancePage = ({
       ease: 'power3.out',
       clearProps:
         'opacity,transform,transformOrigin',
-      onComplete: () => {
-        root.dataset.gctRevealState =
-          'shown';
-      },
-    }
-  );
-
-  /*
-   * Dashboard cards fade in independently after the full layout is already
-   * complete. Their transforms do not affect document flow, so the user sees
-   * a smooth reveal rather than the dashboard building itself.
-   */
-  animateDashboardPanels(
-    root,
-    {
-      initialOpen,
+      onComplete: finishReveal,
     }
   );
 
@@ -1178,12 +1229,9 @@ const initializeMaintenanceAnimations = () => {
          * On a hard load there is no navigation cover, so reveal here.
          */
         if (!navigationCovered) {
-          window.setTimeout(
-            () => revealMaintenancePage({
-              initialOpen: true,
-            }),
-            120
-          );
+          revealMaintenancePage({
+            initialOpen: true,
+          });
         }
       }
     );

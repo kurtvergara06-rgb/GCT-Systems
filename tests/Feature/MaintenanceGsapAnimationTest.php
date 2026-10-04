@@ -220,10 +220,13 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
-    public function test_maintenance_dashboard_cards_fade_in_smoothly_after_layout_is_ready(): void
+    public function test_maintenance_dashboard_uses_one_top_level_panel_reveal_after_layout_is_ready(): void
     {
         $source = file_get_contents(
             resource_path('js/Maintenance/maintenance-animations.js')
+        );
+        $styles = file_get_contents(
+            resource_path('css/Main-styles/page-transitions.css')
         );
 
         $this->assertStringContainsString(
@@ -231,7 +234,15 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "'.maintenance-dashboard-card'",
+            "'.maintenance-stats-grid, '",
+            $source
+        );
+        $this->assertStringContainsString(
+            "+ '.maintenance-dashboard-grid, '",
+            $source
+        );
+        $this->assertStringContainsString(
+            "+ '.maintenance-two-col-grid'",
             $source
         );
         $this->assertStringContainsString(
@@ -239,28 +250,71 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'y: reduced ? 6 : 12',
+            '? 4',
             $source
         );
         $this->assertStringContainsString(
-            '? (reduced ? 0.66 : 0.82)',
+            '? (reduced ? 0.42 : 0.58)',
             $source
         );
         $this->assertStringContainsString(
-            '? (reduced ? 0.05 : 0.08)',
+            '? (reduced ? 0.025 : 0.045)',
             $source
         );
         $this->assertStringContainsString(
-            "isDashboard",
+            "if (isDashboard)",
             $source
         );
         $this->assertStringContainsString(
-            "? 0",
+            'activeRevealAnimation =',
             $source
         );
+        $this->assertSame(
+            2,
+            substr_count($source, 'animateDashboardPanels')
+        );
+        $this->assertStringNotContainsString(
+            "'.maintenance-dashboard-card'",
+            $source
+        );
+        $this->assertStringContainsString(
+            'main.gct-maintenance-gsap-reveal',
+            $styles
+        );
+
+        $dashboardBranchStart = strpos(
+            $source,
+            'if (isDashboard) {'
+        );
+        $rootRevealStart = strpos(
+            $source,
+            'activeRevealAnimation = gsap.fromTo('
+        );
+
+        $this->assertNotFalse($dashboardBranchStart);
+        $this->assertNotFalse($rootRevealStart);
+        $this->assertGreaterThan(
+            $dashboardBranchStart,
+            $rootRevealStart
+        );
+
+        $dashboardBranch = substr(
+            $source,
+            $dashboardBranchStart,
+            $rootRevealStart - $dashboardBranchStart
+        );
+
         $this->assertStringContainsString(
             'animateDashboardPanels(',
-            $source
+            $dashboardBranch
+        );
+        $this->assertStringContainsString(
+            'return true;',
+            $dashboardBranch
+        );
+        $this->assertStringNotContainsString(
+            'gsap.fromTo(',
+            $dashboardBranch
         );
     }
 
@@ -294,8 +348,32 @@ class MaintenanceGsapAnimationTest extends TestCase
             'initialOpen: true',
             $source
         );
+        $this->assertStringNotContainsString(
+            "window.setTimeout(\n            () => revealMaintenancePage",
+            $source
+        );
+    }
+
+    public function test_reveal_is_idempotent_and_does_not_restart_when_navigation_hooks_overlap(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/maintenance-animations.js')
+        );
+
         $this->assertStringContainsString(
-            '120',
+            "=== 'revealing'",
+            $source
+        );
+        $this->assertStringContainsString(
+            "=== 'shown'",
+            $source
+        );
+        $this->assertStringContainsString(
+            'activeRevealAnimation?.kill()',
+            $source
+        );
+        $this->assertStringContainsString(
+            "'gct-maintenance-gsap-reveal'",
             $source
         );
     }
