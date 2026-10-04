@@ -162,12 +162,12 @@ const animateMaintenancePage = (root) => {
       topbar,
       {
         opacity: 0,
-        y: 6,
+        y: 10,
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.22,
+        duration: 0.30,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
@@ -179,13 +179,13 @@ const animateMaintenancePage = (root) => {
       summaryCards,
       {
         opacity: 0,
-        y: 10,
+        y: 18,
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.26,
-        stagger: 0.045,
+        duration: 0.36,
+        stagger: 0.06,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
       }
@@ -197,15 +197,15 @@ const animateMaintenancePage = (root) => {
       blocks,
       {
         opacity: 0,
-        y: 12,
+        y: 20,
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.28,
-        stagger: 0.05,
+        duration: 0.40,
+        stagger: 0.07,
         delay: summaryCards.length
-          ? 0.05
+          ? 0.08
           : 0,
         ease: 'power2.out',
         clearProps: 'opacity,transform',
@@ -213,7 +213,58 @@ const animateMaintenancePage = (root) => {
     );
   }
 
-  animateRows(root);
+  window.setTimeout(
+    () => animateRows(root),
+    90
+  );
+};
+
+const waitForMaintenanceReveal = (
+  root,
+  attempt = 0
+) => {
+  if (
+    !root
+    || !root.isConnected
+  ) {
+    return;
+  }
+
+  const loaderVisible =
+    document.body.classList.contains(
+      'gct-navigation-loading'
+    );
+
+  const mainHeld =
+    root.classList.contains(
+      'gct-main-loader-hold'
+    )
+    || root.classList.contains(
+      'gct-main-entering'
+    );
+
+  if (
+    (loaderVisible || mainHeld)
+    && attempt < 30
+  ) {
+    window.setTimeout(
+      () => waitForMaintenanceReveal(
+        root,
+        attempt + 1
+      ),
+      24
+    );
+
+    return;
+  }
+
+  window.requestAnimationFrame(
+    () => window.requestAnimationFrame(
+      () => animateMaintenancePage(
+        root
+      )
+    )
+  );
 };
 
 const getModalSurface = (overlay) => (
@@ -325,14 +376,14 @@ const animateModalOpen = (overlay) => {
     surface,
     {
       opacity: 0,
-      y: 10,
-      scale: 0.985,
+      y: 16,
+      scale: 0.975,
     },
     {
       opacity: 1,
       y: 0,
       scale: 1,
-      duration: 0.24,
+      duration: 0.30,
       ease: 'power2.out',
       clearProps: 'opacity,transform',
     }
@@ -841,8 +892,8 @@ const bindGlobalInteractions = () => {
       gsap.to(
         item,
         {
-          x: 3,
-          duration: 0.12,
+          x: 5,
+          duration: 0.16,
           ease: 'power1.out',
           overwrite: true,
         }
@@ -882,7 +933,7 @@ const bindGlobalInteractions = () => {
         item,
         {
           x: 0,
-          duration: 0.12,
+          duration: 0.16,
           ease: 'power1.out',
           overwrite: true,
           clearProps: 'transform',
@@ -939,7 +990,7 @@ const initializeMaintenanceAnimations = () => {
   ensureModalObserver();
   ensureSidebarObserver();
 
-  animateMaintenancePage(
+  waitForMaintenanceReveal(
     root
   );
 
