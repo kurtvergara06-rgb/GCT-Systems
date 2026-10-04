@@ -1,4 +1,197 @@
+import gsap from 'gsap';
+
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
+
+  /* =========================================================
+     GSAP MOTION HELPERS
+  ========================================================= */
+
+  const prefersReducedMotion =
+    window.matchMedia?.(
+      '(prefers-reduced-motion: reduce)'
+    )?.matches ?? false;
+
+
+  function getModalSurface(modal) {
+
+    return modal
+      ?.querySelector(
+        '.ui-form-modal, ' +
+        '.delete-modal-box, ' +
+        '.modal-card, ' +
+        '.success-modal-box'
+      )
+      || null;
+  }
+
+
+  function resetModalAnimationState(
+    modal,
+    surface = null
+  ) {
+
+    const targets = [
+      modal,
+      surface,
+    ].filter(Boolean);
+
+
+    if (targets.length) {
+
+      gsap.set(
+        targets,
+        {
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+
+    if (modal) {
+
+      delete modal.dataset
+        .gsapClosing;
+    }
+  }
+
+
+  function animatePartRowIn(row) {
+
+    if (
+      !row ||
+      prefersReducedMotion
+    ) {
+      return;
+    }
+
+
+    gsap.fromTo(
+      row,
+      {
+        opacity: 0,
+        y: -10,
+        scale: 0.985,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.22,
+        ease: 'power2.out',
+        clearProps:
+          'opacity,transform',
+      }
+    );
+  }
+
+
+  function animatePartRowOut(
+    row,
+    onComplete
+  ) {
+
+    if (!row) {
+      onComplete?.();
+      return;
+    }
+
+
+    if (prefersReducedMotion) {
+      onComplete?.();
+      return;
+    }
+
+
+    gsap.killTweensOf(row);
+
+
+    gsap.to(
+      row,
+      {
+        opacity: 0,
+        x: 18,
+        duration: 0.16,
+        ease: 'power2.in',
+        onComplete: () => {
+
+          gsap.set(
+            row,
+            {
+              clearProps:
+                'opacity,transform',
+            }
+          );
+
+
+          onComplete?.();
+        },
+      }
+    );
+  }
+
+
+  function animateJobOrderPageEntrance() {
+
+    if (prefersReducedMotion) {
+      return;
+    }
+
+
+    const summaryCards =
+      document.querySelectorAll(
+        '.jo-page .jo-stats-grid > *'
+      );
+
+
+    const tableCard =
+      document.querySelector(
+        '.jo-page .jo-table-card'
+      );
+
+
+    if (summaryCards.length) {
+
+      gsap.fromTo(
+        summaryCards,
+        {
+          opacity: 0,
+          y: 14,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.34,
+          stagger: 0.06,
+          ease: 'power2.out',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+
+    if (tableCard) {
+
+      gsap.fromTo(
+        tableCard,
+        {
+          opacity: 0,
+          y: 18,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.38,
+          delay: 0.12,
+          ease: 'power2.out',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+  }
+
 
   /* =========================================================
      MODAL HELPERS
@@ -10,9 +203,89 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       return;
     }
 
+
+    const surface =
+      getModalSurface(modal);
+
+
     modal.classList.add(
       'show',
       'active'
+    );
+
+
+    modal.style.display = '';
+
+
+    delete modal.dataset
+      .gsapClosing;
+
+
+    if (prefersReducedMotion) {
+
+      resetModalAnimationState(
+        modal,
+        surface
+      );
+
+
+      return;
+    }
+
+
+    gsap.killTweensOf(modal);
+
+
+    if (surface) {
+      gsap.killTweensOf(surface);
+    }
+
+
+    const timeline =
+      gsap.timeline();
+
+
+    timeline.fromTo(
+      modal,
+      {
+        opacity: 0,
+      },
+      {
+        opacity: 1,
+        duration: 0.18,
+        ease: 'power1.out',
+      }
+    );
+
+
+    if (surface) {
+
+      timeline.fromTo(
+        surface,
+        {
+          opacity: 0,
+          y: 22,
+          scale: 0.97,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.30,
+          ease: 'power3.out',
+          clearProps:
+            'opacity,transform',
+        },
+        0.02
+      );
+    }
+
+
+    timeline.set(
+      modal,
+      {
+        clearProps: 'opacity',
+      }
     );
   }
 
@@ -23,13 +296,93 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       return;
     }
 
-    modal.classList.remove(
-      'show',
-      'active'
-    );
 
-    modal.style.display = '';
+    const surface =
+      getModalSurface(modal);
+
+
+    const finishClose = () => {
+
+      modal.classList.remove(
+        'show',
+        'active'
+      );
+
+
+      modal.style.display = '';
+
+
+      resetModalAnimationState(
+        modal,
+        surface
+      );
+    };
+
+
+    if (prefersReducedMotion) {
+
+      finishClose();
+      return;
+    }
+
+
+    if (
+      modal.dataset
+        .gsapClosing ===
+      'true'
+    ) {
+      return;
+    }
+
+
+    modal.dataset.gsapClosing =
+      'true';
+
+
+    gsap.killTweensOf(modal);
+
+
+    if (surface) {
+      gsap.killTweensOf(surface);
+    }
+
+
+    const timeline =
+      gsap.timeline({
+        onComplete:
+          finishClose,
+      });
+
+
+    if (surface) {
+
+      timeline.to(
+        surface,
+        {
+          opacity: 0,
+          y: 12,
+          scale: 0.985,
+          duration: 0.16,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+
+    timeline.to(
+      modal,
+      {
+        opacity: 0,
+        duration: 0.18,
+        ease: 'power1.in',
+      },
+      0
+    );
   }
+
+
+  animateJobOrderPageEntrance();
 
 
   /* =========================================================
@@ -312,13 +665,22 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           ).length;
 
 
+        const row =
+          createPartRow(index);
+
+
         wrapper.appendChild(
-          createPartRow(index)
+          row
         );
 
 
         refreshPartIndexes(
           wrapper
+        );
+
+
+        animatePartRowIn(
+          row
         );
       }
     );
@@ -386,11 +748,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         }
 
 
-        row.remove();
+        animatePartRowOut(
+          row,
+          () => {
+
+            row.remove();
 
 
-        refreshPartIndexes(
-          wrapper
+            refreshPartIndexes(
+              wrapper
+            );
+          }
         );
       }
     );
@@ -1436,14 +1804,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
               ).length;
 
 
+          const row =
+            createPartRow(index);
+
+
           editPartsNeededWrapper
             .appendChild(
-              createPartRow(index)
+              row
             );
 
 
           refreshPartIndexes(
             editPartsNeededWrapper
+          );
+
+
+          animatePartRowIn(
+            row
           );
 
         }
@@ -1522,11 +1899,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           }
 
 
-          row.remove();
+          animatePartRowOut(
+            row,
+            () => {
+
+              row.remove();
 
 
-          refreshPartIndexes(
-            editPartsNeededWrapper
+              refreshPartIndexes(
+                editPartsNeededWrapper
+              );
+            }
           );
 
         }
