@@ -27,7 +27,8 @@ const JO_OWNED_MODAL_IDS = new Set([
 
 let modalObserver = null;
 let sidebarObserver = null;
-let globalInteractionsBound = false;
+let preparedRevealRoot = null;
+let preparedRevealPromise = null;
 
 const prefersReducedMotion = () => {
   if (
@@ -143,159 +144,172 @@ const animateSummaryRefresh = (root) => {
   );
 };
 
-const animateMaintenancePage = (root) => {
-  if (!root) {
-    return;
-  }
-
-  // Prevent duplicate execution within the same navigation tick
-  if (root.dataset.gsapPageAnimated === 'true') {
-    return;
-  }
-  root.dataset.gsapPageAnimated = 'true';
-  window.setTimeout(() => {
-    delete root.dataset.gsapPageAnimated;
-  }, 500);
-
-  const reduced = prefersReducedMotion();
-  const topbarY = reduced ? 4 : 10;
-  const cardY = reduced ? 6 : 18;
-  const blockY = reduced ? 6 : 20;
-  const durationScale = reduced ? 0.8 : 1;
-
-  const topbar = root.querySelector(
-    ':scope > .topbar, :scope > header.topbar'
-  );
-
-  const summaryCards = root.querySelectorAll(
-    ':scope > .stats-grid > *, '
-    + ':scope > [data-ajax-region="summary"] > *'
-  );
-
-  const blocks = Array.from(
-    root.querySelectorAll(
-      ':scope > .table-card, '
-      + ':scope > [data-ajax-region="records"], '
-      + ':scope > .maintenance-dashboard-grid > *, '
-      + ':scope > .maintenance-two-col-grid > *, '
-      + ':scope > .fuel-analytics-grid > *, '
-      + ':scope > .fuel-insights-grid > *, '
-      + ':scope > .fuel-monitoring-refined, '
-      + ':scope > .jo-table-card'
+const wait = (ms) => (
+  new Promise(
+    (resolve) => window.setTimeout(
+      resolve,
+      ms
     )
-  );
+  )
+);
 
-  if (topbar) {
-    gsap.killTweensOf(topbar);
-    gsap.fromTo(
-      topbar,
-      {
-        opacity: 0,
-        y: 10,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.30 * durationScale,
-        ease: 'power2.out',
-        clearProps: 'opacity,transform',
-      }
-    );
+const nextFrames = () => (
+  new Promise(
+    (resolve) => {
+      window.requestAnimationFrame(
+        () => window.requestAnimationFrame(
+          resolve
+        )
+      );
+    }
+  )
+);
+
+const waitForFonts = async () => {
+  if (!document.fonts?.ready) {
+    return;
   }
 
-  if (summaryCards.length) {
-    gsap.killTweensOf(summaryCards);
-    gsap.fromTo(
-      summaryCards,
-      {
-        opacity: 0,
-        y: cardY,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.36 * durationScale,
-        stagger: 0.05,
-        ease: 'power2.out',
-        clearProps: 'opacity,transform',
-      }
-    );
-  }
-
-  if (blocks.length) {
-    gsap.killTweensOf(blocks);
-    gsap.fromTo(
-      blocks,
-      {
-        opacity: 0,
-        y: blockY,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.40 * durationScale,
-        stagger: 0.06,
-        delay: summaryCards.length
-          ? 0.06
-          : 0,
-        ease: 'power2.out',
-        clearProps: 'opacity,transform',
-      }
-    );
-  }
-
-  window.setTimeout(
-    () => animateRows(root),
-    100
-  );
+  await Promise.race([
+    document.fonts.ready,
+    wait(600),
+  ]);
 };
 
-const waitForMaintenanceReveal = (
-  root,
-  attempt = 0
+const measureStableMaintenanceLayout = (
+  root
 ) => {
-  if (
-    !root
-    || !root.isConnected
-  ) {
-    return;
-  }
+  root.getBoundingClientRect();
 
-  const loaderVisible =
-    document.body.classList.contains(
-      'gct-navigation-loading'
-    );
-
-  const mainHeld =
-    root.classList.contains(
-      'gct-main-loader-hold'
+  root
+    .querySelectorAll(
+      '.stats-grid, '
+      + '.table-card, '
+      + '.maintenance-dashboard-grid, '
+      + '.maintenance-two-col-grid, '
+      + '.fuel-analytics-grid, '
+      + '.fuel-insights-grid, '
+      + '.fuel-monitoring-refined, '
+      + '.jo-table-card, '
+      + 'table'
     )
-    || root.classList.contains(
-      'gct-main-entering'
+    .forEach(
+      (element) => {
+        element.getBoundingClientRect();
+      }
     );
+};
 
-  if (
-    (loaderVisible || mainHeld)
-    && attempt < 35
-  ) {
-    window.setTimeout(
-      () => waitForMaintenanceReveal(
-        root,
-        attempt + 1
-      ),
-      24
-    );
+const resetPreparedReveal = () => {
+  preparedRevealRoot = null;
+  preparedRevealPromise = null;
+};
 
-    return;
+const prepareMaintenanceReveal = async () => {
+  const root = getMaintenanceRoot();
+
+  if (!root) {
+    resetPreparedReveal();
+    return false;
   }
 
-  // Ensure DOM is ready and visible before triggering entrance animation
-  window.requestAnimationFrame(() => {
-    window.setTimeout(() => {
-      animateMaintenancePage(root);
-    }, 48);
-  });
+  if (
+    preparedRevealRoot === root
+    && preparedRevealPromise
+  ) {
+    return preparedRevealPromise;
+  }
+
+  preparedRevealRoot = root;
+
+  gsap.killTweensOf(root);
+
+  gsap.set(
+    root,
+    {
+      opacity: 0,
+    }
+  );
+
+  root.dataset.gctRevealState =
+    'preparing';
+
+  preparedRevealPromise = (
+    async () => {
+      await waitForFonts();
+      await nextFrames();
+
+      if (!root.isConnected) {
+        return false;
+      }
+
+      measureStableMaintenanceLayout(
+        root
+      );
+
+      await nextFrames();
+
+      if (!root.isConnected) {
+        return false;
+      }
+
+      root.dataset.gctRevealState =
+        'ready';
+
+      return true;
+    }
+  )();
+
+  return preparedRevealPromise;
 };
+
+const revealMaintenancePage = () => {
+  const root = getMaintenanceRoot();
+
+  if (!root) {
+    return false;
+  }
+
+  gsap.killTweensOf(root);
+
+  root.dataset.gctRevealState =
+    'revealing';
+
+  gsap.fromTo(
+    root,
+    {
+      opacity: 0,
+    },
+    {
+      opacity: 1,
+      duration:
+        prefersReducedMotion()
+          ? 0.16
+          : 0.28,
+      ease: 'power1.out',
+      clearProps: 'opacity',
+      onComplete: () => {
+        root.dataset.gctRevealState =
+          'shown';
+      },
+    }
+  );
+
+  return true;
+};
+
+window.GCTMaintenanceReveal =
+  Object.freeze({
+    isApplicable: () => (
+      Boolean(
+        getMaintenanceRoot()
+      )
+    ),
+    prepare:
+      prepareMaintenanceReveal,
+    reveal:
+      revealMaintenancePage,
+  });
 
 const getModalSurface = (overlay) => (
   overlay?.querySelector(
@@ -518,12 +532,11 @@ const scanOpenModals = () => {
 };
 
 const ensureModalObserver = () => {
-  if (
-    modalObserver
-    || !document.body
-  ) {
+  if (!document.body) {
     return;
   }
+
+  modalObserver?.disconnect();
 
   modalObserver =
     new MutationObserver(
@@ -751,9 +764,7 @@ const ensureSidebarObserver = () => {
     return;
   }
 
-  if (sidebarObserver) {
-    return;
-  }
+  sidebarObserver?.disconnect();
 
   sidebarObserver =
     new MutationObserver(
@@ -799,13 +810,6 @@ const ensureSidebarObserver = () => {
 };
 
 const bindGlobalInteractions = () => {
-  if (globalInteractionsBound) {
-    return;
-  }
-
-  globalInteractionsBound =
-    true;
-
   const pressSelector = [
     '.primary-btn',
     '.secondary-btn',
@@ -995,6 +999,13 @@ const bindGlobalInteractions = () => {
   );
 
   window.addEventListener(
+    'gct:navigation-before',
+    () => {
+      resetPreparedReveal();
+    }
+  );
+
+  window.addEventListener(
     'gct:navigation-ready',
     () => {
       if (!getMaintenanceRoot()) {
@@ -1020,9 +1031,42 @@ const initializeMaintenanceAnimations = () => {
   ensureModalObserver();
   ensureSidebarObserver();
 
-  waitForMaintenanceReveal(
-    root
-  );
+  void prepareMaintenanceReveal()
+    .then(
+      (ready) => {
+        if (!ready) {
+          return;
+        }
+
+        const main =
+          root.closest(
+            'main'
+          );
+
+        const navigationCovered =
+          document.body.classList
+            .contains(
+              'gct-navigation-loading'
+            )
+          || main?.classList
+            .contains(
+              'gct-main-loader-hold'
+            )
+          || main?.classList
+            .contains(
+              'gct-main-entering'
+            );
+
+        /*
+         * During partial navigation, page-transitions.js owns the reveal
+         * and crossfades this already-laid-out root with the loader.
+         * On a hard load there is no navigation cover, so reveal here.
+         */
+        if (!navigationCovered) {
+          revealMaintenancePage();
+        }
+      }
+    );
 
   animateSidebarActiveItem();
   scanOpenModals();
