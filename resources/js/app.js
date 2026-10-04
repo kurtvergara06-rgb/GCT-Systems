@@ -38,6 +38,7 @@ import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 import './Maintenance/maintenance-history-tabs.js';
+import './Maintenance/maintenance-animations.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
 const initializePageOnlyControls = () => {
