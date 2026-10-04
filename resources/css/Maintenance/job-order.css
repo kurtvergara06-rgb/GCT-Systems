@@ -2142,6 +2142,11 @@ textarea[readonly] {
 #jobModal .jo-create-basic-grid {
   padding: 14px;
   gap: 14px;
+  /*
+   * Give the Bus selector more horizontal room so the full bus number
+   * and plate stay readable without squeezing the trigger label.
+   */
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
 }
 
 #jobModal .jo-create-basic-grid .ui-form-group,
@@ -2562,6 +2567,131 @@ textarea[readonly] {
     padding-top: 14px;
     padding-bottom: 14px;
   }
+}
+
+
+/* =========================================================
+   MAINTENANCE JOB CUSTOM DROPDOWN
+   Native selects may open upward depending on browser space.
+   This custom menu always expands below the trigger.
+========================================================= */
+
+.jo-maintenance-job-native-wrap {
+  display: none !important;
+}
+
+.jo-maintenance-job-combobox {
+  position: relative;
+  width: 100%;
+}
+
+.jo-maintenance-job-trigger {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d5e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.jo-maintenance-job-trigger:hover,
+.jo-maintenance-job-combobox.is-open .jo-maintenance-job-trigger {
+  border-color: #6f9de8;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
+}
+
+.jo-maintenance-job-icon {
+  flex: 0 0 auto;
+  color: #375783;
+}
+
+.jo-maintenance-job-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jo-maintenance-job-label.placeholder {
+  color: #8a98ac;
+  font-weight: 500;
+}
+
+.jo-maintenance-job-chevron {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 11px;
+  transition: transform .18s ease;
+}
+
+.jo-maintenance-job-combobox.is-open .jo-maintenance-job-chevron {
+  transform: rotate(180deg);
+}
+
+.jo-maintenance-job-menu {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  left: 0;
+  z-index: 10100;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid #dbe3ef;
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+}
+
+.jo-maintenance-job-menu[hidden] {
+  display: none;
+}
+
+.jo-maintenance-job-option {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #12284c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jo-maintenance-job-option:hover,
+.jo-maintenance-job-option.is-selected {
+  background: #eef4ff;
+  color: #0b40b5;
+}
+
+.jo-maintenance-job-option > i {
+  visibility: hidden;
+  color: #0b40b5;
+  font-size: 11px;
+}
+
+.jo-maintenance-job-option.is-selected > i {
+  visibility: visible;
 }
 
 
