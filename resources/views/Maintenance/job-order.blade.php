@@ -142,7 +142,7 @@
                                         $partStatus = 'Not Requested';
                                     }
 
-                                    $linkedPr = \App\Models\Maintenance\PurchaseRequest::query()
+                                    $linkedPrs = \App\Models\Maintenance\PurchaseRequest::query()
                                         ->where('job_order_no', $jobOrder->job_order_no)
                                         ->where('pr_no', 'not like', '%-P')
                                         ->where(function ($query) {
@@ -150,10 +150,15 @@
                                                 ->orWhere('source_type', 'Maintenance Request');
                                         })
                                         ->latest()
-                                        ->first();
+                                        ->get();
 
-                                    $hasLinkedPr = $linkedPr !== null;
+                                    $linkedPr = $linkedPrs->first();
+                                    $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
+                                    $allLinkedPrsRejected = $hasLinkedPr
+                                        && $linkedPrs->every(
+                                            fn ($purchaseRequest) => $purchaseRequest->status === 'Rejected'
+                                        );
 
                                     $canCreatePr = $hasMechanic
                                         && $hasNeededParts
@@ -334,11 +339,11 @@
                                             <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
-                                                @if($hasLinkedPr)
+                                                @if($hasLinkedPr && !$allLinkedPrsRejected)
                                                     <button
                                                         type="button"
                                                         class="action-btn disabled-action-btn"
-                                                        title="Cannot delete: this Job Order already has a linked Purchase Request."
+                                                        title="Cannot delete: this Job Order has an active linked Purchase Request."
                                                         disabled
                                                     >
                                                         <i class="fa-solid fa-trash"></i>
@@ -347,9 +352,10 @@
                                                     <button
                                                         type="button"
                                                         class="action-btn delete open-delete-modal"
-                                                        title="Delete Job Order"
+                                                        title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
                                                         data-id="{{ $jobOrder->id }}"
                                                         data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                        data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
                                                     >
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
