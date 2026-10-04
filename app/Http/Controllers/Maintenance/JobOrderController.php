@@ -718,6 +718,21 @@ class JobOrderController extends Controller
 
     public function destroy(Request $request, JobOrder $jobOrder)
     {
+        if ($jobOrder->status === 'Completed') {
+            $message = 'Completed Job Orders are history records and cannot be deleted.';
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->with('error', $message);
+        }
+
         $linkedPurchaseRequests = $this
             ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
             ->orderBy('id')
