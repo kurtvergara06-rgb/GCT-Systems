@@ -2636,3 +2636,402 @@
   }
 }
 
+
+
+/* =========================================================
+   DAILY FUEL MONITORING - COMPACT WORKSPACE REDESIGN
+   Keep the monitoring controls, editable rows, and save
+   action visually grouped without stretching inputs.
+========================================================= */
+
+.fuel-page .daily-monitoring-card {
+  padding: 18px;
+  overflow: hidden;
+}
+
+.fuel-page .daily-monitoring-header {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  align-items: flex-start;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.fuel-page .daily-monitoring-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fuel-page .daily-monitoring-header h2 {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.fuel-page .daily-monitoring-header p {
+  max-width: 760px;
+  line-height: 1.5;
+}
+
+.fuel-page .daily-monitoring-summary {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.fuel-page .daily-monitoring-summary span {
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 10.5px;
+}
+
+.fuel-page .daily-monitoring-summary span strong {
+  font-size: 11.5px;
+}
+
+/* Controls */
+.fuel-page .daily-monitoring-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.fuel-page .daily-monitoring-filters {
+  width: fit-content;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(230px, 320px) minmax(170px, 210px);
+  align-items: end;
+  gap: 12px;
+}
+
+.fuel-page .daily-filter-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.fuel-page .daily-filter-field label {
+  display: block;
+  color: #475569;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.fuel-page .daily-filter-field input,
+.fuel-page .daily-filter-field select {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.fuel-page .manual-entry-btn {
+  min-width: 142px;
+  height: 40px;
+  justify-content: center;
+  align-self: end;
+  white-space: nowrap;
+}
+
+/* Monitoring table container */
+.fuel-page .daily-monitoring-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fuel-page .daily-monitoring-form > .table-wrap {
+  position: relative;
+  width: 100%;
+  max-height: 455px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.fuel-page .daily-monitoring-table {
+  width: 100%;
+  min-width: 1060px;
+  margin: 0;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.fuel-page .daily-monitoring-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 7;
+}
+
+.fuel-page .daily-monitoring-table th {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  height: 44px;
+  padding: 0 12px;
+  background: #f3f7fc;
+  box-shadow: 0 1px 0 #dce5f2;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  vertical-align: middle;
+}
+
+.fuel-page .daily-monitoring-table td {
+  height: 64px;
+  padding: 9px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: middle;
+}
+
+.fuel-page .daily-monitoring-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.fuel-page .daily-monitoring-table tbody tr {
+  transition: background-color .16s ease;
+}
+
+.fuel-page .daily-monitoring-table tbody tr:hover td {
+  background: #f9fbfe;
+}
+
+/* Stable column sizing */
+.fuel-page .daily-monitoring-table th:nth-child(1),
+.fuel-page .daily-monitoring-table td:nth-child(1) {
+  width: 15%;
+  text-align: left;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(2),
+.fuel-page .daily-monitoring-table td:nth-child(2) {
+  width: 16%;
+  text-align: left;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(3),
+.fuel-page .daily-monitoring-table td:nth-child(3) {
+  width: 8%;
+  text-align: center;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(4),
+.fuel-page .daily-monitoring-table td:nth-child(4) {
+  width: 12%;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(5),
+.fuel-page .daily-monitoring-table td:nth-child(5) {
+  width: 17%;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(6),
+.fuel-page .daily-monitoring-table td:nth-child(6) {
+  width: 15%;
+  text-align: center;
+}
+
+.fuel-page .daily-monitoring-table th:nth-child(7),
+.fuel-page .daily-monitoring-table td:nth-child(7) {
+  width: 17%;
+  text-align: center;
+}
+
+/* Bus + GPS information */
+.fuel-page .daily-monitoring-table .bus-cell .bus-badge-pill {
+  max-width: 100%;
+}
+
+.fuel-page .daily-monitoring-table .bus-cell small,
+.fuel-page .daily-monitoring-table .gps-cell small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fuel-page .daily-monitoring-table .gps-cell strong {
+  color: #061f3d;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+/* Editable cells */
+.fuel-page .daily-monitoring-table .daily-inline-input {
+  width: 100%;
+  max-width: none;
+  height: 38px;
+  padding: 0 11px;
+  border-color: #d8e2ee;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.fuel-page .daily-monitoring-table .daily-driver-input {
+  width: 100%;
+}
+
+.fuel-page .daily-monitoring-table .daily-inline-input:disabled {
+  background: #f4f7fb;
+  border-color: #e3eaf2;
+  color: #94a3b8;
+}
+
+/* Workflow and efficiency */
+.fuel-page .daily-monitoring-table .workflow-badge,
+.fuel-page .daily-monitoring-table .badge {
+  min-width: 104px;
+  max-width: 100%;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.fuel-page .daily-monitoring-table td:nth-child(7) small {
+  display: block;
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Save bar */
+.fuel-page .daily-monitoring-actions {
+  margin-top: 0;
+  padding: 11px 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.fuel-page .daily-monitoring-actions p {
+  max-width: 760px;
+  font-size: 10.5px;
+}
+
+.fuel-page .daily-monitoring-actions p i {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #0b40b5;
+  font-size: 10px;
+}
+
+.fuel-page .daily-save-btn {
+  min-width: 164px;
+  height: 40px;
+  border: 1px solid #efb500;
+  border-radius: 9px;
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.fuel-page .daily-save-btn:hover {
+  background: #f5b900;
+  border-color: #d99f00;
+  color: #061f3d;
+  box-shadow: 0 7px 16px rgba(255, 196, 0, .28);
+}
+
+/* Scrollbar */
+.fuel-page .daily-monitoring-form > .table-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df #f3f6fa;
+}
+
+.fuel-page .daily-monitoring-form > .table-wrap::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.fuel-page .daily-monitoring-form > .table-wrap::-webkit-scrollbar-track {
+  background: #f3f6fa;
+}
+
+.fuel-page .daily-monitoring-form > .table-wrap::-webkit-scrollbar-thumb {
+  border: 2px solid #f3f6fa;
+  border-radius: 999px;
+  background: #c5d1df;
+}
+
+.fuel-page .daily-monitoring-form > .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #9faec0;
+}
+
+@media (max-width: 1050px) {
+  .fuel-page .daily-monitoring-header {
+    flex-direction: column;
+  }
+
+  .fuel-page .daily-monitoring-summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .fuel-page .daily-monitoring-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .daily-monitoring-filters {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+  }
+
+  .fuel-page .manual-entry-btn {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 700px) {
+  .fuel-page .daily-monitoring-card {
+    padding: 14px;
+  }
+
+  .fuel-page .daily-monitoring-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .manual-entry-btn {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .fuel-page .daily-monitoring-form > .table-wrap {
+    max-height: 420px;
+  }
+
+  .fuel-page .daily-monitoring-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fuel-page .daily-save-btn {
+    width: 100%;
+  }
+}
