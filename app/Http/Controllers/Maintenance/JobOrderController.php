@@ -9,6 +9,7 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
+use App\Services\Maintenance\LinkedJobOrderResetService;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
@@ -20,9 +21,14 @@ class JobOrderController extends Controller
 
     private PartParser $partParser;
 
-    public function __construct(PartParser $partParser)
-    {
+    private LinkedJobOrderResetService $linkedJobOrderResetService;
+
+    public function __construct(
+        PartParser $partParser,
+        LinkedJobOrderResetService $linkedJobOrderResetService
+    ) {
         $this->partParser = $partParser;
+        $this->linkedJobOrderResetService = $linkedJobOrderResetService;
     }
 
     /* =========================================================
@@ -712,15 +718,93 @@ class JobOrderController extends Controller
 
     public function destroy(Request $request, JobOrder $jobOrder)
     {
-        $hasLinkedPurchaseRequest = $this
+        $linkedPurchaseRequests = $this
             ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
-            ->exists();
+            ->orderBy('id')
+            ->get();
 
-        if ($hasLinkedPurchaseRequest) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'This Job Order cannot be deleted because it already has a linked Purchase Request.'], 422);
+        if ($linkedPurchaseRequests->isNotEmpty()) {
+            $allRejected = $linkedPurchaseRequests->every(
+                fn (PurchaseRequest $purchaseRequest): bool => $purchaseRequest->status === 'Rejected'
+            );
+
+            if (! $allRejected) {
+                $message = 'This Job Order cannot be deleted because it already has an active linked Purchase Request.';
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message);
             }
-            return redirect()->back()->with('error', 'This Job Order cannot be deleted because it already has a linked Purchase Request.');
+
+            $plan = $this->linkedJobOrderResetService->plan($jobOrder->job_order_no);
+
+            $plannedPurchaseRequestIds = $plan['purchase_requests']
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->sort()
+                ->values()
+                ->all();
+
+            $rejectedPurchaseRequestIds = $linkedPurchaseRequests
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->sort()
+                ->values()
+                ->all();
+
+            $hasDownstreamRecords = $plan['purchase_orders']->isNotEmpty()
+                || $plan['scheduled_purchases']->isNotEmpty()
+                || $plan['issuances']->isNotEmpty()
+                || $plan['movements']->isNotEmpty();
+
+            if (
+                $plan['action'] === 'BLOCK'
+                || $hasDownstreamRecords
+                || $plannedPurchaseRequestIds !== $rejectedPurchaseRequestIds
+            ) {
+                $message = 'This rejected Job Order cannot be deleted safely because it still has downstream or unrelated linked records.';
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message);
+            }
+
+            $jobOrderId = $jobOrder->id;
+
+            try {
+                $this->linkedJobOrderResetService->reset($jobOrder->job_order_no);
+            } catch (\RuntimeException) {
+                $message = 'This rejected Job Order changed while it was being checked and was not deleted. Please try again.';
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message);
+            }
+
+            $this->broadcastSystemDataUpdated(
+                'Maintenance',
+                'JobOrder',
+                'deleted',
+                $jobOrderId,
+                'A rejected job order and its rejected purchase request were deleted.'
+            );
+
+            $message = 'Rejected Job Order and its rejected Purchase Request were deleted successfully.';
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                ]);
+            }
+
+            return redirect()->to(route('job-orders', [], false))->with('success', $message);
         }
 
         $jobOrderId = $jobOrder->id;
