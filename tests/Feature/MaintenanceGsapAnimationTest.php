@@ -56,7 +56,7 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "x: 3",
+            "x: 5",
             $source
         );
     }
@@ -76,7 +76,7 @@ class MaintenanceGsapAnimationTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            'scale: 0.985',
+            'scale: 0.975',
             $source
         );
         $this->assertStringNotContainsString(
@@ -90,6 +90,37 @@ class MaintenanceGsapAnimationTest extends TestCase
         $this->assertStringNotContainsString(
             'back.out',
             $source
+        );
+    }
+
+    public function test_page_entrance_waits_until_navigation_loader_is_revealed(): void
+    {
+        $shared = file_get_contents(
+            resource_path('js/Maintenance/maintenance-animations.js')
+        );
+        $jobOrder = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            'waitForMaintenanceReveal',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'gct-navigation-loading',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'gct-main-loader-hold',
+            $shared
+        );
+        $this->assertStringContainsString(
+            'waitForJobOrderReveal',
+            $jobOrder
+        );
+        $this->assertStringContainsString(
+            'gct-navigation-loading',
+            $jobOrder
         );
     }
 
