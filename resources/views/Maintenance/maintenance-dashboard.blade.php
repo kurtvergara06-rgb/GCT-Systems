@@ -386,7 +386,16 @@
                       <i class="fa-solid fa-screwdriver-wrench"></i> {{ $item->active_job_order->job_order_no }}
                     </span>
                   @else
-                    <a href="{{ route('pms-schedules.create-job-order', $item->schedule) }}" class="btn-create-jo-compact">
+                    <a
+                      href="{{ route('pms-schedules.create-job-order', $item->schedule) }}"
+                      class="btn-create-jo-compact"
+                      data-confirm-action
+                      data-no-partial-navigation
+                      data-confirm-title="Create PMS Job Order?"
+                      data-confirm-message="Are you sure you want to create a Job Order from this PMS task?"
+                      data-confirm-button="Yes, Create Job Order"
+                      data-confirm-type="create"
+                    >
                       <i class="fa-solid fa-plus"></i> Create JO
                     </a>
                   @endif
