@@ -461,6 +461,7 @@
                                                     title="Create PMS Job Order"
 
                                                     data-confirm-action
+                                                    data-no-partial-navigation
                                                     data-confirm-title="Create PMS Job Order?"
                                                     data-confirm-message="Are you sure you want to create a Job Order from this PMS task?"
                                                     data-confirm-button="Yes, Create Job Order"
