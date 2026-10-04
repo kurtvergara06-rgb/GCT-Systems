@@ -39,6 +39,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const serverFilterTimers = new WeakMap();
+  const pendingServerFilterTimers = new Set();
 
   const closestToolbar = (element) => element?.closest?.(toolbarSelector) || null;
 
@@ -146,6 +147,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const serverFilterControllers = new WeakMap();
+  const activeServerFilterControllers = new Set();
 
   const findMatchingServerToolbar = (parsed, toolbar) => {
     if (!(toolbar instanceof HTMLFormElement)) {
@@ -254,6 +256,10 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const runServerFilter = async (toolbar) => {
+    if (!toolbar?.isConnected) {
+      return;
+    }
+
     const target = buildServerFilterUrl(toolbar);
     if (!target) {
       return;
@@ -273,6 +279,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       toolbar,
       controller
     );
+    activeServerFilterControllers.add(controller);
 
     const context =
       findTableContext(toolbar);
@@ -347,6 +354,14 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
             'text/html'
           );
 
+      if (
+        controller.signal.aborted ||
+        serverFilterControllers.get(toolbar) !== controller ||
+        !toolbar.isConnected
+      ) {
+        return;
+      }
+
       const parsedToolbar =
         findMatchingServerToolbar(
           parsed,
@@ -376,8 +391,10 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       );
     } catch (error) {
       if (
-        error?.name ===
-        'AbortError'
+        error?.name === 'AbortError' ||
+        controller.signal.aborted ||
+        serverFilterControllers.get(toolbar) !== controller ||
+        !toolbar.isConnected
       ) {
         return;
       }
@@ -404,40 +421,40 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
         target.href
       );
     } finally {
-      if (
-        serverFilterControllers
-          .get(toolbar) ===
-        controller
-      ) {
-        serverFilterControllers
-          .delete(toolbar);
-      }
+      activeServerFilterControllers.delete(controller);
 
-      toolbar.removeAttribute(
-        'aria-busy'
-      );
+      const isLatestRequest =
+        serverFilterControllers.get(toolbar) === controller;
 
-      context?.table
-        ?.closest('.table-wrap')
-        ?.classList.remove(
-          'is-server-filtering'
+      if (isLatestRequest) {
+        serverFilterControllers.delete(toolbar);
+
+        toolbar.removeAttribute(
+          'aria-busy'
         );
 
-      if (loading) {
-        loading.hidden = true;
-      }
+        context?.table
+          ?.closest('.table-wrap')
+          ?.classList.remove(
+            'is-server-filtering'
+          );
 
-      document.dispatchEvent(
-        new CustomEvent(
-          'system:server-filter-finished',
-          {
-            detail: {
-              toolbar,
-              url: target.href,
-            },
-          }
-        )
-      );
+        if (loading) {
+          loading.hidden = true;
+        }
+
+        document.dispatchEvent(
+          new CustomEvent(
+            'system:server-filter-finished',
+            {
+              detail: {
+                toolbar,
+                url: target.href,
+              },
+            }
+          )
+        );
+      }
     }
   };
 
@@ -445,15 +462,25 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     const previousTimer = serverFilterTimers.get(toolbar);
     if (previousTimer) {
       window.clearTimeout(previousTimer);
+      pendingServerFilterTimers.delete(previousTimer);
     }
 
     const timer = window.setTimeout(() => {
+      pendingServerFilterTimers.delete(timer);
       serverFilterTimers.delete(toolbar);
-      runServerFilter(toolbar);
+      void runServerFilter(toolbar);
     }, delay);
 
     serverFilterTimers.set(toolbar, timer);
+    pendingServerFilterTimers.add(timer);
   };
+
+  window.addEventListener('gct:navigation-before', () => {
+    pendingServerFilterTimers.forEach((timer) => window.clearTimeout(timer));
+    pendingServerFilterTimers.clear();
+    activeServerFilterControllers.forEach((controller) => controller.abort());
+    activeServerFilterControllers.clear();
+  });
 
   const applyToolbarFilters = (toolbar) => {
     if (!toolbar || usesOwnClientFilter(toolbar) || usesServerFilter(toolbar)) {

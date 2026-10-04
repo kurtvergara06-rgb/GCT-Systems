@@ -10,7 +10,7 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main">
+    <main class="main purchase-history-page">
       <x-layout.topbar
         title="Purchase History"
         subtitle="Review completed maintenance and inventory restock procurement records"

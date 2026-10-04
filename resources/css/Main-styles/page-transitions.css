@@ -28,7 +28,7 @@ main.gct-main-entered {
 }
 
 /*
- * Maintenance owns its post-loader reveal with GSAP. Suppress the generic
+ * Covered module pages own their post-loader reveal with GSAP. Suppress the generic
  * main transition while that reveal is active so the same content cannot be
  * animated once by CSS and again by GSAP.
  */
@@ -38,7 +38,14 @@ main.gct-maintenance-gsap-reveal {
 }
 
 .gct-system-modal-animated,
-.gct-system-modal-animated [role="dialog"] {
+.gct-system-modal-animated [role="dialog"],
+.gct-system-modal-surface-animated {
+    animation: none !important;
+    transition: none !important;
+}
+
+.gct-system-reveal-panel,
+.gct-system-region-animating {
     animation: none !important;
     transition: none !important;
 }

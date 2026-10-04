@@ -64,6 +64,22 @@ class LazyPaginationRolloutTest extends TestCase
             "AbortController",
             $source
         );
+        $this->assertStringContainsString(
+            'serverFilterControllers.get(toolbar) !== controller',
+            $source
+        );
+        $this->assertStringContainsString(
+            'const isLatestRequest =',
+            $source
+        );
+        $this->assertStringContainsString(
+            "window.addEventListener('gct:navigation-before'",
+            $source
+        );
+        $this->assertStringContainsString(
+            'activeServerFilterControllers.forEach((controller) => controller.abort())',
+            $source
+        );
     }
 
     public function test_history_heavy_pages_opt_into_lazy_pagination(): void

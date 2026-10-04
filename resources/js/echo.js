@@ -110,20 +110,37 @@ const normalizePath = (path) => {
     return normalized === '/' ? '/' : normalized;
 };
 
+let realtimeRegionRefreshController = null;
+
 const refreshAjaxRegions = async () => {
     const names = [...new Set(Array.from(document.querySelectorAll('[data-ajax-region]')).map((element) => element.dataset.ajaxRegion).filter(Boolean))];
     if (names.length === 0) return false;
 
+    realtimeRegionRefreshController?.abort();
+    const controller = new AbortController();
+    const requestUrl = window.location.href;
+    realtimeRegionRefreshController = controller;
+
     names.forEach((name) => window.GCTRegions?.setLoading?.(name, true));
 
     try {
-        const response = await fetch(window.location.href, {
+        const response = await fetch(requestUrl, {
             headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
             cache: 'no-store',
+            signal: controller.signal,
         });
         if (!response.ok) throw new Error(`Realtime region refresh failed with status ${response.status}.`);
 
         const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+
+        if (
+            controller.signal.aborted
+            || realtimeRegionRefreshController !== controller
+            || window.location.href !== requestUrl
+        ) {
+            return false;
+        }
+
         let replacedCount = 0;
 
         names.forEach((name) => {
@@ -151,12 +168,26 @@ const refreshAjaxRegions = async () => {
 
         return replacedCount > 0;
     } catch (error) {
+        if (error?.name === 'AbortError') return false;
         console.warn('Realtime AJAX region refresh failed:', error);
         return false;
     } finally {
-        names.forEach((name) => window.GCTRegions?.setLoading?.(name, false));
+        if (realtimeRegionRefreshController === controller) {
+            realtimeRegionRefreshController = null;
+            names.forEach((name) => window.GCTRegions?.setLoading?.(name, false));
+        }
     }
 };
+
+window.addEventListener('gct:navigation-before', () => {
+    realtimeRegionRefreshController?.abort();
+    realtimeRegionRefreshController = null;
+
+    if (window.systemUpdatesRegionRefreshTimer) {
+        window.clearTimeout(window.systemUpdatesRegionRefreshTimer);
+        window.systemUpdatesRegionRefreshTimer = null;
+    }
+});
 
 window.listenForSystemUpdates = function () {
     if (!window.Echo || !window.Echo.channel) {

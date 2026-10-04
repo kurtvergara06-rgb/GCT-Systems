@@ -5,7 +5,7 @@ const MODULE_PAGE_CONFIG = Object.freeze({
         roots: '.admin-dashboard-main, .users-main, .permissions-page, .records-page, .import-export-page, .batch-main, .generic-batch-page, .data-history-page, .activity-logs-page, .general-settings-page, .security-settings-page, .notification-settings-page, .analytics-overview-page, .analytics-stage-page',
     }),
     operation: Object.freeze({
-        roots: '.trip-records-page, .bus-master-list-page, .trip-schedule-page, .assignment-page, .auto-scheduling-page, .routes-page, .personnel-master-page, .driver-attendance-page, .mechanic-attendance-page, .inc-page, .ddr-page, main.main',
+        roots: '.operation-dashboard-main, .trip-records-page, .bus-master-list-page, .trip-schedule-page, .assignment-page, .auto-scheduling-page, .routes-page, .personnel-master-page, .driver-attendance-page, .mechanic-attendance-page, .inc-page, .ddr-page',
     }),
     maintenance: Object.freeze({
         roots: '.maintenance-dashboard-main, .referrals-page, .jo-page, .pms-page, .mechanic-page, .fuel-page, .purchase-page',
@@ -14,7 +14,7 @@ const MODULE_PAGE_CONFIG = Object.freeze({
         roots: '.warehouse-dashboard-main, .warehouse-inventory-page, .warehouse-part-main, .stock-movement-page, .incoming-delivery-page',
     }),
     purchase: Object.freeze({
-        roots: '.purchase-dashboard-main, .purchase-orders-page, .scheduled-purchase-page, .purchase-maintenance-requests-page, .inventory-restock-page, main.main',
+        roots: '.purchase-dashboard-main, .purchase-history-page, .purchase-orders-page, .scheduled-purchase-page, .purchase-maintenance-requests-page, .inventory-restock-page',
     }),
 });
 
@@ -160,6 +160,7 @@ const resetPageReveal = () => {
 
     if (pageState.root?.isConnected) {
         gsap.set(pageState.panels, { clearProps: 'opacity,transform' });
+        pageState.panels.forEach((panel) => panel.classList.remove('gct-system-reveal-panel'));
         pageState.root.classList.remove('gct-system-gsap-reveal');
         delete pageState.root.dataset.gctRevealState;
     }
@@ -188,6 +189,7 @@ const preparePageReveal = async () => {
     root.classList.add('gct-system-gsap-reveal');
 
     gsap.killTweensOf(pageState.panels);
+    pageState.panels.forEach((panel) => panel.classList.add('gct-system-reveal-panel'));
     gsap.set(pageState.panels, {
         opacity: 0,
         y: prefersReducedMotion() ? 4 : 10,
@@ -195,7 +197,11 @@ const preparePageReveal = async () => {
 
     pageState.preparePromise = (async () => {
         if (document.fonts?.ready) {
-            await Promise.race([document.fonts.ready, wait(600)]);
+            try {
+                await Promise.race([document.fonts.ready, wait(600)]);
+            } catch (error) {
+                console.warn('Font readiness check failed; continuing with the page reveal.', error);
+            }
         }
 
         await nextFrames();
@@ -226,6 +232,12 @@ const revealPage = ({ initialOpen = false } = {}) => {
     pageState.animation?.kill();
     gsap.killTweensOf(pageState.panels);
 
+    if (!pageState.panels.length) {
+        root.dataset.gctRevealState = 'shown';
+        root.classList.remove('gct-system-gsap-reveal');
+        return true;
+    }
+
     const reduced = prefersReducedMotion();
     pageState.animation = gsap.to(pageState.panels, {
         opacity: 1,
@@ -236,12 +248,29 @@ const revealPage = ({ initialOpen = false } = {}) => {
         clearProps: 'opacity,transform',
         onComplete: () => {
             if (!root.isConnected) return;
+            pageState.panels.forEach((panel) => panel.classList.remove('gct-system-reveal-panel'));
             root.dataset.gctRevealState = 'shown';
             root.classList.remove('gct-system-gsap-reveal');
             pageState.animation = null;
         },
     });
 
+    return true;
+};
+
+const showPageImmediately = () => {
+    const root = getPageRoot();
+    if (!root) return false;
+
+    pageState.animation?.kill();
+    const panels = pageState.root === root ? pageState.panels : getMajorPanels(root);
+    gsap.set(panels, { clearProps: 'opacity,transform' });
+    panels.forEach((panel) => panel.classList.remove('gct-system-reveal-panel'));
+    root.classList.remove('gct-system-gsap-reveal');
+    root.dataset.gctRevealState = 'shown';
+    pageState.root = root;
+    pageState.panels = panels;
+    pageState.animation = null;
     return true;
 };
 
@@ -260,6 +289,7 @@ const getModalSurface = (overlay) => overlay?.querySelector(MODAL_SURFACE_SELECT
 const clearModalAnimation = (overlay, surface) => {
     gsap.set([overlay, surface].filter(Boolean), { clearProps: 'opacity,transform' });
     overlay?.classList.remove('gct-system-modal-animated');
+    surface?.classList.remove('gct-system-modal-surface-animated');
 };
 
 const animateModalOpen = (overlay) => {
@@ -281,6 +311,7 @@ const animateModalOpen = (overlay) => {
 
     modalStates.set(overlay, state);
     overlay.classList.add('gct-system-modal-animated');
+    surface?.classList.add('gct-system-modal-surface-animated');
     gsap.killTweensOf([overlay, surface].filter(Boolean));
 
     state.animation = gsap.timeline({
@@ -336,6 +367,7 @@ const animateModalClose = (overlay, finalize = null, { restoreHiddenState = fals
 
     modalStates.set(overlay, state);
     overlay.classList.add('gct-system-modal-animated');
+    surface?.classList.add('gct-system-modal-surface-animated');
 
     if (restoreHiddenState) {
         overlay.hidden = false;
@@ -413,12 +445,16 @@ const queueRegionAnimation = (element) => {
         if (!elements.length) return;
 
         gsap.killTweensOf(elements);
+        elements.forEach((node) => node.classList.add('gct-system-region-animating'));
         gsap.fromTo(elements, { opacity: 0.76, y: prefersReducedMotion() ? 0 : 3 }, {
             opacity: 1,
             y: 0,
             duration: prefersReducedMotion() ? 0.12 : 0.22,
             ease: 'power2.out',
             clearProps: 'opacity,transform',
+            onComplete: () => {
+                elements.forEach((node) => node.classList.remove('gct-system-region-animating'));
+            },
         });
     });
 };
@@ -476,6 +512,14 @@ const ensureObservers = () => {
     if (!document.body) return;
 
     modalObserver?.disconnect();
+    const observeOverlay = (overlay) => {
+        modalObserver.observe(overlay, {
+            attributes: true,
+            attributeOldValue: true,
+            attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
+        });
+    };
+
     modalObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes') {
@@ -485,17 +529,20 @@ const ensureObservers = () => {
 
             mutation.addedNodes.forEach((node) => {
                 if (!(node instanceof Element)) return;
-                if (node.matches(MODAL_OVERLAY_SELECTOR)) syncModalAnimation(node);
-                node.querySelectorAll?.(MODAL_OVERLAY_SELECTOR).forEach(syncModalAnimation);
+                if (node.matches(MODAL_OVERLAY_SELECTOR)) {
+                    observeOverlay(node);
+                    syncModalAnimation(node);
+                }
+                node.querySelectorAll?.(MODAL_OVERLAY_SELECTOR).forEach((overlay) => {
+                    observeOverlay(overlay);
+                    syncModalAnimation(overlay);
+                });
             });
         });
     });
     modalObserver.observe(document.body, {
         subtree: true,
         childList: true,
-        attributes: true,
-        attributeOldValue: true,
-        attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
     });
 
     dynamicObserver?.disconnect();
@@ -506,7 +553,10 @@ const ensureObservers = () => {
     });
     dynamicObserver.observe(document.body, { subtree: true, childList: true });
 
-    document.querySelectorAll(MODAL_OVERLAY_SELECTOR).forEach(syncModalAnimation);
+    document.querySelectorAll(MODAL_OVERLAY_SELECTOR).forEach((overlay) => {
+        observeOverlay(overlay);
+        syncModalAnimation(overlay);
+    });
 };
 
 const initializeSystemAnimations = () => {
@@ -520,6 +570,9 @@ const initializeSystemAnimations = () => {
             || root?.classList.contains('gct-main-entering');
 
         if (!navigationCovered) revealPage({ initialOpen: true });
+    }).catch((error) => {
+        console.warn('Shared page animation initialization failed; showing the page immediately.', error);
+        showPageImmediately();
     });
 };
 
@@ -552,6 +605,7 @@ window.GCTSystemAnimations = Object.freeze({
     preparePageReveal,
     revealPage,
     resetPageReveal,
+    showPageImmediately,
     animateModalOpen,
     animateModalClose,
     animateToastIn,

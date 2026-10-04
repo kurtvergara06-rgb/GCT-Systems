@@ -39,6 +39,20 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString("ease: 'power3.out'", $source);
         $this->assertStringContainsString('initialOpen ? 0.82 : 0.74', $source);
         $this->assertStringContainsString('initialOpen ? 0.065 : 0.055', $source);
+        $this->assertStringContainsString('showPageImmediately', $source);
+        $this->assertStringContainsString(".catch((error) => {", $source);
+    }
+
+    public function test_navigation_reveal_rejects_stale_async_completions(): void
+    {
+        $source = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+
+        $this->assertStringContainsString('let navigationSequence = 0;', $source);
+        $this->assertStringContainsString('sequence === navigationSequence', $source);
+        $this->assertStringContainsString('incomingMain === getMainElement()', $source);
+        $this->assertStringContainsString('isCurrent: isCurrentNavigation', $source);
+        $this->assertStringContainsString('systemAnimations.showPageImmediately?.()', $source);
+        $this->assertStringContainsString('if (event.persisted)', $source);
     }
 
     public function test_shared_modal_lifecycle_has_open_close_and_duplicate_guards(): void
@@ -53,6 +67,11 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString("state?.phase === 'opening' || state?.phase === 'closing'", $source);
         $this->assertStringContainsString('scale: reduced ? 0.99 : 0.975', $source);
         $this->assertStringContainsString('preventBackdropDismissal', $backdrop);
+        $this->assertStringContainsString('const observeOverlay = (overlay) => {', $source);
+        $this->assertStringContainsString("surface?.classList.add('gct-system-modal-surface-animated')", $source);
+        $this->assertStringContainsString("surface?.classList.remove('gct-system-modal-surface-animated')", $source);
+        $this->assertStringContainsString("attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']", $source);
+        $this->assertStringContainsString("modalObserver.observe(document.body, {\n        subtree: true,\n        childList: true,\n    });", $source);
     }
 
     public function test_toasts_use_shared_subtle_enter_and_exit_hooks(): void
@@ -97,5 +116,18 @@ class SystemAnimationLifecycleTest extends TestCase
             "window.addEventListener('gct:navigation-before', resetPageReveal)",
             $source
         );
+    }
+
+    public function test_module_roots_are_explicit_instead_of_using_a_broad_main_fallback(): void
+    {
+        $source = $this->source();
+        $operationDashboard = file_get_contents(resource_path('views/Operation/dashboard-operation.blade.php'));
+        $purchaseHistory = file_get_contents(resource_path('views/Purchase/purchase-history.blade.php'));
+
+        $this->assertStringContainsString('.operation-dashboard-main', $source);
+        $this->assertStringContainsString('.purchase-history-page', $source);
+        $this->assertDoesNotMatchRegularExpression('/roots:\s*[^\n]*\bmain\.main\b/', $source);
+        $this->assertStringContainsString('class="main operation-dashboard-main"', $operationDashboard);
+        $this->assertStringContainsString('class="main purchase-history-page"', $purchaseHistory);
     }
 }

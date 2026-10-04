@@ -4,6 +4,7 @@ const MIN_LOADER_MS = 280;
 const LOADER_FADE_OUT_MS = 170;
 let loaderShownAt = 0;
 let hideTimer = null;
+let navigationSequence = 0;
 
 const getMainElement = () => document.querySelector(MAIN_SELECTOR);
 
@@ -63,17 +64,22 @@ const showLoader = () => {
 const hideLoader = async ({
     revealMain = true,
     beforeFade = null,
+    isCurrent = () => true,
 } = {}) => {
     const loader = ensureLoader();
     const elapsed = performance.now() - loaderShownAt;
     const remaining = Math.max(0, MIN_LOADER_MS - elapsed);
 
     if (remaining > 0) await wait(remaining);
+    if (!isCurrent()) return false;
     await nextFrames();
+    if (!isCurrent()) return false;
 
     if (typeof beforeFade === 'function') {
         await beforeFade();
     }
+
+    if (!isCurrent()) return false;
 
     loader.classList.add('is-hiding');
     loader.classList.remove('is-visible');
@@ -83,6 +89,8 @@ const hideLoader = async ({
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         await wait(LOADER_FADE_OUT_MS);
     }
+
+    if (!isCurrent()) return false;
 
     loader.classList.remove('is-hiding');
 
@@ -103,6 +111,8 @@ const hideLoader = async ({
             }, 420);
         }
     }
+
+    return true;
 };
 
 const show = () => {
@@ -150,19 +160,36 @@ const normalizeSidebarActiveState = () => {
 };
 
 window.addEventListener('gct:navigation-before', () => {
+    navigationSequence += 1;
     showLoader();
 });
 
-window.addEventListener('gct:navigation-ready', async () => {
+window.addEventListener('gct:navigation-ready', async (event) => {
+    const sequence = navigationSequence;
+    const incomingMain = event.detail?.main || getMainElement();
+    const isCurrentNavigation = () => (
+        sequence === navigationSequence
+        && incomingMain === getMainElement()
+    );
+
     holdIncomingMain();
     normalizeSidebarActiveState();
 
     const systemAnimations =
         window.GCTSystemAnimations;
 
-    const useSystemReveal =
-        systemAnimations?.isPageApplicable?.() === true
-        && await systemAnimations.preparePageReveal();
+    let useSystemReveal = false;
+
+    try {
+        useSystemReveal =
+            systemAnimations?.isPageApplicable?.() === true
+            && await systemAnimations.preparePageReveal();
+    } catch (error) {
+        console.warn('Shared page reveal preparation failed; showing the page without GSAP.', error);
+        systemAnimations?.resetPageReveal?.();
+    }
+
+    if (!isCurrentNavigation()) return;
 
     if (useSystemReveal) {
         /*
@@ -170,9 +197,12 @@ window.addEventListener('gct:navigation-ready', async () => {
          * fully faded. Starting GSAP underneath the loader makes most of the
          * motion invisible, so reveal only after the cover is gone.
          */
-        await hideLoader({
+        const loaderHidden = await hideLoader({
             revealMain: false,
+            isCurrent: isCurrentNavigation,
         });
+
+        if (!loaderHidden || !isCurrentNavigation()) return;
 
         const main = getMainElement();
         if (!main) return;
@@ -186,12 +216,24 @@ window.addEventListener('gct:navigation-ready', async () => {
             'gct-main-after-loader',
         );
 
-        systemAnimations.revealPage();
+        try {
+            if (!systemAnimations.revealPage()) {
+                systemAnimations.showPageImmediately?.();
+            }
+        } catch (error) {
+            console.warn('Shared page reveal failed; showing the page immediately.', error);
+            systemAnimations.showPageImmediately?.();
+        }
 
         return;
     }
 
-    await hideLoader({ revealMain: false });
+    const loaderHidden = await hideLoader({
+        revealMain: false,
+        isCurrent: isCurrentNavigation,
+    });
+
+    if (!loaderHidden || !isCurrentNavigation()) return;
 
     const main = getMainElement();
     if (!main) return;
@@ -210,10 +252,22 @@ window.addEventListener('gct:navigation-ready', async () => {
     }, 420);
 });
 
-window.addEventListener('pageshow', () => {
+window.addEventListener('pageshow', (event) => {
     normalizeSidebarActiveState();
     document.body.classList.remove('gct-navigation-loading');
     ensureLoader().classList.remove('is-visible', 'is-hiding');
+
+    if (event.persisted) {
+        getMainElement()?.classList.remove(
+            'gct-main-fetching',
+            'gct-main-leaving',
+            'gct-main-entering',
+            'gct-main-entered',
+            'gct-main-loader-hold',
+            'gct-main-after-loader',
+        );
+        window.GCTSystemAnimations?.showPageImmediately?.();
+    }
 });
 
 window.addEventListener('resize', syncLoaderOffset);
