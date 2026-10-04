@@ -828,8 +828,11 @@ const bindGlobalInteractions = () => {
 
       if (
         !item
-        || item.contains(
-          event.relatedTarget
+        || (
+          event.relatedTarget instanceof Node
+          && item.contains(
+            event.relatedTarget
+          )
         )
       ) {
         return;
@@ -865,8 +868,11 @@ const bindGlobalInteractions = () => {
 
       if (
         !item
-        || item.contains(
-          event.relatedTarget
+        || (
+          event.relatedTarget instanceof Node
+          && item.contains(
+            event.relatedTarget
+          )
         )
       ) {
         return;
