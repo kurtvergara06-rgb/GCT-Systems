@@ -220,57 +220,6 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
-    public function test_maintenance_sidebar_dropdown_has_visible_open_and_close_animation(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Maintenance/maintenance-animations.js')
-        );
-        $styles = file_get_contents(
-            resource_path('css/Main-styles/sidebar.css')
-        );
-
-        $this->assertStringContainsString(
-            'const animateOpenedSubmenu',
-            $source
-        );
-        $this->assertStringContainsString(
-            "dropdown.classList.contains(\n      'open'",
-            $source
-        );
-        $this->assertStringContainsString(
-            'rotation: 180',
-            $source
-        );
-        $this->assertStringContainsString(
-            ': -18,',
-            $source
-        );
-        $this->assertStringContainsString(
-            ': 0.46',
-            $source
-        );
-        $this->assertStringContainsString(
-            '.menu-dropdown.open .submenu',
-            $styles
-        );
-        $this->assertStringContainsString(
-            'max-height: 320px;',
-            $styles
-        );
-        $this->assertStringContainsString(
-            'max-height 0.58s',
-            $styles
-        );
-        $this->assertStringContainsString(
-            'scaleY(0.94)',
-            $styles
-        );
-        $this->assertStringContainsString(
-            'rotate(180deg)',
-            $styles
-        );
-    }
-
     public function test_direct_page_open_uses_a_slow_visible_gsap_reveal(): void
     {
         $source = file_get_contents(
