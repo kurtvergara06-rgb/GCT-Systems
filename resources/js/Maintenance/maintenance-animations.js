@@ -197,6 +197,68 @@ const resetPreparedReveal = () => {
   preparedRevealPromise = null;
 };
 
+const dashboardRevealPanels = (root) => {
+  if (
+    !root?.classList.contains(
+      'maintenance-dashboard-main'
+    )
+  ) {
+    return [];
+  }
+
+  return Array.from(
+    root.querySelectorAll(
+      '.maintenance-dashboard-card'
+    )
+  );
+};
+
+const animateDashboardPanels = (
+  root,
+  {
+    initialOpen = false,
+  } = {}
+) => {
+  const panels =
+    dashboardRevealPanels(root);
+
+  if (!panels.length) {
+    return;
+  }
+
+  const reduced =
+    prefersReducedMotion();
+
+  gsap.killTweensOf(panels);
+
+  gsap.fromTo(
+    panels,
+    {
+      opacity: 0,
+      y: reduced ? 8 : 18,
+    },
+    {
+      opacity: 1,
+      y: 0,
+      duration:
+        initialOpen
+          ? (reduced ? 0.62 : 0.90)
+          : (reduced ? 0.50 : 0.76),
+      stagger:
+        initialOpen
+          ? (reduced ? 0.06 : 0.12)
+          : (reduced ? 0.05 : 0.10),
+      delay:
+        initialOpen
+          ? 0.18
+          : 0.12,
+      ease: 'power2.out',
+      clearProps:
+        'opacity,transform',
+    }
+  );
+};
+
 const prepareMaintenanceReveal = async () => {
   const root = getMaintenanceRoot();
 
@@ -312,6 +374,18 @@ const revealMaintenancePage = ({
         root.dataset.gctRevealState =
           'shown';
       },
+    }
+  );
+
+  /*
+   * Dashboard cards fade in independently after the full layout is already
+   * complete. Their transforms do not affect document flow, so the user sees
+   * a smooth reveal rather than the dashboard building itself.
+   */
+  animateDashboardPanels(
+    root,
+    {
+      initialOpen,
     }
   );
 
