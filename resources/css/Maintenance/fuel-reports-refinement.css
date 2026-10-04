@@ -52,6 +52,15 @@
   gap: 6px;
 }
 
+/*
+ * Keep a visible separation between Monitoring Date and Bus Filter.
+ * Explicit margin is intentional here because some browser/form layout
+ * combinations were visually collapsing the grid gap.
+ */
+.fuel-page .fuel-monitoring-refined .daily-filter-field + .daily-filter-field {
+  margin-left: 14px;
+}
+
 .fuel-page .fuel-monitoring-refined .daily-filter-field label {
   color: #475569;
   font-size: 11px;
@@ -188,6 +197,10 @@
 
   .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
     grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-monitoring-refined .daily-filter-field + .daily-filter-field {
+    margin-left: 0;
   }
 
   .fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll {
