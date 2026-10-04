@@ -41,6 +41,8 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'department' => 'Admin',
+            'role' => 'head',
             'must_change_password' => false,
             'onboarding_completed' => true,
             'onboarding_completed_at' => now(),
