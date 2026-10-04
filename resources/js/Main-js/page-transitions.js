@@ -1,7 +1,7 @@
 const MAIN_SELECTOR = 'main.main, main';
 const LOADER_ID = 'gctNavigationLoader';
-const MIN_LOADER_MS = 180;
-const LOADER_FADE_OUT_MS = 190;
+const MIN_LOADER_MS = 280;
+const LOADER_FADE_OUT_MS = 170;
 let loaderShownAt = 0;
 let hideTimer = null;
 
