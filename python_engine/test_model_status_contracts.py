@@ -28,6 +28,7 @@ def main() -> None:
     check("ETA reports validation split", "split_strategy" in eta)
     check("ETA reports selected model contract", isinstance(eta["selected_model"], dict))
     check("ETA reports candidate comparison contract", isinstance(eta["candidate_models"], list))
+    check("ETA exposes current artifact metrics", len(eta["candidate_models"]) >= 1)
     check("ETA reports selected metrics contract", isinstance(eta["metrics"], dict))
     check(
         "ETA production flag requires genuine source",

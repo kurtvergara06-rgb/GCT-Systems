@@ -126,6 +126,35 @@ def eta_readiness() -> EtaReadiness:
     sample_count = int(state.get("sample_count", 0) or 0)
     distinct_routes = int(state.get("distinct_routes", 0) or 0)
     data_source = normalize_data_source(state.get("training_source"))
+    metrics = state.get("metrics") if isinstance(state.get("metrics"), dict) else {}
+    selected_model = (
+        state.get("selected_model")
+        if isinstance(state.get("selected_model"), dict)
+        else {
+            "key": "random_forest",
+            "name": "Random Forest",
+            "family": "Legacy nonlinear ensemble",
+        }
+        if state.get("model_name") == "eta_duration_rf"
+        else {}
+    )
+    candidate_models = (
+        state.get("candidate_models")
+        if isinstance(state.get("candidate_models"), list)
+        else []
+    )
+    if not candidate_models and state.get("model_name") == "eta_duration_rf" and metrics:
+        candidate_models = [
+            {
+                "key": "random_forest",
+                "name": "Random Forest",
+                "family": "Legacy nonlinear ensemble",
+                "selected": True,
+                "status": "evaluated",
+                "reason": "Legacy artifact; rerun the v1.2 trainer for full candidate benchmarking.",
+                "metrics": metrics,
+            }
+        ]
     common = dict(
         sample_count=sample_count,
         distinct_routes=distinct_routes,
@@ -134,23 +163,9 @@ def eta_readiness() -> EtaReadiness:
         model_path=_paths["model"],
         model_version=str(state.get("model_version", "")),
         split_strategy=str(state.get("split_strategy", "")),
-        selected_model=(
-            state.get("selected_model")
-            if isinstance(state.get("selected_model"), dict)
-            else {
-                "key": "random_forest",
-                "name": "Random Forest",
-                "family": "Nonlinear ensemble",
-            }
-            if state.get("model_name") == "eta_duration_rf"
-            else {}
-        ),
-        metrics=state.get("metrics") if isinstance(state.get("metrics"), dict) else {},
-        candidate_models=(
-            state.get("candidate_models")
-            if isinstance(state.get("candidate_models"), list)
-            else []
-        ),
+        selected_model=selected_model,
+        metrics=metrics,
+        candidate_models=candidate_models,
     )
 
     if _model is None or _metadata is None or not state:
