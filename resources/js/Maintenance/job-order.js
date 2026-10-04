@@ -874,6 +874,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       'click',
       () => {
 
+        /*
+         * Always pull the latest attendance state before the New JO modal
+         * is used. This keeps newly recorded Present/Late mechanics
+         * selectable even when Reverb was temporarily disconnected.
+         */
+        void refreshAvailableMechanicsDropdown();
+
         openModal(jobModal);
 
       }
@@ -2777,6 +2784,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
+  /*
+   * The searchable mechanic combobox is initialized separately below.
+   * Expose this refresh hook so opening that combobox can always fetch
+   * the latest attendance state instead of relying only on page load.
+   */
+  window.GCTRefreshJobOrderMechanics =
+    refreshAvailableMechanicsDropdown;
+
+
   /* =========================================================
      REAL-TIME ATTENDANCE UPDATE
   ========================================================= */
@@ -3296,9 +3312,22 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       updateLabel();
     };
 
-    const openMenu = () => {
+    const openMenu = async () => {
       if (select.disabled) {
         return;
+      }
+
+      /*
+       * Attendance can be recorded in another tab while Job Orders stays
+       * open. Refresh immediately before showing the mechanic list so the
+       * user never has to reload the whole JO page.
+       */
+      if (
+        select === mechanicSelect &&
+        typeof window.GCTRefreshJobOrderMechanics === 'function'
+      ) {
+        await window.GCTRefreshJobOrderMechanics();
+        renderOptions();
       }
 
       menu.hidden = false;
@@ -3310,7 +3339,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     };
 
     trigger.addEventListener('click', () => {
-      menu.hidden ? openMenu() : closeMenu();
+      if (menu.hidden) {
+        void openMenu();
+      } else {
+        closeMenu();
+      }
     });
 
     searchInput.addEventListener('input', filterOptions);
