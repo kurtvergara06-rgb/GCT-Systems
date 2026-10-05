@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Admin\User;
+use App\Models\Admin\RolePermission;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryItem;
+use App\Models\Warehouse\InventoryIssuance;
+use App\Models\Warehouse\InventoryIssuanceItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -99,9 +102,16 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
         $this->assertSame(2, $purchaseRequest->fresh()->warehouse_issue_quantities[0]['issued']);
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $purchaseRequest))
+            ->assertSessionHas('error');
+
+        $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
+        $this->assertSame(1, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
-    public function test_warehouse_roles_are_enforced_for_approval_preparation_and_issue(): void
+    public function test_warehouse_capabilities_control_approval_preparation_and_issue(): void
     {
         $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -123,16 +133,26 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'warehouse_status' => 'Pending Warehouse Approval',
         ]);
 
+        $staffPermissions = RolePermission::where('role_key', 'warehouse_staff')->firstOrFail();
+        $staffMatrix = $staffPermissions->permissions;
+        data_set($staffMatrix, 'warehouse.approve', true);
+        $staffPermissions->update(['permissions' => $staffMatrix]);
+
+        $headPermissions = RolePermission::where('role_key', 'warehouse_head')->firstOrFail();
+        $headMatrix = $headPermissions->permissions;
+        data_set($headMatrix, 'warehouse.edit', false);
+        $headPermissions->update(['permissions' => $headMatrix]);
+
         $this->actingAs($staff)
             ->post(route('part-requests.approve-for-issue', $request))
-            ->assertForbidden();
+            ->assertRedirect();
 
         $this->actingAs($head)
             ->post(route('part-requests.prepare', $request))
             ->assertForbidden();
 
-        $this->actingAs($head)
-            ->post(route('part-requests.approve-for-issue', $request))
+        $this->actingAs($staff)
+            ->post(route('part-requests.prepare', $request))
             ->assertRedirect();
 
         $this->actingAs($head)
@@ -208,6 +228,10 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         // Inventory deductions match requested quantities exactly
         $this->assertSame(19, (int) $itemA->fresh()->quantity_available);
         $this->assertSame(7, (int) $itemB->fresh()->quantity_available);
+
+        $issuance = InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->firstOrFail();
+        $this->assertSame($warehouseStaff->id, $issuance->issued_by);
+        $this->assertCount(2, InventoryIssuanceItem::where('inventory_issuance_id', $issuance->id)->get());
 
         // warehouse_issue_quantities history matches requested quantities automatically
         $history = $updatedPr->warehouse_issue_quantities;

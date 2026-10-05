@@ -17,7 +17,9 @@ class WarehouseDashboardController extends Controller
 
     public function data(): array
     {
-        $inventoryItems = InventoryItem::query()->get();
+        $inventoryItems = InventoryItem::query()
+            ->where('source', 'app')
+            ->get();
 
         $totalInventory = $inventoryItems->count();
         $availableStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
@@ -90,6 +92,7 @@ class WarehouseDashboardController extends Controller
 
         // Recent stock movements (audit trail)
         $recentStockMovements = StockMovement::query()
+            ->where('source', 'app')
             ->latest()
             ->limit(5)
             ->get();

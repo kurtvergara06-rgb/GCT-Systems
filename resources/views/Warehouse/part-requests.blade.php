@@ -10,9 +10,8 @@
   ]"
 >
   @php
-    $warehouseRole = strtolower(trim((string) auth()->user()?->role));
-    $isWarehouseHead = strtolower(trim((string) auth()->user()?->department)) === 'warehouse' && $warehouseRole === 'head';
-    $isWarehouseStaff = strtolower(trim((string) auth()->user()?->department)) === 'warehouse' && $warehouseRole === 'staff';
+    $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+    $canApproveWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'approve') ?? false;
   @endphp
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
@@ -25,7 +24,7 @@
       />
 
       <section data-ajax-region="summary" class="stats-grid inventory-stats">
-        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse Head" icon="fa-clipboard-check" color="yellow" />
+        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse approval" icon="fa-clipboard-check" color="yellow" />
         <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable in stock" icon="fa-cart-shopping" color="blue" />
         <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-truck-ramp-box" color="green" />
         <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released to maintenance" icon="fa-box-open" color="gray" />
@@ -99,15 +98,14 @@
                   $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
                   $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
                   $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
-                  $canSendToPurchase = ($partRequest->needs_purchase ?? false)
+                  $canSendToPurchase = ($partRequest->needs_purchase ?? false) && $canApproveWarehouse
                     && !$missingPrAlreadyCreated
                     && $status === 'Approved';
-                  $canIssue = ($partRequest->can_issue ?? false)
-                    && $inventoryStatus === 'Available'
-                    && $isWarehouseStaff;
-                  $canApproveForIssue = ($partRequest->can_approve_for_issue ?? false) && $isWarehouseHead;
-                  $canHold = ($partRequest->can_hold ?? false) && $isWarehouseHead;
-                  $canPrepare = ($partRequest->can_prepare ?? false) && $isWarehouseStaff;
+                  $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
+                    && $inventoryStatus === 'Available';
+                  $canApproveForIssue = ($partRequest->can_approve_for_issue ?? false) && $canApproveWarehouse;
+                  $canHold = ($partRequest->can_hold ?? false) && $canApproveWarehouse;
+                  $canPrepare = ($partRequest->can_prepare ?? false) && $canEditWarehouse;
                   $warehouseStatus = $partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval';
                   $warehouseStatusLabel = match ($warehouseStatus) {
                     'Pending Warehouse Approval' => 'Pending Approval',
@@ -188,7 +186,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      @if($isWarehouseHead && $canSendToPurchase)
+                      @if($canSendToPurchase)
                         <form
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
                           method="POST"
@@ -213,7 +211,7 @@
                           class="inline-action-form"
                           data-confirm-form
                           data-confirm-title="Approve Part Issuance?"
-                          data-confirm-message="Authorize Warehouse Staff to prepare {{ $partRequest->pr_no }} for release?"
+                          data-confirm-message="Authorize Warehouse personnel to prepare {{ $partRequest->pr_no }} for release?"
                           data-confirm-button="Yes, Approve"
                           data-confirm-type="approve"
                         >

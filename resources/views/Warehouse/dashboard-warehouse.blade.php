@@ -44,7 +44,7 @@
       {{-- Row 1: Primary Action Queues (Part Requests from Maintenance & Incoming Deliveries from Purchase) --}}
       <section class="warehouse-dashboard-grid">
         {{-- Card 1: Maintenance Part Requests Queue --}}
-        <div class="warehouse-dashboard-card">
+        <div class="warehouse-dashboard-card" data-ajax-region="active-part-requests">
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">MAINTENANCE REQUISITIONS</span>
@@ -102,7 +102,7 @@
         </div>
 
         {{-- Card 2: Expected Incoming Deliveries Queue --}}
-        <div class="warehouse-dashboard-card">
+        <div class="warehouse-dashboard-card" data-ajax-region="incoming-deliveries">
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">PURCHASE SHIPMENTS</span>
@@ -165,7 +165,7 @@
       {{-- Row 2: Secondary Operational Overview (Stock Health & Replenishment Watchlist + Recent Stock Movements) --}}
       <section class="warehouse-dashboard-grid">
         {{-- Card 3: Stock Status & Replenishment Watchlist --}}
-        <div class="warehouse-dashboard-card">
+        <div class="warehouse-dashboard-card" data-ajax-region="stock-alerts">
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">INVENTORY HEALTH</span>
@@ -235,7 +235,7 @@
         </div>
 
         {{-- Card 4: Recent Stock Movements Audit Trail --}}
-        <div class="warehouse-dashboard-card">
+        <div class="warehouse-dashboard-card" data-ajax-region="recent-stock-movements">
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">TRANSACTION AUDIT</span>

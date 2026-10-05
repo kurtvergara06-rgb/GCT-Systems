@@ -8,6 +8,10 @@
   ]"
 >
 
+  @php
+    $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+  @endphp
+
   <div class="app">
 
   <x-layout.sidebar department="Warehouse" />
@@ -66,13 +70,13 @@
           </div>
         </div>
 
-        <div class="toolbar inventory-toolbar" data-client-filter="true">
+        <form action="{{ route('inventory') }}" method="GET" class="toolbar inventory-toolbar" data-server-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input
               type="text"
               name="search"
-              value=""
+              value="{{ request('search') }}"
               autocomplete="off"
               placeholder="Search by item, item code, supplier, or location..."
               aria-label="Search inventory records"
@@ -93,21 +97,23 @@
 
           <div class="filter-group">
             <select name="category" aria-label="Filter inventory by category">
-              <option value="All Categories" selected>All Categories</option>
+              <option value="All Categories" @selected(request('category', 'All Categories') === 'All Categories')>All Categories</option>
 
               @foreach($categories as $category)
-                <option value="{{ $category }}">
+                <option value="{{ $category }}" @selected(request('category') === $category)>
                   {{ $category }}
                 </option>
               @endforeach
             </select>
           </div>
 
-          <button type="button" class="primary-btn" id="openAddModal">
-            <i class="fa-solid fa-plus"></i>
-            Add Item
-          </button>
-        </div>
+          @if($canEditWarehouse)
+            <button type="button" class="primary-btn" id="openAddModal">
+              <i class="fa-solid fa-plus"></i>
+              Add Item
+            </button>
+          @endif
+        </form>
 
         <div class="table-wrap">
           <table class="inventory-table">
@@ -181,7 +187,8 @@
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </a>
 
-                      <button
+                      @if($canEditWarehouse)
+                        <button
                           type="button"
                           class="action-btn edit openEditModal"
                           title="Edit Item"
@@ -196,9 +203,9 @@
                           data-location="{{ $item->storage_location }}"
                       >
                           <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
+                        </button>
 
-                      <form
+                        <form
                         action="/inventory/{{ $item->id }}"
                         method="POST"
                         data-confirm-form
@@ -219,7 +226,8 @@
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
-                      </form>
+                        </form>
+                      @endif
 
                     </div>
                   </td>
@@ -270,8 +278,9 @@
     </div>
   </div>
 
-  {{-- ADD MODAL --}}
-  <div class="modal-overlay" id="addModal">
+  @if($canEditWarehouse)
+    {{-- ADD MODAL --}}
+    <div class="modal-overlay" id="addModal">
     <div class="modal-box wide-modal">
 
       <div class="modal-header">
@@ -344,7 +353,7 @@
       </form>
 
     </div>
-  </div>
+    </div>
 
   {{-- EDIT MODAL --}}
   <div class="modal-overlay" id="editModal">
@@ -411,6 +420,11 @@
             <input type="text" name="storage_location" id="edit_location">
           </div>
 
+          <div class="form-group">
+            <label>Adjustment Reason</label>
+            <input type="text" name="adjustment_reason" id="edit_adjustment_reason" maxlength="500" placeholder="Required when quantity changes">
+          </div>
+
         </div>
 
         <div class="modal-actions full-width">
@@ -421,7 +435,8 @@
       </form>
 
     </div>
-  </div>
+    </div>
+  @endif
 
   {{-- VIEW MODAL --}}
   <div class="modal-overlay" id="viewModal">

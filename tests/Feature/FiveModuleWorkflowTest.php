@@ -137,10 +137,7 @@ class FiveModuleWorkflowTest extends TestCase
             ->assertRedirect('/purchase-orders');
 
         $this->actingAs($warehouseUser)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Delivered',
-                'warehouse_receive' => 1,
-            ])
+            ->post(route('incoming-deliveries.receive', $purchaseOrder))
             ->assertRedirect('/warehouse/incoming-deliveries');
 
         $inventoryItem = InventoryItem::query()

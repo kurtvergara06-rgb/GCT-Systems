@@ -31,15 +31,17 @@ window.Echo = window.Echo || new Echo({
 });
 
 window.realtimePageRouteMap = {
-    'Warehouse:PurchaseRequest': ['/purchase-requests','/job-orders','/maintenance-requests','/part-requests','/purchase-orders','/inventory','/admin/dashboard'],
-    'Warehouse:Inventory': ['/inventory','/part-requests','/maintenance-requests','/job-orders','/admin/dashboard'],
+    'Warehouse:PurchaseRequest': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/stock-movements','/purchase-requests','/job-orders','/maintenance-requests','/maintenance-dashboard','/purchase-orders','/admin/dashboard'],
+    'Warehouse:Inventory': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/stock-movements','/warehouse/incoming-deliveries','/maintenance-requests','/job-orders','/maintenance-dashboard','/admin/dashboard'],
+    'Warehouse:PurchaseOrder': ['/warehouse/dashboard','/warehouse/incoming-deliveries','/inventory','/warehouse/stock-movements','/part-requests','/purchase-orders','/maintenance-requests','/job-orders','/maintenance-dashboard','/admin/dashboard'],
+    'Warehouse:RolePermission': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/incoming-deliveries','/warehouse/stock-movements'],
     'Maintenance:PurchaseRequest': ['/purchase-requests','/job-orders','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:RolePermission': ['/maintenance-dashboard','/maintenance-referrals','/pms-scheduling','/fuel-reports','/job-orders','/purchase-requests','/mechanic-list'],
     'Maintenance:FuelReport': ['/fuel-reports','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:PmsSchedule': ['/pms-scheduling','/job-orders','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:MaintenanceReferral': ['/maintenance-referrals','/job-orders','/maintenance-dashboard','/admin/dashboard'],
-    'Purchase:PurchaseOrder': ['/purchase-orders','/maintenance-requests','/part-requests','/job-orders','/inventory','/admin/dashboard'],
+    'Purchase:PurchaseOrder': ['/purchase-orders','/warehouse/dashboard','/warehouse/incoming-deliveries','/warehouse/stock-movements','/maintenance-requests','/part-requests','/job-orders','/inventory','/admin/dashboard'],
     'Purchase:MaintenanceRequest': ['/maintenance-requests','/purchase-orders','/part-requests','/purchase-requests','/job-orders','/inventory','/admin/dashboard'],
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
     'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/dashboard-operation','/admin/dashboard','/mechanic-list'],

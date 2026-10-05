@@ -185,10 +185,7 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Delivered',
-                'warehouse_receive' => 1,
-            ])
+            ->post(route('incoming-deliveries.receive', $purchaseOrder))
             ->assertRedirect();
 
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
@@ -225,10 +222,7 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Picked Up',
-                'warehouse_receive' => 1,
-            ])
+            ->post(route('incoming-deliveries.receive', $purchaseOrder))
             ->assertRedirect();
 
         $item = InventoryItem::where('item_name', 'Air Filter')->firstOrFail();
@@ -355,17 +349,11 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Delivered',
-                'warehouse_receive' => 1,
-            ])
+            ->post(route('incoming-deliveries.receive', $purchaseOrder))
             ->assertRedirect();
 
         $this->actingAs($user)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Delivered',
-                'warehouse_receive' => 1,
-            ]);
+            ->post(route('incoming-deliveries.receive', $purchaseOrder));
 
         $this->assertSame(13, (int) $item->fresh()->on_hand);
         $this->assertSame(1, StockMovement::where('inventory_item_id', $item->id)->count());
@@ -438,6 +426,46 @@ class InventoryLedgerTest extends TestCase
         $this->assertSame(0, $movement->previous_stock);
         $this->assertSame(20, $movement->new_stock);
         $this->assertSame('app', $movement->source);
+    }
+
+    public function test_manual_quantity_adjustment_requires_reason_and_preserves_audit_history(): void
+    {
+        $user = $this->warehouseUser();
+        $item = $this->forgeItem('ADJ-REASON', 10, 'pcs');
+        $payload = [
+            'item_code' => $item->item_code,
+            'item_name' => $item->item_name,
+            'category' => $item->category,
+            'on_hand' => 7,
+            'unit_of_measurement' => $item->unit_of_measurement,
+            'reorder_level' => $item->reorder_level,
+            'supplier' => $item->supplier,
+            'storage_location' => $item->storage_location,
+        ];
+
+        $this->actingAs($user)
+            ->put(route('inventory.update', $item), $payload)
+            ->assertSessionHasErrors('adjustment_reason');
+
+        $this->assertSame(10, (int) $item->fresh()->on_hand);
+        $this->assertSame(0, StockMovement::where('inventory_item_id', $item->id)->count());
+
+        $this->actingAs($user)
+            ->put(route('inventory.update', $item), $payload + [
+                'adjustment_reason' => 'Physical count correction',
+            ])
+            ->assertRedirect('/inventory');
+
+        $movement = StockMovement::where('inventory_item_id', $item->id)->firstOrFail();
+        $this->assertSame(7, (int) $item->fresh()->on_hand);
+        $this->assertStringContainsString('Physical count correction', $movement->remarks);
+
+        $this->actingAs($user)
+            ->delete(route('inventory.destroy', $item))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('inventory_items', ['id' => $item->id]);
+        $this->assertDatabaseHas('stock_movements', ['id' => $movement->id]);
     }
 
     public function test_seeder_no_longer_defines_fabricated_stock_movement_generation(): void

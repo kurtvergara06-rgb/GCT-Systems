@@ -7,6 +7,10 @@
     'resources/js/Main-js/sidebar.js'
   ]"
 >
+  @php
+    $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+  @endphp
+
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
 
@@ -87,9 +91,11 @@
                     <x-ui.status-badge :status="$displayStatus" class="delivery-status {{ $statusClass }}" />
                   </td>
                   <td>
-                    @if(!$received && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
+                    @if($received)
+                      <span class="delivery-status received"><i class="fa-solid fa-circle-check"></i>&nbsp; Received</span>
+                    @elseif($canEditWarehouse && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
                       <form
-                        action="{{ route('purchase-orders.update-status', $delivery) }}"
+                        action="{{ route('incoming-deliveries.receive', $delivery) }}"
                         method="POST"
                         class="inline-action-form"
                         data-confirm-form
@@ -99,16 +105,13 @@
                         data-confirm-type="approve"
                       >
                         @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="warehouse_receive" value="1">
-                        <input type="hidden" name="status" value="{{ $delivery->status === 'For Pick-up' ? 'Picked Up' : 'Delivered' }}">
                         <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
                           <i class="fa-solid fa-box-open"></i>
                           Receive
                         </button>
                       </form>
                     @else
-                      <span class="delivery-status received"><i class="fa-solid fa-circle-check"></i>&nbsp; Received</span>
+                      <span class="delivery-status for-delivery"><i class="fa-solid fa-lock"></i>&nbsp; View only</span>
                     @endif
                   </td>
                 </tr>

@@ -147,7 +147,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     updateInventoryEntryCount(visibleCount);
   }
 
-  if (inventoryToolbar) {
+  if (inventoryToolbar && inventoryToolbar.dataset.serverFilter !== 'true') {
     inventoryToolbar.dataset.clientFilter = 'true';
 
     if (sourceSelect) {
@@ -282,6 +282,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     setInputValue('edit_reorder', editButton.dataset.reorder);
     setInputValue('edit_supplier', editButton.dataset.supplier);
     setInputValue('edit_location', editButton.dataset.location);
+    setInputValue('edit_adjustment_reason', '');
 
     openModal(editModal);
   });
@@ -416,20 +417,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
       const modal = button.closest('.modal-overlay');
       closeModal(modal);
-    });
-  });
-
-  /*
-  |--------------------------------------------------------------------------
-  | CLOSE WHEN CLICKING OUTSIDE MODAL
-  |--------------------------------------------------------------------------
-  */
-
-  document.querySelectorAll('.modal-overlay').forEach(function (modal) {
-    modal.addEventListener('click', function (event) {
-      if (event.target === modal) {
-        closeModal(modal);
-      }
     });
   });
 

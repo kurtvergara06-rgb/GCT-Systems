@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Warehouse\InventoryIssuance;
+use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
@@ -198,7 +200,7 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseRole('staff');
+        $this->authorizeWarehouseCapability('edit');
 
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
@@ -209,7 +211,7 @@ class WarehousePartRequestController extends Controller
         if ($purchaseRequest->warehouse_status !== 'Preparing') {
             return redirect()
                 ->back()
-                ->with('error', 'Only requests prepared by Warehouse Staff can be issued.');
+                ->with('error', 'Only requests prepared through the Warehouse workflow can be issued.');
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
@@ -245,8 +247,20 @@ class WarehousePartRequestController extends Controller
                 ]);
             }
 
+            $issuance = InventoryIssuance::create([
+                'issue_no' => $this->generateIssueNo(),
+                'issued_to' => 'Maintenance',
+                'purpose' => 'Parts issued for '.$lockedRequest->job_order_no,
+                'reference_no' => $lockedRequest->pr_no,
+                'issued_by' => auth()->id(),
+                'issued_at' => now(),
+            ]);
+
             foreach ($parts as $index => $part) {
-                $inventoryItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
+                $matchedItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
+                $inventoryItem = $matchedItem
+                    ? InventoryItem::query()->whereKey($matchedItem->id)->lockForUpdate()->first()
+                    : null;
                 $actual = (int) $issuedQuantities[$index];
 
                 if (! $inventoryItem || (int) $inventoryItem->quantity_available < $actual) {
@@ -255,13 +269,25 @@ class WarehousePartRequestController extends Controller
                     ]);
                 }
 
-                $this->ledger->stockOut(
+                $movement = $this->ledger->stockOut(
                     $inventoryItem,
                     $actual,
-                    $lockedRequest->pr_no ?? (string) $lockedRequest->id,
-                    'Issued through Warehouse Part Request.',
+                    $lockedRequest->pr_no ?? $issuance->issue_no,
+                    'Issued through Warehouse Part Request '.$lockedRequest->pr_no.'.',
                     auth()->id()
                 );
+
+                InventoryIssuanceItem::create([
+                    'inventory_issuance_id' => $issuance->id,
+                    'inventory_item_id' => $inventoryItem->id,
+                    'item_code' => $inventoryItem->item_code,
+                    'item_name' => $inventoryItem->parts_name ?? $inventoryItem->item_name ?? 'Inventory Item',
+                    'quantity' => $actual,
+                    'unit' => $inventoryItem->unit_of_measurement ?: $inventoryItem->unit,
+                    'previous_stock' => $movement->previous_stock,
+                    'new_stock' => $movement->new_stock,
+                    'stock_movement_id' => $movement->id,
+                ]);
             }
 
             $lockedRequest->update([
@@ -274,7 +300,7 @@ class WarehousePartRequestController extends Controller
             $missingPurchaseRequest = $this->getMissingPurchaseRequest($lockedRequest);
 
             if ($missingPurchaseRequest) {
-                $missingPurchaseRequest->update([
+                PurchaseRequest::query()->whereKey($missingPurchaseRequest->id)->lockForUpdate()->firstOrFail()->update([
                     'status' => 'Issued',
                     'warehouse_status' => 'Issued',
                     'warehouse_issue_quantities' => $issueDetails,
@@ -282,8 +308,16 @@ class WarehousePartRequestController extends Controller
                 ]);
             }
 
-            JobOrder::where('job_order_no', $lockedRequest->job_order_no)
-                ->update(['part_status' => 'Issued']);
+            $hasOutstandingRequest = $this->warehouseMaintenanceRequestQuery()
+                ->where('job_order_no', $lockedRequest->job_order_no)
+                ->where('id', '!=', $lockedRequest->id)
+                ->where('status', '!=', 'Issued')
+                ->exists();
+
+            if (! $hasOutstandingRequest) {
+                JobOrder::where('job_order_no', $lockedRequest->job_order_no)
+                    ->update(['part_status' => 'Issued']);
+            }
         });
 
         $this->broadcastSystemDataUpdated(
@@ -301,73 +335,127 @@ class WarehousePartRequestController extends Controller
 
     public function approveForIssue(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseRole('head');
+        $this->authorizeWarehouseCapability('approve');
 
-        if ($this->isRestockRequest($purchaseRequest) || $purchaseRequest->status === 'Issued') {
-            return redirect()->back()->with('error', 'This request cannot be approved for issuance.');
+        $error = DB::transaction(function () use ($purchaseRequest): ?string {
+            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+            if ($this->isRestockRequest($lockedRequest) || $lockedRequest->status === 'Issued') {
+                return 'This request cannot be approved for issuance.';
+            }
+
+            $displayStatus = $this->getMissingPurchaseRequest($lockedRequest)?->status ?? $lockedRequest->status;
+            $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($lockedRequest->item));
+
+            if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true) || ! $inventoryCheck['available']) {
+                return 'All requested parts must be available before issuance approval.';
+            }
+
+            $lockedRequest->update([
+                'warehouse_status' => 'Approved for Issue',
+                'warehouse_approved_by' => auth()->id(),
+                'warehouse_approved_at' => now(),
+                'warehouse_prepared_by' => null,
+                'warehouse_prepared_at' => null,
+            ]);
+
+            return null;
+        });
+
+        if ($error) {
+            return redirect()->back()->with('error', $error);
         }
 
-        $displayStatus = $this->getMissingPurchaseRequest($purchaseRequest)?->status ?? $purchaseRequest->status;
-        $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'approved_for_issue',
+            $purchaseRequest->id,
+            'Warehouse approved a part request for issuance.'
+        );
 
-        if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true) || ! $inventoryCheck['available']) {
-            return redirect()->back()->with('error', 'All requested parts must be available before issuance approval.');
-        }
-
-        $purchaseRequest->update([
-            'warehouse_status' => 'Approved for Issue',
-            'warehouse_approved_by' => auth()->id(),
-            'warehouse_approved_at' => now(),
-            'warehouse_prepared_by' => null,
-            'warehouse_prepared_at' => null,
-        ]);
-
-        return redirect()->back()->with('success', 'Part issuance approved. Warehouse Staff may now prepare the request.');
+        return redirect()->back()->with('success', 'Part issuance approved. An authorized Warehouse user may now prepare the request.');
     }
 
     public function hold(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseRole('head');
+        $this->authorizeWarehouseCapability('approve');
 
-        if ($purchaseRequest->status === 'Issued' || $purchaseRequest->warehouse_status === 'Issued') {
-            return redirect()->back()->with('error', 'Issued requests cannot be placed on hold.');
+        $error = DB::transaction(function () use ($purchaseRequest): ?string {
+            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+            if ($lockedRequest->status === 'Issued' || $lockedRequest->warehouse_status === 'Issued') {
+                return 'Issued requests cannot be placed on hold.';
+            }
+
+            $lockedRequest->update([
+                'warehouse_status' => 'On Hold',
+                'warehouse_prepared_by' => null,
+                'warehouse_prepared_at' => null,
+            ]);
+
+            return null;
+        });
+
+        if ($error) {
+            return redirect()->back()->with('error', $error);
         }
 
-        $purchaseRequest->update([
-            'warehouse_status' => 'On Hold',
-            'warehouse_prepared_by' => null,
-            'warehouse_prepared_at' => null,
-        ]);
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'placed_on_hold',
+            $purchaseRequest->id,
+            'Warehouse placed a part request on hold.'
+        );
 
         return redirect()->back()->with('success', 'Part issuance placed on hold.');
     }
 
     public function prepare(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseRole('staff');
+        $this->authorizeWarehouseCapability('edit');
 
-        if ($purchaseRequest->warehouse_status !== 'Approved for Issue') {
-            return redirect()->back()->with('error', 'Warehouse Head approval is required before preparation.');
+        $error = DB::transaction(function () use ($purchaseRequest): ?string {
+            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+            if ($lockedRequest->warehouse_status !== 'Approved for Issue') {
+                return 'Warehouse approval is required before preparation.';
+            }
+
+            $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($lockedRequest->item));
+
+            if (! $inventoryCheck['available']) {
+                return 'Stock is no longer sufficient for this request.';
+            }
+
+            $lockedRequest->update([
+                'warehouse_status' => 'Preparing',
+                'warehouse_prepared_by' => auth()->id(),
+                'warehouse_prepared_at' => now(),
+            ]);
+
+            return null;
+        });
+
+        if ($error) {
+            return redirect()->back()->with('error', $error);
         }
 
-        $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
-
-        if (! $inventoryCheck['available']) {
-            return redirect()->back()->with('error', 'Stock is no longer sufficient for this request.');
-        }
-
-        $purchaseRequest->update([
-            'warehouse_status' => 'Preparing',
-            'warehouse_prepared_by' => auth()->id(),
-            'warehouse_prepared_at' => now(),
-        ]);
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'preparing',
+            $purchaseRequest->id,
+            'Warehouse started preparing a part request.'
+        );
 
         return redirect()->back()->with('success', 'Parts marked as preparing. Record actual quantities when issuing.');
     }
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseRole('head');
+        $this->authorizeWarehouseCapability('approve');
 
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
@@ -404,21 +492,52 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'No missing parts found to send to Purchase Department.');
         }
 
-        $missingItemText = $this->buildPartsText($missingParts);
-        $missingTotalQuantity = collect($missingParts)->sum('needed');
-        $missingPrNo = $this->generateMissingPrNo($purchaseRequest->pr_no);
+        $failure = null;
+        $missingPurchaseRequest = DB::transaction(function () use ($purchaseRequest, $missingParts, &$failure) {
+            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
 
-        $missingPurchaseRequest = PurchaseRequest::create([
-            'pr_no' => $missingPrNo,
-            'job_order_no' => $purchaseRequest->job_order_no,
-            'bus_no' => $purchaseRequest->bus_no,
-            'item' => $missingItemText,
-            'quantity' => $missingTotalQuantity,
-            'status' => 'For Purchase',
-            'source_type' => 'Maintenance Request',
-            'remarks' => 'Missing parts from ' . $purchaseRequest->pr_no . '. Only unavailable parts were sent to Purchase Department.',
-            'date_requested' => now(),
-        ]);
+            if ($lockedRequest->status !== 'Approved') {
+                $failure = 'Only approved purchase requests can be sent to purchasing department.';
+
+                return null;
+            }
+
+            if ($this->missingPurchaseRequestExists($lockedRequest)) {
+                $failure = 'Missing parts were already sent to the Purchase Department.';
+
+                return null;
+            }
+
+            $missingItemText = $this->buildPartsText($missingParts);
+            $missingTotalQuantity = collect($missingParts)->sum('needed');
+            $missingPrNo = $this->generateMissingPrNo($lockedRequest->pr_no);
+
+            $createdRequest = PurchaseRequest::create([
+                'pr_no' => $missingPrNo,
+                'job_order_no' => $lockedRequest->job_order_no,
+                'bus_no' => $lockedRequest->bus_no,
+                'item' => $missingItemText,
+                'quantity' => $missingTotalQuantity,
+                'status' => 'For Purchase',
+                'source_type' => 'Maintenance Request',
+                'remarks' => 'Missing parts from '.$lockedRequest->pr_no.'. Only unavailable parts were sent to Purchase Department.',
+                'date_requested' => now(),
+            ]);
+
+            $oldRemarks = trim($lockedRequest->remarks ?? '');
+            $lockedRequest->update([
+                'remarks' => trim($oldRemarks.' Missing parts sent to Purchase as '.$missingPrNo.'.'),
+            ]);
+
+            JobOrder::where('job_order_no', $lockedRequest->job_order_no)
+                ->update(['part_status' => 'For Purchase']);
+
+            return $createdRequest;
+        });
+
+        if (! $missingPurchaseRequest) {
+            return redirect()->back()->with('error', $failure ?? 'Unable to send missing parts to Purchase.');
+        }
 
         $this->broadcastSystemDataUpdated(
             'Warehouse',
@@ -428,16 +547,13 @@ class WarehousePartRequestController extends Controller
             'Warehouse sent missing parts to Purchase Department.'
         );
 
-        $oldRemarks = trim($purchaseRequest->remarks ?? '');
-
-        $purchaseRequest->update([
-            'remarks' => trim($oldRemarks . ' Missing parts sent to Purchase as ' . $missingPrNo . '.'),
-        ]);
-
-        JobOrder::where('job_order_no', $purchaseRequest->job_order_no)
-            ->update([
-                'part_status' => 'For Purchase',
-            ]);
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'sent_to_purchase',
+            $purchaseRequest->id,
+            'Warehouse sent unavailable parts to Purchase.'
+        );
 
         return redirect()
             ->back()
@@ -513,17 +629,26 @@ class WarehousePartRequestController extends Controller
         return $purchaseRequest;
     }
 
-    private function authorizeWarehouseRole(string $role): void
+    private function authorizeWarehouseCapability(string $capability): void
     {
-        $user = auth()->user();
-
         abort_unless(
-            $user
-                && strtolower(trim((string) $user->department)) === 'warehouse'
-                && strtolower(trim((string) $user->role)) === $role,
+            auth()->user()?->hasSystemPermission('warehouse', $capability) ?? false,
             403,
-            "Only Warehouse {$role} may perform this action."
+            "Your role does not have permission to {$capability} warehouse records."
         );
+    }
+
+    private function generateIssueNo(): string
+    {
+        $year = now()->format('Y');
+        $latest = InventoryIssuance::query()
+            ->where('issue_no', 'like', "ISS-{$year}-%")
+            ->lockForUpdate()
+            ->orderByDesc('id')
+            ->first();
+        $lastNumber = $latest?->issue_no ? (int) substr($latest->issue_no, -4) : 0;
+
+        return 'ISS-'.$year.'-'.str_pad((string) ($lastNumber + 1), 4, '0', STR_PAD_LEFT);
     }
 
     private function getMissingPurchaseRequest(PurchaseRequest $purchaseRequest): ?PurchaseRequest

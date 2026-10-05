@@ -232,11 +232,13 @@ export default defineConfig({
                 'resources/css/Warehouse/dashboard-warehouse.css',
                 'resources/css/Warehouse/inventory.css',
                 'resources/css/Warehouse/part-requests.css',
+                'resources/css/Warehouse/part-requests-cleanup.css',
                 'resources/css/Warehouse/stock-movements.css',
                 'resources/css/Warehouse/incoming-deliveries.css',
 
                 'resources/js/Warehouse/inventory.js',
                 'resources/js/Warehouse/part-requests.js',
+                'resources/js/Warehouse/part-requests-cleanup.js',
             ],
 
             refresh: true,
