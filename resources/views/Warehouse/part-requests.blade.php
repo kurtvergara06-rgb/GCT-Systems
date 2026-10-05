@@ -33,34 +33,40 @@
       </section>
 
       <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
-        <div class="section-header">
+        <div class="section-header warehouse-record-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>{{ $isHistory ? 'Part Request History' : 'Active Part Requests' }}</h2>
-            <p>{{ $isHistory ? 'Completed and closed Warehouse requisitions are retained as read-only records.' : 'Review stock availability, authorize releases, and track Warehouse processing.' }}</p>
+            <h2>Warehouse Part Request Records</h2>
+            <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
+
+          <nav class="warehouse-record-tabs" aria-label="Part request record view" role="tablist">
+            <a
+              href="{{ route('part-requests', ['view' => 'active']) }}"
+              class="warehouse-record-tab {{ !$isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-list-check"></i>
+              <span>Active</span>
+            </a>
+            <a
+              href="{{ route('part-requests', ['view' => 'history']) }}"
+              class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ $isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+            </a>
+          </nav>
         </div>
 
-        <nav class="warehouse-record-tabs" aria-label="Part request record view">
-          <a
-            href="{{ route('part-requests', ['view' => 'active']) }}"
-            class="warehouse-record-tab {{ !$isHistory ? 'active' : '' }}"
-            @if(!$isHistory) aria-current="page" @endif
-          >
-            <i class="fa-solid fa-list-check"></i>
-            Active
-            <span>{{ $activeCount ?? 0 }}</span>
-          </a>
-          <a
-            href="{{ route('part-requests', ['view' => 'history']) }}"
-            class="warehouse-record-tab {{ $isHistory ? 'active' : '' }}"
-            @if($isHistory) aria-current="page" @endif
-          >
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            History
-            <span>{{ $historyCount ?? 0 }}</span>
-          </a>
-        </nav>
+        @if($isHistory)
+          <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
+        @endif
 
         <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar" data-server-filter="true">
           <input type="hidden" name="view" value="{{ $currentView }}">
