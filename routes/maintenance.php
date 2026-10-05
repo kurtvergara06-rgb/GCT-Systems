@@ -10,83 +10,86 @@ use App\Http\Controllers\Maintenance\PmsSchedulingController;
 use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Maintenance\PurchaseRequestIndexController;
 use App\Http\Controllers\Maintenance\ReferralJobOrderController;
+use App\Models\Maintenance\JobOrder;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin',
 ])->group(function () {
-    Route::get('/maintenance-dashboard', [MaintenanceDashboardController::class, 'index'])
-        ->name('maintenance-dashboard');
+    Route::middleware('system.permission:maintenance,view')->group(function () {
+        Route::get('/maintenance-dashboard', [MaintenanceDashboardController::class, 'index'])
+            ->name('maintenance-dashboard');
 
-    Route::get('/mechanic-list', [MechanicListController::class, 'index'])
-        ->name('mechanic-list');
+        Route::get('/mechanic-list', [MechanicListController::class, 'index'])
+            ->name('mechanic-list');
 
-    Route::controller(MaintenanceReferralController::class)
-        ->prefix('maintenance-referrals')
-        ->group(function () {
-            Route::get('/', 'index')->name('maintenance-referrals');
-            Route::post('/{maintenanceReferral}/approve', 'approve')->name('maintenance-referrals.approve');
-            Route::post('/{maintenanceReferral}/reject', 'reject')->name('maintenance-referrals.reject');
-        });
+        Route::controller(MaintenanceReferralController::class)
+            ->prefix('maintenance-referrals')
+            ->group(function () {
+                Route::get('/', 'index')->name('maintenance-referrals');
+                Route::post('/{maintenanceReferral}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('maintenance-referrals.approve');
+                Route::post('/{maintenanceReferral}/reject', 'reject')->middleware('system.permission:maintenance,approve')->name('maintenance-referrals.reject');
+            });
 
-    Route::post(
-        '/maintenance-referrals/{maintenanceReferral}/job-order',
-        [ReferralJobOrderController::class, 'store']
-    )->name('maintenance-referrals.job-order.store');
+        Route::post(
+            '/maintenance-referrals/{maintenanceReferral}/job-order',
+            [ReferralJobOrderController::class, 'store']
+        )->middleware('system.permission:maintenance,edit')->name('maintenance-referrals.job-order.store');
 
-    Route::controller(PmsSchedulingController::class)
-        ->prefix('pms-scheduling')
-        ->group(function () {
-            Route::get('/', 'index')->name('PMS-Scheduling');
-            Route::post('/', 'store')->name('pms-schedules.store');
-            Route::put('/{pmsSchedule}', 'update')->name('pms-schedules.update');
-            Route::delete('/{pmsSchedule}', 'destroy')->name('pms-schedules.destroy');
-            Route::get('/{pmsSchedule}/create-job-order', 'createJobOrder')->name('pms-schedules.create-job-order');
-        });
+        Route::controller(PmsSchedulingController::class)
+            ->prefix('pms-scheduling')
+            ->group(function () {
+                Route::get('/', 'index')->name('PMS-Scheduling');
+                Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('pms-schedules.store');
+                Route::put('/{pmsSchedule}', 'update')->middleware('system.permission:maintenance,edit')->name('pms-schedules.update');
+                Route::delete('/{pmsSchedule}', 'destroy')->middleware('system.permission:maintenance,edit')->name('pms-schedules.destroy');
+                Route::get('/{pmsSchedule}/create-job-order', 'createJobOrder')->middleware('system.permission:maintenance,edit')->name('pms-schedules.create-job-order');
+            });
 
-    Route::controller(FuelReportController::class)
-        ->prefix('fuel-reports')
-        ->group(function () {
-            Route::get('/', 'index')->name('fuel-reports');
-            Route::get('/gps-distance', 'gpsDistance')->name('fuel-reports.gps-distance');
-            Route::post('/', 'store')->name('fuel-reports.store');
-            Route::put('/{fuelReport}', 'update')->name('fuel-reports.update');
-            Route::delete('/{fuelReport}', 'destroy')->name('fuel-reports.destroy');
-        });
+        Route::controller(FuelReportController::class)
+            ->prefix('fuel-reports')
+            ->group(function () {
+                Route::get('/', 'index')->name('fuel-reports');
+                Route::get('/gps-distance', 'gpsDistance')->name('fuel-reports.gps-distance');
+                Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('fuel-reports.store');
+                Route::put('/{fuelReport}', 'update')->middleware('system.permission:maintenance,edit')->name('fuel-reports.update');
+                Route::delete('/{fuelReport}', 'destroy')->middleware('system.permission:maintenance,edit')->name('fuel-reports.destroy');
+            });
 
-    Route::get('/job-orders', JobOrderIndexController::class)
-        ->name('job-orders');
+        Route::get('/job-orders', JobOrderIndexController::class)
+            ->name('job-orders');
 
-    Route::get('/job-orders/work-details', function () {
-        return response()->json(
-            \App\Models\Maintenance\JobOrder::query()
-                ->pluck('work_to_perform', 'id')
-        );
-    })->name('job-orders.work-details');
+        Route::get('/job-orders/work-details', function () {
+            return response()->json(
+                JobOrder::query()
+                    ->pluck('work_to_perform', 'id')
+            );
+        })->name('job-orders.work-details');
 
-    Route::controller(JobOrderController::class)
-        ->prefix('job-orders')
-        ->group(function () {
-            Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
-            Route::post('/', 'store')->name('job-orders.store');
-            Route::put('/{jobOrder}', 'update')->name('job-orders.update');
-            Route::post('/{jobOrder}/finish', 'finish')->name('job-orders.finish');
-            Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->name('job-orders.create-pr');
-            Route::delete('/{jobOrder}', 'destroy')->name('job-orders.destroy');
-        });
+        Route::controller(JobOrderController::class)
+            ->prefix('job-orders')
+            ->group(function () {
+                Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
+                Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
+                Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
+                Route::post('/{jobOrder}/finish', 'finish')->middleware('system.permission:maintenance,edit')->name('job-orders.finish');
+                Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->middleware('system.permission:maintenance,edit')->name('job-orders.create-pr');
+                Route::delete('/{jobOrder}', 'destroy')->middleware('system.permission:maintenance,edit')->name('job-orders.destroy');
+            });
 
-    Route::get('/purchase-requests', PurchaseRequestIndexController::class)
-        ->name('purchase-requests');
+        Route::get('/purchase-requests', PurchaseRequestIndexController::class)
+            ->name('purchase-requests');
 
-    Route::controller(PurchaseRequestController::class)
-        ->prefix('purchase-requests')
-        ->group(function () {
-            Route::post('/', 'store')->name('purchase-requests.store');
-            Route::put('/{purchaseRequest}', 'update')->name('purchase-requests.update');
-            Route::post('/{purchaseRequest}/resubmit', 'resubmit')->name('purchase-requests.resubmit');
-            Route::delete('/{purchaseRequest}', 'destroy')->name('purchase-requests.destroy');
-            Route::post('/{purchaseRequest}/approve', 'approve')->name('purchase-requests.approve');
-            Route::post('/{purchaseRequest}/reject', 'reject')->name('purchase-requests.reject');
-            Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('purchase-requests.for-purchase');
-        });
+        Route::controller(PurchaseRequestController::class)
+            ->prefix('purchase-requests')
+            ->group(function () {
+                Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('purchase-requests.store');
+                Route::put('/{purchaseRequest}', 'update')->middleware('system.permission:maintenance,edit')->name('purchase-requests.update');
+                Route::post('/{purchaseRequest}/resubmit', 'resubmit')->middleware('system.permission:maintenance,edit')->name('purchase-requests.resubmit');
+                Route::delete('/{purchaseRequest}', 'destroy')->middleware('system.permission:maintenance,edit')->name('purchase-requests.destroy');
+                Route::post('/{purchaseRequest}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('purchase-requests.approve');
+                Route::post('/{purchaseRequest}/reject', 'reject')->middleware('system.permission:maintenance,approve')->name('purchase-requests.reject');
+                Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->middleware('system.permission:maintenance,edit')->name('purchase-requests.for-purchase');
+            });
+    });
 });

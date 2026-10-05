@@ -4,6 +4,7 @@ use App\Http\Middleware\PreferredAiResolutionMiddleware;
 use App\Http\Middleware\RecordSystemActivity;
 use App\Http\Middleware\RequireOnboarding;
 use App\Http\Middleware\RequirePasswordChange;
+use App\Http\Middleware\RequireSystemPermission;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,8 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(
             at: '*',
-            headers:
-                Request::HEADER_X_FORWARDED_FOR |
+            headers: Request::HEADER_X_FORWARDED_FOR |
                 Request::HEADER_X_FORWARDED_PORT |
                 Request::HEADER_X_FORWARDED_PROTO
         );
@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => RoleMiddleware::class,
+            'system.permission' => RequireSystemPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

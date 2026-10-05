@@ -3,6 +3,7 @@
 namespace App\Services\Maintenance;
 
 use App\Models\Admin\ActivityLog;
+use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Purchase\PurchaseOrder;
@@ -211,8 +212,10 @@ class LinkedJobOrderResetService
             }
 
             $mechanic = trim((string) ($jobOrder->assigned_mechanic ?? ''));
+            $busNo = (string) $jobOrder->bus_no;
             $jobOrder->delete();
             $mechanicReleased = $this->releaseMechanicIfAvailable($mechanic, $jobOrderNo);
+            $releasedBus = $this->releaseBusIfAvailable($busNo);
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
@@ -241,6 +244,7 @@ class LinkedJobOrderResetService
                 'issuances_deleted' => count($issuanceIds),
                 'inventory_reversals' => count($movementIds),
                 'mechanic_released' => $mechanicReleased,
+                'bus_released_id' => $releasedBus?->id,
             ];
         }, 3);
     }
@@ -488,6 +492,7 @@ class LinkedJobOrderResetService
 
             $jobOrderId = (int) $jobOrder->id;
             $mechanic = trim((string) ($jobOrder->assigned_mechanic ?? ''));
+            $busNo = (string) $jobOrder->bus_no;
 
             $jobOrder->delete();
 
@@ -495,6 +500,7 @@ class LinkedJobOrderResetService
                 $mechanic,
                 $jobOrderNo
             );
+            $releasedBus = $this->releaseBusIfAvailable($busNo);
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
@@ -523,6 +529,7 @@ class LinkedJobOrderResetService
                 'purchase_orders_deleted' => count($deletedPurchaseOrderIds),
                 'purchase_orders_detached' => count($detachedPurchaseOrderIds),
                 'mechanic_released' => $mechanicReleased,
+                'bus_released_id' => $releasedBus?->id,
             ];
         }, 3);
     }
@@ -785,6 +792,31 @@ class LinkedJobOrderResetService
         $attendance->update($updates);
 
         return true;
+    }
+
+    private function releaseBusIfAvailable(string $busNo): ?Bus
+    {
+        $bus = Bus::query()
+            ->where('bus_no', $busNo)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $bus || $bus->status !== 'Under Maintenance') {
+            return null;
+        }
+
+        $hasActiveJobOrder = JobOrder::query()
+            ->where('bus_no', $busNo)
+            ->where('status', '!=', 'Completed')
+            ->exists();
+
+        if ($hasActiveJobOrder) {
+            return null;
+        }
+
+        $bus->update(['status' => 'Active']);
+
+        return $bus->fresh();
     }
 
     private function normalizePrNo(string $prNo): string

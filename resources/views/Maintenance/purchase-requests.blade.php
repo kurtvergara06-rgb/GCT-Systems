@@ -648,7 +648,7 @@
 
       <form id="rejectPrForm" action="#" method="POST" class="hidden">
           @csrf
-          <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance Head">
+          <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance">
       </form>
 
       <x-ui.action-buttom-modal

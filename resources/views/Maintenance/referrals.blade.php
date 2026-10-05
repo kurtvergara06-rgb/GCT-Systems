@@ -12,6 +12,12 @@
         <x-layout.sidebar department="Maintenance" />
 
         <main class="main referrals-page">
+            @php
+                $currentUser = auth()->user();
+                $canReview = $currentUser?->hasSystemPermission('maintenance', 'approve') ?? false;
+                $canCreateJo = $currentUser?->hasSystemPermission('maintenance', 'edit') ?? false;
+            @endphp
+
             <x-layout.topbar
                 title="Maintenance Referrals"
                 subtitle="Review bus breakdown referrals from Operation and create traceable Job Orders"
@@ -118,28 +124,6 @@
                             @forelse($referrals as $referral)
                                 @php
                                     $incident = $referral->incident;
-                                    $currentUser = auth()->user();
-                                    $department = strtolower(trim((string) optional($currentUser)->department));
-                                    $role = strtolower(trim((string) optional($currentUser)->role));
-
-                                    $maintenanceReviewRoles = ['head', 'admin', 'maintenance head', 'maintenance admin'];
-                                    $maintenanceCreateRoles = ['staff', 'head', 'admin', 'maintenance staff', 'maintenance head', 'maintenance admin'];
-                                    $adminRoles = ['head', 'admin', 'system admin'];
-
-                                    $canReview = false;
-                                    if ($department === 'maintenance') {
-                                        $canReview = in_array($role, $maintenanceReviewRoles, true);
-                                    } elseif ($department === 'admin') {
-                                        $canReview = in_array($role, $adminRoles, true);
-                                    }
-
-                                    $canCreateJo = false;
-                                    if ($department === 'maintenance') {
-                                        $canCreateJo = in_array($role, $maintenanceCreateRoles, true);
-                                    } elseif ($department === 'admin') {
-                                        $canCreateJo = in_array($role, $adminRoles, true);
-                                    }
-
                                     $linkedJobOrder = $referral->jobOrder;
                                     $displayBusNo = $linkedJobOrder?->bus_no
                                         ?: $incident?->bus?->bus_no

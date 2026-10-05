@@ -395,6 +395,8 @@ class JobOrderController extends Controller
                 }
             }
 
+            $bus->update(['status' => 'Under Maintenance']);
+
             $createdJobOrder = JobOrder::create([
                 'job_order_no' => $this->generateJobOrderNo(),
                 'bus_no' => $validated['bus_no'],
@@ -420,6 +422,12 @@ class JobOrderController extends Controller
 
             return $createdJobOrder;
         });
+
+        $updatedBus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
+
+        if ($updatedBus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $updatedBus->id, 'A bus was placed Under Maintenance for a new Job Order.');
+        }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
 
@@ -898,7 +906,7 @@ class JobOrderController extends Controller
             $jobOrderId = $jobOrder->id;
 
             try {
-                $this->linkedJobOrderResetService->deleteRejectedWorkflow(
+                $cleanupResult = $this->linkedJobOrderResetService->deleteRejectedWorkflow(
                     $jobOrder->job_order_no
                 );
             } catch (\RuntimeException $exception) {
@@ -910,6 +918,16 @@ class JobOrderController extends Controller
                 }
 
                 return redirect()->back()->with('error', $message);
+            }
+
+            if ($cleanupResult['bus_released_id'] ?? null) {
+                $this->broadcastSystemDataUpdated(
+                    'Operation',
+                    'Bus',
+                    'updated',
+                    $cleanupResult['bus_released_id'],
+                    'A bus was returned to Active after its Job Order was safely deleted.'
+                );
             }
 
             $this->broadcastSystemDataUpdated(
@@ -934,10 +952,20 @@ class JobOrderController extends Controller
 
         $jobOrderId = $jobOrder->id;
         $assignedMechanic = $jobOrder->assigned_mechanic;
-        $jobOrder->delete();
+        $busNo = $jobOrder->bus_no;
 
-        if ($assignedMechanic) {
-            $this->setMechanicStatus($assignedMechanic, 'Present');
+        $releasedBus = DB::transaction(function () use ($assignedMechanic, $busNo, $jobOrder): ?Bus {
+            JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id)->delete();
+
+            if ($assignedMechanic) {
+                $this->setMechanicStatus($assignedMechanic, 'Present');
+            }
+
+            return $this->releaseBusWithoutActiveJobOrders($busNo);
+        });
+
+        if ($releasedBus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $releasedBus->id, 'A bus was returned to Active after its Job Order was deleted.');
         }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'deleted', $jobOrderId, 'A job order was deleted.');
@@ -991,6 +1019,31 @@ class JobOrderController extends Controller
         }
 
         return $jobOrder->part_status === 'Issued';
+    }
+
+    private function releaseBusWithoutActiveJobOrders(string $busNo): ?Bus
+    {
+        $bus = Bus::query()
+            ->where('bus_no', $busNo)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $bus || $bus->status !== 'Under Maintenance') {
+            return null;
+        }
+
+        $hasActiveJobOrder = JobOrder::query()
+            ->where('bus_no', $busNo)
+            ->where('status', '!=', 'Completed')
+            ->exists();
+
+        if ($hasActiveJobOrder) {
+            return null;
+        }
+
+        $bus->update(['status' => 'Active']);
+
+        return $bus->fresh();
     }
 
     private function generateJobOrderNo(): string

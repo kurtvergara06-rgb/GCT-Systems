@@ -87,6 +87,35 @@ class MaintenanceWorkflowHardeningTest extends TestCase
         $this->assertSame(1, JobOrder::where('bus_no', $bus->bus_no)->count());
     }
 
+    public function test_manual_job_order_creation_and_safe_deletion_keep_bus_status_in_sync(): void
+    {
+        $staff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        $bus = Bus::create([
+            'bus_no' => 'BUS-MANUAL-LIFECYCLE',
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($staff)->post(route('job-orders.store'), [
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Manual repair workflow',
+            'maintenance_type' => 'Repair',
+        ])->assertRedirect();
+
+        $jobOrder = JobOrder::where('bus_no', $bus->bus_no)->firstOrFail();
+        $this->assertSame('Under Maintenance', $bus->fresh()->status);
+
+        $this->actingAs($staff)
+            ->delete(route('job-orders.destroy', $jobOrder))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('job_orders', ['id' => $jobOrder->id]);
+        $this->assertSame('Active', $bus->fresh()->status);
+    }
+
     public function test_completing_the_last_job_order_returns_bus_to_active(): void
     {
         $staff = User::factory()->create([
