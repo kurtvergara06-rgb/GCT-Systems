@@ -3117,6 +3117,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     const label = trigger.querySelector('.jo-mechanic-combobox-label');
     const searchInput = menu.querySelector('input');
     const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
+    const hostSection = select.closest('.jo-create-section');
 
     const getDisplayText = (option) => {
       const originalText = option?.textContent?.trim() || '';
@@ -3130,6 +3131,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       menu.hidden = true;
       combobox.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
+
+      if (config.className === 'jo-bus-combobox') {
+        hostSection?.classList.remove('has-open-bus-menu');
+      }
     };
 
     const updateLabel = () => {
@@ -3235,6 +3240,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       menu.hidden = false;
       combobox.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
+
+      if (config.className === 'jo-bus-combobox') {
+        hostSection?.classList.add('has-open-bus-menu');
+      }
+
       searchInput.value = '';
       filterOptions();
       window.setTimeout(() => searchInput.focus(), 0);
