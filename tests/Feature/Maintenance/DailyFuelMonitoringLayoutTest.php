@@ -21,7 +21,7 @@ class DailyFuelMonitoringLayoutTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            'grid-template-columns: 320px 210px;',
+            'grid-template-columns: minmax(230px, 320px) minmax(170px, 210px);',
             $css
         );
         $this->assertStringContainsString(

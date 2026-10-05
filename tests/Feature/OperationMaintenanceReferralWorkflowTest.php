@@ -285,8 +285,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             route('job-orders', [
                 'record_view' => 'history',
                 'search' => $jobOrder->job_order_no,
-            ]),
-            false
+            ])
         );
     }
 
@@ -346,8 +345,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             route('job-orders', [
                 'record_view' => 'active',
                 'search' => $jobOrder->job_order_no,
-            ]),
-            false
+            ])
         );
     }
 

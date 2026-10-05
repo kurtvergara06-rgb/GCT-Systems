@@ -140,7 +140,7 @@
       </section>
 
       {{-- DAILY FUEL MONITORING --}}
-      <section data-ajax-region="records" class="table-card fuel-card daily-monitoring-card">
+      <section data-ajax-region="monitoring-records" class="table-card fuel-card daily-monitoring-card">
 
         <div class="section-header daily-monitoring-header">
           <div>
@@ -334,7 +334,7 @@
 
 
       {{-- RECENT FUEL ENTRIES --}}
-      <section data-ajax-region="records" class="table-card fuel-card recent-fuel-card">
+      <section data-ajax-region="fuel-records" class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>

@@ -88,7 +88,5 @@ Route::middleware([
             Route::post('/{purchaseRequest}/approve', 'approve')->name('purchase-requests.approve');
             Route::post('/{purchaseRequest}/reject', 'reject')->name('purchase-requests.reject');
             Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('purchase-requests.for-purchase');
-            Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('purchase-requests.delivered');
-            Route::post('/{purchaseRequest}/issue', 'issue')->name('purchase-requests.issue');
         });
 });

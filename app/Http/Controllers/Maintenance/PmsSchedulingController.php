@@ -4,16 +4,17 @@ namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
-use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\PmsSchedule;
 use App\Services\Maintenance\PmsStatusService;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PmsSchedulingController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     private const PER_PAGE = 20;
 
     public function __construct(
@@ -23,19 +24,6 @@ class PmsSchedulingController extends Controller
 
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Synchronize PMS records with the official Bus Master List
-        |--------------------------------------------------------------------------
-        |
-        | This will:
-        | 1. Remove PMS records belonging to deleted buses.
-        | 2. Create missing default PMS tasks for existing buses.
-        |
-        */
-
-        $this->syncSchedulesFromBuses();
-
         $schedules = PmsSchedule::query()
             ->orderBy('bus_no')
             ->orderBy('maintenance_type')
@@ -284,7 +272,9 @@ class PmsSchedulingController extends Controller
                     : null
             )?->toDateString();
 
-        PmsSchedule::create($validated);
+        $schedule = PmsSchedule::create($validated);
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'PmsSchedule', 'created', $schedule->id, 'A PMS task was created.');
 
         return redirect()
             ->to(route('PMS-Scheduling', [], false))
@@ -361,6 +351,8 @@ class PmsSchedulingController extends Controller
 
         $pmsSchedule->update($validated);
 
+        $this->broadcastSystemDataUpdated('Maintenance', 'PmsSchedule', 'updated', $pmsSchedule->id, 'A PMS task was updated.');
+
         return redirect()
             ->to(route('PMS-Scheduling', [], false))
             ->with(
@@ -385,7 +377,10 @@ class PmsSchedulingController extends Controller
                 );
         }
 
+        $scheduleId = $pmsSchedule->id;
         $pmsSchedule->delete();
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'PmsSchedule', 'deleted', $scheduleId, 'A PMS task was deleted.');
 
         return redirect()
             ->to(route('PMS-Scheduling', [], false))
@@ -461,133 +456,5 @@ class PmsSchedulingController extends Controller
             )
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Synchronize PMS Schedules with Bus Master List
-    |--------------------------------------------------------------------------
-    |
-    | The Bus Master List is the official source of buses.
-    |
-    | This method:
-    | 1. Deletes PMS schedules for buses no longer in the master list.
-    | 2. Deletes related Job Orders for removed PMS schedules.
-    | 3. Creates missing default PMS tasks for valid buses.
-    |
-    */
-
-    private function syncSchedulesFromBuses(): void
-    {
-        $defaultTasks = [
-            [
-                'maintenance_type' => 'Change Oil',
-                'interval' => 5000,
-            ],
-            [
-                'maintenance_type' => 'Oil Filter',
-                'interval' => 5000,
-            ],
-            [
-                'maintenance_type' => 'Brake Check',
-                'interval' => 10000,
-            ],
-            [
-                'maintenance_type' => 'Air Filter',
-                'interval' => 10000,
-            ],
-        ];
-
-        DB::transaction(function () use ($defaultTasks) {
-            /*
-            |--------------------------------------------------------------------------
-            | Retrieve official buses
-            |--------------------------------------------------------------------------
-            */
-
-            $buses = Bus::query()
-                ->orderBy('bus_no')
-                ->get();
-
-            $officialBusNumbers = $buses
-                ->pluck('bus_no')
-                ->map(
-                    fn ($busNo) => strtoupper(
-                        trim((string) $busNo)
-                    )
-                )
-                ->filter()
-                ->unique()
-                ->values();
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete orphaned PMS schedules
-            |--------------------------------------------------------------------------
-            |
-            | A PMS schedule is orphaned when its bus number is no longer
-            | found in the official Bus Master List.
-            |
-            */
-
-            $orphanedSchedules = PmsSchedule::query()
-                ->with('jobOrders')
-                ->get()
-                ->filter(function (PmsSchedule $schedule) use (
-                    $officialBusNumbers
-                ) {
-                    $scheduleBusNo = strtoupper(
-                        trim((string) $schedule->bus_no)
-                    );
-
-                    return ! $officialBusNumbers->contains(
-                        $scheduleBusNo
-                    );
-                });
-
-            foreach ($orphanedSchedules as $schedule) {
-                $hasJobOrders = $schedule
-                    ->jobOrders()
-                    ->exists();
-
-                if ($hasJobOrders) {
-                    continue;
-                }
-
-                $schedule->delete();
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Create missing default PMS tasks
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($buses as $bus) {
-                $lastPmsKm = (float) (
-                    $bus->last_pms_km ?? 0
-                );
-
-                foreach ($defaultTasks as $task) {
-                    PmsSchedule::firstOrCreate(
-                        [
-                            'bus_no' => $bus->bus_no,
-                            'maintenance_type' =>
-                                $task['maintenance_type'],
-                        ],
-                        [
-                            'last_pms_km' => $lastPmsKm,
-                            'pms_interval_km' =>
-                                $task['interval'],
-                            'next_pms_km' =>
-                                $lastPmsKm
-                                + $task['interval'],
-                            'recommended_date' => null,
-                        ]
-                    );
-                }
-            }
-        });
-    }
-
 
 }

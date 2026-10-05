@@ -29,14 +29,14 @@
                 </div>
             @endif
 
-            <section class="stats-grid referral-stats-grid">
+            <section data-ajax-region="summary" class="stats-grid referral-stats-grid">
                 <x-ui.summary-card label="Pending" :value="$pendingCount" small="Needs review" icon="fa-clock" color="yellow" />
                 <x-ui.summary-card label="Approved" :value="$approvedCount" small="Ready for JO" icon="fa-circle-check" color="green" />
                 <x-ui.summary-card label="JO Created" :value="$createdCount" small="Linked to repair" icon="fa-clipboard-list" color="blue" />
                 <x-ui.summary-card label="Rejected" :value="$rejectedCount" small="Not accepted" icon="fa-circle-xmark" color="red" />
             </section>
 
-            <section class="table-card referrals-card">
+            <section data-ajax-region="records" class="table-card referrals-card">
                 <div class="section-header referral-section-header">
                     <div>
                         <h2>Operation Referrals</h2>
