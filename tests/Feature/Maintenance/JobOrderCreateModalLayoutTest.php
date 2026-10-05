@@ -355,7 +355,7 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
-    public function test_new_job_order_bus_dropdown_shows_four_rows_then_scrolls(): void
+    public function test_new_job_order_bus_dropdown_floats_with_four_rows_then_scrolls(): void
     {
         $js = file_get_contents(
             resource_path('js/Maintenance/job-order.js')
@@ -369,15 +369,19 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $js
         );
         $this->assertStringContainsString(
-            '#jobModal .jo-create-section.jo-create-basic',
-            $css
+            "menu.classList.add('jo-bus-menu-portal')",
+            $js
         );
         $this->assertStringContainsString(
-            'overflow: visible;',
-            $css
+            'document.body.appendChild(menu);',
+            $js
         );
         $this->assertStringContainsString(
-            '#jobModal .jo-bus-combobox .jo-mechanic-combobox-options',
+            'positionBusMenu',
+            $js
+        );
+        $this->assertStringContainsString(
+            '.jo-bus-menu-portal',
             $css
         );
         $this->assertStringContainsString(
@@ -392,17 +396,53 @@ class JobOrderCreateModalLayoutTest extends TestCase
             'min-height: 52px;',
             $css
         );
+        $this->assertStringNotContainsString(
+            'padding-bottom: 150px;',
+            $css
+        );
+    }
+
+    public function test_new_job_order_save_shows_clear_required_field_feedback(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
         $this->assertStringContainsString(
-            'has-open-bus-menu',
+            'validateNewJobOrderForm',
             $js
         );
         $this->assertStringContainsString(
-            '#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu',
-            $css
+            'Please select a Bus.',
+            $js
         );
         $this->assertStringContainsString(
-            'padding-bottom: 150px;',
-            $css
+            'Please enter the Problem / Issue.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please enter the Work / Repair to Perform.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please select a Maintenance Job.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please enter a valid Estimated Time.',
+            $js
+        );
+        $this->assertStringContainsString(
+            "window.showSystemToast(",
+            $js
+        );
+        $this->assertStringContainsString(
+            "'Validation Error'",
+            $js
+        );
+        $this->assertStringContainsString(
+            'scrollIntoView?.({',
+            $js
         );
     }
 
