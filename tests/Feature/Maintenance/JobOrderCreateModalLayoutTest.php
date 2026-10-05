@@ -461,11 +461,15 @@ class JobOrderCreateModalLayoutTest extends TestCase
             substr_count($view, 'label="Bus Plate"')
         );
         $this->assertStringContainsString(
-            "$bus->bus_no => ($bus->plate_no ?: 'Plate not assigned')",
+            <<<'BLADE'
+$bus->bus_no => ($bus->plate_no ?: 'Plate not assigned')
+BLADE,
             $view
         );
         $this->assertStringNotContainsString(
-            "$bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')",
+            <<<'BLADE'
+$bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+BLADE,
             $view
         );
         $this->assertStringContainsString(
