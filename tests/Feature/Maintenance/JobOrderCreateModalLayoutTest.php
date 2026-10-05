@@ -354,4 +354,44 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $css
         );
     }
+
+    public function test_new_job_order_bus_dropdown_shows_four_rows_then_scrolls(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        $this->assertStringContainsString(
+            "className: 'jo-bus-combobox'",
+            $js
+        );
+        $this->assertStringContainsString(
+            '#jobModal .jo-create-section.jo-create-basic',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow: visible;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#jobModal .jo-bus-combobox .jo-mechanic-combobox-options',
+            $css
+        );
+        $this->assertStringContainsString(
+            'max-height: 208px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow-y: auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-height: 52px;',
+            $css
+        );
+    }
+
 }
