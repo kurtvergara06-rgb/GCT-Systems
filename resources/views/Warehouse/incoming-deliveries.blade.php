@@ -31,33 +31,39 @@
       </section>
 
       <section data-ajax-region="records" class="table-card incoming-delivery-card">
-        <div class="section-header">
+        <div class="section-header warehouse-record-header">
           <div>
-            <h2>{{ $isHistory ? 'Delivery History' : 'Active Incoming Deliveries' }}</h2>
-            <p>{{ $isHistory ? 'Warehouse-received purchase orders are retained here as read-only history.' : 'Purchase Orders ready for Warehouse receiving appear here.' }}</p>
+            <h2>Delivery Records</h2>
+            <p>Purchase Orders ready for Warehouse receiving and completed receipt records.</p>
           </div>
+
+          <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view" role="tablist">
+            <a
+              href="{{ route('incoming-deliveries', ['view' => 'active']) }}"
+              class="warehouse-record-tab {{ !$isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-list-check"></i>
+              <span>Active</span>
+            </a>
+            <a
+              href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
+              class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ $isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+            </a>
+          </nav>
         </div>
 
-        <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view">
-          <a
-            href="{{ route('incoming-deliveries', ['view' => 'active']) }}"
-            class="warehouse-record-tab {{ !$isHistory ? 'active' : '' }}"
-            @if(!$isHistory) aria-current="page" @endif
-          >
-            <i class="fa-solid fa-truck-fast"></i>
-            Active
-            <span>{{ $activeCount ?? 0 }}</span>
-          </a>
-          <a
-            href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
-            class="warehouse-record-tab {{ $isHistory ? 'active' : '' }}"
-            @if($isHistory) aria-current="page" @endif
-          >
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            History
-            <span>{{ $historyCount ?? 0 }}</span>
-          </a>
-        </nav>
+        @if($isHistory)
+          <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
+        @endif
 
         <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-server-filter="true">
           <input type="hidden" name="view" value="{{ $currentView }}">
