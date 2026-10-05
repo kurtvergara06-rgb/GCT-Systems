@@ -151,7 +151,7 @@ class JobOrderController extends Controller
 
         $availableMechanics =
             MechanicAttendance::query()
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
                 ->whereIn(
                     'status',
                     ['Present', 'Late', 'On Duty']
@@ -168,7 +168,7 @@ class JobOrderController extends Controller
 
         $allMechanics =
             MechanicAttendance::query()
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
                 ->orderBy(
                     'mechanic_name'
                 )
@@ -264,7 +264,7 @@ class JobOrderController extends Controller
                 ->values();
 
         $mechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', today())
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
             ->whereIn('status', ['Present', 'Late', 'On Duty'])
             ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
             ->whereNotIn('mechanic_name', $assignedActiveMechanics)
@@ -320,7 +320,7 @@ class JobOrderController extends Controller
         if ($assignedMechanic) {
             $mechanic = MechanicAttendance::query()
                 ->where('mechanic_name', $assignedMechanic)
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
                 ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                 ->latest('id')
                 ->first();
@@ -381,7 +381,7 @@ class JobOrderController extends Controller
             if ($assignedMechanic) {
                 $mechanic = MechanicAttendance::query()
                     ->where('mechanic_name', $assignedMechanic)
-                    ->whereDate('attendance_date', today())
+                    ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
                     ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                     ->latest('id')
                     ->lockForUpdate()
@@ -498,7 +498,7 @@ class JobOrderController extends Controller
         if ($newMechanic && $oldMechanic !== $newMechanic) {
             $mechanic = MechanicAttendance::query()
                 ->where('mechanic_name', $newMechanic)
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
                 ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                 ->latest('id')
                 ->first();
@@ -1004,7 +1004,7 @@ class JobOrderController extends Controller
 
         $attendance = MechanicAttendance::query()
             ->where('mechanic_name', $mechanicName)
-            ->whereDate('attendance_date', today())
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
             ->latest('id')
             ->first();
 
