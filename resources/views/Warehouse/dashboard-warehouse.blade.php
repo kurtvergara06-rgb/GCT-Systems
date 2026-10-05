@@ -88,7 +88,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory', ['status' => 'In Stock']) }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
           <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cube"></i></span>
           <span class="warehouse-kpi-content">
             <small>Available Stock</small>
@@ -97,7 +97,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory', ['status' => 'Low Stock']) }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
           <span class="warehouse-kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></span>
           <span class="warehouse-kpi-content">
             <small>Low Stock Items</small>
@@ -106,7 +106,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory', ['status' => 'Critical']) }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
           <span class="warehouse-kpi-icon red"><i class="fa-solid fa-box-open"></i></span>
           <span class="warehouse-kpi-content">
             <small>Out of Stock</small>
@@ -296,7 +296,7 @@
           </div>
         </article>
 
-        <article class="warehouse-panel" data-ajax-region="dashboard-stock-movements">
+        <article class="warehouse-panel" data-ajax-region="recent-stock-movements">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">TRANSACTION AUDIT</span>
