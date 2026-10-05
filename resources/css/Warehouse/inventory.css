@@ -765,3 +765,276 @@
   white-space: nowrap;
   line-height: 1.5;
 }
+
+
+/* =====================================================
+   INVENTORY ADD / EDIT MODAL REDESIGN
+   Matches the Maintenance form language while keeping
+   Warehouse-specific fields and workflow behavior.
+===================================================== */
+
+.inventory-form-modal-overlay {
+  padding: 22px;
+}
+
+.inventory-form-modal-overlay .inventory-form-modal {
+  width: min(860px, calc(100vw - 44px));
+  max-width: 860px;
+  max-height: calc(100vh - 44px);
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.inventory-form-modal-header {
+  padding: 18px 20px 16px;
+  background: #ffffff;
+}
+
+.inventory-form-modal-header .ui-form-title-wrap {
+  gap: 13px;
+}
+
+.inventory-form-modal-header .ui-form-title-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+
+.inventory-form-modal-header .ui-form-title-wrap h2 {
+  font-size: 20px;
+}
+
+.inventory-form-modal-header .ui-form-title-wrap p {
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+.inventory-form-modal-header .ui-form-close {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+}
+
+.inventory-form-content {
+  overflow: hidden;
+}
+
+.inventory-form-modal-body {
+  height: min(720px, calc(100vh - 132px));
+  min-height: 0;
+  padding: 14px 16px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.inventory-form-scrollable {
+  min-height: 0;
+  padding: 0 4px 4px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d5e5 transparent;
+}
+
+.inventory-form-scrollable::-webkit-scrollbar {
+  width: 7px;
+}
+
+.inventory-form-scrollable::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #c8d5e5;
+}
+
+.inventory-modal-section.ui-form-section {
+  margin: 0 0 12px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.inventory-modal-section .ui-form-section-header {
+  margin: 0;
+  padding: 11px 13px;
+  border-bottom: 1px solid #e7edf5;
+}
+
+.inventory-modal-section .ui-form-section-title {
+  gap: 10px;
+}
+
+.inventory-modal-section .ui-form-section-icon {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.inventory-modal-section .ui-form-section-title h3 {
+  font-size: 13px;
+}
+
+.inventory-modal-section .ui-form-section-title p {
+  margin-top: 2px;
+  font-size: 10px;
+}
+
+.inventory-modal-section .ui-form-section-body {
+  padding: 13px;
+}
+
+.inventory-section-basic .ui-form-section-header {
+  background: #f3f8ff;
+}
+
+.inventory-section-basic .ui-form-section-icon {
+  border-color: #d7e7ff;
+  background: #e8f1ff;
+  color: #0b40b5;
+}
+
+.inventory-section-details .ui-form-section-header {
+  background: #f7f5ff;
+}
+
+.inventory-section-details .ui-form-section-icon {
+  border-color: #e4ddff;
+  background: #eee9ff;
+  color: #6d28d9;
+}
+
+.inventory-section-additional .ui-form-section-header {
+  background: #f1fbf6;
+}
+
+.inventory-section-additional .ui-form-section-icon {
+  border-color: #cef0dc;
+  background: #dcf8e8;
+  color: #16824a;
+}
+
+.inventory-form-modal .ui-form-grid {
+  gap: 12px 14px;
+}
+
+.inventory-form-modal .ui-form-group {
+  gap: 6px;
+}
+
+.inventory-form-modal .ui-form-group > label {
+  color: #14213a;
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.inventory-form-modal .ui-form-group input,
+.inventory-form-modal .ui-form-group select {
+  height: 40px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.inventory-form-modal .ui-form-group textarea {
+  min-height: 72px;
+  max-height: 110px;
+  border-radius: 8px;
+  font-size: 11px;
+  resize: vertical;
+}
+
+.inventory-form-modal .ui-input-wrap.has-icon input,
+.inventory-form-modal .ui-input-wrap.has-icon select {
+  padding-left: 40px;
+}
+
+.inventory-form-modal .ui-input-icon {
+  left: 13px;
+  color: #29466d;
+  font-size: 11px;
+}
+
+.inventory-field-help {
+  margin-top: -1px;
+  color: #718096;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.inventory-form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  flex: 0 0 auto;
+  margin: 0 -16px;
+  padding: 12px 16px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e7edf5;
+}
+
+.inventory-form-actions .ui-form-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.inventory-form-actions .ui-form-btn-cancel {
+  min-width: 96px;
+}
+
+.inventory-form-actions .ui-form-btn-primary {
+  min-width: 118px;
+}
+
+#editAdjustmentRequiredMark[hidden] {
+  display: none !important;
+}
+
+#edit_adjustment_reason:required {
+  border-color: #f4b840;
+}
+
+#edit_adjustment_reason:required:focus {
+  border-color: #d99a00;
+  box-shadow: 0 0 0 3px rgba(217, 154, 0, .12);
+}
+
+@media (max-width: 760px) {
+  .inventory-form-modal-overlay {
+    align-items: flex-start !important;
+    padding: 10px !important;
+  }
+
+  .inventory-form-modal-overlay .inventory-form-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+  }
+
+  .inventory-form-modal-header {
+    padding: 15px 14px 13px;
+  }
+
+  .inventory-form-modal-body {
+    height: calc(100vh - 104px);
+    padding: 12px 12px 0;
+  }
+
+  .inventory-form-modal .ui-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-form-actions {
+    margin: 0 -12px;
+    padding: 11px 12px 12px;
+  }
+
+  .inventory-form-actions .ui-form-btn {
+    width: 100%;
+  }
+}
