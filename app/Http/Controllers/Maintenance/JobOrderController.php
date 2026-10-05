@@ -382,7 +382,7 @@ class JobOrderController extends Controller
                     ->where('mechanic_name', $assignedMechanic)
                     ->whereDate('attendance_date', today())
                     ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-                ->latest('id')
+                    ->latest('id')
                     ->lockForUpdate()
                     ->first();
 
