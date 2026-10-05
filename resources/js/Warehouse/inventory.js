@@ -52,7 +52,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
   const inventoryTable = document.querySelector('.inventory-table');
   const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
   const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
-  const sourceSelect = inventoryToolbar?.querySelector('select[name="source"]');
   const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
 
   function inventoryRows() {
@@ -91,7 +90,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     const row = document.createElement('tr');
     row.className = 'empty-row inventory-client-empty';
-    row.innerHTML = '<td colspan="11">No inventory items match the current filters.</td>';
+    row.innerHTML = '<td colspan="8">No inventory items match the current filters.</td>';
     body.appendChild(row);
   }
 
@@ -117,12 +116,12 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     inventoryRows().forEach(function (row) {
       const cells = row.cells;
-      const categoryText = String(cells[2]?.textContent || '').trim().toLowerCase();
+      const categoryText = String(cells[1]?.textContent || '').trim().toLowerCase();
       const searchableText = [
         cells[0]?.textContent,
         cells[1]?.textContent,
-        cells[7]?.textContent,
-        cells[8]?.textContent,
+        cells[5]?.textContent,
+        cells[6]?.textContent,
       ].join(' ').toLowerCase();
 
       const matchesSearch = !search || searchableText.includes(search);
@@ -149,21 +148,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
   if (inventoryToolbar && inventoryToolbar.dataset.serverFilter !== 'true') {
     inventoryToolbar.dataset.clientFilter = 'true';
-
-    if (sourceSelect) {
-      sourceSelect.addEventListener('change', function () {
-        const url = new URL(window.location.href);
-        url.searchParams.set('source', sourceSelect.value || 'app');
-        url.searchParams.delete('page');
-
-        if (window.GCTPartialNavigation?.navigate) {
-          window.GCTPartialNavigation.navigate(url.href);
-          return;
-        }
-
-        window.location.assign(url.href);
-      });
-    }
 
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
