@@ -728,7 +728,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
         /*
          * Always pull the latest attendance state before the New JO modal
-         * is used. This keeps newly recorded Present/Late mechanics
+         * is used. This keeps newly recorded attended/free mechanics
          * selectable even when Reverb was temporarily disconnected.
          */
         void refreshAvailableMechanicsDropdown();
