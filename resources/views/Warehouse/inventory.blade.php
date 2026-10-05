@@ -84,18 +84,6 @@
           </div>
 
           <div class="filter-group">
-            <select
-              name="source"
-              id="inventorySourceFilter"
-              aria-label="Filter inventory by record source"
-            >
-              <option value="app" @selected($sourceFilter === 'app')>Application Records</option>
-              <option value="simulated" @selected($sourceFilter === 'simulated')>Simulated Records</option>
-              <option value="all" @selected($sourceFilter === 'all')>All Sources</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
             <select name="category" aria-label="Filter inventory by category">
               <option value="All Categories" @selected(request('category', 'All Categories') === 'All Categories')>All Categories</option>
 
@@ -142,15 +130,12 @@
                   };
                 @endphp
 
-                <tr class="{{ $rowClass }}" data-source="{{ $item->source }}">
+                <tr class="{{ $rowClass }}">
                   <td>
                     <div class="inventory-item-cell">
                       <strong>{{ $item->item_name }}</strong>
                       <div class="inventory-item-meta">
                         <small>{{ $item->item_code }}</small>
-                        <span class="source-badge source-badge--{{ $item->source === 'app' ? 'app' : 'simulated' }}">
-                          {{ $item->source === 'app' ? 'Application' : 'Simulated' }}
-                        </span>
                       </div>
                     </div>
                   </td>
