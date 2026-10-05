@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -47,6 +47,11 @@ class EtaStatusResponse(BaseModel):
     sample_count: int
     distinct_routes: int
     model_path: str
+    model_version: str
+    split_strategy: str
+    selected_model: Dict[str, str]
+    metrics: Dict[str, Optional[float]]
+    candidate_models: List[Dict[str, Any]]
     reason: str
 
 
@@ -70,6 +75,11 @@ def eta_model_status() -> EtaStatusResponse:
         sample_count=readiness.sample_count,
         distinct_routes=readiness.distinct_routes,
         model_path=str(readiness.model_path or ""),
+        model_version=readiness.model_version,
+        split_strategy=readiness.split_strategy,
+        selected_model=readiness.selected_model,
+        metrics=readiness.metrics,
+        candidate_models=readiness.candidate_models,
         reason=readiness.reason,
     )
 
