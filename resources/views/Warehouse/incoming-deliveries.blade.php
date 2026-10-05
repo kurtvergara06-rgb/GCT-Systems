@@ -9,6 +9,8 @@
 >
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+    $currentView = $currentView ?? 'active';
+    $isHistory = $currentView === 'history';
   @endphp
 
   <div class="app">
@@ -31,12 +33,34 @@
       <section data-ajax-region="records" class="table-card incoming-delivery-card">
         <div class="section-header">
           <div>
-            <h2>Delivery Records</h2>
-            <p>Purchase Orders marked for delivery appear here for Warehouse receiving.</p>
+            <h2>{{ $isHistory ? 'Delivery History' : 'Active Incoming Deliveries' }}</h2>
+            <p>{{ $isHistory ? 'Warehouse-received purchase orders are retained here as read-only history.' : 'Purchase Orders ready for Warehouse receiving appear here.' }}</p>
           </div>
         </div>
 
+        <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view">
+          <a
+            href="{{ route('incoming-deliveries', ['view' => 'active']) }}"
+            class="warehouse-record-tab {{ !$isHistory ? 'active' : '' }}"
+            @if(!$isHistory) aria-current="page" @endif
+          >
+            <i class="fa-solid fa-truck-fast"></i>
+            Active
+            <span>{{ $activeCount ?? 0 }}</span>
+          </a>
+          <a
+            href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
+            class="warehouse-record-tab {{ $isHistory ? 'active' : '' }}"
+            @if($isHistory) aria-current="page" @endif
+          >
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            History
+            <span>{{ $historyCount ?? 0 }}</span>
+          </a>
+        </nav>
+
         <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-server-filter="true">
+          <input type="hidden" name="view" value="{{ $currentView }}">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO no., supplier, item, or delivery...">
@@ -44,7 +68,7 @@
 
           <div class="filter-group">
             <select name="status" id="deliveryStatus">
-              @foreach(['All Statuses', 'For Delivery', 'For Pick-up', 'Delivered', 'Picked Up', 'Received'] as $status)
+              @foreach(array_merge(['All Statuses'], $statusOptions ?? []) as $status)
                 <option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>
               @endforeach
             </select>
@@ -91,8 +115,8 @@
                     <x-ui.status-badge :status="$displayStatus" class="delivery-status {{ $statusClass }}" />
                   </td>
                   <td>
-                    @if($received)
-                      <span class="delivery-status received"><i class="fa-solid fa-circle-check"></i>&nbsp; Received</span>
+                    @if($isHistory || $received)
+                      <span class="delivery-status received"><i class="fa-solid fa-lock"></i>&nbsp; Read only</span>
                     @elseif($canEditWarehouse && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
                       <form
                         action="{{ route('incoming-deliveries.receive', $delivery) }}"
@@ -121,8 +145,8 @@
                     <x-ui.empty-state
                       class="delivery-empty-state"
                       icon="fa-truck-ramp-box"
-                      title="No incoming deliveries"
-                      description="Purchase Orders marked For Delivery or For Pick-up will appear here automatically."
+                      :title="$isHistory ? 'No delivery history' : 'No incoming deliveries'"
+                      :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Purchase Orders marked For Delivery or For Pick-up will appear here automatically.'"
                     />
                   </td>
                 </tr>
