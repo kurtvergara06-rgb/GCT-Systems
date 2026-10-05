@@ -30,6 +30,7 @@
           $approved = $approved ?? 0;
           $forPurchase = $forPurchase ?? 0;
           $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
+          $workToPerformByJobOrder = $workToPerformByJobOrder ?? collect();
 
           $availablePrJobOrders = $jobOrders->filter(function ($jobOrder) {
               if (
@@ -254,6 +255,7 @@
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
                                                   data-source-type="{{ $pr->source_type ?: 'Maintenance Request' }}"
+                                                  data-work-to-perform="{{ $workToPerformByJobOrder->get($pr->job_order_no, '') }}"
                                                   data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
                                                   data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
                                                   data-approve-url="{{ route('purchase-requests.approve', $pr->id, false) }}"
@@ -497,6 +499,11 @@
               </div>
 
               <div class="pr-review-detail-row pr-review-detail-full">
+                  <span>Work / Repair to Perform</span>
+                  <strong id="reviewPrWorkToPerform">No work / repair details recorded.</strong>
+              </div>
+
+              <div class="pr-review-detail-row pr-review-detail-full">
                   <span>Remarks</span>
                   <strong id="reviewPrRemarks">No remarks provided.</strong>
               </div>
@@ -641,10 +648,8 @@
 
       <form id="rejectPrForm" action="#" method="POST" class="hidden">
           @csrf
-          <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance Head">
+          <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance">
       </form>
-
-      <x-ui.action-buttom-modal mode="global-confirmation" />
 
       <x-ui.action-buttom-modal
           mode="delete"

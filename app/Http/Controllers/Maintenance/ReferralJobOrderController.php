@@ -15,7 +15,7 @@ class ReferralJobOrderController extends Controller
 
     public function store(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
-        $this->authorizeMaintenanceStaff();
+        $this->authorizeJobOrderCreation();
 
         $maintenanceReferral->load(['incident.bus', 'incident.tripSchedule.shuttleRoute', 'jobOrder']);
 
@@ -64,18 +64,18 @@ class ReferralJobOrderController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            preg_match('/JO-' . $year . '-(\d+)/', (string) ($lastJobOrder?->job_order_no ?? ''), $matches);
+            preg_match('/JO-'.$year.'-(\d+)/', (string) ($lastJobOrder?->job_order_no ?? ''), $matches);
             $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
-            $jobOrderNo = 'JO-' . $year . '-' . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+            $jobOrderNo = 'JO-'.$year.'-'.str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
 
             while (JobOrder::where('job_order_no', $jobOrderNo)->exists()) {
                 $nextNumber++;
-                $jobOrderNo = 'JO-' . $year . '-' . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+                $jobOrderNo = 'JO-'.$year.'-'.str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
             }
 
             $problem = trim((string) $incident->description);
             if ($problem === '') {
-                $problem = 'Bus breakdown reported at ' . ($incident->location ?: 'an unspecified location') . '.';
+                $problem = 'Bus breakdown reported at '.($incident->location ?: 'an unspecified location').'.';
             }
 
             if ($incident->is_unplanned_breakdown) {
@@ -139,15 +139,14 @@ class ReferralJobOrderController extends Controller
             ->with('success', "Job Order {$jobOrder->job_order_no} created from incident {$incident->incident_no}. Assign a mechanic to continue the repair workflow.");
     }
 
-    private function authorizeMaintenanceStaff(): void
+    private function authorizeJobOrderCreation(): void
     {
         $user = auth()->user();
-        $department = strtolower(trim((string) ($user?->department ?? '')));
-        $role = strtolower(trim((string) ($user?->role ?? '')));
 
-        $allowed = ($department === 'maintenance' && in_array($role, ['staff', 'head', 'admin', 'maintenance staff', 'maintenance head', 'maintenance admin'], true))
-            || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
-
-        abort_unless($allowed, 403, 'Only Maintenance personnel can create Job Orders from referrals.');
+        abort_unless(
+            $user?->hasSystemPermission('maintenance', 'edit') ?? false,
+            403,
+            'Your role does not have permission to create Job Orders from referrals.'
+        );
     }
 }

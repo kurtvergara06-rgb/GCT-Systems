@@ -1392,3 +1392,659 @@
     max-height: 430px;
   }
 }
+
+
+/* =========================================================
+   PMS MODAL REDESIGN
+   Add / Edit / Task List
+========================================================= */
+
+#addPmsModal.pms-form-modal-overlay,
+#editPmsModal.pms-form-modal-overlay {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+}
+
+#addPmsModal.pms-form-modal-overlay > .ui-form-modal,
+#editPmsModal.pms-form-modal-overlay > .ui-form-modal {
+  width: min(980px, calc(100vw - 48px)) !important;
+  max-width: 980px !important;
+  max-height: calc(100vh - 48px);
+  margin: auto !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 28px 78px rgba(6, 31, 61, .26);
+}
+
+#editPmsModal.pms-form-modal-overlay > .ui-form-modal {
+  width: min(900px, calc(100vw - 48px)) !important;
+  max-width: 900px !important;
+}
+
+#addPmsModal .ui-form-modal-header,
+#editPmsModal .ui-form-modal-header {
+  flex: 0 0 auto;
+  padding: 20px 24px 17px;
+  border-bottom: 1px solid #e5ebf3;
+  background: #ffffff;
+}
+
+#addPmsModal .ui-form-title-wrap,
+#editPmsModal .ui-form-title-wrap {
+  gap: 13px;
+}
+
+#addPmsModal .ui-form-title-icon,
+#editPmsModal .ui-form-title-icon {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border: 1px solid #f5d66f;
+  border-radius: 14px;
+  background: #fff5d7;
+  color: #e7a500;
+  font-size: 19px;
+}
+
+#addPmsModal .ui-form-heading h2,
+#editPmsModal .ui-form-heading h2 {
+  color: #061f3d;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
+
+#addPmsModal .ui-form-heading p,
+#editPmsModal .ui-form-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+#addPmsModal .ui-form-close,
+#editPmsModal .ui-form-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #061f3d;
+}
+
+#addPmsModal .ui-form-content,
+#editPmsModal .ui-form-content,
+#addPmsModal .ui-form-modal-body,
+#editPmsModal .ui-form-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#addPmsModal .ui-form-modal-body,
+#editPmsModal .ui-form-modal-body {
+  padding: 18px 20px 18px;
+}
+
+#addPmsModal .ui-form-modal-scrollable,
+#editPmsModal .ui-form-modal-scrollable {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+#addPmsModal .pms-form-layout,
+#editPmsModal .pms-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#addPmsModal .pms-form-section,
+#editPmsModal .pms-form-section {
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(6, 31, 61, .035);
+}
+
+#addPmsModal .pms-form-section-header,
+#editPmsModal .pms-form-section-header {
+  min-height: 62px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #e8eef5;
+  background: #f8fbff;
+}
+
+#addPmsModal .pms-section-green .pms-form-section-header {
+  background: linear-gradient(180deg, #f2fcf9 0%, #eef9f5 100%);
+}
+
+#addPmsModal .pms-section-purple .pms-form-section-header {
+  background: linear-gradient(180deg, #f8f6ff 0%, #f4f2ff 100%);
+}
+
+#addPmsModal .pms-form-section-icon,
+#editPmsModal .pms-form-section-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid #d4e4ff;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf2ff;
+  color: #1456d5;
+  font-size: 14px;
+}
+
+#addPmsModal .pms-section-green .pms-form-section-icon {
+  border-color: #ccefe4;
+  background: #dff7ef;
+  color: #0b8a6d;
+}
+
+#addPmsModal .pms-section-purple .pms-form-section-icon {
+  border-color: #ddd7ff;
+  background: #ebe7ff;
+  color: #6547d9;
+}
+
+#addPmsModal .pms-form-section-header h3,
+#editPmsModal .pms-form-section-header h3 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#addPmsModal .pms-form-section-header p,
+#editPmsModal .pms-form-section-header p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+#addPmsModal .pms-form-section-body,
+#editPmsModal .pms-form-section-body {
+  padding: 14px 15px;
+}
+
+#addPmsModal .pms-form-grid-2,
+#editPmsModal .pms-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  align-items: end;
+}
+
+#addPmsModal .pms-form-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 15px;
+  align-items: stretch;
+}
+
+#addPmsModal .pms-form-section-compact {
+  min-width: 0;
+}
+
+#addPmsModal .ui-form-group,
+#editPmsModal .ui-form-group {
+  margin: 0;
+  min-width: 0;
+}
+
+#addPmsModal .pms-form-section-body > .ui-form-group + .ui-form-group,
+#editPmsModal .pms-form-section-body > .ui-form-group + .ui-form-group {
+  margin-top: 13px;
+}
+
+#addPmsModal label,
+#editPmsModal label {
+  margin-bottom: 7px;
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+#addPmsModal input,
+#addPmsModal select,
+#editPmsModal input,
+#editPmsModal select {
+  min-height: 43px;
+  border: 1px solid #d5e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 12.5px;
+}
+
+#addPmsModal input:focus,
+#addPmsModal select:focus,
+#editPmsModal input:focus,
+#editPmsModal select:focus {
+  border-color: #6f9de8;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
+}
+
+#addPmsModal input[readonly],
+#editPmsModal input[readonly] {
+  background: #f5f8fc;
+  color: #64748b;
+}
+
+#addPmsModal .pms-mileage-highlight-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 12px;
+}
+
+#addPmsModal .pms-mileage-highlight {
+  min-height: 76px;
+  padding: 12px 13px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #f4deb0;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #fff8e7 0%, #fff3cf 100%);
+}
+
+#addPmsModal .pms-status-highlight {
+  border-color: #dce5f2;
+  background: #f8fbff;
+}
+
+#addPmsModal .pms-mileage-highlight-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #fff0bd;
+  color: #e3a000;
+  font-size: 14px;
+}
+
+#addPmsModal .pms-status-highlight .pms-mileage-highlight-icon {
+  background: #e8f1ff;
+  color: #1456d5;
+}
+
+#addPmsModal .pms-mileage-highlight > div > span {
+  display: block;
+  margin-bottom: 2px;
+  color: #475569;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+#addPmsModal .pms-highlight-field .ui-form-group {
+  margin: 0;
+}
+
+#addPmsModal .pms-highlight-field label {
+  display: none;
+}
+
+#addPmsModal .pms-highlight-field input {
+  min-height: 28px;
+  height: 28px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #061f3d;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+#addPmsModal .pms-highlight-field .ui-input-wrap {
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+#addPmsModal .pms-highlight-field .ui-input-icon {
+  display: none;
+}
+
+#addPmsModal .ui-form-actions,
+#editPmsModal .ui-form-actions {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  padding: 15px 0 0;
+  border-top: 1px solid #e4ebf4;
+  background: #ffffff;
+}
+
+#addPmsModal .ui-form-actions .ui-form-btn,
+#editPmsModal .ui-form-actions .ui-form-btn {
+  height: 42px;
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#addPmsModal .ui-form-btn-primary,
+#editPmsModal .ui-form-btn-primary {
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  border-color: #f5a800;
+  color: #061f3d;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+}
+
+#addPmsModal .ui-form-btn-primary:hover,
+#editPmsModal .ui-form-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, .30);
+}
+
+#addPmsModal .ui-form-btn-cancel,
+#editPmsModal .ui-form-btn-cancel {
+  border: 1px solid #d5e0ed;
+  background: #ffffff;
+  color: #334155;
+}
+
+/* Edit modal target mileage card */
+#editPmsModal .pms-edit-next-km-card {
+  min-height: 76px;
+  padding: 11px 12px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #f4deb0;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #fff8e7 0%, #fff3cf 100%);
+}
+
+#editPmsModal .pms-edit-next-km-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #fff0bd;
+  color: #e3a000;
+  font-size: 14px;
+}
+
+#editPmsModal .pms-edit-next-km-label {
+  display: block;
+  margin-bottom: 2px;
+  color: #475569;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+#editPmsModal .pms-edit-next-km-card .ui-form-group {
+  margin: 0;
+}
+
+#editPmsModal .pms-edit-next-km-card label {
+  display: none;
+}
+
+#editPmsModal .pms-edit-next-km-card input {
+  min-height: 29px;
+  height: 29px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #061f3d;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+#editPmsModal .pms-edit-next-km-card .ui-input-wrap {
+  min-height: 29px;
+  border: 0;
+  background: transparent;
+}
+
+#editPmsModal .pms-edit-next-km-card .ui-input-icon {
+  display: none;
+}
+
+#editPmsModal .pms-edit-other-type {
+  margin-top: 13px;
+}
+
+/* Task list modal */
+.pms-tasks-popup .pms-task-list-modal {
+  width: min(1180px, calc(100vw - 48px));
+  max-width: 1180px;
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.pms-tasks-popup .pms-task-list-header {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 20px 22px 17px;
+  align-items: center;
+  border-bottom: 1px solid #e5ebf3;
+}
+
+.pms-tasks-popup .pms-task-list-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.pms-tasks-popup .pms-modal-title-icon {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f5d66f;
+  border-radius: 14px;
+  background: #fff5d7;
+  color: #e7a500;
+  font-size: 19px;
+}
+
+.pms-tasks-popup .pms-task-list-header h2 {
+  font-size: 22px;
+  letter-spacing: -.015em;
+}
+
+.pms-tasks-popup .pms-task-list-header p {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.pms-tasks-popup .pms-task-list-header p strong {
+  color: #334155;
+  font-weight: 700;
+}
+
+.pms-tasks-popup .pms-task-list-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 16px 20px 0;
+  overflow: hidden;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap {
+  max-height: min(58vh, 560px);
+  margin: 0;
+  overflow: auto;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: #ffffff;
+  scrollbar-gutter: stable;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap .pms-table {
+  margin: 0;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap .pms-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f3f7fc;
+  color: #475569;
+  box-shadow: 0 1px 0 #dce5f2;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap .pms-table td {
+  min-height: 54px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap .pms-table tbody tr {
+  transition: background-color .18s ease;
+}
+
+.pms-tasks-popup .pms-popup-table-wrap .pms-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.pms-tasks-popup .pms-table .badge {
+  gap: 6px;
+  padding-left: 11px;
+  padding-right: 11px;
+}
+
+.pms-tasks-popup .pms-table .badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.pms-tasks-popup .pms-view-footer {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 15px 20px 17px;
+  border-top: 1px solid #e5ebf3;
+  background: #ffffff;
+}
+
+.pms-tasks-popup .pms-view-footer .ui-form-btn {
+  min-width: 100px;
+  height: 40px;
+  border-radius: 9px;
+}
+
+@media (max-width: 900px) {
+  #addPmsModal .pms-form-bottom-grid,
+  #addPmsModal .pms-mileage-highlight-grid,
+  #addPmsModal .pms-form-grid-2,
+  #editPmsModal .pms-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .pms-tasks-popup .pms-task-list-modal {
+    width: min(96vw, 1180px);
+  }
+
+  .pms-tasks-popup .pms-popup-table-wrap .pms-table {
+    min-width: 900px;
+    table-layout: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  #addPmsModal.pms-form-modal-overlay,
+  #editPmsModal.pms-form-modal-overlay {
+    align-items: flex-start !important;
+    padding: 10px !important;
+  }
+
+  #addPmsModal.pms-form-modal-overlay > .ui-form-modal,
+  #editPmsModal.pms-form-modal-overlay > .ui-form-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100vh - 20px);
+  }
+
+  #addPmsModal .ui-form-modal-header,
+  #editPmsModal .ui-form-modal-header {
+    padding: 16px;
+  }
+
+  #addPmsModal .ui-form-modal-body,
+  #editPmsModal .ui-form-modal-body {
+    padding: 14px;
+  }
+
+  #addPmsModal .ui-form-actions,
+  #editPmsModal .ui-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  #addPmsModal .ui-form-actions .ui-form-btn,
+  #editPmsModal .ui-form-actions .ui-form-btn,
+  .pms-tasks-popup .pms-view-footer .ui-form-btn {
+    width: 100%;
+  }
+
+  .pms-modal-overlay {
+    padding: 10px;
+  }
+
+  .pms-tasks-popup .pms-task-list-modal {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+  }
+
+  .pms-tasks-popup .pms-task-list-header {
+    padding: 16px;
+  }
+
+  .pms-tasks-popup .pms-task-list-body {
+    padding: 12px 14px 0;
+  }
+
+  .pms-tasks-popup .pms-view-footer {
+    padding: 13px 14px 14px;
+  }
+}

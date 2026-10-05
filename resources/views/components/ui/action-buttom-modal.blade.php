@@ -189,6 +189,15 @@
             aria-labelledby="globalConfirmationTitle"
         >
 
+            <button
+                type="button"
+                id="closeGlobalConfirmation"
+                class="global-confirmation-close"
+                aria-label="Cancel and close confirmation"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
             <div
                 id="globalConfirmationIcon"
                 class="

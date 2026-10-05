@@ -67,6 +67,19 @@ class PurchaseRequestIndexController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        $visibleJobOrderNumbers = $purchaseRequests
+            ->getCollection()
+            ->pluck('job_order_no')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $workToPerformByJobOrder = $visibleJobOrderNumbers->isEmpty()
+            ? collect()
+            : JobOrder::query()
+                ->whereIn('job_order_no', $visibleJobOrderNumbers)
+                ->pluck('work_to_perform', 'job_order_no');
+
         $submitted = $this->maintenancePurchaseRequestQuery()->where('status', 'Submitted')->count();
         $approved = $this->maintenancePurchaseRequestQuery()->where('status', 'Approved')->count();
         $rejected = $this->maintenancePurchaseRequestQuery()->where('status', 'Rejected')->count();
@@ -106,7 +119,8 @@ class PurchaseRequestIndexController extends Controller
             'selectedJobOrder',
             'statuses',
             'isMaintenanceAdmin',
-            'recordView'
+            'recordView',
+            'workToPerformByJobOrder'
         ));
     }
 
@@ -130,24 +144,9 @@ class PurchaseRequestIndexController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        if (! Auth::check()) {
-            return false;
-        }
-
         $user = Auth::user();
-        $department = strtolower(trim((string) ($user->department ?? '')));
-        $role = strtolower(trim((string) ($user->role ?? '')));
 
-        $department = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $department));
-        $role = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $role));
-
-        $isMaintenanceHead = $department === 'maintenance'
-            && in_array($role, ['head', 'admin', 'maintenance head', 'maintenance admin'], true);
-
-        $isSystemAdmin = $department === 'admin'
-            && in_array($role, ['head', 'admin', 'system admin'], true);
-
-        return $isMaintenanceHead || $isSystemAdmin;
+        return $user?->hasSystemPermission('maintenance', 'approve') ?? false;
     }
 
     private function generatePrNo(): string

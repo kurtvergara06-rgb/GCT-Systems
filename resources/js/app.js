@@ -23,6 +23,7 @@ import '../css/Maintenance/purchase-request-modal-cleanup.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/global-modal-backdrop.js';
+import './Main-js/system-animations.js';
 import './Main-js/system-toast.js';
 import './Main-js/page-transitions.js';
 import './Main-js/automatic-table-search.js';
@@ -38,6 +39,7 @@ import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 import './Maintenance/maintenance-history-tabs.js';
+import './Maintenance/maintenance-animations.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
 const initializePageOnlyControls = () => {
