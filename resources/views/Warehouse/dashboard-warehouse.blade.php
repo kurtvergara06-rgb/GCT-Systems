@@ -178,7 +178,7 @@
             <select
               id="warehouseCategoryFilter"
               class="warehouse-category-filter"
-              data-status-map='@json($warehouseChartData["statusByCategory"] ?? $inventoryStatusByCategory)'
+              data-status-map='@json($warehouseChartData["statusByCategory"] ?? $inventoryStatusByCategory, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'
               aria-label="Filter dashboard inventory charts by category"
             >
               <option value="All Categories">All Categories</option>
