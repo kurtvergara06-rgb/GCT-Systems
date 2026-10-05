@@ -7,6 +7,7 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -171,4 +172,45 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             'status' => 'On Going',
         ]);
     }
+
+    public function test_philippine_business_date_finds_next_day_attendance_before_utc_midnight(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-05 23:30:00', 'UTC'));
+
+        try {
+            $user = $this->maintenanceUser();
+            $mechanic = $this->mechanic('MEC-TZ-01', 'Manila Date Mechanic');
+
+            MechanicAttendance::create([
+                'mechanic_id' => $mechanic->mechanic_id,
+                'mechanic_name' => $mechanic->mechanic_name,
+                'shift' => $mechanic->shift,
+                'attendance_date' => '2026-10-06',
+                'status' => 'Present',
+            ]);
+
+            $response = $this
+                ->actingAs($user)
+                ->withoutMiddleware()
+                ->getJson(route('job-orders.available-mechanics'));
+
+            $response
+                ->assertOk()
+                ->assertJsonFragment([
+                    'mechanic_name' => 'Manila Date Mechanic',
+                ]);
+
+            $attendancePage = $this
+                ->actingAs($user)
+                ->withoutMiddleware()
+                ->get(route('mechanic-attendance'));
+
+            $attendancePage
+                ->assertOk()
+                ->assertViewHas('present', 1);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
 }
