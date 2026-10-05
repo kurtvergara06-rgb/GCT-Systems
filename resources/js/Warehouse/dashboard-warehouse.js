@@ -43,14 +43,18 @@ const tooltipOptions = {
 const axisText = '#475569';
 const axisGrid = '#f1f5f9';
 
-function initializeInventoryBar() {
+function initializeInventoryBar(statusData = null) {
     const canvas = document.getElementById('warehouseInventoryBar');
     if (!canvas) return;
 
     destroyChart(canvas);
 
-    const labels = readJson(canvas, 'labels');
-    const values = readJson(canvas, 'values');
+    const labels = statusData
+        ? ['Sufficient', 'Low Stock', 'Out of Stock', 'For Reorder']
+        : readJson(canvas, 'labels');
+    const values = statusData
+        ? [statusData.available, statusData.low, statusData.out, statusData.reorder]
+        : readJson(canvas, 'values');
 
     new Chart(canvas, {
         type: 'bar',
@@ -59,7 +63,7 @@ function initializeInventoryBar() {
             datasets: [{
                 label: 'Items',
                 data: values,
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
                 borderRadius: 8,
                 borderSkipped: false,
                 maxBarThickness: 48,
@@ -100,14 +104,18 @@ function initializeInventoryBar() {
     });
 }
 
-function initializeInventoryDonut() {
+function initializeInventoryDonut(statusData = null) {
     const canvas = document.getElementById('warehouseInventoryDonut');
     if (!canvas) return;
 
     destroyChart(canvas);
 
-    const labels = readJson(canvas, 'labels');
-    const values = readJson(canvas, 'values');
+    const labels = statusData
+        ? ['Sufficient Stock', 'Low Stock', 'Out of Stock']
+        : readJson(canvas, 'labels');
+    const values = statusData
+        ? [statusData.available, statusData.low, statusData.out]
+        : readJson(canvas, 'values');
     const hasData = values.some((value) => Number(value) > 0);
 
     new Chart(canvas, {
@@ -136,6 +144,60 @@ function initializeInventoryDonut() {
                 tooltip: hasData ? tooltipOptions : { enabled: false },
             },
         },
+    });
+}
+
+function updateInventorySummary(statusData) {
+    if (!statusData) return;
+
+    const total = Number(statusData.total || 0);
+    const counts = {
+        available: Number(statusData.available || 0),
+        low: Number(statusData.low || 0),
+        out: Number(statusData.out || 0),
+        reorder: Number(statusData.reorder || 0),
+    };
+
+    const totalNode = document.querySelector('[data-dashboard-total]');
+    if (totalNode) {
+        totalNode.textContent = total.toLocaleString();
+    }
+
+    Object.entries(counts).forEach(([key, value]) => {
+        const countNode = document.querySelector(`[data-dashboard-count="${key}"]`);
+        if (countNode) {
+            countNode.textContent = value.toLocaleString();
+        }
+
+        const percentNode = document.querySelector(`[data-dashboard-percent="${key}"]`);
+        if (percentNode) {
+            const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+            percentNode.textContent = `(${percent}%)`;
+        }
+    });
+}
+
+function bindInventoryCategoryFilter() {
+    const select = document.getElementById('warehouseCategoryFilter');
+    if (!select || select.dataset.dashboardBound === 'true') return;
+
+    let statusMap = {};
+    try {
+        statusMap = JSON.parse(select.dataset.statusMap || '{}');
+    } catch (error) {
+        console.warn('Warehouse dashboard category data could not be parsed.', error);
+        return;
+    }
+
+    select.dataset.dashboardBound = 'true';
+
+    select.addEventListener('change', () => {
+        const selected = statusMap[select.value] || statusMap['All Categories'];
+        if (!selected) return;
+
+        initializeInventoryBar(selected);
+        initializeInventoryDonut(selected);
+        updateInventorySummary(selected);
     });
 }
 
@@ -251,6 +313,18 @@ function initializeWarehouseDashboard() {
 
     initializeInventoryBar();
     initializeInventoryDonut();
+
+    const categoryFilter = document.getElementById('warehouseCategoryFilter');
+    if (categoryFilter) {
+        try {
+            const statusMap = JSON.parse(categoryFilter.dataset.statusMap || '{}');
+            updateInventorySummary(statusMap[categoryFilter.value] || statusMap['All Categories']);
+        } catch (error) {
+            console.warn('Warehouse dashboard category data could not be parsed.', error);
+        }
+    }
+
+    bindInventoryCategoryFilter();
     initializeMovementTrend();
 }
 
