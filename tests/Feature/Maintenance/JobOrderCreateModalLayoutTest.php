@@ -392,6 +392,18 @@ class JobOrderCreateModalLayoutTest extends TestCase
             'min-height: 52px;',
             $css
         );
+        $this->assertStringContainsString(
+            'has-open-bus-menu',
+            $js
+        );
+        $this->assertStringContainsString(
+            '#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu',
+            $css
+        );
+        $this->assertStringContainsString(
+            'padding-bottom: 150px;',
+            $css
+        );
     }
 
 }
