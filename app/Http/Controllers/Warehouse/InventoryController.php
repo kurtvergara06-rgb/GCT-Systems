@@ -28,16 +28,7 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
-        $sourceFilter = strtolower(trim((string) $request->input('source', 'app')));
-        if (! in_array($sourceFilter, ['app', 'simulated', 'all'], true)) {
-            $sourceFilter = 'app';
-        }
-
-        $inventoryScope = static fn () => InventoryItem::query()
-            ->when(
-                $sourceFilter !== 'all',
-                fn ($query) => $query->where('source', $sourceFilter)
-            );
+        $inventoryScope = static fn () => InventoryItem::query();
 
         $query = $inventoryScope();
 
@@ -98,8 +89,7 @@ class InventoryController extends Controller
             'lowStockAlerts',
             'criticalItems',
             'forecastedStockouts',
-            'itemsAtRisk',
-            'sourceFilter'
+            'itemsAtRisk'
         ));
     }
 
