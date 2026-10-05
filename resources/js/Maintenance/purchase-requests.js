@@ -1947,6 +1947,54 @@ window.GCTPartialNavigation.registerInitializer(
     }
 
 
+    const syncOpenReviewPermissions = () => {
+
+      if (
+        !activePrTrigger ||
+        !editPrModal?.classList.contains('show')
+      ) {
+        return;
+      }
+
+      const activePrNo =
+        activePrTrigger.dataset.prNo;
+
+      if (!activePrNo) {
+        return;
+      }
+
+      const freshTrigger =
+        Array.from(
+          document.querySelectorAll(
+            '.open-view-pr-modal'
+          )
+        ).find(
+          button =>
+            button.dataset.prNo === activePrNo
+        );
+
+      if (!freshTrigger) {
+        return;
+      }
+
+      activePrTrigger =
+        freshTrigger;
+
+      configureReviewActions(
+        freshTrigger,
+        'view',
+        freshTrigger.dataset.status || 'Submitted'
+      );
+
+    };
+
+
+    window.addEventListener(
+      'system-regions-refreshed',
+      syncOpenReviewPermissions
+    );
+
+
     /* =========================================================
        VIEW BUTTON
     ========================================================= */
