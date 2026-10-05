@@ -26,14 +26,17 @@ class WarehouseDashboardController extends Controller
         $lowStockItems = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
         $outOfStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Critical')->count();
 
-        // Items requiring urgent replenishment attention
         $criticalStockItems = $inventoryItems
-            ->filter(fn ($item) => in_array($item->stock_status, ['Critical', 'Low Stock']))
-            ->sortBy(fn ($item) => (int) ($item->on_hand ?? $item->quantity_available ?? 0))
+            ->filter(fn ($item) => in_array($item->stock_status, ['Critical', 'Low Stock'], true))
+            ->sortBy(function ($item) {
+                $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+                $reorder = max(1, (int) ($item->reorder_level ?? 0));
+
+                return $stock / $reorder;
+            })
             ->take(5)
             ->values();
 
-        // Base query for Maintenance Part Requests (excluding restock & purchase-side copies)
         $maintenanceRequestBase = PurchaseRequest::query()
             ->where(function ($q) {
                 $q->whereNull('remarks')
@@ -58,7 +61,6 @@ class WarehouseDashboardController extends Controller
             ->whereIn('status', $activeStatuses)
             ->count();
 
-        // Active part requests waiting for warehouse issuance or processing
         $activePartRequests = (clone $maintenanceRequestBase)
             ->whereIn('status', $activeStatuses)
             ->orderByRaw("CASE status
@@ -73,7 +75,6 @@ class WarehouseDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Expected incoming deliveries from Purchasing
         $incomingDeliveriesQuery = PurchaseOrder::query()
             ->whereIn('status', ['For Delivery', 'For Pick-up'])
             ->whereNull('inventory_posted_at');
@@ -87,15 +88,71 @@ class WarehouseDashboardController extends Controller
 
         $issuedToday = PurchaseRequest::query()
             ->where('status', 'Issued')
-            ->whereDate('updated_at', today())
+            ->whereDate('issued_at', today())
             ->count();
 
-        // Recent stock movements (audit trail)
         $recentStockMovements = StockMovement::query()
             ->where('source', 'app')
             ->latest()
             ->limit(5)
             ->get();
+
+        $monthStart = now()->startOfMonth();
+        $trendEnd = now()->endOfDay();
+
+        $monthMovements = StockMovement::query()
+            ->where('source', 'app')
+            ->whereBetween('created_at', [$monthStart, $trendEnd])
+            ->oldest()
+            ->get();
+
+        $topIssuedItems = $monthMovements
+            ->filter(fn ($movement) => strtolower((string) $movement->movement_type) === 'stock out')
+            ->groupBy(fn ($movement) => $movement->item_code ?: $movement->item_name)
+            ->map(function ($movements) {
+                $first = $movements->first();
+
+                return [
+                    'item_code' => $first->item_code ?: '—',
+                    'item_name' => $first->item_name ?: 'Inventory Item',
+                    'total_issued' => (int) abs($movements->sum('quantity_change')),
+                ];
+            })
+            ->sortByDesc('total_issued')
+            ->take(5)
+            ->values();
+
+        $movementsByDay = $monthMovements->groupBy(fn ($movement) => $movement->created_at->format('Y-m-d'));
+        $movementTrend = [
+            'labels' => [],
+            'received' => [],
+            'issued' => [],
+            'adjusted' => [],
+        ];
+
+        for ($day = $monthStart->copy(); $day->lte($trendEnd); $day->addDay()) {
+            $dateKey = $day->format('Y-m-d');
+            $dayMovements = $movementsByDay->get($dateKey, collect());
+
+            $movementTrend['labels'][] = $day->format('M j');
+            $movementTrend['received'][] = (int) $dayMovements
+                ->filter(fn ($movement) => strtolower((string) $movement->movement_type) === 'stock in')
+                ->sum(fn ($movement) => max(0, (int) $movement->quantity_change));
+            $movementTrend['issued'][] = (int) abs($dayMovements
+                ->filter(fn ($movement) => strtolower((string) $movement->movement_type) === 'stock out')
+                ->sum('quantity_change'));
+            $movementTrend['adjusted'][] = (int) abs($dayMovements
+                ->filter(fn ($movement) => strtolower((string) $movement->movement_type) === 'adjustment')
+                ->sum('quantity_change'));
+        }
+
+        $warehouseChartData = [
+            'inventory' => [
+                'labels' => ['Available', 'Low Stock', 'Out of Stock'],
+                'values' => [$availableStock, $lowStockItems, $outOfStock],
+            ],
+            'movementTrend' => $movementTrend,
+        ];
 
         return compact(
             'totalInventory',
@@ -108,7 +165,9 @@ class WarehouseDashboardController extends Controller
             'activePartRequests',
             'expectedDeliveries',
             'criticalStockItems',
-            'recentStockMovements'
+            'recentStockMovements',
+            'topIssuedItems',
+            'warehouseChartData'
         );
     }
 }
