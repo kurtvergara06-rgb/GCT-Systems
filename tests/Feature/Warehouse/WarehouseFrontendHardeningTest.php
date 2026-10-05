@@ -74,4 +74,21 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('$isHistory || $received', $deliveries);
     }
 
+
+    public function test_inventory_add_and_edit_modals_use_shared_form_language_without_breaking_ajax_contracts(): void
+    {
+        $view = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
+
+        $this->assertStringContainsString('resources/css/Main-styles/form-components.css', $view);
+        $this->assertStringContainsString('inventory-form-modal-overlay', $view);
+        $this->assertStringContainsString('inventory-section-basic', $view);
+        $this->assertStringContainsString('inventory-section-details', $view);
+        $this->assertStringContainsString('inventory-section-additional', $view);
+        $this->assertStringContainsString('data-ajax-submit="true"', $view);
+        $this->assertStringContainsString('data-parent-modal-id="addModal"', $view);
+        $this->assertStringContainsString('data-parent-modal-id="editModal"', $view);
+        $this->assertStringContainsString('id="edit_adjustment_reason"', $view);
+        $this->assertStringContainsString('class="ui-form-close closeModal"', $view);
+    }
+
 }
