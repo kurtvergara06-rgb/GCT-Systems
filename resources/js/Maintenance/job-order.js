@@ -3675,24 +3675,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     className: 'jo-bus-combobox',
     icon: 'fa-bus',
     placeholder: 'Select Bus',
-    searchPlaceholder: 'Search bus number or plate...',
+    searchPlaceholder: 'Search plate number...',
     emptyMessage: 'No bus matches your search.',
     optionHint: 'Available bus',
-    formatOptionText: (text) => {
-      const parts = text
-        .split(' - ')
-        .map((part) => part.trim())
-        .filter(Boolean);
-
-      if (
-        parts.length === 2 &&
-        parts[0].toLowerCase() === parts[1].toLowerCase()
-      ) {
-        return parts[0];
-      }
-
-      return text;
-    },
+    // The native option value remains the internal bus_no for submission
+    // and hidden search matching; only the visible label is the plate number.
+    formatOptionText: (text) => text,
   });
 
   setupSearchableSelect(mechanicSelect, {
