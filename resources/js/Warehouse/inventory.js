@@ -268,8 +268,44 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     setInputValue('edit_location', editButton.dataset.location);
     setInputValue('edit_adjustment_reason', '');
 
+    editForm.dataset.originalQuantity = String(editButton.dataset.quantity ?? '');
+    updateAdjustmentReasonRequirement();
+
     openModal(editModal);
   });
+
+  function updateAdjustmentReasonRequirement() {
+    if (!editForm) {
+      return;
+    }
+
+    const quantityInput = document.getElementById('edit_quantity');
+    const reasonInput = document.getElementById('edit_adjustment_reason');
+    const requiredMark = document.getElementById('editAdjustmentRequiredMark');
+    const helpText = document.getElementById('editAdjustmentHelp');
+
+    if (!quantityInput || !reasonInput) {
+      return;
+    }
+
+    const originalQuantity = String(editForm.dataset.originalQuantity ?? '');
+    const currentQuantity = String(quantityInput.value ?? '');
+    const quantityChanged = originalQuantity !== '' && currentQuantity !== originalQuantity;
+
+    reasonInput.required = quantityChanged;
+
+    if (requiredMark) {
+      requiredMark.hidden = !quantityChanged;
+    }
+
+    if (helpText) {
+      helpText.textContent = quantityChanged
+        ? 'Required because Quantity Available has been changed.'
+        : 'No reason is required when stock quantity remains unchanged.';
+    }
+  }
+
+  document.getElementById('edit_quantity')?.addEventListener('input', updateAdjustmentReasonRequirement);
 
   /*
   |--------------------------------------------------------------------------
