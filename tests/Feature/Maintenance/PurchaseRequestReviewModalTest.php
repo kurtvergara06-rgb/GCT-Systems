@@ -184,6 +184,30 @@ class PurchaseRequestReviewModalTest extends TestCase
             );
     }
 
+    public function test_open_review_modal_resyncs_permissions_after_realtime_refresh(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/purchase-requests.js')
+        );
+
+        $this->assertStringContainsString(
+            'const syncOpenReviewPermissions',
+            $source
+        );
+        $this->assertStringContainsString(
+            "'system-regions-refreshed'",
+            $source
+        );
+        $this->assertStringContainsString(
+            "button.dataset.prNo === activePrNo",
+            $source
+        );
+        $this->assertStringContainsString(
+            "configureReviewActions(",
+            $source
+        );
+    }
+
     public function test_review_modal_css_is_centered_not_a_side_drawer(): void
     {
         $css = file_get_contents(
