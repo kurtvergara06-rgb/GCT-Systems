@@ -42,6 +42,13 @@ class WarehousePartRequestController extends Controller
         'Picked Up',
     ];
 
+    private array $historyStatuses = [
+        'Issued',
+        'Rejected',
+        'Cancelled',
+        'Completed',
+    ];
+
     /*
     |--------------------------------------------------------------------------
     | Warehouse Maintenance PR Base Query
@@ -101,22 +108,20 @@ class WarehousePartRequestController extends Controller
 
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Active Part Requests
-        |--------------------------------------------------------------------------
-        | Show Maintenance PR only.
-        | Hide:
-        | - purchase-side copied PRs created for missing Warehouse parts
-        | - inventory restock requests like RST-2026-0001
-        | - RESTOCK job_order_no / bus_no
-        |--------------------------------------------------------------------------
-        */
+        $currentView = strtolower(trim((string) $request->input('view', 'active')));
+        if (! in_array($currentView, ['active', 'history'], true)) {
+            $currentView = 'active';
+        }
+
+        $statusOptions = $currentView === 'history'
+            ? $this->historyStatuses
+            : $this->statuses;
+
         $query = $this->warehouseMaintenanceRequestQuery()
-            ->whereIn('status', $this->statuses);
+            ->whereIn('status', $statusOptions);
 
         if ($request->filled('search')) {
-            $search = trim($request->search);
+            $search = trim((string) $request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('pr_no', 'like', "%{$search}%")
@@ -140,30 +145,14 @@ class WarehousePartRequestController extends Controller
             return $this->prepareRequestForWarehouse($purchaseRequest);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Issued History
-        |--------------------------------------------------------------------------
-        | Maintenance issued history only.
-        |--------------------------------------------------------------------------
-        */
-        $issuedRequests = $this->warehouseMaintenanceRequestQuery()
-            ->where('status', 'Issued')
-            ->latest()
-            ->paginate(5, ['*'], 'history_page')
-            ->withQueryString();
+        $activeCount = $this->warehouseMaintenanceRequestQuery()
+            ->whereIn('status', $this->statuses)
+            ->count();
 
-        $issuedRequests->getCollection()->transform(function ($purchaseRequest) {
-            return $this->prepareRequestForWarehouse($purchaseRequest);
-        });
+        $historyCount = $this->warehouseMaintenanceRequestQuery()
+            ->whereIn('status', $this->historyStatuses)
+            ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Summary Counts
-        |--------------------------------------------------------------------------
-        | Restock requests are excluded here too.
-        |--------------------------------------------------------------------------
-        */
         $approved = $this->warehouseMaintenanceRequestQuery()
             ->where('status', 'Approved')
             ->count();
@@ -184,17 +173,17 @@ class WarehousePartRequestController extends Controller
             ->where('status', 'Issued')
             ->count();
 
-        $statuses = $this->statuses;
-
         return view('Warehouse.part-requests', compact(
             'purchaseRequests',
-            'issuedRequests',
             'approved',
             'forPurchase',
             'ordered',
             'delivered',
             'issued',
-            'statuses'
+            'currentView',
+            'statusOptions',
+            'activeCount',
+            'historyCount'
         ));
     }
 
