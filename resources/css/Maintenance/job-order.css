@@ -3423,3 +3423,28 @@ textarea[readonly] {
     max-height: min(208px, 42vh);
   }
 }
+
+
+/*
+ * When the Bus menu is open, keep its full four-row viewport inside the
+ * Basic Information section. This avoids clipping/painting conflicts with
+ * the following Job Details card while preserving the normal compact form
+ * when the menu is closed.
+ */
+#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu {
+  z-index: 300;
+  overflow: visible !important;
+  padding-bottom: 150px;
+}
+
+#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu + .jo-create-details {
+  z-index: 1;
+}
+
+#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu .jo-bus-combobox {
+  z-index: 320;
+}
+
+#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu .jo-mechanic-combobox-menu {
+  z-index: 330;
+}
