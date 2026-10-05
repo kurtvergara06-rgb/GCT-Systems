@@ -17,9 +17,7 @@ class WarehouseDashboardController extends Controller
 
     public function data(): array
     {
-        $inventoryItems = InventoryItem::query()
-            ->where('source', 'app')
-            ->get();
+        $inventoryItems = InventoryItem::query()->get();
 
         $totalInventory = $inventoryItems->count();
         $availableStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
@@ -92,7 +90,6 @@ class WarehouseDashboardController extends Controller
             ->count();
 
         $recentStockMovements = StockMovement::query()
-            ->where('source', 'app')
             ->latest()
             ->limit(5)
             ->get();
@@ -101,7 +98,6 @@ class WarehouseDashboardController extends Controller
         $trendEnd = now()->endOfDay();
 
         $monthMovements = StockMovement::query()
-            ->where('source', 'app')
             ->whereBetween('created_at', [$monthStart, $trendEnd])
             ->oldest()
             ->get();
