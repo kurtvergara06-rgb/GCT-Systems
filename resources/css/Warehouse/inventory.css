@@ -55,7 +55,7 @@
 .inventory-toolbar {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 170px 150px auto;
+  grid-template-columns: minmax(280px, 1fr) 180px auto;
   align-items: end;
   gap: 10px;
   padding: 10px 12px;
@@ -338,12 +338,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.inventory-item-meta .source-badge {
-  flex: 0 0 auto;
-  padding: 1px 6px;
-  font-size: 9px;
 }
 
 .inventory-stock-cell {
@@ -770,32 +764,4 @@
   letter-spacing: 0.01em;
   white-space: nowrap;
   line-height: 1.5;
-}
-
-/* =====================================================
-   DATA SOURCE BADGE (application and simulated records)
-===================================================== */
-
-.source-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-
-.source-badge--app {
-  border: 1px solid #bfe3cd;
-  background: #e9f8ef;
-  color: #156a44;
-}
-
-.source-badge--simulated {
-  border: 1px solid #d6dce5;
-  background: #f1f5f9;
-  color: #64748b;
 }
