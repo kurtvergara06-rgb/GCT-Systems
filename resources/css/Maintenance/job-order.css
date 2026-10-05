@@ -3426,25 +3426,49 @@ textarea[readonly] {
 
 
 /*
- * When the Bus menu is open, keep its full four-row viewport inside the
- * Basic Information section. This avoids clipping/painting conflicts with
- * the following Job Details card while preserving the normal compact form
- * when the menu is closed.
+ * The Bus menu is portalled to <body> while open so it floats above the
+ * scrollable modal content without stretching Basic Information or being
+ * covered by Job Details.
  */
-#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu {
-  z-index: 300;
-  overflow: visible !important;
-  padding-bottom: 150px;
+.jo-bus-menu-portal {
+  position: fixed !important;
+  right: auto !important;
+  z-index: 30000 !important;
+  max-height: 270px;
+  overflow: hidden;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 20px 54px rgba(15, 23, 42, .22);
 }
 
-#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu + .jo-create-details {
-  z-index: 1;
+.jo-bus-menu-portal .jo-mechanic-combobox-search {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
 }
 
-#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu .jo-bus-combobox {
-  z-index: 320;
+.jo-bus-menu-portal .jo-mechanic-combobox-options {
+  max-height: 208px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c6d8 transparent;
 }
 
-#jobModal .jo-create-section.jo-create-basic.has-open-bus-menu .jo-mechanic-combobox-menu {
-  z-index: 330;
+.jo-bus-menu-portal .jo-mechanic-combobox-option {
+  min-height: 52px;
+}
+
+#jobModal .jo-validation-invalid input,
+#jobModal .jo-validation-invalid textarea,
+#jobModal .jo-validation-invalid select,
+#jobModal .jo-validation-invalid .jo-mechanic-combobox-trigger,
+#jobModal .jo-validation-invalid .jo-maintenance-job-trigger {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .10) !important;
+}
+
+#jobModal .jo-validation-invalid > label {
+  color: #b91c1c;
 }
