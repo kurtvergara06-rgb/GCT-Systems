@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Maintenance;
 
+use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
@@ -20,6 +21,17 @@ class PurchaseRequestReviewModalTest extends TestCase
             'status' => 'Active',
             'must_change_password' => false,
             'onboarding_completed' => true,
+        ]);
+    }
+
+    private function setMaintenanceStaffApproval(bool $allowed): void
+    {
+        $role = RolePermission::where('role_key', 'maintenance_staff')->firstOrFail();
+        $permissions = $role->permissions ?? [];
+        data_set($permissions, 'maintenance.approve', $allowed);
+
+        $role->update([
+            'permissions' => $permissions,
         ]);
     }
 
@@ -70,6 +82,37 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertOk()
             ->assertSee('data-can-edit="1"', false)
             ->assertSee('data-can-approve="0"', false);
+    }
+
+    public function test_staff_with_approve_permission_can_approve_submitted_pr(): void
+    {
+        $staff = $this->maintenanceUser('staff');
+        $this->setMaintenanceStaffApproval(true);
+        $purchaseRequest = $this->purchaseRequest();
+
+        $this->actingAs($staff)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('data-can-approve="1"', false);
+
+        $this->actingAs($staff)
+            ->post(route('purchase-requests.approve', $purchaseRequest))
+            ->assertRedirect();
+
+        $this->assertSame('Approved', $purchaseRequest->fresh()->status);
+    }
+
+    public function test_staff_without_approve_permission_cannot_call_approve_endpoint(): void
+    {
+        $staff = $this->maintenanceUser('staff');
+        $this->setMaintenanceStaffApproval(false);
+        $purchaseRequest = $this->purchaseRequest();
+
+        $this->actingAs($staff)
+            ->post(route('purchase-requests.approve', $purchaseRequest))
+            ->assertForbidden();
+
+        $this->assertSame('Submitted', $purchaseRequest->fresh()->status);
     }
 
     public function test_rejected_pr_exposes_revise_but_not_decision_permissions(): void
