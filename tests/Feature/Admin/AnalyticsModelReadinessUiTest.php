@@ -37,6 +37,31 @@ class AnalyticsModelReadinessUiTest extends TestCase
                 'is_production_model' => true,
                 'dataset_type' => 'GENUINE GCT GPS RECORDS',
                 'sample_count' => 362,
+                'model_version' => '1.2.0',
+                'split_strategy' => 'chronological_80_20',
+                'selected_model' => [
+                    'key' => 'random_forest',
+                    'name' => 'Random Forest',
+                    'family' => 'Nonlinear ensemble (200 trees)',
+                ],
+                'candidate_models' => [
+                    [
+                        'key' => 'operator_baseline',
+                        'name' => 'Operator Route Baseline',
+                        'family' => 'Published route estimate',
+                        'selected' => false,
+                        'status' => 'evaluated',
+                        'metrics' => ['mae' => 12.5, 'rmse' => 15.2, 'r2' => 0.31],
+                    ],
+                    [
+                        'key' => 'random_forest',
+                        'name' => 'Random Forest',
+                        'family' => 'Nonlinear ensemble (200 trees)',
+                        'selected' => true,
+                        'status' => 'evaluated',
+                        'metrics' => ['mae' => 8.1, 'rmse' => 10.4, 'r2' => 0.68],
+                    ],
+                ],
                 'reason' => 'ETA model is ready from genuine GCT GPS history.',
             ]),
             '*/fuel/status' => Http::response([
@@ -92,6 +117,11 @@ class AnalyticsModelReadinessUiTest extends TestCase
         $response->assertSee('Fuel Model');
         $response->assertSee('Delay Model');
         $response->assertSee('Inventory Model');
+        $response->assertSee('ETA Model Comparison');
+        $response->assertSee('Operator Route Baseline');
+        $response->assertSee('Random Forest');
+        $response->assertSee('chronological 80 20 holdout');
+        $response->assertSee('8.10');
         $response->assertSee('MODEL NOT READY');
         $response->assertSee('Insufficient genuine operational history for production delay training.');
     }
