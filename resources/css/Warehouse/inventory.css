@@ -803,7 +803,7 @@
 }
 
 .inventory-form-modal-header .ui-form-title-wrap h2 {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .inventory-form-modal-header .ui-form-title-wrap p {
@@ -923,7 +923,7 @@
 }
 
 .inventory-form-modal .ui-form-group {
-  gap: 6px;
+  gap: 7px;
 }
 
 .inventory-form-modal .ui-form-group > label {
@@ -934,7 +934,7 @@
 
 .inventory-form-modal .ui-form-group input,
 .inventory-form-modal .ui-form-group select {
-  height: 40px;
+  height: 46px;
   border-radius: 8px;
   font-size: 12px;
 }
