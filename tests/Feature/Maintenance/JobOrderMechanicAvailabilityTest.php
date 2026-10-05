@@ -90,20 +90,21 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ]);
     }
 
-    public function test_cancelled_job_does_not_keep_mechanic_hidden(): void
+    public function test_completed_job_does_not_keep_mechanic_hidden(): void
     {
         $user = $this->maintenanceUser();
-        $mechanic = $this->mechanic('MEC-CANCEL-01', 'Released Mechanic');
+        $mechanic = $this->mechanic('MEC-COMPLETE-01', 'Released Mechanic');
         $this->attendance($mechanic, 'On Duty');
 
         JobOrder::create([
-            'job_order_no' => 'JO-CANCEL-0001',
-            'bus_no' => 'BUS-CANCEL-01',
-            'problem_issue' => 'Cancelled repair',
+            'job_order_no' => 'JO-COMPLETE-0001',
+            'bus_no' => 'BUS-COMPLETE-01',
+            'problem_issue' => 'Completed repair',
             'maintenance_type' => 'Repair',
             'assigned_mechanic' => $mechanic->mechanic_name,
-            'status' => 'Cancelled',
-            'start_date' => now()->subHour(),
+            'status' => 'Completed',
+            'start_date' => now()->subHours(2),
+            'completion_date' => now()->subHour(),
         ]);
 
         $response = $this
