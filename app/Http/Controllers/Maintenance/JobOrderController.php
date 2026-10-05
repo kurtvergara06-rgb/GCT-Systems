@@ -129,10 +129,9 @@ class JobOrderController extends Controller
 
         $assignedActiveMechanics =
             JobOrder::query()
-                ->where(
+                ->whereNotIn(
                     'status',
-                    '!=',
-                    'Completed'
+                    ['Completed', 'Cancelled']
                 )
                 ->whereNotNull(
                     'assigned_mechanic'
@@ -321,6 +320,7 @@ class JobOrderController extends Controller
             $mechanic = MechanicAttendance::query()
                 ->where('mechanic_name', $assignedMechanic)
                 ->whereDate('attendance_date', today())
+                ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                 ->latest('id')
                 ->first();
 
@@ -381,7 +381,8 @@ class JobOrderController extends Controller
                 $mechanic = MechanicAttendance::query()
                     ->where('mechanic_name', $assignedMechanic)
                     ->whereDate('attendance_date', today())
-                    ->latest('id')
+                    ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
+                ->latest('id')
                     ->lockForUpdate()
                     ->first();
 
@@ -497,6 +498,7 @@ class JobOrderController extends Controller
             $mechanic = MechanicAttendance::query()
                 ->where('mechanic_name', $newMechanic)
                 ->whereDate('attendance_date', today())
+                ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                 ->latest('id')
                 ->first();
 
