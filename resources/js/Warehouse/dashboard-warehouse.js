@@ -31,15 +31,17 @@ const destroyWarehouseDashboardCharts = () => {
 const tooltipOptions = {
     backgroundColor: '#0f172a',
     titleColor: '#ffffff',
-    bodyColor: '#ffffff',
-    padding: 9,
-    cornerRadius: 7,
-    titleFont: { size: 11, weight: '700' },
-    bodyFont: { size: 10 },
+    bodyColor: '#e2e8f0',
+    padding: 11,
+    cornerRadius: 8,
+    boxPadding: 4,
+    usePointStyle: true,
+    titleFont: { size: 12, weight: '700', family: 'Poppins, Inter, sans-serif' },
+    bodyFont: { size: 11, family: 'Poppins, Inter, sans-serif' },
 };
 
-const axisText = '#64748b';
-const axisGrid = '#e8edf5';
+const axisText = '#475569';
+const axisGrid = '#f1f5f9';
 
 function initializeInventoryBar() {
     const canvas = document.getElementById('warehouseInventoryBar');
@@ -57,17 +59,17 @@ function initializeInventoryBar() {
             datasets: [{
                 label: 'Items',
                 data: values,
-                backgroundColor: ['#22c55e', '#f2b705', '#ef4444'],
-                borderRadius: 7,
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderRadius: 8,
                 borderSkipped: false,
-                maxBarThickness: 62,
+                maxBarThickness: 48,
             }],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: {
-                duration: 420,
+                duration: 450,
             },
             plugins: {
                 legend: { display: false },
@@ -79,7 +81,7 @@ function initializeInventoryBar() {
                     border: { display: false },
                     ticks: {
                         color: axisText,
-                        font: { size: 10, weight: '600' },
+                        font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
                     },
                 },
                 y: {
@@ -89,8 +91,8 @@ function initializeInventoryBar() {
                     ticks: {
                         color: axisText,
                         precision: 0,
-                        padding: 7,
-                        font: { size: 9 },
+                        padding: 8,
+                        font: { size: 10.5, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
             },
@@ -115,18 +117,19 @@ function initializeInventoryDonut() {
             datasets: [{
                 data: hasData ? values : [1],
                 backgroundColor: hasData
-                    ? ['#22c55e', '#f2b705', '#ef4444']
+                    ? ['#10b981', '#f59e0b', '#ef4444']
                     : ['#e2e8f0'],
-                borderWidth: 0,
-                hoverOffset: hasData ? 4 : 0,
+                borderWidth: hasData ? 2 : 0,
+                borderColor: '#ffffff',
+                hoverOffset: hasData ? 5 : 0,
             }],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '72%',
+            cutout: '74%',
             animation: {
-                duration: 420,
+                duration: 450,
             },
             plugins: {
                 legend: { display: false },
@@ -155,32 +158,38 @@ function initializeMovementTrend() {
                 {
                     label: 'Received',
                     data: received,
-                    borderColor: '#16a34a',
-                    backgroundColor: '#16a34a',
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
-                    borderWidth: 2,
-                    tension: 0.32,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#10b981',
+                    borderWidth: 2.5,
+                    tension: 0.35,
                 },
                 {
                     label: 'Issued',
                     data: issued,
                     borderColor: '#2563eb',
-                    backgroundColor: '#2563eb',
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
-                    borderWidth: 2,
-                    tension: 0.32,
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#2563eb',
+                    borderWidth: 2.5,
+                    tension: 0.35,
                 },
                 {
                     label: 'Adjusted',
                     data: adjusted,
                     borderColor: '#f59e0b',
-                    backgroundColor: '#f59e0b',
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
+                    backgroundColor: 'transparent',
+                    pointRadius: 2.5,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#f59e0b',
                     borderWidth: 2,
-                    tension: 0.32,
+                    borderDash: [4, 4],
+                    tension: 0.35,
                 },
             ],
         },
@@ -192,7 +201,7 @@ function initializeMovementTrend() {
                 mode: 'index',
             },
             animation: {
-                duration: 420,
+                duration: 450,
             },
             plugins: {
                 legend: {
@@ -201,11 +210,11 @@ function initializeMovementTrend() {
                     labels: {
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        boxWidth: 7,
-                        boxHeight: 7,
-                        padding: 12,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        padding: 14,
                         color: axisText,
-                        font: { size: 9, weight: '600' },
+                        font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
                     },
                 },
                 tooltip: tooltipOptions,
@@ -216,9 +225,9 @@ function initializeMovementTrend() {
                     border: { display: false },
                     ticks: {
                         color: axisText,
-                        maxTicksLimit: 7,
+                        maxTicksLimit: 9,
                         maxRotation: 0,
-                        font: { size: 8 },
+                        font: { size: 10, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
                 y: {
@@ -228,8 +237,8 @@ function initializeMovementTrend() {
                     ticks: {
                         color: axisText,
                         precision: 0,
-                        padding: 6,
-                        font: { size: 8 },
+                        padding: 8,
+                        font: { size: 10, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
             },

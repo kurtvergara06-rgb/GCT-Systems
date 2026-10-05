@@ -36,7 +36,7 @@
         <div class="section-header warehouse-record-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>Warehouse Part Request Records</h2>
+            <h2>{{ $isHistory ? 'Part Request History' : 'Active Part Requests' }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
 

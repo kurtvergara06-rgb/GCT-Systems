@@ -157,7 +157,7 @@
         <article class="warehouse-panel warehouse-chart-panel" data-ajax-region="stock-distribution">
           <header class="warehouse-panel-header compact">
             <div>
-              <span class="warehouse-panel-eyebrow">STOCK STATUS</span>
+              <span class="warehouse-panel-eyebrow">Stock Status</span>
               <h2>Inventory Health</h2>
             </div>
           </header>
@@ -387,7 +387,7 @@
               <span class="warehouse-panel-eyebrow">MONTHLY USAGE</span>
               <h2>Most Issued Items</h2>
             </div>
-            <span class="warehouse-panel-period">{{ now()->format('F Y') }}</span>
+            <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? now()->format('F Y') }}</span>
           </header>
           <div class="warehouse-issued-ranking">
             @forelse($topIssuedItems as $item)
@@ -404,7 +404,7 @@
             @empty
               <div class="warehouse-empty compact-empty">
                 <i class="fa-solid fa-chart-simple"></i>
-                <strong>No issued items this month</strong>
+                <strong>No issued items recorded</strong>
                 <span>Issued parts will be ranked here automatically.</span>
               </div>
             @endforelse
@@ -417,7 +417,7 @@
               <span class="warehouse-panel-eyebrow">STOCK MOVEMENT TREND</span>
               <h2>Received vs Issued</h2>
             </div>
-            <span class="warehouse-panel-period">This Month</span>
+            <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? 'This Month' }}</span>
           </header>
           <div class="warehouse-chart-wrap trend-chart-wrap">
             <canvas

@@ -33,7 +33,7 @@
       <section data-ajax-region="records" class="table-card incoming-delivery-card">
         <div class="section-header warehouse-record-header">
           <div>
-            <h2>Delivery Records</h2>
+            <h2>{{ $isHistory ? 'Delivery History' : 'Active Incoming Deliveries' }}</h2>
             <p>Purchase Orders ready for Warehouse receiving and completed receipt records.</p>
           </div>
 

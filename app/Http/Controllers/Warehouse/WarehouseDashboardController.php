@@ -102,7 +102,20 @@ class WarehouseDashboardController extends Controller
             ->oldest()
             ->get();
 
-        $topIssuedItems = $monthMovements
+        $hasCurrentMonthMovements = $monthMovements->isNotEmpty();
+        $trendStart = $hasCurrentMonthMovements
+            ? $monthStart
+            : now()->subDays(13)->startOfDay();
+
+        $activeMovements = $hasCurrentMonthMovements
+            ? $monthMovements
+            : StockMovement::query()->whereBetween('created_at', [$trendStart, $trendEnd])->oldest()->get();
+
+        $trendPeriodLabel = $hasCurrentMonthMovements
+            ? 'This Month'
+            : 'Past 14 Days';
+
+        $topIssuedItems = $activeMovements
             ->filter(fn ($movement) => strtolower((string) $movement->movement_type) === 'stock out')
             ->groupBy(fn ($movement) => $movement->item_code ?: $movement->item_name)
             ->map(function ($movements) {
@@ -118,7 +131,7 @@ class WarehouseDashboardController extends Controller
             ->take(5)
             ->values();
 
-        $movementsByDay = $monthMovements->groupBy(fn ($movement) => $movement->created_at->format('Y-m-d'));
+        $movementsByDay = $activeMovements->groupBy(fn ($movement) => $movement->created_at->format('Y-m-d'));
         $movementTrend = [
             'labels' => [],
             'received' => [],
@@ -126,7 +139,7 @@ class WarehouseDashboardController extends Controller
             'adjusted' => [],
         ];
 
-        for ($day = $monthStart->copy(); $day->lte($trendEnd); $day->addDay()) {
+        for ($day = $trendStart->copy(); $day->lte($trendEnd); $day->addDay()) {
             $dateKey = $day->format('Y-m-d');
             $dayMovements = $movementsByDay->get($dateKey, collect());
 
@@ -163,6 +176,7 @@ class WarehouseDashboardController extends Controller
             'criticalStockItems',
             'recentStockMovements',
             'topIssuedItems',
+            'trendPeriodLabel',
             'warehouseChartData'
         );
     }
