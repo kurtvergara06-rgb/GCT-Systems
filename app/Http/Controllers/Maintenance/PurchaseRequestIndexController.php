@@ -144,24 +144,9 @@ class PurchaseRequestIndexController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        if (! Auth::check()) {
-            return false;
-        }
-
         $user = Auth::user();
-        $department = strtolower(trim((string) ($user->department ?? '')));
-        $role = strtolower(trim((string) ($user->role ?? '')));
 
-        $department = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $department));
-        $role = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $role));
-
-        $isMaintenanceHead = $department === 'maintenance'
-            && in_array($role, ['head', 'admin', 'maintenance head', 'maintenance admin'], true);
-
-        $isSystemAdmin = $department === 'admin'
-            && in_array($role, ['head', 'admin', 'system admin'], true);
-
-        return $isMaintenanceHead || $isSystemAdmin;
+        return $user?->hasSystemPermission('maintenance', 'approve') ?? false;
     }
 
     private function generatePrNo(): string
