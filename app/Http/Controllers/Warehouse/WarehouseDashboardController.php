@@ -23,6 +23,48 @@ class WarehouseDashboardController extends Controller
         $availableStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
         $lowStockItems = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
         $outOfStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Critical')->count();
+        $forReorder = $inventoryItems->filter(function ($item) {
+            $stock = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+            $reorderLevel = (int) ($item->reorder_level ?? 0);
+
+            return $reorderLevel > 0 && $stock <= $reorderLevel;
+        })->count();
+
+        $inventoryCategoryOptions = $inventoryItems
+            ->pluck('category')
+            ->filter(fn ($category) => filled($category))
+            ->unique()
+            ->sort()
+            ->values();
+
+        $buildInventoryStatus = static function ($items): array {
+            $total = $items->count();
+            $available = $items->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
+            $low = $items->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
+            $out = $items->filter(fn ($item) => $item->stock_status === 'Critical')->count();
+            $reorder = $items->filter(function ($item) {
+                $stock = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+                $reorderLevel = (int) ($item->reorder_level ?? 0);
+
+                return $reorderLevel > 0 && $stock <= $reorderLevel;
+            })->count();
+
+            return compact('total', 'available', 'low', 'out', 'reorder');
+        };
+
+        $inventoryStatusByCategory = [
+            'All Categories' => $buildInventoryStatus($inventoryItems),
+        ];
+
+        foreach ($inventoryCategoryOptions as $category) {
+            $inventoryStatusByCategory[$category] = $buildInventoryStatus(
+                $inventoryItems->where('category', $category)
+            );
+        }
+
+        $inventoryAddedThisMonth = $inventoryItems
+            ->filter(fn ($item) => $item->created_at?->gte(now()->startOfMonth()))
+            ->count();
 
         $criticalStockItems = $inventoryItems
             ->filter(fn ($item) => in_array($item->stock_status, ['Critical', 'Low Stock'], true))
@@ -78,6 +120,9 @@ class WarehouseDashboardController extends Controller
             ->whereNull('inventory_posted_at');
 
         $incomingDeliveries = (clone $incomingDeliveriesQuery)->count();
+        $incomingToday = (clone $incomingDeliveriesQuery)
+            ->whereDate('updated_at', today())
+            ->count();
 
         $expectedDeliveries = (clone $incomingDeliveriesQuery)
             ->latest('updated_at')
@@ -157,9 +202,14 @@ class WarehouseDashboardController extends Controller
 
         $warehouseChartData = [
             'inventory' => [
-                'labels' => ['Available', 'Low Stock', 'Out of Stock'],
+                'labels' => ['Sufficient', 'Low Stock', 'Out of Stock', 'For Reorder'],
+                'values' => [$availableStock, $lowStockItems, $outOfStock, $forReorder],
+            ],
+            'statusDistribution' => [
+                'labels' => ['Sufficient Stock', 'Low Stock', 'Out of Stock'],
                 'values' => [$availableStock, $lowStockItems, $outOfStock],
             ],
+            'statusByCategory' => $inventoryStatusByCategory,
             'movementTrend' => $movementTrend,
         ];
 
@@ -170,6 +220,11 @@ class WarehouseDashboardController extends Controller
             'incomingDeliveries',
             'availableStock',
             'outOfStock',
+            'forReorder',
+            'inventoryAddedThisMonth',
+            'incomingToday',
+            'inventoryCategoryOptions',
+            'inventoryStatusByCategory',
             'issuedToday',
             'activePartRequests',
             'expectedDeliveries',
