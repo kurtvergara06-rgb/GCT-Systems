@@ -2376,7 +2376,7 @@ window.GCTPartialNavigation.registerInitializer(
                     reviewDecisionRemarks
                       ?.value
                       ?.trim()
-                    || 'Rejected by Maintenance Head';
+                    || 'Rejected by Maintenance';
 
                 }
 
