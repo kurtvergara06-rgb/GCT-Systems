@@ -3341,3 +3341,85 @@ textarea[readonly] {
     padding-bottom: 6px;
   }
 }
+
+
+/* =========================================================
+   NEW JOB ORDER — BUS DROPDOWN 4-ROW VIEWPORT
+   Keep four bus choices visible, then scroll inside the list.
+========================================================= */
+
+#jobModal .jo-create-section.jo-create-basic {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
+#jobModal .jo-create-basic .jo-create-section-header {
+  position: relative;
+  z-index: 1;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+#jobModal .jo-create-basic-grid {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+}
+
+#jobModal .jo-create-basic-grid .ui-form-group {
+  position: relative;
+  min-width: 0;
+}
+
+#jobModal .jo-bus-combobox {
+  position: relative;
+  z-index: 40;
+}
+
+#jobModal .jo-bus-combobox.is-open {
+  z-index: 220;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-menu {
+  z-index: 230;
+  max-height: 270px;
+  overflow: hidden;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-search {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options {
+  max-height: 208px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c6d8 transparent;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options::-webkit-scrollbar {
+  width: 7px;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c6d8;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-option {
+  min-height: 52px;
+  flex: 0 0 52px;
+}
+
+@media (max-width: 700px) {
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-options {
+    max-height: min(208px, 42vh);
+  }
+}
