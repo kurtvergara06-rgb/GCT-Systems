@@ -31,8 +31,22 @@ class IncomingDeliveryController extends Controller
 
     public function data(Request $request): array
     {
-        $deliveryQuery = PurchaseOrder::query()
-            ->whereIn('status', ['For Delivery', 'Delivered', 'For Pick-up', 'Picked Up']);
+        $currentView = strtolower(trim((string) $request->input('view', 'active')));
+        if (! in_array($currentView, ['active', 'history'], true)) {
+            $currentView = 'active';
+        }
+
+        $deliveryQuery = PurchaseOrder::query();
+
+        if ($currentView === 'history') {
+            $deliveryQuery->whereNotNull('inventory_posted_at');
+            $statusOptions = ['Delivered', 'Picked Up'];
+        } else {
+            $deliveryQuery
+                ->whereIn('status', ['For Delivery', 'For Pick-up'])
+                ->whereNull('inventory_posted_at');
+            $statusOptions = ['For Delivery', 'For Pick-up'];
+        }
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -45,18 +59,41 @@ class IncomingDeliveryController extends Controller
         }
 
         if ($request->filled('status') && $request->status !== 'All Statuses') {
-            $request->status === 'Received'
-                ? $deliveryQuery->whereNotNull('inventory_posted_at')
-                : $deliveryQuery->where('status', $request->status);
+            $deliveryQuery->where('status', $request->status);
         }
 
-        $deliveries = $deliveryQuery->latest()->paginate(20)->withQueryString();
-        $totalIncoming = PurchaseOrder::whereIn('status', ['For Delivery', 'For Pick-up'])->whereNull('inventory_posted_at')->count();
-        $forDelivery = PurchaseOrder::where('status', 'For Delivery')->whereNull('inventory_posted_at')->count();
-        $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->whereNotNull('inventory_posted_at')->count();
+        $deliveries = $deliveryQuery
+            ->latest($currentView === 'history' ? 'inventory_posted_at' : 'updated_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        $activeCount = PurchaseOrder::query()
+            ->whereIn('status', ['For Delivery', 'For Pick-up'])
+            ->whereNull('inventory_posted_at')
+            ->count();
+
+        $historyCount = PurchaseOrder::query()
+            ->whereNotNull('inventory_posted_at')
+            ->count();
+
+        $totalIncoming = $activeCount;
+        $forDelivery = PurchaseOrder::where('status', 'For Delivery')
+            ->whereNull('inventory_posted_at')
+            ->count();
+        $delivered = $historyCount;
         $receivedToday = PurchaseOrder::whereDate('inventory_posted_at', today())->count();
 
-        return compact('deliveries', 'totalIncoming', 'forDelivery', 'delivered', 'receivedToday');
+        return compact(
+            'deliveries',
+            'totalIncoming',
+            'forDelivery',
+            'delivered',
+            'receivedToday',
+            'currentView',
+            'statusOptions',
+            'activeCount',
+            'historyCount'
+        );
     }
 
     public function receive(PurchaseOrder $purchaseOrder): RedirectResponse
