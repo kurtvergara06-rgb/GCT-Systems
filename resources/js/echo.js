@@ -35,6 +35,7 @@ window.realtimePageRouteMap = {
     'Warehouse:Inventory': ['/inventory','/part-requests','/maintenance-requests','/job-orders','/admin/dashboard'],
     'Maintenance:PurchaseRequest': ['/purchase-requests','/job-orders','/part-requests','/maintenance-requests','/admin/dashboard'],
     'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/admin/dashboard'],
+    'Maintenance:RolePermission': ['/purchase-requests'],
     'Purchase:PurchaseOrder': ['/purchase-orders','/maintenance-requests','/part-requests','/job-orders','/inventory','/admin/dashboard'],
     'Purchase:MaintenanceRequest': ['/maintenance-requests','/purchase-orders','/part-requests','/purchase-requests','/job-orders','/inventory','/admin/dashboard'],
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
@@ -210,7 +211,9 @@ window.listenForSystemUpdates = function () {
         window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
 
         try {
-            queueRealtimeNotification(payload?.message || 'System data was updated.');
+            if (payload?.entity !== 'RolePermission') {
+                queueRealtimeNotification(payload?.message || 'System data was updated.');
+            }
 
             const currentPath = normalizePath(window.location.pathname);
             const routeKey = `${payload.module}:${payload.entity}`;
