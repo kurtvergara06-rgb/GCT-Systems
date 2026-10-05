@@ -76,6 +76,10 @@
     }
 
     $maxIssued = max(1, (int) ($topIssuedItems->max('total_issued') ?? 1));
+    $totalTopIssued = (int) $topIssuedItems->sum('total_issued');
+    $trendReceivedTotal = (int) array_sum($warehouseChartData['movementTrend']['received'] ?? []);
+    $trendIssuedTotal = (int) array_sum($warehouseChartData['movementTrend']['issued'] ?? []);
+    $trendNetMovement = $trendReceivedTotal - $trendIssuedTotal;
     $notificationCount = $lowStockItems + $outOfStock + $activePartRequestCount + $incomingDeliveries;
   @endphp
 
@@ -361,14 +365,20 @@
           </div>
         </article>
 
-        <article class="warehouse-panel" data-ajax-region="recent-stock-movements">
+        <article class="warehouse-panel warehouse-audit-panel" data-ajax-region="recent-stock-movements">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">TRANSACTION AUDIT</span>
               <h2>Recent Stock Movements</h2>
+              <p>Latest inventory activity with traceable source references.</p>
             </div>
             <a href="{{ route('stock-movements') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
+          <div class="warehouse-audit-summary">
+            <span><i class="fa-solid fa-clock-rotate-left"></i><b>{{ $recentStockMovements->count() }}</b> latest entries</span>
+            <span class="received"><i class="fa-solid fa-arrow-down"></i><b>{{ $recentStockMovements->filter(fn ($movement) => str_contains(strtolower((string) $movement->movement_type), 'in'))->count() }}</b> received</span>
+            <span class="issued"><i class="fa-solid fa-arrow-up"></i><b>{{ $recentStockMovements->filter(fn ($movement) => str_contains(strtolower((string) $movement->movement_type), 'out'))->count() }}</b> issued</span>
+          </div>
           <div class="warehouse-table-scroll">
             <table class="warehouse-dashboard-table">
               <thead>
@@ -405,11 +415,12 @@
       </section>
 
       <section class="warehouse-bottom-grid">
-        <article class="warehouse-panel" data-ajax-region="dashboard-low-stock">
+        <article class="warehouse-panel warehouse-replenishment-panel" data-ajax-region="dashboard-low-stock">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">REPLENISHMENT WATCH</span>
               <h2>Top Low Stock Items</h2>
+              <p>Prioritized by remaining stock against reorder level.</p>
             </div>
             <a href="{{ route('inventory') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
@@ -427,15 +438,20 @@
                 @forelse($criticalStockItems as $item)
                   @php
                     $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+                    $reorder = max(1, (int) ($item->reorder_level ?? 0));
                     $critical = $stock <= 0;
+                    $stockRatio = min(100, max(0, round(($stock / $reorder) * 100)));
                   @endphp
                   <tr>
                     <td>
                       <strong class="warehouse-table-primary">{{ $item->item_name ?? $item->parts_name ?? 'Inventory Item' }}</strong>
                       <small>{{ $item->item_code ?? '—' }}</small>
                     </td>
-                    <td class="{{ $critical ? 'warehouse-negative' : '' }}">{{ $stock }}</td>
-                    <td>{{ (int) ($item->reorder_level ?? 0) }}</td>
+                    <td class="{{ $critical ? 'warehouse-negative' : '' }}"><strong>{{ number_format($stock) }}</strong></td>
+                    <td>
+                      <strong>{{ number_format($reorder) }}</strong>
+                      <span class="warehouse-stock-meter {{ $critical ? 'critical' : 'warning' }}"><i style="width: {{ $stockRatio }}%"></i></span>
+                    </td>
                     <td><span class="warehouse-status {{ $critical ? 'red' : 'yellow' }}">{{ $critical ? 'Out of Stock' : 'Low Stock' }}</span></td>
                   </tr>
                 @empty
@@ -446,17 +462,24 @@
           </div>
         </article>
 
-        <article class="warehouse-panel" data-ajax-region="dashboard-top-issued">
+        <article class="warehouse-panel warehouse-usage-panel" data-ajax-region="dashboard-top-issued">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">MONTHLY USAGE</span>
               <h2>Most Issued Items</h2>
+              <p>Highest consumption items in the active reporting period.</p>
             </div>
             <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? now()->format('F Y') }}</span>
           </header>
+          <div class="warehouse-usage-summary">
+            <span class="warehouse-usage-summary-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+            <span><small>Top-item volume</small><strong>{{ number_format($totalTopIssued) }} units</strong></span>
+            <span class="warehouse-usage-summary-note">Top {{ $topIssuedItems->count() }}</span>
+          </div>
           <div class="warehouse-issued-ranking">
             @forelse($topIssuedItems as $item)
               <div class="warehouse-issued-row">
+                <span class="warehouse-issued-rank">{{ $loop->iteration }}</span>
                 <div class="warehouse-issued-copy">
                   <strong>{{ $item['item_name'] }}</strong>
                   <small>{{ $item['item_code'] }}</small>
@@ -481,9 +504,15 @@
             <div>
               <span class="warehouse-panel-eyebrow">STOCK MOVEMENT TREND</span>
               <h2>Received vs Issued</h2>
+              <p>Daily flow and net inventory movement.</p>
             </div>
             <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? 'This Month' }}</span>
           </header>
+          <div class="warehouse-trend-summary">
+            <div class="received"><span><i class="fa-solid fa-arrow-down"></i></span><small>Received</small><strong>{{ number_format($trendReceivedTotal) }}</strong></div>
+            <div class="issued"><span><i class="fa-solid fa-arrow-up"></i></span><small>Issued</small><strong>{{ number_format($trendIssuedTotal) }}</strong></div>
+            <div class="net"><span><i class="fa-solid fa-scale-balanced"></i></span><small>Net Flow</small><strong class="{{ $trendNetMovement < 0 ? 'negative' : '' }}">{{ $trendNetMovement > 0 ? '+' : '' }}{{ number_format($trendNetMovement) }}</strong></div>
+          </div>
           <div class="warehouse-chart-wrap trend-chart-wrap">
             <canvas
               id="warehouseMovementTrend"

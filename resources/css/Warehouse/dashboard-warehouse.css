@@ -1459,3 +1459,617 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   OPERATIONAL INTELLIGENCE PANELS
+   Stronger hierarchy for audit, replenishment, and usage.
+========================================================= */
+
+.warehouse-audit-panel,
+.warehouse-replenishment-panel,
+.warehouse-usage-panel,
+.warehouse-trend-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.warehouse-audit-panel::before,
+.warehouse-replenishment-panel::before,
+.warehouse-usage-panel::before,
+.warehouse-trend-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #60a5fa 55%, transparent);
+}
+
+.warehouse-replenishment-panel::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24 55%, transparent);
+}
+
+.warehouse-usage-panel::before {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa 55%, transparent);
+}
+
+.warehouse-trend-panel::before {
+  background: linear-gradient(90deg, #10b981, #34d399 55%, transparent);
+}
+
+.warehouse-audit-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+}
+
+.warehouse-audit-summary > span {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.warehouse-audit-summary > span i {
+  color: #2563eb;
+}
+
+.warehouse-audit-summary > span.received {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.warehouse-audit-summary > span.received i {
+  color: #16a34a;
+}
+
+.warehouse-audit-summary > span.issued {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #b91c1c;
+}
+
+.warehouse-audit-summary > span.issued i {
+  color: #dc2626;
+}
+
+.warehouse-audit-panel .warehouse-table-scroll {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table th {
+  padding-block: 11px;
+  background: linear-gradient(180deg, #f8fafc, #f3f6fa);
+  color: #52627a;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td {
+  height: 54px;
+  background: #fff;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table tbody tr:hover td {
+  background: #f8fbff;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td:first-child {
+  position: relative;
+  padding-left: 20px;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #3b82f6;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table tr:has(.warehouse-status.red) td:first-child::before {
+  background: #ef4444;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table tr:has(.warehouse-status.green) td:first-child::before {
+  background: #10b981;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td:nth-child(3) {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td:nth-child(4) {
+  color: #17345f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.warehouse-bottom-grid > .warehouse-panel {
+  min-height: 390px;
+}
+
+.warehouse-replenishment-panel .warehouse-table-scroll {
+  overflow: hidden;
+  border: 1px solid #e7edf5;
+  border-radius: 12px;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table th {
+  padding: 9px 10px;
+  background: #fffaf0;
+  color: #8a5a00;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table td {
+  height: 54px;
+  padding: 9px 10px;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table tbody tr:hover td {
+  background: #fffcf5;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table td:first-child {
+  border-left: 3px solid #f59e0b;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table tr:has(.warehouse-status.red) td:first-child {
+  border-left-color: #ef4444;
+}
+
+.warehouse-replenishment-panel .warehouse-table-primary {
+  max-width: none;
+}
+
+.warehouse-stock-meter {
+  width: 100%;
+  height: 4px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eef5;
+  display: block;
+}
+
+.warehouse-stock-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.warehouse-stock-meter.critical i {
+  min-width: 4px;
+  background: #ef4444;
+}
+
+.warehouse-usage-summary {
+  min-height: 58px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e9e3ff;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #faf8ff, #f5f3ff);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.warehouse-usage-summary-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #7c3aed;
+  display: grid;
+  place-items: center;
+}
+
+.warehouse-usage-summary > span:nth-child(2) small,
+.warehouse-usage-summary > span:nth-child(2) strong {
+  display: block;
+}
+
+.warehouse-usage-summary > span:nth-child(2) small {
+  color: #7c6e9f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.warehouse-usage-summary > span:nth-child(2) strong {
+  margin-top: 2px;
+  color: #3b2176;
+  font-size: 15px;
+}
+
+.warehouse-usage-summary-note {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: #7c3aed;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.warehouse-issued-ranking {
+  min-height: 0;
+  gap: 0;
+  padding-top: 0;
+}
+
+.warehouse-issued-row {
+  grid-template-columns: 26px minmax(95px, 1fr) minmax(80px, 1.05fr) 32px;
+  gap: 9px;
+  min-height: 48px;
+  padding: 7px 0;
+}
+
+.warehouse-issued-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.warehouse-issued-row:first-child .warehouse-issued-rank {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(124, 58, 237, .2);
+}
+
+.warehouse-issued-row:first-child .warehouse-issued-meter span {
+  background: linear-gradient(90deg, #8b5cf6, #4f46e5);
+}
+
+.warehouse-issued-meter {
+  height: 7px;
+}
+
+.warehouse-trend-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.warehouse-trend-summary > div {
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 7px;
+  align-items: center;
+}
+
+.warehouse-trend-summary > div > span {
+  grid-row: 1 / 3;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+}
+
+.warehouse-trend-summary small {
+  color: #7c8ba1;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.warehouse-trend-summary strong {
+  color: #102a4f;
+  font-size: 13px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.warehouse-trend-summary .received > span {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.warehouse-trend-summary .issued > span {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.warehouse-trend-summary .net > span {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.warehouse-trend-summary strong.negative {
+  color: #dc2626;
+}
+
+.warehouse-trend-panel .trend-chart-wrap {
+  height: 190px;
+}
+
+@media (max-width: 1240px) {
+  .warehouse-bottom-grid > .warehouse-panel {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .warehouse-audit-summary {
+    align-items: stretch;
+  }
+
+  .warehouse-audit-summary > span {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .warehouse-bottom-grid > .warehouse-panel {
+    min-height: auto;
+  }
+
+  .warehouse-trend-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-issued-row {
+    grid-template-columns: 26px minmax(100px, 1fr) minmax(72px, 1fr) 30px;
+  }
+}
+
+/* =========================================================
+   READABILITY & EQUAL-CARD REFINEMENT
+   No decorative edge lines; larger text and balanced panels.
+========================================================= */
+
+.warehouse-audit-panel::before,
+.warehouse-replenishment-panel::before,
+.warehouse-usage-panel::before,
+.warehouse-trend-panel::before,
+.warehouse-audit-panel .warehouse-dashboard-table td:first-child::before {
+  display: none;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table td:first-child,
+.warehouse-replenishment-panel .warehouse-dashboard-table tr:has(.warehouse-status.red) td:first-child {
+  border-left: 0;
+}
+
+.warehouse-bottom-grid {
+  align-items: stretch;
+}
+
+.warehouse-bottom-grid > .warehouse-panel {
+  width: 100%;
+  height: 470px;
+  min-height: 470px;
+}
+
+.warehouse-panel-header h2 {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.warehouse-panel-header p {
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.warehouse-panel-eyebrow {
+  margin-bottom: 5px;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+}
+
+.warehouse-panel-link,
+.warehouse-panel-period {
+  min-height: 34px;
+  padding-inline: 12px;
+  font-size: 11px;
+}
+
+.warehouse-audit-summary > span {
+  min-height: 32px;
+  padding-inline: 12px;
+  font-size: 11.5px;
+}
+
+.warehouse-dashboard-table th {
+  padding: 12px 14px;
+  font-size: 12px;
+}
+
+.warehouse-dashboard-table td {
+  padding: 13px 14px;
+  font-size: 14px;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td {
+  height: 60px;
+}
+
+.warehouse-audit-panel .warehouse-dashboard-table td:first-child {
+  padding-left: 14px;
+}
+
+.warehouse-table-primary {
+  font-size: 14px;
+}
+
+.warehouse-dashboard-table td small {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.warehouse-reference {
+  font-size: 12.5px;
+}
+
+.warehouse-status {
+  min-height: 28px;
+  padding: 3px 11px;
+  font-size: 12px;
+}
+
+.warehouse-replenishment-panel .warehouse-table-scroll {
+  flex: 1 1 auto;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table th {
+  font-size: 11.5px;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table td {
+  height: 62px;
+  font-size: 13px;
+}
+
+.warehouse-stock-meter {
+  height: 6px;
+  margin-top: 7px;
+}
+
+.warehouse-usage-summary {
+  min-height: 68px;
+  padding: 12px 14px;
+}
+
+.warehouse-usage-summary-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+}
+
+.warehouse-usage-summary > span:nth-child(2) small {
+  font-size: 10px;
+}
+
+.warehouse-usage-summary > span:nth-child(2) strong {
+  font-size: 17px;
+}
+
+.warehouse-usage-summary-note {
+  padding: 5px 9px;
+  font-size: 10px;
+}
+
+.warehouse-issued-ranking {
+  flex: 1 1 auto;
+  justify-content: space-evenly;
+}
+
+.warehouse-issued-row {
+  min-height: 55px;
+}
+
+.warehouse-issued-rank {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+
+.warehouse-issued-copy strong {
+  font-size: 13.5px;
+}
+
+.warehouse-issued-copy small {
+  margin-top: 3px;
+  font-size: 11.5px;
+}
+
+.warehouse-issued-meter {
+  height: 9px;
+}
+
+.warehouse-issued-total {
+  font-size: 14px;
+}
+
+.warehouse-trend-summary > div {
+  min-height: 58px;
+  padding: 10px;
+  grid-template-columns: 30px minmax(0, 1fr);
+}
+
+.warehouse-trend-summary > div > span {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+
+.warehouse-trend-summary small {
+  font-size: 9.5px;
+}
+
+.warehouse-trend-summary strong {
+  font-size: 15px;
+}
+
+.warehouse-trend-panel .trend-chart-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 245px;
+}
+
+@media (max-width: 1240px) {
+  .warehouse-bottom-grid > .warehouse-panel {
+    height: 440px;
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .warehouse-bottom-grid > .warehouse-panel {
+    height: auto;
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 768px) {
+  .warehouse-panel-header h2 {
+    font-size: 17px;
+  }
+
+  .warehouse-dashboard-table th {
+    font-size: 11px;
+  }
+
+  .warehouse-dashboard-table td,
+  .warehouse-table-primary {
+    font-size: 13px;
+  }
+
+  .warehouse-bottom-grid > .warehouse-panel {
+    min-height: 0;
+  }
+}
