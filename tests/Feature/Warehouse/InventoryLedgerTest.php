@@ -412,6 +412,7 @@ class InventoryLedgerTest extends TestCase
                 'on_hand' => 20,
                 'unit_of_measurement' => 'pcs',
                 'reorder_level' => 0,
+                'adjustment_reason' => 'Initial physical count',
             ])
             ->assertRedirect();
 
@@ -426,6 +427,7 @@ class InventoryLedgerTest extends TestCase
         $this->assertSame(0, $movement->previous_stock);
         $this->assertSame(20, $movement->new_stock);
         $this->assertSame('app', $movement->source);
+        $this->assertStringContainsString('Initial physical count', $movement->remarks);
     }
 
     public function test_manual_quantity_adjustment_requires_reason_and_preserves_audit_history(): void
