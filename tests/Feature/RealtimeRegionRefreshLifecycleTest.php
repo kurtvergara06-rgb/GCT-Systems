@@ -17,5 +17,7 @@ class RealtimeRegionRefreshLifecycleTest extends TestCase
         $this->assertStringContainsString('window.location.href !== requestUrl', $source);
         $this->assertStringContainsString("error?.name === 'AbortError'", $source);
         $this->assertStringContainsString("window.addEventListener('gct:navigation-before'", $source);
+        $this->assertStringContainsString("'Maintenance:RolePermission': ['/purchase-requests']", $source);
+        $this->assertStringContainsString("payload?.entity !== 'RolePermission'", $source);
     }
 }
