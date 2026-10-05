@@ -116,7 +116,7 @@ class JobOrderController extends Controller
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
             ->whereRaw("TRIM(part_needed) <> ''")
-            ->where('status', '!=', 'Completed')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->whereNotIn('part_status', ['Issued'])
             ->count();
 
@@ -154,8 +154,9 @@ class JobOrderController extends Controller
                 ->whereDate('attendance_date', today())
                 ->whereIn(
                     'status',
-                    ['Present', 'Late']
+                    ['Present', 'Late', 'On Duty']
                 )
+                ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
                 ->whereNotIn(
                     'mechanic_name',
                     $assignedActiveMechanics
@@ -254,7 +255,7 @@ class JobOrderController extends Controller
     {
         $assignedActiveMechanics =
             JobOrder::query()
-                ->where('status', '!=', 'Completed')
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->whereNotNull('assigned_mechanic')
                 ->where('assigned_mechanic', '!=', '')
                 ->pluck('assigned_mechanic')
@@ -264,7 +265,8 @@ class JobOrderController extends Controller
 
         $mechanics = MechanicAttendance::query()
             ->whereDate('attendance_date', today())
-            ->whereIn('status', ['Present', 'Late'])
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
             ->whereNotIn('mechanic_name', $assignedActiveMechanics)
             ->orderBy('mechanic_name')
             ->get(['id', 'mechanic_name']);
@@ -305,7 +307,7 @@ class JobOrderController extends Controller
 
             $hasActivePmsJobOrder = JobOrder::query()
                 ->where('pms_schedule_id', $pmsSchedule->id)
-                ->where('status', '!=', 'Completed')
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->exists();
 
             if ($hasActivePmsJobOrder) {
@@ -327,10 +329,10 @@ class JobOrderController extends Controller
             }
 
             $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $assignedMechanic)
-                ->where('status', '!=', 'Completed')
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->exists();
 
-            if (! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+            if (! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json(['success' => false, 'message' => 'Selected mechanic is not available.'], 422);
                 }
@@ -369,7 +371,7 @@ class JobOrderController extends Controller
                 ]);
             }
 
-            if (JobOrder::query()->where('bus_no', $bus->bus_no)->where('status', '!=', 'Completed')->exists()) {
+            if (JobOrder::query()->where('bus_no', $bus->bus_no)->whereNotIn('status', ['Completed', 'Cancelled'])->exists()) {
                 throw ValidationException::withMessages([
                     'bus_no' => 'This bus already has an active Job Order.',
                 ]);
@@ -385,10 +387,10 @@ class JobOrderController extends Controller
 
                 $hasActiveJobOrder = JobOrder::query()
                     ->where('assigned_mechanic', $assignedMechanic)
-                    ->where('status', '!=', 'Completed')
+                    ->whereNotIn('status', ['Completed', 'Cancelled'])
                     ->exists();
 
-                if (! $mechanic || ! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+                if (! $mechanic || ! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
                     throw ValidationException::withMessages([
                         'assigned_mechanic' => 'Selected mechanic is not available.',
                     ]);
@@ -506,11 +508,11 @@ class JobOrderController extends Controller
             }
 
             $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $newMechanic)
-                ->where('status', '!=', 'Completed')
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->where('id', '!=', $jobOrder->id)
                 ->exists();
 
-            if (! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+            if (! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json(['success' => false, 'message' => 'Selected mechanic is already on duty.'], 422);
                 }
@@ -834,7 +836,7 @@ class JobOrderController extends Controller
             $hasAnotherActiveJobOrder = JobOrder::query()
                 ->where('bus_no', $lockedJobOrder->bus_no)
                 ->where('id', '!=', $lockedJobOrder->id)
-                ->where('status', '!=', 'Completed')
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->exists();
 
             if ($lockedBus && $lockedBus->status === 'Under Maintenance' && ! $hasAnotherActiveJobOrder) {
@@ -1034,7 +1036,7 @@ class JobOrderController extends Controller
 
         $hasActiveJobOrder = JobOrder::query()
             ->where('bus_no', $busNo)
-            ->where('status', '!=', 'Completed')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->exists();
 
         if ($hasActiveJobOrder) {
