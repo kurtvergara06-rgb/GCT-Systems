@@ -42,87 +42,9 @@ class PurchaseRequestController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        if (! Auth::check()) {
-            return false;
-        }
+        $user = Auth::user();
 
-        $user =
-            Auth::user();
-
-        $department =
-            strtolower(
-                trim(
-                    (string)
-                        ($user->department ?? '')
-                )
-            );
-
-        $role =
-            strtolower(
-                trim(
-                    (string)
-                        ($user->role ?? '')
-                )
-            );
-
-        $normalizedDepartment =
-            preg_replace(
-                '/\s+/',
-                ' ',
-                str_replace(
-                    [
-                        '_',
-                        '-',
-                    ],
-                    ' ',
-                    $department
-                )
-            );
-
-        $normalizedRole =
-            preg_replace(
-                '/\s+/',
-                ' ',
-                str_replace(
-                    [
-                        '_',
-                        '-',
-                    ],
-                    ' ',
-                    $role
-                )
-            );
-
-        $isMaintenanceHead =
-            $normalizedDepartment
-                === 'maintenance'
-            && in_array(
-                $normalizedRole,
-                [
-                    'head',
-                    'admin',
-                    'maintenance head',
-                    'maintenance admin',
-                ],
-                true
-            );
-
-        $isSystemAdmin =
-            $normalizedDepartment
-                === 'admin'
-            && in_array(
-                $normalizedRole,
-                [
-                    'head',
-                    'admin',
-                    'system admin',
-                ],
-                true
-            );
-
-        return
-            $isMaintenanceHead
-            || $isSystemAdmin;
+        return $user?->hasSystemPermission('maintenance', 'approve') ?? false;
     }
 
     /* =========================================================
@@ -1248,11 +1170,11 @@ class PurchaseRequestController extends Controller
                 ->canApprovePurchaseRequest()
         ) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can approve purchase requests.'], 403);
+                return response()->json(['success' => false, 'message' => 'Your role does not have permission to approve purchase requests.'], 403);
             }
             abort(
                 403,
-                'Only Maintenance Head can approve purchase requests.'
+                'Your role does not have permission to approve purchase requests.'
             );
         }
 
@@ -1341,11 +1263,11 @@ class PurchaseRequestController extends Controller
                 ->canApprovePurchaseRequest()
         ) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can reject purchase requests.'], 403);
+                return response()->json(['success' => false, 'message' => 'Your role does not have permission to reject purchase requests.'], 403);
             }
             abort(
                 403,
-                'Only Maintenance Head can reject purchase requests.'
+                'Your role does not have permission to reject purchase requests.'
             );
         }
 
@@ -1375,7 +1297,7 @@ class PurchaseRequestController extends Controller
                 null,
 
             'remarks' =>
-                $request->input('remarks', 'Rejected by Maintenance Head'),
+                $request->input('remarks', 'Rejected by Maintenance'),
         ]);
 
         $this
