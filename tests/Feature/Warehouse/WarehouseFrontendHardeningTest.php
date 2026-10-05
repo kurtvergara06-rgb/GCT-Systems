@@ -91,4 +91,26 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('class="ui-form-close closeModal"', $view);
     }
 
+
+    public function test_dashboard_matches_reference_layout_and_keeps_queue_previews_compact(): void
+    {
+        $view = file_get_contents(resource_path('views/Warehouse/dashboard-warehouse.blade.php'));
+        $css = file_get_contents(resource_path('css/Warehouse/dashboard-warehouse.css'));
+        $js = file_get_contents(resource_path('js/Warehouse/dashboard-warehouse.js'));
+
+        $this->assertStringContainsString('warehouse-reference-kpis', $view);
+        $this->assertStringContainsString('Inventory Overview', $view);
+        $this->assertStringContainsString('Stock Status by Category', $view);
+        $this->assertStringContainsString('Alerts & Notifications', $view);
+        $this->assertStringContainsString('warehouseCategoryFilter', $view);
+        $this->assertStringContainsString('$expectedDeliveries->take(5)', $view);
+        $this->assertStringContainsString('$activePartRequests->take(5)', $view);
+        $this->assertSame(2, substr_count($view, 'warehouse-queue-panel'));
+
+        $this->assertStringContainsString('overflow-x: hidden !important;', $css);
+        $this->assertStringContainsString('warehouse-reference-overview', $css);
+        $this->assertStringContainsString('bindInventoryCategoryFilter', $js);
+        $this->assertStringContainsString('For Reorder', $js);
+    }
+
 }
