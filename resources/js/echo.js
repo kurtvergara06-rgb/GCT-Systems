@@ -216,14 +216,19 @@ window.listenForSystemUpdates = function () {
         window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
 
         try {
-            if (payload?.entity !== 'RolePermission') {
-                queueRealtimeNotification(payload?.message || 'System data was updated.');
-            }
-
             const currentPath = normalizePath(window.location.pathname);
             const routeKey = `${payload.module}:${payload.entity}`;
             const watched = (window.realtimePageRouteMap[routeKey] || []).map(normalizePath);
-            if (!watched.includes(currentPath)) return;
+            const isRelevantPage = watched.includes(currentPath);
+
+            // Every client may receive the shared Reverb event, but user-facing
+            // feedback must only appear where that module/entity is relevant.
+            // Admin dashboard stays globally informed through the route map.
+            if (!isRelevantPage) return;
+
+            if (payload?.entity !== 'RolePermission') {
+                queueRealtimeNotification(payload?.message || 'System data was updated.');
+            }
 
             if (window.systemUpdatesRegionRefreshTimer) clearTimeout(window.systemUpdatesRegionRefreshTimer);
             window.systemUpdatesRegionRefreshTimer = window.setTimeout(async () => {
