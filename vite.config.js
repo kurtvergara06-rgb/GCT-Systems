@@ -236,6 +236,7 @@ export default defineConfig({
                 'resources/css/Warehouse/stock-movements.css',
                 'resources/css/Warehouse/incoming-deliveries.css',
 
+                'resources/js/Warehouse/dashboard-warehouse.js',
                 'resources/js/Warehouse/inventory.js',
                 'resources/js/Warehouse/part-requests.js',
                 'resources/js/Warehouse/part-requests-cleanup.js',
