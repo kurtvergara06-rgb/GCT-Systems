@@ -4,6 +4,7 @@
     'resources/css/Warehouse/inventory.css',
     'resources/css/Warehouse/stock-movements.css',
     'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/form-components.css',
     'resources/js/Warehouse/inventory.js'
   ]"
 >
@@ -264,162 +265,400 @@
   </div>
 
   @if($canEditWarehouse)
-    {{-- ADD MODAL --}}
-    <div class="modal-overlay" id="addModal">
-    <div class="modal-box wide-modal">
+    {{-- ADD INVENTORY ITEM MODAL --}}
+    <div class="modal-overlay ui-form-overlay inventory-form-modal-overlay" id="addModal">
+      <div class="ui-form-modal ui-form-modal-xl inventory-form-modal" role="dialog" aria-modal="true" aria-labelledby="addInventoryModalTitle">
+        <div class="ui-form-modal-header inventory-form-modal-header">
+          <div class="ui-form-title-wrap">
+            <div class="ui-form-title-icon">
+              <i class="fa-solid fa-box"></i>
+            </div>
+            <div class="ui-form-heading">
+              <h2 id="addInventoryModalTitle">Add Inventory Item</h2>
+              <p>Enter the required information to add a new item to Warehouse inventory.</p>
+            </div>
+          </div>
 
-      <div class="modal-header">
-        <h2>Add Inventory Item</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
+          <button type="button" class="ui-form-close closeModal" aria-label="Close Add Inventory Item">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form
+          id="addInventoryForm"
+          action="/inventory"
+          method="POST"
+          class="ui-form-content inventory-form-content"
+          data-confirm-form
+          data-confirm-title="Add Inventory Item?"
+          data-confirm-message="Are you sure you want to add this inventory item?"
+          data-confirm-button="Yes, Add Item"
+          data-confirm-type="create"
+          data-ajax-submit="true"
+          data-parent-modal-id="addModal"
+        >
+          @csrf
+
+          <div class="ui-form-modal-body inventory-form-modal-body">
+            <div class="ui-form-modal-scrollable inventory-form-scrollable">
+              <section class="ui-form-section inventory-modal-section inventory-section-basic">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                      <h3>Basic Information</h3>
+                      <p>Provide the item reference, name, category, and opening stock.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-grid">
+                    <div class="ui-form-group">
+                      <label for="add_item_code">Item Code <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-cube"></i></span>
+                        <input id="add_item_code" type="text" name="item_code" required placeholder="e.g. PART-001" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Unique Warehouse reference for this item.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_item_name">Parts Name <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-tag"></i></span>
+                        <input id="add_item_name" type="text" name="item_name" required placeholder="e.g. Air Filter" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Descriptive name used in requests and stock records.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_category">Category</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-table-cells-large"></i></span>
+                        <input id="add_category" type="text" name="category" placeholder="e.g. Engine Parts" list="inventoryCategoryOptions" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Use an existing category or enter a new one.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_quantity">Quantity Available <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
+                        <input id="add_quantity" type="number" name="on_hand" min="0" value="0" required>
+                      </div>
+                      <small class="inventory-field-help">Opening quantity physically available in Warehouse.</small>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ui-form-section inventory-modal-section inventory-section-details">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-gears"></i>
+                    </div>
+                    <div>
+                      <h3>Inventory Details</h3>
+                      <p>Set the measurement unit, reorder threshold, supplier, and storage location.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-grid">
+                    <div class="ui-form-group">
+                      <label for="add_unit">Unit of Measurement <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-ruler"></i></span>
+                        <input id="add_unit" type="text" name="unit_of_measurement" required placeholder="e.g. pcs, liter, box" list="inventoryUnitOptions" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Unit used when receiving and issuing this item.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_reorder">Reorder Level <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-chart-simple"></i></span>
+                        <input id="add_reorder" type="number" name="reorder_level" min="0" value="0" required>
+                      </div>
+                      <small class="inventory-field-help">Minimum stock level before replenishment is needed.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_supplier">Supplier</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-truck"></i></span>
+                        <input id="add_supplier" type="text" name="supplier" placeholder="e.g. Supplier name" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Primary supplier for this item, if known.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="add_location">Storage Location</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-location-dot"></i></span>
+                        <input id="add_location" type="text" name="storage_location" placeholder="e.g. Shelf B-1" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Physical Warehouse shelf, rack, or storage area.</small>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ui-form-section inventory-modal-section inventory-section-additional">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-note-sticky"></i>
+                    </div>
+                    <div>
+                      <h3>Additional Information</h3>
+                      <p>Add an optional note explaining the opening inventory quantity.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-group">
+                    <label for="add_adjustment_reason">Opening Balance Note</label>
+                    <textarea
+                      id="add_adjustment_reason"
+                      name="adjustment_reason"
+                      maxlength="500"
+                      rows="3"
+                      placeholder="e.g. Initial physical count, beginning inventory, transferred stock..."
+                    ></textarea>
+                    <small class="inventory-field-help">This note will be recorded with the initial stock movement when opening stock is greater than zero.</small>
+                  </div>
+                </div>
+              </section>
+
+              <datalist id="inventoryCategoryOptions">
+                @foreach($categories as $category)
+                  <option value="{{ $category }}"></option>
+                @endforeach
+              </datalist>
+
+              <datalist id="inventoryUnitOptions">
+                <option value="pcs"></option>
+                <option value="liter"></option>
+                <option value="box"></option>
+                <option value="set"></option>
+                <option value="pair"></option>
+                <option value="bottle"></option>
+              </datalist>
+            </div>
+
+            <div class="ui-form-actions inventory-form-actions">
+              <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Cancel</span>
+              </button>
+              <button type="submit" class="ui-form-btn ui-form-btn-primary">
+                <x-ui.spinner size="sm" hidden />
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span data-loading-label>Save Item</span>
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-
-      <form
-        action="/inventory"
-        method="POST"
-        data-confirm-form
-        data-confirm-title="Add Inventory Item?"
-        data-confirm-message="Are you sure you want to add this inventory item?"
-        data-confirm-button="Yes, Add Item"
-        data-confirm-type="create"
-        data-ajax-submit="true"
-        data-parent-modal-id="addModal"
-      >
-        @csrf
-
-        <div class="form-grid">
-
-          <div class="form-group">
-            <label>Item Code</label>
-            <input type="text" name="item_code" required placeholder="Example: PART-001">
-          </div>
-
-          <div class="form-group">
-            <label>Parts Name</label>
-            <input type="text" name="item_name" required placeholder="Example: Air Filter">
-          </div>
-
-          <div class="form-group">
-            <label>Category</label>
-            <input type="text" name="category" required placeholder="Example: Engine Parts">
-          </div>
-
-          <div class="form-group">
-            <label>Quantity Available</label>
-            <input type="number" name="on_hand" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label>Unit of Measurement</label>
-            <input type="text" name="unit_of_measurement" required placeholder="Example: pcs, liter, box">
-          </div>
-
-          <div class="form-group">
-            <label>Reorder Level</label>
-            <input type="number" name="reorder_level" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label>Supplier</label>
-            <input type="text" name="supplier" placeholder="Supplier name">
-          </div>
-
-          <div class="form-group">
-            <label>Storage Location</label>
-            <input type="text" name="storage_location" placeholder="Example: A-02">
-          </div>
-
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
-          <button type="submit" class="primary-btn">Save Item</button>
-        </div>
-
-      </form>
-
-    </div>
     </div>
 
-  {{-- EDIT MODAL --}}
-  <div class="modal-overlay" id="editModal">
-    <div class="modal-box wide-modal">
+    {{-- EDIT INVENTORY ITEM MODAL --}}
+    <div class="modal-overlay ui-form-overlay inventory-form-modal-overlay" id="editModal">
+      <div class="ui-form-modal ui-form-modal-xl inventory-form-modal" role="dialog" aria-modal="true" aria-labelledby="editInventoryModalTitle">
+        <div class="ui-form-modal-header inventory-form-modal-header">
+          <div class="ui-form-title-wrap">
+            <div class="ui-form-title-icon">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div class="ui-form-heading">
+              <h2 id="editInventoryModalTitle">Edit Inventory Item</h2>
+              <p>Update item information while keeping stock adjustments traceable.</p>
+            </div>
+          </div>
 
-      <div class="modal-header">
-        <h2>Edit Inventory Item</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
+          <button type="button" class="ui-form-close closeModal" aria-label="Close Edit Inventory Item">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form
+          id="editForm"
+          method="POST"
+          class="ui-form-content inventory-form-content"
+          data-confirm-form
+          data-confirm-title="Update Inventory Item?"
+          data-confirm-message="Are you sure you want to update this inventory item?"
+          data-confirm-button="Yes, Update Item"
+          data-confirm-type="update"
+          data-ajax-submit="true"
+          data-parent-modal-id="editModal"
+        >
+          @csrf
+          @method('PUT')
+
+          <div class="ui-form-modal-body inventory-form-modal-body">
+            <div class="ui-form-modal-scrollable inventory-form-scrollable">
+              <section class="ui-form-section inventory-modal-section inventory-section-basic">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                      <h3>Basic Information</h3>
+                      <p>Review the item reference, name, category, and current stock quantity.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-grid">
+                    <div class="ui-form-group">
+                      <label for="edit_item_code">Item Code <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-cube"></i></span>
+                        <input type="text" name="item_code" id="edit_item_code" required autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Unique Warehouse reference for this item.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_item_name">Parts Name <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-tag"></i></span>
+                        <input type="text" name="item_name" id="edit_item_name" required autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Name used across Inventory and Warehouse requests.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_category">Category</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-table-cells-large"></i></span>
+                        <input type="text" name="category" id="edit_category" list="inventoryCategoryOptions" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Inventory classification for this item.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_quantity">Quantity Available <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
+                        <input type="number" name="on_hand" id="edit_quantity" min="0" required>
+                      </div>
+                      <small class="inventory-field-help">Changing this value creates an auditable stock adjustment.</small>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ui-form-section inventory-modal-section inventory-section-details">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-gears"></i>
+                    </div>
+                    <div>
+                      <h3>Inventory Details</h3>
+                      <p>Maintain the measurement unit, threshold, supplier, and storage details.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-grid">
+                    <div class="ui-form-group">
+                      <label for="edit_unit">Unit of Measurement <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-ruler"></i></span>
+                        <input type="text" name="unit_of_measurement" id="edit_unit" list="inventoryUnitOptions" required autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Unit used for receiving and issuing stock.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_reorder">Reorder Level <span class="ui-required">*</span></label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-chart-simple"></i></span>
+                        <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
+                      </div>
+                      <small class="inventory-field-help">Threshold used for low-stock and restock alerts.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_supplier">Supplier</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-truck"></i></span>
+                        <input type="text" name="supplier" id="edit_supplier" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Primary supplier, if one is assigned.</small>
+                    </div>
+
+                    <div class="ui-form-group">
+                      <label for="edit_location">Storage Location</label>
+                      <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-location-dot"></i></span>
+                        <input type="text" name="storage_location" id="edit_location" autocomplete="off">
+                      </div>
+                      <small class="inventory-field-help">Shelf, rack, or storage area in Warehouse.</small>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ui-form-section inventory-modal-section inventory-section-additional">
+                <div class="ui-form-section-header">
+                  <div class="ui-form-section-title">
+                    <div class="ui-form-section-icon">
+                      <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div>
+                      <h3>Stock Adjustment</h3>
+                      <p>Explain quantity changes so Inventory history remains auditable.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-form-section-body">
+                  <div class="ui-form-group">
+                    <label for="edit_adjustment_reason">
+                      Adjustment Reason
+                      <span id="editAdjustmentRequiredMark" class="ui-required" hidden>*</span>
+                    </label>
+                    <textarea
+                      name="adjustment_reason"
+                      id="edit_adjustment_reason"
+                      maxlength="500"
+                      rows="3"
+                      placeholder="Required only when Quantity Available is changed"
+                    ></textarea>
+                    <small id="editAdjustmentHelp" class="inventory-field-help">No reason is required when stock quantity remains unchanged.</small>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="ui-form-actions inventory-form-actions">
+              <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Cancel</span>
+              </button>
+              <button type="submit" class="ui-form-btn ui-form-btn-primary">
+                <x-ui.spinner size="sm" hidden />
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span data-loading-label>Update Item</span>
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-
-      <form
-        id="editForm"
-        method="POST"
-        data-confirm-form
-        data-confirm-title="Update Inventory Item?"
-        data-confirm-message="Are you sure you want to update this inventory item?"
-        data-confirm-button="Yes, Update Item"
-        data-confirm-type="update"
-        data-ajax-submit="true"
-        data-parent-modal-id="editModal"
-      >
-        @csrf
-        @method('PUT')
-
-        <div class="form-grid">
-
-          <div class="form-group">
-            <label>Item Code</label>
-            <input type="text" name="item_code" id="edit_item_code" required>
-          </div>
-
-          <div class="form-group">
-            <label>Parts Name</label>
-            <input type="text" name="item_name" id="edit_item_name" required>
-          </div>
-
-          <div class="form-group">
-            <label>Category</label>
-            <input type="text" name="category" id="edit_category" required>
-          </div>
-
-          <div class="form-group">
-            <label>Quantity Available</label>
-            <input type="number" name="on_hand" id="edit_quantity" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label>Unit of Measurement</label>
-            <input type="text" name="unit_of_measurement" id="edit_unit" required>
-          </div>
-
-          <div class="form-group">
-            <label>Reorder Level</label>
-            <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label>Supplier</label>
-            <input type="text" name="supplier" id="edit_supplier">
-          </div>
-
-          <div class="form-group">
-            <label>Storage Location</label>
-            <input type="text" name="storage_location" id="edit_location">
-          </div>
-
-          <div class="form-group">
-            <label>Adjustment Reason</label>
-            <input type="text" name="adjustment_reason" id="edit_adjustment_reason" maxlength="500" placeholder="Required when quantity changes">
-          </div>
-
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
-          <button type="submit" class="primary-btn">Update Item</button>
-        </div>
-
-      </form>
-
-    </div>
     </div>
   @endif
 
