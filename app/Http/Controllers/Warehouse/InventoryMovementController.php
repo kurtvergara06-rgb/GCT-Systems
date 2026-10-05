@@ -35,18 +35,12 @@ class InventoryMovementController extends Controller
             ->where('movement_type', 'Adjustment')
             ->count();
 
-        $simulatedMovements = StockMovement::query()
-            ->where('inventory_item_id', $inventoryItem->id)
-            ->where('source', 'simulated')
-            ->count();
-
         $data = compact(
             'inventoryItem',
             'movements',
             'stockIn',
             'stockOut',
-            'adjustments',
-            'simulatedMovements'
+            'adjustments'
         );
 
         if ($request->ajax() || $request->boolean('modal')) {
