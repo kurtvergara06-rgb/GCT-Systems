@@ -80,7 +80,7 @@ class JobOrderIndexController extends Controller
         $nextJobOrderNo = $this->generateJobOrderNo();
 
         $assignedActiveMechanics = JobOrder::query()
-            ->where('status', '!=', 'Completed')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->whereNotNull('assigned_mechanic')
             ->where('assigned_mechanic', '!=', '')
             ->pluck('assigned_mechanic')
@@ -90,7 +90,8 @@ class JobOrderIndexController extends Controller
 
         $availableMechanics = MechanicAttendance::query()
             ->whereDate('attendance_date', today())
-            ->whereIn('status', ['Present', 'Late'])
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
             ->whereNotIn('mechanic_name', $assignedActiveMechanics)
             ->orderBy('mechanic_name')
             ->get();
