@@ -9,6 +9,8 @@ use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseRequestController extends Controller
 {
@@ -42,87 +44,9 @@ class PurchaseRequestController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        if (! Auth::check()) {
-            return false;
-        }
+        $user = Auth::user();
 
-        $user =
-            Auth::user();
-
-        $department =
-            strtolower(
-                trim(
-                    (string)
-                        ($user->department ?? '')
-                )
-            );
-
-        $role =
-            strtolower(
-                trim(
-                    (string)
-                        ($user->role ?? '')
-                )
-            );
-
-        $normalizedDepartment =
-            preg_replace(
-                '/\s+/',
-                ' ',
-                str_replace(
-                    [
-                        '_',
-                        '-',
-                    ],
-                    ' ',
-                    $department
-                )
-            );
-
-        $normalizedRole =
-            preg_replace(
-                '/\s+/',
-                ' ',
-                str_replace(
-                    [
-                        '_',
-                        '-',
-                    ],
-                    ' ',
-                    $role
-                )
-            );
-
-        $isMaintenanceHead =
-            $normalizedDepartment
-                === 'maintenance'
-            && in_array(
-                $normalizedRole,
-                [
-                    'head',
-                    'admin',
-                    'maintenance head',
-                    'maintenance admin',
-                ],
-                true
-            );
-
-        $isSystemAdmin =
-            $normalizedDepartment
-                === 'admin'
-            && in_array(
-                $normalizedRole,
-                [
-                    'head',
-                    'admin',
-                    'system admin',
-                ],
-                true
-            );
-
-        return
-            $isMaintenanceHead
-            || $isSystemAdmin;
+        return $user?->hasSystemPermission('maintenance', 'approve') ?? false;
     }
 
     /* =========================================================
@@ -632,49 +556,44 @@ class PurchaseRequestController extends Controller
            CREATE
         ====================================================== */
 
-        $purchaseRequest =
-            PurchaseRequest::create([
-                'pr_no' =>
-                    $this->generatePrNo(),
+        [$purchaseRequest, $jobOrder] = DB::transaction(function () use (
+            $formattedParts,
+            $jobOrder,
+            $totalQuantity,
+            $validated
+        ): array {
+            $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
 
-                'job_order_no' =>
-                    $jobOrder
-                        ->job_order_no,
+            $existingRequest = $this->maintenancePurchaseRequestQuery()
+                ->where('job_order_no', $lockedJobOrder->job_order_no)
+                ->latest()
+                ->first();
 
-                'bus_no' =>
-                    $jobOrder
-                        ->bus_no,
+            if ($existingRequest) {
+                throw ValidationException::withMessages([
+                    'job_order_no' => 'This Job Order already has a Purchase Request.',
+                ]);
+            }
 
-                'item' =>
-                    $formattedParts,
-
-                'quantity' =>
-                    $totalQuantity,
-
-                'status' =>
-                    'Submitted',
-
-                'source_type' =>
-                    'Maintenance Request',
-
-                'remarks' =>
-                    $validated[
-                        'remarks'
-                    ] ?? null,
-
-                'date_requested' =>
-                    now(),
+            $createdPurchaseRequest = PurchaseRequest::create([
+                'pr_no' => $this->generatePrNo(),
+                'job_order_no' => $lockedJobOrder->job_order_no,
+                'bus_no' => $lockedJobOrder->bus_no,
+                'item' => $formattedParts,
+                'quantity' => $totalQuantity,
+                'status' => 'Submitted',
+                'source_type' => 'Maintenance Request',
+                'remarks' => $validated['remarks'] ?? null,
+                'date_requested' => now(),
             ]);
 
-        /* Keep JO requested parts synchronized. */
+            $lockedJobOrder->update([
+                'part_needed' => $formattedParts,
+                'part_status' => 'Submitted',
+            ]);
 
-        $jobOrder->update([
-            'part_needed' =>
-                $formattedParts,
-
-            'part_status' =>
-                'Submitted',
-        ]);
+            return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -918,6 +837,14 @@ class PurchaseRequestController extends Controller
             $purchaseRequest
                 ->job_order_no;
 
+        DB::transaction(function () use (
+            $formattedParts,
+            $jobOrder,
+            $oldJobOrderNo,
+            $purchaseRequest,
+            $totalQuantity,
+            $validated
+        ): void {
         $purchaseRequest->update([
             'job_order_no' =>
                 $validated[
@@ -994,6 +921,7 @@ class PurchaseRequestController extends Controller
             'part_status' =>
                 'Submitted',
         ]);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -1151,6 +1079,13 @@ class PurchaseRequestController extends Controller
         | Only update the existing record.
         */
 
+        DB::transaction(function () use (
+            $formattedParts,
+            $jobOrder,
+            $purchaseRequest,
+            $totalQuantity,
+            $validated
+        ): void {
         $purchaseRequest->update([
             'item' =>
                 $formattedParts,
@@ -1186,6 +1121,7 @@ class PurchaseRequestController extends Controller
             'part_status' =>
                 'Submitted',
         ]);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -1248,11 +1184,11 @@ class PurchaseRequestController extends Controller
                 ->canApprovePurchaseRequest()
         ) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can approve purchase requests.'], 403);
+                return response()->json(['success' => false, 'message' => 'Your role does not have permission to approve purchase requests.'], 403);
             }
             abort(
                 403,
-                'Only Maintenance Head can approve purchase requests.'
+                'Your role does not have permission to approve purchase requests.'
             );
         }
 
@@ -1271,7 +1207,16 @@ class PurchaseRequestController extends Controller
                 );
         }
 
-        $purchaseRequest->update([
+        $purchaseRequest = DB::transaction(function () use ($purchaseRequest): PurchaseRequest {
+        $lockedPurchaseRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+        if ($lockedPurchaseRequest->status !== 'Submitted') {
+            throw ValidationException::withMessages([
+                'status' => 'This Purchase Request changed and can no longer be approved.',
+            ]);
+        }
+
+        $lockedPurchaseRequest->update([
             'status' =>
                 'Approved',
 
@@ -1284,9 +1229,12 @@ class PurchaseRequestController extends Controller
 
         $this
             ->updateRelatedJobOrderPartStatus(
-                $purchaseRequest,
+                $lockedPurchaseRequest,
                 'Approved'
             );
+
+        return $lockedPurchaseRequest->fresh();
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -1341,11 +1289,11 @@ class PurchaseRequestController extends Controller
                 ->canApprovePurchaseRequest()
         ) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can reject purchase requests.'], 403);
+                return response()->json(['success' => false, 'message' => 'Your role does not have permission to reject purchase requests.'], 403);
             }
             abort(
                 403,
-                'Only Maintenance Head can reject purchase requests.'
+                'Your role does not have permission to reject purchase requests.'
             );
         }
 
@@ -1364,7 +1312,16 @@ class PurchaseRequestController extends Controller
                 );
         }
 
-        $purchaseRequest->update([
+        $purchaseRequest = DB::transaction(function () use ($purchaseRequest, $request): PurchaseRequest {
+        $lockedPurchaseRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+        if ($lockedPurchaseRequest->status !== 'Submitted') {
+            throw ValidationException::withMessages([
+                'status' => 'This Purchase Request changed and can no longer be rejected.',
+            ]);
+        }
+
+        $lockedPurchaseRequest->update([
             'status' =>
                 'Rejected',
 
@@ -1375,14 +1332,17 @@ class PurchaseRequestController extends Controller
                 null,
 
             'remarks' =>
-                $request->input('remarks', 'Rejected by Maintenance Head'),
+                $request->input('remarks', 'Rejected by Maintenance'),
         ]);
 
         $this
             ->updateRelatedJobOrderPartStatus(
-                $purchaseRequest,
+                $lockedPurchaseRequest,
                 'Rejected'
             );
+
+        return $lockedPurchaseRequest->fresh();
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -1440,16 +1400,28 @@ class PurchaseRequestController extends Controller
                 );
         }
 
-        $purchaseRequest->update([
+        $purchaseRequest = DB::transaction(function () use ($purchaseRequest): PurchaseRequest {
+        $lockedPurchaseRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+        if ($lockedPurchaseRequest->status !== 'Approved') {
+            throw ValidationException::withMessages([
+                'status' => 'This Purchase Request changed and can no longer be sent to Purchase.',
+            ]);
+        }
+
+        $lockedPurchaseRequest->update([
             'status' =>
                 'For Purchase',
         ]);
 
         $this
             ->updateRelatedJobOrderPartStatus(
-                $purchaseRequest,
+                $lockedPurchaseRequest,
                 'For Purchase'
             );
+
+        return $lockedPurchaseRequest->fresh();
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -1465,97 +1437,6 @@ class PurchaseRequestController extends Controller
                 'success',
                 'Purchase request sent to purchase successfully.'
             );
-    }
-
-    /* =========================================================
-       DELIVERED
-    ========================================================= */
-
-    public function markDelivered(
-    PurchaseRequest $purchaseRequest
-    ) {
-        if (
-            $this->isRestockRequest(
-                $purchaseRequest
-            )
-        ) {
-            return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Inventory restock requests cannot be marked delivered from Maintenance.'
-                );
-        }
-
-        if (
-            ! in_array(
-                $purchaseRequest->status,
-                [
-                    'Ordered',
-                    'For Delivery',
-                ],
-                true
-            )
-        ) {
-            return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Only ordered or delivery-stage Purchase Requests can be marked as delivered.'
-                );
-        }
-
-        $purchaseRequest->update([
-            'status' => 'Delivered',
-        ]);
-
-        // Keep the remaining existing code.
-    }
-
-    /* =========================================================
-       ISSUE
-    ========================================================= */
-
-    public function issue(
-    PurchaseRequest $purchaseRequest
-    ) {
-        if (
-            $this->isRestockRequest(
-                $purchaseRequest
-            )
-        ) {
-            return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Inventory restock requests cannot be issued from Maintenance.'
-                );
-        }
-
-        if (
-            ! in_array(
-                $purchaseRequest->status,
-                [
-                    'Delivered',
-                    'Picked Up',
-                ],
-                true
-            )
-        ) {
-            return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Only delivered or picked-up Purchase Requests can be issued.'
-                );
-        }
-
-        $purchaseRequest->update([
-            'status' => 'Issued',
-            'issued_at' => now(),
-        ]);
-
-        // Keep the remaining existing code.
     }
 
     /* =========================================================
@@ -1760,6 +1641,7 @@ class PurchaseRequestController extends Controller
                 ->orderByDesc(
                     'id'
                 )
+                ->lockForUpdate()
                 ->first();
 
         if (! $lastPr) {

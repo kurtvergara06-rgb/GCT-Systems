@@ -1366,6 +1366,32 @@ textarea[readonly] {
   position: relative;
 }
 
+.global-confirmation-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f8fafc;
+  color: #475569;
+
+  cursor: pointer;
+}
+
+.global-confirmation-close:hover {
+  background: #eef2f7;
+  color: var(--text);
+}
+
 
 /* =========================================================
    GLOBAL CONFIRMATION ICON
@@ -2004,4 +2030,15 @@ tr.gct-highlight-pulse td,
 .gct-highlight-pulse.prescriptive-queue-item,
 .gct-highlight-pulse.priority-finding {
   animation: gctHighlightRowPulseAnim 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+}
+
+/* Server-filtered search updates only the table region, not the whole page. */
+.table-wrap.is-server-filtering {
+  opacity: 0.58;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+}
+
+.toolbar[aria-busy="true"] {
+  cursor: progress;
 }

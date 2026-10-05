@@ -5,11 +5,21 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
+use App\Services\Maintenance\PmsScheduleSynchronizer;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class BusController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
+    public function __construct(
+        private readonly PmsScheduleSynchronizer $pmsScheduleSynchronizer
+    ) {
+    }
+
     public function index(Request $request)
     {
         $query = Bus::query();
@@ -146,15 +156,23 @@ class BusController extends Controller
             ],
         ]);
 
-        Bus::create([
-            'bus_no' => strtoupper(trim($validated['bus_no'])),
-            'plate_no' => $validated['plate_no'] ?? null,
-            'bus_model' => $validated['bus_model'] ?? null,
-            'year_model' => $validated['year_model'] ?? null,
-            'capacity' => $validated['capacity'] ?? null,
-            'route_grouping' => $validated['route_grouping'] ?? null,
-            'status' => $validated['status'],
-        ]);
+        $bus = DB::transaction(function () use ($validated): Bus {
+            $createdBus = Bus::create([
+                'bus_no' => strtoupper(trim($validated['bus_no'])),
+                'plate_no' => $validated['plate_no'] ?? null,
+                'bus_model' => $validated['bus_model'] ?? null,
+                'year_model' => $validated['year_model'] ?? null,
+                'capacity' => $validated['capacity'] ?? null,
+                'route_grouping' => $validated['route_grouping'] ?? null,
+                'status' => $validated['status'],
+            ]);
+
+            $this->pmsScheduleSynchronizer->ensureDefaultsFor($createdBus);
+
+            return $createdBus;
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Bus', 'created', $bus->id, 'A bus was added to the master list.');
 
         session()->flash(
             'success',
@@ -307,13 +325,23 @@ class BusController extends Controller
             )->first();
 
             if ($existingBus) {
-                $existingBus->update($busData);
+                DB::transaction(function () use ($busData, $existingBus): void {
+                    $existingBus->update($busData);
+                    $this->pmsScheduleSynchronizer->ensureDefaultsFor($existingBus);
+                });
+                $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $existingBus->id, 'A bus was updated by CSV import.');
                 $updated++;
             } else {
-                Bus::create(array_merge(
-                    ['bus_no' => $busNo],
-                    $busData
-                ));
+                $createdBus = DB::transaction(function () use ($busData, $busNo): Bus {
+                    $newBus = Bus::create(array_merge(
+                        ['bus_no' => $busNo],
+                        $busData
+                    ));
+                    $this->pmsScheduleSynchronizer->ensureDefaultsFor($newBus);
+
+                    return $newBus;
+                });
+                $this->broadcastSystemDataUpdated('Operation', 'Bus', 'created', $createdBus->id, 'A bus was added by CSV import.');
 
                 $added++;
             }
@@ -369,15 +397,23 @@ class BusController extends Controller
             ],
         ]);
 
-        $bus->update([
-            'bus_no' => strtoupper(trim($validated['bus_no'])),
-            'plate_no' => $validated['plate_no'] ?? null,
-            'bus_model' => $validated['bus_model'] ?? null,
-            'year_model' => $validated['year_model'] ?? null,
-            'capacity' => $validated['capacity'] ?? null,
-            'route_grouping' => $validated['route_grouping'] ?? null,
-            'status' => $validated['status'],
-        ]);
+        DB::transaction(function () use ($bus, $validated): void {
+            $oldBusNo = $bus->bus_no;
+
+            $bus->update([
+                'bus_no' => strtoupper(trim($validated['bus_no'])),
+                'plate_no' => $validated['plate_no'] ?? null,
+                'bus_model' => $validated['bus_model'] ?? null,
+                'year_model' => $validated['year_model'] ?? null,
+                'capacity' => $validated['capacity'] ?? null,
+                'route_grouping' => $validated['route_grouping'] ?? null,
+                'status' => $validated['status'],
+            ]);
+
+            $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $bus);
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'A bus master-list record was updated.');
 
         session()->flash(
             'success',
@@ -389,7 +425,15 @@ class BusController extends Controller
 
     public function destroy(Bus $bus): RedirectResponse
     {
-        $bus->delete();
+        $busId = $bus->id;
+        $busNo = $bus->bus_no;
+
+        DB::transaction(function () use ($bus, $busNo): void {
+            $bus->delete();
+            $this->pmsScheduleSynchronizer->removeUnusedSchedulesFor($busNo);
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Bus', 'deleted', $busId, 'A bus was removed from the master list.');
 
         session()->flash(
             'success',

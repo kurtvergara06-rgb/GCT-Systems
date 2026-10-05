@@ -6,24 +6,21 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      GSAP MOTION HELPERS
   ========================================================= */
 
-  /*
-   * Demo branch only:
-   * force motion on so the GSAP behavior is visible even when
-   * Windows/Brave reports prefers-reduced-motion.
-   * Do not carry this override into main without review.
-   */
-  const forceGsapDemoMotion =
-    true;
+  const prefersReducedMotion = () => {
+    if (
+      window.__GCT_FORCE_MOTION__ === true
+      || window.__GCT_ENABLE_MOTION__ === true
+      || document.documentElement.dataset.gctMotion === 'enabled'
+    ) {
+      return false;
+    }
 
-
-  const prefersReducedMotion =
-    forceGsapDemoMotion
-      ? false
-      : (
-          window.matchMedia?.(
-            '(prefers-reduced-motion: reduce)'
-          )?.matches ?? false
-        );
+    return (
+      window.matchMedia?.(
+        '(prefers-reduced-motion: reduce)'
+      )?.matches ?? false
+    );
+  };
 
 
   function getModalSurface(modal) {
@@ -71,30 +68,29 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
   function animatePartRowIn(row) {
-
-    if (
-      !row ||
-      prefersReducedMotion
-    ) {
+    if (!row) {
       return;
     }
 
+    const isReduced = typeof prefersReducedMotion === 'function'
+      ? prefersReducedMotion()
+      : Boolean(prefersReducedMotion);
+
+    const xOffset = isReduced ? -6 : -16;
 
     gsap.fromTo(
       row,
       {
         opacity: 0,
-        x: -28,
-        y: -8,
-        scale: 0.96,
+        x: xOffset,
+        y: -6,
       },
       {
         opacity: 1,
         x: 0,
         y: 0,
-        scale: 1,
-        duration: 0.28,
-        ease: 'back.out(1.55)',
+        duration: isReduced ? 0.22 : 0.30,
+        ease: 'power3.out',
         clearProps:
           'opacity,transform',
       }
@@ -113,10 +109,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     }
 
 
-    if (prefersReducedMotion) {
-      onComplete?.();
-      return;
-    }
+    const isReduced = typeof prefersReducedMotion === 'function'
+      ? prefersReducedMotion()
+      : Boolean(prefersReducedMotion);
 
 
     gsap.killTweensOf(row);
@@ -126,8 +121,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       row,
       {
         opacity: 0,
-        x: 18,
-        duration: 0.16,
+        x: isReduced ? 10 : 24,
+        duration: isReduced ? 0.16 : 0.22,
         ease: 'power2.in',
         onComplete: () => {
 
@@ -147,70 +142,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
-  function animateJobOrderPageEntrance() {
-
-    if (prefersReducedMotion) {
-      return;
-    }
-
-
-    const summaryCards =
-      document.querySelectorAll(
-        '.jo-page .jo-stats-grid > *'
-      );
-
-
-    const tableCard =
-      document.querySelector(
-        '.jo-page .jo-table-card'
-      );
-
-
-    if (summaryCards.length) {
-
-      gsap.fromTo(
-        summaryCards,
-        {
-          opacity: 0,
-          y: 34,
-          scale: 0.94,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.34,
-          stagger: 0.07,
-          ease: 'back.out(1.25)',
-          clearProps:
-            'opacity,transform',
-        }
-      );
-    }
-
-
-    if (tableCard) {
-
-      gsap.fromTo(
-        tableCard,
-        {
-          opacity: 0,
-          y: 44,
-          scale: 0.985,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.42,
-          delay: 0.10,
-          ease: 'power3.out',
-          clearProps:
-            'opacity,transform',
-        }
-      );
-    }
-  }
+  /*
+   * Initial Job Order page reveal is owned by maintenance-animations.js.
+   * Keeping the cards/table at their final layout prevents users from seeing
+   * the page assemble after the navigation loader disappears.
+   */
 
 
   /* =========================================================
@@ -222,10 +158,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     if (!modal) {
       return;
     }
-
-
-    const surface =
-      getModalSurface(modal);
 
 
     modal.classList.add(
@@ -241,133 +173,25 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       .gsapClosing;
 
 
-    if (prefersReducedMotion) {
-
-      resetModalAnimationState(
-        modal,
-        surface
-      );
-
-
-      return;
-    }
-
-
-    gsap.killTweensOf(modal);
-
-
-    if (surface) {
-      gsap.killTweensOf(surface);
-    }
-
-
-    const timeline =
-      gsap.timeline();
-
-
-    timeline.fromTo(
-      modal,
-      {
-        opacity: 0,
-      },
-      {
-        opacity: 1,
-        duration: 0.18,
-        ease: 'power2.out',
-      }
-    );
-
-
-    if (surface) {
-
-      timeline.fromTo(
-        surface,
-        {
-          opacity: 0,
-          y: 72,
-          scale: 0.84,
-          rotateX: -5,
-          rotateZ: -0.8,
-          transformOrigin:
-            '50% 20%',
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          rotateX: 0,
-          rotateZ: 0,
-          duration: 0.42,
-          ease: 'back.out(1.4)',
-          clearProps:
-            'opacity,transform,transformOrigin',
-        },
-        0.03
-      );
-
-
-      const contentItems =
-        surface.querySelectorAll(
-          '.jo-create-section, ' +
-          '.jo-edit-section, ' +
-          '.jo-edit-footer, ' +
-          '.ui-form-actions'
-        );
-
-
-      if (contentItems.length) {
-
-        timeline.fromTo(
-          contentItems,
-          {
-            opacity: 0,
-            y: 24,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.24,
-            stagger: 0.05,
-            ease: 'power2.out',
-            clearProps:
-              'opacity,transform',
-          },
-          0.12
-        );
-      }
-    }
-
-
-    timeline.set(
-      modal,
-      {
-        clearProps: 'opacity',
-      }
-    );
+    window.GCTSystemAnimations
+      ?.animateModalOpen?.(modal);
   }
 
-
   function closeModal(modal) {
-
     if (!modal) {
       return;
     }
 
-
     const surface =
       getModalSurface(modal);
 
-
     const finishClose = () => {
-
       modal.classList.remove(
         'show',
         'active'
       );
 
-
       modal.style.display = '';
-
 
       resetModalAnimationState(
         modal,
@@ -375,84 +199,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       );
     };
 
-
-    if (prefersReducedMotion) {
-
-      finishClose();
-      return;
-    }
-
-
     if (
-      modal.dataset
-        .gsapClosing ===
-      'true'
+      !window.GCTSystemAnimations
+        ?.animateModalClose?.(
+          modal,
+          finishClose
+        )
     ) {
-      return;
+      finishClose();
     }
-
-
-    modal.dataset.gsapClosing =
-      'true';
-
-
-    gsap.killTweensOf(modal);
-
-
-    if (surface) {
-      gsap.killTweensOf(surface);
-    }
-
-
-    const timeline =
-      gsap.timeline({
-        onComplete:
-          finishClose,
-      });
-
-
-    if (surface) {
-
-      timeline.to(
-        surface,
-        {
-          opacity: 0,
-          y: 34,
-          scale: 0.93,
-          duration: 0.18,
-          ease: 'power2.in',
-        },
-        0
-      );
-    }
-
-
-    timeline.to(
-      modal,
-      {
-        opacity: 0,
-        duration: 0.20,
-        ease: 'power2.in',
-      },
-      0
-    );
   }
-
-
-  console.info(
-    '[JO GSAP demo] GSAP motion is active.',
-    {
-      forcedDemoMotion:
-        forceGsapDemoMotion,
-      browserReducedMotion:
-        window.matchMedia?.(
-          '(prefers-reduced-motion: reduce)'
-        )?.matches ?? false,
-    }
-  );
-
-
-  animateJobOrderPageEntrance();
 
 
   /* =========================================================
@@ -868,11 +624,114 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     );
 
 
+  const isPmsCreateFlow =
+    jobModal?.dataset
+      .pmsCreate ===
+    'true';
+
+
+  function cleanPmsCreateUrl() {
+
+    const cleanUrl =
+      new URL(
+        window.location.href
+      );
+
+
+    [
+      'create_pms',
+      'pms_schedule_id',
+      'bus_no',
+      'maintenance_type',
+      'problem_issue',
+    ].forEach(
+      (key) =>
+        cleanUrl.searchParams
+          .delete(key)
+    );
+
+
+    return cleanUrl.href;
+  }
+
+
+  function cancelNewJobOrder() {
+
+    closeModal(jobModal);
+
+
+    if (!isPmsCreateFlow) {
+      return;
+    }
+
+
+    if (jobModal) {
+      jobModal.dataset.pmsCreate =
+        'false';
+    }
+
+
+    const cleanUrl =
+      cleanPmsCreateUrl();
+
+
+    /*
+     * Replace the PMS-prefill URL immediately so refresh/back/initializer
+     * re-runs cannot reopen a cancelled Job Order modal.
+     */
+    window.history.replaceState(
+      {
+        ...window.history.state,
+      },
+      '',
+      cleanUrl
+    );
+
+
+    window.setTimeout(
+      () => {
+
+        if (
+          window
+            .GCTPartialNavigation
+            ?.navigate
+        ) {
+          void window
+            .GCTPartialNavigation
+            .navigate(
+              cleanUrl,
+              {
+                push: false,
+              }
+            );
+
+          return;
+        }
+
+
+        window.location.replace(
+          cleanUrl
+        );
+      },
+      prefersReducedMotion
+        ? 0
+        : 240
+    );
+  }
+
+
   if (openJobModal) {
 
     openJobModal.addEventListener(
       'click',
       () => {
+
+        /*
+         * Always pull the latest attendance state before the New JO modal
+         * is used. This keeps newly recorded Present/Late mechanics
+         * selectable even when Reverb was temporarily disconnected.
+         */
+        void refreshAvailableMechanicsDropdown();
 
         openModal(jobModal);
 
@@ -887,7 +746,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       'click',
       () => {
 
-        closeModal(jobModal);
+        cancelNewJobOrder();
 
       }
     );
@@ -900,7 +759,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       'click',
       () => {
 
-        closeModal(jobModal);
+        cancelNewJobOrder();
 
       }
     );
@@ -1049,6 +908,24 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
   updateNewJoPartsState();
+
+
+  /*
+   * PMS-created Job Orders are opened only after all page initializers
+   * have had a chance to build the standard JO layout/comboboxes.
+   * This avoids the old inline script opening the raw modal too early.
+   */
+  if (isPmsCreateFlow) {
+
+    window.requestAnimationFrame(
+      () => {
+
+        void refreshAvailableMechanicsDropdown();
+
+        openModal(jobModal);
+      }
+    );
+  }
 
 
   /* =========================================================
@@ -2067,6 +1944,38 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     );
 
 
+  const deleteJobTitle =
+    deleteJobModal
+      ?.querySelector('h2')
+    || null;
+
+
+  const deleteJobMessage =
+    deleteJobModal
+      ?.querySelector('p')
+    || null;
+
+
+  const rejectedPrDeleteWarning =
+    document.createElement(
+      'span'
+    );
+
+
+  rejectedPrDeleteWarning.textContent =
+    ' The rejected Purchase Request and its related notifications will also be removed.';
+
+
+  rejectedPrDeleteWarning.hidden =
+    true;
+
+
+  deleteJobMessage
+    ?.appendChild(
+      rejectedPrDeleteWarning
+    );
+
+
   let selectedDeleteForm =
     null;
 
@@ -2103,6 +2012,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         button.dataset.joNo;
 
 
+      const hasRejectedPr =
+        button.dataset
+          .rejectedPr ===
+        '1';
+
+
       selectedDeleteForm =
         document.getElementById(
           `deleteForm-${id}`
@@ -2127,6 +2042,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       }
 
 
+      if (deleteJobTitle) {
+
+        deleteJobTitle.textContent =
+          hasRejectedPr
+            ? 'Delete Rejected Job Order?'
+            : 'Delete Job Order?';
+      }
+
+
+      rejectedPrDeleteWarning.hidden =
+        !hasRejectedPr;
+
+
       if (confirmDeleteJob) {
 
         confirmDeleteJob.disabled =
@@ -2134,7 +2062,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
         confirmDeleteJob.innerHTML =
-          'Yes, Delete';
+          hasRejectedPr
+            ? 'Yes, Delete JO + PR'
+            : 'Yes, Delete';
       }
 
 
@@ -2724,6 +2654,43 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
+  /*
+   * The searchable mechanic combobox is initialized separately below.
+   * Expose this refresh hook so opening that combobox can always fetch
+   * the latest attendance state instead of relying only on page load.
+   */
+  window.GCTRefreshJobOrderMechanics =
+    refreshAvailableMechanicsDropdown;
+
+
+  /*
+   * When attendance is recorded from another browser tab, the JO tab may
+   * have missed the broadcast while it was in the background. Refresh the
+   * open modal as soon as this tab becomes active again.
+   */
+  if (window.GCTJobOrderMechanicFocusHandler) {
+    window.removeEventListener(
+      'focus',
+      window.GCTJobOrderMechanicFocusHandler
+    );
+  }
+
+  window.GCTJobOrderMechanicFocusHandler =
+    () => {
+      if (
+        jobModal?.classList.contains('show') ||
+        jobModal?.classList.contains('active')
+      ) {
+        void refreshAvailableMechanicsDropdown();
+      }
+    };
+
+  window.addEventListener(
+    'focus',
+    window.GCTJobOrderMechanicFocusHandler
+  );
+
+
   /* =========================================================
      REAL-TIME ATTENDANCE UPDATE
   ========================================================= */
@@ -3243,9 +3210,22 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       updateLabel();
     };
 
-    const openMenu = () => {
+    const openMenu = async () => {
       if (select.disabled) {
         return;
+      }
+
+      /*
+       * Attendance can be recorded in another tab while Job Orders stays
+       * open. Refresh immediately before showing the mechanic list so the
+       * user never has to reload the whole JO page.
+       */
+      if (
+        select === mechanicSelect &&
+        typeof window.GCTRefreshJobOrderMechanics === 'function'
+      ) {
+        await window.GCTRefreshJobOrderMechanics();
+        renderOptions();
       }
 
       menu.hidden = false;
@@ -3257,7 +3237,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     };
 
     trigger.addEventListener('click', () => {
-      menu.hidden ? openMenu() : closeMenu();
+      if (menu.hidden) {
+        void openMenu();
+      } else {
+        closeMenu();
+      }
     });
 
     searchInput.addEventListener('input', filterOptions);

@@ -15,7 +15,7 @@
         ====================================================== --}}
     <x-layout.sidebar department="Operation" />
 
-        <main class="main">
+        <main class="main operation-dashboard-main">
 
             {{-- =====================================================
                 TOPBAR

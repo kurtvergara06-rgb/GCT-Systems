@@ -42,13 +42,21 @@ class MaintenanceReferralController extends Controller
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
 
-            $query->whereHas('incident', function ($incidentQuery) use ($search): void {
-                $incidentQuery
-                    ->where('incident_no', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('bus', function ($busQuery) use ($search): void {
-                        $busQuery->where('bus_no', 'like', "%{$search}%");
+            $query->where(function ($referralQuery) use ($search): void {
+                $referralQuery
+                    ->whereHas('incident', function ($incidentQuery) use ($search): void {
+                        $incidentQuery
+                            ->where('incident_no', 'like', "%{$search}%")
+                            ->orWhere('location', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->orWhereHas('bus', function ($busQuery) use ($search): void {
+                                $busQuery->where('bus_no', 'like', "%{$search}%");
+                            });
+                    })
+                    ->orWhereHas('jobOrder', function ($jobOrderQuery) use ($search): void {
+                        $jobOrderQuery
+                            ->where('job_order_no', 'like', "%{$search}%")
+                            ->orWhere('bus_no', 'like', "%{$search}%");
                     });
             });
         }
@@ -73,7 +81,7 @@ class MaintenanceReferralController extends Controller
 
     public function approve(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
-        $this->authorizeMaintenanceHead();
+        $this->authorizeReferralReview();
 
         if ($maintenanceReferral->status !== 'Pending') {
             return back()->with('error', 'Only pending maintenance referrals can be approved.');
@@ -98,7 +106,7 @@ class MaintenanceReferralController extends Controller
 
     public function reject(Request $request, MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
-        $this->authorizeMaintenanceHead();
+        $this->authorizeReferralReview();
 
         if ($maintenanceReferral->status !== 'Pending') {
             return back()->with('error', 'Only pending maintenance referrals can be rejected.');
@@ -126,15 +134,14 @@ class MaintenanceReferralController extends Controller
         return back()->with('success', 'Maintenance referral rejected.');
     }
 
-    private function authorizeMaintenanceHead(): void
+    private function authorizeReferralReview(): void
     {
         $user = auth()->user();
-        $department = strtolower(trim((string) ($user?->department ?? '')));
-        $role = strtolower(trim((string) ($user?->role ?? '')));
 
-        $allowed = ($department === 'maintenance' && in_array($role, ['head', 'admin', 'maintenance head', 'maintenance admin'], true))
-            || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
-
-        abort_unless($allowed, 403, 'Only Maintenance Head can review maintenance referrals.');
+        abort_unless(
+            $user?->hasSystemPermission('maintenance', 'approve') ?? false,
+            403,
+            'Your role does not have permission to review maintenance referrals.'
+        );
     }
 }

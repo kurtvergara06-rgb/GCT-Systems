@@ -14,6 +14,155 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
   const presetLabels = new Set(maintenanceJobPresets.map((preset) => preset.label));
 
+  const enhanceMaintenanceJobSelect = (select) => {
+    if (!select || select.dataset.dropdownEnhanced === 'true') {
+      return null;
+    }
+
+    const nativeWrap = select.closest('.ui-input-wrap');
+
+    if (!nativeWrap) {
+      return null;
+    }
+
+    select.dataset.dropdownEnhanced = 'true';
+    nativeWrap.classList.add('jo-maintenance-job-native-wrap');
+
+    const combobox = document.createElement('div');
+    combobox.className = 'jo-maintenance-job-combobox';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'jo-maintenance-job-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.innerHTML = `
+      <span class="jo-maintenance-job-icon">
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+      </span>
+      <span class="jo-maintenance-job-label placeholder">
+        Select Maintenance Job
+      </span>
+      <i class="fa-solid fa-chevron-down jo-maintenance-job-chevron"></i>
+    `;
+
+    const menu = document.createElement('div');
+    menu.className = 'jo-maintenance-job-menu';
+    menu.hidden = true;
+
+    const optionsContainer = document.createElement('div');
+    optionsContainer.className = 'jo-maintenance-job-options';
+    menu.appendChild(optionsContainer);
+
+    combobox.append(trigger, menu);
+    nativeWrap.insertAdjacentElement('afterend', combobox);
+
+    const label = trigger.querySelector('.jo-maintenance-job-label');
+
+    const sync = () => {
+      const selectedOption = select.options[select.selectedIndex];
+      const hasValue = Boolean(selectedOption?.value);
+
+      label.textContent = hasValue
+        ? selectedOption.textContent.trim()
+        : 'Select Maintenance Job';
+
+      label.classList.toggle('placeholder', !hasValue);
+
+      optionsContainer
+        .querySelectorAll('.jo-maintenance-job-option')
+        .forEach((optionButton) => {
+          optionButton.classList.toggle(
+            'is-selected',
+            optionButton.dataset.value === select.value
+          );
+        });
+    };
+
+    const close = () => {
+      menu.hidden = true;
+      combobox.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    const render = () => {
+      optionsContainer.innerHTML = '';
+
+      Array.from(select.options).forEach((option) => {
+        if (!option.value) {
+          return;
+        }
+
+        const optionButton = document.createElement('button');
+        optionButton.type = 'button';
+        optionButton.className = 'jo-maintenance-job-option';
+        optionButton.dataset.value = option.value;
+        optionButton.innerHTML = `
+          <span>${option.textContent.trim()}</span>
+          <i class="fa-solid fa-check"></i>
+        `;
+
+        optionButton.addEventListener('click', () => {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          close();
+        });
+
+        optionsContainer.appendChild(optionButton);
+      });
+
+      sync();
+    };
+
+    const makeDownwardSpace = () => {
+      const scroller = combobox.closest('.ui-form-modal-scrollable');
+
+      if (!scroller) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        const triggerRect = trigger.getBoundingClientRect();
+        const scrollerRect = scroller.getBoundingClientRect();
+        const desiredBottom = triggerRect.bottom
+          + Math.min(menu.scrollHeight || 260, 260)
+          + 16;
+
+        if (desiredBottom > scrollerRect.bottom) {
+          scroller.scrollBy({
+            top: desiredBottom - scrollerRect.bottom,
+            behavior: 'smooth',
+          });
+        }
+      });
+    };
+
+    trigger.addEventListener('click', () => {
+      if (menu.hidden) {
+        menu.hidden = false;
+        combobox.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        render();
+        makeDownwardSpace();
+      } else {
+        close();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!combobox.contains(event.target)) {
+        close();
+      }
+    });
+
+    render();
+
+    return {
+      sync,
+      close,
+    };
+  };
+
   const findDurationControls = (durationField) => ({
     valueInput: durationField?.querySelector('input[name="estimated_duration_value"]') || null,
     unitSelect: durationField?.querySelector('select[name="estimated_duration_unit"]') || null,
@@ -174,6 +323,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
     const { valueInput, unitSelect } = findDurationControls(durationField);
+    const maintenanceJobCombobox = enhanceMaintenanceJobSelect(select);
 
     const applySelectedJob = () => {
       const preset = maintenanceJobPresets.find((item) => item.label === select?.value);
@@ -186,10 +336,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       } else {
         setDurationReadonly(durationField, !isOther);
       }
+
+      maintenanceJobCombobox?.sync();
     };
 
     select?.addEventListener('change', applySelectedJob);
     setDurationReadonly(durationField, true);
+    maintenanceJobCombobox?.sync();
 
     return {
       select,

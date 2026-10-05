@@ -3,6 +3,7 @@
 namespace App\Services\Maintenance;
 
 use App\Models\Admin\ActivityLog;
+use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Purchase\PurchaseOrder;
@@ -211,8 +212,10 @@ class LinkedJobOrderResetService
             }
 
             $mechanic = trim((string) ($jobOrder->assigned_mechanic ?? ''));
+            $busNo = (string) $jobOrder->bus_no;
             $jobOrder->delete();
             $mechanicReleased = $this->releaseMechanicIfAvailable($mechanic, $jobOrderNo);
+            $releasedBus = $this->releaseBusIfAvailable($busNo);
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
@@ -241,8 +244,334 @@ class LinkedJobOrderResetService
                 'issuances_deleted' => count($issuanceIds),
                 'inventory_reversals' => count($movementIds),
                 'mechanic_released' => $mechanicReleased,
+                'bus_released_id' => $releasedBus?->id,
             ];
         }, 3);
+    }
+
+    /**
+     * Delete a rejected Job Order workflow while preserving unrelated records
+     * inside shared Purchase Orders.
+     *
+     * This path is intentionally stricter than a raw delete:
+     * - the Job Order itself must currently be rejected;
+     * - at least one Maintenance Purchase Request must be rejected;
+     * - any stock movement or inventory issuance touching the JO/PR/PO chain blocks deletion;
+     * - shared POs are preserved and only target PR item lines are detached;
+     * - an exclusive inventory-posted PO without ledger evidence remains blocked.
+     *
+     * @return array<string, mixed>
+     */
+    public function deleteRejectedWorkflow(string $jobOrderNo): array
+    {
+        return DB::transaction(function () use ($jobOrderNo): array {
+            $jobOrder = JobOrder::query()
+                ->where('job_order_no', $jobOrderNo)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $jobOrder) {
+                throw new RuntimeException('Job Order no longer exists.');
+            }
+
+            if ($jobOrder->part_status !== 'Rejected') {
+                throw new RuntimeException('Only a Job Order with a rejected Purchase Request can use this cleanup.');
+            }
+
+            $purchaseRequests = DB::table('purchase_requests')
+                ->where('job_order_no', $jobOrderNo)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($purchaseRequests->isEmpty()) {
+                throw new RuntimeException('No linked Purchase Request was found.');
+            }
+
+            $hasRejectedMaintenanceRequest = $purchaseRequests->contains(function ($purchaseRequest): bool {
+                $prNo = strtoupper(trim((string) ($purchaseRequest->pr_no ?? '')));
+                $sourceType = trim((string) ($purchaseRequest->source_type ?? ''));
+
+                return $purchaseRequest->status === 'Rejected'
+                    && ! preg_match('/-P(?:\d+)?$/i', $prNo)
+                    && ($sourceType === '' || $sourceType === 'Maintenance Request');
+            });
+
+            if (! $hasRejectedMaintenanceRequest) {
+                throw new RuntimeException('No rejected Maintenance Purchase Request was found for this Job Order.');
+            }
+
+            $prIds = $purchaseRequests
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values();
+
+            $prNos = $purchaseRequests
+                ->pluck('pr_no')
+                ->map(fn ($value): string => trim((string) $value))
+                ->filter()
+                ->values();
+
+            $normalizedPrNos = $prNos
+                ->map(fn (string $value): string => $this->normalizePrNo($value))
+                ->filter()
+                ->unique()
+                ->values();
+
+            $purchaseOrders = PurchaseOrder::query()
+                ->orderBy('id')
+                ->get()
+                ->filter(
+                    fn (PurchaseOrder $order): bool => $this->purchaseOrderTouchesRequests(
+                        $order,
+                        $prIds,
+                        $normalizedPrNos
+                    )
+                )
+                ->values();
+
+            $poNos = $purchaseOrders
+                ->pluck('po_no')
+                ->map(fn ($value): string => trim((string) $value))
+                ->filter()
+                ->values();
+
+            $references = collect([$jobOrderNo])
+                ->merge($prNos)
+                ->merge($poNos)
+                ->filter()
+                ->unique()
+                ->values();
+
+            $issuances = DB::table('inventory_issuances')
+                ->whereIn('reference_no', $references)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($issuances->isNotEmpty()) {
+                throw new RuntimeException(
+                    'Warehouse issuance records already exist for this workflow.'
+                );
+            }
+
+            $movements = StockMovement::query()
+                ->whereIn('reference_no', $references)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($movements->isNotEmpty()) {
+                throw new RuntimeException(
+                    'Inventory stock movements already exist for this workflow.'
+                );
+            }
+
+            $deletedPurchaseOrderIds = [];
+            $detachedPurchaseOrderIds = [];
+
+            foreach ($purchaseOrders as $purchaseOrderSnapshot) {
+                $purchaseOrder = PurchaseOrder::query()
+                    ->whereKey($purchaseOrderSnapshot->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $items = collect($purchaseOrder->items ?? []);
+
+                $remainingItems = $items
+                    ->reject(function ($item) use ($normalizedPrNos): bool {
+                        $itemPrNo = $this->normalizePrNo(
+                            (string) ($item['pr_no'] ?? '')
+                        );
+
+                        return $itemPrNo !== ''
+                            && $normalizedPrNos->contains($itemPrNo);
+                    })
+                    ->values();
+
+                if ($remainingItems->isEmpty()) {
+                    if ($purchaseOrder->inventory_posted_at) {
+                        throw new RuntimeException(
+                            "{$purchaseOrder->po_no} is inventory-posted but has no unrelated PO lines to preserve."
+                        );
+                    }
+
+                    DB::table('scheduled_purchases')
+                        ->where('last_po_id', $purchaseOrder->id)
+                        ->update([
+                            'last_po_id' => null,
+                            'last_purchased_at' => null,
+                            'updated_at' => now(),
+                        ]);
+
+                    DB::table('topbar_notifications')
+                        ->where('entity', 'PurchaseOrder')
+                        ->where('record_id', (string) $purchaseOrder->id)
+                        ->delete();
+
+                    $deletedPurchaseOrderIds[] = (int) $purchaseOrder->id;
+                    $purchaseOrder->delete();
+
+                    continue;
+                }
+
+                $replacementPurchaseRequestId = $purchaseOrder->purchase_request_id;
+
+                if (
+                    $replacementPurchaseRequestId
+                    && $prIds->contains((int) $replacementPurchaseRequestId)
+                ) {
+                    $replacementPurchaseRequestId = $this
+                        ->replacementPurchaseRequestId(
+                            $remainingItems,
+                            $prIds
+                        );
+                }
+
+                $grossAmount = round(
+                    $remainingItems->sum(function ($item): float {
+                        if (array_key_exists('amount', $item)) {
+                            return (float) $item['amount'];
+                        }
+
+                        return (float) ($item['quantity'] ?? 0)
+                            * (float) ($item['cost'] ?? 0);
+                    }),
+                    2
+                );
+
+                $netAmount = round(
+                    $grossAmount
+                    + (float) $purchaseOrder->delivery_fee
+                    - (float) $purchaseOrder->discount
+                    + (float) $purchaseOrder->vat,
+                    2
+                );
+
+                $purchaseOrder->update([
+                    'purchase_request_id' => $replacementPurchaseRequestId,
+                    'items' => $remainingItems->all(),
+                    'gross_amount' => $grossAmount,
+                    'net_amount' => $netAmount,
+                ]);
+
+                $detachedPurchaseOrderIds[] = (int) $purchaseOrder->id;
+            }
+
+            DB::table('topbar_notifications')
+                ->where(function ($query) use ($jobOrder, $prIds): void {
+                    $query
+                        ->where(function ($jobQuery) use ($jobOrder): void {
+                            $jobQuery
+                                ->where('entity', 'JobOrder')
+                                ->where('record_id', (string) $jobOrder->id);
+                        })
+                        ->orWhere(function ($requestQuery) use ($prIds): void {
+                            $requestQuery
+                                ->where('entity', 'PurchaseRequest')
+                                ->whereIn(
+                                    'record_id',
+                                    $prIds->map(fn ($id): string => (string) $id)
+                                );
+                        });
+                })
+                ->delete();
+
+            DB::table('purchase_requests')
+                ->whereIn('id', $prIds->all())
+                ->delete();
+
+            if ($jobOrder->maintenance_referral_id) {
+                DB::table('maintenance_referrals')
+                    ->where('id', $jobOrder->maintenance_referral_id)
+                    ->update([
+                        'status' => 'Approved',
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            $jobOrderId = (int) $jobOrder->id;
+            $mechanic = trim((string) ($jobOrder->assigned_mechanic ?? ''));
+            $busNo = (string) $jobOrder->bus_no;
+
+            $jobOrder->delete();
+
+            $mechanicReleased = $this->releaseMechanicIfAvailable(
+                $mechanic,
+                $jobOrderNo
+            );
+            $releasedBus = $this->releaseBusIfAvailable($busNo);
+
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()?->name ?? 'System Console',
+                'user_role' => auth()->user()?->role ?? 'System Admin',
+                'department' => 'Maintenance',
+                'activity' => 'Delete rejected Job Order workflow',
+                'module' => 'Maintenance',
+                'reference' => $jobOrderNo,
+                'event_type' => 'Deleted',
+                'details' => sprintf(
+                    'Deleted rejected %s with %d linked PR(s); deleted %d exclusive PO(s) and detached this workflow from %d shared PO(s). No inventory movements or warehouse issuances were removed.',
+                    $jobOrderNo,
+                    $prIds->count(),
+                    count($deletedPurchaseOrderIds),
+                    count($detachedPurchaseOrderIds)
+                ),
+                'ip_address' => request()?->ip(),
+                'user_agent' => request()?->userAgent(),
+            ]);
+
+            return [
+                'job_order_id' => $jobOrderId,
+                'job_order_no' => $jobOrderNo,
+                'purchase_requests_deleted' => $prIds->count(),
+                'purchase_orders_deleted' => count($deletedPurchaseOrderIds),
+                'purchase_orders_detached' => count($detachedPurchaseOrderIds),
+                'mechanic_released' => $mechanicReleased,
+                'bus_released_id' => $releasedBus?->id,
+            ];
+        }, 3);
+    }
+
+    /**
+     * Pick a surviving PR as the primary PO link when a shared PO previously
+     * pointed at a PR that belongs to the rejected Job Order.
+     *
+     * @param  Collection<int, mixed>  $remainingItems
+     * @param  Collection<int, int>  $excludedPrIds
+     */
+    private function replacementPurchaseRequestId(
+        Collection $remainingItems,
+        Collection $excludedPrIds
+    ): ?int {
+        $remainingPrNos = $remainingItems
+            ->map(
+                fn ($item): string => $this->normalizePrNo(
+                    (string) ($item['pr_no'] ?? '')
+                )
+            )
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($remainingPrNos->isEmpty()) {
+            return null;
+        }
+
+        $candidate = DB::table('purchase_requests')
+            ->whereNotIn('id', $excludedPrIds->all())
+            ->orderBy('id')
+            ->get(['id', 'pr_no'])
+            ->first(
+                fn ($purchaseRequest): bool => $remainingPrNos->contains(
+                    $this->normalizePrNo((string) $purchaseRequest->pr_no)
+                )
+            );
+
+        return $candidate
+            ? (int) $candidate->id
+            : null;
     }
 
     /** @return array<string, mixed> */
@@ -463,6 +792,31 @@ class LinkedJobOrderResetService
         $attendance->update($updates);
 
         return true;
+    }
+
+    private function releaseBusIfAvailable(string $busNo): ?Bus
+    {
+        $bus = Bus::query()
+            ->where('bus_no', $busNo)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $bus || $bus->status !== 'Under Maintenance') {
+            return null;
+        }
+
+        $hasActiveJobOrder = JobOrder::query()
+            ->where('bus_no', $busNo)
+            ->where('status', '!=', 'Completed')
+            ->exists();
+
+        if ($hasActiveJobOrder) {
+            return null;
+        }
+
+        $bus->update(['status' => 'Active']);
+
+        return $bus->fresh();
     }
 
     private function normalizePrNo(string $prNo): string

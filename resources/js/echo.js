@@ -33,13 +33,17 @@ window.Echo = window.Echo || new Echo({
 window.realtimePageRouteMap = {
     'Warehouse:PurchaseRequest': ['/purchase-requests','/job-orders','/maintenance-requests','/part-requests','/purchase-orders','/inventory','/admin/dashboard'],
     'Warehouse:Inventory': ['/inventory','/part-requests','/maintenance-requests','/job-orders','/admin/dashboard'],
-    'Maintenance:PurchaseRequest': ['/purchase-requests','/job-orders','/part-requests','/maintenance-requests','/admin/dashboard'],
-    'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/admin/dashboard'],
+    'Maintenance:PurchaseRequest': ['/purchase-requests','/job-orders','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
+    'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
+    'Maintenance:RolePermission': ['/maintenance-dashboard','/maintenance-referrals','/pms-scheduling','/fuel-reports','/job-orders','/purchase-requests','/mechanic-list'],
+    'Maintenance:FuelReport': ['/fuel-reports','/maintenance-dashboard','/admin/dashboard'],
+    'Maintenance:PmsSchedule': ['/pms-scheduling','/job-orders','/maintenance-dashboard','/admin/dashboard'],
+    'Maintenance:MaintenanceReferral': ['/maintenance-referrals','/job-orders','/maintenance-dashboard','/admin/dashboard'],
     'Purchase:PurchaseOrder': ['/purchase-orders','/maintenance-requests','/part-requests','/job-orders','/inventory','/admin/dashboard'],
     'Purchase:MaintenanceRequest': ['/maintenance-requests','/purchase-orders','/part-requests','/purchase-requests','/job-orders','/inventory','/admin/dashboard'],
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
     'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/dashboard-operation','/admin/dashboard','/mechanic-list'],
-    'Operation:Bus': ['/bus-master-list','/dashboard-operation','/job-orders','/pms-scheduling','/admin/dashboard'],
+    'Operation:Bus': ['/bus-master-list','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
     'Operation:Incident': ['/operation/incidents','/dashboard-operation','/admin/dashboard'],
 };
 
@@ -110,20 +114,37 @@ const normalizePath = (path) => {
     return normalized === '/' ? '/' : normalized;
 };
 
+let realtimeRegionRefreshController = null;
+
 const refreshAjaxRegions = async () => {
     const names = [...new Set(Array.from(document.querySelectorAll('[data-ajax-region]')).map((element) => element.dataset.ajaxRegion).filter(Boolean))];
     if (names.length === 0) return false;
 
+    realtimeRegionRefreshController?.abort();
+    const controller = new AbortController();
+    const requestUrl = window.location.href;
+    realtimeRegionRefreshController = controller;
+
     names.forEach((name) => window.GCTRegions?.setLoading?.(name, true));
 
     try {
-        const response = await fetch(window.location.href, {
+        const response = await fetch(requestUrl, {
             headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
             cache: 'no-store',
+            signal: controller.signal,
         });
         if (!response.ok) throw new Error(`Realtime region refresh failed with status ${response.status}.`);
 
         const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+
+        if (
+            controller.signal.aborted
+            || realtimeRegionRefreshController !== controller
+            || window.location.href !== requestUrl
+        ) {
+            return false;
+        }
+
         let replacedCount = 0;
 
         names.forEach((name) => {
@@ -151,12 +172,26 @@ const refreshAjaxRegions = async () => {
 
         return replacedCount > 0;
     } catch (error) {
+        if (error?.name === 'AbortError') return false;
         console.warn('Realtime AJAX region refresh failed:', error);
         return false;
     } finally {
-        names.forEach((name) => window.GCTRegions?.setLoading?.(name, false));
+        if (realtimeRegionRefreshController === controller) {
+            realtimeRegionRefreshController = null;
+            names.forEach((name) => window.GCTRegions?.setLoading?.(name, false));
+        }
     }
 };
+
+window.addEventListener('gct:navigation-before', () => {
+    realtimeRegionRefreshController?.abort();
+    realtimeRegionRefreshController = null;
+
+    if (window.systemUpdatesRegionRefreshTimer) {
+        window.clearTimeout(window.systemUpdatesRegionRefreshTimer);
+        window.systemUpdatesRegionRefreshTimer = null;
+    }
+});
 
 window.listenForSystemUpdates = function () {
     if (!window.Echo || !window.Echo.channel) {
@@ -179,7 +214,9 @@ window.listenForSystemUpdates = function () {
         window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
 
         try {
-            queueRealtimeNotification(payload?.message || 'System data was updated.');
+            if (payload?.entity !== 'RolePermission') {
+                queueRealtimeNotification(payload?.message || 'System data was updated.');
+            }
 
             const currentPath = normalizePath(window.location.pathname);
             const routeKey = `${payload.module}:${payload.entity}`;

@@ -655,6 +655,12 @@ const eligibleLink = (link, event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
     if (link.hasAttribute('data-no-partial-navigation')) return false;
+
+    /*
+     * Confirmation links are owned by confirmation-modal.js.
+     * Do not begin partial navigation before the user confirms.
+     */
+    if (link.hasAttribute('data-confirm-action')) return false;
     if (link.closest('[data-ajax-region]') && !link.hasAttribute('data-allow-partial-navigation')) return false;
     if (link.closest('form') || link.getAttribute('role') === 'button') return false;
 
