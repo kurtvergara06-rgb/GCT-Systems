@@ -23,6 +23,7 @@ class WarehouseFrontendHardeningTest extends TestCase
         $vite = file_get_contents(base_path('vite.config.js'));
         $this->assertStringContainsString('resources/css/Warehouse/part-requests-cleanup.css', $vite);
         $this->assertStringContainsString('resources/js/Warehouse/part-requests-cleanup.js', $vite);
+        $this->assertStringContainsString('resources/js/Warehouse/dashboard-warehouse.js', $vite);
 
         foreach (['inventory', 'part-requests', 'incoming-deliveries', 'stock-movements'] as $view) {
             $contents = file_get_contents(resource_path("views/Warehouse/{$view}.blade.php"));
@@ -50,5 +51,8 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertNotEmpty($matches[1]);
         $this->assertSame($matches[1], array_values(array_unique($matches[1])));
         $this->assertContains('recent-stock-movements', $matches[1]);
+        $this->assertStringContainsString('warehouseInventoryBar', $view);
+        $this->assertStringContainsString('warehouseInventoryDonut', $view);
+        $this->assertStringContainsString('warehouseMovementTrend', $view);
     }
 }
