@@ -446,4 +446,40 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
+
+    public function test_job_order_bus_selectors_hide_internal_bus_id_but_keep_bus_no_as_value(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Maintenance/job-order.blade.php')
+        );
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertSame(
+            2,
+            substr_count($view, 'label="Bus Plate"')
+        );
+        $this->assertStringContainsString(
+            "$bus->bus_no => ($bus->plate_no ?: 'Plate not assigned')",
+            $view
+        );
+        $this->assertStringNotContainsString(
+            "$bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')",
+            $view
+        );
+        $this->assertStringContainsString(
+            "searchPlaceholder: 'Search plate number...'",
+            $js
+        );
+        $this->assertStringContainsString(
+            'button.dataset.search =',
+            $js
+        );
+        $this->assertStringContainsString(
+            'option.value',
+            $js
+        );
+    }
+
 }
