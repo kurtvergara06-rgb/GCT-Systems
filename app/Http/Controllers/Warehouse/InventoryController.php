@@ -115,16 +115,18 @@ class InventoryController extends Controller
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
+            'adjustment_reason' => ['nullable', 'string', 'max:500'],
         ], [
             'item_code.unique' => 'The item code already exists. Please use a different item code.',
         ]);
 
         $inventoryItem = null;
         $initialStock = (int) $validated['on_hand'];
+        $openingBalanceNote = trim((string) ($validated['adjustment_reason'] ?? ''));
 
-        unset($validated['on_hand'], $validated['quantity_available']);
+        unset($validated['on_hand'], $validated['quantity_available'], $validated['adjustment_reason']);
 
-        DB::transaction(function () use ($validated, $initialStock, &$inventoryItem) {
+        DB::transaction(function () use ($validated, $initialStock, $openingBalanceNote, &$inventoryItem) {
             $validated['parts_name'] =
                 $validated['parts_name']
                 ?? $validated['item_name'];
@@ -153,7 +155,7 @@ class InventoryController extends Controller
                     $inventoryItem,
                     $initialStock,
                     $inventoryItem->item_code ?? $inventoryItem->item_name,
-                    'Opening balance on item creation.',
+                    $openingBalanceNote !== '' ? $openingBalanceNote : 'Opening balance on item creation.',
                     auth()->id()
                 );
             }
