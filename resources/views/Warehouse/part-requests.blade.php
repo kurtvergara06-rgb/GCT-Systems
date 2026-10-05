@@ -12,6 +12,8 @@
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
     $canApproveWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'approve') ?? false;
+    $currentView = $currentView ?? 'active';
+    $isHistory = $currentView === 'history';
   @endphp
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
@@ -34,12 +36,34 @@
         <div class="section-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>Warehouse Part Request Records</h2>
-            <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
+            <h2>{{ $isHistory ? 'Part Request History' : 'Active Part Requests' }}</h2>
+            <p>{{ $isHistory ? 'Completed and closed Warehouse requisitions are retained as read-only records.' : 'Review stock availability, authorize releases, and track Warehouse processing.' }}</p>
           </div>
         </div>
 
+        <nav class="warehouse-record-tabs" aria-label="Part request record view">
+          <a
+            href="{{ route('part-requests', ['view' => 'active']) }}"
+            class="warehouse-record-tab {{ !$isHistory ? 'active' : '' }}"
+            @if(!$isHistory) aria-current="page" @endif
+          >
+            <i class="fa-solid fa-list-check"></i>
+            Active
+            <span>{{ $activeCount ?? 0 }}</span>
+          </a>
+          <a
+            href="{{ route('part-requests', ['view' => 'history']) }}"
+            class="warehouse-record-tab {{ $isHistory ? 'active' : '' }}"
+            @if($isHistory) aria-current="page" @endif
+          >
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            History
+            <span>{{ $historyCount ?? 0 }}</span>
+          </a>
+        </nav>
+
         <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar" data-server-filter="true">
+          <input type="hidden" name="view" value="{{ $currentView }}">
           <div class="toolbar-left">
             <div class="search-box">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -59,7 +83,7 @@
                 onchange="this.form.requestSubmit()"
               >
                 <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
-                @foreach(($statuses ?? []) as $status)
+                @foreach(($statusOptions ?? []) as $status)
                   <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                 @endforeach
               </select>
@@ -106,7 +130,9 @@
                   $canApproveForIssue = ($partRequest->can_approve_for_issue ?? false) && $canApproveWarehouse;
                   $canHold = ($partRequest->can_hold ?? false) && $canApproveWarehouse;
                   $canPrepare = ($partRequest->can_prepare ?? false) && $canEditWarehouse;
-                  $warehouseStatus = $partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval';
+                  $warehouseStatus = $isHistory
+                    ? ($partRequest->warehouse_status ?: $partRequest->status)
+                    : ($partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval');
                   $warehouseStatusLabel = match ($warehouseStatus) {
                     'Pending Warehouse Approval' => 'Pending Approval',
                     'Approved for Issue' => 'Approved',
@@ -186,6 +212,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
+                      @unless($isHistory)
                       @if($canSendToPurchase)
                         <form
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
@@ -252,11 +279,12 @@
                           <i class="fa-solid fa-box-open"></i>
                         </button>
                       @endif
+                      @endunless
                     </div>
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="8" message="No active part requests found." />
+                <x-ui.empty-row colspan="8" :message="$isHistory ? 'No part request history found.' : 'No active part requests found.'" />
               @endforelse
             </tbody>
           </table>
