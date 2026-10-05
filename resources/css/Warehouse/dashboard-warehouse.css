@@ -744,3 +744,230 @@
     text-align: left;
   }
 }
+
+
+/* =========================================================
+   WAREHOUSE DASHBOARD — DESKTOP DENSITY REFINEMENT
+   Keeps dashboard readable at common 1366–1920 widths.
+========================================================= */
+
+.warehouse-kpi-content small {
+  font-size: 11px;
+}
+
+.warehouse-kpi-content span {
+  font-size: 10px;
+}
+
+.warehouse-panel-eyebrow {
+  font-size: 10px;
+}
+
+.warehouse-panel-header h2 {
+  font-size: 16px;
+}
+
+.warehouse-panel-header p {
+  font-size: 11px;
+}
+
+.warehouse-panel-link,
+.warehouse-panel-period {
+  font-size: 10px;
+}
+
+/* Two action queues first, then a full-width audit trail. */
+.warehouse-table-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.warehouse-table-grid > .warehouse-panel:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+/* Never force dashboard cards to grow just because a sibling is taller. */
+.warehouse-bottom-grid {
+  align-items: start;
+}
+
+/* Dashboard tables must fit their cards; no nested horizontal scrollbars. */
+.warehouse-table-scroll {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.warehouse-dashboard-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.warehouse-dashboard-table th,
+.warehouse-dashboard-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.warehouse-dashboard-table th {
+  padding: 8px 9px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.warehouse-dashboard-table td {
+  padding: 9px;
+  font-size: 10px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.warehouse-table-primary {
+  max-width: none;
+  font-size: 10px;
+}
+
+.warehouse-dashboard-table td small {
+  font-size: 9px;
+}
+
+.warehouse-reference {
+  white-space: nowrap;
+}
+
+.warehouse-status {
+  font-size: 9px;
+}
+
+/* Incoming Deliveries column balance */
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(1),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(1) {
+  width: 24%;
+}
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(2),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(2) {
+  width: 38%;
+}
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(3),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(3) {
+  width: 10%;
+}
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(4),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(4) {
+  width: 20%;
+}
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(5),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(5) {
+  width: 8%;
+}
+
+/* Part Requests column balance */
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table th:nth-child(1),
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table td:nth-child(1) {
+  width: 24%;
+}
+
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table th:nth-child(2),
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table td:nth-child(2) {
+  width: 27%;
+}
+
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table th:nth-child(3),
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table td:nth-child(3) {
+  width: 25%;
+}
+
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table th:nth-child(4),
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table td:nth-child(4) {
+  width: 16%;
+}
+
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table th:nth-child(5),
+[data-ajax-region="dashboard-part-requests"] .warehouse-dashboard-table td:nth-child(5) {
+  width: 8%;
+}
+
+/* Full-width Stock Movement audit */
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(1),
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(1) {
+  width: 35%;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(2),
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(2) {
+  width: 18%;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(3),
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(3) {
+  width: 12%;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(4),
+[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(4) {
+  width: 35%;
+}
+
+/* Bottom cards should be compact instead of leaving large blank areas. */
+.warehouse-bottom-grid > .warehouse-panel {
+  min-height: 240px;
+}
+
+.warehouse-issued-ranking {
+  min-height: 145px;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+.compact-empty {
+  min-height: 135px;
+}
+
+.trend-chart-wrap {
+  height: 165px;
+}
+
+.warehouse-empty {
+  min-height: 120px;
+}
+
+.warehouse-table-empty {
+  padding: 20px 8px;
+  font-size: 10px;
+}
+
+/* Slightly tighter analytics section so the useful tables appear sooner. */
+.warehouse-chart-panel,
+.warehouse-alert-panel {
+  min-height: 270px;
+}
+
+.bar-chart-wrap {
+  height: 185px;
+}
+
+.warehouse-donut-layout {
+  min-height: 185px;
+}
+
+@media (max-width: 1180px) {
+  .warehouse-table-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-table-grid > .warehouse-panel:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .warehouse-table-scroll {
+    overflow-x: auto;
+  }
+
+  .warehouse-dashboard-table {
+    min-width: 620px;
+    table-layout: auto;
+  }
+}
