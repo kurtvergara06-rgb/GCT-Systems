@@ -13,8 +13,11 @@
     $availableStock = $availableStock ?? 0;
     $lowStockItems = $lowStockItems ?? 0;
     $outOfStock = $outOfStock ?? 0;
+    $forReorder = $forReorder ?? ($lowStockItems + $outOfStock);
+    $inventoryAddedThisMonth = $inventoryAddedThisMonth ?? 0;
     $activePartRequestCount = $activePartRequestCount ?? 0;
     $incomingDeliveries = $incomingDeliveries ?? 0;
+    $incomingToday = $incomingToday ?? 0;
     $issuedToday = $issuedToday ?? 0;
 
     $activePartRequests = $activePartRequests ?? collect();
@@ -22,14 +25,22 @@
     $criticalStockItems = $criticalStockItems ?? collect();
     $recentStockMovements = $recentStockMovements ?? collect();
     $topIssuedItems = $topIssuedItems ?? collect();
+    $inventoryCategoryOptions = $inventoryCategoryOptions ?? collect();
+    $inventoryStatusByCategory = $inventoryStatusByCategory ?? [];
     $warehouseChartData = $warehouseChartData ?? [
       'inventory' => ['labels' => [], 'values' => []],
+      'statusDistribution' => ['labels' => [], 'values' => []],
+      'statusByCategory' => [],
       'movementTrend' => ['labels' => [], 'received' => [], 'issued' => [], 'adjusted' => []],
     ];
 
+    $availablePercent = $totalInventory > 0 ? round(($availableStock / $totalInventory) * 100) : 0;
+    $lowStockPercent = $totalInventory > 0 ? round(($lowStockItems / $totalInventory) * 100) : 0;
+    $outOfStockPercent = $totalInventory > 0 ? round(($outOfStock / $totalInventory) * 100) : 0;
+
     $dashboardAlerts = collect();
 
-    foreach ($criticalStockItems->take(2) as $item) {
+    foreach ($criticalStockItems->take(5) as $item) {
       $qty = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
       $dashboardAlerts->push([
         'type' => $qty <= 0 ? 'critical' : 'warning',
@@ -78,13 +89,18 @@
         :notification-count="$notificationCount"
       />
 
-      <section class="warehouse-kpi-grid" data-ajax-region="warehouse-kpis">
+      <section class="warehouse-kpi-grid warehouse-reference-kpis" data-ajax-region="warehouse-kpis">
         <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
-          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-boxes-stacked"></i></span>
+          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-cube"></i></span>
           <span class="warehouse-kpi-content">
             <small>Total Inventory Items</small>
-            <strong>{{ number_format($totalInventory) }}</strong>
-            <span>Registered stock items</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($totalInventory) }}</strong>
+              @if($inventoryAddedThisMonth > 0)
+                <span class="warehouse-kpi-trend positive"><i class="fa-solid fa-arrow-up"></i> {{ $inventoryAddedThisMonth }} new</span>
+              @endif
+            </span>
+            <span class="warehouse-kpi-footer"><span>Active items in inventory</span></span>
           </span>
         </a>
 
@@ -92,8 +108,11 @@
           <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cube"></i></span>
           <span class="warehouse-kpi-content">
             <small>Available Stock</small>
-            <strong>{{ number_format($availableStock) }}</strong>
-            <span>Items with sufficient stock</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($availableStock) }}</strong>
+              <span class="warehouse-kpi-trend positive">{{ $availablePercent }}%</span>
+            </span>
+            <span class="warehouse-kpi-footer"><span>Items with sufficient stock</span><b>View</b></span>
           </span>
         </a>
 
@@ -101,8 +120,11 @@
           <span class="warehouse-kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></span>
           <span class="warehouse-kpi-content">
             <small>Low Stock Items</small>
-            <strong>{{ number_format($lowStockItems) }}</strong>
-            <span>At or below reorder level</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($lowStockItems) }}</strong>
+              <span class="warehouse-kpi-trend warning">{{ $lowStockPercent }}%</span>
+            </span>
+            <span class="warehouse-kpi-footer"><span>At or below reorder level</span><b>View</b></span>
           </span>
         </a>
 
@@ -110,40 +132,62 @@
           <span class="warehouse-kpi-icon red"><i class="fa-solid fa-box-open"></i></span>
           <span class="warehouse-kpi-content">
             <small>Out of Stock</small>
-            <strong>{{ number_format($outOfStock) }}</strong>
-            <span>No stock currently available</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($outOfStock) }}</strong>
+              <span class="warehouse-kpi-trend danger">{{ $outOfStockPercent }}%</span>
+            </span>
+            <span class="warehouse-kpi-footer"><span>Items with no available stock</span><b>View</b></span>
           </span>
         </a>
 
         <a href="{{ route('part-requests') }}" class="warehouse-kpi-card">
-          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-file-circle-check"></i></span>
+          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-file-lines"></i></span>
           <span class="warehouse-kpi-content">
             <small>Pending Part Requests</small>
-            <strong>{{ number_format($activePartRequestCount) }}</strong>
-            <span>{{ number_format($issuedToday) }} issued today</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($activePartRequestCount) }}</strong>
+              <span class="warehouse-kpi-trend neutral">{{ number_format($issuedToday) }} today</span>
+            </span>
+            <span class="warehouse-kpi-footer"><span>For warehouse action</span><b>View</b></span>
           </span>
         </a>
 
         <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-truck-ramp-box"></i></span>
+          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-truck"></i></span>
           <span class="warehouse-kpi-content">
             <small>Incoming Deliveries</small>
-            <strong>{{ number_format($incomingDeliveries) }}</strong>
-            <span>Ready for Warehouse receiving</span>
+            <span class="warehouse-kpi-metric-row">
+              <strong>{{ number_format($incomingDeliveries) }}</strong>
+              <span class="warehouse-kpi-trend info">{{ number_format($incomingToday) }} today</span>
+            </span>
+            <span class="warehouse-kpi-footer"><span>Scheduled / In transit</span><b>View</b></span>
           </span>
         </a>
       </section>
 
-      <section class="warehouse-overview-grid">
-        <article class="warehouse-panel warehouse-chart-panel" data-ajax-region="inventory-overview">
-          <header class="warehouse-panel-header">
-            <div>
-              <span class="warehouse-panel-eyebrow">INVENTORY OVERVIEW</span>
-              <h2>Stock Level Distribution</h2>
-              <p>Current inventory health across active Warehouse items.</p>
+      <section class="warehouse-overview-grid warehouse-reference-overview">
+        <article class="warehouse-panel warehouse-chart-panel warehouse-overview-card" data-ajax-region="inventory-overview">
+          <header class="warehouse-panel-header warehouse-reference-panel-header">
+            <div class="warehouse-reference-title">
+              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-boxes-stacked"></i></span>
+              <div>
+                <h2>Inventory Overview</h2>
+                <p>Stock level distribution</p>
+              </div>
             </div>
-            <a href="{{ route('inventory') }}" class="warehouse-panel-link">View Inventory <i class="fa-solid fa-arrow-right"></i></a>
+            <select
+              id="warehouseCategoryFilter"
+              class="warehouse-category-filter"
+              data-status-map='@json($warehouseChartData["statusByCategory"] ?? $inventoryStatusByCategory)'
+              aria-label="Filter dashboard inventory charts by category"
+            >
+              <option value="All Categories">All Categories</option>
+              @foreach($inventoryCategoryOptions as $category)
+                <option value="{{ $category }}">{{ $category }}</option>
+              @endforeach
+            </select>
           </header>
+
           <div class="warehouse-chart-wrap bar-chart-wrap">
             <canvas
               id="warehouseInventoryBar"
@@ -154,41 +198,66 @@
           </div>
         </article>
 
-        <article class="warehouse-panel warehouse-chart-panel" data-ajax-region="stock-distribution">
-          <header class="warehouse-panel-header compact">
-            <div>
-              <span class="warehouse-panel-eyebrow">Stock Status</span>
-              <h2>Inventory Health</h2>
+        <article class="warehouse-panel warehouse-chart-panel warehouse-stock-status-card" data-ajax-region="stock-distribution">
+          <header class="warehouse-panel-header warehouse-reference-panel-header compact">
+            <div class="warehouse-reference-title">
+              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-clipboard-list"></i></span>
+              <div>
+                <h2>Stock Status by Category</h2>
+              </div>
             </div>
           </header>
+
           <div class="warehouse-donut-layout">
             <div class="warehouse-chart-wrap donut-chart-wrap">
               <canvas
                 id="warehouseInventoryDonut"
-                data-labels='@json($warehouseChartData["inventory"]["labels"] ?? [])'
-                data-values='@json($warehouseChartData["inventory"]["values"] ?? [])'
+                data-labels='@json($warehouseChartData["statusDistribution"]["labels"] ?? [])'
+                data-values='@json($warehouseChartData["statusDistribution"]["values"] ?? [])'
                 aria-label="Warehouse inventory health doughnut chart"
               ></canvas>
               <div class="warehouse-donut-center">
-                <strong>{{ number_format($totalInventory) }}</strong>
+                <strong data-dashboard-total>{{ number_format($totalInventory) }}</strong>
                 <span>Total Items</span>
               </div>
             </div>
-            <div class="warehouse-chart-legend">
-              <div><span class="legend-dot green"></span><span>Available</span><strong>{{ $availableStock }}</strong></div>
-              <div><span class="legend-dot yellow"></span><span>Low Stock</span><strong>{{ $lowStockItems }}</strong></div>
-              <div><span class="legend-dot red"></span><span>Out of Stock</span><strong>{{ $outOfStock }}</strong></div>
+
+            <div class="warehouse-chart-legend warehouse-reference-legend">
+              <div>
+                <span class="legend-dot green"></span>
+                <span>Sufficient Stock</span>
+                <strong><span data-dashboard-count="available">{{ $availableStock }}</span> <em data-dashboard-percent="available">({{ $availablePercent }}%)</em></strong>
+              </div>
+              <div>
+                <span class="legend-dot yellow"></span>
+                <span>Low Stock</span>
+                <strong><span data-dashboard-count="low">{{ $lowStockItems }}</span> <em data-dashboard-percent="low">({{ $lowStockPercent }}%)</em></strong>
+              </div>
+              <div>
+                <span class="legend-dot red"></span>
+                <span>Out of Stock</span>
+                <strong><span data-dashboard-count="out">{{ $outOfStock }}</span> <em data-dashboard-percent="out">({{ $outOfStockPercent }}%)</em></strong>
+              </div>
+              <div class="warehouse-reference-metric-only">
+                <span class="legend-dot blue"></span>
+                <span>For Reorder</span>
+                <strong><span data-dashboard-count="reorder">{{ $forReorder }}</span></strong>
+              </div>
             </div>
           </div>
         </article>
 
-        <article class="warehouse-panel warehouse-alert-panel" data-ajax-region="warehouse-alerts">
-          <header class="warehouse-panel-header compact">
-            <div>
-              <span class="warehouse-panel-eyebrow">LIVE WATCHLIST</span>
-              <h2>Alerts & Updates</h2>
+        <article class="warehouse-panel warehouse-alert-panel warehouse-reference-alerts" data-ajax-region="warehouse-alerts">
+          <header class="warehouse-panel-header warehouse-reference-panel-header compact">
+            <div class="warehouse-reference-title">
+              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-bell"></i></span>
+              <div>
+                <h2>Alerts & Notifications</h2>
+              </div>
             </div>
+            <a href="{{ route('inventory') }}" class="warehouse-reference-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
+
           <div class="warehouse-alert-list">
             @forelse($dashboardAlerts->take(5) as $alert)
               <a href="{{ $alert['url'] }}" class="warehouse-alert-row">
@@ -212,7 +281,7 @@
       </section>
 
       <section class="warehouse-table-grid">
-        <article class="warehouse-panel" data-ajax-region="dashboard-incoming-deliveries">
+        <article class="warehouse-panel warehouse-queue-panel" data-ajax-region="dashboard-incoming-deliveries">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">PURCHASE SHIPMENTS</span>
@@ -228,31 +297,29 @@
                   <th>Supplier</th>
                   <th>Items</th>
                   <th>Status</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($expectedDeliveries as $delivery)
+                @forelse($expectedDeliveries->take(5) as $delivery)
                   @php
                     $deliveryItems = collect($delivery->items ?? []);
                     $deliveryQty = (int) $deliveryItems->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
                   @endphp
                   <tr>
-                    <td><span class="warehouse-reference">{{ $delivery->po_no }}</span></td>
-                    <td>{{ $delivery->supplier_name ?? 'Supplier' }}</td>
+                    <td><a href="{{ route('incoming-deliveries', ['search' => $delivery->po_no]) }}" class="warehouse-reference">{{ $delivery->po_no }}</a></td>
+                    <td title="{{ $delivery->supplier_name ?? 'Supplier' }}">{{ $delivery->supplier_name ?? 'Supplier' }}</td>
                     <td>{{ $deliveryQty }}</td>
                     <td><span class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'blue' : 'yellow' }}">{{ $delivery->status }}</span></td>
-                    <td><a href="{{ route('incoming-deliveries', ['search' => $delivery->po_no]) }}" class="warehouse-row-arrow" title="Open delivery"><i class="fa-solid fa-chevron-right"></i></a></td>
                   </tr>
                 @empty
-                  <tr><td colspan="5"><div class="warehouse-table-empty">No incoming deliveries.</div></td></tr>
+                  <tr class="warehouse-queue-empty-row"><td colspan="4"><div class="warehouse-table-empty">No incoming deliveries.</div></td></tr>
                 @endforelse
               </tbody>
             </table>
           </div>
         </article>
 
-        <article class="warehouse-panel" data-ajax-region="dashboard-part-requests">
+        <article class="warehouse-panel warehouse-queue-panel" data-ajax-region="dashboard-part-requests">
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">MAINTENANCE REQUISITIONS</span>
@@ -268,11 +335,10 @@
                   <th>Job Order</th>
                   <th>Status</th>
                   <th>Requested</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($activePartRequests as $request)
+                @forelse($activePartRequests->take(5) as $request)
                   @php
                     $requestStatusClass = match($request->status) {
                       'Approved' => 'green',
@@ -282,14 +348,13 @@
                     };
                   @endphp
                   <tr>
-                    <td><span class="warehouse-reference">{{ $request->pr_no }}</span></td>
-                    <td>{{ $request->job_order_no ?? '—' }}</td>
+                    <td><a href="{{ route('part-requests', ['search' => $request->pr_no]) }}" class="warehouse-reference">{{ $request->pr_no }}</a></td>
+                    <td title="{{ $request->job_order_no ?? '—' }}">{{ $request->job_order_no ?? '—' }}</td>
                     <td><span class="warehouse-status {{ $requestStatusClass }}">{{ $request->status }}</span></td>
                     <td>{{ $request->created_at?->format('M d') ?? '—' }}</td>
-                    <td><a href="{{ route('part-requests', ['search' => $request->pr_no]) }}" class="warehouse-row-arrow" title="Open part request"><i class="fa-solid fa-chevron-right"></i></a></td>
                   </tr>
                 @empty
-                  <tr><td colspan="5"><div class="warehouse-table-empty">No active part requests.</div></td></tr>
+                  <tr class="warehouse-queue-empty-row"><td colspan="4"><div class="warehouse-table-empty">No active part requests.</div></td></tr>
                 @endforelse
               </tbody>
             </table>
