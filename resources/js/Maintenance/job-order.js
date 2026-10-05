@@ -3076,7 +3076,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     inputWrap.classList.add('jo-native-mechanic-select');
 
     const combobox = document.createElement('div');
-    combobox.className = 'jo-mechanic-combobox jo-new-combobox';
+    combobox.className = [
+      'jo-mechanic-combobox',
+      'jo-new-combobox',
+      config.className || '',
+    ].filter(Boolean).join(' ');
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
@@ -3286,6 +3290,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
   }
 
   setupSearchableSelect(busSelect, {
+    className: 'jo-bus-combobox',
     icon: 'fa-bus',
     placeholder: 'Select Bus',
     searchPlaceholder: 'Search bus number or plate...',
