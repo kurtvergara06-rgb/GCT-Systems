@@ -7,6 +7,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    if (window.GCTModalBackdrop?.sync) {
+      window.GCTModalBackdrop.sync();
+    }
   }
 
   function closeModal(modal) {
@@ -17,6 +22,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     modal.classList.remove('show');
     modal.classList.remove('active');
     modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+
+    if (window.GCTModalBackdrop?.sync) {
+      window.GCTModalBackdrop.sync();
+    }
   }
 
   function closeAllModals() {
@@ -188,6 +198,199 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
       window.setTimeout(applyInventoryFilters, 0);
     }
   });
+
+  /*
+  |--------------------------------------------------------------------------
+  | ITEM MOVEMENT HISTORY MODAL
+  |--------------------------------------------------------------------------
+  | Movement history stays inside Inventory. The route is used only as an
+  | HTML data endpoint for the modal; filter and pagination requests are
+  | fetched into the same modal without navigating away from the page.
+  |--------------------------------------------------------------------------
+  */
+
+  const movementHistoryModal = document.getElementById('movementHistoryModal');
+  const movementHistoryContent = document.getElementById('movementHistoryContent');
+  const movementHistoryTitle = document.getElementById('movementHistoryModalTitle');
+  let movementHistoryRequest = null;
+  let movementHistoryUrl = null;
+
+  function movementModalUrl(url) {
+    const parsed = new URL(url, window.location.origin);
+    parsed.searchParams.set('modal', '1');
+
+    return parsed.toString();
+  }
+
+  function showMovementHistoryLoading() {
+    if (!movementHistoryContent) {
+      return;
+    }
+
+    movementHistoryContent.innerHTML = `
+      <div class="movement-history-loading" role="status">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Loading movement history...</span>
+      </div>
+    `;
+  }
+
+  function showMovementHistoryError(url) {
+    if (!movementHistoryContent) {
+      return;
+    }
+
+    movementHistoryContent.innerHTML = `
+      <div class="movement-history-error">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+          <strong>Unable to load movement history.</strong>
+          <button type="button" class="movement-history-retry" data-movement-retry-url="${String(url || '')}">
+            Try Again
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadMovementHistory(url, options = {}) {
+    if (!movementHistoryModal || !movementHistoryContent || !url) {
+      return;
+    }
+
+    movementHistoryRequest?.abort();
+    movementHistoryRequest = new AbortController();
+    movementHistoryUrl = movementModalUrl(url);
+
+    if (options.open !== false) {
+      openModal(movementHistoryModal);
+    }
+
+    if (options.loading !== false) {
+      showMovementHistoryLoading();
+    }
+
+    try {
+      const response = await fetch(movementHistoryUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'text/html',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        signal: movementHistoryRequest.signal,
+        credentials: 'same-origin',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Movement history request failed with status ${response.status}.`);
+      }
+
+      movementHistoryContent.innerHTML = await response.text();
+
+      const itemName = movementHistoryContent
+        .querySelector('.item-history-header h2')
+        ?.textContent
+        ?.trim();
+
+      if (movementHistoryTitle) {
+        movementHistoryTitle.textContent = itemName
+          ? `Movement History — ${itemName}`
+          : 'Movement History';
+      }
+
+      movementHistoryContent.scrollTop = 0;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return;
+      }
+
+      console.error(error);
+      showMovementHistoryError(movementHistoryUrl);
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    const historyButton = event.target.closest('.openMovementHistory');
+
+    if (historyButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      loadMovementHistory(historyButton.dataset.url);
+      return;
+    }
+
+    if (!movementHistoryModal?.classList.contains('active')) {
+      return;
+    }
+
+    const retryButton = event.target.closest('[data-movement-retry-url]');
+    if (retryButton) {
+      event.preventDefault();
+      loadMovementHistory(retryButton.dataset.movementRetryUrl, {
+        open: false,
+      });
+      return;
+    }
+
+    const pageLink = event.target.closest(
+      '#movementHistoryContent .pagination a, #movementHistoryContent a.page-link'
+    );
+
+    if (pageLink) {
+      event.preventDefault();
+      loadMovementHistory(pageLink.href, {
+        open: false,
+      });
+    }
+  });
+
+  document.addEventListener('submit', function (event) {
+    const form = event.target.closest('[data-movement-history-filter]');
+
+    if (!form || !movementHistoryModal?.classList.contains('active')) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const url = new URL(form.action, window.location.origin);
+    const data = new FormData(form);
+
+    data.forEach(function (value, key) {
+      if (String(value).trim() !== '') {
+        url.searchParams.set(key, value);
+      }
+    });
+
+    loadMovementHistory(url.toString(), {
+      open: false,
+    });
+  });
+
+  document.addEventListener('change', function (event) {
+    const filter = event.target.closest(
+      '#movementHistoryContent [data-movement-history-filter] select'
+    );
+
+    if (!filter) {
+      return;
+    }
+
+    filter.form?.requestSubmit();
+  });
+
+  const initialMovementItem = new URLSearchParams(window.location.search)
+    .get('movement_item');
+
+  if (initialMovementItem) {
+    const matchingButton = document.querySelector(
+      `.openMovementHistory[data-item-id="${CSS.escape(initialMovementItem)}"]`
+    );
+
+    matchingButton?.click();
+  }
+
 
   /*
   |--------------------------------------------------------------------------
