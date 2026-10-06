@@ -728,7 +728,10 @@ class FrontendUiUxComprehensiveTest extends TestCase
 
         $modal = $this->actingAs($this->warehouseUser)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
-            ->get(route('inventory.movements', $item));
+            ->get(route('inventory.movements', [
+                'inventoryItem' => $item,
+                'modal' => 1,
+            ]));
 
         $modal
             ->assertOk()
