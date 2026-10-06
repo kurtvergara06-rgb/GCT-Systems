@@ -408,14 +408,23 @@ class WarehousePartRequestController extends Controller
         $error = DB::transaction(function () use ($purchaseRequest): ?string {
             $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
 
-            if ($lockedRequest->warehouse_status !== 'Approved for Issue') {
-                return 'Warehouse approval is required before preparation.';
+            if ($this->isRestockRequest($lockedRequest) || $lockedRequest->status === 'Issued') {
+                return 'This request cannot be prepared.';
+            }
+
+            if ($lockedRequest->warehouse_status === 'Preparing') {
+                return 'This request is already being prepared.';
+            }
+
+            $displayStatus = $this->getMissingPurchaseRequest($lockedRequest)?->status ?? $lockedRequest->status;
+            if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true)) {
+                return 'This request is not ready for Warehouse preparation yet.';
             }
 
             $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($lockedRequest->item));
 
             if (! $inventoryCheck['available']) {
-                return 'Stock is no longer sufficient for this request.';
+                return 'Stock is not sufficient yet. Send missing parts to Purchase or wait for delivery.';
             }
 
             $lockedRequest->update([
@@ -585,26 +594,26 @@ class WarehousePartRequestController extends Controller
         if (! $workflowStatus) {
             $workflowStatus = $purchaseRequest->status === 'Issued'
                 ? 'Issued'
-                : 'Pending Warehouse Approval';
+                : 'Ready to Prepare';
         }
+
+        if (in_array($workflowStatus, ['Pending Warehouse Approval', 'Approved for Issue', 'On Hold'], true)) {
+            $workflowStatus = 'Ready to Prepare';
+        }
+
         $purchaseRequest->warehouse_workflow_status = $workflowStatus;
 
-        $purchaseRequest->can_approve_for_issue =
+        $purchaseRequest->can_approve_for_issue = false;
+        $purchaseRequest->can_hold = false;
+
+        $purchaseRequest->can_prepare =
             $purchaseRequest->status !== 'Issued'
+            && $workflowStatus === 'Ready to Prepare'
             && $inventoryCheck['available']
-            && in_array($workflowStatus, ['Pending Warehouse Approval', 'On Hold'], true)
             && (
                 $purchaseRequest->status === 'Approved'
                 || in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
             );
-
-        $purchaseRequest->can_hold =
-            $purchaseRequest->status !== 'Issued'
-            && in_array($workflowStatus, ['Pending Warehouse Approval', 'Approved for Issue', 'Preparing'], true);
-
-        $purchaseRequest->can_prepare =
-            $workflowStatus === 'Approved for Issue'
-            && $inventoryCheck['available'];
 
         $purchaseRequest->can_issue =
             $workflowStatus === 'Preparing'
