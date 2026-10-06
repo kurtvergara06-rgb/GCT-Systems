@@ -3463,7 +3463,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
         right: 'auto',
         width: `${Math.round(triggerRect.width)}px`,
         maxHeight: `${Math.min(270, availableBelow)}px`,
-        zIndex: '30000',
+        // The shared modal backdrop is 99999. Because this menu is portalled
+        // to <body>, it must sit above that backdrop instead of behind it.
+        zIndex: '110500',
       });
     };
 
@@ -3675,11 +3677,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     className: 'jo-bus-combobox',
     icon: 'fa-bus',
     placeholder: 'Select Bus',
-    searchPlaceholder: 'Search plate number...',
+    searchPlaceholder: 'Search bus ID or plate number...',
     emptyMessage: 'No bus matches your search.',
-    optionHint: 'Available bus',
-    // The native option value remains the internal bus_no for submission
-    // and hidden search matching; only the visible label is the plate number.
+    optionHint: 'Bus ID · Plate number',
+    // The native value remains bus_no for submission. The visible label shows
+    // both identifiers so Maintenance can confirm the correct physical bus.
     formatOptionText: (text) => text,
   });
 

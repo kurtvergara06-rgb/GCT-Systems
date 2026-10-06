@@ -377,11 +377,19 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $js
         );
         $this->assertStringContainsString(
+            "zIndex: '110500'",
+            $js
+        );
+        $this->assertStringContainsString(
             'positionBusMenu',
             $js
         );
         $this->assertStringContainsString(
             '.jo-bus-menu-portal',
+            $css
+        );
+        $this->assertStringContainsString(
+            'z-index: 110500 !important;',
             $css
         );
         $this->assertStringContainsString(
@@ -447,7 +455,7 @@ class JobOrderCreateModalLayoutTest extends TestCase
     }
 
 
-    public function test_job_order_bus_selectors_hide_internal_bus_id_but_keep_bus_no_as_value(): void
+    public function test_job_order_bus_selectors_show_bus_id_and_plate_while_keeping_bus_no_as_value(): void
     {
         $view = file_get_contents(
             resource_path('views/Maintenance/job-order.blade.php')
@@ -458,22 +466,20 @@ class JobOrderCreateModalLayoutTest extends TestCase
 
         $this->assertSame(
             2,
-            substr_count($view, 'label="Bus Plate"')
+            substr_count($view, 'label="Bus ID / Plate"')
         );
         $this->assertStringContainsString(
             <<<'BLADE'
-$bus->bus_no => ($bus->plate_no ?: 'Plate not assigned')
-BLADE,
-            $view
-        );
-        $this->assertStringNotContainsString(
-            <<<'BLADE'
-$bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+$bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
 BLADE,
             $view
         );
         $this->assertStringContainsString(
-            "searchPlaceholder: 'Search plate number...'",
+            "searchPlaceholder: 'Search bus ID or plate number...'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "optionHint: 'Bus ID · Plate number'",
             $js
         );
         $this->assertStringContainsString(

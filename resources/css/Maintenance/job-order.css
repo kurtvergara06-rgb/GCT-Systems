@@ -3433,7 +3433,7 @@ textarea[readonly] {
 .jo-bus-menu-portal {
   position: fixed !important;
   right: auto !important;
-  z-index: 30000 !important;
+  z-index: 110500 !important;
   max-height: 270px;
   overflow: hidden;
   border: 1px solid #dbe3ef;
