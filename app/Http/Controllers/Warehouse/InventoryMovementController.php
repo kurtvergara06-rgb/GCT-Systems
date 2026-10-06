@@ -43,7 +43,7 @@ class InventoryMovementController extends Controller
             'adjustments'
         );
 
-        if ($request->ajax() || $request->boolean('modal')) {
+        if ($request->boolean('modal')) {
             return view(
                 'Warehouse.partials.inventory-movement-history',
                 $data + ['isModal' => true]
