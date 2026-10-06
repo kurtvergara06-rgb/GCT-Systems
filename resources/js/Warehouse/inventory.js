@@ -646,6 +646,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
       event.stopPropagation();
 
       const modal = button.closest('.modal-overlay');
+
+      if (modal === movementHistoryModal) {
+        movementHistoryRequest?.abort();
+      }
+
       closeModal(modal);
     });
   });
@@ -658,7 +663,12 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
+      movementHistoryRequest?.abort();
       closeAllModals();
     }
+  });
+
+  window.addEventListener('gct:navigation-before', function () {
+    movementHistoryRequest?.abort();
   });
 });
