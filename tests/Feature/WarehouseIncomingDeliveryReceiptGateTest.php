@@ -13,7 +13,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_purchased_parts_must_be_received_before_staff_can_prepare_and_issue(): void
+    public function test_purchased_parts_must_be_received_before_staff_can_issue(): void
     {
         $warehouseHead = User::factory()->create([
             'department' => 'Warehouse',
@@ -71,13 +71,12 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
             'status' => 'For Delivery',
         ]);
 
-        // A purchased part that is merely in transit is not ready for Warehouse preparation.
+        // A purchased part that is merely in transit cannot be issued.
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $originalRequest))
-            ->assertRedirect()
-            ->assertSessionHas('error');
+            ->post(route('part-requests.issue', $originalRequest))
+            ->assertSessionHasErrors('workflow');
 
-        $this->assertNotSame('Preparing', $originalRequest->fresh()->warehouse_status);
+        $this->assertNotSame('Issued', $originalRequest->fresh()->warehouse_status);
         $this->assertNull($purchaseOrder->fresh()->inventory_posted_at);
         $this->assertNull(InventoryItem::query()->where('item_name', 'Brake Pad')->first());
 
@@ -94,13 +93,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
         $this->assertSame('Delivered', $purchaseRequest->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->quantity_available);
 
-        // Once received into inventory, Warehouse Staff can prepare it directly.
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $originalRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Preparing', $originalRequest->fresh()->warehouse_status);
-
+        // Once received into inventory, Warehouse Staff can issue it directly.
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $originalRequest))
             ->assertRedirect();
