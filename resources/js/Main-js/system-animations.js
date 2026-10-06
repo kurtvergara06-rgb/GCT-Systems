@@ -67,6 +67,7 @@ const MODAL_OVERLAY_SELECTOR = [
     '.confirm-modal-overlay',
     '.system-confirm-overlay',
     '.confirmation-modal-overlay',
+    '[class*="modal-overlay"]',
     '[data-modal-overlay]',
     '[data-gct-modal-overlay]',
 ].join(', ');
@@ -284,7 +285,23 @@ const isModalVisible = (overlay) => {
         && Number(style.opacity || 1) > 0;
 };
 
-const getModalSurface = (overlay) => overlay?.querySelector(MODAL_SURFACE_SELECTOR) || null;
+const getModalSurface = (overlay) => {
+    if (!overlay) return null;
+
+    const explicitSurface = overlay.querySelector(MODAL_SURFACE_SELECTOR);
+    if (explicitSurface) return explicitSurface;
+
+    /*
+     * Several legacy/module modals use their own surface class names while the
+     * overlay still follows the "*-modal-overlay" convention. Fall back to the
+     * first real child so the shared GSAP lifecycle can animate every module
+     * without each feature re-implementing modal motion.
+     */
+    return Array.from(overlay.children).find((child) => (
+        child instanceof HTMLElement
+        && !child.matches('script, style, template')
+    )) || null;
+};
 
 const clearModalAnimation = (overlay, surface) => {
     gsap.set([overlay, surface].filter(Boolean), { clearProps: 'opacity,transform' });
