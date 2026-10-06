@@ -113,4 +113,40 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('For Reorder', $js);
     }
 
+
+    public function test_dashboard_overview_readability_scale_is_preserved(): void
+    {
+        $css = file_get_contents(
+            resource_path('css/Warehouse/dashboard-warehouse.css')
+        );
+        $js = file_get_contents(
+            resource_path('js/Warehouse/dashboard-warehouse.js')
+        );
+
+        $this->assertStringContainsString(
+            'DASHBOARD READABILITY PASS',
+            $css
+        );
+        $this->assertStringContainsString(
+            'font-size: 16px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'font-size: 27px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-height: 44px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            "font: { size: 12.5, weight: '600'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "font: { size: 11.5, family:",
+            $js
+        );
+    }
+
 }
