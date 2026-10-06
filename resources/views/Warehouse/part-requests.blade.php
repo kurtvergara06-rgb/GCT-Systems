@@ -133,20 +133,14 @@
                     && $status === 'Approved';
                   $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
                     && $inventoryStatus === 'Available';
-                  $canPrepare = ($partRequest->can_prepare ?? false) && $canEditWarehouse;
                   $warehouseStatus = $isHistory
                     ? ($partRequest->warehouse_status ?: $partRequest->status)
-                    : ($partRequest->warehouse_workflow_status ?? 'Ready to Prepare');
-                  $warehouseStatusLabel = ($partRequest->needs_purchase ?? false)
-                    ? 'Needs Purchase'
-                    : match ($warehouseStatus) {
-                        'Pending Warehouse Approval', 'Approved for Issue', 'On Hold' => 'Ready to Prepare',
-                        default => $warehouseStatus,
-                      };
+                    : ($partRequest->warehouse_workflow_status ?? 'Ready to Issue');
+                  $warehouseStatusLabel = $warehouseStatus;
                   $warehouseStatusClass = match ($warehouseStatusLabel) {
-                    'Ready to Prepare' => 'approved',
+                    'Ready to Issue' => 'approved',
                     'Needs Purchase' => 'hold',
-                    'Preparing' => 'preparing',
+                    'Waiting for Purchase', 'Waiting for Delivery', 'Waiting for Stock' => 'pending',
                     'Issued' => 'issued',
                     default => 'neutral',
                   };
@@ -204,8 +198,6 @@
                         data-inventory-status="{{ $inventoryStatus }}"
                         data-status="{{ $status }}"
                         data-warehouse-status="{{ $warehouseStatusLabel }}"
-                        data-prepared-by="{{ $partRequest->warehouse_prepared_by ? 'User #'.$partRequest->warehouse_prepared_by : '—' }}"
-                        data-prepared-at="{{ $partRequest->warehouse_prepared_at?->format('M d, Y h:i A') ?? '—' }}"
                         data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
                         data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
@@ -229,24 +221,6 @@
                           @csrf
                           <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
                             <i class="fa-solid fa-cart-shopping"></i>
-                          </button>
-                        </form>
-                      @endif
-
-                      @if($canPrepare)
-                        <form
-                          action="{{ route('part-requests.prepare', $partRequest->id) }}"
-                          method="POST"
-                          class="inline-action-form"
-                          data-confirm-form
-                          data-confirm-title="Prepare Parts?"
-                          data-confirm-message="Start preparing the approved parts for {{ $partRequest->pr_no }}?"
-                          data-confirm-button="Yes, Prepare"
-                          data-confirm-type="approve"
-                        >
-                          @csrf
-                          <button type="submit" class="prepare-part-btn icon-only-btn" title="Prepare Parts">
-                            <i class="fa-solid fa-box"></i>
                           </button>
                         </form>
                       @endif
@@ -285,7 +259,7 @@
         <div>
           <h2>Purchase Request Details</h2>
           <h3>PR Information</h3>
-          <p>Request, preparation, and issuance details.</p>
+          <p>Request, stock availability, and issuance details.</p>
         </div>
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close">
           <i class="fa-solid fa-xmark"></i>
@@ -317,14 +291,6 @@
           <label>Warehouse Status</label>
           <input id="view_warehouse_status" type="text" value="—" readonly>
         </div>
-        <div class="warehouse-field">
-          <label>Prepared By</label>
-          <input id="view_prepared_by" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Prepared At</label>
-          <input id="view_prepared_at" type="text" value="—" readonly>
-        </div>
         <div class="warehouse-field full">
           <label>Requested Parts Breakdown</label>
           <div id="view_parts_breakdown" class="parts-breakdown-box">
@@ -354,9 +320,9 @@
       @csrf
       <div class="warehouse-edit-header">
         <div>
-          <h2>Issue Prepared Parts</h2>
+          <h2>Issue Parts</h2>
           <h3 id="issue_pr_no">Purchase Request</h3>
-          <p>Record the quantities physically released from the warehouse.</p>
+          <p>Confirm the approved parts being released from Warehouse inventory.</p>
         </div>
         <button type="button" id="closeIssuePartsModal" class="warehouse-edit-close" title="Close">
           <i class="fa-solid fa-xmark"></i>
