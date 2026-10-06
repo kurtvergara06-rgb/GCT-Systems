@@ -172,7 +172,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         ]);
 
         $purchaseRequest = PurchaseRequest::create([
-            'pr_no' => 'PR-GCT-0004',
+            'pr_no' => 'PR-AUTO-'.strtoupper(\Illuminate\Support\Str::random(8)),
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
             'item' => 'Air Filter (1 pcs), Fuel Filter (3 pcs)',
@@ -217,14 +217,14 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'inventory_item_id' => $itemA->id,
             'movement_type' => 'Stock Out',
             'quantity_change' => -1,
-            'reference_no' => 'PR-GCT-0004',
+            'reference_no' => $purchaseRequest->pr_no,
         ]);
 
         $this->assertDatabaseHas('stock_movements', [
             'inventory_item_id' => $itemB->id,
             'movement_type' => 'Stock Out',
             'quantity_change' => -3,
-            'reference_no' => 'PR-GCT-0004',
+            'reference_no' => $purchaseRequest->pr_no,
         ]);
     }
 }
