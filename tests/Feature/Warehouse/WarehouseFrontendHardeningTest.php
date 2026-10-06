@@ -168,7 +168,7 @@ class WarehouseFrontendHardeningTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            'Prepare Parts?',
+            'Ready to Issue',
             $view
         );
         $this->assertStringNotContainsString(
@@ -184,16 +184,24 @@ class WarehouseFrontendHardeningTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            "'Ready to Prepare'",
+            "'Ready to Issue'",
             $controller
         );
         $this->assertStringContainsString(
-            "'Preparing'",
+            '$purchaseRequest->can_prepare = false;',
             $controller
         );
         $this->assertStringNotContainsString(
             'Warehouse approval is required before preparation.',
             $controller
+        );
+        $this->assertStringNotContainsString(
+            "route('part-requests.prepare'",
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'Prepare Parts?',
+            $view
         );
     }
 
