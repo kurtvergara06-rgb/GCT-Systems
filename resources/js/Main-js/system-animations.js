@@ -324,22 +324,26 @@ const animateModalOpen = (overlay) => {
 
     state.animation.fromTo(overlay, { opacity: 0 }, {
         opacity: 1,
-        duration: reduced ? 0.16 : 0.24,
-        ease: 'power2.out',
+        duration: reduced ? 0.14 : 0.22,
+        ease: 'power1.out',
+        overwrite: 'auto',
     });
 
     if (surface) {
         state.animation.fromTo(surface, {
             opacity: 0,
-            y: reduced ? 8 : 18,
-            scale: reduced ? 0.99 : 0.975,
+            y: reduced ? 5 : 12,
+            scale: reduced ? 0.995 : 0.985,
+            force3D: true,
         }, {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: reduced ? 0.22 : 0.34,
-            ease: 'power3.out',
-        }, 0.01);
+            force3D: true,
+            duration: reduced ? 0.18 : 0.30,
+            ease: 'power2.out',
+            overwrite: 'auto',
+        }, 0);
     }
 
     return true;
@@ -393,17 +397,20 @@ const animateModalClose = (overlay, finalize = null, { restoreHiddenState = fals
     if (surface) {
         state.animation.to(surface, {
             opacity: 0,
-            y: reduced ? 6 : 12,
-            scale: reduced ? 0.995 : 0.985,
-            duration: reduced ? 0.14 : 0.20,
-            ease: 'power1.in',
+            y: reduced ? 4 : 8,
+            scale: reduced ? 0.997 : 0.992,
+            force3D: true,
+            duration: reduced ? 0.12 : 0.18,
+            ease: 'power2.inOut',
+            overwrite: 'auto',
         }, 0);
     }
 
     state.animation.to(overlay, {
         opacity: 0,
-        duration: reduced ? 0.12 : 0.18,
-        ease: 'power2.in',
+        duration: reduced ? 0.10 : 0.18,
+        ease: 'power1.inOut',
+        overwrite: 'auto',
     }, 0);
 
     return true;
