@@ -90,7 +90,7 @@
       />
 
       <section class="warehouse-kpi-grid warehouse-reference-kpis" data-ajax-region="warehouse-kpis">
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-blue">
           <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-cube"></i></span>
           <span class="warehouse-kpi-content">
             <small>Total Inventory Items</small>
@@ -104,8 +104,8 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cube"></i></span>
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-green">
+          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cubes-stacked"></i></span>
           <span class="warehouse-kpi-content">
             <small>Available Stock</small>
             <span class="warehouse-kpi-metric-row">
@@ -116,7 +116,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-yellow">
           <span class="warehouse-kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></span>
           <span class="warehouse-kpi-content">
             <small>Low Stock Items</small>
@@ -128,7 +128,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card">
+        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-red">
           <span class="warehouse-kpi-icon red"><i class="fa-solid fa-box-open"></i></span>
           <span class="warehouse-kpi-content">
             <small>Out of Stock</small>
@@ -140,7 +140,7 @@
           </span>
         </a>
 
-        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card">
+        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card warehouse-kpi-purple">
           <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-file-lines"></i></span>
           <span class="warehouse-kpi-content">
             <small>Pending Part Requests</small>
@@ -152,7 +152,7 @@
           </span>
         </a>
 
-        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card">
+        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card warehouse-kpi-green">
           <span class="warehouse-kpi-icon green"><i class="fa-solid fa-truck"></i></span>
           <span class="warehouse-kpi-content">
             <small>Incoming Deliveries</small>
@@ -169,7 +169,7 @@
         <article class="warehouse-panel warehouse-chart-panel warehouse-overview-card" data-ajax-region="inventory-overview">
           <header class="warehouse-panel-header warehouse-reference-panel-header">
             <div class="warehouse-reference-title">
-              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-boxes-stacked"></i></span>
+              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-chart-column"></i></span>
               <div>
                 <h2>Inventory Overview</h2>
                 <p>Stock level distribution</p>
@@ -201,7 +201,7 @@
         <article class="warehouse-panel warehouse-chart-panel warehouse-stock-status-card" data-ajax-region="stock-distribution">
           <header class="warehouse-panel-header warehouse-reference-panel-header compact">
             <div class="warehouse-reference-title">
-              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-clipboard-list"></i></span>
+              <span class="warehouse-reference-title-icon blue"><i class="fa-solid fa-chart-pie"></i></span>
               <div>
                 <h2>Stock Status by Category</h2>
               </div>
@@ -285,7 +285,7 @@
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">PURCHASE SHIPMENTS</span>
-              <h2>Recent Incoming Deliveries</h2>
+              <h2><span class="warehouse-queue-title-icon blue"><i class="fa-solid fa-truck-fast"></i></span>Recent Incoming Deliveries</h2>
             </div>
             <a href="{{ route('incoming-deliveries') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
@@ -293,10 +293,11 @@
             <table class="warehouse-dashboard-table">
               <thead>
                 <tr>
-                  <th>PO No.</th>
-                  <th>Supplier</th>
-                  <th>Items</th>
-                  <th>Status</th>
+                  <th><i class="fa-regular fa-calendar"></i> PO No.</th>
+                  <th><i class="fa-solid fa-truck"></i> Supplier</th>
+                  <th><i class="fa-solid fa-cube"></i> Items</th>
+                  <th><i class="fa-solid fa-circle-notch"></i> Status</th>
+                  <th><i class="fa-regular fa-calendar-days"></i> PO Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,10 +310,11 @@
                     <td><a href="{{ route('incoming-deliveries', ['search' => $delivery->po_no]) }}" class="warehouse-reference">{{ $delivery->po_no }}</a></td>
                     <td title="{{ $delivery->supplier_name ?? 'Supplier' }}">{{ $delivery->supplier_name ?? 'Supplier' }}</td>
                     <td>{{ $deliveryQty }}</td>
-                    <td><span class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'blue' : 'yellow' }}">{{ $delivery->status }}</span></td>
+                    <td><span class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'green' : 'yellow' }}"><i class="fa-solid fa-circle"></i>{{ $delivery->status }}</span></td>
+                    <td>{{ $delivery->po_date?->format('M d, Y') ?? 'No date' }}</td>
                   </tr>
                 @empty
-                  <tr class="warehouse-queue-empty-row"><td colspan="4"><div class="warehouse-table-empty">No incoming deliveries.</div></td></tr>
+                  <tr class="warehouse-queue-empty-row"><td colspan="5"><div class="warehouse-table-empty">No incoming deliveries.</div></td></tr>
                 @endforelse
               </tbody>
             </table>
@@ -323,7 +325,7 @@
           <header class="warehouse-panel-header">
             <div>
               <span class="warehouse-panel-eyebrow">MAINTENANCE REQUISITIONS</span>
-              <h2>Active Part Requests</h2>
+              <h2><span class="warehouse-queue-title-icon purple"><i class="fa-solid fa-clipboard-list"></i></span>Active Part Requests</h2>
             </div>
             <a href="{{ route('part-requests') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
@@ -331,10 +333,10 @@
             <table class="warehouse-dashboard-table">
               <thead>
                 <tr>
-                  <th>PR No.</th>
-                  <th>Job Order</th>
-                  <th>Status</th>
-                  <th>Requested</th>
+                  <th><i class="fa-regular fa-file-lines"></i> PR No.</th>
+                  <th><i class="fa-solid fa-screwdriver-wrench"></i> Job Order</th>
+                  <th><i class="fa-solid fa-circle-notch"></i> Status</th>
+                  <th><i class="fa-regular fa-calendar-days"></i> Requested</th>
                 </tr>
               </thead>
               <tbody>
@@ -350,7 +352,7 @@
                   <tr>
                     <td><a href="{{ route('part-requests', ['search' => $request->pr_no]) }}" class="warehouse-reference">{{ $request->pr_no }}</a></td>
                     <td title="{{ $request->job_order_no ?? '—' }}">{{ $request->job_order_no ?? '—' }}</td>
-                    <td><span class="warehouse-status {{ $requestStatusClass }}">{{ $request->status }}</span></td>
+                    <td><span class="warehouse-status {{ $requestStatusClass }}"><i class="fa-solid fa-circle"></i>{{ $request->status }}</span></td>
                     <td>{{ $request->created_at?->format('M d') ?? '—' }}</td>
                   </tr>
                 @empty

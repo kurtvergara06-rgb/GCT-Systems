@@ -2530,3 +2530,470 @@
     padding: 16px;
   }
 }
+
+/* Final column alignment: override the legacy four-column dashboard rules. */
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(1),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(1) {
+  width: 5% !important;
+  text-align: center;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(2),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(2) {
+  width: 19% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(3),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(3) {
+  width: 13% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(4),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(4) {
+  width: 9% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(5),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(5) {
+  width: 14% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(6),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(6) {
+  width: 15% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(7),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(7) {
+  width: 16% !important;
+}
+
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table th:nth-child(8),
+[data-ajax-region="recent-stock-movements"] .warehouse-audit-table td:nth-child(8) {
+  width: 9% !important;
+  text-align: right;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table {
+  min-width: 0;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(1),
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(1) {
+  width: 8% !important;
+  text-align: center;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(2),
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(2) {
+  width: 38% !important;
+  text-align: left;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(3),
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(3) {
+  width: 12% !important;
+  text-align: center;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(4),
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(4) {
+  width: 13% !important;
+  text-align: center;
+}
+
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(5),
+[data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(5) {
+  width: 29% !important;
+  text-align: right;
+}
+
+.warehouse-bottom-grid > .warehouse-panel {
+  height: 475px;
+  min-height: 475px;
+}
+
+.warehouse-replenishment-panel .warehouse-table-scroll {
+  overflow: visible;
+}
+
+.warehouse-replenishment-panel .warehouse-dashboard-table td {
+  height: 57px;
+}
+
+.warehouse-feature-header p {
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .warehouse-bottom-grid > .warehouse-panel {
+    height: 455px;
+    min-height: 455px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .warehouse-bottom-grid > .warehouse-panel {
+    height: auto;
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 600px) {
+  .warehouse-feature-header p {
+    white-space: normal;
+  }
+}
+
+/* =========================================================
+   UPPER DASHBOARD REFERENCE LAYOUT
+   Spacious KPI, analytics, alert, and workflow presentation.
+========================================================= */
+
+.warehouse-dashboard-main {
+  background:
+    radial-gradient(circle at 48% 0%, rgba(219, 234, 254, .42), transparent 30%),
+    #f4f7fb;
+}
+
+.warehouse-reference-kpis {
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-card {
+  min-height: 136px;
+  padding: 20px 18px;
+  gap: 14px;
+  border-color: #dfe7f1;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(15, 45, 85, .055);
+}
+
+.warehouse-reference-kpis .warehouse-kpi-card::after {
+  content: '';
+  position: absolute;
+  right: -18px;
+  bottom: -30px;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  opacity: .42;
+  pointer-events: none;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-blue::after { background: #dbeafe; }
+.warehouse-reference-kpis .warehouse-kpi-green::after { background: #d1fae5; }
+.warehouse-reference-kpis .warehouse-kpi-yellow::after { background: #fef3c7; }
+.warehouse-reference-kpis .warehouse-kpi-red::after { background: #fee2e2; }
+.warehouse-reference-kpis .warehouse-kpi-purple::after { background: #ede9fe; }
+
+.warehouse-reference-kpis .warehouse-kpi-icon {
+  width: 52px;
+  height: 52px;
+  flex-basis: 52px;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-purple .warehouse-kpi-icon {
+  color: #7c3aed;
+  background: #f3efff;
+  border-color: #e5dcff;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-content > small {
+  color: #304b72;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-metric-row {
+  margin-top: 5px;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-metric-row > strong {
+  font-size: 30px;
+  letter-spacing: -.035em;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-trend {
+  min-height: 23px;
+  padding-inline: 8px;
+  font-size: 10.5px !important;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 7px;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-footer > span {
+  color: #647897 !important;
+  font-size: 10.5px !important;
+}
+
+.warehouse-reference-kpis .warehouse-kpi-footer > b {
+  font-size: 10px;
+}
+
+.warehouse-reference-overview {
+  grid-template-columns: minmax(0, 1.3fr) minmax(360px, .92fr) minmax(390px, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.warehouse-reference-overview > .warehouse-panel {
+  height: 318px;
+  min-height: 318px;
+  padding: 18px 20px;
+  border-color: #dfe7f1;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 45, 85, .05);
+}
+
+.warehouse-reference-panel-header {
+  margin-bottom: 12px;
+}
+
+.warehouse-reference-title {
+  gap: 12px;
+}
+
+.warehouse-reference-title-icon {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+
+.warehouse-reference-title h2 {
+  font-size: 18px;
+}
+
+.warehouse-reference-title p {
+  margin-top: 4px;
+  font-size: 11.5px;
+}
+
+.warehouse-category-filter {
+  min-width: 156px;
+  height: 38px;
+  padding-left: 13px;
+  border-radius: 9px;
+  color: #17345f;
+  font-size: 11.5px;
+}
+
+.warehouse-reference-overview .bar-chart-wrap {
+  height: 232px;
+}
+
+.warehouse-reference-overview .warehouse-donut-layout {
+  height: 238px;
+  min-height: 238px;
+  gap: 24px;
+}
+
+.warehouse-reference-overview .donut-chart-wrap {
+  width: 190px;
+  height: 190px;
+  flex-basis: 190px;
+}
+
+.warehouse-reference-overview .warehouse-donut-center strong {
+  font-size: 30px;
+}
+
+.warehouse-reference-overview .warehouse-donut-center span {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.warehouse-reference-legend {
+  min-width: 176px;
+  gap: 13px;
+}
+
+.warehouse-reference-legend > div {
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 9px;
+}
+
+.warehouse-reference-legend .legend-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.warehouse-reference-legend > div > span:nth-child(2) {
+  font-size: 11px;
+}
+
+.warehouse-reference-legend strong {
+  font-size: 12px;
+}
+
+.warehouse-reference-legend strong em {
+  font-size: 10px;
+}
+
+.warehouse-reference-alerts .warehouse-alert-row {
+  min-height: 48px;
+  padding: 8px 2px;
+  grid-template-columns: 34px minmax(0, 1fr) auto 8px;
+  gap: 10px;
+}
+
+.warehouse-reference-alerts .warehouse-alert-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.warehouse-reference-alerts .warehouse-alert-copy strong {
+  font-size: 11px;
+}
+
+.warehouse-reference-alerts .warehouse-alert-copy small {
+  margin-top: 2px;
+  font-size: 9.5px;
+}
+
+.warehouse-reference-alerts .warehouse-alert-row time,
+.warehouse-reference-view-all {
+  font-size: 10px;
+}
+
+.warehouse-table-grid {
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.warehouse-queue-panel {
+  height: 338px;
+  min-height: 338px;
+  padding: 18px 20px;
+  border-color: #dfe7f1;
+  border-radius: 16px;
+}
+
+.warehouse-queue-panel .warehouse-panel-header {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.warehouse-queue-panel .warehouse-panel-header h2 {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 19px;
+}
+
+.warehouse-queue-title-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 9px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+}
+
+.warehouse-queue-title-icon.blue {
+  color: #2563eb;
+  background: #eaf2ff;
+}
+
+.warehouse-queue-title-icon.purple {
+  color: #7c3aed;
+  background: #f1edff;
+}
+
+.warehouse-queue-panel .warehouse-table-scroll {
+  border: 1px solid #e6edf5;
+  border-radius: 10px;
+}
+
+.warehouse-queue-panel .warehouse-dashboard-table th {
+  height: 40px;
+  padding: 10px 12px;
+  background: #f5f8fc;
+  color: #476180;
+  font-size: 10px;
+}
+
+.warehouse-queue-panel .warehouse-dashboard-table th i {
+  margin-right: 4px;
+  color: #526d91;
+}
+
+.warehouse-queue-panel .warehouse-dashboard-table td {
+  height: 48px;
+  padding: 9px 12px;
+  color: #243f63;
+  font-size: 11.5px;
+}
+
+.warehouse-queue-panel .warehouse-status {
+  gap: 6px;
+  min-height: 25px;
+  font-size: 10.5px;
+}
+
+.warehouse-queue-panel .warehouse-status i {
+  font-size: 6px;
+}
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(1),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(1) { width: 20%; }
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(2),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(2) { width: 30%; }
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(3),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(3) { width: 12%; }
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(4),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(4) { width: 20%; }
+
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(5),
+[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(5) { width: 18%; }
+
+@media (max-width: 1540px) {
+  .warehouse-reference-kpis .warehouse-kpi-card {
+    min-height: 122px;
+  }
+
+  .warehouse-reference-overview {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, .85fr);
+  }
+
+  .warehouse-reference-alerts {
+    grid-column: 1 / -1;
+    height: auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .warehouse-reference-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-reference-overview > .warehouse-panel,
+  .warehouse-queue-panel {
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .warehouse-reference-kpis .warehouse-kpi-card {
+    min-height: 112px;
+  }
+
+  .warehouse-reference-overview .warehouse-donut-layout {
+    height: auto;
+  }
+}
