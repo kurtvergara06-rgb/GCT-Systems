@@ -62,18 +62,25 @@ class InventoryLazyPaginationPrototypeTest extends TestCase
         );
     }
 
-    public function test_inventory_source_filter_loads_the_selected_dataset(): void
+    public function test_inventory_source_filter_is_removed_from_the_real_inventory_view(): void
     {
+        $view = file_get_contents(
+            resource_path('views/Warehouse/inventory.blade.php')
+        );
         $source = file_get_contents(
             resource_path('js/Warehouse/inventory.js')
         );
 
-        $this->assertStringContainsString(
-            "const sourceSelect = inventoryToolbar?.querySelector('select[name=\"source\"]');",
+        $this->assertStringNotContainsString(
+            'name="source"',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            "querySelector('select[name=\"source\"]')",
             $source
         );
-        $this->assertStringContainsString(
-            "url.searchParams.set('source', sourceSelect.value || 'app');",
+        $this->assertStringNotContainsString(
+            "url.searchParams.set('source'",
             $source
         );
         $this->assertStringContainsString(
