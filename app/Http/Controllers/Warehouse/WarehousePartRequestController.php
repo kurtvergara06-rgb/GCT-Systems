@@ -197,6 +197,12 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'Inventory restock requests cannot be issued from Warehouse Part Requests.');
         }
 
+        if ($purchaseRequest->status === 'Issued' || $purchaseRequest->warehouse_status === 'Issued') {
+            return redirect()
+                ->back()
+                ->with('error', 'This request has already been issued.');
+        }
+
         $parts = $this->parseParts($purchaseRequest->item);
 
         if (empty($parts)) {
