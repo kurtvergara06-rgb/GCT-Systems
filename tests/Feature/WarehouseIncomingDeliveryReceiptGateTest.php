@@ -13,7 +13,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_purchased_parts_must_be_received_before_head_can_approve_and_staff_can_issue(): void
+    public function test_purchased_parts_must_be_received_before_staff_can_prepare_and_issue(): void
     {
         $warehouseHead = User::factory()->create([
             'department' => 'Warehouse',
@@ -71,13 +71,13 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
             'status' => 'For Delivery',
         ]);
 
-        // A purchased part that is merely in transit is not eligible for issuance approval.
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $originalRequest))
+        // A purchased part that is merely in transit is not ready for Warehouse preparation.
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.prepare', $originalRequest))
             ->assertRedirect()
             ->assertSessionHas('error');
 
-        $this->assertNotSame('Approved for Issue', $originalRequest->fresh()->warehouse_status);
+        $this->assertNotSame('Preparing', $originalRequest->fresh()->warehouse_status);
         $this->assertNull($purchaseOrder->fresh()->inventory_posted_at);
         $this->assertNull(InventoryItem::query()->where('item_name', 'Brake Pad')->first());
 
@@ -94,13 +94,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
         $this->assertSame('Delivered', $purchaseRequest->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->quantity_available);
 
-        // Only after receipt can the Head authorize release and Staff process it.
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $originalRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Approved for Issue', $originalRequest->fresh()->warehouse_status);
-
+        // Once received into inventory, Warehouse Staff can prepare it directly.
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.prepare', $originalRequest))
             ->assertRedirect();
