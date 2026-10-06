@@ -72,11 +72,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'storage_location' => 'Warehouse 1',
         ]);
 
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $purchaseRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Preparing', $purchaseRequest->fresh()->warehouse_status);
         $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
 
         $issueResponse = $this
@@ -99,7 +94,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame(1, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
-    public function test_warehouse_edit_capability_controls_direct_preparation_and_issue(): void
+    public function test_warehouse_edit_capability_controls_direct_issue(): void
     {
         $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -127,21 +122,18 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $headPermissions->update(['permissions' => $headMatrix]);
 
         $this->actingAs($head)
-            ->post(route('part-requests.prepare', $request))
-            ->assertForbidden();
-
-        $this->actingAs($staff)
-            ->post(route('part-requests.prepare', $request))
-            ->assertRedirect();
-
-        $this->actingAs($head)
             ->post(route('part-requests.issue', $request))
             ->assertForbidden();
 
-        $this->assertSame(4, (int) $item->fresh()->quantity_available);
+        $this->actingAs($staff)
+            ->post(route('part-requests.issue', $request))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame(2, (int) $item->fresh()->quantity_available);
     }
 
-    public function test_warehouse_staff_issues_prepared_parts_using_requested_quantity_automatically(): void
+    public function test_warehouse_staff_issues_available_parts_using_requested_quantity_automatically(): void
     {
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
@@ -186,9 +178,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'item' => 'Air Filter (1 pcs), Fuel Filter (3 pcs)',
             'quantity' => 4,
             'status' => 'Approved',
-            'warehouse_status' => 'Preparing',
-            'warehouse_prepared_by' => $warehouseStaff->id,
-            'warehouse_prepared_at' => now(),
         ]);
 
         // Post issue without any issued_quantities payload
