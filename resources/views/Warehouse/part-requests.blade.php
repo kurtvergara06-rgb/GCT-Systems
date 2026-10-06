@@ -21,12 +21,12 @@
     <main class="main warehouse-part-main">
       <x-layout.topbar
         title="Part Requests"
-        subtitle="Review stock availability, authorize releases, and issue parts for maintenance"
+        subtitle="Review stock availability, prepare releases, and issue parts for maintenance"
         notification-count="6"
       />
 
       <section data-ajax-region="summary" class="stats-grid inventory-stats">
-        <x-ui.summary-card label="Pending Approval" value="{{ $approved ?? 0 }}" small="Awaiting Warehouse approval" icon="fa-clipboard-check" color="yellow" />
+        <x-ui.summary-card label="Approved Requests" value="{{ $approved ?? 0 }}" small="Ready for Warehouse processing" icon="fa-clipboard-check" color="yellow" />
         <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable in stock" icon="fa-cart-shopping" color="blue" />
         <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-truck-ramp-box" color="green" />
         <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released to maintenance" icon="fa-box-open" color="gray" />
@@ -133,22 +133,20 @@
                     && $status === 'Approved';
                   $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
                     && $inventoryStatus === 'Available';
-                  $canApproveForIssue = ($partRequest->can_approve_for_issue ?? false) && $canApproveWarehouse;
-                  $canHold = ($partRequest->can_hold ?? false) && $canApproveWarehouse;
                   $canPrepare = ($partRequest->can_prepare ?? false) && $canEditWarehouse;
                   $warehouseStatus = $isHistory
                     ? ($partRequest->warehouse_status ?: $partRequest->status)
-                    : ($partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval');
-                  $warehouseStatusLabel = match ($warehouseStatus) {
-                    'Pending Warehouse Approval' => 'Pending Approval',
-                    'Approved for Issue' => 'Approved',
-                    default => $warehouseStatus,
-                  };
-                  $warehouseStatusClass = match ($warehouseStatus) {
-                    'Pending Warehouse Approval' => 'pending',
-                    'Approved for Issue' => 'approved',
+                    : ($partRequest->warehouse_workflow_status ?? 'Ready to Prepare');
+                  $warehouseStatusLabel = ($partRequest->needs_purchase ?? false)
+                    ? 'Needs Purchase'
+                    : match ($warehouseStatus) {
+                        'Pending Warehouse Approval', 'Approved for Issue', 'On Hold' => 'Ready to Prepare',
+                        default => $warehouseStatus,
+                      };
+                  $warehouseStatusClass = match ($warehouseStatusLabel) {
+                    'Ready to Prepare' => 'approved',
+                    'Needs Purchase' => 'hold',
                     'Preparing' => 'preparing',
-                    'On Hold' => 'hold',
                     'Issued' => 'issued',
                     default => 'neutral',
                   };
@@ -206,8 +204,6 @@
                         data-inventory-status="{{ $inventoryStatus }}"
                         data-status="{{ $status }}"
                         data-warehouse-status="{{ $warehouseStatusLabel }}"
-                        data-approved-by="{{ $partRequest->warehouse_approved_by ? 'User #'.$partRequest->warehouse_approved_by : '—' }}"
-                        data-approved-at="{{ $partRequest->warehouse_approved_at?->format('M d, Y h:i A') ?? '—' }}"
                         data-prepared-by="{{ $partRequest->warehouse_prepared_by ? 'User #'.$partRequest->warehouse_prepared_by : '—' }}"
                         data-prepared-at="{{ $partRequest->warehouse_prepared_at?->format('M d, Y h:i A') ?? '—' }}"
                         data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
@@ -237,35 +233,17 @@
                         </form>
                       @endif
 
-                      @if($canApproveForIssue)
+                      @if($canPrepare)
                         <form
-                          action="{{ route('part-requests.approve-for-issue', $partRequest->id) }}"
+                          action="{{ route('part-requests.prepare', $partRequest->id) }}"
                           method="POST"
                           class="inline-action-form"
                           data-confirm-form
-                          data-confirm-title="Approve Part Issuance?"
-                          data-confirm-message="Authorize Warehouse personnel to prepare {{ $partRequest->pr_no }} for release?"
-                          data-confirm-button="Yes, Approve"
+                          data-confirm-title="Prepare Parts?"
+                          data-confirm-message="Start preparing the approved parts for {{ $partRequest->pr_no }}?"
+                          data-confirm-button="Yes, Prepare"
                           data-confirm-type="approve"
                         >
-                          @csrf
-                          <button type="submit" class="approve-issue-btn icon-only-btn" title="Approve for Issue">
-                            <i class="fa-solid fa-circle-check"></i>
-                          </button>
-                        </form>
-                      @endif
-
-                      @if($canHold)
-                        <form action="{{ route('part-requests.hold', $partRequest->id) }}" method="POST" class="inline-action-form" data-confirm-form data-confirm-title="Hold Part Issuance?" data-confirm-message="Place {{ $partRequest->pr_no }} on hold?" data-confirm-button="Yes, Hold" data-confirm-type="warning">
-                          @csrf
-                          <button type="submit" class="hold-issue-btn icon-only-btn" title="Reject or Hold Release">
-                            <i class="fa-solid fa-ban"></i>
-                          </button>
-                        </form>
-                      @endif
-
-                      @if($canPrepare)
-                        <form action="{{ route('part-requests.prepare', $partRequest->id) }}" method="POST" class="inline-action-form">
                           @csrf
                           <button type="submit" class="prepare-part-btn icon-only-btn" title="Prepare Parts">
                             <i class="fa-solid fa-box"></i>
@@ -307,7 +285,7 @@
         <div>
           <h2>Purchase Request Details</h2>
           <h3>PR Information</h3>
-          <p>Request, approval, preparation, and issuance details.</p>
+          <p>Request, preparation, and issuance details.</p>
         </div>
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close">
           <i class="fa-solid fa-xmark"></i>
@@ -338,14 +316,6 @@
         <div class="warehouse-field">
           <label>Warehouse Status</label>
           <input id="view_warehouse_status" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Approved By</label>
-          <input id="view_approved_by" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Approved At</label>
-          <input id="view_approved_at" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
           <label>Prepared By</label>
