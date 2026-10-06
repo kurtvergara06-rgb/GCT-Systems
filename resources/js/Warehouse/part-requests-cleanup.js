@@ -38,7 +38,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
       if (!warehousePill) return;
 
       const warehouseStatus = normalizeText(warehousePill.textContent);
-      if (warehouseStatus !== 'pending approval') return;
+      if (warehouseStatus !== 'ready to prepare') return;
 
       let label = null;
       let className = null;
@@ -100,8 +100,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
 
     setField('view_purchase_status', button.dataset.status);
     setField('view_warehouse_status', button.dataset.warehouseStatus);
-    setField('view_approved_by', button.dataset.approvedBy);
-    setField('view_approved_at', button.dataset.approvedAt);
     setField('view_prepared_by', button.dataset.preparedBy);
     setField('view_prepared_at', button.dataset.preparedAt);
 
