@@ -169,6 +169,7 @@
                         aria-haspopup="dialog"
                         aria-controls="movementHistoryModal"
                         data-url="{{ route('inventory.movements', $item) }}"
+                        data-item-id="{{ $item->id }}"
                       >
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </button>
