@@ -205,4 +205,45 @@ class WarehouseFrontendHardeningTest extends TestCase
         );
     }
 
+
+    public function test_dashboard_lower_cards_are_equal_height_and_have_no_horizontal_scroll(): void
+    {
+        $css = file_get_contents(
+            resource_path('css/Warehouse/dashboard-warehouse.css')
+        );
+
+        $this->assertStringContainsString(
+            'LOWER DASHBOARD ALIGNMENT',
+            $css
+        );
+        $this->assertStringContainsString(
+            '[data-ajax-region="recent-stock-movements"] .warehouse-table-scroll',
+            $css
+        );
+        $this->assertStringContainsString(
+            '[data-ajax-region="dashboard-low-stock"] .warehouse-table-scroll',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow-x: hidden !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '.warehouse-bottom-grid > .warehouse-panel',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-height: 440px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'height: 440px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '[data-ajax-region="dashboard-movement-trend"] .trend-chart-wrap',
+            $css
+        );
+    }
+
 }
