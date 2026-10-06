@@ -162,8 +162,8 @@
                   <td>
                     <div class="actions">
 
-                      <a
-                        href="{{ route('inventory.movements', $item) }}"
+                      <button
+                        type="button"
                         class="action-btn openMovementHistory"
                         title="Movement History"
                         aria-haspopup="dialog"
@@ -171,7 +171,7 @@
                         data-url="{{ route('inventory.movements', $item) }}"
                       >
                         <i class="fa-solid fa-clock-rotate-left"></i>
-                      </a>
+                      </button>
 
                       @if($canEditWarehouse)
                         <button
