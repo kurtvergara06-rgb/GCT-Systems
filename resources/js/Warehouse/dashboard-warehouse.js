@@ -92,6 +92,12 @@ function initializeInventoryBar(statusData = null) {
                     beginAtZero: true,
                     grid: { color: axisGrid, drawTicks: false },
                     border: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Quantity',
+                        color: axisText,
+                        font: { size: 12, weight: '600', family: 'Poppins, Inter, sans-serif' },
+                    },
                     ticks: {
                         color: axisText,
                         precision: 0,
@@ -289,7 +295,7 @@ function initializeMovementTrend() {
                         color: axisText,
                         maxTicksLimit: 9,
                         maxRotation: 0,
-                        font: { size: 10, family: 'Poppins, Inter, sans-serif' },
+                        font: { size: 11.5, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
                 y: {
@@ -300,7 +306,7 @@ function initializeMovementTrend() {
                         color: axisText,
                         precision: 0,
                         padding: 8,
-                        font: { size: 10, family: 'Poppins, Inter, sans-serif' },
+                        font: { size: 11.5, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
             },
