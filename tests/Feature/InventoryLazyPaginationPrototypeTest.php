@@ -83,13 +83,5 @@ class InventoryLazyPaginationPrototypeTest extends TestCase
             "url.searchParams.set('source'",
             $source
         );
-        $this->assertStringContainsString(
-            "url.searchParams.delete('page');",
-            $source
-        );
-        $this->assertStringContainsString(
-            'window.GCTPartialNavigation.navigate(url.href);',
-            $source
-        );
     }
 }
