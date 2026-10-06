@@ -706,15 +706,9 @@ class SystemBackendFullAuditTest extends TestCase
         $inventoryItem = InventoryItem::where('item_name', 'Clutch Master Cylinder 24V')->firstOrFail();
         $this->assertSame(1, (int) $inventoryItem->quantity_available);
 
-        // 7.10 Warehouse Head authorizes; Warehouse Staff prepares and issues.
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $originalPr))
-            ->assertRedirect();
+        // 7.10 Maintenance approval is already complete; Warehouse Staff issues after receipt.
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $originalPr))
-            ->assertRedirect();
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalPr), ['issued_quantities' => [1]])
+            ->post(route('part-requests.issue', $originalPr))
             ->assertRedirect();
 
         $this->assertSame('Issued', $originalPr->fresh()->status);
