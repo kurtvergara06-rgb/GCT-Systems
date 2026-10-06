@@ -149,16 +149,8 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('Delivered', $jobOrder->fresh()->part_status);
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
 
-        $this->actingAs($warehouseUser)
-            ->post(route('part-requests.approve-for-issue', $originalPr))
-            ->assertRedirect();
-
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $originalPr))
-            ->assertRedirect();
-
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalPr), ['issued_quantities' => [2]])
+            ->post(route('part-requests.issue', $originalPr))
             ->assertRedirect();
 
         $this->assertSame('Issued', $originalPr->fresh()->status);
