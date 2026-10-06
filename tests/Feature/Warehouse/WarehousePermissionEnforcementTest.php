@@ -57,7 +57,7 @@ class WarehousePermissionEnforcementTest extends TestCase
         }
     }
 
-    public function test_edit_permission_blocks_direct_inventory_receive_prepare_and_issue_requests(): void
+    public function test_edit_permission_blocks_direct_inventory_receive_and_issue_requests(): void
     {
         $staff = $this->staff();
         $this->permissions(true, false, true);
@@ -81,21 +81,20 @@ class WarehousePermissionEnforcementTest extends TestCase
 
         $this->actingAs($staff)->post(route('inventory.store'))->assertForbidden();
         $this->actingAs($staff)->post(route('incoming-deliveries.receive', $order))->assertForbidden();
-        $this->actingAs($staff)->post(route('part-requests.prepare', $request))->assertForbidden();
         $this->actingAs($staff)->post(route('part-requests.issue', $request))->assertForbidden();
 
         $this->assertNull($order->fresh()->inventory_posted_at);
         $this->assertSame(2, (int) $item->fresh()->quantity_available);
     }
 
-    public function test_approve_permission_controls_workflow_for_staff_instead_of_role_name(): void
+    public function test_approve_permission_controls_send_to_purchase_workflow_for_staff(): void
     {
         $staff = $this->staff();
-        $item = InventoryItem::create([
+        InventoryItem::create([
             'item_code' => 'PERM-APPROVE',
             'item_name' => 'Brake Pad',
             'category' => 'Parts',
-            'quantity_available' => 2,
+            'quantity_available' => 0,
             'unit_of_measurement' => 'pcs',
             'reorder_level' => 0,
         ]);
@@ -103,16 +102,30 @@ class WarehousePermissionEnforcementTest extends TestCase
 
         $this->permissions(true, true, false);
         $this->actingAs($staff)
-            ->post(route('part-requests.approve-for-issue', $request))
+            ->post(route('part-requests.send-to-purchase', $request))
             ->assertForbidden();
-        $this->assertSame('Pending Warehouse Approval', $request->fresh()->warehouse_status);
+
+        $this->assertSame(
+            0,
+            PurchaseRequest::query()
+                ->where('job_order_no', $request->job_order_no)
+                ->where('id', '!=', $request->id)
+                ->count()
+        );
 
         $this->permissions(true, true, true);
         $this->actingAs($staff)
-            ->post(route('part-requests.approve-for-issue', $request))
-            ->assertRedirect();
-        $this->assertSame('Approved for Issue', $request->fresh()->warehouse_status);
-        $this->assertSame(2, (int) $item->fresh()->quantity_available);
+            ->post(route('part-requests.send-to-purchase', $request))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $missingRequest = PurchaseRequest::query()
+            ->where('job_order_no', $request->job_order_no)
+            ->where('id', '!=', $request->id)
+            ->firstOrFail();
+
+        $this->assertSame('For Purchase', $missingRequest->status);
+        $this->assertSame('Approved', $request->fresh()->status);
     }
 
     public function test_system_admin_retains_full_warehouse_access(): void
