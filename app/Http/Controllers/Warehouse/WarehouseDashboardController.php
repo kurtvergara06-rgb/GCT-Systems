@@ -135,6 +135,7 @@ class WarehouseDashboardController extends Controller
             ->count();
 
         $recentStockMovements = StockMovement::query()
+            ->with('creator')
             ->latest()
             ->limit(5)
             ->get();

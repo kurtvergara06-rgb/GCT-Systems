@@ -92,6 +92,12 @@ function initializeInventoryBar(statusData = null) {
                     beginAtZero: true,
                     grid: { color: axisGrid, drawTicks: false },
                     border: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Quantity',
+                        color: axisText,
+                        font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
+                    },
                     ticks: {
                         color: axisText,
                         precision: 0,

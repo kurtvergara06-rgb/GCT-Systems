@@ -103,10 +103,14 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('Stock Status by Category', $view);
         $this->assertStringContainsString('Alerts & Notifications', $view);
         $this->assertStringContainsString('warehouseCategoryFilter', $view);
-        $this->assertStringContainsString('warehouse-audit-summary', $view);
-        $this->assertStringContainsString('warehouse-stock-meter', $view);
-        $this->assertStringContainsString('warehouse-usage-summary', $view);
-        $this->assertStringContainsString('warehouse-trend-summary', $view);
+        $this->assertStringContainsString('warehouse-feature-header', $view);
+        $this->assertStringContainsString('warehouse-audit-table', $view);
+        $this->assertStringContainsString('warehouse-item-cell', $view);
+        $this->assertStringContainsString('warehouse-user-cell', $view);
+        $this->assertStringContainsString('warehouse-view-action', $view);
+        $this->assertStringNotContainsString('warehouse-audit-summary', $view);
+        $this->assertStringNotContainsString('warehouse-usage-summary', $view);
+        $this->assertStringNotContainsString('warehouse-trend-summary', $view);
         $this->assertStringContainsString('$expectedDeliveries->take(5)', $view);
         $this->assertStringContainsString('$activePartRequests->take(5)', $view);
         $this->assertSame(2, substr_count($view, 'warehouse-queue-panel'));
@@ -114,8 +118,13 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('overflow-x: hidden !important;', $css);
         $this->assertStringContainsString('warehouse-reference-overview', $css);
         $this->assertStringContainsString('OPERATIONAL INTELLIGENCE PANELS', $css);
+        $this->assertStringContainsString('LOWER DASHBOARD REFERENCE LAYOUT', $css);
         $this->assertStringContainsString('bindInventoryCategoryFilter', $js);
         $this->assertStringContainsString('For Reorder', $js);
+        $this->assertStringContainsString("text: 'Quantity'", $js);
+
+        $controller = file_get_contents(app_path('Http/Controllers/Warehouse/WarehouseDashboardController.php'));
+        $this->assertStringContainsString("->with('creator')", $controller);
     }
 
 }
