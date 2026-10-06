@@ -36,6 +36,7 @@ const OVERLAY_SELECTORS = [
   '.confirm-modal-overlay',
   '.system-confirm-overlay',
   '.confirmation-modal-overlay',
+  '[class*="modal-overlay"]',
   '[data-modal-overlay]',
   '[data-gct-modal-overlay]'
 ];
@@ -237,7 +238,7 @@ if (document.readyState === 'loading') {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class', 'style', 'aria-hidden']
+      attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']
     });
     syncState();
   });
