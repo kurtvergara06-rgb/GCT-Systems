@@ -149,4 +149,52 @@ class WarehouseFrontendHardeningTest extends TestCase
         );
     }
 
+
+    public function test_part_requests_skip_duplicate_warehouse_approval_actions(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Warehouse/part-requests.blade.php')
+        );
+        $controller = file_get_contents(
+            app_path('Http/Controllers/Warehouse/WarehousePartRequestController.php')
+        );
+
+        $this->assertStringContainsString(
+            'Approved Requests',
+            $view
+        );
+        $this->assertStringContainsString(
+            'Ready for Warehouse processing',
+            $view
+        );
+        $this->assertStringContainsString(
+            'Prepare Parts?',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'Approve Part Issuance?',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'Reject or Hold Release',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'view_approved_by',
+            $view
+        );
+        $this->assertStringContainsString(
+            "'Ready to Prepare'",
+            $controller
+        );
+        $this->assertStringContainsString(
+            "'Preparing'",
+            $controller
+        );
+        $this->assertStringNotContainsString(
+            'Warehouse approval is required before preparation.',
+            $controller
+        );
+    }
+
 }
