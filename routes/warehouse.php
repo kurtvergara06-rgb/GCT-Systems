@@ -33,15 +33,6 @@ Route::middleware([
             ->prefix('part-requests')
             ->group(function () {
                 Route::get('/', 'index')->name('part-requests');
-                Route::post('/{purchaseRequest}/approve-for-issue', 'approveForIssue')
-                    ->middleware('system.permission:warehouse,approve')
-                    ->name('part-requests.approve-for-issue');
-                Route::post('/{purchaseRequest}/hold', 'hold')
-                    ->middleware('system.permission:warehouse,approve')
-                    ->name('part-requests.hold');
-                Route::post('/{purchaseRequest}/prepare', 'prepare')
-                    ->middleware('system.permission:warehouse,edit')
-                    ->name('part-requests.prepare');
                 Route::post('/{purchaseRequest}/issue', 'issue')
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.issue');
