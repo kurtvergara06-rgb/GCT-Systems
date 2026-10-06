@@ -23,11 +23,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'role' => 'staff',
             'status' => 'Active',
         ]);
-        $warehouseHead = User::factory()->create([
-            'department' => 'Warehouse',
-            'role' => 'head',
-            'status' => 'Active',
-        ]);
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
             'role' => 'staff',
@@ -77,13 +72,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'storage_location' => 'Warehouse 1',
         ]);
 
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $purchaseRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Approved for Issue', $purchaseRequest->fresh()->warehouse_status);
-        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
-
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.prepare', $purchaseRequest))
             ->assertRedirect();
@@ -111,7 +99,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame(1, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
-    public function test_warehouse_capabilities_control_approval_preparation_and_issue(): void
+    public function test_warehouse_edit_capability_controls_direct_preparation_and_issue(): void
     {
         $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -133,19 +121,10 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'warehouse_status' => 'Pending Warehouse Approval',
         ]);
 
-        $staffPermissions = RolePermission::where('role_key', 'warehouse_staff')->firstOrFail();
-        $staffMatrix = $staffPermissions->permissions;
-        data_set($staffMatrix, 'warehouse.approve', true);
-        $staffPermissions->update(['permissions' => $staffMatrix]);
-
         $headPermissions = RolePermission::where('role_key', 'warehouse_head')->firstOrFail();
         $headMatrix = $headPermissions->permissions;
         data_set($headMatrix, 'warehouse.edit', false);
         $headPermissions->update(['permissions' => $headMatrix]);
-
-        $this->actingAs($staff)
-            ->post(route('part-requests.approve-for-issue', $request))
-            ->assertRedirect();
 
         $this->actingAs($head)
             ->post(route('part-requests.prepare', $request))
