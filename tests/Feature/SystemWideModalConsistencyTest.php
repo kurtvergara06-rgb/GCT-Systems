@@ -16,11 +16,15 @@ class SystemWideModalConsistencyTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            "'[class*="modal-overlay"]'",
+            <<<'JS'
+'[class*="modal-overlay"]'
+JS,
             $animations
         );
         $this->assertStringContainsString(
-            "'[class*="modal-overlay"]'",
+            <<<'JS'
+'[class*="modal-overlay"]'
+JS,
             $backdrop
         );
 
