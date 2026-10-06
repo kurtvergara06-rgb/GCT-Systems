@@ -89,14 +89,15 @@ class JobOrderIndexController extends Controller
             ->values();
 
         $availableMechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', today())
-            ->whereIn('status', ['Present', 'Late'])
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
             ->whereNotIn('mechanic_name', $assignedActiveMechanics)
             ->orderBy('mechanic_name')
             ->get();
 
         $allMechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', today())
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
             ->orderBy('mechanic_name')
             ->get();
 

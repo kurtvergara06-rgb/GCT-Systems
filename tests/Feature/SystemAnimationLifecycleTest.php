@@ -65,7 +65,7 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString("existing?.phase === 'opening'", $source);
         $this->assertStringContainsString("previous.phase === 'closing'", $source);
         $this->assertStringContainsString("state?.phase === 'opening' || state?.phase === 'closing'", $source);
-        $this->assertStringContainsString('scale: reduced ? 0.99 : 0.975', $source);
+        $this->assertStringContainsString('scale: reduced ? 0.995 : 0.985', $source);
         $this->assertStringContainsString('preventBackdropDismissal', $backdrop);
         $this->assertStringContainsString('const observeOverlay = (overlay) => {', $source);
         $this->assertStringContainsString("surface?.classList.add('gct-system-modal-surface-animated')", $source);

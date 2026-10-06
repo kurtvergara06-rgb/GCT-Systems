@@ -3341,3 +3341,134 @@ textarea[readonly] {
     padding-bottom: 6px;
   }
 }
+
+
+/* =========================================================
+   NEW JOB ORDER — BUS DROPDOWN 4-ROW VIEWPORT
+   Keep four bus choices visible, then scroll inside the list.
+========================================================= */
+
+#jobModal .jo-create-section.jo-create-basic {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
+#jobModal .jo-create-basic .jo-create-section-header {
+  position: relative;
+  z-index: 1;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+#jobModal .jo-create-basic-grid {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+}
+
+#jobModal .jo-create-basic-grid .ui-form-group {
+  position: relative;
+  min-width: 0;
+}
+
+#jobModal .jo-bus-combobox {
+  position: relative;
+  z-index: 40;
+}
+
+#jobModal .jo-bus-combobox.is-open {
+  z-index: 220;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-menu {
+  z-index: 230;
+  max-height: 270px;
+  overflow: hidden;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-search {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options {
+  max-height: 208px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c6d8 transparent;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options::-webkit-scrollbar {
+  width: 7px;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c6d8;
+}
+
+#jobModal .jo-bus-combobox .jo-mechanic-combobox-option {
+  min-height: 52px;
+  flex: 0 0 52px;
+}
+
+@media (max-width: 700px) {
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-options {
+    max-height: min(208px, 42vh);
+  }
+}
+
+
+/*
+ * The Bus menu is portalled to <body> while open so it floats above the
+ * scrollable modal content without stretching Basic Information or being
+ * covered by Job Details.
+ */
+.jo-bus-menu-portal {
+  position: fixed !important;
+  right: auto !important;
+  z-index: 110500 !important;
+  max-height: 270px;
+  overflow: hidden;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 20px 54px rgba(15, 23, 42, .22);
+}
+
+.jo-bus-menu-portal .jo-mechanic-combobox-search {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
+}
+
+.jo-bus-menu-portal .jo-mechanic-combobox-options {
+  max-height: 208px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c6d8 transparent;
+}
+
+.jo-bus-menu-portal .jo-mechanic-combobox-option {
+  min-height: 52px;
+}
+
+#jobModal .jo-validation-invalid input,
+#jobModal .jo-validation-invalid textarea,
+#jobModal .jo-validation-invalid select,
+#jobModal .jo-validation-invalid .jo-mechanic-combobox-trigger,
+#jobModal .jo-validation-invalid .jo-maintenance-job-trigger {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .10) !important;
+}
+
+#jobModal .jo-validation-invalid > label {
+  color: #b91c1c;
+}

@@ -354,4 +354,142 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $css
         );
     }
+
+    public function test_new_job_order_bus_dropdown_floats_with_four_rows_then_scrolls(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        $this->assertStringContainsString(
+            "className: 'jo-bus-combobox'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "menu.classList.add('jo-bus-menu-portal')",
+            $js
+        );
+        $this->assertStringContainsString(
+            'document.body.appendChild(menu);',
+            $js
+        );
+        $this->assertStringContainsString(
+            "zIndex: '110500'",
+            $js
+        );
+        $this->assertStringContainsString(
+            'positionBusMenu',
+            $js
+        );
+        $this->assertStringContainsString(
+            '.jo-bus-menu-portal',
+            $css
+        );
+        $this->assertStringContainsString(
+            'z-index: 110500 !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'max-height: 208px;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'overflow-y: auto;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'min-height: 52px;',
+            $css
+        );
+        $this->assertStringNotContainsString(
+            'padding-bottom: 150px;',
+            $css
+        );
+    }
+
+    public function test_new_job_order_save_shows_clear_required_field_feedback(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            'validateNewJobOrderForm',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please select a Bus.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please enter the Problem / Issue.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please enter the Work / Repair to Perform.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please select a Maintenance Job.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'Please enter a valid Estimated Time.',
+            $js
+        );
+        $this->assertStringContainsString(
+            "window.showSystemToast(",
+            $js
+        );
+        $this->assertStringContainsString(
+            "'Validation Error'",
+            $js
+        );
+        $this->assertStringContainsString(
+            'scrollIntoView?.({',
+            $js
+        );
+    }
+
+
+    public function test_job_order_bus_selectors_show_bus_id_and_plate_while_keeping_bus_no_as_value(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Maintenance/job-order.blade.php')
+        );
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertSame(
+            2,
+            substr_count($view, 'label="Bus ID / Plate"')
+        );
+        $this->assertStringContainsString(
+            <<<'BLADE'
+$bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
+BLADE,
+            $view
+        );
+        $this->assertStringContainsString(
+            "searchPlaceholder: 'Search bus ID or plate number...'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "optionHint: 'Bus ID · Plate number'",
+            $js
+        );
+        $this->assertStringContainsString(
+            'button.dataset.search =',
+            $js
+        );
+        $this->assertStringContainsString(
+            'option.value',
+            $js
+        );
+    }
+
 }

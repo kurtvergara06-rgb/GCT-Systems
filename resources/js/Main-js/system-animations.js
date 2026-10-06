@@ -67,6 +67,7 @@ const MODAL_OVERLAY_SELECTOR = [
     '.confirm-modal-overlay',
     '.system-confirm-overlay',
     '.confirmation-modal-overlay',
+    '[class*="modal-overlay"]',
     '[data-modal-overlay]',
     '[data-gct-modal-overlay]',
 ].join(', ');
@@ -284,7 +285,23 @@ const isModalVisible = (overlay) => {
         && Number(style.opacity || 1) > 0;
 };
 
-const getModalSurface = (overlay) => overlay?.querySelector(MODAL_SURFACE_SELECTOR) || null;
+const getModalSurface = (overlay) => {
+    if (!overlay) return null;
+
+    const explicitSurface = overlay.querySelector(MODAL_SURFACE_SELECTOR);
+    if (explicitSurface) return explicitSurface;
+
+    /*
+     * Several legacy/module modals use their own surface class names while the
+     * overlay still follows the "*-modal-overlay" convention. Fall back to the
+     * first real child so the shared GSAP lifecycle can animate every module
+     * without each feature re-implementing modal motion.
+     */
+    return Array.from(overlay.children).find((child) => (
+        child instanceof HTMLElement
+        && !child.matches('script, style, template')
+    )) || null;
+};
 
 const clearModalAnimation = (overlay, surface) => {
     gsap.set([overlay, surface].filter(Boolean), { clearProps: 'opacity,transform' });
@@ -324,22 +341,26 @@ const animateModalOpen = (overlay) => {
 
     state.animation.fromTo(overlay, { opacity: 0 }, {
         opacity: 1,
-        duration: reduced ? 0.16 : 0.24,
-        ease: 'power2.out',
+        duration: reduced ? 0.14 : 0.22,
+        ease: 'power1.out',
+        overwrite: 'auto',
     });
 
     if (surface) {
         state.animation.fromTo(surface, {
             opacity: 0,
-            y: reduced ? 8 : 18,
-            scale: reduced ? 0.99 : 0.975,
+            y: reduced ? 5 : 12,
+            scale: reduced ? 0.995 : 0.985,
+            force3D: true,
         }, {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: reduced ? 0.22 : 0.34,
-            ease: 'power3.out',
-        }, 0.01);
+            force3D: true,
+            duration: reduced ? 0.18 : 0.30,
+            ease: 'power2.out',
+            overwrite: 'auto',
+        }, 0);
     }
 
     return true;
@@ -393,17 +414,20 @@ const animateModalClose = (overlay, finalize = null, { restoreHiddenState = fals
     if (surface) {
         state.animation.to(surface, {
             opacity: 0,
-            y: reduced ? 6 : 12,
-            scale: reduced ? 0.995 : 0.985,
-            duration: reduced ? 0.14 : 0.20,
-            ease: 'power1.in',
+            y: reduced ? 4 : 8,
+            scale: reduced ? 0.997 : 0.992,
+            force3D: true,
+            duration: reduced ? 0.12 : 0.18,
+            ease: 'power2.inOut',
+            overwrite: 'auto',
         }, 0);
     }
 
     state.animation.to(overlay, {
         opacity: 0,
-        duration: reduced ? 0.12 : 0.18,
-        ease: 'power2.in',
+        duration: reduced ? 0.10 : 0.18,
+        ease: 'power1.inOut',
+        overwrite: 'auto',
     }, 0);
 
     return true;

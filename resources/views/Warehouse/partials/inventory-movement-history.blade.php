@@ -26,7 +26,7 @@
     <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Receipts recorded" icon="fa-arrow-down" color="green" />
     <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Issuances recorded" icon="fa-arrow-up" color="red" />
     <x-ui.summary-card label="Adjustments" value="{{ $adjustments }}" small="Corrections recorded" icon="fa-sliders" color="yellow" />
-    <x-ui.summary-card label="Simulated Records" value="{{ $simulatedMovements }}" small="Generated history" icon="fa-flask" color="gray" />
+    <x-ui.summary-card label="Current On Hand" value="{{ $inventoryItem->on_hand }}" small="{{ $inventoryItem->unit_of_measurement }} available" icon="fa-boxes-stacked" color="blue" />
   </div>
 
   <form
@@ -58,7 +58,6 @@
           <th>Previous</th>
           <th>New Stock</th>
           <th>Reference</th>
-          <th>Source</th>
           <th>Purpose / Remarks</th>
         </tr>
       </thead>
@@ -105,16 +104,11 @@
                 <span>—</span>
               @endif
             </td>
-            <td>
-              <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
-                {{ $movement->source === 'app' ? 'Application' : 'Simulated' }}
-              </span>
-            </td>
             <td class="movement-remarks">{{ $movement->remarks ?: '—' }}</td>
           </tr>
         @empty
           <tr>
-            <td colspan="8" class="empty-stock-movements">
+            <td colspan="7" class="empty-stock-movements">
               <x-ui.empty-state
                 class="stock-movement-empty-state"
                 icon="fa-clock-rotate-left"

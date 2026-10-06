@@ -728,7 +728,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
         /*
          * Always pull the latest attendance state before the New JO modal
-         * is used. This keeps newly recorded Present/Late mechanics
+         * is used. This keeps newly recorded attended/free mechanics
          * selectable even when Reverb was temporarily disconnected.
          */
         void refreshAvailableMechanicsDropdown();
@@ -770,6 +770,326 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     'partsNeededWrapper',
     'addPartBtn'
   );
+
+
+  /* =========================================================
+     NEW JO REQUIRED-FIELD FEEDBACK
+     Custom dropdowns hide native required selects, so validate
+     before the browser silently blocks submission.
+  ========================================================= */
+
+  const newJobOrderForm =
+    document.getElementById(
+      'newJobOrderForm'
+    );
+
+
+  const saveJobOrderBtn =
+    document.getElementById(
+      'saveJobOrderBtn'
+    );
+
+
+  function clearNewJoValidationState() {
+
+    jobModal
+      ?.querySelectorAll(
+        '.jo-validation-invalid'
+      )
+      .forEach((element) => {
+
+        element.classList.remove(
+          'jo-validation-invalid'
+        );
+
+      });
+  }
+
+
+  function showNewJoValidationError(
+    field,
+    message,
+    focusSelector = null
+  ) {
+
+    clearNewJoValidationState();
+
+
+    const group =
+      field?.closest(
+        '.ui-form-group'
+      );
+
+
+    group?.classList.add(
+      'jo-validation-invalid'
+    );
+
+
+    const focusTarget =
+      focusSelector
+        ? jobModal?.querySelector(
+            focusSelector
+          )
+        : field;
+
+
+    const scrollTarget =
+      group ||
+      focusTarget ||
+      field;
+
+
+    scrollTarget
+      ?.scrollIntoView?.({
+        behavior: 'smooth',
+        block: 'center',
+      });
+
+
+    window.setTimeout(
+      () => {
+
+        focusTarget?.focus?.();
+
+      },
+      180
+    );
+
+
+    if (
+      typeof window
+        .showSystemToast ===
+      'function'
+    ) {
+
+      window.showSystemToast(
+        message,
+        'error',
+        'Validation Error',
+        {
+          timeout: 5000,
+        }
+      );
+
+      return;
+    }
+
+
+    window.alert?.(message);
+  }
+
+
+  function validateNewJobOrderForm() {
+
+    if (!newJobOrderForm) {
+      return true;
+    }
+
+
+    const busField =
+      newJobOrderForm.querySelector(
+        '#jobBusNo'
+      );
+
+
+    const problemField =
+      newJobOrderForm.querySelector(
+        '#jobProblemIssue'
+      );
+
+
+    const workField =
+      newJobOrderForm.querySelector(
+        'textarea[name="work_to_perform"]'
+      );
+
+
+    const maintenanceJobField =
+      newJobOrderForm.querySelector(
+        '#newJoMaintenanceJob'
+      );
+
+
+    const estimatedTimeField =
+      newJobOrderForm.querySelector(
+        'input[name="estimated_duration_value"]'
+      );
+
+
+    const validations = [
+      {
+        field: busField,
+        invalid:
+          !busField?.value?.trim(),
+        message:
+          'Please select a Bus.',
+        focusSelector:
+          '.jo-bus-combobox .jo-mechanic-combobox-trigger',
+      },
+      {
+        field: problemField,
+        invalid:
+          !problemField?.value?.trim(),
+        message:
+          'Please enter the Problem / Issue.',
+      },
+      {
+        field: workField,
+        invalid:
+          !workField?.value?.trim(),
+        message:
+          'Please enter the Work / Repair to Perform.',
+      },
+      {
+        field: maintenanceJobField,
+        invalid:
+          !maintenanceJobField?.value?.trim(),
+        message:
+          'Please select a Maintenance Job.',
+        focusSelector:
+          '.jo-maintenance-job-trigger',
+      },
+      {
+        field: estimatedTimeField,
+        invalid:
+          !estimatedTimeField?.value ||
+          Number(estimatedTimeField.value) <= 0,
+        message:
+          'Please enter a valid Estimated Time.',
+      },
+    ];
+
+
+    const firstInvalid =
+      validations.find(
+        (entry) => entry.invalid
+      );
+
+
+    if (!firstInvalid) {
+
+      clearNewJoValidationState();
+      return true;
+    }
+
+
+    showNewJoValidationError(
+      firstInvalid.field,
+      firstInvalid.message,
+      firstInvalid.focusSelector
+    );
+
+
+    return false;
+  }
+
+
+  if (
+    newJobOrderForm &&
+    saveJobOrderBtn
+  ) {
+
+    saveJobOrderBtn.addEventListener(
+      'click',
+      (event) => {
+
+        if (
+          validateNewJobOrderForm()
+        ) {
+          return;
+        }
+
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+      },
+      true
+    );
+
+
+    newJobOrderForm.addEventListener(
+      'input',
+      (event) => {
+
+        event.target
+          ?.closest(
+            '.ui-form-group'
+          )
+          ?.classList
+          .remove(
+            'jo-validation-invalid'
+          );
+
+      }
+    );
+
+
+    newJobOrderForm.addEventListener(
+      'change',
+      (event) => {
+
+        event.target
+          ?.closest(
+            '.ui-form-group'
+          )
+          ?.classList
+          .remove(
+            'jo-validation-invalid'
+          );
+
+      }
+    );
+
+
+    newJobOrderForm.addEventListener(
+      'invalid',
+      (event) => {
+
+        event.preventDefault();
+
+        const field =
+          event.target;
+
+
+        const fieldMap = {
+          jobBusNo: [
+            'Please select a Bus.',
+            '.jo-bus-combobox .jo-mechanic-combobox-trigger',
+          ],
+          jobProblemIssue: [
+            'Please enter the Problem / Issue.',
+            null,
+          ],
+          newJoWorkToPerform: [
+            'Please enter the Work / Repair to Perform.',
+            null,
+          ],
+          newJoMaintenanceJob: [
+            'Please select a Maintenance Job.',
+            '.jo-maintenance-job-trigger',
+          ],
+        };
+
+
+        const mapped =
+          fieldMap[field?.id];
+
+
+        if (mapped) {
+
+          showNewJoValidationError(
+            field,
+            mapped[0],
+            mapped[1]
+          );
+        }
+
+      },
+      true
+    );
+  }
 
 
   /* =========================================================
@@ -3076,7 +3396,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     inputWrap.classList.add('jo-native-mechanic-select');
 
     const combobox = document.createElement('div');
-    combobox.className = 'jo-mechanic-combobox jo-new-combobox';
+    combobox.className = [
+      'jo-mechanic-combobox',
+      'jo-new-combobox',
+      config.className || '',
+    ].filter(Boolean).join(' ');
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
@@ -3113,6 +3437,64 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     const label = trigger.querySelector('.jo-mechanic-combobox-label');
     const searchInput = menu.querySelector('input');
     const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
+    const isBusCombobox = config.className === 'jo-bus-combobox';
+    const modalScroller = modal.querySelector('.ui-form-modal-scrollable');
+
+    if (isBusCombobox) {
+      menu.classList.add('jo-bus-menu-portal');
+    }
+
+    const positionBusMenu = () => {
+      if (!isBusCombobox || menu.hidden || !document.body.contains(menu)) {
+        return;
+      }
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const gap = 7;
+      const availableBelow = Math.max(
+        180,
+        window.innerHeight - triggerRect.bottom - gap - 12
+      );
+
+      Object.assign(menu.style, {
+        position: 'fixed',
+        top: `${Math.round(triggerRect.bottom + gap)}px`,
+        left: `${Math.round(triggerRect.left)}px`,
+        right: 'auto',
+        width: `${Math.round(triggerRect.width)}px`,
+        maxHeight: `${Math.min(270, availableBelow)}px`,
+        // The shared modal backdrop is 99999. Because this menu is portalled
+        // to <body>, it must sit above that backdrop instead of behind it.
+        zIndex: '110500',
+      });
+    };
+
+    const mountBusMenu = () => {
+      if (!isBusCombobox) {
+        return;
+      }
+
+      document.body.appendChild(menu);
+      positionBusMenu();
+
+      window.addEventListener('resize', positionBusMenu);
+      modalScroller?.addEventListener('scroll', positionBusMenu, { passive: true });
+    };
+
+    const restoreBusMenu = () => {
+      if (!isBusCombobox) {
+        return;
+      }
+
+      window.removeEventListener('resize', positionBusMenu);
+      modalScroller?.removeEventListener('scroll', positionBusMenu);
+
+      if (menu.parentElement !== combobox) {
+        combobox.appendChild(menu);
+      }
+
+      menu.removeAttribute('style');
+    };
 
     const getDisplayText = (option) => {
       const originalText = option?.textContent?.trim() || '';
@@ -3126,6 +3508,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       menu.hidden = true;
       combobox.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
+      restoreBusMenu();
     };
 
     const updateLabel = () => {
@@ -3231,6 +3614,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       menu.hidden = false;
       combobox.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
+
+      if (isBusCombobox) {
+        mountBusMenu();
+      }
+
       searchInput.value = '';
       filterOptions();
       window.setTimeout(() => searchInput.focus(), 0);
@@ -3264,7 +3652,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     });
 
     document.addEventListener('click', (event) => {
-      if (!combobox.contains(event.target)) {
+      if (!combobox.contains(event.target) && !menu.contains(event.target)) {
         closeMenu();
       }
     });
@@ -3286,26 +3674,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
   }
 
   setupSearchableSelect(busSelect, {
+    className: 'jo-bus-combobox',
     icon: 'fa-bus',
     placeholder: 'Select Bus',
-    searchPlaceholder: 'Search bus number or plate...',
+    searchPlaceholder: 'Search bus ID or plate number...',
     emptyMessage: 'No bus matches your search.',
-    optionHint: 'Available bus',
-    formatOptionText: (text) => {
-      const parts = text
-        .split(' - ')
-        .map((part) => part.trim())
-        .filter(Boolean);
-
-      if (
-        parts.length === 2 &&
-        parts[0].toLowerCase() === parts[1].toLowerCase()
-      ) {
-        return parts[0];
-      }
-
-      return text;
-    },
+    optionHint: 'Bus ID · Plate number',
+    // The native value remains bus_no for submission. The visible label shows
+    // both identifiers so Maintenance can confirm the correct physical bus.
+    formatOptionText: (text) => text,
   });
 
   setupSearchableSelect(mechanicSelect, {

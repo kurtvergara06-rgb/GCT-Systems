@@ -137,10 +137,7 @@ class FiveModuleWorkflowTest extends TestCase
             ->assertRedirect('/purchase-orders');
 
         $this->actingAs($warehouseUser)
-            ->patch(route('purchase-orders.update-status', $purchaseOrder), [
-                'status' => 'Delivered',
-                'warehouse_receive' => 1,
-            ])
+            ->post(route('incoming-deliveries.receive', $purchaseOrder))
             ->assertRedirect('/warehouse/incoming-deliveries');
 
         $inventoryItem = InventoryItem::query()
@@ -152,16 +149,8 @@ class FiveModuleWorkflowTest extends TestCase
         $this->assertSame('Delivered', $jobOrder->fresh()->part_status);
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
 
-        $this->actingAs($warehouseUser)
-            ->post(route('part-requests.approve-for-issue', $originalPr))
-            ->assertRedirect();
-
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $originalPr))
-            ->assertRedirect();
-
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalPr), ['issued_quantities' => [2]])
+            ->post(route('part-requests.issue', $originalPr))
             ->assertRedirect();
 
         $this->assertSame('Issued', $originalPr->fresh()->status);

@@ -28,18 +28,7 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
-        $this->syncAutoRestockRequests();
-
-        $sourceFilter = strtolower(trim((string) $request->input('source', 'app')));
-        if (! in_array($sourceFilter, ['app', 'simulated', 'all'], true)) {
-            $sourceFilter = 'app';
-        }
-
-        $inventoryScope = static fn () => InventoryItem::query()
-            ->when(
-                $sourceFilter !== 'all',
-                fn ($query) => $query->where('source', $sourceFilter)
-            );
+        $inventoryScope = static fn () => InventoryItem::query();
 
         $query = $inventoryScope();
 
@@ -100,13 +89,14 @@ class InventoryController extends Controller
             'lowStockAlerts',
             'criticalItems',
             'forecastedStockouts',
-            'itemsAtRisk',
-            'sourceFilter'
+            'itemsAtRisk'
         ));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorizeWarehouseEdit();
+
         $validated = $request->validate([
             'item_code' => [
                 'required',
@@ -125,16 +115,18 @@ class InventoryController extends Controller
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
+            'adjustment_reason' => ['nullable', 'string', 'max:500'],
         ], [
             'item_code.unique' => 'The item code already exists. Please use a different item code.',
         ]);
 
         $inventoryItem = null;
         $initialStock = (int) $validated['on_hand'];
+        $openingBalanceNote = trim((string) ($validated['adjustment_reason'] ?? ''));
 
-        unset($validated['on_hand'], $validated['quantity_available']);
+        unset($validated['on_hand'], $validated['quantity_available'], $validated['adjustment_reason']);
 
-        DB::transaction(function () use ($validated, $initialStock, &$inventoryItem) {
+        DB::transaction(function () use ($validated, $initialStock, $openingBalanceNote, &$inventoryItem) {
             $validated['parts_name'] =
                 $validated['parts_name']
                 ?? $validated['item_name'];
@@ -163,7 +155,7 @@ class InventoryController extends Controller
                     $inventoryItem,
                     $initialStock,
                     $inventoryItem->item_code ?? $inventoryItem->item_name,
-                    'Opening balance on item creation.',
+                    $openingBalanceNote !== '' ? $openingBalanceNote : 'Opening balance on item creation.',
                     auth()->id()
                 );
             }
@@ -193,6 +185,8 @@ class InventoryController extends Controller
         Request $request,
         InventoryItem $inventoryItem
     ): RedirectResponse {
+        $this->authorizeWarehouseEdit();
+
         $validated = $request->validate([
             'item_code' => [
                 'required',
@@ -212,15 +206,21 @@ class InventoryController extends Controller
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
+            'adjustment_reason' => ['nullable', 'string', 'max:500'],
         ], [
             'item_code.unique' => 'The item code already belongs to another inventory item.',
         ]);
 
         $targetStock = (int) $validated['on_hand'];
+        $adjustmentReason = trim((string) ($validated['adjustment_reason'] ?? ''));
 
-        unset($validated['on_hand'], $validated['quantity_available']);
+        unset($validated['on_hand'], $validated['quantity_available'], $validated['adjustment_reason']);
 
-        DB::transaction(function () use ($validated, $targetStock, $inventoryItem) {
+        DB::transaction(function () use ($validated, $targetStock, $adjustmentReason, $inventoryItem) {
+            $lockedItem = InventoryItem::query()
+                ->whereKey($inventoryItem->id)
+                ->lockForUpdate()
+                ->firstOrFail();
             $validated['parts_name'] =
                 $validated['parts_name']
                 ?? $validated['item_name'];
@@ -239,9 +239,9 @@ class InventoryController extends Controller
                 (int) $validated['reorder_level']
             );
 
-            $inventoryItem->update($validated);
+            $lockedItem->update($validated);
 
-            $freshItem = $inventoryItem->fresh();
+            $freshItem = $lockedItem->fresh();
 
             $previousStock = (int) (
                 $freshItem->on_hand
@@ -250,11 +250,17 @@ class InventoryController extends Controller
             );
 
             if ($targetStock !== $previousStock) {
+                if ($adjustmentReason === '') {
+                    throw ValidationException::withMessages([
+                        'adjustment_reason' => 'A reason is required when changing inventory quantity.',
+                    ]);
+                }
+
                 $this->ledger->adjustTo(
                     $freshItem,
                     $targetStock,
                     $freshItem->item_code ?? $freshItem->item_name,
-                    'Manual inventory adjustment.',
+                    'Manual inventory adjustment: '.$adjustmentReason,
                     auth()->id()
                 );
             }
@@ -283,7 +289,27 @@ class InventoryController extends Controller
     public function destroy(
         InventoryItem $inventoryItem
     ): RedirectResponse {
-        $inventoryItem->delete();
+        $this->authorizeWarehouseEdit();
+
+        $deleted = DB::transaction(function () use ($inventoryItem): bool {
+            $lockedItem = InventoryItem::query()
+                ->whereKey($inventoryItem->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedItem->movements()->exists()) {
+                return false;
+            }
+
+            return (bool) $lockedItem->delete();
+        });
+
+        if (! $deleted) {
+            return redirect('/inventory')->with(
+                'error',
+                'Inventory items with stock movement history cannot be deleted. Update the item instead.'
+            );
+        }
 
         $this->broadcastSystemDataUpdated(
             'Warehouse',
@@ -303,6 +329,8 @@ class InventoryController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
+        $this->authorizeWarehouseEdit();
+
         $request->validate([
             'inventory_file' => [
                 'required',
@@ -373,16 +401,16 @@ class InventoryController extends Controller
                     continue;
                 }
 
-                $onHand = max(0, (int) (
-                    $data['on_hand']
-                    ?? $data['quantity_available']
-                    ?? 0
-                ));
+                $rawOnHand = $data['on_hand'] ?? $data['quantity_available'] ?? 0;
+                $rawReorderLevel = $data['reorder_level'] ?? 0;
+                $onHand = filter_var($rawOnHand, FILTER_VALIDATE_INT);
+                $reorderLevel = filter_var($rawReorderLevel, FILTER_VALIDATE_INT);
 
-                $reorderLevel = (int) (
-                    $data['reorder_level']
-                    ?? 0
-                );
+                if ($onHand === false || $onHand < 0 || $reorderLevel === false || $reorderLevel < 0) {
+                    throw ValidationException::withMessages([
+                        'inventory_file' => "Invalid negative or non-integer quantity for {$itemCode}.",
+                    ]);
+                }
 
                 $unit = trim((string) (
                     $data['unit']
@@ -414,6 +442,7 @@ class InventoryController extends Controller
                 if ($itemCode !== '') {
                     $inventoryItem = InventoryItem::query()
                         ->where('item_code', $itemCode)
+                        ->lockForUpdate()
                         ->first();
                 }
 
@@ -491,7 +520,7 @@ class InventoryController extends Controller
 
     public function issue(Request $request): RedirectResponse
     {
-        $this->authorizeIssue();
+        $this->authorizeWarehouseEdit();
 
         $validated = $request->validate([
             'inventory_item_id' => ['required', 'integer', 'exists:inventory_items,id'],
@@ -501,11 +530,15 @@ class InventoryController extends Controller
             'reference_no' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $item = InventoryItem::findOrFail((int) $validated['inventory_item_id']);
         $quantity = (int) $validated['quantity'];
         $issueNo = '';
+        $itemId = (int) $validated['inventory_item_id'];
 
-        DB::transaction(function () use ($item, $quantity, $validated, &$issueNo) {
+        DB::transaction(function () use ($itemId, $quantity, $validated, &$issueNo) {
+            $item = InventoryItem::query()
+                ->whereKey($itemId)
+                ->lockForUpdate()
+                ->firstOrFail();
             $current = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
 
             if ($quantity > $current) {
@@ -557,7 +590,7 @@ class InventoryController extends Controller
             'Warehouse',
             'Inventory',
             'issued',
-            $item->id,
+            $itemId,
             "Stock was issued (#{$issueNo})."
         );
 
@@ -569,26 +602,13 @@ class InventoryController extends Controller
         return new RedirectResponse('/inventory');
     }
 
-    private function authorizeIssue(): void
+    private function authorizeWarehouseEdit(): void
     {
-        $user = auth()->user();
-
-        if (! $user) {
-            abort(403, 'You are not authorized to issue inventory.');
-        }
-
-        $department = strtolower(trim((string) ($user->department ?? '')));
-        $role = strtolower(trim((string) ($user->role ?? '')));
-
-        $isSystemAdmin =
-            ($department === 'admin' && $role === 'head')
-            || $role === 'system admin';
-
-        if ($isSystemAdmin || $department === 'warehouse') {
-            return;
-        }
-
-        abort(403, 'Only Warehouse personnel can issue inventory stock.');
+        abort_unless(
+            auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false,
+            403,
+            'Your role does not have permission to edit warehouse records.'
+        );
     }
 
     private function generateIssueNo(): string

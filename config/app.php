@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Business / Operational Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Database/application timestamps remain in UTC, while operational
+    | calendar dates such as attendance use the local business timezone.
+    |
+    */
+
+    'business_timezone' => env('APP_BUSINESS_TIMEZONE', 'Asia/Manila'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

@@ -6,9 +6,6 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FuelAnalyticsController;
 use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
-use App\Http\Controllers\Warehouse\IncomingDeliveryController;
-use App\Http\Controllers\Warehouse\StockMovementController;
-use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Maintenance\JobOrder;
 use App\Services\AdminDashboardService;
 use App\Services\RolePermissionService;
@@ -45,18 +42,6 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('Admin.Analytics.fuel', function ($view): void {
             $view->with(app(FuelAnalyticsController::class)->data(request()));
-        });
-
-        View::composer('Warehouse.dashboard-warehouse', function ($view): void {
-            $view->with(app(WarehouseDashboardController::class)->data());
-        });
-
-        View::composer('Warehouse.incoming-deliveries', function ($view): void {
-            $view->with(app(IncomingDeliveryController::class)->data(request()));
-        });
-
-        View::composer('Warehouse.stock-movements', function ($view): void {
-            $view->with(app(StockMovementController::class)->data(request()));
         });
 
         View::composer('Purchase.dashboard-purchase', function ($view): void {
