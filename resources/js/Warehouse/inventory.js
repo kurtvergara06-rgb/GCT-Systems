@@ -287,6 +287,13 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
       movementHistoryContent.innerHTML = await response.text();
 
+      document.dispatchEvent(new CustomEvent('ajax:content-updated', {
+        detail: {
+          container: movementHistoryContent,
+          source: 'inventory-movement-history',
+        },
+      }));
+
       const itemName = movementHistoryContent
         .querySelector('.item-history-header h2')
         ?.textContent
