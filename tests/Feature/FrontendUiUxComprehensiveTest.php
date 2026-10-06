@@ -722,7 +722,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
             ->assertOk()
             ->assertSee('openMovementHistory', false)
             ->assertSee('id="movementHistoryModal"', false)
-            ->assertSee(route('inventory.movements', $item), false);
+            ->assertSee('data-item-id="'.$item->id.'"', false)
+            ->assertSee(route('inventory.movements', $item), false)
+            ->assertDontSee('href="'.route('inventory.movements', $item).'"', false);
 
         $modal = $this->actingAs($this->warehouseUser)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
@@ -737,6 +739,13 @@ class FrontendUiUxComprehensiveTest extends TestCase
             ->assertDontSee('This item has')
             ->assertDontSee('These rows are isolated from application records')
             ->assertDontSee('Back to Inventory');
+
+        $direct = $this->actingAs($this->warehouseUser)
+            ->get(route('inventory.movements', $item));
+
+        $direct->assertRedirect(route('inventory', [
+            'movement_item' => $item->id,
+        ]));
     }
 
     // =========================================================================
