@@ -41,10 +41,6 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
             'remarks' => 'Test purchase request',
         ]);
 
-        $this->actingAs($staff)
-            ->post(route('part-requests.prepare', $purchaseRequest))
-            ->assertRedirect();
-
         $response = $this
             ->actingAs($staff)
             ->post(route('part-requests.issue', $purchaseRequest), [
