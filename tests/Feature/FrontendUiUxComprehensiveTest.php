@@ -748,6 +748,43 @@ class FrontendUiUxComprehensiveTest extends TestCase
         ]));
     }
 
+
+    public function test_inventory_movement_modal_uses_ajax_without_page_navigation(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Warehouse/inventory.js')
+        );
+
+        $this->assertStringContainsString(
+            'loadMovementHistory',
+            $js
+        );
+        $this->assertStringContainsString(
+            "event.target.closest('.openMovementHistory')",
+            $js
+        );
+        $this->assertStringContainsString(
+            "'X-Requested-With': 'XMLHttpRequest'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "parsed.searchParams.set('modal', '1')",
+            $js
+        );
+        $this->assertStringContainsString(
+            "data-movement-history-filter",
+            $js
+        );
+        $this->assertStringContainsString(
+            "ajax:content-updated",
+            $js
+        );
+        $this->assertStringContainsString(
+            'movementHistoryRequest?.abort();',
+            $js
+        );
+    }
+
     // =========================================================================
     // 6. PURCHASE MODULE PAGES
     // =========================================================================
