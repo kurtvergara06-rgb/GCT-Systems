@@ -1038,3 +1038,42 @@
     width: 100%;
   }
 }
+
+
+/* =====================================================
+   INVENTORY MOVEMENT HISTORY MODAL
+   History remains inside the Inventory workspace.
+===================================================== */
+
+.inventory-table button.openMovementHistory {
+  border-color: #d4e3ff;
+  background: #eaf2ff;
+  color: #0b40b5;
+}
+
+.inventory-table button.openMovementHistory:hover {
+  background: #0b40b5;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.movement-history-retry {
+  margin-top: 8px;
+  padding: 7px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #b91c1c;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.movement-history-retry:hover {
+  background: #fff1f2;
+}
+
+#movementHistoryModal .inventory-movement-modal {
+  border-radius: 18px;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, .24);
+}
