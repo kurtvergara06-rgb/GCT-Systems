@@ -197,12 +197,6 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'Inventory restock requests cannot be issued from Warehouse Part Requests.');
         }
 
-        if ($purchaseRequest->warehouse_status !== 'Preparing') {
-            return redirect()
-                ->back()
-                ->with('error', 'Only requests prepared through the Warehouse workflow can be issued.');
-        }
-
         $parts = $this->parseParts($purchaseRequest->item);
 
         if (empty($parts)) {
@@ -230,9 +224,22 @@ class WarehousePartRequestController extends Controller
         DB::transaction(function () use ($purchaseRequest, $parts, $issuedQuantities, $issueDetails) {
             $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
 
-            if ($lockedRequest->warehouse_status !== 'Preparing') {
+            if ($this->isRestockRequest($lockedRequest)
+                || $lockedRequest->status === 'Issued'
+                || $lockedRequest->warehouse_status === 'Issued') {
                 throw ValidationException::withMessages([
-                    'workflow' => 'This request is no longer ready for issuance.',
+                    'workflow' => 'This request has already been issued or cannot be issued from Warehouse Part Requests.',
+                ]);
+            }
+
+            $missingPurchaseRequest = $this->getMissingPurchaseRequest($lockedRequest);
+            $isPurchaseFlowReady = $missingPurchaseRequest
+                ? in_array($missingPurchaseRequest->status, ['Delivered', 'Picked Up'], true)
+                : $lockedRequest->status === 'Approved';
+
+            if (! $isPurchaseFlowReady) {
+                throw ValidationException::withMessages([
+                    'workflow' => 'This request is not ready for issuance yet. Complete the Purchase and Warehouse receipt flow first.',
                 ]);
             }
 
@@ -285,8 +292,6 @@ class WarehousePartRequestController extends Controller
                 'warehouse_issue_quantities' => $issueDetails,
                 'issued_at' => now(),
             ]);
-
-            $missingPurchaseRequest = $this->getMissingPurchaseRequest($lockedRequest);
 
             if ($missingPurchaseRequest) {
                 PurchaseRequest::query()->whereKey($missingPurchaseRequest->id)->lockForUpdate()->firstOrFail()->update([
@@ -590,34 +595,37 @@ class WarehousePartRequestController extends Controller
         $purchaseRequest->missing_purchase_request = $missingPurchaseRequest;
         $purchaseRequest->purchase_progress_status = $warehouseDisplayStatus;
 
-        $workflowStatus = $purchaseRequest->warehouse_status;
-        if (! $workflowStatus) {
-            $workflowStatus = $purchaseRequest->status === 'Issued'
-                ? 'Issued'
-                : 'Ready to Prepare';
-        }
+        $isPurchaseFlowReady = $missingPrAlreadyCreated
+            ? in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
+            : $purchaseRequest->status === 'Approved';
 
-        if (in_array($workflowStatus, ['Pending Warehouse Approval', 'Approved for Issue', 'On Hold'], true)) {
-            $workflowStatus = 'Ready to Prepare';
+        if ($purchaseRequest->status === 'Issued') {
+            $workflowStatus = 'Issued';
+        } elseif ($missingPrAlreadyCreated && $warehouseDisplayStatus === 'For Purchase') {
+            $workflowStatus = 'Waiting for Purchase';
+        } elseif ($missingPrAlreadyCreated && in_array($warehouseDisplayStatus, ['Ordered', 'For Pick-up', 'For Delivery'], true)) {
+            $workflowStatus = 'Waiting for Delivery';
+        } elseif ($inventoryCheck['available'] && $isPurchaseFlowReady) {
+            $workflowStatus = 'Ready to Issue';
+        } elseif (! $inventoryCheck['available'] && ! $missingPrAlreadyCreated) {
+            $workflowStatus = 'Needs Purchase';
+        } else {
+            $workflowStatus = 'Waiting for Stock';
         }
 
         $purchaseRequest->warehouse_workflow_status = $workflowStatus;
 
+        // Maintenance already approved the request. Warehouse has no second
+        // approval/hold/prepare gate; it either routes missing stock to Purchase
+        // or issues directly once the complete stock is physically available.
         $purchaseRequest->can_approve_for_issue = false;
         $purchaseRequest->can_hold = false;
-
-        $purchaseRequest->can_prepare =
-            $purchaseRequest->status !== 'Issued'
-            && $workflowStatus === 'Ready to Prepare'
-            && $inventoryCheck['available']
-            && (
-                $purchaseRequest->status === 'Approved'
-                || in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
-            );
+        $purchaseRequest->can_prepare = false;
 
         $purchaseRequest->can_issue =
-            $workflowStatus === 'Preparing'
-            && $inventoryCheck['available'];
+            $purchaseRequest->status !== 'Issued'
+            && $inventoryCheck['available']
+            && $isPurchaseFlowReady;
 
         $purchaseRequest->needs_purchase =
             $purchaseRequest->status === 'Approved'
