@@ -50,6 +50,8 @@ class InventoryMovementController extends Controller
             );
         }
 
-        return view('Warehouse.inventory-movements', $data);
+        return redirect()->route('inventory', [
+            'movement_item' => $inventoryItem->id,
+        ]);
     }
 }
