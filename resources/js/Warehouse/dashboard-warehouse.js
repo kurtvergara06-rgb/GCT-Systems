@@ -36,8 +36,8 @@ const tooltipOptions = {
     cornerRadius: 8,
     boxPadding: 4,
     usePointStyle: true,
-    titleFont: { size: 12, weight: '700', family: 'Poppins, Inter, sans-serif' },
-    bodyFont: { size: 11, family: 'Poppins, Inter, sans-serif' },
+    titleFont: { size: 13, weight: '700', family: 'Poppins, Inter, sans-serif' },
+    bodyFont: { size: 12, family: 'Poppins, Inter, sans-serif' },
 };
 
 const axisText = '#475569';
@@ -66,7 +66,7 @@ function initializeInventoryBar(statusData = null) {
                 backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
                 borderRadius: 8,
                 borderSkipped: false,
-                maxBarThickness: 48,
+                maxBarThickness: 52,
             }],
         },
         options: {
@@ -85,7 +85,7 @@ function initializeInventoryBar(statusData = null) {
                     border: { display: false },
                     ticks: {
                         color: axisText,
-                        font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
+                        font: { size: 12.5, weight: '600', family: 'Poppins, Inter, sans-serif' },
                     },
                 },
                 y: {
@@ -96,7 +96,7 @@ function initializeInventoryBar(statusData = null) {
                         color: axisText,
                         precision: 0,
                         padding: 8,
-                        font: { size: 10.5, family: 'Poppins, Inter, sans-serif' },
+                        font: { size: 11.5, family: 'Poppins, Inter, sans-serif' },
                     },
                 },
             },
