@@ -46,10 +46,10 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
 
     Route::redirect('/attendance', '/driver-attendance')->name('attendance');
 
-    Route::get('/operation/routes', [RouteController::class, 'index'])->name('operation.routes');
-    Route::post('/operation/routes', [RouteController::class, 'store'])->name('operation.routes.store');
-    Route::put('/operation/routes/{shuttleRoute}', [RouteController::class, 'update'])->name('operation.routes.update');
-    Route::delete('/operation/routes/{shuttleRoute}', [RouteController::class, 'destroy'])->name('operation.routes.destroy');
+    Route::get('/operation/routes', [RouteController::class, 'index'])->middleware('system.permission:operation,view')->name('operation.routes');
+    Route::post('/operation/routes', [RouteController::class, 'store'])->middleware('system.permission:operation,edit')->name('operation.routes.store');
+    Route::put('/operation/routes/{shuttleRoute}', [RouteController::class, 'update'])->middleware('system.permission:operation,edit')->name('operation.routes.update');
+    Route::delete('/operation/routes/{shuttleRoute}', [RouteController::class, 'destroy'])->middleware('system.permission:operation,edit')->name('operation.routes.destroy');
     Route::get('/operation/routes/location-search', [RouteController::class, 'searchLocations'])->middleware('throttle:60,1')->name('operation.routes.location-search');
     Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware('throttle:60,1')->name('operation.routes.reverse-location');
     Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware('throttle:60,1')->name('operation.routes.calculate');
@@ -93,7 +93,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('auto-scheduling');
-            Route::post('/generate', 'generate')->name('auto-scheduling.generate');
+            Route::post('/generate', 'generate')->name('auto-scheduling.generate'); // Read-only recommendation preview; confirm/resolve require edit permission.
             Route::post('/confirm', 'confirm')
                 ->middleware('system.permission:operation,edit')
                 ->name('auto-scheduling.confirm');
