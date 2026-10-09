@@ -1644,3 +1644,27 @@
   font-size: 11px;
 }
 #editBusModal .bus-no-lock-hint[hidden] { display: none !important; }
+
+/* Maintenance owns buses in maintenance state: Operation edit is display-only. */
+#editBusModal .bus-maintenance-locked,
+#editBusModal .bus-maintenance-locked:disabled {
+  background: #e9edf3 !important;
+  border-color: #cbd5e1 !important;
+  color: #526176 !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+#editBusModal .bus-maintenance-lock-notice:not([hidden]) {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #f1d68a;
+  background: #fff8e6;
+  color: #855d12;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+#editBusModal .bus-maintenance-lock-notice[hidden] { display: none !important; }
