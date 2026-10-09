@@ -473,6 +473,7 @@ function initIncidentRecordModals() {
     const subtitle = modal.querySelector('#incidentRecordModalSubtitle');
     const fullLink = modal.querySelector('[data-incident-full-link]');
     let opener = null;
+    let currentRecord = null;
     let bodyOverflow = '';
 
     function close() {
@@ -484,6 +485,7 @@ function initIncidentRecordModals() {
         const record = button.closest('[data-incident-record]');
         if (!record) return;
         opener = button;
+        currentRecord = record;
         const data = record.dataset;
         const isEdit = button.dataset.incidentModalAction === 'edit';
         title.textContent = isEdit ? 'Edit Incident' : 'Incident Details';
@@ -503,7 +505,10 @@ function initIncidentRecordModals() {
                 bus: [data.incidentBus, data.incidentPlate].filter(Boolean).join(' / '),
                 trip: [data.incidentTrip !== '—' ? data.incidentTrip : '', data.incidentRoute].filter(Boolean).join(' · '),
                 driver: [data.incidentDriver, data.incidentDriverId].filter(Boolean).join(' · '),
-                location: data.incidentLocation, description: data.incidentDescription
+                location: data.incidentLocation, description: data.incidentDescription,
+                schedule: data.incidentSchedule, reporter: data.incidentReporter,
+                updated: data.incidentUpdated, referral: data.incidentReferral,
+                replacement: data.incidentReplacement
             };
             for (const [key, value] of Object.entries(fields)) {
                 const target = modal.querySelector('[data-incident-display="' + key + '"]');
@@ -512,6 +517,27 @@ function initIncidentRecordModals() {
             const viewAnchor = record.querySelector('[data-incident-full-url]');
             const fallback = record.querySelector('[data-incident-modal-action="view"]');
             fullLink.href = viewAnchor?.dataset.incidentFullUrl || fallback?.dataset.incidentFullUrl || '#';
+            const switchEdit = modal.querySelector('[data-incident-switch-edit]');
+            switchEdit.hidden = data.incidentCanEdit !== '1';
+            const timeline = modal.querySelector('[data-incident-timeline-panel]');
+            timeline.replaceChildren();
+            const addEvent = (time, label, note) => {
+                const item = document.createElement('div');
+                item.className = 'inc-modal-timeline-item';
+                const heading = document.createElement('strong');
+                heading.textContent = [time, label].filter(Boolean).join(' · ');
+                const description = document.createElement('small');
+                description.textContent = note;
+                item.append(heading, description);
+                timeline.appendChild(item);
+            };
+            addEvent(data.incidentReported, 'Reported', 'Incident recorded by Operation');
+            try {
+                const responses = JSON.parse(data.incidentTimeline || '[]');
+                responses.forEach(item => addEvent(item.time, item.status || 'Response', item.note || 'Incident response recorded'));
+            } catch (_) {
+                // Omit invalid optional timeline data rather than inventing events.
+            }
         }
         bodyOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
@@ -523,6 +549,11 @@ function initIncidentRecordModals() {
         if (button && !button.disabled) open(button);
     });
     modal.querySelectorAll('[data-incident-modal-close]').forEach(button => button.addEventListener('click', close));
+    modal.querySelector('[data-incident-switch-edit]')?.addEventListener('click', () => {
+        const editButton = currentRecord?.querySelector('[data-incident-modal-action="edit"]:not(:disabled)');
+        if (!editButton) return;
+        open(editButton);
+    });
     modal.addEventListener('keydown', event => {
         if (event.key === 'Escape') { event.preventDefault(); close(); return; }
         if (event.key !== 'Tab') return;
