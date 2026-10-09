@@ -450,6 +450,7 @@
                 required
 
             />
+            <x-ui.form-field label="KM Traveled" name="km" type="number" value="{{ old('km') }}" min="0" max="99999999.99" step="0.01" placeholder="KM recorded on the DDR" />
         </div>
 
         <section class="ddr-multi-trips" data-ddr-multi-trips>
@@ -469,6 +470,7 @@
                         <x-ui.form-field label="Departure Time" name="ddr_trip_template_departure" type="time" required data-trip-field="departure_time" />
                         <x-ui.form-field label="Arrival Time" name="ddr_trip_template_arrival" type="time" required data-trip-field="arrival_time" />
                         <x-ui.form-field label="Passengers" name="ddr_trip_template_passengers" type="number" min="0" step="1" required placeholder="0" data-trip-field="passengers" />
+                        <x-ui.form-field label="KM Traveled" name="ddr_trip_template_km" type="number" min="0" max="99999999.99" step="0.01" placeholder="KM from the DDR" data-trip-field="km" />
                     </div>
                 </div>
             </template>
