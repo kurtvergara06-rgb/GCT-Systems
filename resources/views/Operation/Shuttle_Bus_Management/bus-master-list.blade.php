@@ -199,7 +199,7 @@
                                             <x-ui.action-buttom-modal
                                                 class="edit open-edit-bus"
                                                 type="button"
-                                                title="Edit Bus"
+                                                @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Edit Bus" @endif
                                                 icon="fa-pen-to-square"
                                                 data-id="{{ $bus->id }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
