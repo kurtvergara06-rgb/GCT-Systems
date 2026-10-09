@@ -64,7 +64,13 @@
                     </button>
                 </div>
 
+                <nav class="inc-record-tabs" aria-label="Incident record groups">
+                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'active'])) }}" class="inc-record-tab {{ $tab === 'active' ? 'is-active' : '' }}" @if($tab === 'active') aria-current="page" @endif><i class="fa-solid fa-bolt" aria-hidden="true"></i> Active Incidents</a>
+                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'history'])) }}" class="inc-record-tab {{ $tab === 'history' ? 'is-active' : '' }}" @if($tab === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+                </nav>
+
                 <form method="GET" action="{{ route('incidents') }}" class="inc-toolbar">
+                    <input type="hidden" name="tab" value="{{ $tab }}">
                     <div class="inc-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by incident no, driver, bus, trip, location..." />
@@ -90,8 +96,8 @@
                         </select>
                     </div>
 
-                    @if(request()->anyFilled(['search', 'status', 'type']))
-                        <a href="{{ route('incidents') }}" class="inc-clear-btn" title="Reset all filters">
+                    @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('type') && request('type') !== 'all'))
+                        <a href="{{ route('incidents', ['tab' => $tab]) }}" class="inc-clear-btn" title="Reset all filters">
                             <i class="fa-solid fa-rotate-left"></i> Reset
                         </a>
                     @endif
@@ -116,9 +122,8 @@
                         <tbody>
                             @forelse($incidents as $incident)
                                 @php
-                                    $reportedFmt = $incident->incident_reported_at
-                                        ? $incident->incident_reported_at->format('M d, Y g:i A')
-                                        : '—';
+                                    $reportedDate = $incident->incident_reported_at?->format('M d, Y') ?? '—';
+                                    $reportedTime = $incident->incident_reported_at?->format('g:i A') ?? '';
                                     $tripCode = $incident->tripSchedule?->trip_code ?: '—';
                                     $routeLabel = $incident->tripSchedule?->shuttleRoute?->route_name;
                                     $typeKey = strtolower(str_replace(['/', ' '], '-', $incident->incident_type));
@@ -135,7 +140,7 @@
                                 <tr>
                                     <td><x-ui.id-badge :value="$incident->incident_no" /></td>
                                     <td>
-                                        <span class="inc-type-pill {{ $typeKey }}">
+                                        <span class="inc-type-pill {{ $typeKey === 'bus-breakdown' ? 'breakdown' : ($typeKey === 'accident-road-incident' ? 'accident' : $typeKey) }}">
                                             <i class="fa-solid fa-circle"></i>
                                             {{ $incident->incident_type }}
                                         </span>
@@ -163,8 +168,8 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td><div class="inc-loc-cell"><span>{{ $incident->location ?: '—' }}</span></div></td>
-                                    <td><div class="inc-driver-cell"><span>{{ $reportedFmt }}</span></div></td>
+                                    <td><div class="inc-loc-cell"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ $incident->location ?: '—' }}</span></div></td>
+                                    <td><div class="inc-driver-cell inc-reported-cell"><span>{{ $reportedDate }}</span><small>{{ $reportedTime }}</small></div></td>
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
