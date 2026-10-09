@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class MechanicAttendanceController extends Controller
@@ -105,9 +106,9 @@ class MechanicAttendanceController extends Controller
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -144,7 +145,13 @@ class MechanicAttendanceController extends Controller
         $validated['mechanic_name'] = $mechanic->mechanic_name;
         $validated['shift'] = $mechanic->shift ?: $validated['shift'];
 
-        $attendance = MechanicAttendance::create($validated);
+        // Serialize attendance writes per master-list employee to protect the
+        // model's duplicate-date check against simultaneous requests.
+        $attendance = DB::transaction(function () use ($validated) {
+            Mechanic::query()->where('mechanic_id', $validated['mechanic_id'])->lockForUpdate()->firstOrFail();
+
+            return MechanicAttendance::create($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -170,9 +177,9 @@ class MechanicAttendanceController extends Controller
     {
         $validated = $request->validate([
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -198,7 +205,23 @@ class MechanicAttendanceController extends Controller
         $validated['mechanic_name'] = $mechanic->mechanic_name;
         $validated['shift'] = $mechanic->shift ?: $validated['shift'];
 
-        $mechanicAttendance->update($validated);
+        // Prevent an ongoing Maintenance Job Order from being made unavailable
+        // or moved to a different attendance day.
+        if (JobOrder::query()
+            ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
+            ->where('status', 'On Going')
+            ->exists()
+            && ($mechanicAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
+                || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'status' => 'A mechanic with an ongoing Job Order cannot be marked unavailable or moved to another date.',
+            ]);
+        }
+
+        DB::transaction(function () use ($mechanicAttendance, $validated) {
+            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
+            $mechanicAttendance->update($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
