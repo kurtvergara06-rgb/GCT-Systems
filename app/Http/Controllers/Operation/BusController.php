@@ -460,6 +460,12 @@ class BusController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus is Under Maintenance and cannot be deleted until Maintenance releases it.',
+                ]);
+            }
+
             if ($this->hasTripBusHistory($lockedBus, true)) {
                 throw ValidationException::withMessages([
                     'bus' => 'This bus cannot be deleted because trip history is linked to it.',
