@@ -281,6 +281,15 @@
         cancel-id="cancelEncodeReport"
         close-id="closeEncodeReport"
     >
+        <div class="ddr-incident-guidance" role="note">
+            <span class="ddr-incident-guidance-icon"><i class="fa-solid fa-phone-volume" aria-hidden="true"></i></span>
+            <div>
+                <strong>Receiving a live call from a driver?</strong>
+                <p>For breakdowns, traffic, roadworks, or delays during an ongoing trip, record an Incident instead. Do not guess departure or arrival times to complete a DDR.</p>
+                <a href="{{ route('incidents.create') }}" class="ddr-incident-guidance-link">Report an Incident <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </div>
+        </div>
+
         @if ($errors->any() || session('error'))
             <div class="ddr-alert ddr-alert-error ddr-modal-alert" role="alert">
                 <i class="fa-solid fa-circle-exclamation"></i>
