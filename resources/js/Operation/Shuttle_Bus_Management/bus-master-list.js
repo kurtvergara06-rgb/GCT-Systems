@@ -325,6 +325,37 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 }
 
 
+                // Operation cannot edit any master-list field while Maintenance
+                // owns this bus. Preserve displayed values for read-only review.
+                const maintenanceLocked = button.dataset.status === 'Under Maintenance';
+                editBusForm.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach((field) => {
+                    if (maintenanceLocked) {
+                        field.dataset.busMaintenanceLocked = '1';
+                        if (field.matches('select')) {
+                            field.disabled = true;
+                        } else {
+                            field.readOnly = true;
+                        }
+                        field.classList.add('bus-maintenance-locked');
+                    } else if (field.dataset.busMaintenanceLocked === '1') {
+                        field.removeAttribute('data-bus-maintenance-locked');
+                        field.disabled = false;
+                        field.readOnly = false;
+                        field.classList.remove('bus-maintenance-locked');
+                    }
+                });
+                // Reapply the independent history-based Bus No. restriction.
+                if (!maintenanceLocked && editBusNo) {
+                    editBusNo.readOnly = button.dataset.busNoLocked === '1';
+                }
+                const updateButton = editBusForm.querySelector('button[type="submit"]');
+                if (updateButton) {
+                    updateButton.disabled = maintenanceLocked;
+                    updateButton.hidden = maintenanceLocked;
+                }
+                const lockNotice = document.getElementById('editBusMaintenanceNotice');
+                if (lockNotice) lockNotice.hidden = !maintenanceLocked;
+
                 openModal(editBusModal);
     });
 
