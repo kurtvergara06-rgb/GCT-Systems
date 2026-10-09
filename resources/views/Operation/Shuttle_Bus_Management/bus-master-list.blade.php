@@ -301,6 +301,7 @@
         confirm-button="Yes, Add Bus"
         confirm-type="create"
     >
+        <div class="bus-form-section full-width"><span class="bus-section-icon"><i class="fa-regular fa-file-lines"></i></span><div><strong>Bus Information</strong><p>Provide the basic details of the bus unit.</p></div></div>
         <div class="form-group">
             <label>Bus No.</label>
 
@@ -371,6 +372,7 @@
             </select>
         </div>
 
+        <div class="bus-form-section full-width bus-route-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Assign the bus to a route or group for easier management.</p></div></div>
         <div class="form-group full-width">
             <label>Route / Grouping</label>
 
@@ -384,9 +386,10 @@
 
     {{-- Edit Bus Modal --}}
     <div id="editBusModal" class="modal-overlay">
-        <div class="modal-box wide-modal">
+        <div class="modal-box wide-modal bus-edit-design">
             <div class="modal-header">
-                <div>
+                <span class="bus-header-icon"><i class="fa-solid fa-bus"></i></span>
+                <div class="bus-edit-heading">
                     <h2>Edit Bus Information</h2>
                     <p>
                         Update the selected official bus record.
@@ -416,6 +419,7 @@
                 @csrf
                 @method('PUT')
 
+                <div class="bus-form-section full-width"><span class="bus-section-icon"><i class="fa-regular fa-file-lines"></i></span><div><strong>Bus Information</strong><p>Update the official details of this bus unit.</p></div></div>
                 <div class="form-group">
                     <label>Bus No.</label>
 
@@ -490,6 +494,7 @@
                     </select>
                 </div>
 
+                <div class="bus-form-section full-width bus-route-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Route assignments and group information.</p></div></div>
                 <div class="form-group full-width">
                     <label>Route / Grouping</label>
 
