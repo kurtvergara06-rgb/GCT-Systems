@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\Incident;
+use App\Models\Operation\Driver;
 use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\IncidentResponse;
 use App\Models\Operation\TripAssignment;
@@ -150,7 +151,11 @@ class IncidentController extends Controller
             ->orderBy('departure_time')
             ->get();
 
+        $activeDrivers = Driver::query()->where('employment_status', 'Active')
+            ->orderBy('driver_name')->get(['driver_id', 'driver_name']);
+
         return compact(
+            'activeDrivers',
             'activeTripAssignment',
             'tripSchedule',
             'myAssignments',
@@ -221,6 +226,19 @@ class IncidentController extends Controller
                 $validated['driver_id'] = $tripAssignment->driver_id;
                 $validated['driver_name'] = $tripAssignment->driver_name;
             }
+        }
+
+        // Only a master-listed driver can be selected; names are sourced from the
+        // master list rather than trusting an arbitrary browser-supplied name.
+        if (! empty($validated['driver_id']) && ! $tripAssignment) {
+            $driver = Driver::query()->where('driver_id', $validated['driver_id'])
+                ->where('employment_status', 'Active')->first();
+            if (! $driver) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'driver_id' => 'Please select an active driver from the Driver Master List.',
+                ]);
+            }
+            $validated['driver_name'] = $driver->driver_name;
         }
 
         unset($validated['trip_assignment_id']);
