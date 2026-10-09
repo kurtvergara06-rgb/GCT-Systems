@@ -133,6 +133,18 @@
                                     $maintenanceReferral = $incident->maintenanceReferral;
                                     $canModifyIncident = $incident->status === 'Reported' && !$maintenanceReferral && !$incident->replacement && $incident->responses->count() <= 1;
                                     $canArchiveIncident = $canModifyIncident && $incident->incident_type !== 'Bus Breakdown';
+                                    $editLockReason = $incident->status !== 'Reported'
+                                        ? 'Editing locked: incident status is ' . $incident->status
+                                        : ($maintenanceReferral
+                                            ? 'Editing locked: Maintenance referral already created'
+                                            : ($incident->replacement
+                                                ? 'Editing locked: replacement bus already recorded'
+                                                : ($incident->responses->count() > 1
+                                                    ? 'Editing locked: response activity already recorded'
+                                                    : 'Editing available')));
+                                    $archiveLockReason = $incident->incident_type === 'Bus Breakdown'
+                                        ? 'Archive unavailable: breakdown affects bus maintenance workflow'
+                                        : ($canModifyIncident ? 'Archive available' : $editLockReason);
                                 @endphp
 
                                 <tr data-incident-record
@@ -192,7 +204,7 @@
                                             @if($canModifyIncident)
                                                 <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @else
-                                                <button type="button" class="inc-action inc-edit-action inc-action-disabled" disabled title="Editing is locked once incident processing begins" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                                <button type="button" class="inc-action inc-edit-action inc-action-disabled" disabled title="{{ $editLockReason }}" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @endif
                                             @if($canArchiveIncident)
                                                 <form method="POST" action="{{ route('incidents.destroy', ['incident' => $incident->incident_no]) }}" onsubmit="return confirm('Archive this unprocessed incident? This action will remove it from active records while preserving its audit history.');">
@@ -201,7 +213,7 @@
                                                     <x-ui.action-button type="delete" button-type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident" />
                                                 </form>
                                             @else
-                                                <button type="button" class="inc-action inc-delete-action inc-action-disabled" disabled title="Archive unavailable: incident is a breakdown or has workflow activity" aria-label="Archive unavailable"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                                                <button type="button" class="inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
                                             @endif
 
                                             @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
