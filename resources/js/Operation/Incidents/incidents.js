@@ -498,6 +498,24 @@ function initIncidentRecordModals() {
             edit.action = button.dataset.updateUrl || '';
             edit.elements.location.value = data.incidentLocation || '';
             edit.elements.description.value = data.incidentDescription || '';
+            const overview = {
+                no: data.incidentNo,
+                reported: data.incidentReported,
+                status: data.incidentStatus,
+                bus: [data.incidentBus, data.incidentPlate].filter(Boolean).join(' / '),
+                driver: [data.incidentDriver, data.incidentDriverId].filter(Boolean).join(' · '),
+                trip: [data.incidentTrip !== '—' ? data.incidentTrip : '', data.incidentRoute].filter(Boolean).join(' · ')
+            };
+            Object.entries(overview).forEach(([key, value]) => {
+                const target = edit.querySelector('[data-incident-edit-info="' + key + '"]');
+                if (target) target.textContent = value || '—';
+            });
+            const typeField = edit.querySelector('[data-incident-edit-type]');
+            if (typeField) typeField.value = data.incidentType || '';
+            const count = edit.querySelector('[data-incident-edit-count]');
+            const updateCount = () => { if (count) count.textContent = edit.elements.description.value.length + ' / 2000'; };
+            edit.elements.description.oninput = updateCount;
+            updateCount();
         } else {
             const fields = {
                 no: data.incidentNo, status: data.incidentStatus,
