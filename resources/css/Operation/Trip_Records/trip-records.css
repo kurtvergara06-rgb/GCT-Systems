@@ -1412,3 +1412,17 @@
 @media (max-width: 700px) {
     .trip-records-page .trip-scroll-hint { display: none; }
 }
+
+/* Trip history filters, responsive table, and export controls. */
+.trip-records-page .trip-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.trip-records-page .trip-toolbar .trip-search { flex: 2 1 280px; min-width: 220px; }
+.trip-records-page .trip-toolbar .trip-filter { flex: 1 1 125px; min-width: 115px; }
+.trip-records-page .trip-toolbar .date-filter { flex: 1 1 145px; }
+.trip-records-page .trip-toolbar .date-filter input { width: 100%; min-width: 0; box-sizing: border-box; }
+.trip-records-page .trip-export-btn { min-height: 39px; padding: 0 14px; border: 1px solid #d4e1f3; border-radius: 9px; background: #fff; color: #102649; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.trip-records-page .trip-export-btn:hover { background: #eaf2ff; border-color: #b6d0ff; }
+.trip-records-page .trip-export-btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.trip-records-page .trip-table-wrap { max-width: 100%; overflow-x: auto; }
+.trip-records-page .trip-table { min-width: 970px; }
+.trip-records-page .trip-table td { vertical-align: middle; }
+@media (max-width: 700px) { .trip-records-page .trip-toolbar .trip-search { flex-basis: 100%; } .trip-records-page .trip-toolbar .trip-filter { flex: 1 1 42%; } .trip-records-page .trip-export-btn { flex: 1 1 auto; } }
