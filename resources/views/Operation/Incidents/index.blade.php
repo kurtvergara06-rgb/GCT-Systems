@@ -169,7 +169,7 @@
                                     <td>
                                         <div class="inc-actions inc-record-actions">
                                             <a href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" class="inc-action view" title="View Incident Details" aria-label="View incident details">
-                                                <i class="fa-regular fa-eye"></i>
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </a>
 
                                             @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
@@ -179,10 +179,6 @@
                                                         <i class="fa-solid fa-screwdriver-wrench"></i>
                                                     </button>
                                                 </form>
-                                            @elseif($maintenanceReferral)
-                                                <span class="inc-referral-label" title="Maintenance referral status">
-                                                    {{ $maintenanceReferral->status }}
-                                                </span>
                                             @endif
                                         </div>
                                     </td>
