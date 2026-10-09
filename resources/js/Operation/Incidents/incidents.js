@@ -157,6 +157,8 @@ function initIncidentBusLookup() {
         const input = lookup.querySelector('[data-incident-bus-search]');
         const results = lookup.querySelector('[data-incident-bus-results]');
         const context = lookup.querySelector('[data-incident-trip-context]');
+        const summary = lookup.querySelector('[data-incident-trip-summary]');
+        const status = lookup.querySelector('[data-incident-trip-status]');
         const tripSelect = form?.querySelector('[data-trip-select]');
         const busSelect = form?.querySelector('[data-incident-bus-select]');
         const driverSelect = form?.querySelector('[data-incident-driver-select]');
@@ -171,12 +173,13 @@ function initIncidentBusLookup() {
             tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
             if (driverSelect) { driverSelect.disabled = false; driverSelect.value = ''; }
             context.hidden = true;
+            if (summary) summary.hidden = true;
             context.replaceChildren();
         };
         const matchingTrips = (busId) => trips.filter(option => option.dataset.busId === String(busId));
         const showDetails = (option) => {
             context.replaceChildren();
-            if (!option?.value) { context.hidden = true; return; }
+            if (!option?.value) { context.hidden = true; if (summary) summary.hidden = true; return; }
             const values = [
                 ['Driver', [option.dataset.driverName, option.dataset.driverId].filter(Boolean).join(' · ')],
                 ['Route', option.dataset.route],
@@ -196,6 +199,8 @@ function initIncidentBusLookup() {
                 context.appendChild(box);
             });
             context.hidden = !context.childElementCount;
+            if (summary) summary.hidden = context.hidden;
+            if (status) status.textContent = option.dataset.tripStatus || 'Scheduled';
         };
         const chooseTrip = (option) => {
             tripSelect.value = option.value;
