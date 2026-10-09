@@ -151,10 +151,13 @@ class IncidentController extends Controller
             ->orderBy('departure_time')
             ->get();
 
+        $incidentBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no', 'plate_no', 'status']);
+
         $activeDrivers = Driver::query()->where('employment_status', 'Active')
             ->orderBy('driver_name')->get(['driver_id', 'driver_name']);
 
         return compact(
+            'incidentBuses',
             'activeDrivers',
             'activeTripAssignment',
             'tripSchedule',
@@ -214,26 +217,31 @@ class IncidentController extends Controller
 
         $tripAssignment = null;
 
-        // Bus-first incident modal must resolve to a real scheduled assignment.
-        // Other incident entry paths retain their existing compatibility behavior.
+        // Incident bus search must select an actual Bus Master List record.
+        // A schedule is optional: emergencies may occur without an assignment.
         if ($request->boolean('bus_lookup_required')) {
-            $matched = TripAssignment::query()
-                ->with(['tripSchedule', 'bus'])
-                ->where('id', $validated['trip_assignment_id'] ?? 0)
-                ->first();
-            $schedule = $matched?->tripSchedule;
-            $enteredBus = trim((string) $request->input('bus_lookup_display'));
-            $busMatches = $matched?->bus && $enteredBus !== '' && (
-                strcasecmp($enteredBus, $matched->bus->bus_no) === 0
-                || strcasecmp($enteredBus, (string) $matched->bus->plate_no) === 0
-            );
-            if (! $busMatches || ! $matched || ! $schedule
-                || (int) $matched->trip_schedule_id !== (int) ($validated['trip_schedule_id'] ?? 0)
-                || ! in_array($schedule->status, ['Scheduled', 'Dispatched', 'Ready'], true)
-                || $schedule->trip_date?->toDateString() !== now(config('app.business_timezone', 'Asia/Manila'))->toDateString()) {
+            $bus = Bus::query()->find($validated['bus_id'] ?? 0);
+            $typed = trim((string) $request->input('bus_lookup_display', ''));
+            if (! $bus || $typed === '' || (
+                strcasecmp($typed, $bus->bus_no) !== 0
+                && strcasecmp($typed, (string) $bus->plate_no) !== 0
+            )) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'trip_schedule_id' => 'Select an assigned trip for this Bus ID today.',
+                    'bus_id' => 'Select a valid Bus ID from the suggestions.',
                 ]);
+            }
+
+            if (! empty($validated['trip_assignment_id'])) {
+                $assignment = TripAssignment::query()
+                    ->whereKey($validated['trip_assignment_id'])
+                    ->where('bus_id', $bus->id)
+                    ->where('trip_schedule_id', $validated['trip_schedule_id'] ?? 0)
+                    ->first();
+                if (! $assignment) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'trip_schedule_id' => 'The selected trip does not match this Bus ID.',
+                    ]);
+                }
             }
         }
 
