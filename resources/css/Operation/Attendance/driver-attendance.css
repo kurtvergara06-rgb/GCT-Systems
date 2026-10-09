@@ -220,47 +220,6 @@
 
 
 /* =========================================================
-   IMPORT BUTTON
-========================================================= */
-
-.import-btn {
-  height: 40px;
-
-  padding: 0 14px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 8px;
-
-  background: #ffffff;
-
-  border: 1px solid #d8e2f0;
-  border-radius: 9px;
-
-  color: #0b2a4a;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  white-space: nowrap;
-
-  cursor: pointer;
-
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.import-btn:hover {
-  background: #f1f5f9;
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
    TABLE WRAPPER
 ========================================================= */
 
@@ -572,8 +531,7 @@
   }
 
   .attendance-toolbar select,
-  .attendance-toolbar .primary-btn,
-  .import-btn {
+  .attendance-toolbar .primary-btn {
     width: 100%;
   }
 
@@ -1189,4 +1147,70 @@
 
   font-size: 12px;
   font-weight: 600;
+}
+
+/* Compact date-based attendance history filter. */
+.attendance-toolbar .filter-group input[type="date"] {
+  width: 155px;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid #d6e1ef;
+  border-radius: 9px;
+  background: #fff;
+  color: #183253;
+  font: inherit;
+  font-size: 12px;
+}
+
+/* Driver Attendance: fit all 9 columns inside the card at desktop widths. */
+.driver-attendance-page .table-wrap {
+  overflow-x: hidden;
+}
+.driver-attendance-page .attendance-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+.driver-attendance-page .attendance-table th,
+.driver-attendance-page .attendance-table td {
+  box-sizing: border-box;
+  padding: 12px 6px;
+  vertical-align: middle;
+  text-align: left;
+}
+.driver-attendance-page .attendance-table td {
+  overflow-wrap: anywhere;
+}
+/* Keep IDs/names left-aligned and center the operational values.
+   Matching th/td alignment prevents apparent column drift. */
+.driver-attendance-page .attendance-table th:nth-child(n+3),
+.driver-attendance-page .attendance-table td:nth-child(n+3) {
+  text-align: center;
+}
+.driver-attendance-page .attendance-table td:nth-child(3),
+.driver-attendance-page .attendance-table td:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(6),
+.driver-attendance-page .attendance-table td:nth-child(7) {
+  white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:last-child .actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.driver-attendance-page .attendance-table td:last-child .action-btn {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+@media (max-width: 900px) {
+  .driver-attendance-page .table-wrap {
+    overflow-x: auto;
+  }
+  .driver-attendance-page .attendance-table {
+    min-width: 900px;
+  }
 }

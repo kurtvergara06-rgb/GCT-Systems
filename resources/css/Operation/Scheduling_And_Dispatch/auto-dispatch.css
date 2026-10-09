@@ -1146,6 +1146,22 @@
     background: var(--auto-blue-dark);
 }
 
+.schedule-readonly-note {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--auto-border);
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 
 /* =========================================================
    CONFLICT CARD

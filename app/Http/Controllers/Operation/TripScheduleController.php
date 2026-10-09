@@ -5,19 +5,33 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class TripScheduleController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
+    private const MIN_ROUTE_DEPARTURE_INTERVAL_MINUTES = 15;
+
     public function index(Request $request): View
     {
         $query = TripSchedule::query()
-            ->with('shuttleRoute');
+            ->with([
+                'shuttleRoute',
+                'assignment',
+            ])
+            ->withCount([
+                'dailyDriverReports',
+                'incidents',
+            ]);
 
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
@@ -37,12 +51,14 @@ class TripScheduleController extends Controller
             });
         }
 
-        if ($request->filled('trip_date')) {
-            $query->whereDate(
-                'trip_date',
-                $request->input('trip_date')
-            );
-        }
+        // Trip Schedule opens on the current operational day by default.
+        // Explicit date selections continue to show historical/future trips.
+        $request->validate([
+            'trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+        ]);
+        $selectedTripDate = $request->input('trip_date')
+            ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $query->whereDate('trip_date', $selectedTripDate);
 
         if (
             $request->filled('route')
@@ -80,32 +96,32 @@ class TripScheduleController extends Controller
                 'origin',
                 'destination',
                 'estimated_time_minutes',
+                'calculated_time_minutes',
             ]);
 
-        $reusableScheduleDates = TripSchedule::query()
-            ->selectRaw('DATE(trip_date) as schedule_date, COUNT(*) as trip_count')
-            ->where('status', '!=', 'Cancelled')
-            ->whereHas('shuttleRoute', fn ($routeQuery) => $routeQuery->where('status', 'Active'))
-            ->groupByRaw('DATE(trip_date)')
-            ->orderByDesc('schedule_date')
-            ->get();
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
-        $today = now()->toDateString();
+        $operationalTodayTrips = TripSchedule::query()
+            ->whereDate('trip_date', $today)
+            ->where('status', '!=', 'Cancelled');
 
-        $todayTrips = TripSchedule::query()
-            ->whereDate('trip_date', $today);
+        $totalTripsToday = (clone $operationalTodayTrips)->count();
 
-        $totalTripsToday = (clone $todayTrips)->count();
-
-        $assignedTrips = (clone $todayTrips)
-            ->where('assignment_status', 'Assigned')
+        $assignedTrips = (clone $operationalTodayTrips)
+            ->where(function ($query) {
+                $query
+                    ->where('assignment_status', 'Assigned')
+                    ->orWhereHas('assignment');
+            })
             ->count();
 
-        $pendingAssignments = (clone $todayTrips)
+        $pendingAssignments = (clone $operationalTodayTrips)
             ->where('assignment_status', 'Unassigned')
+            ->whereDoesntHave('assignment')
+            ->where('status', 'Scheduled')
             ->count();
 
-        $activeRoutesUsed = (clone $todayTrips)
+        $activeRoutesUsed = (clone $operationalTodayTrips)
             ->distinct()
             ->count('shuttle_route_id');
 
@@ -114,291 +130,288 @@ class TripScheduleController extends Controller
             compact(
                 'trips',
                 'activeRoutes',
-                'reusableScheduleDates',
                 'totalTripsToday',
                 'assignedTrips',
                 'pendingAssignments',
-                'activeRoutesUsed'
+                'activeRoutesUsed',
+                'selectedTripDate'
             )
         );
     }
 
     public function store(Request $request): RedirectResponse
     {
-        if ($request->input('schedule_action') === 'generate_daily') {
-            return $this->duplicateSchedule($request);
+        try {
+            $validated = $this->validateTrip($request);
+
+            $trip = DB::transaction(function () use ($validated): TripSchedule {
+                $route = ShuttleRoute::query()
+                    ->whereKey($validated['shuttle_route_id'])
+                    ->where('status', 'Active')
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $departure = $this->departureDateTime(
+                    $validated['trip_date'],
+                    $validated['departure_time']
+                );
+
+                $this->assertMinimumRouteDepartureInterval(
+                    $validated['trip_date'],
+                    $route,
+                    $departure
+                );
+
+                $estimatedArrival = $this->resolveArrivalDateTime(
+                    $departure,
+                    $this->routeDurationMinutes($route)
+                );
+
+                $trip = TripSchedule::create([
+                    'trip_code' => 'TMP-' . Str::upper(Str::random(20)),
+                    'trip_date' => $validated['trip_date'],
+                    'shuttle_route_id' => $route->id,
+                    'departure_time' => $departure->format('H:i:s'),
+                    'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
+                    'estimated_arrival_date' => $estimatedArrival->toDateString(),
+                    'shift' => $this->detectShift($departure),
+                    'assignment_status' => 'Unassigned',
+                    'status' => 'Scheduled',
+                    'notes' => $validated['notes'] ?? null,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $trip->update([
+                    'trip_code' => $this->tripCodeFromId($trip->id),
+                ]);
+
+                return $trip;
+            });
+        } catch (ValidationException $exception) {
+            $this->rememberTripValidation($request, 'create');
+
+            throw $exception;
         }
 
-        $validated = $this->validateTrip($request);
-
-        DB::transaction(function () use ($validated) {
-            $latestTrip = TripSchedule::query()
-                ->lockForUpdate()
-                ->orderByDesc('id')
-                ->first();
-
-            $nextNumber = $latestTrip
-                ? $latestTrip->id + 1
-                : 1;
-
-            $tripCode = 'T-' . str_pad(
-                (string) $nextNumber,
-                3,
-                '0',
-                STR_PAD_LEFT
-            );
-
-            $route = ShuttleRoute::query()
-                ->whereKey($validated['shuttle_route_id'])
-                ->where('status', 'Active')
-                ->firstOrFail();
-
-            $departure = Carbon::createFromFormat(
-                'H:i',
-                $validated['departure_time']
-            );
-
-            $estimatedArrival = $this->resolveArrivalTime(
-                $departure,
-                $validated['estimated_arrival_time'] ?? null,
-                $route->estimated_time_minutes
-            );
-
-            TripSchedule::create([
-                'trip_code' => $tripCode,
-                'trip_date' => $validated['trip_date'],
-                'shuttle_route_id' => $route->id,
-                'departure_time' => $departure->format('H:i:s'),
-                'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
-                'shift' => $this->detectShift($departure),
-                'assignment_status' => 'Unassigned',
-                'status' => 'Scheduled',
-                'notes' => $validated['notes'] ?? null,
-                'created_by' => auth()->id(),
-            ]);
-        });
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'created',
+            $trip->id,
+            "{$trip->trip_code} was added to Trip Schedule."
+        );
 
         session()->flash(
             'success',
             'Trip schedule created successfully.'
         );
 
-        return new RedirectResponse('/operation/trip-schedule');
+        return $this->scheduleReturnRedirect($request);
     }
 
     public function update(
         Request $request,
         TripSchedule $tripSchedule
     ): RedirectResponse {
-        if (
-            in_array(
-                $tripSchedule->status,
-                ['Dispatched', 'Completed'],
-                true
-            )
-        ) {
+        if (! $this->tripCanBeEdited($tripSchedule)) {
             session()->flash(
                 'error',
-                'Dispatched or completed trips can no longer be edited.'
+                'Only unassigned Scheduled/Cancelled trips without operational history can be edited.'
             );
 
-            return new RedirectResponse('/operation/trip-schedule');
+            return $this->scheduleReturnRedirect($request);
         }
 
-        $validated = $this->validateTrip(
-            $request,
-            $tripSchedule
+        try {
+            $validated = $this->validateTrip(
+                $request,
+                $tripSchedule
+            );
+
+            $updatedTrip = DB::transaction(
+                function () use ($validated, $tripSchedule): TripSchedule {
+                    $route = ShuttleRoute::query()
+                        ->whereKey($validated['shuttle_route_id'])
+                        ->where('status', 'Active')
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    $lockedTrip = TripSchedule::query()
+                        ->whereKey($tripSchedule->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    $this->assertEditableTripState($lockedTrip);
+
+                    $departure = $this->departureDateTime(
+                        $validated['trip_date'],
+                        $validated['departure_time']
+                    );
+
+                    if ($validated['status'] !== 'Cancelled') {
+                        $this->assertMinimumRouteDepartureInterval(
+                            $validated['trip_date'],
+                            $route,
+                            $departure,
+                            $lockedTrip->id
+                        );
+                    }
+
+                    $estimatedArrival = $this->resolveArrivalDateTime(
+                        $departure,
+                        $this->routeDurationMinutes($route)
+                    );
+
+                    $lockedTrip->update([
+                        'trip_date' => $validated['trip_date'],
+                        'shuttle_route_id' => $route->id,
+                        'departure_time' => $departure->format('H:i:s'),
+                        'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
+                        'estimated_arrival_date' => $estimatedArrival->toDateString(),
+                        'shift' => $this->detectShift($departure),
+                        'status' => $validated['status'],
+                        'notes' => $validated['notes'] ?? null,
+                    ]);
+
+                    return $lockedTrip;
+                }
+            );
+        } catch (ValidationException $exception) {
+            if (! array_key_exists('trip_schedule', $exception->errors())) {
+                $this->rememberTripValidation(
+                    $request,
+                    'edit',
+                    $tripSchedule->id,
+                    $tripSchedule->trip_code
+                );
+            }
+
+            throw $exception;
+        }
+
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'updated',
+            $updatedTrip->id,
+            "{$updatedTrip->trip_code} was updated in Trip Schedule."
         );
-
-        $route = ShuttleRoute::query()
-            ->whereKey($validated['shuttle_route_id'])
-            ->where('status', 'Active')
-            ->firstOrFail();
-
-        $departure = Carbon::createFromFormat(
-            'H:i',
-            $validated['departure_time']
-        );
-
-        $estimatedArrival = $this->resolveArrivalTime(
-            $departure,
-            $validated['estimated_arrival_time'] ?? null,
-            $route->estimated_time_minutes
-        );
-
-        $tripSchedule->update([
-            'trip_date' => $validated['trip_date'],
-            'shuttle_route_id' => $route->id,
-            'departure_time' => $departure->format('H:i:s'),
-            'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
-            'shift' => $this->detectShift($departure),
-            'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
 
         session()->flash(
             'success',
             'Trip schedule updated successfully.'
         );
 
-        return new RedirectResponse('/operation/trip-schedule');
+        return $this->scheduleReturnRedirect($request);
     }
 
     public function destroy(
+        Request $request,
         TripSchedule $tripSchedule
     ): RedirectResponse {
-        if (
-            ! in_array(
-                $tripSchedule->status,
-                ['Scheduled', 'Cancelled'],
-                true
-            )
-        ) {
-            session()->flash(
-                'error',
-                'Only scheduled or cancelled trips may be deleted.'
-            );
+        $deleteError = DB::transaction(
+            function () use ($tripSchedule): ?string {
+                $lockedTrip = TripSchedule::query()
+                    ->whereKey($tripSchedule->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            return new RedirectResponse('/operation/trip-schedule');
+                $lockedTrip->loadMissing('assignment');
+                $lockedTrip->loadCount([
+                    'dailyDriverReports',
+                    'incidents',
+                ]);
+
+                if (
+                    ! in_array(
+                        $lockedTrip->status,
+                        ['Scheduled', 'Cancelled'],
+                        true
+                    )
+                ) {
+                    return 'Only Scheduled or Cancelled trips may be deleted.';
+                }
+
+                if (
+                    $lockedTrip->assignment_status !== 'Unassigned'
+                    || $lockedTrip->assignment !== null
+                ) {
+                    return 'Remove the driver and bus assignment before deleting this trip.';
+                }
+
+                if (
+                    $lockedTrip->daily_driver_reports_count > 0
+                    || $lockedTrip->incidents_count > 0
+                ) {
+                    return 'This trip already has operational history and cannot be deleted. Cancel it instead.';
+                }
+
+                $lockedTrip->delete();
+
+                return null;
+            }
+        );
+
+        if ($deleteError !== null) {
+            session()->flash('error', $deleteError);
+
+            return $this->scheduleReturnRedirect($request);
         }
 
-        if ($tripSchedule->assignment_status === 'Assigned') {
-            session()->flash(
-                'error',
-                'Remove the driver and bus assignment before deleting this trip.'
-            );
-
-            return new RedirectResponse('/operation/trip-schedule');
-        }
-
-        $tripSchedule->delete();
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'deleted',
+            $tripSchedule->id,
+            "{$tripSchedule->trip_code} was removed from Trip Schedule."
+        );
 
         session()->flash(
             'success',
             'Trip schedule deleted successfully.'
         );
 
-        return new RedirectResponse('/operation/trip-schedule');
+        return $this->scheduleReturnRedirect($request);
     }
 
-    private function duplicateSchedule(Request $request): RedirectResponse
+    private function scheduleReturnRedirect(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'source_date' => ['required', 'date'],
-            'target_date' => ['required', 'date'],
+        $context = $request->validate([
+            'return_trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+            'return_search' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'return_status' => ['sometimes', Rule::in(['all', 'Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled'])],
         ]);
 
-        $targetDate = Carbon::parse($validated['target_date'])->toDateString();
-        $sourceDate = Carbon::parse($validated['source_date'])->toDateString();
+        $filters = array_filter([
+            'trip_date' => $context['return_trip_date'] ?? null,
+            'search' => $context['return_search'] ?? null,
+            'status' => $context['return_status'] ?? null,
+        ], fn ($value) => $value !== null && $value !== '');
 
-        if ($sourceDate === $targetDate) {
-            return redirect()
-                ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
-                ->withInput()
-                ->with('error', 'Source and target dates must be different.');
-        }
-
-        $sourceTrips = TripSchedule::query()
-            ->with('shuttleRoute')
-            ->whereDate('trip_date', $sourceDate)
-            ->where('status', '!=', 'Cancelled')
-            ->whereHas('shuttleRoute', fn ($query) => $query->where('status', 'Active'))
-            ->orderBy('departure_time')
-            ->get();
-
-        if ($sourceTrips->isEmpty()) {
-            return redirect()
-                ->to(route('trip-schedule', ['schedule_tool' => 'generate'], false))
-                ->withInput()
-                ->with('error', 'No reusable trips were found on the selected source date.');
-        }
-
-        $created = 0;
-        $skipped = 0;
-
-        DB::transaction(function () use (
-            $sourceTrips,
-            $targetDate,
-            &$created,
-            &$skipped
-        ): void {
-            $latestTrip = TripSchedule::query()
-                ->lockForUpdate()
-                ->orderByDesc('id')
-                ->first();
-
-            $nextNumber = $latestTrip
-                ? $latestTrip->id + 1
-                : 1;
-
-            foreach ($sourceTrips as $sourceTrip) {
-                $duplicateExists = TripSchedule::query()
-                    ->whereDate('trip_date', $targetDate)
-                    ->where('shuttle_route_id', $sourceTrip->shuttle_route_id)
-                    ->where('departure_time', $sourceTrip->departure_time)
-                    ->exists();
-
-                if ($duplicateExists) {
-                    $skipped++;
-                    continue;
-                }
-
-                $tripCode = 'T-' . str_pad(
-                    (string) $nextNumber,
-                    3,
-                    '0',
-                    STR_PAD_LEFT
-                );
-
-                TripSchedule::create([
-                    'trip_code' => $tripCode,
-                    'trip_date' => $targetDate,
-                    'shuttle_route_id' => $sourceTrip->shuttle_route_id,
-                    'departure_time' => $sourceTrip->departure_time,
-                    'estimated_arrival_time' => $sourceTrip->estimated_arrival_time,
-                    'shift' => $sourceTrip->shift,
-                    'assignment_status' => 'Unassigned',
-                    'status' => 'Scheduled',
-                    'notes' => $sourceTrip->notes,
-                    'created_by' => auth()->id(),
-                ]);
-
-                $created++;
-                $nextNumber++;
-            }
-        });
-
-        if ($created === 0) {
-            return redirect()
-                ->to(route('trip-schedule', ['trip_date' => $targetDate], false))
-                ->with(
-                    'error',
-                    "No new trips were created. {$skipped} matching trip(s) already exist on the target date."
-                );
-        }
-
-        $message = "{$created} trip(s) created for "
-            . Carbon::parse($targetDate)->format('M d, Y')
-            . '.';
-
-        if ($skipped > 0) {
-            $message .= " {$skipped} duplicate trip(s) were skipped.";
-        }
-
-        return redirect()
-            ->to(route('trip-schedule', ['trip_date' => $targetDate], false))
-            ->with('success', $message);
+        return new RedirectResponse('/operation/trip-schedule'
+            . ($filters ? '?' . http_build_query($filters) : ''));
     }
 
     private function validateTrip(
         Request $request,
         ?TripSchedule $tripSchedule = null
     ): array {
-        return $request->validate([
-            'trip_date' => [
-                'required',
-                'date',
-            ],
+        $allowsHistoricalCorrection = $tripSchedule !== null
+            && $tripSchedule->hasDeparted()
+            && $this->tripCanBeEdited($tripSchedule);
+
+        $tripDateRules = [
+            'required',
+            'date',
+        ];
+
+        if (! $allowsHistoricalCorrection) {
+            $tripDateRules[] = 'after_or_equal:'
+                . now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        }
+
+        $rules = [
+            'trip_date' => $tripDateRules,
             'shuttle_route_id' => [
                 'required',
                 'integer',
@@ -409,67 +422,222 @@ class TripScheduleController extends Controller
                 'required',
                 'date_format:H:i',
             ],
-            'estimated_arrival_time' => [
-                'nullable',
-                'date_format:H:i',
-            ],
-            'status' => [
-                'required',
-                Rule::in([
-                    'Scheduled',
-                    'Cancelled',
-                ]),
-            ],
             'notes' => [
                 'nullable',
                 'string',
                 'max:2000',
             ],
+        ];
+
+        if ($tripSchedule !== null) {
+            $rules['status'] = [
+                'required',
+                Rule::in([
+                    'Scheduled',
+                    'Cancelled',
+                ]),
+            ];
+        }
+
+        $validated = $request->validate($rules);
+
+        $requestedDeparture = $this->departureDateTime(
+            $validated['trip_date'],
+            $validated['departure_time']
+        );
+
+        if (
+            $requestedDeparture->lt(now(config('app.business_timezone', 'Asia/Manila'))->startOfMinute())
+            && ! $allowsHistoricalCorrection
+        ) {
+            throw ValidationException::withMessages([
+                'departure_time' =>
+                    'Trip departure must be the current time or a future time.',
+            ]);
+        }
+
+        return $validated;
+    }
+
+    private function assertMinimumRouteDepartureInterval(
+        string $tripDate,
+        ShuttleRoute $route,
+        Carbon $departure,
+        ?int $ignoreTripId = null
+    ): void {
+        $conflictingTrip = $this->findRouteDepartureConflict(
+            $tripDate,
+            $route,
+            $departure,
+            $ignoreTripId
+        );
+
+        if ($conflictingTrip === null) {
+            return;
+        }
+
+        $existingDeparture = Carbon::parse(
+            $conflictingTrip->departure_time
+        );
+
+        $differenceMinutes = abs(
+            $this->minutesFromMidnight($existingDeparture)
+            - $this->minutesFromMidnight($departure)
+        );
+
+        if ($differenceMinutes === 0) {
+            throw ValidationException::withMessages([
+                'departure_time' => sprintf(
+                    'Duplicate trip: %s is already scheduled on %s at %s.',
+                    $route->route_code,
+                    Carbon::parse($tripDate)->format('M d, Y'),
+                    $departure->format('g:i A')
+                ),
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'departure_time' => sprintf(
+                'Departure too close: %s already has a trip at %s. Keep at least %d minutes between departures for the same route.',
+                $route->route_code,
+                $existingDeparture->format('g:i A'),
+                self::MIN_ROUTE_DEPARTURE_INTERVAL_MINUTES
+            ),
         ]);
     }
 
-    private function resolveArrivalTime(
+    private function findRouteDepartureConflict(
+        string $tripDate,
+        ShuttleRoute $route,
         Carbon $departure,
-        ?string $manualArrival,
-        mixed $routeDuration
-    ): Carbon {
-        if ($manualArrival) {
-            $arrival = Carbon::createFromFormat(
-                'H:i',
-                $manualArrival
-            );
+        ?int $ignoreTripId = null
+    ): ?TripSchedule {
+        $query = TripSchedule::query()
+            ->whereDate('trip_date', $tripDate)
+            ->where('shuttle_route_id', $route->id)
+            ->where('status', '!=', 'Cancelled')
+            ->lockForUpdate();
 
-            if ($arrival->lessThanOrEqualTo($departure)) {
-                $arrival->addDay();
-            }
-
-            return $arrival;
+        if ($ignoreTripId !== null) {
+            $query->where('id', '!=', $ignoreTripId);
         }
 
-        $durationMinutes = max(
-            1,
-            (int) ($routeDuration ?: 60)
+        $departureMinutes = $this->minutesFromMidnight(
+            $departure
         );
 
+        return $query
+            ->get([
+                'id',
+                'departure_time',
+            ])
+            ->first(
+                function (TripSchedule $trip) use ($departureMinutes): bool {
+                    $existingDeparture = Carbon::parse(
+                        $trip->departure_time
+                    );
+
+                    $differenceMinutes = abs(
+                        $this->minutesFromMidnight($existingDeparture)
+                        - $departureMinutes
+                    );
+
+                    return $differenceMinutes
+                        < self::MIN_ROUTE_DEPARTURE_INTERVAL_MINUTES;
+                }
+            );
+    }
+
+    private function assertEditableTripState(
+        TripSchedule $tripSchedule
+    ): void {
+        if (! $this->tripCanBeEdited($tripSchedule)) {
+            throw ValidationException::withMessages([
+                'trip_schedule' =>
+                    'This trip is no longer editable because it is assigned, dispatched, completed, or already has operational history.',
+            ]);
+        }
+    }
+
+    private function tripCanBeEdited(
+        TripSchedule $tripSchedule
+    ): bool {
+        return $tripSchedule->canBeManagedFromSchedule();
+    }
+
+    private function rememberTripValidation(
+        Request $request,
+        string $mode,
+        ?int $tripId = null,
+        ?string $tripCode = null
+    ): void {
+        session()->flash('trip_validation_mode', $mode);
+        session()->flash('trip_validation_id', $tripId);
+        session()->flash('trip_validation_code', $tripCode);
+        session()->flashInput(
+            $request->except([
+                '_token',
+                '_method',
+            ])
+        );
+    }
+
+    private function departureDateTime(
+        string $tripDate,
+        string $departureTime
+    ): Carbon {
+        return Carbon::createFromFormat(
+            'Y-m-d H:i',
+            "{$tripDate} {$departureTime}",
+            config('app.business_timezone', 'Asia/Manila')
+        );
+    }
+
+    private function resolveArrivalDateTime(
+        Carbon $departure,
+        int $routeDurationMinutes
+    ): Carbon {
         return $departure
             ->copy()
-            ->addMinutes($durationMinutes);
+            ->addMinutes(
+                max(1, $routeDurationMinutes)
+            );
+    }
+
+    private function routeDurationMinutes(
+        ShuttleRoute $route
+    ): int {
+        return max(
+            1,
+            (int) (
+                $route->calculated_time_minutes
+                ?: $route->estimated_time_minutes
+                ?: 60
+            )
+        );
+    }
+
+    private function minutesFromMidnight(
+        Carbon $time
+    ): int {
+        return (
+            ((int) $time->format('H')) * 60
+        ) + (int) $time->format('i');
+    }
+
+    private function tripCodeFromId(
+        int $tripId
+    ): string {
+        return 'T-' . str_pad(
+            (string) $tripId,
+            3,
+            '0',
+            STR_PAD_LEFT
+        );
     }
 
     private function detectShift(Carbon $departure): string
     {
-        $minutes = (
-            ((int) $departure->format('H')) * 60
-        ) + (int) $departure->format('i');
-
-        if ($minutes >= 240 && $minutes < 720) {
-            return 'Morning';
-        }
-
-        if ($minutes >= 720 && $minutes < 1080) {
-            return 'Afternoon';
-        }
-
-        return 'Night';
+        return TripSchedule::shiftForDeparture($departure);
     }
 }

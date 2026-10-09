@@ -4,12 +4,13 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/scheduled-purchase.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Purchase/scheduled-purchase.js'
   ]"
 >
   <x-layout.sidebar department="Purchase" />
 
-  <main class="main scheduled-purchase-page">
+  <main class="main scheduled-purchase-page purchase-module-page records-page">
     <x-layout.topbar
       title="Scheduled Purchase"
       subtitle="Plan recurring purchases and create purchase orders when schedules become due"
@@ -23,12 +24,17 @@
       <x-ui.summary-card label="Due This Month" value="{{ $dueThisMonth }}" small="Upcoming purchases" icon="fa-clock" color="red" />
     </section>
 
-    <section data-ajax-region="records" class="table-card schedule-card">
+    <section data-ajax-region="records" class="table-card schedule-card records-card">
       <div class="section-header">
-        <div><h2>Recurring Purchase Schedules</h2><p>Track items, suppliers, frequency, due dates, and estimated costs.</p></div>
+        <div>
+          <span class="purchase-section-eyebrow">PROCUREMENT PLANNING</span>
+          <h2>Recurring Purchase Schedules</h2>
+          <p>Track items, suppliers, frequency, due dates, and estimated costs.</p>
+        </div>
+        <span class="purchase-section-count">{{ $schedules->total() }} schedules</span>
       </div>
 
-      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar" data-server-filter="true">
+      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar records-toolbar" data-server-filter="true">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" name="search" value="{{ request('search') }}" placeholder="Search schedule, supplier, item, or frequency...">
@@ -56,8 +62,8 @@
         <button type="button" id="openScheduleModal" class="primary-btn"><i class="fa-solid fa-plus"></i> New Schedule</button>
       </form>
 
-      <div class="table-wrap">
-        <table class="schedule-table">
+      <div class="table-wrap records-table-wrap">
+        <table class="schedule-table records-table">
           <thead>
             <tr>
               <th>Schedule</th><th>Supplier</th><th>Item</th><th class="center-text">Qty</th><th class="center-text">Frequency</th><th class="center-text">Next Purchase</th><th class="center-text">Estimated Cost</th><th class="center-text">Status</th><th class="center-text">Actions</th>
@@ -81,7 +87,7 @@
                 <td class="center-text amount-cell">₱{{ number_format((float) $schedule->estimated_cost, 2) }}</td>
                 <td class="center-text"><x-ui.status-badge :status="$displayStatus" /></td>
                 <td class="center-text">
-                  <div class="actions">
+                  <div class="actions record-actions">
                     <button type="button" class="action-btn view open-view-schedule" title="View" data-schedule='@json($schedule)'><i class="fa-solid fa-eye"></i></button>
                     <button type="button" class="action-btn edit open-edit-schedule" title="Edit" data-schedule='@json($schedule)' data-update-url="{{ route('scheduled-purchase.update', $schedule) }}"><i class="fa-solid fa-pen-to-square"></i></button>
 

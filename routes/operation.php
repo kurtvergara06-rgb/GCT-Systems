@@ -17,13 +17,21 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
 
     Route::view('/operation/dashboard', 'Operation.dashboard-operation')->name('dashboard-operation');
 
-    Route::controller(BusController::class)->prefix('bus-master-list')->group(function () {
-        Route::get('/', 'index')->name('bus-master-list');
-        Route::post('/', 'store')->name('bus-master-list.store');
-        Route::post('/import', 'import')->name('bus-master-list.import');
-        Route::put('/{bus}', 'update')->name('bus-master-list.update');
-        Route::delete('/{bus}', 'destroy')->name('bus-master-list.destroy');
-    });
+    Route::controller(BusController::class)
+        ->prefix('bus-master-list')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('bus-master-list');
+            Route::post('/', 'store')
+                ->middleware('system.permission:operation,edit')
+                ->name('bus-master-list.store');
+            Route::put('/{bus}', 'update')
+                ->middleware('system.permission:operation,edit')
+                ->name('bus-master-list.update');
+            Route::delete('/{bus}', 'destroy')
+                ->middleware('system.permission:operation,edit')
+                ->name('bus-master-list.destroy');
+        });
 
     Route::controller(DriverAttendanceController::class)->prefix('driver-attendance')->group(function () {
         Route::get('/', 'index')->name('driver-attendance');
@@ -40,28 +48,56 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::put('/operation/routes/{shuttleRoute}', [RouteController::class, 'update'])->name('operation.routes.update');
     Route::delete('/operation/routes/{shuttleRoute}', [RouteController::class, 'destroy'])->name('operation.routes.destroy');
     Route::get('/operation/routes/location-search', [RouteController::class, 'searchLocations'])->middleware('throttle:60,1')->name('operation.routes.location-search');
+    Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware('throttle:60,1')->name('operation.routes.reverse-location');
     Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware('throttle:60,1')->name('operation.routes.calculate');
 
-    Route::controller(TripScheduleController::class)->prefix('operation/trip-schedule')->group(function () {
-        Route::get('/', 'index')->name('trip-schedule');
-        Route::post('/', 'store')->name('trip-schedule.store');
-        Route::put('/{tripSchedule}', 'update')->name('trip-schedule.update');
-        Route::delete('/{tripSchedule}', 'destroy')->name('trip-schedule.destroy');
-    });
+    Route::controller(TripScheduleController::class)
+        ->prefix('operation/trip-schedule')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('trip-schedule');
+            Route::post('/', 'store')
+                ->middleware('system.permission:operation,edit')
+                ->name('trip-schedule.store');
+            Route::put('/{tripSchedule}', 'update')
+                ->middleware('system.permission:operation,edit')
+                ->name('trip-schedule.update');
+            Route::delete('/{tripSchedule}', 'destroy')
+                ->middleware('system.permission:operation,edit')
+                ->name('trip-schedule.destroy');
+        });
 
-    Route::controller(TripAssignmentController::class)->prefix('operation/driver-bus-assignment')->group(function () {
-        Route::get('/', 'index')->name('driver-bus-assignment');
-        Route::post('/', 'store')->name('driver-bus-assignment.store');
-        Route::put('/{tripAssignment}', 'update')->name('driver-bus-assignment.update');
-        Route::delete('/{tripAssignment}', 'destroy')->name('driver-bus-assignment.destroy');
-    });
+    Route::controller(TripAssignmentController::class)
+        ->prefix('operation/driver-bus-assignment')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('driver-bus-assignment');
+            Route::get('/availability/{tripSchedule}', 'availability')
+                ->name('driver-bus-assignment.availability');
+            Route::post('/', 'store')
+                ->middleware('system.permission:operation,edit')
+                ->name('driver-bus-assignment.store');
+            Route::put('/{tripAssignment}', 'update')
+                ->middleware('system.permission:operation,edit')
+                ->name('driver-bus-assignment.update');
+            Route::delete('/{tripAssignment}', 'destroy')
+                ->middleware('system.permission:operation,edit')
+                ->name('driver-bus-assignment.destroy');
+        });
 
-    Route::controller(AutoSchedulingController::class)->prefix('operation/auto-scheduling')->group(function () {
-        Route::get('/', 'index')->name('auto-scheduling');
-        Route::post('/generate', 'generate')->name('auto-scheduling.generate');
-        Route::post('/confirm', 'confirm')->name('auto-scheduling.confirm');
-        Route::post('/resolve', 'resolve')->name('auto-scheduling.resolve');
-    });
+    Route::controller(AutoSchedulingController::class)
+        ->prefix('operation/auto-scheduling')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('auto-scheduling');
+            Route::post('/generate', 'generate')->name('auto-scheduling.generate');
+            Route::post('/confirm', 'confirm')
+                ->middleware('system.permission:operation,edit')
+                ->name('auto-scheduling.confirm');
+            Route::post('/resolve', 'resolve')
+                ->middleware('system.permission:operation,edit')
+                ->name('auto-scheduling.resolve');
+        });
 
     Route::redirect('/operation/auto-dispatch', '/operation/auto-scheduling')->name('auto-dispatch');
     Route::get('/operation/trip-records', [TripRecordController::class, 'index'])->name('trip-records');

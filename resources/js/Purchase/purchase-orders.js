@@ -5,7 +5,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
   const openPoModalBtn = document.getElementById('openPoModal');
   const closePoModalBtn = document.getElementById('closePoModal');
   const cancelPoModalBtn = document.getElementById('cancelPoModal');
-  const closeViewPoModalBtn = document.getElementById('closeViewPoModal');
   const addPoItemBtn = document.getElementById('addPoItemBtn');
   const poRequestReference = document.getElementById('poRequestReference');
 
@@ -36,6 +35,14 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     if (target) {
       target.value = value ?? '';
+    }
+  };
+
+  const setText = (id, value) => {
+    const target = field(id);
+
+    if (target) {
+      target.textContent = value ?? '';
     }
   };
 
@@ -79,6 +86,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     });
 
     setValue('net_amount_display', money(total));
+    setText('po_subtotal_display', money(total));
   };
 
   const syncRequestNoToItems = () => {
@@ -215,11 +223,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     const viewActions = field('poViewActions');
 
     if (editActions) {
-      editActions.style.display = viewOnly ? 'none' : 'flex';
+      editActions.classList.toggle('hidden', viewOnly);
     }
 
     if (viewActions) {
-      viewActions.style.display = viewOnly ? 'flex' : 'none';
+      viewActions.classList.add('hidden');
     }
   };
 
@@ -237,11 +245,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('po_status', 'Ordered');
     setValue('main_pr_no', '');
     setValue('net_amount_display', money(0));
-
-    const title = field('poModalTitle');
-    if (title) {
-      title.textContent = 'New Purchase Order';
-    }
+    setText('po_subtotal_display', money(0));
+    setText('poModalTitle', 'New Purchase Order');
+    setText('poModalSubtitle', 'Create and review a supplier purchase order.');
+    setText('poSaveButtonLabel', 'Save Purchase Order');
+    setText('poActionHint', 'Review items before saving.');
 
     renderItems([]);
     syncRequestReference();
@@ -267,7 +275,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   const configureExistingForm = (button, mode) => {
     const status = button.dataset.status || 'Ordered';
-    const isViewOnly = mode === 'view' || status.toLowerCase() !== 'draft';
+    const isViewOnly = mode === 'view';
     const items = parseItems(button);
     const firstItem = items[0] || {};
 
@@ -284,10 +292,18 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('po_status', status);
     setValue('main_pr_no', firstItem.pr_no || '');
 
-    const title = field('poModalTitle');
-    if (title) {
-      title.textContent = isViewOnly ? 'Purchase Order Details' : 'Edit Purchase Order';
-    }
+    setText(
+      'poModalTitle',
+      isViewOnly ? 'Purchase Order Details' : 'Edit Purchase Order'
+    );
+    setText(
+      'poModalSubtitle',
+      isViewOnly
+        ? 'Review this purchase order and its item details.'
+        : 'Review and update this supplier purchase order.'
+    );
+    setText('poSaveButtonLabel', 'Save Changes');
+    setText('poActionHint', 'Review changes before saving.');
 
     renderItems(items);
     syncRequestReference();
@@ -303,7 +319,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   closePoModalBtn?.addEventListener('click', () => closeModal(poModal));
   cancelPoModalBtn?.addEventListener('click', () => closeModal(poModal));
-  closeViewPoModalBtn?.addEventListener('click', () => closeModal(poModal));
 
   addPoItemBtn?.addEventListener('click', () => {
     createItemRow({}, itemsContainer.querySelectorAll('.po-item-row').length);

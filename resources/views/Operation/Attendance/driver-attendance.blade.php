@@ -52,6 +52,7 @@
           action="{{ route('driver-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
+          data-server-filter="true"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -65,7 +66,7 @@
 
           <div class="filter-group">
             <label>Status</label>
-            <select name="status" onchange="this.form.submit()">
+            <select name="status">
               <option value="All Status" {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}>All Status</option>
               <option value="Present" {{ request('status') === 'Present' ? 'selected' : '' }}>Present</option>
               <option value="Late" {{ request('status') === 'Late' ? 'selected' : '' }}>Late</option>
@@ -75,14 +76,17 @@
             </select>
           </div>
 
-          <button
-            type="button"
-            id="openImportDriverAttendanceModal"
-            class="secondary-btn import-btn"
-          >
-            <i class="fa-solid fa-file-import"></i>
-            Import Data
-          </button>
+          <div class="filter-group">
+            <label class="sr-only" for="driverAttendanceFilterDate">Attendance Date</label>
+            <input
+              type="date"
+              id="driverAttendanceFilterDate"
+              name="attendance_date"
+              value="{{ $summaryDate }}"
+              aria-label="Filter attendance by date"
+              title="Choose attendance date"
+            >
+          </div>
 
           <button
             type="button"
@@ -96,14 +100,13 @@
 
         <div class="table-wrap">
           <table class="attendance-table">
+            <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Driver</th>
-                <th>Role</th>
                 <th>Shift</th>
                 <th>Current Assignment</th>
-                <th>Date</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
                 <th>Status</th>
@@ -148,8 +151,7 @@
                 <tr>
                   <td>{{ $attendance->driver_id }}</td>
                   <td>{{ $attendance->driver_name }}</td>
-                  <td>Driver</td>
-                  <td>{{ $attendance->shift }}</td>
+                  <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
@@ -168,13 +170,12 @@
                         @endif
                       </div>
                     @else
-                      <span class="current-assignment-empty">Unassigned</span>
+                      <span class="gct-pill gct-pill--unassigned">Unassigned</span>
                     @endif
                   </td>
-                  <td>{{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}</td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
-                  <td><span class="badge {{ $statusClass }}">{{ $attendance->status }}</span></td>
+                  <td><span class="badge gct-pill gct-pill--attendance {{ $statusClass }}">{{ $attendance->status }}</span></td>
                   <td>
                     <div class="actions">
                       <button
@@ -232,7 +233,7 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="10" message="No driver attendance records found." />
+                <x-ui.empty-row colspan="8" message="No driver attendance records found." />
               @endforelse
             </tbody>
           </table>
@@ -241,48 +242,6 @@
         <x-ui.table-footer :items="$driverAttendances" />
       </section>
     </main>
-  </div>
-
-  <div id="importDriverAttendanceModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2>Import Driver Attendance Data</h2>
-        <button type="button" id="closeImportDriverAttendanceModal" class="close-btn">&times;</button>
-      </div>
-
-      <form
-        id="importDriverAttendanceForm"
-        action="{{ route('driver-attendance.import', [], false) }}"
-        method="POST"
-        enctype="multipart/form-data"
-        class="job-form"
-        data-confirm-form
-        data-confirm-title="Import Driver Attendance?"
-        data-confirm-message="Are you sure you want to import these driver attendance records?"
-        data-confirm-button="Yes, Import Data"
-        data-confirm-type="warning"
-      >
-        @csrf
-        <div class="form-section-title full-width">
-          <h3>Upload CSV File</h3>
-          <p>Upload driver attendance records using a CSV file.</p>
-        </div>
-        <div class="form-group full-width">
-          <label>CSV File</label>
-          <input type="file" name="import_file" accept=".csv,.txt" required>
-        </div>
-        <div class="form-group full-width">
-          <small>Required columns: driver_name, shift, attendance_date, time_in, time_out, status</small>
-        </div>
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelImportDriverAttendanceModal" class="cancel-btn">Cancel</button>
-          <button type="submit" class="save-btn">
-            <i class="fa-solid fa-file-import"></i>
-            Import Data
-          </button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <x-ui.form-modal

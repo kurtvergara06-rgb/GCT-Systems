@@ -4,13 +4,14 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main purchase-maintenance-requests-page">
+    <main class="main purchase-maintenance-requests-page purchase-module-page records-page">
       <x-layout.topbar
         title="Requested Purchases"
         subtitle="Purchase Department request inbox from Warehouse"
@@ -48,18 +49,20 @@
         />
       </section>
 
-      <section data-ajax-region="records" class="table-card requested-purchase-card">
+      <section data-ajax-region="records" class="table-card requested-purchase-card records-card">
         <div class="section-header">
           <div>
+            <span class="purchase-section-eyebrow">REQUEST INBOX</span>
             <h2>Requested Purchase Records</h2>
             <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
           </div>
+          <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
         <form
           action="{{ route('maintenance-requests', [], false) }}"
           method="GET"
-          class="toolbar requested-toolbar"
+          class="toolbar requested-toolbar records-toolbar"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -89,8 +92,8 @@
           </div>
         </form>
 
-        <div class="table-wrap">
-          <table class="requested-purchase-table">
+        <div class="table-wrap records-table-wrap">
+          <table class="requested-purchase-table records-table">
             <thead>
               <tr>
                 <th>PR #</th>
@@ -128,7 +131,7 @@
                     {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
                   </td>
                   <td>
-                    <div class="actions">
+                    <div class="actions record-actions">
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal"

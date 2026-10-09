@@ -469,8 +469,15 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp->assertSee('name="search"', false);
         $resp->assertSee('name="trip_date"', false);
         $resp->assertSee('name="status"', false);
-        $resp->assertSee('Generate Daily Trips', false);
+        $resp->assertDontSee('Generate Daily Trips', false);
+        $resp->assertDontSee('id="generateTripsModal"', false);
         $resp->assertSee('New Trip', false);
+        $resp->assertSee('id="tripModal"', false);
+        $resp->assertSee('id="tripModalTitle"', false);
+        $resp->assertSee('id="tripSubmitText"', false);
+        $resp->assertSee('id="viewTripModal"', false);
+        $resp->assertSee('trip-editor-intro', false);
+        $resp->assertSee('trip-details-hero', false);
     }
 
     // =========================================================================
@@ -751,7 +758,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
         ]));
     }
 
-
     public function test_inventory_movement_modal_uses_ajax_without_page_navigation(): void
     {
         $js = file_get_contents(
@@ -775,11 +781,11 @@ class FrontendUiUxComprehensiveTest extends TestCase
             $js
         );
         $this->assertStringContainsString(
-            "data-movement-history-filter",
+            'data-movement-history-filter',
             $js
         );
         $this->assertStringContainsString(
-            "ajax:content-updated",
+            'ajax:content-updated',
             $js
         );
         $this->assertStringContainsString(
@@ -809,5 +815,32 @@ class FrontendUiUxComprehensiveTest extends TestCase
                 "Purchase page '{$label}' failed with status {$resp->status()} at {$url}"
             );
         }
+    }
+
+    public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
+    {
+        Driver::create([
+            'driver_id' => 'DRV-UI-ENCODE-1',
+            'driver_name' => 'Driver UI Regression',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+
+        $response = $this->actingAs($this->operationUser)
+            ->get(route('operation.personnel.drivers'));
+
+        $response->assertOk();
+        $html = (string) $response->getContent();
+
+        // The browser decodes HTML entities before JSON.parse receives them.
+        $this->assertSame(
+            Driver::query()->count() * 2,
+            substr_count($html, 'data-record="{&quot;driver_id&quot;:')
+        );
+        $this->assertStringNotContainsString('&amp;quot;driver_id', $html);
+        $this->assertStringContainsString('data-personnel-action="view"', $html);
+        $this->assertStringContainsString('data-personnel-action="edit"', $html);
+        $this->assertStringContainsString('data-personnel-modal', $html);
+        $this->assertStringContainsString('data-personnel-view-notice', $html);
     }
 }

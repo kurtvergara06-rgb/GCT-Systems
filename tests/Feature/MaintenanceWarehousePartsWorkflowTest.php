@@ -227,5 +227,46 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'reference_no' => $purchaseRequest->pr_no,
         ]);
     }
+    public function test_similar_inventory_names_are_not_fuzzily_issued(): void
+    {
+        $warehouseStaff = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        $similarItem = InventoryItem::create([
+            'item_code' => 'ENG-OIL-FLTR',
+            'item_name' => 'Engine Oil Filter',
+            'parts_name' => 'Engine Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 10,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 2,
+        ]);
+
+        $purchaseRequest = PurchaseRequest::create([
+            'pr_no' => 'PR-STRICT-MATCH-001',
+            'job_order_no' => 'JO-STRICT-MATCH-001',
+            'bus_no' => 'BUS-STRICT-001',
+            'item' => 'Oil Filter - Qty: 1 pcs',
+            'quantity' => 1,
+            'status' => 'Approved',
+            'source_type' => 'Maintenance Request',
+        ]);
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $purchaseRequest))
+            ->assertSessionHasErrors('stock');
+
+        $this->assertSame(10, (int) $similarItem->fresh()->quantity_available);
+        $this->assertSame('Approved', $purchaseRequest->fresh()->status);
+        $this->assertSame(
+            0,
+            InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count()
+        );
+    }
+
+
 }
 

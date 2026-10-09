@@ -7,10 +7,12 @@ use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -18,9 +20,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use App\Services\OperationAiService;
+use Carbon\Carbon;
 
 class AutoSchedulingController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     public function __construct(
         private readonly OperationAiService $operationAi
     ) {
@@ -34,7 +39,7 @@ class AutoSchedulingController extends Controller
     {
         $selectedDate = $request->string(
             'schedule_date',
-            now()->toDateString()
+            now(config('app.business_timezone', 'Asia/Manila'))->toDateString()
         )->toString();
 
         $selectedShift = $request->string(
@@ -48,6 +53,7 @@ class AutoSchedulingController extends Controller
         );
 
         $tripQuery = TripSchedule::query()
+            ->notDeparted()
             ->whereDate(
                 'trip_date',
                 $selectedDate
@@ -59,6 +65,14 @@ class AutoSchedulingController extends Controller
             ->where(
                 'status',
                 'Scheduled'
+            )
+            ->whereHas(
+                'shuttleRoute',
+                fn ($query) =>
+                    $query->where(
+                        'status',
+                        'Active'
+                    )
             );
 
         if ($selectedShift !== 'all') {
@@ -80,6 +94,7 @@ class AutoSchedulingController extends Controller
 
         $availableDriverQuery =
             DriverAttendance::query()
+                ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
                 ->whereDate(
                     'attendance_date',
                     $selectedDate
@@ -111,6 +126,7 @@ class AutoSchedulingController extends Controller
 
         $unavailableDrivers =
             DriverAttendance::query()
+                ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
                 ->whereDate(
                     'attendance_date',
                     $selectedDate
@@ -210,6 +226,7 @@ class AutoSchedulingController extends Controller
 
         $trips = TripSchedule::query()
             ->with('shuttleRoute')
+            ->notDeparted()
             ->whereDate(
                 'trip_date',
                 $scheduleDate
@@ -221,6 +238,14 @@ class AutoSchedulingController extends Controller
             ->where(
                 'status',
                 'Scheduled'
+            )
+            ->whereHas(
+                'shuttleRoute',
+                fn ($query) =>
+                    $query->where(
+                        'status',
+                        'Active'
+                    )
             )
             ->when(
                 $selectedShift !== 'all',
@@ -248,6 +273,7 @@ class AutoSchedulingController extends Controller
             ->get();
 
         $drivers = DriverAttendance::query()
+            ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
             ->whereDate(
                 'attendance_date',
                 $scheduleDate
@@ -297,9 +323,19 @@ class AutoSchedulingController extends Controller
                         $scheduleDate
                     ) {
                         $query
-                            ->whereDate(
+                            ->whereIn(
                                 'trip_date',
-                                $scheduleDate
+                                [
+                                    date(
+                                        'Y-m-d',
+                                        strtotime($scheduleDate . ' -1 day')
+                                    ),
+                                    $scheduleDate,
+                                    date(
+                                        'Y-m-d',
+                                        strtotime($scheduleDate . ' +1 day')
+                                    ),
+                                ]
                             )
                             ->whereNotIn(
                                 'status',
@@ -312,8 +348,16 @@ class AutoSchedulingController extends Controller
                 )
                 ->get();
 
-        $driverWorkloads =
+        $workloadAssignments =
             $existingAssignments
+                ->filter(
+                    fn (TripAssignment $assignment): bool =>
+                        $assignment->tripSchedule?->trip_date?->format('Y-m-d')
+                            === $scheduleDate
+                );
+
+        $driverWorkloads =
+            $workloadAssignments
                 ->groupBy('driver_id')
                 ->map(
                     fn (Collection $items): int =>
@@ -321,7 +365,7 @@ class AutoSchedulingController extends Controller
                 );
 
         $busWorkloads =
-            $existingAssignments
+            $workloadAssignments
                 ->groupBy('bus_id')
                 ->map(
                     fn (Collection $items): int =>
@@ -725,6 +769,7 @@ class AutoSchedulingController extends Controller
             );
 
             $trips = TripSchedule::query()
+                ->with('shuttleRoute')
                 ->whereIn(
                     'id',
                     $recommendations->pluck('trip_schedule_id')
@@ -754,8 +799,23 @@ class AutoSchedulingController extends Controller
             $tripDates = $trips
                 ->pluck('trip_date')
                 ->filter()
-                ->map(fn ($date) => $date->format('Y-m-d'))
-                ->unique();
+                ->flatMap(function ($date): array {
+                    $formatted = $date->format('Y-m-d');
+
+                    return [
+                        date(
+                            'Y-m-d',
+                            strtotime($formatted . ' -1 day')
+                        ),
+                        $formatted,
+                        date(
+                            'Y-m-d',
+                            strtotime($formatted . ' +1 day')
+                        ),
+                    ];
+                })
+                ->unique()
+                ->values();
 
             $existingAssignments = TripAssignment::query()
                 ->with('tripSchedule')
@@ -790,6 +850,9 @@ class AutoSchedulingController extends Controller
                     !$trip
                     || $trip->assignment_status !== 'Unassigned'
                     || $trip->status !== 'Scheduled'
+                    || $trip->hasDeparted()
+                    || ! $trip->shuttleRoute
+                    || $trip->shuttleRoute->status !== 'Active'
                 ) {
                     throw ValidationException::withMessages([
                         $field => 'A selected trip is no longer available for assignment. Generate the schedule again.',
@@ -801,6 +864,11 @@ class AutoSchedulingController extends Controller
                     || !in_array($driver->status, ['Present', 'Late'], true)
                     || !$driver->attendance_date?->isSameDay($trip->trip_date)
                     || $driver->shift !== $trip->shift
+                    || ! Driver::query()
+                        ->where('driver_id', $driver->driver_id)
+                        ->where('employment_status', 'Active')
+                        ->lockForUpdate()
+                        ->first()
                 ) {
                     throw ValidationException::withMessages([
                         $field => 'A selected driver is no longer eligible for this trip. Generate the schedule again.',
@@ -852,6 +920,18 @@ class AutoSchedulingController extends Controller
 
             return $recommendations->count();
         });
+
+        $firstTripId = (int) collect(
+            $validated['recommendations']
+        )->pluck('trip_schedule_id')->first();
+
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'updated',
+            $firstTripId,
+            "{$savedCount} auto-scheduled trip assignment(s) were saved."
+        );
 
         return response()->json([
             'success' => true,
@@ -1337,12 +1417,9 @@ class AutoSchedulingController extends Controller
             }
 
             if (
-                !$this->timesOverlap(
-                    $trip->departure_time,
-                    $trip->estimated_arrival_time,
-                    $assignedTrip->departure_time,
+                ! $this->tripSchedulesOverlap(
+                    $trip,
                     $assignedTrip
-                        ->estimated_arrival_time
                 )
             ) {
                 continue;
@@ -1425,12 +1502,9 @@ class AutoSchedulingController extends Controller
             }
 
             if (
-                !$this->timesOverlap(
-                    $trip->departure_time,
-                    $trip->estimated_arrival_time,
-                    $assignedTrip->departure_time,
+                ! $this->tripSchedulesOverlap(
+                    $trip,
                     $assignedTrip
-                        ->estimated_arrival_time
                 )
             ) {
                 continue;
@@ -1540,6 +1614,9 @@ public function resolve(Request $request): JsonResponse
                 $trip->status !== 'Scheduled'
                 || $trip->assignment_status
                     !== 'Unassigned'
+                || $trip->hasDeparted()
+                || ! $trip->shuttleRoute
+                || $trip->shuttleRoute->status !== 'Active'
             ) {
                 throw ValidationException::withMessages([
                     'trip_schedule_id' =>
@@ -1553,59 +1630,44 @@ public function resolve(Request $request): JsonResponse
             |--------------------------------------------------------------------------
             */
 
-            $originalStart = strtotime(
-                $trip->trip_date->format('Y-m-d')
-                . ' '
-                . $this->databaseTime(
-                    $trip->departure_time
-                )
-            );
+            $originalStart =
+                $trip->departureDateTime()->timestamp;
 
-            $originalEnd = strtotime(
-                $trip->trip_date->format('Y-m-d')
-                . ' '
-                . $this->databaseTime(
-                    $trip->estimated_arrival_time
-                )
-            );
+            $originalEnd =
+                $trip->estimatedArrivalDateTime()->timestamp;
 
-            if (
-                $originalStart === false
-                || $originalEnd === false
-            ) {
+            if ($originalEnd <= $originalStart) {
                 throw ValidationException::withMessages([
                     'trip_schedule_id' =>
-                        'The original trip time is invalid.',
+                        'The original trip timing is invalid.',
                 ]);
-            }
-
-            /*
-             * Handle trips ending after midnight.
-             */
-            if ($originalEnd <= $originalStart) {
-                $originalEnd += 86400;
             }
 
             $durationSeconds =
                 $originalEnd - $originalStart;
 
-            $proposedStart = strtotime(
+            $proposedDeparture = Carbon::createFromFormat(
+                'Y-m-d H:i:s',
                 $trip->trip_date->format('Y-m-d')
-                . ' '
-                . $validated[
-                    'proposed_departure_time'
-                ]
+                    . ' '
+                    . $validated['proposed_departure_time'],
+                config('app.business_timezone', 'Asia/Manila')
             );
+            $proposedStart = $proposedDeparture->timestamp;
 
-            if ($proposedStart === false) {
+            if (
+                $proposedStart
+                < now(config('app.business_timezone', 'Asia/Manila'))->startOfMinute()->timestamp
+            ) {
                 throw ValidationException::withMessages([
                     'proposed_departure_time' =>
-                        'The proposed departure time is invalid.',
+                        'The proposed departure must be the current time or a future time.',
                 ]);
             }
 
-            $proposedEnd =
-                $proposedStart + $durationSeconds;
+            $proposedArrival = $proposedDeparture
+                ->copy()
+                ->addSeconds($durationSeconds);
 
             /*
             |--------------------------------------------------------------------------
@@ -1617,16 +1679,16 @@ public function resolve(Request $request): JsonResponse
             |
             */
 
-            $trip->departure_time =
-                date('H:i:s', $proposedStart);
-
-            $trip->estimated_arrival_time =
-                date('H:i:s', $proposedEnd);
+            $trip->departure_time = $proposedDeparture->format('H:i:s');
+            $trip->estimated_arrival_time = $proposedArrival->format('H:i:s');
+            $trip->estimated_arrival_date = $proposedArrival->toDateString();
+            $trip->shift = TripSchedule::shiftForDeparture($proposedDeparture);
 
             $scheduleDate =
                 $trip->trip_date->format('Y-m-d');
 
             $drivers = DriverAttendance::query()
+                ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
                 ->whereDate(
                     'attendance_date',
                     $scheduleDate
@@ -1671,9 +1733,19 @@ public function resolve(Request $request): JsonResponse
                             $scheduleDate
                         ) {
                             $query
-                                ->whereDate(
+                                ->whereIn(
                                     'trip_date',
-                                    $scheduleDate
+                                    [
+                                        date(
+                                            'Y-m-d',
+                                            strtotime($scheduleDate . ' -1 day')
+                                        ),
+                                        $scheduleDate,
+                                        date(
+                                            'Y-m-d',
+                                            strtotime($scheduleDate . ' +1 day')
+                                        ),
+                                    ]
                                 )
                                 ->whereNotIn(
                                     'status',
@@ -1687,8 +1759,16 @@ public function resolve(Request $request): JsonResponse
                     ->lockForUpdate()
                     ->get();
 
-            $driverWorkloads =
+            $workloadAssignments =
                 $existingAssignments
+                    ->filter(
+                        fn (TripAssignment $assignment): bool =>
+                            $assignment->tripSchedule?->trip_date?->format('Y-m-d')
+                                === $scheduleDate
+                    );
+
+            $driverWorkloads =
+                $workloadAssignments
                     ->groupBy('driver_id')
                     ->map(
                         fn (Collection $items): int =>
@@ -1696,7 +1776,7 @@ public function resolve(Request $request): JsonResponse
                     );
 
             $busWorkloads =
-                $existingAssignments
+                $workloadAssignments
                     ->groupBy('bus_id')
                     ->map(
                         fn (Collection $items): int =>
@@ -1729,6 +1809,15 @@ public function resolve(Request $request): JsonResponse
                     workloads:
                         $busWorkloads
                 );
+
+            if ($driver && ! Driver::query()
+                ->where('driver_id', $driver->driver_id)
+                ->where('employment_status', 'Active')
+                ->lockForUpdate()
+                ->first()
+            ) {
+                $driver = null;
+            }
 
             if (!$driver || !$bus) {
                 $messages = [];
@@ -1803,23 +1892,12 @@ public function resolve(Request $request): JsonResponse
                 ]);
 
             $trip->update([
-                'departure_time' =>
-                    date(
-                        'H:i:s',
-                        $proposedStart
-                    ),
-
-                'estimated_arrival_time' =>
-                    date(
-                        'H:i:s',
-                        $proposedEnd
-                    ),
-
-                'assignment_status' =>
-                    'Assigned',
-
-                'status' =>
-                    'Ready',
+                'departure_time' => $proposedDeparture->format('H:i:s'),
+                'estimated_arrival_time' => $proposedArrival->format('H:i:s'),
+                'estimated_arrival_date' => $proposedArrival->toDateString(),
+                'shift' => $trip->shift,
+                'assignment_status' => 'Assigned',
+                'status' => 'Ready',
             ]);
 
             return [
@@ -1835,31 +1913,22 @@ public function resolve(Request $request): JsonResponse
                 'bus_no' =>
                     $bus->bus_no,
 
-                'departure_time' =>
-                    date(
-                        'H:i:s',
-                        $proposedStart
-                    ),
-
-                'departure_display' =>
-                    date(
-                        'g:i A',
-                        $proposedStart
-                    ),
-
-                'arrival_time' =>
-                    date(
-                        'H:i:s',
-                        $proposedEnd
-                    ),
-
-                'arrival_display' =>
-                    date(
-                        'g:i A',
-                        $proposedEnd
-                    ),
+                'departure_time' => $proposedDeparture->format('H:i:s'),
+                'departure_display' => $proposedDeparture->format('g:i A'),
+                'arrival_time' => $proposedArrival->format('H:i:s'),
+                'arrival_display' => $proposedArrival->format('g:i A'),
+                'arrival_date' => $proposedArrival->toDateString(),
+                'shift' => $trip->shift,
             ];
         }
+    );
+
+    $this->broadcastSystemDataUpdated(
+        'Operation',
+        'TripSchedule',
+        'updated',
+        (int) $validated['trip_schedule_id'],
+        "Trip {$result['trip_code']} was resolved and assigned."
     );
 
     return response()->json([
@@ -2024,14 +2093,9 @@ public function resolve(Request $request): JsonResponse
                         return false;
                     }
 
-                    return $this->timesOverlap(
-                        $trip->departure_time,
-                        $trip
-                            ->estimated_arrival_time,
+                    return $this->tripSchedulesOverlap(
+                        $trip,
                         $assignedTrip
-                            ->departure_time,
-                        $assignedTrip
-                            ->estimated_arrival_time
                     );
                 }
             );
@@ -2103,14 +2167,9 @@ public function resolve(Request $request): JsonResponse
                         return false;
                     }
 
-                    return $this->timesOverlap(
-                        $trip->departure_time,
-                        $trip
-                            ->estimated_arrival_time,
+                    return $this->tripSchedulesOverlap(
+                        $trip,
                         $assignedTrip
-                            ->departure_time,
-                        $assignedTrip
-                            ->estimated_arrival_time
                     );
                 }
             );
@@ -2151,6 +2210,20 @@ public function resolve(Request $request): JsonResponse
     }
 
 
+    private function tripSchedulesOverlap(
+        TripSchedule $first,
+        TripSchedule $second
+    ): bool {
+        $firstStart = $first->departureDateTime();
+        $firstEnd = $first->estimatedArrivalDateTime();
+        $secondStart = $second->departureDateTime();
+        $secondEnd = $second->estimatedArrivalDateTime();
+
+        return $firstStart->lt($secondEnd)
+            && $firstEnd->gt($secondStart);
+    }
+
+
     /**
      * Determine if two time ranges overlap.
      */
@@ -2160,25 +2233,72 @@ public function resolve(Request $request): JsonResponse
         mixed $secondStart,
         mixed $secondEnd
     ): bool {
-        $firstStartTimestamp =
-            strtotime((string) $firstStart);
+        $firstStartSeconds =
+            $this->secondsFromMidnight($firstStart);
 
-        $firstEndTimestamp =
-            strtotime((string) $firstEnd);
+        $firstEndSeconds =
+            $this->secondsFromMidnight($firstEnd);
 
-        $secondStartTimestamp =
-            strtotime((string) $secondStart);
+        $secondStartSeconds =
+            $this->secondsFromMidnight($secondStart);
 
-        $secondEndTimestamp =
-            strtotime((string) $secondEnd);
+        $secondEndSeconds =
+            $this->secondsFromMidnight($secondEnd);
+
+        if (
+            $firstStartSeconds === null
+            || $firstEndSeconds === null
+            || $secondStartSeconds === null
+            || $secondEndSeconds === null
+        ) {
+            return false;
+        }
+
+        if ($firstEndSeconds <= $firstStartSeconds) {
+            $firstEndSeconds += 86400;
+        }
+
+        if ($secondEndSeconds <= $secondStartSeconds) {
+            $secondEndSeconds += 86400;
+        }
+
+        foreach ([-86400, 0, 86400] as $shift) {
+            $shiftedSecondStart =
+                $secondStartSeconds + $shift;
+
+            $shiftedSecondEnd =
+                $secondEndSeconds + $shift;
+
+            if (
+                $firstStartSeconds < $shiftedSecondEnd
+                && $firstEndSeconds > $shiftedSecondStart
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private function secondsFromMidnight(
+        mixed $time
+    ): ?int {
+        if (! $time) {
+            return null;
+        }
+
+        $timestamp = strtotime((string) $time);
+
+        if ($timestamp === false) {
+            return null;
+        }
 
         return (
-            $firstStartTimestamp
-            < $secondEndTimestamp
-            &&
-            $firstEndTimestamp
-            > $secondStartTimestamp
-        );
+            ((int) date('H', $timestamp)) * 3600
+        ) + (
+            ((int) date('i', $timestamp)) * 60
+        ) + (int) date('s', $timestamp);
     }
 
 

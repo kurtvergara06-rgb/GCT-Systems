@@ -1388,3 +1388,27 @@
     }
 
 }
+
+/* Trip history uses one scrollable result set rather than Previous/Next paging. */
+.trip-records-page .trip-table-wrap {
+    max-height: min(60vh, 640px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.trip-records-page .trip-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.trip-records-page .trip-scroll-hint {
+    color: var(--trip-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 700px) {
+    .trip-records-page .trip-scroll-hint { display: none; }
+}

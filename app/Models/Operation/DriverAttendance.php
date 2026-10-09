@@ -28,15 +28,27 @@ class DriverAttendance extends Model
     protected static function booted(): void
     {
         static::saving(function (DriverAttendance $attendance): void {
-            $driver = Driver::query()
-                ->where('driver_name', $attendance->driver_name)
-                ->first();
+            $drivers = Driver::query()
+                ->whereRaw(
+                    'LOWER(TRIM(driver_name)) = ?',
+                    [mb_strtolower(trim((string) $attendance->driver_name))]
+                )
+                ->limit(2)
+                ->get();
 
-            if (! $driver) {
+            if ($drivers->isEmpty()) {
                 throw ValidationException::withMessages([
                     'driver_name' => 'Select an existing driver from the Driver Master List.',
                 ]);
             }
+
+            if ($drivers->count() !== 1) {
+                throw ValidationException::withMessages([
+                    'driver_name' => 'This driver name is ambiguous. Use a unique Driver Master record before saving attendance.',
+                ]);
+            }
+
+            $driver = $drivers->first();
 
             $attendance->driver_id = $driver->driver_id;
             $attendance->driver_name = $driver->driver_name;

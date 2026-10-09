@@ -9,6 +9,10 @@
         'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
     ]"
 >
+    @php
+        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    @endphp
+
     <div class="app">
        <x-layout.sidebar department="Operation" />
 
@@ -29,15 +33,15 @@
                 </div>
             @endif
 
-            <section class="assignment-summary-grid">
+            <section data-ajax-region="summary" class="assignment-summary-grid">
                 <article class="assignment-summary-card">
                     <div class="summary-icon blue">
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
                     <div>
-                        <p>Scheduled Trips</p>
-                        <h2>{{ $scheduledTripsToday }}</h2>
-                        <small>Trips for today</small>
+                        <p>Active Trips</p>
+                        <h2>{{ $scheduledTripsForDate }}</h2>
+                        <small>Scheduled or ready on {{ \Carbon\Carbon::parse($selectedTripDate)->format('M d') }}</small>
                     </div>
                 </article>
 
@@ -46,9 +50,9 @@
                         <i class="fa-solid fa-user-check"></i>
                     </div>
                     <div>
-                        <p>Available Drivers</p>
+                        <p>Unallocated Drivers</p>
                         <h2>{{ $availableDrivers->total() }}</h2>
-                        <small>Present or late today</small>
+                        <small>Present or late and unused on selected date</small>
                     </div>
                 </article>
 
@@ -57,9 +61,9 @@
                         <i class="fa-solid fa-bus"></i>
                     </div>
                     <div>
-                        <p>Available Buses</p>
+                        <p>Unallocated Buses</p>
                         <h2>{{ $availableBuses->total() }}</h2>
-                        <small>Active vehicles</small>
+                        <small>Active and unused on selected date</small>
                     </div>
                 </article>
 
@@ -70,34 +74,41 @@
                     <div>
                         <p>Unassigned Trips</p>
                         <h2>{{ $pendingAssignments }}</h2>
-                        <small>Need assignment today</small>
+                        <small>Need assignment on selected date</small>
                     </div>
                 </article>
             </section>
 
-            <section class="assignment-card">
-                <div class="assignment-card-header">
-                    <div>
+            <section data-ajax-region="records" class="assignment-card">
+                <div class="assignment-card-header gct-section-header">
+                    <div class="assignment-card-heading">
+                        <span class="assignment-heading-icon" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
+                        <div>
                         <h2>Trip Assignments</h2>
                         <p>Manage the driver and bus assigned to each trip schedule.</p>
+                        </div>
                     </div>
 
-                    <button
-                        type="button"
-                        class="new-assignment-btn"
-                        id="openAssignmentModal"
-                    >
-                        <i class="fa-solid fa-plus"></i>
-                        New Assignment
-                    </button>
+                    @if($canEditOperation)
+                        <button
+                            type="button"
+                            class="new-assignment-btn gct-section-new-button"
+                            id="openAssignmentModal"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            New Assignment
+                        </button>
+                    @endif
                 </div>
 
                 <form
                     method="GET"
                     action="{{ route('driver-bus-assignment', [], false) }}"
                     class="assignment-toolbar"
+                    data-server-filter="true"
+                    data-server-filter-navigation="true"
                 >
-                    <div class="assignment-search">
+                    <div class="assignment-search search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input
                             type="text"
@@ -107,12 +118,12 @@
                         >
                     </div>
 
-                    <div class="assignment-filter">
+                    <div class="assignment-filter assignment-filter--date">
                         <label>Date</label>
                         <input
                             type="date"
                             name="trip_date"
-                            value="{{ request('trip_date') }}"
+                            value="{{ $selectedTripDate }}"
                             onchange="this.form.requestSubmit()"
                         >
                     </div>
@@ -121,10 +132,9 @@
                         <label>Status</label>
                         <select
                             name="status"
-                            onchange="this.form.requestSubmit()"
                         >
                             <option value="all">All Statuses</option>
-                            @foreach(['Ready', 'Assigned', 'Unassigned', 'Dispatched', 'Completed'] as $status)
+                            @foreach(['Ready', 'Assigned', 'Unassigned', 'Dispatched', 'Completed', 'Cancelled', 'Missed'] as $status)
                                 <option
                                     value="{{ $status }}"
                                     @selected(request('status') === $status)
@@ -157,17 +167,33 @@
                                     $assignment = $trip->assignment;
                                     $driver = $assignment?->driverAttendance;
                                     $bus = $assignment?->bus;
-                                    $isLocked = in_array(
+                                    $departureDateTime = $trip->departureDateTime();
+                                    $arrivalDateTime = $trip->estimatedArrivalDateTime();
+                                    $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime)
+                                        ? $arrivalDateTime->format('g:i A')
+                                        : $arrivalDateTime->format('M d · g:i A');
+                                    $isHistorical = $trip->hasDeparted();
+                                    $hasLinkedHistory = ($trip->daily_driver_reports_count ?? 0) > 0
+                                        || ($trip->incidents_count ?? 0) > 0
+                                        || ($trip->assignment?->daily_driver_reports_count ?? 0) > 0
+                                        || ($trip->assignment?->incidents_count ?? 0) > 0;
+                                    $isLocked = $isHistorical || $hasLinkedHistory || in_array(
                                         $trip->status,
-                                        ['Dispatched', 'Completed'],
+                                        ['Cancelled', 'Dispatched', 'Completed'],
                                         true
                                     );
+                                    $displayStatus = match (true) {
+                                        $trip->status === 'Cancelled' => 'Cancelled',
+                                        $isHistorical && $trip->assignment_status === 'Unassigned' => 'Missed',
+                                        $trip->assignment_status === 'Unassigned' => 'Unassigned',
+                                        default => $trip->status,
+                                    };
 
                                     $details = [
                                         'tripCode' => $trip->trip_code,
                                         'date' => $trip->trip_date?->format('M d, Y'),
-                                        'departure' => \Carbon\Carbon::parse($trip->departure_time)->format('g:i A'),
-                                        'arrival' => \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('g:i A'),
+                                        'departure' => $departureDateTime->format('g:i A'),
+                                        'arrival' => $arrivalDisplay,
                                         'route' => trim(($route?->route_code ?? '') . ' - ' . ($route?->route_name ?? '')),
                                         'driver' => $assignment?->driver_name,
                                         'driverStatus' => $driver?->status,
@@ -182,7 +208,7 @@
 
                                     <td>
                                         <div class="schedule-cell">
-                                            <strong>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}</strong>
+                                            <strong>{{ $departureDateTime->format('g:i A') }}</strong>
                                             <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
                                         </div>
                                     </td>
@@ -223,8 +249,11 @@
                                     </td>
 
                                     <td>
-                                        <span class="assignment-status {{ strtolower($trip->assignment_status === 'Unassigned' ? 'unassigned' : $trip->status) }}">
-                                            {{ $trip->assignment_status === 'Unassigned' ? 'Unassigned' : $trip->status }}
+                                        <span
+                                            class="assignment-status {{ strtolower($displayStatus) }}"
+                                            @if($displayStatus === 'Missed') title="Departure time has already passed." @endif
+                                        >
+                                            {{ $displayStatus }}
                                         </span>
                                     </td>
 
@@ -239,7 +268,7 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
 
-                                            @if(!$assignment)
+                                            @if($canEditOperation && !$assignment && !$isLocked && $trip->status === 'Scheduled')
                                                 <button
                                                     type="button"
                                                     class="assign-now-btn open-assignment"
@@ -247,13 +276,15 @@
                                                 >
                                                     Assign
                                                 </button>
-                                            @elseif(!$isLocked)
+                                            @elseif($canEditOperation && $assignment && !$isLocked)
                                                 <button
                                                     type="button"
                                                     class="assignment-action edit edit-assignment"
                                                     title="Edit Assignment"
                                                     data-assignment-id="{{ $assignment->id }}"
                                                     data-trip-id="{{ $trip->id }}"
+                                                    data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
+                                                    data-availability-url="{{ route('driver-bus-assignment.availability', $trip, false) }}"
                                                     data-driver-id="{{ $assignment->driver_attendance_id }}"
                                                     data-bus-id="{{ $assignment->bus_id }}"
                                                     data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
@@ -268,6 +299,12 @@
                                                 >
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+                                                    <input type="hidden" name="return_search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
+                                                    <input type="hidden" name="trip_page" value="{{ request('trip_page') }}">
+                                                    <input type="hidden" name="driver_page" value="{{ request('driver_page') }}">
+                                                    <input type="hidden" name="bus_page" value="{{ request('bus_page') }}">
 
                                                     <button
                                                         type="button"
@@ -279,6 +316,35 @@
                                                         <i class="fa-solid fa-link-slash"></i>
                                                     </button>
                                                 </form>
+                                            @elseif($canEditOperation && !$assignment)
+                                                <button
+                                                    type="button"
+                                                    class="assign-now-btn assignment-action-disabled"
+                                                    disabled
+                                                    aria-disabled="true"
+                                                    title="{{ $hasLinkedHistory ? 'Unavailable: operational history is linked to this trip' : 'Unavailable for this trip status or departure time' }}"
+                                                >
+                                                    Assign
+                                                </button>
+                                            @elseif($canEditOperation && $assignment)
+                                                <button
+                                                    type="button"
+                                                    class="assignment-action edit assignment-action-disabled"
+                                                    disabled
+                                                    aria-disabled="true"
+                                                    title="{{ $hasLinkedHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
+                                                >
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="assignment-action remove assignment-action-disabled"
+                                                    disabled
+                                                    aria-disabled="true"
+                                                    title="{{ $hasLinkedHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
+                                                >
+                                                    <i class="fa-solid fa-link-slash"></i>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -296,16 +362,17 @@
                 <x-ui.table-footer :items="$trips" />
             </section>
 
-            <section class="resource-grid">
+            <section data-ajax-region="resources" class="resource-grid">
                 <article class="resource-card">
                     <div class="resource-card-header">
-                        <div>
-                            <span>Workforce</span>
-                            <h2>Available Drivers</h2>
+                        <div class="resource-title-group">
+                            <span class="resource-header-icon workforce"><i class="fa-solid fa-users"></i></span>
+                            <div><span>Workforce</span><h2>Unallocated Drivers</h2></div>
                         </div>
-                        <strong class="resource-total">{{ $availableDrivers->total() }}</strong>
+                        <strong class="resource-total resource-total--available">{{ $availableDrivers->total() }} Available</strong>
                     </div>
 
+                    <div class="resource-list-head" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Status</span></div>
                     @forelse($availableDrivers as $driver)
                         <div class="resource-record">
                             <div class="driver-avatar">
@@ -318,15 +385,16 @@
 
                             <div class="resource-record-info">
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <span>{{ $driver->shift }} Shift</span>
+                                <span class="resource-mobile-detail">{{ $driver->shift }} Shift</span>
                             </div>
+                            <span class="resource-row-detail">{{ $driver->shift }} Shift</span>
 
                             <span class="availability available">
                                 {{ $driver->status }}
                             </span>
                         </div>
                     @empty
-                        <p class="resource-empty">No available drivers today.</p>
+                        <p class="resource-empty">No unallocated, eligible drivers for the selected date.</p>
                     @endforelse
 
                     <div class="resource-pagination">
@@ -336,13 +404,14 @@
 
                 <article class="resource-card">
                     <div class="resource-card-header">
-                        <div>
-                            <span>Fleet</span>
-                            <h2>Available Buses</h2>
+                        <div class="resource-title-group">
+                            <span class="resource-header-icon fleet"><i class="fa-solid fa-bus"></i></span>
+                            <div><span>Fleet</span><h2>Unallocated Buses</h2></div>
                         </div>
-                        <strong class="resource-total">{{ $availableBuses->total() }}</strong>
+                        <strong class="resource-total resource-total--available">{{ $availableBuses->total() }} Available</strong>
                     </div>
 
+                    <div class="resource-list-head" aria-hidden="true"><span>Bus</span><span>Model</span><span>Status</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record">
                             <div class="bus-resource-icon">
@@ -351,13 +420,14 @@
 
                             <div class="resource-record-info">
                                 <strong>{{ $bus->bus_no }}</strong>
-                                <span>{{ $bus->bus_model ?: 'Operational bus' }}</span>
+                                <span class="resource-mobile-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
                             </div>
+                            <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
 
-                            <span class="availability available">Available</span>
+                            <span class="availability available">Active</span>
                         </div>
                     @empty
-                        <p class="resource-empty">No active buses available.</p>
+                        <p class="resource-empty">No unallocated active buses for the selected date.</p>
                     @endforelse
 
                     <div class="resource-pagination">
@@ -368,6 +438,8 @@
         </main>
     </div>
 
+    <div data-ajax-region="assignment-modal">
+    @if($canEditOperation)
     <x-ui.form-modal
         id="assignmentModal"
         title="Driver & Bus Assignment"
@@ -392,6 +464,27 @@
             value="PUT"
             disabled
         >
+        <input
+            type="hidden"
+            name="trip_assignment_id"
+            id="assignmentEditId"
+            value="{{ old('trip_assignment_id') }}"
+        >
+        <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+        <input type="hidden" name="return_search" value="{{ request('search') }}">
+        <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
+        <input type="hidden" name="trip_page" value="{{ request('trip_page') }}">
+        <input type="hidden" name="driver_page" value="{{ request('driver_page') }}">
+        <input type="hidden" name="bus_page" value="{{ request('bus_page') }}">
+        <span
+            id="assignmentRestoreState"
+            hidden
+            data-has-errors="{{ $errors->any() ? 'true' : 'false' }}"
+            data-trip-id="{{ old('trip_schedule_id') }}"
+            data-driver-id="{{ old('driver_attendance_id') }}"
+            data-bus-id="{{ old('bus_id') }}"
+            data-method="{{ old('_method') }}"
+        ></span>
 
         <div class="assignment-form-grid">
             <div class="ui-form-group ui-form-full">
@@ -413,7 +506,10 @@
                         <option value="">Select unassigned trip</option>
 
                         @foreach($unassignedTrips as $trip)
-                            <option value="{{ $trip->id }}">
+                            <option
+                                value="{{ $trip->id }}"
+                                data-availability-url="{{ route('driver-bus-assignment.availability', $trip, false) }}"
+                            >
                                 {{ $trip->trip_code }}
                                 — {{ $trip->trip_date?->format('M d, Y') }}
                                 — {{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}
@@ -476,47 +572,10 @@
                 >
             </div>
 
-            <div class="assignment-combobox-options">
-                @forelse($driverOptions as $driver)
-                    @php
-                        $driverLabel = $driver->driver_name
-                            . ' — '
-                            . $driver->shift
-                            . ' Shift';
-                    @endphp
-
-                    <button
-                        type="button"
-                        class="assignment-combobox-option assignment-driver-option"
-                        data-value="{{ $driver->id }}"
-                        data-label="{{ $driverLabel }}"
-                        data-search="{{ strtolower(
-                            $driver->driver_id
-                            . ' '
-                            . $driver->driver_name
-                            . ' '
-                            . $driver->shift
-                            . ' '
-                            . $driver->status
-                        ) }}"
-                    >
-                        <span>
-                            <strong>{{ $driver->driver_name }}</strong>
-
-                            <small>
-                                {{ $driver->driver_id }}
-                                — {{ $driver->shift }} Shift
-                                — {{ $driver->status }}
-                            </small>
-                        </span>
-
-                        <i class="fa-solid fa-check"></i>
-                    </button>
-                @empty
-                    <p class="assignment-combobox-empty">
-                        No available drivers for today.
-                    </p>
-                @endforelse
+            <div class="assignment-combobox-options" id="assignmentDriverOptions">
+                <p class="assignment-combobox-empty">
+                    Select a trip to load eligible drivers.
+                </p>
             </div>
         </div>
     </div>
@@ -549,27 +608,8 @@
                             <input type="search" id="assignmentBusSearch" placeholder="Search bus number or model..." autocomplete="off">
                         </div>
 
-                        <div class="assignment-combobox-options">
-                            @forelse($busOptions as $bus)
-                                @php
-                                    $busLabel = $bus->bus_no . ($bus->bus_model ? ' — ' . $bus->bus_model : '');
-                                @endphp
-                                <button
-                                    type="button"
-                                    class="assignment-combobox-option"
-                                    data-value="{{ $bus->id }}"
-                                    data-label="{{ $busLabel }}"
-                                    data-search="{{ strtolower($bus->bus_no . ' ' . ($bus->bus_model ?? '') . ' ' . ($bus->plate_no ?? '')) }}"
-                                >
-                                    <span>
-                                        <strong>{{ $bus->bus_no }}</strong>
-                                        <small>{{ $bus->bus_model ?: 'Operational bus' }}</small>
-                                    </span>
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
-                            @empty
-                                <p class="assignment-combobox-empty">No active buses available.</p>
-                            @endforelse
+                        <div class="assignment-combobox-options" id="assignmentBusOptions">
+                            <p class="assignment-combobox-empty">Select a trip to load available buses.</p>
                         </div>
                     </div>
                 </div>
@@ -591,6 +631,7 @@
             </div>
         </div>
     </x-ui.form-modal>
+    @endif
 
     <x-ui.form-modal
         id="viewAssignmentModal"
@@ -621,6 +662,7 @@
         </div>
     </x-ui.form-modal>
 
+    @if($canEditOperation)
     <x-ui.action-buttom-modal
         mode="delete"
         id="removeAssignmentModal"
@@ -630,4 +672,6 @@
         cancel-id="cancelRemoveAssignment"
         confirm-id="confirmRemoveAssignment"
     />
+    @endif
+    </div>
 </x-layout.app>

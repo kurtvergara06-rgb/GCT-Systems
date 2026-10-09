@@ -44,15 +44,18 @@ window.realtimePageRouteMap = {
     'Purchase:PurchaseOrder': ['/purchase-orders','/warehouse/dashboard','/warehouse/incoming-deliveries','/warehouse/stock-movements','/maintenance-requests','/part-requests','/job-orders','/inventory','/admin/dashboard'],
     'Purchase:MaintenanceRequest': ['/maintenance-requests','/purchase-orders','/part-requests','/purchase-requests','/job-orders','/inventory','/admin/dashboard'],
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
-    'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/dashboard-operation','/admin/dashboard','/mechanic-list'],
-    'Operation:Bus': ['/bus-master-list','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
+    'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/operation/driver-bus-assignment','/dashboard-operation','/admin/dashboard','/mechanic-list'],
+    'Operation:Driver': ['/operation/personnel/drivers','/driver-attendance','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
+    'Operation:Mechanic': ['/operation/personnel/mechanics','/mechanic-attendance','/mechanic-list','/job-orders','/maintenance-dashboard','/dashboard-operation','/admin/dashboard'],
+    'Operation:Bus': ['/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
     'Operation:Incident': ['/operation/incidents','/dashboard-operation','/admin/dashboard'],
+    'Operation:TripSchedule': ['/operation/trip-schedule','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/trip-records','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
 };
 
 window.showSystemNotification = function (message) {
     try {
         if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(message, 'warning', 'System Updated', { timeout: 8000, keepRealtime: true });
+            window.showSystemToast(message, 'info', 'System Updated', { timeout: 8000, keepRealtime: true });
         }
     } catch (error) {
         console.warn('Realtime notification failed:', error);
@@ -64,6 +67,45 @@ const realtimeNotificationState = {
     timer: null,
 };
 
+const getRealtimeMutationState = () => {
+    if (!window.GCTRealtimeLocalMutation) {
+        window.GCTRealtimeLocalMutation = {
+            pending: 0,
+            quietUntil: 0,
+        };
+    }
+
+    return window.GCTRealtimeLocalMutation;
+};
+
+const beginRealtimeMutation = () => {
+    const state = getRealtimeMutationState();
+    state.pending = Number(state.pending || 0) + 1;
+    state.quietUntil = Math.max(
+        Number(state.quietUntil || 0),
+        Date.now() + 3000
+    );
+};
+
+const endRealtimeMutation = () => {
+    const state = getRealtimeMutationState();
+    state.pending = Math.max(0, Number(state.pending || 0) - 1);
+    state.quietUntil = Math.max(
+        Number(state.quietUntil || 0),
+        Date.now() + 1500
+    );
+};
+
+const markNativeRealtimeMutation = (duration = 30000) => {
+    const state = getRealtimeMutationState();
+    const safeDuration = Math.max(1000, Number(duration) || 30000);
+
+    state.quietUntil = Math.max(
+        Number(state.quietUntil || 0),
+        Date.now() + safeDuration
+    );
+};
+
 const shouldSuppressRealtimeNotification = () => {
     const state = window.GCTRealtimeLocalMutation;
     if (!state) return false;
@@ -71,6 +113,57 @@ const shouldSuppressRealtimeNotification = () => {
     return Number(state.pending || 0) > 0
         || Date.now() < Number(state.quietUntil || 0);
 };
+
+window.GCTRealtimeMutation = Object.freeze({
+    begin: beginRealtimeMutation,
+    end: endRealtimeMutation,
+    markNativeSubmit: markNativeRealtimeMutation,
+    isSuppressed: shouldSuppressRealtimeNotification,
+});
+
+if (!window.__gctRealtimeFetchWrapped) {
+    window.__gctRealtimeFetchWrapped = true;
+
+    const nativeFetch = window.fetch.bind(window);
+
+    window.fetch = async (input, init = {}) => {
+        const requestMethod = String(
+            init?.method
+            || (input instanceof Request ? input.method : 'GET')
+            || 'GET'
+        ).toUpperCase();
+
+        let requestUrl = null;
+
+        try {
+            const inputUrl = input instanceof Request
+                ? input.url
+                : (input instanceof URL ? input.href : String(input ?? ''));
+
+            requestUrl = new URL(inputUrl, window.location.href);
+        } catch (error) {
+            requestUrl = null;
+        }
+
+        const isSameOriginMutation = Boolean(
+            requestUrl
+            && requestUrl.origin === window.location.origin
+            && !['GET', 'HEAD', 'OPTIONS'].includes(requestMethod)
+        );
+
+        if (isSameOriginMutation) {
+            beginRealtimeMutation();
+        }
+
+        try {
+            return await nativeFetch(input, init);
+        } finally {
+            if (isSameOriginMutation) {
+                endRealtimeMutation();
+            }
+        }
+    };
+}
 
 const flushRealtimeNotifications = () => {
     realtimeNotificationState.timer = null;
@@ -213,9 +306,17 @@ window.listenForSystemUpdates = function () {
     }
 
     window.Echo.channel('system-updates').listen('.SystemDataUpdated', (payload) => {
-        window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
-
         try {
+            // A native confirmed form can finish its database work and emit a
+            // Reverb event before the HTTP redirect reaches this browser.
+            // Ignore that same-tab event while the local mutation is active;
+            // the redirected response will show the final success/error toast.
+            if (shouldSuppressRealtimeNotification()) {
+                return;
+            }
+
+            window.dispatchEvent(new CustomEvent('system-data-updated', { detail: payload }));
+
             const currentPath = normalizePath(window.location.pathname);
             const routeKey = `${payload.module}:${payload.entity}`;
             const watched = (window.realtimePageRouteMap[routeKey] || []).map(normalizePath);

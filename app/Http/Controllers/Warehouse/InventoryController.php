@@ -68,16 +68,16 @@ class InventoryController extends Controller
         $totalItemsInStock = $inventoryScope()->count();
 
         $lowStockAlerts = $inventoryScope()
-            ->whereColumn('on_hand', '<=', 'reorder_level')
-            ->where('on_hand', '>', 0)
+            ->whereColumn('quantity_available', '<=', 'reorder_level')
+            ->where('quantity_available', '>', 0)
             ->count();
 
         $criticalItems = $inventoryScope()
-            ->where('on_hand', '<=', 0)
+            ->where('quantity_available', '<=', 0)
             ->count();
 
         $forecastedStockouts = $inventoryScope()
-            ->whereColumn('on_hand', '<=', 'reorder_level')
+            ->whereColumn('quantity_available', '<=', 'reorder_level')
             ->count();
 
         $itemsAtRisk = $forecastedStockouts;
@@ -638,7 +638,7 @@ class InventoryController extends Controller
     private function syncAutoRestockRequests(): void
     {
         $lowStockItems = InventoryItem::query()
-            ->whereColumn('on_hand', '<=', 'reorder_level')
+            ->whereColumn('quantity_available', '<=', 'reorder_level')
             ->where('reorder_level', '>', 0)
             ->get();
 

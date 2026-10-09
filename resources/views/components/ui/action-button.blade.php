@@ -24,25 +24,41 @@
   ];
 
   $icon = $iconMap[$type] ?? 'fa-circle';
-  $buttonClass = 'action-btn ' . $type;
+  $buttonClass = 'action-btn ' . $type . ($disabled ? ' gct-action-unavailable' : '');
 
   if ($class) {
     $buttonClass .= ' ' . $class;
   }
 
-  $titleAttr = $title ? ' title="' . $title . '"' : '';
+  $titleAttr = $title ? ' title="' . e($title) . '"' : '';
   $disabledAttr = $disabled ? ' disabled' : '';
   $currentStatus = (string) $attributes->get('data-current-status', '');
   $shouldRender = ! ($type === 'status' && $currentStatus !== '' && $currentStatus !== 'Ordered');
 @endphp
 
 @if($shouldRender)
-  @if($href)
-    <a href="{{ $href }}" class="{{ $buttonClass }}"{{ $titleAttr }} {{ $attributes }}>
+  @if($href && ! $disabled)
+    <a
+      href="{{ $href }}"
+      class="{{ $buttonClass }}"
+      data-ui-component="action-button"
+      data-action="{{ $type }}"
+      {{ $titleAttr }}
+      {{ $attributes }}
+    >
       <i class="fa-solid {{ $icon }}"></i>
     </a>
   @else
-    <button type="{{ $buttonType }}" class="{{ $buttonClass }}"{{ $titleAttr }}{{ $disabledAttr }} {{ $attributes }}>
+    <button
+      type="{{ $buttonType }}"
+      class="{{ $buttonClass }}"
+      data-ui-component="action-button"
+      data-action="{{ $type }}"
+      {{ $titleAttr }}
+      {{ $disabledAttr }}
+      @if($disabled) aria-disabled="true" @endif
+      {{ $attributes }}
+    >
       <i class="fa-solid {{ $icon }}"></i>
     </button>
   @endif

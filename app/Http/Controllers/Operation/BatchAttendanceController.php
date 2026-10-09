@@ -37,6 +37,10 @@ class BatchAttendanceController extends Controller
             'shift' => ['nullable', Rule::in(['all', 'Morning', 'Afternoon', 'Night'])],
         ]);
 
+        if ($type === 'mechanic' && ($validated['shift'] ?? 'all') === 'Night') {
+            throw ValidationException::withMessages(['shift' => 'Mechanic Night shift is unavailable.']);
+        }
+
         $date = Carbon::parse($validated['date'])->toDateString();
         $shift = $validated['shift'] ?? 'all';
         $personModel = $this->personModelFor($type);
@@ -46,6 +50,7 @@ class BatchAttendanceController extends Controller
 
         $people = $personModel::query()
             ->where('employment_status', 'Active')
+            ->when($type === 'mechanic', fn ($query) => $query->whereIn('shift', ['Morning', 'Afternoon']))
             ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->orderBy($nameColumn)
             ->get();
@@ -111,6 +116,16 @@ class BatchAttendanceController extends Controller
             'rows.*.status' => ['required', Rule::in(['Present', 'Late', 'Absent', 'On Leave'])],
             'rows.*.assigned_job' => ['nullable', 'string', 'max:255'],
         ]);
+
+        if ($type === 'mechanic') {
+            foreach ($validated['rows'] as $index => $row) {
+                if (! in_array($row['shift'], ['Morning', 'Afternoon'], true)) {
+                    throw ValidationException::withMessages([
+                        "rows.{$index}.shift" => 'Mechanic attendance only supports Morning and Afternoon shifts.',
+                    ]);
+                }
+            }
+        }
 
         $date = Carbon::parse($validated['attendance_date'])->toDateString();
         $attendanceModel = $this->attendanceModelFor($type);

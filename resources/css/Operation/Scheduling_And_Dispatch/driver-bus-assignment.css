@@ -745,6 +745,16 @@
     color: #9a6700;
 }
 
+.assignment-status.cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.assignment-status.missed {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 
 .unassigned-row {
     background: #fffdf7;
@@ -1318,3 +1328,418 @@
     border-top: 1px solid var(--assign-soft-border);
 }
 .resource-pagination .table-footer { margin: 0; }
+
+
+/* =========================================================
+   DRIVER & BUS ASSIGNMENT — UI POLISH
+   Visual-only alignment and spacing refinements
+========================================================= */
+
+.assignment-card {
+    padding: 18px;
+}
+
+.assignment-card-header {
+    min-height: 42px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+}
+
+.assignment-toolbar {
+    grid-template-columns: minmax(320px, 1fr) 180px 155px;
+}
+
+.assignment-table-wrap {
+    overflow-x: hidden;
+    background: #ffffff;
+    border: 1px solid var(--assign-soft-border);
+    border-radius: 12px;
+}
+
+.assignment-table {
+    min-width: 0;
+    table-layout: fixed;
+}
+
+.assignment-table th {
+    padding: 11px 12px;
+}
+
+.assignment-table td {
+    height: 58px;
+    padding: 11px 12px;
+}
+
+.assignment-table th:nth-child(1) {
+    width: 8%;
+}
+
+.assignment-table th:nth-child(2) {
+    width: 13%;
+}
+
+.assignment-table th:nth-child(3) {
+    width: 20%;
+}
+
+.assignment-table th:nth-child(4) {
+    width: 22%;
+}
+
+.assignment-table th:nth-child(5) {
+    width: 13%;
+}
+
+.assignment-table th:nth-child(6) {
+    width: 12%;
+}
+
+.assignment-table th:nth-child(7) {
+    width: 12%;
+}
+
+.route-cell span,
+.driver-cell strong {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.driver-cell > div:last-child {
+    min-width: 0;
+}
+
+.unassigned-row {
+    background: #ffffff;
+}
+
+.not-assigned {
+    min-height: 26px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 1px solid #d8e1ed;
+    border-radius: 7px;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.assignment-actions {
+    width: 100%;
+}
+
+.assign-now-btn {
+    min-width: 58px;
+}
+
+.resource-grid {
+    align-items: stretch;
+    gap: 18px;
+}
+
+.resource-card {
+    min-height: 290px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.resource-card-header {
+    margin-bottom: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--assign-soft-border);
+}
+
+.resource-total {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f7fc;
+    border: 1px solid var(--assign-border);
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.resource-record {
+    min-height: 58px;
+    padding: 11px 4px;
+}
+
+.resource-empty {
+    min-height: 150px;
+    margin: 14px 0 0;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 1px dashed #d8e1ed;
+    border-radius: 10px;
+    color: var(--assign-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.resource-pagination {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--assign-soft-border);
+}
+
+.resource-pagination .table-footer {
+    margin: 0;
+}
+
+@media (max-width: 1180px) {
+    .assignment-toolbar {
+        grid-template-columns: minmax(240px, 1fr) 150px 145px;
+    }
+
+    .assignment-table th,
+    .assignment-table td {
+        padding-right: 9px;
+        padding-left: 9px;
+    }
+
+    .assignment-table th {
+        font-size: 10px;
+    }
+
+    .assignment-table td {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 900px) {
+    .assignment-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .assignment-search {
+        grid-column: 1 / -1;
+    }
+
+    .resource-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resource-card {
+        min-height: 240px;
+    }
+}
+
+/* Reference-inspired refinement; scoped to Assignment so other modules retain their styling. */
+.assignment-page .assignment-summary-grid { gap: 14px; margin-bottom: 16px; }
+.assignment-page .assignment-summary-card {
+    min-height: 106px; padding: 15px 17px; border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(13, 38, 74, .045);
+}
+.assignment-page .assignment-summary-card h2 { font-size: 24px; }
+.assignment-page .assignment-card,
+.assignment-page .resource-card {
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(12, 42, 83, .055);
+}
+.assignment-page .assignment-card { padding: 16px; margin-bottom: 16px; }
+.assignment-page .assignment-card-header { min-height: 43px; margin-bottom: 13px; }
+.assignment-page .assignment-card-heading,
+.assignment-page .resource-title-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.assignment-page .assignment-heading-icon,
+.assignment-page .resource-header-icon {
+    width: 38px; height: 38px; flex: 0 0 38px;
+    border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+    background: #e9f1ff; color: #0b40b5; font-size: 15px;
+}
+.assignment-page .resource-header-icon.workforce { background: #e3fbee; color: #139954; }
+.assignment-page .resource-header-icon.fleet { background: #e9f1ff; color: #0b40b5; }
+.assignment-page .assignment-card-header h2 { font-size: 16px; }
+.assignment-page .assignment-toolbar {
+    gap: 9px; padding: 8px 10px; border-radius: 11px;
+    grid-template-columns: minmax(0,1fr) minmax(155px,180px) minmax(145px,160px);
+}
+.assignment-page .assignment-table-wrap { border: 1px solid #e2eaf4; border-radius: 10px; }
+.assignment-page .assignment-table { min-width: 900px; }
+.assignment-page .assignment-table th { padding: 12px 11px; font-size: 10px; letter-spacing: .035em; }
+.assignment-page .assignment-table td { padding: 11px; font-size: 12px; }
+.assignment-page .assignment-table tbody tr:hover { background: #f7faff; }
+.assignment-page .assignment-actions { gap: 6px; }
+.assignment-page .assignment-action { border-color: #d7e5fa; background: #eef4ff; }
+.assignment-page .not-assigned {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 27px; padding: 4px 10px; border-radius: 999px;
+    color: #50627e; background: #f2f5f9; border: 1px solid #e6ebf1;
+    font-size: 11px; font-weight: 700;
+}
+.assignment-page .resource-card-header { gap: 10px; }
+.assignment-page .resource-total--available {
+    padding: 7px 11px; border-radius: 999px; white-space: nowrap;
+    background: #dcfce7; color: #166534; font-size: 11px; border: 0;
+}
+.assignment-page .resource-record { min-height: 45px; }
+.assignment-page .availability.available { border-radius: 999px; }
+.assignment-page :is(.assignment-action,.assign-now-btn,.new-assignment-btn):disabled {
+    background: #f1f5f9 !important; border-color: #dbe3ec !important;
+    color: #94a3b8 !important; cursor: not-allowed !important; transform: none !important;
+}
+@media (max-width: 1050px) {
+    .assignment-page .assignment-toolbar { grid-template-columns: minmax(0,1fr) minmax(140px,175px) minmax(125px,145px); }
+}
+@media (max-width: 760px) {
+    .assignment-page .assignment-card-heading { align-items: flex-start; }
+    .assignment-page .assignment-toolbar { grid-template-columns: minmax(0,1fr); }
+    .assignment-page .assignment-table-wrap { overflow-x: auto; }
+}
+
+/* Single final toolbar sizing contract.
+   Overrides the shared .search-box input (46px) and earlier page styles.
+   Keep Date and Status as original 165px-wide controls. */
+.assignment-page form.assignment-toolbar {
+    grid-template-columns: minmax(0, 1fr) 165px 165px;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+}
+.assignment-page form.assignment-toolbar .assignment-filter {
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+}
+.assignment-page form.assignment-toolbar .assignment-filter > label {
+    display: none;
+}
+.assignment-page form.assignment-toolbar input[name="search"],
+.assignment-page form.assignment-toolbar input[name="trip_date"],
+.assignment-page form.assignment-toolbar select[name="status"] {
+    display: block;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    box-sizing: border-box;
+    margin: 0;
+    line-height: normal;
+    font-size: 12px;
+}
+.assignment-page form.assignment-toolbar input[name="trip_date"] {
+    appearance: auto;
+    min-width: 0;
+    padding: 0 10px;
+}
+.assignment-page form.assignment-toolbar select[name="status"] {
+    min-width: 0;
+    padding: 0 10px;
+}
+@media (max-width: 760px) {
+    .assignment-page form.assignment-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Workforce and Fleet: structured mini tables with real operational values.
+   Keep the cards equally sized without stretching their row contents. */
+.assignment-page .resource-card {
+    padding: 18px;
+    background: #fff;
+    min-width: 0;
+}
+.assignment-page .resource-card-header {
+    margin-bottom: 12px;
+    padding-bottom: 13px;
+}
+.assignment-page .resource-card-header .resource-title-group { flex: 1 1 auto; }
+.assignment-page .resource-card-header .resource-title-group > div { min-width: 0; }
+.assignment-page .resource-card-header .resource-title-group h2 { font-size: 17px; }
+.assignment-page .resource-card-header .resource-total--available {
+    width: auto;
+    min-width: 92px;
+    max-width: none;
+    height: auto;
+    min-height: 32px;
+    flex: 0 0 auto;
+    padding: 7px 13px;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    border-radius: 999px;
+}
+.assignment-page .resource-list-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, .95fr) 90px;
+    gap: 12px;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    margin-bottom: 3px;
+    background: #f3f7fc;
+    border: 1px solid #e7edf5;
+    border-radius: 9px;
+    color: #506481;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+}
+.assignment-page .resource-list-head span:last-child { text-align: center; }
+.assignment-page .resource-card .resource-record {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.6fr) minmax(0, .95fr) 90px;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 10px 12px;
+    min-height: 54px;
+    border-bottom: 1px solid #e7edf5;
+    transition: background-color .15s ease;
+}
+.assignment-page .resource-card .resource-record:hover {
+    background: #f8fbff;
+    border-radius: 8px;
+}
+.assignment-page .resource-card .resource-record .resource-record-info { min-width: 0; }
+.assignment-page .resource-card .resource-record .resource-record-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+.assignment-page .resource-card .resource-record .resource-mobile-detail { display: none; font-weight: 800; }
+.assignment-page .resource-card .resource-record .resource-row-detail {
+    min-width: 0;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.assignment-page .resource-card .resource-record .availability {
+    justify-self: center;
+    min-width: 75px;
+    font-size: 10px;
+    font-weight: 800;
+}
+.assignment-page .resource-card .driver-avatar,
+.assignment-page .resource-card .bus-resource-icon { width: 34px; height: 34px; flex: 0 0 34px; }
+.assignment-page .resource-pagination {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: none;
+}
+@media (max-width: 1100px) {
+    .assignment-page .resource-list-head { display: none; }
+    .assignment-page .resource-card .resource-record {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+    .assignment-page .resource-card .resource-record .resource-row-detail { display: none; }
+    .assignment-page .resource-card .resource-record .resource-mobile-detail { display: block; }
+}

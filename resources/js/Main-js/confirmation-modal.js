@@ -93,6 +93,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return String(form?.getAttribute('method') || 'GET').toUpperCase();
     }
 
+    function markRealtimeMutationStart() {
+        if (window.GCTRealtimeMutation?.markNativeSubmit) {
+            window.GCTRealtimeMutation.markNativeSubmit();
+            return;
+        }
+
+        if (!window.GCTRealtimeLocalMutation) {
+            window.GCTRealtimeLocalMutation = {
+                pending: 0,
+                quietUntil: 0,
+            };
+        }
+
+        window.GCTRealtimeLocalMutation.quietUntil = Math.max(
+            Number(window.GCTRealtimeLocalMutation.quietUntil || 0),
+            Date.now() + 30000
+        );
+    }
+
     function shouldConfirmForm(form) {
         return Boolean(
             form &&
@@ -179,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         isSubmitting = true;
         setConfirmLoading();
+        markRealtimeMutationStart();
         pendingForm.dataset.confirmed = 'true';
 
         const formToSubmit = pendingForm;
@@ -290,5 +310,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.key === 'Escape' && modal.classList.contains('show')) {
             closeModal();
         }
+    });
+
+    window.addEventListener('pageshow', function (event) {
+        if (!event.persisted || !window.GCTRealtimeLocalMutation) {
+            return;
+        }
+
+        window.GCTRealtimeLocalMutation.pending = 0;
+        window.GCTRealtimeLocalMutation.quietUntil = 0;
+        isSubmitting = false;
+        resetConfirmButton();
     });
 });

@@ -1,6 +1,5 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
     const tripModal = document.getElementById('tripModal');
-    const generateTripsModal = document.getElementById('generateTripsModal');
     const viewTripModal = document.getElementById('viewTripModal');
     const deleteTripModal = document.getElementById('deleteTripModal');
 
@@ -18,6 +17,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripNotes = document.getElementById('tripNotes');
 
     const viewTripContent = document.getElementById('viewTripContent');
+    const viewTripHeroTitle = document.getElementById('viewTripHeroTitle');
+    const tripNotesCount = document.getElementById('tripNotesCount');
     const closeViewTripModal = document.getElementById('closeViewTripModal');
     const closeViewTripButton = document.getElementById('closeViewTripButton');
 
@@ -25,16 +26,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
     const confirmDeleteTrip = document.getElementById('confirmDeleteTrip');
 
-    const openTripModal = document.getElementById('openTripModal');
-    const openGenerateTripsModal = document.getElementById('openGenerateTripsModal');
-
     const closeTripModal = document.getElementById('closeTripModal');
     const cancelTripModal = document.getElementById('cancelTripModal');
-    const closeGenerateTripsModal = document.getElementById('closeGenerateTripsModal');
-    const cancelGenerateTripsModal = document.getElementById('cancelGenerateTripsModal');
-
-    const generateTripsForm = document.getElementById('generateTripsForm');
-    const generateTargetDate = document.getElementById('generateTargetDate');
 
     const createAction = '/operation/trip-schedule';
     let selectedDeleteForm = null;
@@ -45,6 +38,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         modal.classList.add('show', 'active');
+        document.body.classList.add('modal-open');
     }
 
     function closeModal(modal) {
@@ -53,6 +47,15 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         modal.classList.remove('show', 'active');
+
+        const hasOpenModal = document.querySelector(
+            '.ui-form-overlay.show, .ui-form-overlay.active, '
+            + '.delete-modal-overlay.show, .delete-modal-overlay.active'
+        );
+
+        if (!hasOpenModal) {
+            document.body.classList.remove('modal-open');
+        }
     }
 
     function normalizePath(value, fallback) {
@@ -119,6 +122,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         if (!departureTime?.value || !tripRoute?.value) {
+            if (arrivalTime) {
+                arrivalTime.value = '';
+            }
             return;
         }
 
@@ -143,20 +149,61 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     }
 
     function getLocalDate() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
+        // Keep client-side date constraints aligned with Laravel's
+        // configured operation timezone (Asia/Manila), not the device timezone.
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Manila',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).formatToParts(new Date());
+        const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
 
-        return `${year}-${month}-${day}`;
+        return `${values.year}-${values.month}-${values.day}`;
     }
 
-    function resetCreateForm() {
+    function updateNotesCount() {
+        if (!tripNotesCount) {
+            return;
+        }
+
+        const length = tripNotes?.value?.length || 0;
+        tripNotesCount.textContent = `${length} / 2000`;
+    }
+
+    function setStatusCreateMode() {
+        if (!tripStatus) {
+            return;
+        }
+
+        tripStatus.value = 'Scheduled';
+        tripStatus.disabled = true;
+        tripStatus.removeAttribute('required');
+        tripStatus.setAttribute(
+            'title',
+            'New trips always start as Scheduled.'
+        );
+    }
+
+    function setStatusEditMode() {
+        if (!tripStatus) {
+            return;
+        }
+
+        tripStatus.disabled = false;
+        tripStatus.required = true;
+        tripStatus.removeAttribute('title');
+    }
+
+    function configureCreateMode({ preserveValues = false } = {}) {
         if (!tripForm) {
             return;
         }
 
-        tripForm.reset();
+        if (!preserveValues) {
+            tripForm.reset();
+        }
+
         tripForm.setAttribute('action', createAction);
 
         if (tripFormMethod) {
@@ -168,15 +215,21 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         if (tripDate) {
-            tripDate.value = getLocalDate();
+            tripDate.min = getLocalDate();
+
+            if (!preserveValues) {
+                tripDate.value = getLocalDate();
+            }
         }
 
-        if (tripStatus) {
-            tripStatus.value = 'Scheduled';
-        }
+        setStatusCreateMode();
 
-        if (tripShift) {
+        if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
+        }
+
+        if (arrivalTime && !preserveValues) {
+            arrivalTime.value = '';
         }
 
         if (tripModalTitle) {
@@ -186,65 +239,56 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         if (tripSubmitText) {
             tripSubmitText.textContent = 'Save Trip';
         }
+
+        updateNotesCount();
+        calculateArrival();
     }
 
-    function resetBulkForm(form, targetInput) {
-        if (!form) {
+    function configureEditMode(button = null, options = {}) {
+        if (!tripForm) {
             return;
         }
 
-        form.reset();
+        const {
+            preserveValues = false,
+            tripId = button?.dataset?.id || '',
+            tripCodeValue = button?.dataset?.tripCode || '',
+            updateUrl = button?.dataset?.updateUrl || '',
+        } = options;
 
-        if (targetInput) {
-            targetInput.value = getLocalDate();
+        const fallbackUrl = tripId
+            ? `/operation/trip-schedule/${tripId}`
+            : createAction;
+
+        tripForm.setAttribute(
+            'action',
+            normalizePath(updateUrl, fallbackUrl)
+        );
+
+        if (tripFormMethod) {
+            tripFormMethod.disabled = false;
+            tripFormMethod.value = 'PUT';
         }
-    }
 
-    openTripModal?.addEventListener('click', () => {
-        resetCreateForm();
-        openModal(tripModal);
-    });
+        setStatusEditMode();
 
-    openGenerateTripsModal?.addEventListener('click', () => {
-        resetBulkForm(generateTripsForm, generateTargetDate);
-        openModal(generateTripsModal);
-    });
+        if (tripDate) {
+            const allowPast = options.allowPast !== undefined
+                ? Boolean(options.allowPast)
+                : button?.dataset?.allowPast === 'true';
 
-    [closeTripModal, cancelTripModal]
-        .filter(Boolean)
-        .forEach((button) => {
-            button.addEventListener('click', () => closeModal(tripModal));
-        });
+            const preservingPastValue = preserveValues
+                && tripDate.value
+                && tripDate.value < getLocalDate();
 
-    [closeGenerateTripsModal, cancelGenerateTripsModal]
-        .filter(Boolean)
-        .forEach((button) => {
-            button.addEventListener('click', () => closeModal(generateTripsModal));
-        });
-
-    departureTime?.addEventListener('input', calculateArrival);
-    departureTime?.addEventListener('change', calculateArrival);
-    tripRoute?.addEventListener('change', calculateArrival);
-
-    document.querySelectorAll('.edit-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            if (!tripForm) {
-                return;
+            if (allowPast || preservingPastValue) {
+                tripDate.removeAttribute('min');
+            } else {
+                tripDate.min = getLocalDate();
             }
+        }
 
-            const tripId = button.dataset.id;
-            const fallbackUrl = `/operation/trip-schedule/${tripId}`;
-
-            tripForm.setAttribute(
-                'action',
-                normalizePath(button.dataset.updateUrl, fallbackUrl)
-            );
-
-            if (tripFormMethod) {
-                tripFormMethod.disabled = false;
-                tripFormMethod.value = 'PUT';
-            }
-
+        if (!preserveValues && button) {
             if (tripCode) {
                 tripCode.value = button.dataset.tripCode || '';
             }
@@ -261,10 +305,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 departureTime.value = button.dataset.departureTime || '';
             }
 
-            if (arrivalTime) {
-                arrivalTime.value = button.dataset.arrivalTime || '';
-            }
-
             if (tripStatus) {
                 tripStatus.value = button.dataset.status || 'Scheduled';
             }
@@ -272,30 +312,33 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             if (tripNotes) {
                 tripNotes.value = button.dataset.notes || '';
             }
+        } else if (tripCode) {
+            tripCode.value = tripCodeValue || tripCode.value || '';
+        }
 
-            if (tripShift) {
-                tripShift.value = detectShift(departureTime?.value);
-            }
+        if (tripModalTitle) {
+            tripModalTitle.textContent = 'Edit Trip';
+        }
 
-            if (tripModalTitle) {
-                tripModalTitle.textContent = 'Edit Trip';
-            }
+        if (tripSubmitText) {
+            tripSubmitText.textContent = 'Update Trip';
+        }
 
-            if (tripSubmitText) {
-                tripSubmitText.textContent = 'Update Trip';
-            }
+        updateNotesCount();
+        calculateArrival();
+    }
 
-            openModal(tripModal);
+    [closeTripModal, cancelTripModal]
+        .filter(Boolean)
+        .forEach((button) => {
+            button.addEventListener('click', () => closeModal(tripModal));
         });
-    });
 
-    document.querySelectorAll('.view-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            const tripData = parseTripData(button.dataset.trip);
-            renderTripDetails(tripData);
-            openModal(viewTripModal);
-        });
-    });
+    tripNotes?.addEventListener('input', updateNotesCount);
+
+    departureTime?.addEventListener('input', calculateArrival);
+    departureTime?.addEventListener('change', calculateArrival);
+    tripRoute?.addEventListener('change', calculateArrival);
 
     function parseTripData(rawData) {
         if (!rawData) {
@@ -320,18 +363,72 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             .filter(Boolean)
             .join(' - ');
 
+        if (viewTripHeroTitle) {
+            viewTripHeroTitle.textContent =
+                trip.tripCode
+                    ? `${trip.tripCode} · ${routeValue || 'Scheduled Trip'}`
+                    : (routeValue || 'Scheduled Trip');
+        }
+
         const fields = [
-            { label: 'Trip ID', value: trip.tripCode },
-            { label: 'Date', value: trip.date },
-            { label: 'Route', value: routeValue },
-            { label: 'Status', value: trip.status },
-            { label: 'Origin', value: trip.origin },
-            { label: 'Destination', value: trip.destination },
-            { label: 'Departure', value: trip.departure },
-            { label: 'Estimated Arrival', value: trip.arrival },
-            { label: 'Shift', value: trip.shift },
-            { label: 'Assignment', value: trip.assignment },
-            { label: 'Notes', value: trip.notes || 'No notes', full: true },
+            {
+                label: 'Trip ID',
+                value: trip.tripCode,
+                icon: 'fa-hashtag',
+            },
+            {
+                label: 'Date',
+                value: trip.date,
+                icon: 'fa-calendar-day',
+            },
+            {
+                label: 'Route',
+                value: routeValue,
+                icon: 'fa-route',
+            },
+            {
+                label: 'Status',
+                value: trip.status,
+                icon: 'fa-circle-check',
+                badge: 'status',
+            },
+            {
+                label: 'Origin',
+                value: trip.origin,
+                icon: 'fa-location-dot',
+            },
+            {
+                label: 'Destination',
+                value: trip.destination,
+                icon: 'fa-location-crosshairs',
+            },
+            {
+                label: 'Departure',
+                value: trip.departure,
+                icon: 'fa-clock',
+            },
+            {
+                label: 'Estimated Arrival',
+                value: trip.arrival,
+                icon: 'fa-clock-rotate-left',
+            },
+            {
+                label: 'Shift',
+                value: trip.shift,
+                icon: 'fa-business-time',
+            },
+            {
+                label: 'Assignment',
+                value: trip.assignment,
+                icon: 'fa-user-group',
+                badge: 'assignment',
+            },
+            {
+                label: 'Notes',
+                value: trip.notes || 'No notes',
+                icon: 'fa-note-sticky',
+                full: true,
+            },
         ];
 
         viewTripContent.innerHTML = fields
@@ -339,12 +436,36 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 const fullClass = field.full ? 'full' : '';
                 const safeLabel = escapeHtml(field.label);
                 const safeValue = escapeHtml(field.value || '—');
+                const icon = escapeHtml(field.icon);
+
+                let valueMarkup =
+                    `<div class="trip-detail-value">${safeValue}</div>`;
+
+                if (field.badge) {
+                    const stateClass = String(field.value || '')
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-');
+
+                    valueMarkup = `
+                        <div class="trip-detail-value">
+                            <span class="trip-detail-pill ${field.badge} ${stateClass}">
+                                ${safeValue}
+                            </span>
+                        </div>
+                    `;
+                }
 
                 return `
-                    <div class="trip-detail-card ${fullClass}">
-                        <label>${safeLabel}</label>
-                        <div class="trip-detail-value">${safeValue}</div>
-                    </div>
+                    <article class="trip-detail-card ${fullClass}">
+                        <span class="trip-detail-icon">
+                            <i class="fa-solid ${icon}"></i>
+                        </span>
+
+                        <div class="trip-detail-copy">
+                            <label>${safeLabel}</label>
+                            ${valueMarkup}
+                        </div>
+                    </article>
                 `;
             })
             .join('');
@@ -356,16 +477,46 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             button.addEventListener('click', () => closeModal(viewTripModal));
         });
 
-    document.querySelectorAll('.delete-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            selectedDeleteForm = document.getElementById(button.dataset.formId);
+    document.addEventListener('click', (event) => {
+        const openButton = event.target.closest('#openTripModal');
+
+        if (openButton) {
+            configureCreateMode();
+            openModal(tripModal);
+            return;
+        }
+
+        const editButton = event.target.closest('.edit-trip');
+
+        if (editButton) {
+            configureEditMode(editButton);
+            openModal(tripModal);
+            return;
+        }
+
+        const viewButton = event.target.closest('.view-trip');
+
+        if (viewButton) {
+            const tripData = parseTripData(viewButton.dataset.trip);
+            renderTripDetails(tripData);
+            openModal(viewTripModal);
+            return;
+        }
+
+        const deleteButton = event.target.closest('.delete-trip');
+
+        if (deleteButton) {
+            selectedDeleteForm = document.getElementById(
+                deleteButton.dataset.formId
+            );
 
             if (deleteTripName) {
-                deleteTripName.textContent = button.dataset.tripCode || 'this trip';
+                deleteTripName.textContent =
+                    deleteButton.dataset.tripCode || 'this trip';
             }
 
             openModal(deleteTripModal);
-        });
+        }
     });
 
     cancelDeleteTrip?.addEventListener('click', () => {
@@ -374,29 +525,14 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     });
 
     confirmDeleteTrip?.addEventListener('click', () => {
-        if (!selectedDeleteForm) {
+        if (!selectedDeleteForm?.isConnected) {
+            selectedDeleteForm = null;
+            closeModal(deleteTripModal);
             return;
         }
 
         selectedDeleteForm.requestSubmit();
     });
-
-    document
-        .querySelectorAll('.ui-form-overlay, .delete-modal-overlay')
-        .forEach((modal) => {
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    closeModal(modal);
-                }
-            });
-        });
-
-    const requestedTool = new URLSearchParams(window.location.search)
-        .get('schedule_tool');
-
-    if (requestedTool === 'generate') {
-        openModal(generateTripsModal);
-    }
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') {
@@ -404,10 +540,61 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         closeModal(tripModal);
-        closeModal(generateTripsModal);
         closeModal(viewTripModal);
         closeModal(deleteTripModal);
     });
+
+    function restoreValidationModal() {
+        const recoveryElement = document.getElementById(
+            'tripValidationRecovery'
+        );
+
+        if (!recoveryElement || !tripForm) {
+            return;
+        }
+
+        let recovery;
+
+        try {
+            recovery = JSON.parse(
+                recoveryElement.textContent || '{}'
+            );
+        } catch (error) {
+            console.warn(
+                'Unable to restore Trip Schedule validation state.',
+                error
+            );
+            return;
+        }
+
+        if (recovery.mode === 'edit') {
+            configureEditMode(
+                null,
+                {
+                    preserveValues: true,
+                    tripId: recovery.tripId,
+                    tripCodeValue: recovery.tripCode,
+                    updateUrl: recovery.updateUrl,
+                }
+            );
+        } else {
+            configureCreateMode({
+                preserveValues: true,
+            });
+        }
+
+        openModal(tripModal);
+
+        const firstError = tripModal?.querySelector('.ui-field-error');
+
+        firstError
+            ?.closest('.ui-form-group')
+            ?.querySelector('input, select, textarea')
+            ?.focus();
+    }
+
+    updateNotesCount();
+    restoreValidationModal();
 
     function escapeHtml(value) {
         return String(value)

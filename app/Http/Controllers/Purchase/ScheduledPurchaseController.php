@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Purchase;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\ScheduledPurchase;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ScheduledPurchaseController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     private array $frequencies = [
         'Weekly', 'Biweekly', 'Monthly', 'Quarterly',
         'Semiannual', 'Yearly', 'Custom',
@@ -70,39 +74,90 @@ class ScheduledPurchaseController extends Controller
     {
         $data = $this->validated($request);
         $data['schedule_no'] = $this->generateScheduleNo();
-        ScheduledPurchase::create($data);
+        $schedule = ScheduledPurchase::create($data);
+
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'created', $schedule->id, 'A purchase schedule was created.');
 
         return back()->with('success', 'Purchase schedule created successfully.');
     }
 
     public function update(Request $request, ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
-        $scheduledPurchase->update($this->validated($request));
+        $data = $this->validated($request);
+
+        DB::transaction(function () use ($scheduledPurchase, $data): void {
+            $lockedSchedule = ScheduledPurchase::query()
+                ->whereKey($scheduledPurchase->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedSchedule->status === 'Completed' && $data['status'] !== 'Completed') {
+                throw ValidationException::withMessages([
+                    'status' => 'A completed purchase schedule cannot be resumed.',
+                ]);
+            }
+
+            $lockedSchedule->update($data);
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'updated', $scheduledPurchase->id, 'A purchase schedule was updated.');
+
         return back()->with('success', 'Purchase schedule updated successfully.');
     }
 
     public function toggleStatus(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
-        if ($scheduledPurchase->status === 'Completed') {
-            return back()->with('error', 'Completed schedules can no longer be resumed.');
-        }
+        DB::transaction(function () use ($scheduledPurchase): void {
+            $lockedSchedule = ScheduledPurchase::query()
+                ->whereKey($scheduledPurchase->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $scheduledPurchase->update([
-            'status' => $scheduledPurchase->status === 'Paused' ? 'Active' : 'Paused',
-        ]);
+            if ($lockedSchedule->status === 'Completed') {
+                throw ValidationException::withMessages([
+                    'status' => 'Completed schedules can no longer be resumed.',
+                ]);
+            }
+
+            $lockedSchedule->update([
+                'status' => $lockedSchedule->status === 'Paused' ? 'Active' : 'Paused',
+            ]);
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'status_updated', $scheduledPurchase->id, 'A purchase schedule status was updated.');
 
         return back()->with('success', 'Schedule status updated.');
     }
 
     public function complete(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
-        $scheduledPurchase->update(['status' => 'Completed']);
+        DB::transaction(function () use ($scheduledPurchase): void {
+            ScheduledPurchase::query()
+                ->whereKey($scheduledPurchase->id)
+                ->lockForUpdate()
+                ->firstOrFail()
+                ->update(['status' => 'Completed']);
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'completed', $scheduledPurchase->id, 'A purchase schedule was completed.');
+
         return back()->with('success', 'Schedule marked as completed.');
     }
 
     public function destroy(ScheduledPurchase $scheduledPurchase): RedirectResponse
     {
-        $scheduledPurchase->delete();
+        $scheduleId = $scheduledPurchase->id;
+
+        DB::transaction(function () use ($scheduledPurchase): void {
+            ScheduledPurchase::query()
+                ->whereKey($scheduledPurchase->id)
+                ->lockForUpdate()
+                ->firstOrFail()
+                ->delete();
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'deleted', $scheduleId, 'A purchase schedule was deleted.');
+
         return back()->with('success', 'Purchase schedule deleted.');
     }
 
@@ -117,25 +172,42 @@ class ScheduledPurchaseController extends Controller
         }
 
         $purchaseOrder = DB::transaction(function () use ($scheduledPurchase) {
-            $quantity = max(0.01, (float) $scheduledPurchase->quantity);
-            $total = (float) $scheduledPurchase->estimated_cost;
+            $lockedSchedule = ScheduledPurchase::query()
+                ->whereKey($scheduledPurchase->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedSchedule->status !== 'Active') {
+                throw ValidationException::withMessages([
+                    'schedule' => 'Only active schedules can create a purchase order.',
+                ]);
+            }
+
+            if ($lockedSchedule->next_purchase_date->isFuture()) {
+                throw ValidationException::withMessages([
+                    'schedule' => 'This schedule is no longer due.',
+                ]);
+            }
+
+            $quantity = max(0.01, (float) $lockedSchedule->quantity);
+            $total = (float) $lockedSchedule->estimated_cost;
 
             $po = PurchaseOrder::create([
                 'po_no' => $this->generatePoNo(),
                 'po_date' => now()->toDateString(),
                 'purchase_request_id' => null,
-                'supplier_name' => $scheduledPurchase->supplier_name,
-                'supplier_address_tel' => $scheduledPurchase->supplier_contact,
+                'supplier_name' => $lockedSchedule->supplier_name,
+                'supplier_address_tel' => $lockedSchedule->supplier_contact,
                 'terms' => null,
                 'terms_of_payment' => null,
-                'purpose' => 'Scheduled purchase: ' . $scheduledPurchase->schedule_name,
+                'purpose' => 'Scheduled purchase: '.$lockedSchedule->schedule_name,
                 'items' => [[
-                    'pr_no' => $scheduledPurchase->schedule_no,
+                    'pr_no' => $lockedSchedule->schedule_no,
                     'bus_no' => 'SCHEDULED',
                     'employee' => '',
-                    'item_description' => $scheduledPurchase->item,
+                    'item_description' => $lockedSchedule->item,
                     'quantity' => $quantity,
-                    'unit' => $scheduledPurchase->unit,
+                    'unit' => $lockedSchedule->unit,
                     'cost' => round($total / $quantity, 2),
                     'amount' => round($total, 2),
                 ]],
@@ -147,14 +219,17 @@ class ScheduledPurchaseController extends Controller
                 'status' => 'Ordered',
             ]);
 
-            $scheduledPurchase->update([
+            $lockedSchedule->update([
                 'last_po_id' => $po->id,
                 'last_purchased_at' => now(),
-                'next_purchase_date' => $this->nextDate($scheduledPurchase),
+                'next_purchase_date' => $this->nextDate($lockedSchedule),
             ]);
 
             return $po;
         });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'created', $purchaseOrder->id, 'A purchase order was created from a schedule.');
+        $this->broadcastSystemDataUpdated('Purchase', 'ScheduledPurchase', 'advanced', $scheduledPurchase->id, 'A purchase schedule advanced to its next date.');
 
         return redirect()->route('purchase-orders')
             ->with('success', "{$purchaseOrder->po_no} created from scheduled purchase.");
@@ -212,12 +287,12 @@ class ScheduledPurchaseController extends Controller
             ->orderByDesc('id')->value($column);
         $number = 1;
 
-        if ($last && preg_match('/' . $prefix . '-' . $year . '-(\d+)/', $last, $matches)) {
+        if ($last && preg_match('/'.$prefix.'-'.$year.'-(\d+)/', $last, $matches)) {
             $number = ((int) $matches[1]) + 1;
         }
 
         do {
-            $value = "{$prefix}-{$year}-" . str_pad((string) $number, 4, '0', STR_PAD_LEFT);
+            $value = "{$prefix}-{$year}-".str_pad((string) $number, 4, '0', STR_PAD_LEFT);
             $number++;
         } while ($model::where($column, $value)->exists());
 

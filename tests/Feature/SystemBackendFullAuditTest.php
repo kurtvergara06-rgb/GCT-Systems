@@ -26,6 +26,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -229,6 +230,25 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 3.1 Routes CRUD
         $this->get(route('operation.routes'))->assertOk();
+
+        Http::fake([
+            'router.project-osrm.org/*' =>
+                Http::response([
+                    'code' => 'Ok',
+                    'routes' => [[
+                        'distance' => 38500,
+                        'duration' => 3600,
+                        'geometry' => [
+                            'type' => 'LineString',
+                            'coordinates' => [
+                                [121.1652, 14.2145],
+                                [121.0415, 14.4172],
+                            ],
+                        ],
+                    ]],
+                ], 200),
+        ]);
+
         $routeResponse = $this->post(route('operation.routes.store'), [
             'route_name' => 'Calamba to Alabang Express',
             'origin' => 'Calamba Central Terminal',
@@ -248,7 +268,7 @@ class SystemBackendFullAuditTest extends TestCase
         // 3.2 Trip Schedule
         $this->get(route('trip-schedule'))->assertOk();
         $tripResponse = $this->post(route('trip-schedule.store'), [
-            'trip_date' => now()->toDateString(),
+            'trip_date' => now()->addDay()->toDateString(),
             'shuttle_route_id' => $shuttleRoute->id,
             'departure_time' => '07:30',
             'estimated_arrival_time' => '08:30',
@@ -289,7 +309,7 @@ class SystemBackendFullAuditTest extends TestCase
         $attendance = DriverAttendance::create([
             'driver_name' => $driver->driver_name,
             'shift' => 'Morning',
-            'attendance_date' => now()->toDateString(),
+            'attendance_date' => now()->addDay()->toDateString(),
             'status' => 'Present',
         ]);
         $this->get(route('driver-attendance'))->assertOk();

@@ -335,7 +335,7 @@ class WarehousePartRequestController extends Controller
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseCapability('approve');
+        $this->authorizeWarehouseCapability('edit');
 
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
@@ -722,35 +722,31 @@ class WarehousePartRequestController extends Controller
             return null;
         }
 
-        $query = InventoryItem::query()
-            ->where(function ($q) use ($partName) {
-                $q->whereRaw('LOWER(TRIM(item_name)) = ?', [$partName])
-                    ->orWhereRaw('LOWER(TRIM(item_code)) = ?', [$partName]);
-            });
+        $identityScope = static function ($query) use ($partName): void {
+            $query->whereRaw('LOWER(TRIM(item_name)) = ?', [$partName])
+                ->orWhereRaw('LOWER(TRIM(item_code)) = ?', [$partName])
+                ->orWhereRaw('LOWER(TRIM(parts_name)) = ?', [$partName]);
+        };
 
         if ($unit !== '') {
-            $query->whereRaw('LOWER(TRIM(unit_of_measurement)) = ?', [$unit]);
+            $item = InventoryItem::query()
+                ->where($identityScope)
+                ->whereRaw('LOWER(TRIM(unit_of_measurement)) = ?', [$unit])
+                ->first();
+
+            if ($item) {
+                return $item;
+            }
         }
 
-        $item = $query->first();
-
-        if ($item) {
-            return $item;
-        }
-
-        $item = InventoryItem::query()
-            ->where(function ($q) use ($partName) {
-                $q->whereRaw('LOWER(TRIM(item_name)) = ?', [$partName])
-                    ->orWhereRaw('LOWER(TRIM(item_code)) = ?', [$partName]);
-            })
-            ->first();
-
-        if ($item) {
-            return $item;
-        }
-
+        /*
+         * Inventory issuance is intentionally strict. A partial-name fallback
+         * (for example, "Oil Filter" matching "Engine Oil Filter") can deduct
+         * the wrong stock item. If no exact normalized identity exists, treat
+         * the requested part as unavailable and route it through Purchase.
+         */
         return InventoryItem::query()
-            ->whereRaw('LOWER(TRIM(item_name)) LIKE ?', ["%{$partName}%"])
+            ->where($identityScope)
             ->first();
     }
 

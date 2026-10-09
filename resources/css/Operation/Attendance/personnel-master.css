@@ -512,3 +512,1511 @@
     padding-left: 16px;
   }
 }
+
+/* Mechanic Master List redesign */
+.personnel-master-page {
+  --personnel-panel-border: #dbe5f1;
+  --personnel-soft-blue: #eef5ff;
+  --personnel-soft-yellow: #fff7d8;
+}
+
+.personnel-page-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 4px 2px;
+}
+
+.personnel-page-hero-icon {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  display: grid;
+  place-items: center;
+  background: var(--yellow);
+  border-radius: 15px;
+  color: #082243;
+  box-shadow: 0 10px 24px rgba(255, 196, 0, .24);
+  font-size: 22px;
+}
+
+.personnel-page-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: #4c6790;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+
+.personnel-page-hero h1 {
+  margin: 0;
+  color: #102441;
+  font-size: clamp(24px, 2vw, 31px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.personnel-page-hero p {
+  margin: 5px 0 0;
+  color: #718198;
+  font-size: 13px;
+}
+
+.personnel-master-panel {
+  border-color: var(--personnel-panel-border);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(25, 54, 90, .07);
+}
+
+.attendance-toolbar.personnel-master-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 142px minmax(175px, 210px) 142px auto auto;
+  gap: 9px;
+  padding: 10px;
+  background: #f8fbff;
+  border-color: var(--personnel-panel-border);
+}
+
+.personnel-master-toolbar .search-box input,
+.personnel-master-toolbar .personnel-filter select {
+  height: 42px;
+  min-height: 42px;
+  background: #fff;
+  border: 1px solid #d9e4f0;
+  border-radius: 10px;
+}
+
+.personnel-master-toolbar .personnel-filter {
+  min-width: 0;
+}
+
+.personnel-master-toolbar .personnel-filter label {
+  display: none;
+}
+
+.personnel-master-toolbar .personnel-filter select {
+  width: 100%;
+  padding: 0 34px 0 12px;
+  color: #203652;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+}
+
+.personnel-master-toolbar .personnel-filter select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .1);
+}
+
+.personnel-search-btn,
+.personnel-add-btn {
+  min-height: 42px;
+}
+
+.personnel-filter-loading {
+  margin: -2px 0 10px;
+  padding: 7px 10px;
+  color: #55708e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.personnel-filter-loading i {
+  margin-right: 6px;
+  color: var(--blue);
+}
+
+.personnel-master-table-wrap {
+  border: 1px solid #e3ebf4;
+  background: #fff;
+}
+
+.personnel-master-table {
+  min-width: 1120px;
+}
+
+.personnel-master-table thead {
+  background: #f5f8fc;
+}
+
+.personnel-master-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  color: #435671;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+
+.personnel-master-table td {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.personnel-id {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 0 8px;
+  background: #f5f8fc;
+  border: 1px solid #d8e3ef;
+  border-radius: 6px;
+  color: #173152;
+  font-size: 10px;
+  letter-spacing: .02em;
+}
+
+.personnel-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.personnel-contact i {
+  color: #6d87a8;
+  font-size: 10px;
+}
+
+.personnel-specialization-list {
+  max-width: 320px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.personnel-specialization-chip,
+.personnel-specialization-selected-chip {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  background: #eef5ff;
+  border: 1px solid #d6e6ff;
+  border-radius: 999px;
+  color: #2257a5;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.personnel-specialization-list .personnel-specialization-chip:nth-child(4n + 2) {
+  background: #f4efff;
+  border-color: #e5dafd;
+  color: #7147aa;
+}
+
+.personnel-specialization-list .personnel-specialization-chip:nth-child(4n + 3) {
+  background: #eefbf2;
+  border-color: #d4f0dc;
+  color: #32804a;
+}
+
+.personnel-specialization-list .personnel-specialization-chip:nth-child(4n + 4) {
+  background: #fff6df;
+  border-color: #f7e5b5;
+  color: #9b6a08;
+}
+
+.personnel-empty-value {
+  color: #94a3b8;
+}
+
+.personnel-status {
+  gap: 7px;
+}
+
+.personnel-status-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.personnel-master-table .actions {
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.personnel-master-table .action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.personnel-specialization-field {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #f8fbff;
+  border: 1px solid #dfe8f2;
+  border-radius: 12px;
+}
+
+.personnel-field-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.personnel-field-heading > div > span {
+  display: block;
+  color: #45546d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.personnel-field-heading small {
+  display: block;
+  margin-top: 3px;
+  color: #8795a9;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.personnel-selected-count {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  background: #eaf2ff;
+  border-radius: 999px;
+  color: #2d5fa7;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.personnel-specialization-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.personnel-specialization-option {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: #fff;
+  border: 1px solid #d7e2ef;
+  border-radius: 999px;
+  color: #4c617c;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.personnel-specialization-option:hover:not(:disabled) {
+  border-color: #9ebce5;
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.personnel-specialization-option.is-selected {
+  background: #eaf2ff;
+  border-color: #bcd2f2;
+  color: #1959b7;
+}
+
+.personnel-specialization-option:disabled {
+  cursor: default;
+  opacity: .75;
+}
+
+.personnel-custom-specialization {
+  position: relative;
+}
+
+.personnel-custom-specialization > i {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  z-index: 1;
+  color: #7890ac;
+  font-size: 11px;
+  transform: translateY(-50%);
+}
+
+.personnel-modal-form .personnel-custom-specialization input {
+  padding-left: 34px;
+}
+
+.personnel-specialization-selected {
+  min-height: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.personnel-specialization-selected-chip {
+  background: #fff;
+  color: #254e83;
+}
+
+.personnel-specialization-selected-chip button {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #e8f0fb;
+  border: 0;
+  border-radius: 50%;
+  color: #55759f;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.personnel-specialization-empty {
+  color: #97a5b7;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.personnel-master-table-wrap.is-server-filtering {
+  position: relative;
+  opacity: .62;
+  pointer-events: none;
+  transition: opacity .16s ease;
+}
+
+@media (max-width: 1380px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: minmax(260px, 1fr) repeat(3, minmax(140px, 1fr));
+  }
+
+  .personnel-search-btn,
+  .personnel-add-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 980px) {
+  .attendance-toolbar.personnel-master-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .personnel-master-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .personnel-filter-specialization {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .personnel-page-hero {
+    align-items: flex-start;
+  }
+
+  .personnel-page-hero-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 13px;
+    font-size: 18px;
+  }
+
+  .personnel-page-hero h1 {
+    font-size: 23px;
+  }
+
+  .attendance-toolbar.personnel-master-toolbar {
+    display: flex;
+  }
+
+  .personnel-field-heading {
+    flex-direction: column;
+  }
+}
+
+/* Stable specialization colors: category color does not depend on chip order. */
+.personnel-specialization-list {
+  max-width: 430px;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-blue {
+  background: #e8f2ff;
+  border-color: #cfe2ff;
+  color: #1764c0;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-purple {
+  background: #f1eaff;
+  border-color: #e1d4ff;
+  color: #7544bd;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-green {
+  background: #e7f8ee;
+  border-color: #c9efd8;
+  color: #25834b;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-red {
+  background: #ffe9e8;
+  border-color: #ffd2cf;
+  color: #c7433c;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-orange {
+  background: #fff0df;
+  border-color: #ffddba;
+  color: #b96816;
+}
+
+.personnel-specialization-list .personnel-specialization-chip.tone-yellow {
+  background: #fff6d9;
+  border-color: #f6e7aa;
+  color: #9b720a;
+}
+
+.personnel-master-table .action-btn.activate {
+  background: #e8f8ef;
+  border-color: #c8edd7;
+  color: #16854a;
+}
+
+.personnel-master-table .action-btn.activate:hover {
+  background: #dff4e8;
+  color: #0f6f3c;
+}
+
+/* Mechanic table column balance */
+.personnel-master-table th:nth-child(3),
+.personnel-master-table td:nth-child(3) {
+  width: 142px;
+  min-width: 142px;
+}
+
+.personnel-master-table th:nth-child(3) {
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.personnel-master-table th:nth-child(4),
+.personnel-master-table td:nth-child(4) {
+  min-width: 320px;
+}
+
+/* Mechanic table alignment and compact specialization presentation */
+.personnel-master-table {
+  min-width: 1220px;
+  table-layout: fixed;
+}
+
+.personnel-master-table col.mechanic-col-id {
+  width: 125px;
+}
+
+.personnel-master-table col.mechanic-col-name {
+  width: 285px;
+}
+
+.personnel-master-table col.mechanic-col-shift {
+  width: 145px;
+}
+
+.personnel-master-table col.mechanic-col-specializations {
+  width: 435px;
+}
+
+.personnel-master-table col.mechanic-col-status {
+  width: 105px;
+}
+
+.personnel-master-table col.mechanic-col-actions {
+  width: 125px;
+}
+
+.personnel-master-table th,
+.personnel-master-table td {
+  box-sizing: border-box;
+}
+
+.personnel-master-table th:nth-child(3),
+.personnel-master-table td:nth-child(3) {
+  width: auto;
+  min-width: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.personnel-master-table th:nth-child(3) {
+  font-weight: 700;
+  letter-spacing: .035em;
+}
+
+.personnel-master-table th:nth-child(4),
+.personnel-master-table td:nth-child(4) {
+  min-width: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.personnel-master-table th:nth-child(5),
+.personnel-master-table td:nth-child(5),
+.personnel-master-table th:nth-child(6),
+.personnel-master-table td:nth-child(6) {
+  text-align: center;
+}
+
+.personnel-master-table td:nth-child(6) .actions {
+  justify-content: center;
+}
+
+.personnel-shift {
+  gap: 8px;
+  color: #273b55;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+.personnel-shift i {
+  width: 14px;
+  flex: 0 0 14px;
+  text-align: center;
+  color: #607995;
+}
+
+.personnel-specialization-list {
+  width: 100%;
+  max-width: none;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.personnel-specialization-chip {
+  flex: 0 0 auto;
+}
+
+.personnel-specialization-more {
+  min-height: 25px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  background: #f3f6fa;
+  border: 1px solid #dde5ef;
+  border-radius: 999px;
+  color: #5c6f87;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.personnel-status {
+  min-width: 72px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+/* Mechanic search is instant/server-filtered, so only the Add action needs a button. */
+.attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+  grid-template-columns: minmax(300px, 1fr) 142px minmax(185px, 220px) 142px auto;
+}
+
+/* Approved Add/Edit Mechanic modal */
+.personnel-modal-mechanic {
+  width: min(860px, calc(100vw - 36px));
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+  border: 1px solid #dfe7f1;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(15, 36, 65, .28);
+}
+
+.personnel-modal-header-mechanic {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-height: 94px;
+  align-items: center;
+  padding: 18px 24px;
+  background: #fff;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-title {
+  align-items: center;
+  gap: 13px;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-icon {
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+  background: #fff2c8;
+  border-color: #ffe39a;
+  border-radius: 12px;
+  color: #a76d00;
+  font-size: 17px;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-eyebrow {
+  margin-bottom: 2px;
+  color: #145dcc;
+  font-size: 8px;
+  letter-spacing: .075em;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-title h2 {
+  font-size: 21px;
+  line-height: 1.15;
+  letter-spacing: -.015em;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-title p {
+  margin-top: 5px;
+  color: #6f8097;
+  font-size: 11px;
+}
+
+.personnel-modal-header-mechanic .personnel-modal-close {
+  width: 36px;
+  height: 36px;
+  border-color: #dce6f1;
+  border-radius: 9px;
+  color: #617791;
+  font-size: 15px;
+}
+
+.personnel-mechanic-form {
+  max-height: calc(100vh - 132px);
+  overflow-y: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px 20px;
+  padding: 20px 24px 22px;
+  background: #fff;
+}
+
+.personnel-mechanic-form .personnel-input-field {
+  gap: 7px;
+  color: #1f3048;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.personnel-input-shell {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 44px;
+  background: #fff;
+  border: 1px solid #d7e2ef;
+  border-radius: 9px;
+  overflow: hidden;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.personnel-input-shell:focus-within {
+  border-color: #2d78f4;
+  box-shadow: 0 0 0 3px rgba(45, 120, 244, .12);
+}
+
+.personnel-input-shell > i {
+  width: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  background: #f8fafc;
+  border-right: 1px solid #e8eef5;
+  color: #7d8fa7;
+  font-size: 12px;
+}
+
+.personnel-mechanic-form .personnel-input-shell input,
+.personnel-mechanic-form .personnel-input-shell select {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #1f3048;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.personnel-mechanic-form .personnel-input-shell input::placeholder {
+  color: #9aa8bb;
+  font-weight: 500;
+}
+
+.personnel-mechanic-form .personnel-input-shell input:focus,
+.personnel-mechanic-form .personnel-input-shell select:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.personnel-status-input-shell {
+  max-width: 100%;
+}
+
+.personnel-status-input-shell .personnel-status-input-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  align-self: center;
+  margin-left: 15px;
+  border-radius: 50%;
+  background: #2fc478;
+  box-shadow: 0 0 0 3px rgba(47, 196, 120, .08);
+}
+
+.personnel-status-input-shell select {
+  padding-left: 10px !important;
+}
+
+.personnel-specialization-field {
+  gap: 13px;
+  padding: 14px;
+  background: #fbfdff;
+  border-color: #dce6f1;
+  border-radius: 12px;
+}
+
+.personnel-specialization-topline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.personnel-specialization-topline .personnel-field-heading {
+  display: block;
+}
+
+.personnel-specialization-topline .personnel-field-heading > div > span {
+  color: #20344f;
+  font-size: 13px;
+}
+
+.personnel-specialization-topline .personnel-field-heading small {
+  margin-top: 3px;
+  color: #75869d;
+  font-size: 10px;
+}
+
+.personnel-specialization-search {
+  position: relative;
+  width: min(230px, 42%);
+  flex: 0 0 auto;
+}
+
+.personnel-specialization-search > i {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: #7188a4;
+  font-size: 11px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.personnel-mechanic-form .personnel-specialization-search input {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px 0 33px;
+  background: #fff;
+  border: 1px solid #d7e2ef;
+  border-radius: 8px;
+  color: #314861;
+  font-size: 10px;
+  outline: none;
+}
+
+.personnel-mechanic-form .personnel-specialization-search input:focus {
+  border-color: #70a4f6;
+  box-shadow: 0 0 0 3px rgba(45, 120, 244, .09);
+}
+
+.personnel-specialization-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.personnel-specialization-option {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.personnel-specialization-option .personnel-specialization-leading-icon {
+  width: 14px;
+  flex: 0 0 14px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.personnel-specialization-option .personnel-specialization-state-icon {
+  margin-left: 2px;
+  font-size: 9px;
+  opacity: .82;
+}
+
+.personnel-specialization-option.tone-blue {
+  background: #edf5ff;
+  border-color: #d8e8ff;
+  color: #1767c8;
+}
+
+.personnel-specialization-option.tone-purple {
+  background: #f3edff;
+  border-color: #e6dbff;
+  color: #7745bd;
+}
+
+.personnel-specialization-option.tone-green {
+  background: #eaf9f0;
+  border-color: #d4f1df;
+  color: #21834b;
+}
+
+.personnel-specialization-option.tone-red {
+  background: #ffeded;
+  border-color: #ffdad8;
+  color: #cf4440;
+}
+
+.personnel-specialization-option.tone-orange {
+  background: #fff2e4;
+  border-color: #ffe0c1;
+  color: #bd6a13;
+}
+
+.personnel-specialization-option.tone-yellow {
+  background: #fff6dc;
+  border-color: #f8e8b4;
+  color: #9a7108;
+}
+
+.personnel-specialization-option:hover:not(:disabled) {
+  border-color: currentColor;
+  transform: translateY(-1px);
+}
+
+.personnel-specialization-option.is-selected {
+  border-color: currentColor;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.personnel-specialization-option:disabled {
+  opacity: .72;
+}
+
+.personnel-selected-panel {
+  padding-top: 2px;
+}
+
+.personnel-selected-panel-title {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #243952;
+  font-size: 10px;
+}
+
+.personnel-selected-panel-title .personnel-selected-count {
+  padding: 4px 7px;
+  font-size: 8px;
+}
+
+.personnel-specialization-selected {
+  min-height: 82px;
+  align-items: center;
+  align-content: center;
+  gap: 7px;
+  padding: 12px;
+  background: #fff;
+  border: 1px dashed #cad9e9;
+  border-radius: 9px;
+}
+
+.personnel-specialization-empty {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  color: #8191a6;
+  text-align: center;
+}
+
+.personnel-specialization-empty > i {
+  margin-bottom: 2px;
+  color: #7c8ea7;
+  font-size: 17px;
+}
+
+.personnel-specialization-empty > strong {
+  color: #53677f;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.personnel-specialization-empty > span {
+  color: #8b9aab;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.personnel-specialization-selected-chip {
+  min-height: 30px;
+  padding: 0 9px 0 11px;
+  background: #edf5ff;
+  border-color: #d6e6fb;
+  border-radius: 8px;
+  color: #245f9f;
+  font-size: 9px;
+}
+
+.personnel-specialization-selected-chip button {
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.personnel-employment-field {
+  align-self: end;
+}
+
+.personnel-mechanic-form .personnel-modal-actions {
+  grid-column: 2;
+  align-self: end;
+  justify-content: flex-end;
+  margin: 0;
+  padding-top: 0;
+}
+
+.personnel-mechanic-form .personnel-modal-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.personnel-mechanic-form .personnel-modal-actions .secondary-btn {
+  min-width: 86px;
+  background: #fff;
+  border: 1px solid #d6e1ec;
+  color: #173a68;
+}
+
+.personnel-mechanic-form .personnel-modal-actions .primary-btn {
+  min-width: 142px;
+  background: var(--yellow);
+  color: #10233f;
+  box-shadow: 0 6px 16px rgba(255, 196, 0, .2);
+}
+
+.personnel-modal-overlay[data-mode="view"] .personnel-specialization-search {
+  display: none;
+}
+
+.personnel-modal-overlay[data-mode="view"] .personnel-specialization-option {
+  cursor: default;
+}
+
+@media (max-width: 860px) {
+  .personnel-modal-mechanic {
+    width: min(740px, calc(100vw - 24px));
+  }
+
+  .personnel-specialization-topline {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .personnel-specialization-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 680px) {
+  .personnel-modal-header-mechanic {
+    padding: 16px 17px;
+  }
+
+  .personnel-mechanic-form {
+    grid-template-columns: 1fr;
+    padding: 16px 17px 18px;
+  }
+
+  .personnel-specialization-field,
+  .personnel-mechanic-form .personnel-modal-actions {
+    grid-column: 1;
+  }
+
+  .personnel-mechanic-form .personnel-modal-actions {
+    justify-content: stretch;
+  }
+
+  .personnel-mechanic-form .personnel-modal-actions button {
+    flex: 1;
+  }
+}
+
+
+
+/* Routes-aligned Master List toolbar and action controls */
+.personnel-master-page .attendance-toolbar.personnel-master-toolbar {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #d9e4f0;
+  border-radius: 12px;
+}
+
+/* Driver uses the same 150px status filter as Mechanic Master List. */
+.personnel-master-page .attendance-toolbar.personnel-master-toolbar.driver-master-toolbar {
+  grid-template-columns: minmax(0, 1fr) 150px 150px auto;
+}
+
+.personnel-master-page .attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+  grid-template-columns: minmax(0, 1fr) 150px minmax(165px, 205px) 142px auto;
+}
+
+.personnel-master-page .personnel-master-toolbar .search-box {
+  min-width: 0;
+  grid-column: auto;
+}
+
+.personnel-master-page .personnel-master-toolbar .search-box > i {
+  color: #0b40b5;
+}
+
+.personnel-master-page .personnel-master-toolbar .search-box input,
+.personnel-master-page .personnel-master-toolbar .personnel-filter select,
+.personnel-master-page .personnel-master-toolbar .filter-group select {
+  height: 40px;
+  min-height: 40px;
+  border-radius: 9px;
+  border-color: #d9e4f0;
+  background: #fff;
+}
+
+.personnel-master-page .personnel-master-toolbar .filter-group,
+.personnel-master-page .personnel-master-toolbar .personnel-filter {
+  min-width: 0;
+}
+
+.personnel-master-page .personnel-add-btn {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  background: linear-gradient(135deg, #ffcf00, #ffb900);
+  border: 1px solid #e8ac00;
+  border-radius: 9px;
+  color: #0b2a4a;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.personnel-master-page .personnel-add-btn:hover {
+  background: linear-gradient(135deg, #ffdc39, #ffc400);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, .3);
+}
+
+.personnel-master-page .personnel-avatar.mechanic {
+  background: #eaf2ff;
+  border-color: #cfe0ff;
+  color: #0b40b5;
+}
+
+.personnel-master-page .personnel-master-table .actions,
+.personnel-master-page .personnel-master-table .actions form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.personnel-master-page .personnel-master-table .action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.view,
+.personnel-master-page .personnel-master-table .action-btn.edit {
+  color: #0b40b5;
+  background: #eaf2ff;
+  border-color: #d4e3ff;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.view:hover,
+.personnel-master-page .personnel-master-table .action-btn.edit:hover {
+  color: #fff;
+  background: #0b40b5;
+  border-color: #0b40b5;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.delete {
+  color: #dc2626;
+  background: #fff0f0;
+  border-color: #fee2e2;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.delete:hover {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.activate {
+  color: #15803d;
+  background: #e8f9ef;
+  border-color: #b7efca;
+}
+
+.personnel-master-page .personnel-master-table .action-btn.activate:hover {
+  color: #fff;
+  background: #15803d;
+  border-color: #15803d;
+}
+
+@media (max-width: 1100px) {
+  .personnel-master-page .attendance-toolbar.personnel-master-toolbar.driver-master-toolbar,
+  .personnel-master-page .attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .personnel-master-page .personnel-master-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .personnel-master-page .personnel-add-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .personnel-master-page .attendance-toolbar.personnel-master-toolbar.driver-master-toolbar,
+  .personnel-master-page .attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .personnel-master-page .personnel-master-toolbar .search-box,
+  .personnel-master-page .personnel-add-btn {
+    grid-column: auto;
+  }
+}
+
+
+/* Driver Master modal refinement: shared Add / Edit / View presentation */
+.personnel-modal-driver {
+  width: min(790px, calc(100vw - 32px));
+  max-height: calc(100dvh - 36px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8e4f2;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(11, 32, 64, .26);
+}
+
+.personnel-modal-driver .driver-modal-header {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 103px;
+  padding: 21px 26px;
+  background: linear-gradient(110deg, #fff 65%, #f5f9ff 100%);
+  border-bottom: 1px solid #e0e8f3;
+}
+
+.personnel-modal-driver .driver-modal-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-color: #ffe3a0;
+  background: #fff5d7;
+  border-radius: 12px;
+  color: #a76d00;
+  font-size: 18px;
+}
+
+.personnel-modal-driver .personnel-modal-eyebrow {
+  margin-bottom: 5px;
+  color: #1956b1;
+  font-size: 9px;
+}
+
+.personnel-modal-driver .personnel-modal-title h2 {
+  color: #122947;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.personnel-modal-driver .personnel-modal-title p {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6c7e95;
+  line-height: 1.5;
+}
+
+.personnel-modal-driver .personnel-modal-close {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-color: #dce6f1;
+  border-radius: 9px;
+  color: #667e98;
+  font-size: 15px;
+}
+
+.personnel-modal-driver .personnel-modal-close:hover {
+  background: #edf3fa;
+  color: #173a68;
+}
+
+.personnel-driver-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100dvh - 139px);
+  overflow-y: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  padding: 20px 26px 0;
+  background: #fff;
+}
+
+.personnel-driver-form .driver-modal-group-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+  margin-top: 3px;
+  padding: 11px 14px;
+  border: 1px solid #e4ecf6;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.personnel-driver-form .driver-modal-group-heading strong,
+.personnel-driver-form .driver-modal-group-heading small {
+  display: block;
+}
+
+.personnel-driver-form .driver-modal-group-heading strong {
+  color: #1b3554;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.personnel-driver-form .driver-modal-group-heading small {
+  margin-top: 2px;
+  color: #8190a4;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.personnel-driver-form .driver-modal-group-heading > i {
+  color: #517db8;
+  font-size: 15px;
+}
+
+.personnel-driver-form .driver-input-field {
+  min-width: 0;
+  gap: 8px;
+  color: #243b57;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.personnel-driver-form .driver-input-shell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  overflow: hidden;
+  border: 1px solid #d7e2ef;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.personnel-driver-form .driver-input-shell:focus-within {
+  border-color: #3076e8;
+  box-shadow: 0 0 0 3px rgba(48, 118, 232, .12);
+}
+
+.personnel-driver-form .driver-input-shell > i {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  flex: 0 0 42px;
+  align-self: stretch;
+  border-right: 1px solid #e8eef6;
+  background: #f8faff;
+  color: #6583aa;
+  font-size: 13px;
+}
+
+.personnel-driver-form .driver-input-shell > input,
+.personnel-driver-form .driver-input-shell > select {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  color: #1d304a;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.personnel-driver-form .driver-input-shell > input:focus,
+.personnel-driver-form .driver-input-shell > select:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.personnel-driver-form .driver-input-shell > input::placeholder {
+  color: #9aabc0;
+  font-weight: 450;
+}
+
+.personnel-driver-form .driver-modal-view-notice {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #315b96;
+  background: #edf5ff;
+  padding: 11px 13px;
+  border: 1px solid #d3e4fc;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.personnel-driver-form .driver-modal-view-notice[hidden] {
+  display: none !important;
+}
+
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
+  border-color: #e3eaf3;
+  background: #f8fafc;
+}
+
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > input:disabled,
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > select:disabled {
+  opacity: 1;
+  -webkit-text-fill-color: #2d405c;
+  background: #f8fafc;
+  color: #2d405c;
+}
+
+.personnel-driver-form .driver-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  align-items: center;
+  gap: 10px;
+  margin: 2px -26px 0;
+  padding: 15px 26px;
+  border-top: 1px solid #e4ebf4;
+  background: #fff;
+  box-shadow: 0 -8px 22px rgba(15, 35, 71, .035);
+}
+
+.personnel-driver-form .driver-modal-helper {
+  flex: 1;
+  min-width: 0;
+  margin-right: auto;
+  color: #7e8da4;
+  font-size: 10px;
+}
+
+.personnel-driver-form .driver-modal-actions button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 17px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.personnel-driver-form .driver-modal-actions .secondary-btn {
+  background: #fff;
+  border: 1px solid #d5e1ef;
+  color: #224d82;
+}
+
+.personnel-driver-form .driver-modal-actions .primary-btn {
+  background: linear-gradient(135deg, #ffd42d, #ffb900);
+  border: 1px solid #ecb600;
+  color: #0c274a;
+  box-shadow: 0 5px 14px rgba(255, 196, 0, .18);
+}
+
+@media (max-width: 680px) {
+  .personnel-modal-driver .driver-modal-header { padding: 17px; }
+  .personnel-driver-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px 17px 0;
+  }
+  .personnel-driver-form .driver-modal-group-heading,
+  .personnel-driver-form .driver-input-field.full-width,
+  .personnel-driver-form .driver-modal-view-notice,
+  .personnel-driver-form .driver-modal-actions { grid-column: 1; }
+  .personnel-driver-form .driver-modal-actions {
+    flex-wrap: wrap;
+    margin: 2px -17px 0;
+    padding: 14px 17px;
+  }
+  .personnel-driver-form .driver-modal-helper { flex-basis: 100%; }
+  .personnel-driver-form .driver-modal-actions button { flex: 1; }
+}
+
+/* Make Default Shift values clearly emphasized in both personnel master lists. */
+.personnel-master-page .gct-pill--shift-morning,
+.personnel-master-page .gct-pill--shift-afternoon,
+.personnel-master-page .gct-pill--shift-night {
+  font-weight: 800 !important;
+}

@@ -4,13 +4,14 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Purchase/Requested_Purchase/inventory-restock.js'
   ]"
 >
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main inventory-restock-page">
+    <main class="main inventory-restock-page purchase-module-page records-page">
       <x-layout.topbar
         title="Inventory Restock"
         subtitle="Automatic restock requests from warehouse inventory"
@@ -48,18 +49,20 @@
         />
       </section>
 
-      <section data-ajax-region="records" class="table-card restock-card">
+      <section data-ajax-region="records" class="table-card restock-card records-card">
         <div class="section-header">
           <div>
+            <span class="purchase-section-eyebrow">INVENTORY REPLENISHMENT</span>
             <h2>Inventory Restock Records</h2>
             <p>Only active automatic warehouse restock requests are shown here. Completed records are available in Purchase History.</p>
           </div>
+          <span class="purchase-section-count">{{ $restockRequests->total() }} active</span>
         </div>
 
         <form
           action="{{ route('inventory-restock', [], false) }}"
           method="GET"
-          class="toolbar restock-toolbar"
+          class="toolbar restock-toolbar records-toolbar"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -89,8 +92,8 @@
           </div>
         </form>
 
-        <div class="table-wrap">
-          <table class="restock-table">
+        <div class="table-wrap records-table-wrap">
+          <table class="restock-table records-table">
             <thead>
               <tr>
                 <th>Restock #</th>
@@ -147,7 +150,7 @@
                     {{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}
                   </td>
                   <td class="center-text">
-                    <div class="actions">
+                    <div class="actions record-actions">
                       <button
                         type="button"
                         class="action-btn view open-restock-view-modal"

@@ -198,6 +198,10 @@ document.addEventListener('submit', (event) => {
         ? event.submitter
         : form.querySelector('button[type="submit"], input[type="submit"]');
 
+    if (!form.matches('[data-confirm-form]')) {
+        window.GCTRealtimeMutation?.markNativeSubmit?.();
+    }
+
     window.setTimeout(() => {
         if (event.defaultPrevented || !submitter || isIconActionButton(submitter)) {
             return;

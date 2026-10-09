@@ -4,6 +4,7 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/purchase-orders.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Purchase/purchase-orders.js'
   ]"
 >
@@ -72,7 +73,7 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main purchase-orders-page">
+    <main class="main purchase-orders-page purchase-module-page records-page">
       <x-layout.topbar
         title="Purchase Order"
         subtitle="Manage procurement records for vehicle parts, equipment & operational materials"
@@ -86,16 +87,20 @@
         <x-ui.summary-card label="Delivered / Picked Up" value="{{ $delivered }}" small="Completed procurement" icon="fa-circle-check" color="green" />
       </section>
 
-      <section data-ajax-region="records" class="table-card purchase-order-card">
+      <section data-ajax-region="records" class="table-card purchase-order-card records-card">
         <div class="section-header po-section-header">
           <div class="section-heading">
             <span class="section-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
-            <div><h2>Purchase Order Records</h2><p>Track procurement progress, request references, totals, and delivery status.</p></div>
+            <div>
+              <span class="purchase-section-eyebrow">PROCUREMENT RECORDS</span>
+              <h2>Purchase Order Records</h2>
+              <p>Track procurement progress, request references, totals, and delivery status.</p>
+            </div>
           </div>
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
         </div>
 
-        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar" data-server-filter="true">
+        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar records-toolbar" data-server-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO number, item, request no., or status...">
@@ -114,8 +119,8 @@
           <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn"><i class="fa-solid fa-plus"></i> New PO</button>
         </form>
 
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap records-table-wrap">
+          <table class="records-table">
             <thead>
               <tr>
                 <th>PO No.</th><th>Item</th><th>Request No.</th><th>Request Type</th><th>Qty</th><th>Total Amount</th><th>Status</th><th>Date</th><th>Actions</th>
@@ -133,7 +138,9 @@
                   $hasRequest = trim((string) $displayRequestNo) !== '' && $displayRequestNo !== '—';
                   $isInventoryRestock = $hasRequest && str_starts_with(strtoupper($displayRequestNo), 'RST-');
                   $requestType = ! $hasRequest ? 'Manual Purchase' : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance Request');
-                  $isDraft = strtolower($purchaseOrder->status ?? '') === 'draft';
+                  $normalizedPoStatus = strtolower(trim((string) ($purchaseOrder->status ?? '')));
+                  $isEditable = $normalizedPoStatus === 'ordered';
+                  $isDraft = $normalizedPoStatus === 'draft';
                   $nextStatuses = $purchaseOrder->status === 'Ordered' ? ['For Pick-up', 'For Delivery'] : [];
                 @endphp
 
@@ -157,11 +164,11 @@
                     </div>
                   </td>
                   <td>
-                    <div class="actions">
-                      <button
-                        type="button"
-                        class="action-btn {{ $isDraft ? 'edit open-edit-po-modal' : 'view open-view-po-modal' }}"
-                        title="{{ $isDraft ? 'Edit PO' : 'View PO' }}"
+                    <div class="actions record-actions">
+                      <x-ui.action-button
+                        type="view"
+                        title="View PO"
+                        class="open-view-po-modal"
                         data-id="{{ $purchaseOrder->id }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
@@ -169,7 +176,22 @@
                         data-status="{{ $purchaseOrder->status }}"
                         data-items='@json($items)'
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
-                      ><i class="fa-solid {{ $isDraft ? 'fa-pen-to-square' : 'fa-eye' }}"></i></button>
+                      />
+
+                      @if($isEditable)
+                        <x-ui.action-button
+                          type="edit"
+                          title="Edit PO"
+                          class="open-edit-po-modal"
+                          data-id="{{ $purchaseOrder->id }}"
+                          data-po-no="{{ $purchaseOrder->po_no }}"
+                          data-po-date="{{ $purchaseOrder->po_date }}"
+                          data-supplier-name="{{ $purchaseOrder->supplier_name }}"
+                          data-status="{{ $purchaseOrder->status }}"
+                          data-items='@json($items)'
+                          data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
+                        />
+                      @endif
 
                       @if(count($nextStatuses) > 0)
                         <x-ui.action-button
@@ -205,13 +227,16 @@
   </div>
 
   <div id="poModal" class="modal-overlay {{ $openPoModal ? 'show active' : '' }}">
-    <div class="modal-card modal-box po-modal-box">
+    <div class="modal-card modal-box po-modal-box" role="dialog" aria-modal="true" aria-labelledby="poModalTitle">
       <div class="po-modal-header">
-        <div><h2 id="poModalTitle">New Purchase Order</h2></div>
-        <button type="button" id="closePoModal" class="po-close-btn" aria-label="Close purchase order form"><i class="fa-solid fa-xmark"></i></button>
+        <div class="po-modal-heading">
+          <h2 id="poModalTitle">New Purchase Order</h2>
+          <p id="poModalSubtitle">Create and review a supplier purchase order.</p>
+        </div>
+        <button type="button" id="closePoModal" class="po-close-btn" aria-label="Close purchase order form">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
-
-      <div class="po-company-title"><h3>GCT TRANSPORT SERVICES INC.</h3><p>PURCHASE ORDER</p></div>
 
       <form
         id="poForm"
@@ -228,52 +253,123 @@
         @csrf
         <input type="hidden" name="_method" id="poFormMethod" value="POST">
         <input type="hidden" name="purchase_request_id" id="purchase_request_id" value="{{ $selectedPurchaseRequest?->id }}">
-        <input type="hidden" name="supplier_name" id="supplier_name" value="N/A">
 
-        <div class="po-form-grid">
-          <div class="po-form-group">
-            <label for="po_no">PO Number</label>
-            <input type="text" name="po_no" id="po_no" value="{{ $nextPoNo ?? '' }}" readonly>
+        <section class="po-form-section po-order-information" aria-labelledby="poOrderInfoTitle">
+          <div class="po-form-section-header">
+            <span class="po-section-icon"><i class="fa-solid fa-file-invoice"></i></span>
+            <div>
+              <h3 id="poOrderInfoTitle">Order Information</h3>
+              <p>Enter the purchase order details and supplier information.</p>
+            </div>
           </div>
 
-          <div class="po-form-group">
-            <label for="po_date">Date</label>
-            <input type="date" name="po_date" id="po_date" value="{{ now()->toDateString() }}" readonly required>
+          <div class="po-form-section-body">
+            <div class="po-form-grid">
+              <div class="po-form-group">
+                <label for="po_no">PO Number <span class="po-required">*</span></label>
+                <input type="text" name="po_no" id="po_no" value="{{ $nextPoNo ?? '' }}" readonly>
+              </div>
+
+              <div class="po-form-group">
+                <label for="po_date">Date <span class="po-required">*</span></label>
+                <input type="date" name="po_date" id="po_date" value="{{ now()->toDateString() }}" readonly required>
+              </div>
+
+              <div class="po-form-group">
+                <label for="supplier_name">Supplier <span class="po-required">*</span></label>
+                <input
+                  type="text"
+                  name="supplier_name"
+                  id="supplier_name"
+                  value="N/A"
+                  placeholder="Enter supplier name"
+                  maxlength="255"
+                  required
+                >
+              </div>
+
+              <div class="po-form-group">
+                <label for="po_status">Status <span class="po-required">*</span></label>
+                <div class="po-status-field">
+                  <span class="po-status-dot" aria-hidden="true"></span>
+                  <input type="text" name="status" id="po_status" value="Ordered" readonly required>
+                </div>
+              </div>
+
+              <div class="po-form-group po-request-reference" id="poRequestReference">
+                <label for="main_pr_no">Linked Purchase Request</label>
+                <input type="text" id="main_pr_no" placeholder="No linked request" value="{{ $selectedPurchaseRequest?->pr_no }}" readonly>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="po-form-section po-purchase-items-section" aria-labelledby="poItemsTitle">
+          <div class="po-form-section-header">
+            <span class="po-section-icon"><i class="fa-solid fa-box-open"></i></span>
+            <div>
+              <h3 id="poItemsTitle">Purchase Items</h3>
+              <p>Add the items to be included in this purchase order.</p>
+            </div>
           </div>
 
-          <div class="po-form-group">
-            <label for="po_status">Status</label>
-            <input type="text" name="status" id="po_status" value="Ordered" readonly required>
-          </div>
+          <div class="po-form-section-body">
+            <div class="po-items-section">
+              <div class="po-items-header">
+                <span>Item Description <b>*</b></span>
+                <span>Qty <b>*</b></span>
+                <span>Unit</span>
+                <span>Unit Cost <b>*</b></span>
+                <span>Line Total</span>
+                <span></span>
+              </div>
 
-          <div class="po-form-group" id="poRequestReference">
-            <label for="main_pr_no">PR #</label>
-            <input type="text" id="main_pr_no" placeholder="No linked request" value="{{ $selectedPurchaseRequest?->pr_no }}" readonly>
-          </div>
-        </div>
+              <div id="poItemsContainer" class="po-items-container"></div>
 
-        <div class="po-items-section">
-          <label class="po-items-title">Purchase Items</label>
-          <div class="po-items-header"><span>Item Description</span><span>Qty</span><span>Unit</span><span>Cost</span><span>PO Amount</span><span></span></div>
-          <div id="poItemsContainer" class="po-items-container"></div>
-          <button type="button" id="addPoItemBtn" class="add-po-item-btn"><i class="fa-solid fa-plus"></i> Add Item</button>
-        </div>
+              <button type="button" id="addPoItemBtn" class="add-po-item-btn">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Item</span>
+              </button>
+            </div>
 
-        <div class="po-bottom-grid">
-          <div></div>
-          <div class="po-totals-box">
-            <div class="po-total-row"><label for="net_amount_display">Total Amount</label><input type="text" id="net_amount_display" value="₱0.00" readonly></div>
+            <div class="po-bottom-grid">
+              <div class="po-items-helper">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Review item quantities and costs before saving.</span>
+              </div>
+
+              <aside class="po-summary-card" aria-label="Purchase order summary">
+                <div class="po-summary-title">
+                  <span><i class="fa-solid fa-calculator"></i></span>
+                  <strong>Summary</strong>
+                </div>
+                <div class="po-summary-row">
+                  <span>Subtotal</span>
+                  <strong id="po_subtotal_display">₱0.00</strong>
+                </div>
+                <div class="po-summary-row po-summary-total">
+                  <span>Total Amount</span>
+                  <input type="text" id="net_amount_display" value="₱0.00" readonly aria-label="Total amount">
+                </div>
+              </aside>
+            </div>
           </div>
-        </div>
+        </section>
 
         <div class="po-modal-actions" id="poEditActions">
-          <button type="button" id="cancelPoModal" class="secondary-btn po-cancel-btn">Cancel</button>
-          <button type="submit" class="primary-btn po-save-btn">Save Purchase Order</button>
+          <div class="po-action-hint">
+            <i class="fa-solid fa-circle-info"></i>
+            <span id="poActionHint">Review items before saving.</span>
+          </div>
+          <div class="po-action-buttons">
+            <button type="button" id="cancelPoModal" class="secondary-btn po-cancel-btn">Cancel</button>
+            <button type="submit" id="poSaveButton" class="primary-btn po-save-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span id="poSaveButtonLabel">Save Purchase Order</span>
+            </button>
+          </div>
         </div>
 
-        <div class="po-modal-actions hidden" id="poViewActions">
-          <button type="button" id="closeViewPoModal" class="secondary-btn po-cancel-btn">Close</button>
-        </div>
       </form>
     </div>
   </div>

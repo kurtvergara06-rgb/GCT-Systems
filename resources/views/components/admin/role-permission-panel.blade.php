@@ -301,7 +301,7 @@
                     </button>
 
                     <button type="button" class="primary-btn" id="editPermissionsButton">
-                        <i class="fa-solid fa-pen"></i>
+                        <i class="fa-solid fa-pen-to-square"></i>
                         Edit Permissions
                     </button>
 

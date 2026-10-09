@@ -28,7 +28,7 @@
             @endif
 
             <!-- Summary KPI Cards -->
-            <section class="ddr-summary-grid">
+            <section data-ajax-region="summary" class="ddr-summary-grid">
                 <article class="ddr-summary-card">
                     <div class="ddr-summary-icon blue">
                         <i class="fa-solid fa-file-lines"></i>
@@ -75,7 +75,7 @@
             </section>
 
             <!-- Main Records Card -->
-            <section class="ddr-card">
+            <section data-ajax-region="records" class="ddr-card">
                 <div class="ddr-card-header">
                     <div>
                         <h2>Daily Driver Report Records</h2>

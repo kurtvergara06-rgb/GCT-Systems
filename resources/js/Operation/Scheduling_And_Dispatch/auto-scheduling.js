@@ -1,4 +1,8 @@
 window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.auto-scheduling-page', () => {
+    const pageRoot = document.querySelector('.auto-scheduling-page');
+    const canEditOperation =
+        pageRoot?.dataset.operationEdit === 'true';
+
     const form =
         document.getElementById('autoSchedulingForm');
 
@@ -624,6 +628,15 @@ function updateMlStatus(conflicts) {
 
 
     async function confirmSchedule() {
+        if (!canEditOperation) {
+            window.showSystemToast?.(
+                'Your role has view-only access to Operation scheduling.',
+                'warning',
+                'View-only access'
+            );
+            return;
+        }
+
         if (!confirmButton || !recommendations.length) {
             return;
         }
@@ -1083,6 +1096,17 @@ function updateMlStatus(conflicts) {
 
 
     function renderConflictButtons(item, index) {
+        if (!canEditOperation) {
+            return `
+                <div class="ai-resolution-buttons">
+                    <span class="ai-resolution-btn manual" aria-disabled="true">
+                        <i class="fa-solid fa-eye"></i>
+                        View-only access
+                    </span>
+                </div>
+            `;
+        }
+
         const actions = Array.isArray(
             item?.ai?.conflict?.recommended_actions
         )
@@ -1140,6 +1164,15 @@ function updateMlStatus(conflicts) {
 
 
     function openResolutionModal(conflict) {
+        if (!canEditOperation) {
+            window.showSystemToast?.(
+                'Your role cannot apply scheduling resolutions.',
+                'warning',
+                'View-only access'
+            );
+            return;
+        }
+
         const action = getTimeResolutionAction(conflict);
 
         if (!action) {
@@ -1247,12 +1280,6 @@ function updateMlStatus(conflicts) {
         document.body.appendChild(overlay);
         document.body.classList.add('ai-modal-open');
 
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) {
-                closeResolutionModal();
-            }
-        });
-
         document
             .getElementById('applyAiResolutionButton')
             ?.addEventListener('click', async () => {
@@ -1271,6 +1298,15 @@ function updateMlStatus(conflicts) {
 
 
     async function applyAiResolution(conflict, action) {
+        if (!canEditOperation) {
+            window.showSystemToast?.(
+                'Your role cannot apply scheduling resolutions.',
+                'warning',
+                'View-only access'
+            );
+            return;
+        }
+
         const button = document.getElementById(
             'applyAiResolutionButton'
         );
@@ -1547,6 +1583,10 @@ function updateMlStatus(conflicts) {
    CONSOLIDATED: resources/js/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js
 ========================================================= */
 (() => {
+    const canEditOperation =
+        document.querySelector('.auto-scheduling-page')
+            ?.dataset.operationEdit === 'true';
+
     const generatePath = '/operation/auto-scheduling/generate';
     const resolvePath = '/operation/auto-scheduling/resolve';
     const assignmentPath = '/operation/driver-bus-assignment';
@@ -1870,19 +1910,26 @@ function updateMlStatus(conflicts) {
                 </div>
 
                 <footer class="gct-conflict-actions">
-                    <a href="${assignmentPath}" class="ai-resolution-btn manual">
-                        <i class="fa-solid fa-screwdriver-wrench"></i>
-                        Resolve Manually
-                    </a>
-                    <button
-                        type="button"
-                        class="ai-resolution-btn primary"
-                        data-review-ai-resolution="${index}"
-                        ${action ? '' : 'disabled'}
-                    >
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        Review Selected Resolution
-                    </button>
+                    ${canEditOperation ? `
+                        <a href="${assignmentPath}" class="ai-resolution-btn manual">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            Resolve Manually
+                        </a>
+                        <button
+                            type="button"
+                            class="ai-resolution-btn primary"
+                            data-review-ai-resolution="${index}"
+                            ${action ? '' : 'disabled'}
+                        >
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Review Selected Resolution
+                        </button>
+                    ` : `
+                        <span class="ai-resolution-btn manual" aria-disabled="true">
+                            <i class="fa-solid fa-eye"></i>
+                            View-only access
+                        </span>
+                    `}
                 </footer>
             </article>
         `;
@@ -1919,6 +1966,15 @@ function updateMlStatus(conflicts) {
     };
 
     const openReviewModal = (index) => {
+        if (!canEditOperation) {
+            window.showSystemToast?.(
+                'Your role cannot apply scheduling resolutions.',
+                'warning',
+                'View-only access'
+            );
+            return;
+        }
+
         const conflict = conflicts[index];
         const action = getTimeAction(conflict);
 
@@ -1999,12 +2055,6 @@ function updateMlStatus(conflicts) {
         overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('ai-modal-open');
-
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) {
-                closeModal();
-            }
-        });
 
         overlay.querySelectorAll('[data-gct-close-modal]').forEach((button) => {
             button.addEventListener('click', closeModal);
@@ -2111,6 +2161,15 @@ function updateMlStatus(conflicts) {
     };
 
     const applyResolution = async (index, action) => {
+        if (!canEditOperation) {
+            window.showSystemToast?.(
+                'Your role cannot apply scheduling resolutions.',
+                'warning',
+                'View-only access'
+            );
+            return;
+        }
+
         const conflict = conflicts[index];
         const button = document.getElementById('gctApplyResolutionButton');
         const errorBox = document.getElementById('gctResolutionError');
@@ -2257,3 +2316,92 @@ function updateMlStatus(conflicts) {
         }
     }, true);
 })();
+
+if (!window.__gctAutoSchedulingRealtimeReinitBound) {
+    window.__gctAutoSchedulingRealtimeReinitBound = true;
+
+    window.addEventListener(
+        'system-regions-refreshed',
+        (event) => {
+            if (!document.querySelector('.auto-scheduling-page')) {
+                return;
+            }
+
+            const regions = Array.isArray(event.detail?.regions)
+                ? event.detail.regions
+                : [];
+
+            if (!regions.includes('summary')) {
+                return;
+            }
+
+            const previewBody =
+                document.getElementById(
+                    'autoSchedulePreviewBody'
+                );
+
+            if (previewBody) {
+                previewBody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="auto-empty-state">
+                                <i class="fa-solid fa-rotate"></i>
+                                <strong>Schedule data changed</strong>
+                                <span>Generate the schedule again to review current recommendations.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            const readyBadge =
+                document.getElementById(
+                    'generatedReadyCount'
+                );
+
+            if (readyBadge) {
+                readyBadge.innerHTML =
+                    '<i class="fa-solid fa-circle-check"></i><span>0 Ready</span>';
+            }
+
+            const footerMessage =
+                document.getElementById(
+                    'generatedFooterMessage'
+                );
+
+            if (footerMessage) {
+                footerMessage.textContent =
+                    'Schedule data changed. Generate again before confirming assignments.';
+            }
+
+            const confirmButton =
+                document.getElementById(
+                    'confirmScheduleButton'
+                );
+
+            if (confirmButton) {
+                confirmButton.disabled = true;
+            }
+
+            const conflictSection =
+                document.getElementById(
+                    'autoSchedulingConflictSection'
+                );
+
+            if (conflictSection) {
+                conflictSection.hidden = true;
+            }
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    'gct:navigation-ready',
+                    {
+                        detail: {
+                            source: 'realtime-regions',
+                        },
+                    }
+                )
+            );
+        }
+    );
+}

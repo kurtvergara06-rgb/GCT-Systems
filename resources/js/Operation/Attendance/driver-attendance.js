@@ -42,21 +42,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
     modal?.classList.remove('show', 'active');
   }
 
-  const importModal = document.getElementById('importDriverAttendanceModal');
-
-  document
-    .getElementById('openImportDriverAttendanceModal')
-    ?.addEventListener('click', () => openModal(importModal));
-
-  [
-    document.getElementById('closeImportDriverAttendanceModal'),
-    document.getElementById('cancelImportDriverAttendanceModal'),
-  ]
-    .filter(Boolean)
-    .forEach((button) => {
-      button.addEventListener('click', () => closeModal(importModal));
-    });
-
   const attendanceModal = document.getElementById('driverAttendanceModal');
   const attendanceForm = document.getElementById('driverAttendanceForm');
   const attendanceFormMethod = document.getElementById('driverAttendanceFormMethod');
@@ -79,10 +64,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
       button.addEventListener('click', () => closeModal(attendanceModal));
     });
 
-  document
-    .querySelectorAll('.open-edit-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', () => {
+  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-edit-driver-attendance-modal');
+    if (!button) return;
         if (!attendanceForm) {
           return;
         }
@@ -117,8 +101,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         if (status) status.value = button.dataset.status || 'Present';
 
         openModal(attendanceModal);
-      });
-    });
+  });
 
   const viewAttendanceModal = document.getElementById('viewDriverAttendanceModal');
   const viewAttendanceContent = document.getElementById('viewDriverAttendanceContent');
@@ -147,10 +130,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
       .replaceAll("'", '&#039;');
   }
 
-  document
-    .querySelectorAll('.open-view-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', () => {
+  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-view-driver-attendance-modal');
+    if (!button) return;
         const statusValue = button.dataset.status || 'Present';
         const statusClass = getAttendanceStatusClass(statusValue);
 
@@ -192,8 +174,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         }
 
         openModal(viewAttendanceModal);
-      });
-    });
+  });
 
   [
     document.getElementById('closeViewDriverAttendanceModal'),
@@ -208,11 +189,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const deleteName = document.getElementById('deleteDriverAttendanceName');
   let selectedDeleteForm = null;
 
-  document
-    .querySelectorAll('.open-delete-driver-attendance-modal')
-    .forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
+  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-delete-driver-attendance-modal');
+    if (!button) return;
+    event.preventDefault();
 
         selectedDeleteForm = document.getElementById(
           `deleteDriverAttendanceForm-${button.dataset.id}`
@@ -226,8 +206,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         }
 
         openModal(deleteModal);
-      });
-    });
+  });
 
   document
     .getElementById('cancelDeleteDriverAttendance')
@@ -240,24 +219,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
     .getElementById('confirmDeleteDriverAttendance')
     ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
 
-  document
-    .querySelectorAll(
-      '.modal-overlay, .ui-form-overlay, .delete-modal-overlay, .success-modal-overlay'
-    )
-    .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
-        }
-      });
-    });
-
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') {
       return;
     }
 
-    closeModal(importModal);
     closeModal(attendanceModal);
     closeModal(viewAttendanceModal);
     closeModal(deleteModal);

@@ -579,3 +579,27 @@ header.topbar::before {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Shared status badges use text without decorative leading dots.
+   Keep dots in chart legends, notification counts, and profile avatars. */
+:is(
+  .badge,
+  .status-pill,
+  .status-indicator,
+  .personnel-status,
+  .bus-status,
+  .account-badge-status,
+  .system-status-pill
+) > :is(
+  .dot,
+  .status-dot,
+  .status-indicator-dot,
+  .personnel-status-dot
+) {
+  display: none !important;
+}
+
+.personnel-status-input-shell > .personnel-status-input-dot {
+  display: none !important;
+}

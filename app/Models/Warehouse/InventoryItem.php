@@ -66,7 +66,7 @@ class InventoryItem extends Model
 
     public function getStockStatusAttribute(): string
     {
-        $stock = (int) ($this->on_hand ?? $this->quantity_available ?? 0);
+        $stock = (int) ($this->quantity_available ?? $this->on_hand ?? 0);
         $reorderLevel = (int) ($this->reorder_level ?? 0);
 
         if ($stock <= 0) {

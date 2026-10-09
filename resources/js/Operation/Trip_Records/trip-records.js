@@ -1,9 +1,12 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip-records-page', () => {
+    const page = document.querySelector('.trip-records-page');
     const modalOverlay = document.getElementById('tripDetailModal');
-    if (!modalOverlay) return;
+    if (!page || !modalOverlay) return;
 
-    const closeBtn = modalOverlay.querySelector('.trip-modal-close');
-    const dismissBtn = modalOverlay.querySelector('.trip-modal-dismiss');
+    window.__gctTripRecordsAbortController?.abort();
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    window.__gctTripRecordsAbortController = abortController;
 
     // Fields
     const elTripCode = document.getElementById('modalTripCode');
@@ -65,30 +68,62 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         document.body.style.overflow = '';
     };
 
-    document.querySelectorAll('.view-trip-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const raw = btn.getAttribute('data-trip');
+    page.addEventListener('click', (event) => {
+        const viewButton = event.target.closest('.view-trip-btn');
+        if (viewButton && page.contains(viewButton)) {
+            const raw = viewButton.getAttribute('data-trip');
             if (!raw) return;
+
             try {
                 const data = JSON.parse(raw);
                 openModal(data);
             } catch (err) {
                 console.error('Failed to parse trip record data', err);
             }
-        });
-    });
+            return;
+        }
 
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
-
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
+        const closeButton = event.target.closest('.trip-modal-close, .trip-modal-dismiss');
+        if (closeButton && modalOverlay.contains(closeButton)) {
+            closeModal();
+        }
+    }, { signal });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modalOverlay.classList.contains('show')) {
             closeModal();
         }
-    });
+    }, { signal });
 });
 
+if (!window.__gctTripRecordsRealtimeReinitBound) {
+    window.__gctTripRecordsRealtimeReinitBound = true;
+
+    window.addEventListener(
+        'system-regions-refreshed',
+        (event) => {
+            if (!document.querySelector('.trip-records-page')) {
+                return;
+            }
+
+            const regions = Array.isArray(event.detail?.regions)
+                ? event.detail.regions
+                : [];
+
+            if (!regions.some((name) => ["summary","records"].includes(name))) {
+                return;
+            }
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    'gct:navigation-ready',
+                    {
+                        detail: {
+                            source: 'realtime-regions',
+                        },
+                    }
+                )
+            );
+        }
+    );
+}

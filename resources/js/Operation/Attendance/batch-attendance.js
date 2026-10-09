@@ -13,6 +13,9 @@ function initBatchAttendancePage() {
 
     const label = type === 'driver' ? 'Driver' : 'Mechanic';
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
+    const modalDescription = type === 'driver'
+        ? 'Active drivers from the Driver Master List load automatically for the selected date and shift.'
+        : 'Active mechanics from the Mechanic Master List load automatically for the selected date and shift.';
 
     let shiftStarts = {};
     let graceMinutes = 10;
@@ -37,7 +40,7 @@ function initBatchAttendancePage() {
                             <i class="fa-regular fa-calendar-check"></i>
                             <div>
                                 <h2>Record Daily Attendance</h2>
-                                <p>Record and manage attendance for all ${label.toLowerCase()}s in a single batch.</p>
+                                <p>${modalDescription}</p>
                             </div>
                         </div>
                     </div>
@@ -58,16 +61,28 @@ function initBatchAttendancePage() {
                                 <option value="all">All Shifts</option>
                                 <option value="Morning">Morning</option>
                                 <option value="Afternoon">Afternoon</option>
-                                <option value="Night">Night</option>
+                                ${type === "driver" ? '<option value="Night">Night</option>' : ""}
                             </select>
                         </div>
                     </label>
                     <div class="batch-action-row">
-                        <button type="button" class="batch-control-btn" id="batchReload"><i class="fa-solid fa-users-viewfinder"></i> Load Roster</button>
                         <button type="button" class="batch-control-btn success" id="batchMarkPresent"><i class="fa-solid fa-user-check"></i> Mark All Present</button>
                         <button type="button" class="batch-control-btn" id="batchUseCurrentTime"><i class="fa-regular fa-clock"></i> Use Current Time</button>
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-regular fa-trash-can"></i> Clear All</button>
+                    </div>
+                </div>
+
+                <div class="batch-shared-time-layer" id="batchSharedTimeLayer" hidden>
+                    <div class="batch-shared-time-dialog" role="dialog" aria-modal="true" aria-labelledby="batchSharedTimeTitle">
+                        <h3 id="batchSharedTimeTitle"><i class="fa-regular fa-clock"></i> Apply Time to Selected</h3>
+                        <p>Choose a time-in for the selected available personnel.</p>
+                        <label for="batchSharedTimeInput">Time In</label>
+                        <input type="time" id="batchSharedTimeInput" required />
+                        <div class="batch-shared-time-actions">
+                            <button type="button" class="secondary-btn" id="batchSharedTimeCancel">Cancel</button>
+                            <button type="button" class="primary-btn" id="batchSharedTimeConfirm">Apply Time</button>
+                        </div>
                     </div>
                 </div>
 
@@ -113,11 +128,6 @@ function initBatchAttendancePage() {
         overlay.querySelectorAll('[data-batch-close]').forEach((el) => {
             el.addEventListener('click', closeModal);
         });
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) closeModal();
-        });
-
-        overlay.querySelector('#batchReload').addEventListener('click', loadRoster);
         overlay.querySelector('#batchAttendanceDate').addEventListener('change', loadRoster);
         overlay.querySelector('#batchAttendanceShift').addEventListener('change', loadRoster);
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
@@ -132,6 +142,11 @@ function initBatchAttendancePage() {
             updateSummary();
         });
         overlay.querySelector('#batchApplyTime').addEventListener('click', applySharedTime);
+        overlay.querySelector('#batchSharedTimeCancel').addEventListener('click', closeSharedTime);
+        overlay.querySelector('#batchSharedTimeConfirm').addEventListener('click', confirmSharedTime);
+        overlay.querySelector('#batchSharedTimeInput').addEventListener('gct:time-selected', (event) => {
+            confirmSharedTime(event.detail?.value);
+        });
         overlay.querySelector('#batchClearAll').addEventListener('click', clearAllRows);
         overlay.querySelector('#batchSelectAll').addEventListener('change', (event) => {
             overlay.querySelectorAll('[data-row-select]').forEach((input) => {
@@ -180,7 +195,9 @@ function initBatchAttendancePage() {
         if (!body) return;
 
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="8" class="batch-empty">No existing personnel records were found. Add or import personnel first.</td></tr>';
+            body.innerHTML = type === 'driver'
+                ? '<tr><td colspan="8" class="batch-empty">No active drivers were found in the Driver Master List for the selected shift.</td></tr>'
+                : '<tr><td colspan="8" class="batch-empty">No active mechanics were found in the Mechanic Master List for the selected shift.</td></tr>';
             updateSummary();
             return;
         }
@@ -309,32 +326,75 @@ function initBatchAttendancePage() {
         updateSummary();
     }
 
+    function closeSharedTime() {
+        const modal = document.getElementById('batchAttendanceModal');
+        if (!modal) return;
+        const layer = modal.querySelector('#batchSharedTimeLayer');
+        layer.hidden = true;
+        layer.classList.remove('is-picker-only');
+        modal.querySelector('#batchApplyTime')?.focus();
+    }
+
     function applySharedTime() {
         const modal = document.getElementById('batchAttendanceModal');
+        if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.querySelector('[data-row-select]').checked);
-
+            .filter((row) => row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
-            toast('Select at least one personnel row.', 'warning');
+            toast('Select at least one available personnel row.', 'warning');
             return;
         }
 
-        const time = promptTime();
-        if (!time) return;
-
-        selectedRows.forEach((row) => {
-            if (row.classList.contains('is-unavailable')) return;
-            row.querySelector('[data-time-in]').value = time;
-            detectLate(row);
-            updateAvailability(row);
-        });
-        updateSummary();
+        const input = modal.querySelector('#batchSharedTimeInput');
+        input.value = currentTime();
+        input.dataset.pickerAnchor = '#batchApplyTime';
+        const layer = modal.querySelector('#batchSharedTimeLayer');
+        layer.hidden = false;
+        layer.classList.add('is-picker-only');
+        // The shared GCT picker enhances inputs added dynamically.
+        // Wait for its trigger to be installed, then open the actual Choose a Time panel.
+        const openPicker = (attempt = 0) => {
+            if (layer.hidden) return;
+            const trigger = input.parentElement?.querySelector('.gct-picker-trigger');
+            if (trigger) {
+                trigger.click();
+            } else if (attempt < 10) {
+                window.setTimeout(() => openPicker(attempt + 1), 25);
+            } else {
+                layer.classList.remove('is-picker-only');
+                toast('Time picker could not be opened. Please try again.', 'error');
+            }
+        };
+        openPicker();
     }
 
-    function promptTime() {
-        const value = window.prompt('Enter time in 24-hour format (HH:MM).', currentTime());
-        if (!value) return null;
-        return /^\d{2}:\d{2}$/.test(value) ? value : null;
+    function confirmSharedTime(selectedTime = null) {
+        const modal = document.getElementById('batchAttendanceModal');
+        if (!modal) return;
+        const input = modal.querySelector('#batchSharedTimeInput');
+        const layer = modal.querySelector('#batchSharedTimeLayer');
+        if (layer.hidden) return;
+        const time = typeof selectedTime === 'string' ? selectedTime : input.value;
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+            input.setCustomValidity('Choose a valid time.');
+            input.reportValidity();
+            input.setCustomValidity('');
+            return;
+        }
+        let updated = 0;
+        modal.querySelectorAll('[data-batch-row]').forEach((row) => {
+            if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
+            const timeIn = row.querySelector('[data-time-in]');
+            timeIn.value = time;
+            timeIn.dispatchEvent(new Event('input', { bubbles: true }));
+            timeIn.dispatchEvent(new Event('change', { bubbles: true }));
+            detectLate(row);
+            updateAvailability(row);
+            updated += 1;
+        });
+        updateSummary();
+        closeSharedTime();
+
     }
 
     function applyStatusRules(row, clear = true) {

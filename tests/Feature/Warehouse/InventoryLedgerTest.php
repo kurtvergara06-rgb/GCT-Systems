@@ -7,10 +7,13 @@ use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
+use App\Http\Controllers\Warehouse\InventoryController;
+use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Models\Warehouse\StockMovement;
 use App\Services\Warehouse\InventoryLedgerService;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -477,4 +480,35 @@ class InventoryLedgerTest extends TestCase
             'DemoDataSeeder must not generate fabricated inventory transactions.'
         );
     }
+    public function test_warehouse_read_models_use_quantity_available_as_operational_stock(): void
+    {
+        $item = InventoryItem::create([
+            'item_code' => 'LEGACY-STOCK-001',
+            'item_name' => 'Legacy Stock Item',
+            'category' => 'Parts',
+            'on_hand' => 0,
+            'quantity_available' => 12,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 5,
+        ]);
+
+        $this->assertSame('In Stock', $item->fresh()->stock_status);
+
+        $dashboard = app(WarehouseDashboardController::class)->data();
+        $this->assertSame(1, $dashboard['totalInventory']);
+        $this->assertSame(1, $dashboard['availableStock']);
+        $this->assertSame(0, $dashboard['lowStockItems']);
+        $this->assertSame(0, $dashboard['outOfStock']);
+        $this->assertSame(0, $dashboard['forReorder']);
+
+        $inventoryView = app(InventoryController::class)
+            ->index(Request::create('/inventory', 'GET'));
+
+        $data = $inventoryView->getData();
+        $this->assertSame(0, $data['lowStockAlerts']);
+        $this->assertSame(0, $data['criticalItems']);
+        $this->assertSame(0, $data['forecastedStockouts']);
+    }
+
+
 }

@@ -10,6 +10,10 @@
     ]"
 >
 
+    @php
+        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    @endphp
+
     <div class="app">
 
   <x-layout.sidebar department="Operation" />
@@ -44,15 +48,15 @@
                     value="{{ $underMaintenance }}"
                     small="Not available"
                     icon="fa-screwdriver-wrench"
-                    color="yellow"
+                    color="red"
                 />
 
                 <x-ui.summary-card
-                    label="GPS Matched"
-                    value="{{ $withGpsData }}"
-                    small="With processed GPS data"
-                    icon="fa-location-dot"
-                    color="red"
+                    label="Available Buses"
+                    value="{{ $availableBuses }}"
+                    small="Active without pending trip assignments"
+                    icon="fa-bus-simple"
+                    color="yellow"
                 />
             </section>
 
@@ -61,7 +65,7 @@
                     <div>
                         <h2>Registered Buses</h2>
                         <p>
-                            GPS mileage appears after Admin processes matching GPS batch records.
+                            Bus availability and assigned routes reflect current operational records.
                         </p>
                     </div>
                 </div>
@@ -70,6 +74,7 @@
                     method="GET"
                     action="/bus-master-list"
                     class="toolbar bus-toolbar"
+                    data-server-filter="true"
                 >
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -79,6 +84,7 @@
                             name="search"
                             value="{{ request('search') }}"
                             placeholder="Search bus ID, model, route, or status..."
+                            aria-label="Search bus records"
                         >
                     </div>
 
@@ -88,9 +94,9 @@
                         <select
                             name="status"
                             id="busStatusFilter"
-                            onchange="this.form.submit()"
+                            aria-label="Filter bus status"
                         >
-                            <option value="All Status">
+                            <option value="All Status" @selected(! request()->filled('status') || request('status') === 'All Status')>
                                 All Status
                             </option>
 
@@ -117,15 +123,7 @@
                         </select>
                     </div>
 
-                    <button
-                        type="button"
-                        id="openImportBusModal"
-                        class="import-btn"
-                    >
-                        <i class="fa-solid fa-file-import"></i>
-                        Import CSV
-                    </button>
-
+                    @if($canEditOperation)
                     <button
                         type="button"
                         id="openBusModal"
@@ -134,7 +132,13 @@
                         <i class="fa-solid fa-plus"></i>
                         Add Bus
                     </button>
+                    @endif
                 </form>
+
+                <div class="bus-filter-loading" data-server-filter-loading hidden>
+                    <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+                    Updating bus records...
+                </div>
 
                 <div class="table-wrap">
                     <table class="bus-table">
@@ -142,8 +146,8 @@
                             <tr>
                                 <th>Bus ID</th>
                                 <th>Model</th>
-                                <th>Route / Grouping</th>
-                                <th>Latest GPS KM</th>
+                                <th>Assigned Route</th>
+
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -157,21 +161,12 @@
                                     </td>
 
                                     <td>
-                                        {{ $bus->bus_model ?: '—' }}
+                                        <strong>{{ $bus->bus_model ?: '—' }}</strong>
+                                        <div class="bus-plate-detail">{{ $bus->plate_no ?: 'No plate number' }}</div>
                                     </td>
 
                                     <td>
-                                        {{ $bus->route_grouping ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        @if($bus->display_latest_gps_km !== null)
-                                            {{ number_format($bus->display_latest_gps_km, 2) }} km
-                                        @else
-                                            <span class="empty">
-                                                No GPS data
-                                            </span>
-                                        @endif
+                                        <span class="gct-pill {{ $bus->display_route_name ? 'gct-pill--scheduled' : 'gct-pill--unassigned' }}">{{ $bus->display_route_name ?: 'Unassigned' }}</span>
                                     </td>
 
                                     <td>
@@ -184,13 +179,14 @@
                                             };
                                         @endphp
 
-                                        <span class="bus-status {{ $statusClass }}">
+                                        <span class="bus-status gct-pill {{ $statusClass }}">
                                             {{ $bus->status }}
                                         </span>
                                     </td>
 
                                     <td>
                                         <div class="actions">
+                                            @if($canEditOperation)
                                             <x-ui.action-buttom-modal
                                                 class="edit open-edit-bus"
                                                 type="button"
@@ -224,6 +220,9 @@
                                                     data-bus-no="{{ $bus->bus_no }}"
                                                 />
                                             </form>
+                                            @else
+                                                <span class="empty">View only</span>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -242,6 +241,7 @@
         </main>
     </div>
 
+    @if($canEditOperation)
     <x-ui.form-modal
         id="busModal"
         title="Add New Bus"
@@ -338,84 +338,6 @@
             >
         </div>
     </x-ui.form-modal>
-
-    {{-- CSV Import Modal --}}
-    <div id="importBusModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div>
-                    <h2>Import Bus CSV</h2>
-                    <p>
-                        Bulk add or update buses using a CSV file.
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    id="closeImportBusModal"
-                    class="close-btn"
-                >
-                    &times;
-                </button>
-            </div>
-
-            <form
-                action="/bus-master-list/import"
-                method="POST"
-                enctype="multipart/form-data"
-                class="job-form"
-                data-confirm-form
-                data-confirm-title="Import Bus Records?"
-                data-confirm-message="Are you sure you want to import this bus CSV file?"
-                data-confirm-button="Yes, Import CSV"
-                data-confirm-type="warning"
-            >
-                @csrf
-
-                <div class="form-group full-width">
-                    <label>CSV File</label>
-
-                    <input
-                        type="file"
-                        name="csv_file"
-                        accept=".csv,text/csv"
-                        required
-                    >
-
-                    <small>
-                        Required column:
-                        <strong>bus_no</strong>
-                    </small>
-                </div>
-
-                <div class="form-section-title full-width">
-                    <h3>Supported CSV Columns</h3>
-
-                    <p>
-                        bus_no, plate_no, bus_model, year_model,
-                        capacity, route_grouping, status
-                    </p>
-                </div>
-
-                <div class="modal-actions full-width">
-                    <button
-                        type="button"
-                        id="cancelImportBusModal"
-                        class="secondary-btn cancel-btn"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="primary-btn save-btn"
-                    >
-                        Import CSV
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     {{-- Edit Bus Modal --}}
     <div id="editBusModal" class="modal-overlay">
@@ -564,4 +486,5 @@
         cancel-id="cancelDeleteBus"
         confirm-id="confirmDeleteBus"
     />
+    @endif
 </x-layout.app>

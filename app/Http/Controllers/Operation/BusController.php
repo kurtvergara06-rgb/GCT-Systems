@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Operation\TripAssignment;
 use App\Services\Maintenance\PmsScheduleSynchronizer;
 use App\Traits\SystemDataUpdateBroadcaster;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BusController extends Controller
 {
@@ -17,8 +19,7 @@ class BusController extends Controller
 
     public function __construct(
         private readonly PmsScheduleSynchronizer $pmsScheduleSynchronizer
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -48,45 +49,27 @@ class BusController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $gpsRecords = GpsTripRecord::query()
-            ->whereNotNull('bus_no')
-            ->whereNotNull('mileage_km')
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
-            })
-            ->orderByDesc('beginning_at')
-            ->orderByDesc('id')
-            ->get();
+        // Display the next current/upcoming assigned route, not the broad
+        // route_grouping value maintained on the bus master record.
+        $routeAssignments = TripAssignment::query()
+            ->with('tripSchedule.shuttleRoute')
+            ->whereIn('bus_id', $buses->getCollection()->pluck('id'))
+            ->whereHas('tripSchedule', fn ($query) => $query
+                ->whereDate('trip_date', '>=', today(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+                ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed']))
+            ->get()
+            ->filter(fn ($assignment) => $assignment->tripSchedule?->shuttleRoute !== null)
+            ->sortBy(fn ($assignment) => $assignment->tripSchedule->trip_date->format('Y-m-d').' '.$assignment->tripSchedule->departure_time)
+            ->groupBy('bus_id');
 
-        $gpsByBus = $gpsRecords
-            ->groupBy(function ($record) {
-                return strtoupper(trim($record->bus_no));
-            })
-            ->map(function ($records) {
-                $latest = $records->first();
-
-                return [
-                    'latest_gps_km' => (float) $latest->mileage_km,
-                    'latest_gps_at' => $latest->beginning_at
-                        ?? $latest->created_at,
-                ];
-            });
-
-        $buses->getCollection()->transform(
-            function (Bus $bus) use ($gpsByBus) {
-                $gps = $gpsByBus->get(
-                    strtoupper(trim($bus->bus_no))
-                );
-
-                $bus->display_latest_gps_km =
-                    $gps['latest_gps_km'] ?? null;
-
-                $bus->display_latest_gps_at =
-                    $gps['latest_gps_at'] ?? null;
-
-                return $bus;
-            }
-        );
+        $buses->getCollection()->each(function (Bus $bus) use ($routeAssignments): void {
+            $bus->display_route_name = $routeAssignments
+                ->get($bus->id)
+                ?->first()
+                ?->tripSchedule
+                ?->shuttleRoute
+                ?->route_name;
+        });
 
         $totalBuses = Bus::count();
 
@@ -98,12 +81,15 @@ class BusController extends Controller
             'Under Maintenance'
         )->count();
 
-        $withGpsData = Bus::query()
-            ->get()
-            ->filter(function (Bus $bus) use ($gpsByBus) {
-                return $gpsByBus->has(
-                    strtoupper(trim($bus->bus_no))
-                );
+        // Active buses with no unresolved scheduled trip assignment are
+        // available for a new assignment. Past completed/cancelled trips do
+        // not remove a bus from this count.
+        $availableBuses = Bus::query()
+            ->where('status', 'Active')
+            ->whereDoesntHave('tripAssignments', function ($query): void {
+                $query->whereHas('tripSchedule', fn ($schedule) => $schedule
+                    ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
+                    ->whereDate('trip_date', '>=', today(config('app.business_timezone', 'Asia/Manila'))->toDateString()));
             })
             ->count();
 
@@ -112,7 +98,7 @@ class BusController extends Controller
             'totalBuses',
             'activeBuses',
             'underMaintenance',
-            'withGpsData'
+            'availableBuses'
         ));
     }
 
@@ -280,6 +266,7 @@ class BusController extends Controller
 
             if ($busNo === '') {
                 $skipped++;
+
                 continue;
             }
 
@@ -364,7 +351,7 @@ class BusController extends Controller
                 'required',
                 'string',
                 'max:100',
-                'unique:buses,bus_no,' . $bus->id,
+                'unique:buses,bus_no,'.$bus->id,
             ],
             'plate_no' => [
                 'nullable',
@@ -397,11 +384,39 @@ class BusController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use ($bus, $validated): void {
-            $oldBusNo = $bus->bus_no;
+        $bus = DB::transaction(function () use ($bus, $validated): Bus {
+            $lockedBus = Bus::query()
+                ->whereKey($bus->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $oldBusNo = $lockedBus->bus_no;
+            $newBusNo = strtoupper(trim($validated['bus_no']));
 
-            $bus->update([
-                'bus_no' => strtoupper(trim($validated['bus_no'])),
+            if (
+                strcasecmp($oldBusNo, $newBusNo) !== 0
+                && $this->hasHistoricalBusReferences($lockedBus)
+            ) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'Bus Number cannot be changed after trip, GPS, fuel, purchase, or maintenance history exists.',
+                ]);
+            }
+
+            if (
+                $validated['status'] === 'Active'
+                && $lockedBus->status !== 'Active'
+                && JobOrder::query()
+                    ->where('bus_no', $oldBusNo)
+                    ->where('status', '!=', 'Completed')
+                    ->lockForUpdate()
+                    ->first() !== null
+            ) {
+                throw ValidationException::withMessages([
+                    'status' => 'This bus cannot be set to Active while it has an ongoing maintenance Job Order.',
+                ]);
+            }
+
+            $lockedBus->update([
+                'bus_no' => $newBusNo,
                 'plate_no' => $validated['plate_no'] ?? null,
                 'bus_model' => $validated['bus_model'] ?? null,
                 'year_model' => $validated['year_model'] ?? null,
@@ -410,7 +425,9 @@ class BusController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $bus);
+            $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $lockedBus);
+
+            return $lockedBus;
         });
 
         $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'A bus master-list record was updated.');
@@ -429,7 +446,24 @@ class BusController extends Controller
         $busNo = $bus->bus_no;
 
         DB::transaction(function () use ($bus, $busNo): void {
-            $bus->delete();
+            $lockedBus = Bus::query()
+                ->whereKey($bus->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($this->hasTripBusHistory($lockedBus, true)) {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus cannot be deleted because trip history is linked to it.',
+                ]);
+            }
+
+            if ($this->hasMaintenanceBusHistory($lockedBus, true)) {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus cannot be deleted because maintenance history is linked to it.',
+                ]);
+            }
+
+            $lockedBus->delete();
             $this->pmsScheduleSynchronizer->removeUnusedSchedulesFor($busNo);
         });
 
@@ -441,5 +475,59 @@ class BusController extends Controller
         );
 
         return new RedirectResponse('/bus-master-list');
+    }
+
+    private function hasHistoricalBusReferences(Bus $bus): bool
+    {
+        if (
+            $this->hasTripBusHistory($bus)
+            || $this->hasMaintenanceBusHistory($bus)
+        ) {
+            return true;
+        }
+
+        $busNo = $bus->bus_no;
+
+        return DB::table('fuel_reports')->where('bus_no', $busNo)->exists()
+            || DB::table('purchase_requests')->where('bus_no', $busNo)->exists()
+            || DB::table('gps_trip_records')->where('bus_no', $busNo)->exists()
+            || DB::table('batch_uploads')->where('bus_no', $busNo)->exists();
+    }
+
+    private function hasTripBusHistory(Bus $bus, bool $lock = false): bool
+    {
+        $queries = [
+            DB::table('trip_assignments')->where(function ($query) use ($bus): void {
+                $query
+                    ->where('bus_id', $bus->id)
+                    ->orWhere('original_bus_id', $bus->id);
+            }),
+            DB::table('daily_driver_reports')->where('bus_id', $bus->id),
+            DB::table('incidents')->where('bus_id', $bus->id),
+            DB::table('incident_replacements')->where(function ($query) use ($bus): void {
+                $query
+                    ->where('original_bus_id', $bus->id)
+                    ->orWhere('replacement_bus_id', $bus->id);
+            }),
+        ];
+
+        return collect($queries)->contains(function ($query) use ($lock): bool {
+            if ($lock) {
+                $query->lockForUpdate();
+            }
+
+            return $query->first() !== null;
+        });
+    }
+
+    private function hasMaintenanceBusHistory(Bus $bus, bool $lock = false): bool
+    {
+        $query = JobOrder::query()->where('bus_no', $bus->bus_no);
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        return $query->first() !== null;
     }
 }

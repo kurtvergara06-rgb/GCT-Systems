@@ -11,10 +11,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     const routeModal = $('routeModal');
     const routeDetailsModal = $('routeDetailsModal');
     const deleteRouteModal = $('deleteRouteModal');
-    const validationModal = $('routeValidationModal');
 
     const routeForm = $('routeForm');
     const routeFormMethod = $('routeFormMethod');
+    const routeEditingId = $('routeEditingId');
     const routeModalTitle = $('routeModalTitle');
 
     const routeCode = $('routeCode');
@@ -25,7 +25,14 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     const routeTime = $('routeTime');
     const routeStatus = $('routeStatus');
 
+    const routeEditorSummaryDistance = $('routeEditorSummaryDistance');
+    const routeEditorSummaryTime = $('routeEditorSummaryTime');
+    const routeEditorSummaryStops = $('routeEditorSummaryStops');
+    const routeEditorSummaryCode = $('routeEditorSummaryCode');
+
     const routeStopList = $('routeStopList');
+    const addRouteStopButton = $('addRouteStop');
+    const historicalLockNotice = $('routeHistoricalLockNotice');
     const saveRouteButton = $('saveRouteBtn');
     const saveRouteText = $('saveRouteText');
     const routeSearch = $('routeSearch');
@@ -120,8 +127,11 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     let selectedDeleteForm = null;
 
     let distanceEdited = false;
-    let timeEdited = false;
     let lastCalculated = null;
+
+    let routeNameManuallyEdited = false;
+    let applyingAutoRouteName = false;
+    let routeStructureLocked = false;
 
     const originalAction = normalizeAppPath(
         routeForm?.getAttribute('action'),
@@ -129,6 +139,167 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     );
 
     const originalRouteCode = routeCode?.value || 'R-01';
+
+    function routeEndpointLabel(input) {
+        if (!input) {
+            return '';
+        }
+
+        return String(
+            input.dataset.selectedName
+            || input.value
+            || ''
+        ).trim();
+    }
+
+    function updateAutoRouteName(force = false) {
+        if (
+            !routeName
+            || (routeNameManuallyEdited && !force)
+        ) {
+            return;
+        }
+
+        const originName =
+            routeEndpointLabel(routeOrigin);
+
+        const destinationName =
+            routeEndpointLabel(routeDestination);
+
+        if (!originName || !destinationName) {
+            return;
+        }
+
+        applyingAutoRouteName = true;
+
+        routeName.value =
+            `${originName} - ${destinationName}`;
+
+        applyingAutoRouteName = false;
+    }
+    function setRouteStructureLock(locked) {
+        routeStructureLocked = Boolean(locked);
+
+        if (routeStructureLocked) {
+            activeLocationInput = null;
+            pinMode = false;
+
+            map
+                ?.getContainer()
+                ?.classList
+                .remove(
+                    'route-map-pin-mode'
+                );
+
+            if (activeFieldLabel) {
+                activeFieldLabel.innerHTML = `
+                    <i class="fa-solid fa-lock"></i>
+                    Historical route points are locked.
+                `;
+            }
+        }
+
+        [
+            routeName,
+            routeOrigin,
+            routeDestination,
+            routeDistance,
+        ].forEach((input) => {
+            if (input instanceof HTMLInputElement) {
+                input.readOnly =
+                    routeStructureLocked
+                    || input === routeDistance;
+            }
+        });
+
+        getStopInputs().forEach((input) => {
+            input.readOnly = routeStructureLocked;
+        });
+
+        document
+            .querySelectorAll(
+                '.remove-route-stop'
+            )
+            .forEach((button) => {
+                button.disabled =
+                    routeStructureLocked;
+            });
+
+        if (addRouteStopButton) {
+            addRouteStopButton.disabled =
+                routeStructureLocked;
+        }
+
+        if (pinButton) {
+            pinButton.disabled =
+                routeStructureLocked
+                || !activeLocationInput;
+        }
+
+        if (recalculateButton) {
+            recalculateButton.disabled =
+                routeStructureLocked
+                || recalculateButton.disabled;
+        }
+
+        if (historicalLockNotice) {
+            historicalLockNotice.hidden =
+                !routeStructureLocked;
+        }
+    }
+
+    function formatDurationMinutes(value) {
+        const totalMinutes = Number.parseInt(value, 10);
+
+        if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+            return '—';
+        }
+
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        if (hours <= 0) {
+            return `${minutes} min`;
+        }
+
+        const hourLabel = hours === 1 ? 'hr' : 'hrs';
+
+        if (minutes === 0) {
+            return `${hours} ${hourLabel}`;
+        }
+
+        return `${hours} ${hourLabel} ${String(minutes).padStart(2, '0')} min`;
+    }
+
+    function updateRouteEditorSummary() {
+        const distance = String(routeDistance?.value || '').trim();
+        const time = String(routeTime?.value || '').trim();
+        const code = String(routeCode?.value || '').trim();
+
+        const stopCount = getStopInputs().filter((input) => {
+            return String(input?.value || '').trim() !== '';
+        }).length;
+
+        if (routeEditorSummaryDistance) {
+            routeEditorSummaryDistance.textContent =
+                distance !== '' ? `${distance} KM` : '—';
+        }
+
+        if (routeEditorSummaryTime) {
+            routeEditorSummaryTime.textContent =
+                time !== '' ? time : '—';
+        }
+
+        if (routeEditorSummaryStops) {
+            routeEditorSummaryStops.textContent =
+                String(stopCount);
+        }
+
+        if (routeEditorSummaryCode) {
+            routeEditorSummaryCode.textContent =
+                code || '—';
+        }
+    }
 
     /* =========================================================
        INITIAL SETUP
@@ -169,14 +340,27 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         handleStopListClick
     );
 
+    routeStopList?.addEventListener(
+        'input',
+        updateRouteEditorSummary
+    );
+
+    routeName?.addEventListener('input', () => {
+        if (applyingAutoRouteName) {
+            return;
+        }
+
+        routeNameManuallyEdited =
+            routeName.value.trim() !== '';
+
+        if (!routeNameManuallyEdited) {
+            updateAutoRouteName(true);
+        }
+    });
     routeDistance?.addEventListener('input', () => {
         distanceEdited = true;
         setValue(hidden.distanceManual, '1');
-    });
-
-    routeTime?.addEventListener('input', () => {
-        timeEdited = true;
-        setValue(hidden.timeManual, '1');
+        updateRouteEditorSummary();
     });
 
     useCalculatedValuesButton?.addEventListener(
@@ -257,11 +441,6 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         () => selectedDeleteForm?.requestSubmit()
     );
 
-    $('closeRouteValidationModal')?.addEventListener(
-        'click',
-        () => closeModal(validationModal)
-    );
-
     routeSearch?.addEventListener(
         'input',
         filterRouteTable
@@ -318,6 +497,15 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         );
 
         setValue(
+            routeEditingId,
+            ''
+        );
+
+        routeNameManuallyEdited = false;
+        applyingAutoRouteName = false;
+        setRouteStructureLock(false);
+
+        setValue(
             routeStatus,
             'Active'
         );
@@ -344,6 +532,8 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                 Click an Origin, Stop, or Destination field first.
             `;
         }
+
+        updateRouteEditorSummary();
     }
 
     /* =========================================================
@@ -356,6 +546,17 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         }
 
         routeForm.reset();
+
+        activeLocationInput = null;
+        pinMode = false;
+
+        if (activeFieldLabel) {
+            activeFieldLabel.innerHTML = `
+                <i class="fa-solid fa-location-crosshairs"></i>
+                Click an Origin, Stop, or Destination field first.
+            `;
+        }
+
         routeForm.setAttribute(
             'action',
             normalizeAppPath(
@@ -380,8 +581,17 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         );
 
         setValue(routeCode, route.routeCode);
+        setValue(routeEditingId, route.id);
         setValue(routeName, route.routeName);
         setValue(routeOrigin, route.origin);
+
+        routeNameManuallyEdited =
+            normalize(route.routeName)
+            !== normalize(
+                `${route.origin || ''} - ${route.destination || ''}`
+            );
+
+        applyingAutoRouteName = false;
 
         setValue(
             routeDestination,
@@ -395,7 +605,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
         setValue(
             routeTime,
-            route.time
+            formatDurationMinutes(route.time)
         );
 
         setValue(
@@ -451,6 +661,31 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                 savedGeometry,
         };
 
+        setValue(
+            hidden.calculatedDistance,
+            lastCalculated.distance_km
+        );
+
+        setValue(
+            hidden.calculatedTime,
+            lastCalculated.duration_minutes
+        );
+
+        setValue(
+            hidden.distanceSource,
+            lastCalculated.source
+        );
+
+        setValue(
+            hidden.timeManual,
+            '0'
+        );
+
+        setRouteStructureLock(
+            route.hasSchedules
+        );
+
+        updateRouteEditorSummary();
         openModal(routeModal);
 
         window.setTimeout(async () => {
@@ -541,6 +776,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     ========================================================= */
 
     function handleStopListClick(event) {
+        if (routeStructureLocked) {
+            return;
+        }
+
         const removeButton =
             event.target.closest(
                 '.remove-route-stop'
@@ -576,6 +815,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         }
 
         updateStopNumbers();
+        updateRouteEditorSummary();
         locationsChanged();
     }
 
@@ -605,6 +845,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                     name="stops[]"
                     placeholder="Search or enter a stop"
                     autocomplete="off"
+                    spellcheck="false"
                 >
 
                 <input
@@ -656,6 +897,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         }
 
         updateStopNumbers();
+        updateRouteEditorSummary();
 
         if (focus) {
             input.focus();
@@ -731,6 +973,8 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         input.dataset.locationReady = '1';
         input.dataset.role = role;
         input.autocomplete = 'off';
+        input.spellcheck = false;
+        input.setAttribute('spellcheck', 'false');
 
         if (hiddenFields) {
             input._routeHidden =
@@ -858,6 +1102,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         );
 
         input.addEventListener('focus', () => {
+            if (input.readOnly) {
+                return;
+            }
+
             setActiveInput(input);
 
             if (input.value.trim()) {
@@ -866,21 +1114,53 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         });
 
         input.addEventListener('click', () => {
+            if (input.readOnly) {
+                return;
+            }
+
             setActiveInput(input);
         });
 
         input.addEventListener('input', () => {
+            if (input.readOnly) {
+                return;
+            }
+
             setActiveInput(input);
 
+            const editedLabel =
+                input.value.trim();
+
             if (
-                input.dataset.selectedName &&
-                normalize(input.value) !==
-                normalize(
-                    input.dataset.selectedName
-                )
+                hasCoordinates(input)
+                && editedLabel === ''
             ) {
                 clearPlace(input);
                 locationsChanged();
+            } else if (
+                hasCoordinates(input)
+                && editedLabel !== ''
+                && normalize(editedLabel) !==
+                    normalize(
+                        input.dataset.selectedName
+                        || ''
+                    )
+            ) {
+                input.dataset.selectedName =
+                    editedLabel;
+
+                syncHiddenFields(input);
+                updateConfirmation(
+                    input,
+                    true
+                );
+
+                if (
+                    input === routeOrigin
+                    || input === routeDestination
+                ) {
+                    updateAutoRouteName();
+                }
             }
 
             window.clearTimeout(timer);
@@ -900,11 +1180,11 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             panel.hidden = false;
 
             if (
-                input.value.trim().length >= 3
+                input.value.trim().length >= 2
             ) {
                 timer = window.setTimeout(
                     runSearch,
-                    900
+                    350
                 );
             }
         });
@@ -1021,12 +1301,12 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                 panel,
                 results,
                 query,
-                query.length >= 3
+                query.length >= 2
             );
 
             panel.hidden = false;
 
-            if (query.length < 3) {
+            if (query.length < 2) {
                 return;
             }
 
@@ -1068,7 +1348,8 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                         results,
                         query,
                         false,
-                        'Map search is temporarily unavailable.'
+                        error.message ||
+                        'OpenStreetMap search is temporarily unavailable.'
                     );
                 }
             }
@@ -1262,6 +1543,46 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         return places;
     }
 
+    async function reversePinnedLocation(
+        latitude,
+        longitude
+    ) {
+        if (!config.reverseUrl) {
+            return null;
+        }
+
+        const params = new URLSearchParams({
+            latitude: String(latitude),
+            longitude: String(longitude),
+        });
+
+        const response = await fetch(
+            `${config.reverseUrl}?${params.toString()}`,
+            {
+                headers: {
+                    Accept:
+                        'application/json',
+
+                    'X-Requested-With':
+                        'XMLHttpRequest',
+                },
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message
+                || 'Pinned location lookup failed.'
+            );
+        }
+
+        return normalizePlace(
+            data.place
+        );
+    }
+
     function searchGps(query) {
         const normalizedQuery =
             normalize(query);
@@ -1357,6 +1678,14 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         setActiveInput(input);
 
         focusSelectedPlace(place);
+
+        if (
+            input === routeOrigin
+            || input === routeDestination
+        ) {
+            updateAutoRouteName();
+        }
+
         locationsChanged();
     }
 
@@ -1409,6 +1738,13 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
         syncHiddenFields(input);
         updateConfirmation(input, false);
+
+        if (
+            input === routeOrigin
+            || input === routeDestination
+        ) {
+            updateAutoRouteName();
+        }
     }
 
     function syncHiddenFields(input) {
@@ -1487,7 +1823,8 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         activeLocationInput = input;
 
         if (pinButton) {
-            pinButton.disabled = false;
+            pinButton.disabled =
+                routeStructureLocked;
         }
 
         if (activeFieldLabel) {
@@ -1513,7 +1850,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     ========================================================= */
 
     async function enableManualPinMode() {
-        if (!activeLocationInput) {
+        if (
+            routeStructureLocked
+            || !activeLocationInput
+        ) {
             return;
         }
 
@@ -1558,13 +1898,16 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
             addOpenStreetMapTiles(map);
 
-            map.on('click', (event) => {
+            map.on('click', async (event) => {
                 if (
                     !pinMode ||
                     !activeLocationInput
                 ) {
                     return;
                 }
+
+                const pinnedInput =
+                    activeLocationInput;
 
                 pinMode = false;
 
@@ -1575,35 +1918,95 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                         'route-map-pin-mode'
                     );
 
-                const place = {
-                    name:
-                        activeLocationInput
-                            .value
-                            .trim() ||
-                        fieldRole(
-                            activeLocationInput
-                        ),
-
-                    address:
-                        activeLocationInput
-                            .value
-                            .trim() ||
-                        'Manually pinned location',
-
-                    latitude:
-                        event.latlng.lat,
-
-                    longitude:
-                        event.latlng.lng,
-
-                    source:
-                        'Manual Pin',
-                };
-
-                choosePlace(
-                    activeLocationInput,
-                    place
+                setMapMessage(
+                    `Identifying pinned ${fieldRole(pinnedInput)}...`,
+                    'warning'
                 );
+
+                try {
+                    const resolvedPlace =
+                        await reversePinnedLocation(
+                            event.latlng.lat,
+                            event.latlng.lng
+                        );
+
+                    const place =
+                        resolvedPlace
+                        || {
+                            name:
+                                pinnedInput
+                                    .value
+                                    .trim()
+                                || fieldRole(
+                                    pinnedInput
+                                ),
+
+                            address:
+                                pinnedInput
+                                    .value
+                                    .trim()
+                                || 'Manually pinned location',
+
+                            latitude:
+                                event.latlng.lat,
+
+                            longitude:
+                                event.latlng.lng,
+
+                            source:
+                                'Manual Pin',
+                        };
+
+                    choosePlace(
+                        pinnedInput,
+                        place
+                    );
+
+                    setMapMessage(
+                        `${fieldRole(pinnedInput)} pinned as ${place.name}. You can still edit the field if needed.`,
+                        'success'
+                    );
+                } catch (error) {
+                    console.warn(
+                        'Pinned location reverse lookup failed:',
+                        error
+                    );
+
+                    const fallbackPlace = {
+                        name:
+                            pinnedInput
+                                .value
+                                .trim()
+                            || fieldRole(
+                                pinnedInput
+                            ),
+
+                        address:
+                            pinnedInput
+                                .value
+                                .trim()
+                            || 'Manually pinned location',
+
+                        latitude:
+                            event.latlng.lat,
+
+                        longitude:
+                            event.latlng.lng,
+
+                        source:
+                            'Manual Pin',
+                    };
+
+                    choosePlace(
+                        pinnedInput,
+                        fallbackPlace
+                    );
+
+                    setMapMessage(
+                        `${fieldRole(pinnedInput)} was pinned, but its map name could not be resolved. You can edit the field manually.`,
+                        'warning'
+                    );
+                }
             });
         }
 
@@ -1636,7 +2039,6 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
     function locationsChanged() {
         distanceEdited = false;
-        timeEdited = false;
 
         setValue(
             hidden.distanceManual,
@@ -1660,6 +2062,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     async function calculateRoadRoute(
         force = false
     ) {
+        if (routeStructureLocked) {
+            return;
+        }
+
         const inputs =
             getAllLocationInputs()
                 .filter(
@@ -1789,7 +2195,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             );
 
             setMapMessage(
-                `Route calculated successfully: ${data.distance_km} KM • ${data.duration_minutes} minutes.`,
+                `Route calculated successfully: ${data.distance_km} KM • ${formatDurationMinutes(data.duration_minutes)} operational ETA.`,
                 'success'
             );
         } catch (error) {
@@ -1805,7 +2211,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             );
 
             setMapMessage(
-                `${error.message} You may enter distance and time manually.`,
+                `${error.message} Confirm the selected locations and retry the route calculation.`,
                 'error'
             );
 
@@ -1861,22 +2267,15 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             );
         }
 
-        if (
-            force ||
-            !timeEdited
-        ) {
-            setValue(
-                routeTime,
-                data.duration_minutes
-            );
+        setValue(
+            routeTime,
+            formatDurationMinutes(data.duration_minutes)
+        );
 
-            timeEdited = false;
-
-            setValue(
-                hidden.timeManual,
-                '0'
-            );
-        }
+        setValue(
+            hidden.timeManual,
+            '0'
+        );
 
         if (calculatedDistanceText) {
             calculatedDistanceText.textContent =
@@ -1885,13 +2284,15 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
         if (calculatedTimeText) {
             calculatedTimeText.textContent =
-                `${data.duration_minutes} min calculated`;
+                `${formatDurationMinutes(data.duration_minutes)} operational ETA`;
         }
 
         if (calculationSummary) {
             calculationSummary.hidden =
                 false;
         }
+
+        updateRouteEditorSummary();
     }
 
     /* =========================================================
@@ -2121,9 +2522,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
         setText(
             'viewRouteTime',
-            route.time
-                ? `${route.time} minutes`
-                : '—'
+            formatDurationMinutes(route.time)
         );
 
         renderViewStatus(
@@ -2624,6 +3023,20 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     function validateRouteFormBeforeSubmit(
         event
     ) {
+        if (routeStructureLocked) {
+            if (saveRouteButton) {
+                saveRouteButton.disabled =
+                    true;
+            }
+
+            if (saveRouteText) {
+                saveRouteText.textContent =
+                    'Updating...';
+            }
+
+            return;
+        }
+
         const invalidLocations =
             getAllLocationInputs()
                 .filter(
@@ -2701,6 +3114,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
     function getRouteData(button) {
         return {
+            id:
+                button.dataset.id ||
+                '',
+
             routeCode:
                 button.dataset.routeCode ||
                 '',
@@ -2744,6 +3161,10 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             updateUrl:
                 button.dataset.updateUrl ||
                 '',
+
+            hasSchedules:
+                button.dataset.hasSchedules ===
+                '1',
 
             originMeta: {
                 address:
@@ -2791,7 +3212,6 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
     function resetCalculation() {
         distanceEdited = false;
-        timeEdited = false;
         lastCalculated = null;
 
         setValue(
@@ -2939,12 +3359,6 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             return;
         }
 
-        if (
-            validationModal?.classList
-                .contains('active')
-        ) {
-            closeModal(validationModal);
-        }
     }
 
     /* =========================================================

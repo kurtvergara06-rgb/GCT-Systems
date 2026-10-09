@@ -1232,3 +1232,728 @@
     }
 
 }
+
+/* =========================================================
+   TRIP SCHEDULE ALIGNMENT PASS
+========================================================= */
+
+/* Keep filters and primary actions on the same baseline. */
+.trip-toolbar {
+    grid-template-columns:
+        minmax(320px, 1fr)
+        150px
+        150px
+        auto
+        auto;
+
+    align-items: center;
+}
+
+.trip-toolbar .trip-search,
+.trip-toolbar .trip-filter,
+.trip-toolbar .trip-toolbar-action {
+    align-self: center;
+}
+
+.trip-toolbar .trip-toolbar-action {
+    height: 40px;
+    margin: 0;
+}
+
+.trip-toolbar .trip-toolbar-action.generate {
+    min-width: 170px;
+}
+
+.trip-toolbar .trip-toolbar-action:not(.generate) {
+    min-width: 104px;
+}
+
+/* Make header and body columns use the exact same geometry. */
+.trip-table {
+    table-layout: fixed;
+    min-width: 1180px;
+}
+
+.trip-table col.trip-col-id {
+    width: 8%;
+}
+
+.trip-table col.trip-col-date {
+    width: 12%;
+}
+
+.trip-table col.trip-col-route {
+    width: 19%;
+}
+
+.trip-table col.trip-col-departure {
+    width: 10%;
+}
+
+.trip-table col.trip-col-eta {
+    width: 10%;
+}
+
+.trip-table col.trip-col-shift {
+    width: 10%;
+}
+
+.trip-table col.trip-col-assignment {
+    width: 12%;
+}
+
+.trip-table col.trip-col-status {
+    width: 10%;
+}
+
+.trip-table col.trip-col-actions {
+    width: 9%;
+}
+
+.trip-table th,
+.trip-table td {
+    box-sizing: border-box;
+}
+
+.trip-table th:nth-child(4),
+.trip-table td:nth-child(4),
+.trip-table th:nth-child(5),
+.trip-table td:nth-child(5),
+.trip-table th:nth-child(6),
+.trip-table td:nth-child(6),
+.trip-table th:nth-child(7),
+.trip-table td:nth-child(7),
+.trip-table th:nth-child(8),
+.trip-table td:nth-child(8),
+.trip-table th:nth-child(9),
+.trip-table td:nth-child(9) {
+    text-align: center;
+}
+
+.trip-table td:nth-child(4),
+.trip-table td:nth-child(5) {
+    font-weight: 600;
+}
+
+.trip-table td:nth-child(6),
+.trip-table td:nth-child(7),
+.trip-table td:nth-child(8),
+.trip-table td:nth-child(9) {
+    vertical-align: middle;
+}
+
+.trip-table .trip-actions {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Keep route text from pushing the other columns out of alignment. */
+.trip-table .route-cell {
+    min-width: 0;
+}
+
+.trip-table .route-cell strong,
+.trip-table .route-cell span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1280px) {
+    .trip-toolbar {
+        grid-template-columns:
+            minmax(240px, 1fr)
+            145px
+            145px
+            auto
+            auto;
+    }
+
+    .trip-toolbar .trip-toolbar-action.generate {
+        min-width: 158px;
+    }
+}
+
+@media (max-width: 980px) {
+    .trip-toolbar {
+        grid-template-columns:
+            minmax(220px, 1fr)
+            145px
+            145px;
+    }
+
+    .trip-toolbar .trip-toolbar-action {
+        width: 100%;
+    }
+
+    .trip-toolbar .trip-toolbar-action.generate {
+        grid-column: 2;
+    }
+
+    .trip-toolbar .trip-toolbar-action:not(.generate) {
+        grid-column: 3;
+    }
+}
+
+@media (max-width: 700px) {
+    .trip-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-toolbar .trip-toolbar-action.generate,
+    .trip-toolbar .trip-toolbar-action:not(.generate) {
+        grid-column: 1;
+    }
+}
+
+/* =========================================================
+   TRIP TOOLBAR ACTION GROUP FIX
+   Keep Generate + New Trip together as one grid item.
+========================================================= */
+
+.trip-toolbar {
+    grid-template-columns:
+        minmax(260px, 1fr)
+        150px
+        150px
+        auto;
+
+    align-items: center;
+}
+
+.trip-toolbar-actions {
+    min-width: max-content;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 9px;
+
+    align-self: center;
+}
+
+.trip-toolbar-actions .trip-toolbar-action {
+    width: auto;
+    height: 40px;
+    margin: 0;
+
+    flex: 0 0 auto;
+}
+
+.trip-toolbar-actions .trip-toolbar-action.generate {
+    min-width: 170px;
+}
+
+.trip-toolbar-actions .trip-toolbar-action:not(.generate) {
+    min-width: 108px;
+}
+
+@media (max-width: 1180px) {
+    .trip-toolbar {
+        grid-template-columns:
+            minmax(220px, 1fr)
+            145px
+            145px;
+    }
+
+    .trip-toolbar-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 700px) {
+    .trip-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-toolbar-actions {
+        grid-column: 1;
+        min-width: 0;
+
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .trip-toolbar-actions .trip-toolbar-action {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   TRIP EDITOR + DETAILS MODAL REFINEMENT
+   Shared by New Trip and Edit Trip; only title/submit copy changes.
+========================================================= */
+
+#tripModal .ui-form-modal {
+    width: min(720px, calc(100vw - 32px));
+    max-height: calc(100vh - 28px);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#tripModal .ui-form-modal-header,
+#viewTripModal .ui-form-modal-header {
+    padding: 18px 22px;
+}
+
+#tripModal .ui-form-title-icon,
+#viewTripModal .ui-form-title-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+}
+
+#tripModal .ui-form-heading h2,
+#viewTripModal .ui-form-heading h2 {
+    font-size: 20px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+#tripModal .ui-form-heading p,
+#viewTripModal .ui-form-heading p {
+    margin-top: 4px;
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+#tripModal .ui-form-modal-body {
+    padding: 18px 22px 16px;
+}
+
+#tripModal .ui-form-modal-scrollable {
+    padding-right: 3px;
+}
+
+.trip-editor-intro,
+.trip-details-hero {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    margin-bottom: 15px;
+    padding: 11px 13px;
+
+    background: #f8fbff;
+    border: 1px solid #dce8f7;
+    border-radius: 12px;
+}
+
+.trip-editor-intro-icon,
+.trip-details-hero-icon {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #0b40b5;
+    background: #eaf2ff;
+    border: 1px solid #d4e3ff;
+    border-radius: 10px;
+
+    font-size: 14px;
+}
+
+.trip-editor-intro > div:last-child,
+.trip-details-hero > div:last-child {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.trip-editor-intro strong,
+.trip-details-hero strong {
+    color: #0b2445;
+    font-size: 12.5px;
+    font-weight: 800;
+}
+
+.trip-editor-intro span,
+.trip-details-hero span {
+    color: #6b7f98;
+    font-size: 10.5px;
+    line-height: 1.4;
+}
+
+#tripModal .trip-editor-grid {
+    gap: 14px 16px;
+}
+
+#tripModal .ui-form-group > label {
+    margin-bottom: 6px;
+    color: #172d4d;
+    font-size: 11.5px;
+    font-weight: 750;
+}
+
+#tripModal .ui-input-wrap {
+    min-height: 44px;
+    border-radius: 10px;
+}
+
+#tripModal .ui-input-wrap > input,
+#tripModal .ui-input-wrap > select,
+#tripModal .ui-input-wrap select {
+    min-height: 44px;
+    font-size: 12.5px;
+}
+
+#tripModal .ui-input-wrap input[readonly] {
+    color: #536982;
+    background: #f6f8fb;
+}
+
+#tripModal #tripRoute {
+    font-weight: 650;
+}
+
+#tripModal .trip-notes-group {
+    margin-top: 1px;
+}
+
+#tripModal .trip-textarea-wrap {
+    position: relative;
+    min-height: 96px;
+    border: 1px solid #d8e2ef;
+    border-radius: 11px;
+    background: #fff;
+}
+
+#tripModal .trip-textarea-wrap:focus-within {
+    border-color: #1f66d1;
+    box-shadow: 0 0 0 3px rgba(31, 102, 209, .09);
+}
+
+#tripModal .trip-textarea-icon {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+
+    color: #315b91;
+    font-size: 12px;
+}
+
+#tripModal .trip-textarea-wrap textarea {
+    min-height: 94px;
+    padding: 12px 14px 12px 39px;
+
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    box-shadow: none;
+
+    font-size: 12.5px;
+    line-height: 1.5;
+    resize: none;
+}
+
+#tripModal .trip-textarea-wrap textarea:focus {
+    border: 0;
+    box-shadow: none;
+}
+
+#tripModal .trip-notes-meta {
+    margin-top: 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    color: #8798ad;
+    font-size: 9.5px;
+}
+
+#tripModal .trip-form-note {
+    margin-top: 15px;
+    padding: 12px 13px;
+
+    align-items: center;
+
+    background: #eef6ff;
+    border-color: #bed8ff;
+    border-radius: 11px;
+}
+
+#tripModal .trip-form-note > i {
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    flex: 0 0 30px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #fff;
+    background: #0b4fbd;
+    border-radius: 50%;
+
+    font-size: 12px;
+}
+
+#tripModal .trip-form-note strong {
+    color: #0b3e92;
+    font-size: 11px;
+}
+
+#tripModal .trip-form-note span {
+    color: #55708e;
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+#tripModal .ui-form-actions,
+#viewTripModal .ui-form-actions {
+    padding-top: 14px;
+    border-top: 1px solid #e4eaf2;
+}
+
+#tripModal .ui-form-actions .ui-form-btn {
+    min-height: 40px;
+    min-width: 104px;
+    border-radius: 10px;
+}
+
+
+/* Trip Details — read-only information cards */
+
+#viewTripModal .ui-form-modal {
+    width: min(700px, calc(100vw - 32px));
+    max-height: calc(100vh - 28px);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#viewTripModal .ui-form-modal-body {
+    padding: 18px 22px 16px;
+}
+
+#viewTripModal .trip-details-hero {
+    margin-bottom: 14px;
+}
+
+#viewTripModal .trip-details-grid {
+    gap: 11px;
+}
+
+#viewTripModal .trip-detail-card {
+    min-height: 74px;
+    padding: 12px 13px;
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    background: #f7f9fc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+#viewTripModal .trip-detail-card.full {
+    min-height: 70px;
+}
+
+#viewTripModal .trip-detail-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #123b78;
+    background: #eaf0f9;
+    border: 1px solid #dbe5f2;
+    border-radius: 10px;
+
+    font-size: 14px;
+}
+
+#viewTripModal .trip-detail-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+#viewTripModal .trip-detail-card label {
+    margin-bottom: 4px;
+
+    color: #6f829b;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: .045em;
+}
+
+#viewTripModal .trip-detail-card .trip-detail-value {
+    color: #0b2445;
+    font-size: 12.5px;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+#viewTripModal .trip-detail-pill {
+    min-height: 26px;
+    padding: 4px 10px;
+
+    display: inline-flex;
+    align-items: center;
+
+    border: 1px solid #d8e1ec;
+    border-radius: 999px;
+
+    color: #38516f;
+    background: #edf2f8;
+
+    font-size: 10.5px;
+    font-weight: 750;
+}
+
+#viewTripModal .trip-detail-pill.status.scheduled,
+#viewTripModal .trip-detail-pill.status.ready {
+    color: #8b5a00;
+    border-color: #f6d58d;
+    background: #fff2c8;
+}
+
+#viewTripModal .trip-detail-pill.status.completed {
+    color: #12703d;
+    border-color: #b8e5c9;
+    background: #dcf7e5;
+}
+
+#viewTripModal .trip-detail-pill.status.cancelled {
+    color: #b42318;
+    border-color: #f6c6c2;
+    background: #fff0ef;
+}
+
+#viewTripModal .trip-detail-pill.assignment.assigned {
+    color: #0d5a38;
+    border-color: #b8e5c9;
+    background: #e2f7e9;
+}
+
+#viewTripModal .trip-detail-pill.assignment.unassigned {
+    color: #475569;
+    border-color: #d7dee8;
+    background: #eef2f6;
+}
+
+#viewTripModal .ui-form-actions {
+    margin-top: 14px;
+}
+
+#viewTripModal .ui-form-actions .ui-form-btn-primary {
+    min-width: 112px;
+    min-height: 40px;
+    border-radius: 10px;
+}
+
+
+/* One primary action on the Trip Schedule toolbar. */
+
+.trip-schedule-page .trip-toolbar {
+    grid-template-columns:
+        minmax(280px, 1fr)
+        150px
+        150px
+        auto;
+}
+
+.trip-schedule-page .trip-toolbar-actions {
+    min-width: 108px;
+}
+
+.trip-schedule-page .trip-toolbar-actions .new-trip-btn {
+    min-width: 108px;
+    justify-content: center;
+}
+
+@media (max-width: 900px) {
+    #tripModal .trip-editor-grid,
+    #viewTripModal .trip-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #tripModal .trip-editor-grid .ui-form-full,
+    #viewTripModal .trip-detail-card.full {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 700px) {
+    #tripModal .ui-form-modal,
+    #viewTripModal .ui-form-modal {
+        width: min(100%, calc(100vw - 18px));
+        max-height: calc(100vh - 18px);
+        border-radius: 14px;
+    }
+
+    #tripModal .ui-form-modal-header,
+    #viewTripModal .ui-form-modal-header,
+    #tripModal .ui-form-modal-body,
+    #viewTripModal .ui-form-modal-body {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .trip-schedule-page .trip-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-schedule-page .trip-toolbar-actions,
+    .trip-schedule-page .trip-toolbar-actions .new-trip-btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* Shared section-action pattern: the primary New action belongs in the card header,
+   while the search/date/status toolbar remains filters-only. */
+.trip-schedule-page .trip-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+.trip-schedule-page .trip-card-header > div { min-width: 0; }
+.trip-schedule-page .trip-card-header .gct-section-new-button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding-inline: 15px;
+    white-space: nowrap;
+}
+.trip-schedule-page .trip-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 195px) minmax(140px, 175px);
+}
+@media (max-width: 760px) {
+    .trip-schedule-page .trip-card-header { flex-wrap: wrap; }
+    .trip-schedule-page .trip-toolbar { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Scheduling filter standard: Date and Status use matching dimensions. */
+.trip-schedule-page .trip-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(145px, 165px) minmax(145px, 165px);
+    align-items: center;
+}
+.trip-schedule-page .trip-toolbar :is(.trip-filter, .trip-filter input, .trip-filter select) {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.trip-schedule-page .trip-toolbar :is(.trip-search input, .trip-filter input, .trip-filter select) {
+    height: 40px;
+    min-height: 40px;
+    margin: 0;
+}
+@media (max-width: 760px) {
+    .trip-schedule-page .trip-toolbar { grid-template-columns: minmax(0, 1fr); }
+}

@@ -11,7 +11,6 @@
 >
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
-    $canApproveWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'approve') ?? false;
     $currentView = $currentView ?? 'active';
     $isHistory = $currentView === 'history';
   @endphp
@@ -128,7 +127,7 @@
                   $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
                   $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
                   $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
-                  $canSendToPurchase = ($partRequest->needs_purchase ?? false) && $canApproveWarehouse
+                  $canSendToPurchase = ($partRequest->needs_purchase ?? false) && $canEditWarehouse
                     && !$missingPrAlreadyCreated
                     && $status === 'Approved';
                   $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
