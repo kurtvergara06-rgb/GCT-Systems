@@ -171,6 +171,41 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
+    // Delegated view action works after AJAX table filtering and remains read-only.
+    const viewBusModal = document.getElementById('viewBusModal');
+    const viewBusPage = document.querySelector('.bus-master-list-page');
+    viewBusPage?.addEventListener('click', (event) => {
+        const button = event.target.closest('.open-view-bus');
+        if (!button || !viewBusPage.contains(button) || !viewBusModal) return;
+        event.preventDefault();
+        const fields = {
+            busNo: button.dataset.busNo,
+            plateNo: button.dataset.plateNo,
+            busModel: button.dataset.busModel,
+            yearModel: button.dataset.yearModel,
+            capacity: button.dataset.capacity,
+            status: button.dataset.status,
+            routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
+        };
+        for (const [key, value] of Object.entries(fields)) {
+            const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
+            if (target) target.textContent = String(value || '—');
+        }
+        const statusBadge = viewBusModal.querySelector('.bus-details-status');
+        if (statusBadge) {
+            const validStatuses = ['Active', 'Inactive', 'Under Maintenance'];
+            statusBadge.dataset.status = validStatuses.includes(fields.status) ? fields.status : 'Unknown';
+        }
+        viewBusModal.setAttribute('aria-hidden', 'false');
+        openModal(viewBusModal);
+    });
+    ['closeViewBusModal', 'dismissViewBusModal'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('click', () => {
+            closeModal(viewBusModal);
+            viewBusModal?.setAttribute('aria-hidden', 'true');
+        });
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Edit Bus Modal
