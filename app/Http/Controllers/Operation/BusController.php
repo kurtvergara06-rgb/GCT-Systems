@@ -392,6 +392,12 @@ class BusController extends Controller
                 ->whereKey($bus->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus is Under Maintenance. Its master-list information is locked until Maintenance releases it.',
+                ]);
+            }
+
             $oldBusNo = $lockedBus->bus_no;
             $newBusNo = strtoupper(trim($validated['bus_no']));
 
