@@ -1,15 +1,13 @@
 <!-- Assigned trip auto-detected -->
 <div class="inc-form-group full">
     <label for="{{ $formPrefix ?? '' }}tripSelect">
-        Current Trip
-        <span class="ui-required">*</span>
+        Current Trip <small class="inc-optional-label">(Optional)</small>
     </label>
 
     <select
         id="{{ $formPrefix ?? '' }}tripSelect"
         name="trip_schedule_id"
         data-trip-select
-        @if($tripSchedule) required @endif
     >
         <option value="">
             {{ $activeTripAssignment ? 'Trip already selected from your assignment' : 'Select the trip you are currently running...' }}
@@ -68,7 +66,7 @@
         />
         <input type="hidden" name="bus_id" value="{{ $activeTripAssignment->bus_id }}" />
     @else
-        <select name="bus_id" required>
+        <select name="bus_id">
             <option value="">Select bus...</option>
             @foreach($availableTrips->pluck('assignment.bus')->unique('id')->filter() as $bus)
                 <option value="{{ $bus->id }}" @selected(old('bus_id') == $bus->id)>
@@ -100,7 +98,6 @@
             name="driver_name"
             value="{{ old('driver_name') }}"
             placeholder="Driver name / ID"
-            required
         />
         <input type="hidden" name="driver_id" value="{{ old('driver_id') }}" />
         @error('driver_name')
