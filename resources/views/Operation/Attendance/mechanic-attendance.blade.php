@@ -278,7 +278,7 @@
         </div>
         <div class="form-group">
           <label>Mechanic Name</label>
-          <input type="text" name="mechanic_name" id="edit_mechanic_name" required>
+          <input type="text" id="edit_mechanic_name" readonly aria-readonly="true" title="Mechanic identity is managed in the Master List">
         </div>
         <div class="form-group">
           <label>Shift</label>
