@@ -196,11 +196,10 @@
                                                 <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                             @if($canEditOperation)
-                                            <x-ui.action-buttom-modal
+                                            <button
                                                 class="edit open-edit-bus"
                                                 type="button"
                                                 @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Edit Bus" @endif
-                                                icon="fa-pen-to-square"
                                                 data-id="{{ $bus->id }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
                                                 data-plate-no="{{ $bus->plate_no }}"
@@ -210,7 +209,7 @@
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-status="{{ $bus->status }}"
                                                 data-update-url="/bus-master-list/{{ $bus->id }}"
-                                            />
+                                            ><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
 
                                             <form
                                                 id="deleteBusForm-{{ $bus->id }}"
@@ -220,14 +219,13 @@
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <x-ui.action-buttom-modal
+                                                <button
                                                     class="delete open-delete-bus"
                                                     type="button"
-                                                    title="Delete Bus"
-                                                    icon="fa-trash"
+                                                    @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Delete Bus" @endif
                                                     data-id="{{ $bus->id }}"
                                                     data-bus-no="{{ $bus->bus_no }}"
-                                                />
+                                                ><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                                             </form>
                                             @endif
                                         </div>
