@@ -25,6 +25,28 @@
       font-weight: 700;
       line-height: 1;
     }
+    /* Edit modal: align native selectors with the custom 46px date/time pickers. */
+    #editMechanicAttendanceModal .form-group > input:not([type="hidden"]),
+    #editMechanicAttendanceModal .form-group > select,
+    #editMechanicAttendanceModal .form-group > .gct-picker-trigger {
+      box-sizing: border-box;
+      width: 100%;
+      height: 46px;
+      min-height: 46px;
+      border-radius: 10px;
+    }
+    #editMechanicAttendanceModal #edit_assigned_job[readonly] {
+      background: #f3f6fa;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    #editMechanicAttendanceModal .mechanic-attendance-field-hint {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #64748b;
+    }
   </style>
 
   <div class="app">
@@ -268,7 +290,8 @@
         </div>
         <div class="form-group">
           <label>Assigned Job</label>
-          <input type="text" name="assigned_job" id="edit_assigned_job">
+          <input type="text" id="edit_assigned_job" readonly aria-readonly="true" title="Assigned jobs are managed from Maintenance Job Orders">
+          <small class="mechanic-attendance-field-hint">Assigned jobs are managed through Maintenance Job Orders.</small>
         </div>
         <div class="form-group">
           <label>Date</label>
