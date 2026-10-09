@@ -1812,3 +1812,17 @@
 }
 .inc-page .inc-record-actions .inc-action i { font-size: 14px; line-height: 1; }
 .inc-page .inc-record-actions .inc-action:hover { background:#f1f6ff; border-color:#9cbaeb; color:#154ea0; }
+
+/* Incident Active / History: real server-filtered tabs, not cosmetic toggles. */
+.inc-page .inc-record-tabs { display:flex; align-items:center; gap:8px; margin:0 0 14px; padding-bottom:1px; border-bottom:1px solid #e2eaf3; }
+.inc-page .inc-record-tab { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 15px; border-bottom:3px solid transparent; border-radius:8px 8px 0 0; color:#60718a; text-decoration:none; font-size:12px; font-weight:750; transition:background .15s ease,color .15s ease; }
+.inc-page .inc-record-tab:hover { background:#f3f7fc; color:#173967; }
+.inc-page .inc-record-tab.is-active { color:#174eaa; border-color:#f4b400; background:#f8faff; }
+.inc-page .inc-record-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+.inc-page .inc-loc-cell { flex-direction:row; align-items:center; gap:8px; }
+.inc-page .inc-loc-cell > i { flex:0 0 12px; color:#647eab; font-size:12px; }
+.inc-page .inc-reported-cell { gap:3px; }
+.inc-page .inc-reported-cell small { white-space:nowrap; }
+.inc-page .inc-table td .inc-type-pill.breakdown { background:#f1f5f9; border:1px solid #d8e2ed; color:#334155; }
+.inc-page .inc-table td .inc-type-pill.accident { background:#fff0f0; border:1px solid #fecaca; color:#b91c1c; }
+@media (max-width:600px) { .inc-page .inc-record-tabs { gap:0; } .inc-page .inc-record-tab { flex:1; padding:10px 8px; } }
