@@ -149,9 +149,18 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
         if (editMechanicName) editMechanicName.value = button.dataset.mechanicName || '';
         if (editShift) editShift.value = button.dataset.shift || 'Morning';
         if (editAssignedJob) editAssignedJob.value = button.dataset.assignedJob || '';
-        if (editAttendanceDate) editAttendanceDate.value = button.dataset.attendanceDate || '';
-        if (editTimeIn) editTimeIn.value = button.dataset.timeIn || '';
-        if (editTimeOut) editTimeOut.value = button.dataset.timeOut || '';
+        if (editAttendanceDate) {
+          editAttendanceDate.value = button.dataset.attendanceDate || '';
+          editAttendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (editTimeIn) {
+          editTimeIn.value = button.dataset.timeIn || '';
+          editTimeIn.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (editTimeOut) {
+          editTimeOut.value = button.dataset.timeOut || '';
+          editTimeOut.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         if (editStatus) editStatus.value = button.dataset.status || 'Present';
 
         openModal(editMechanicAttendanceModal);
