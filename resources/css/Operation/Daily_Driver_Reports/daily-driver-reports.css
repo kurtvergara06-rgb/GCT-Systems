@@ -1830,9 +1830,3 @@ button.ddr-new-btn {
 
     overflow-y: auto;
 }
-/* Distinguish live driver incident calls from verified physical DDR encoding. */
-#ddrEncodeModal .ddr-incident-guidance { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; margin-bottom:14px; border:1px solid #bfdbfe; background:#eff6ff; border-radius:11px; }
-#ddrEncodeModal .ddr-incident-guidance-icon { flex-shrink:0; display:grid; place-items:center; width:32px; height:32px; border-radius:9px; background:#dbeafe; color:#1d4ed8; }
-#ddrEncodeModal .ddr-incident-guidance strong { display:block; font-size:12px; color:#17345d; }
-#ddrEncodeModal .ddr-incident-guidance p { margin:4px 0 7px; font-size:11px; line-height:1.5; color:#425d7d; }
-#ddrEncodeModal .ddr-incident-guidance-link { display:inline-flex; gap:5px; align-items:center; font-size:12px; font-weight:800; color:#1d4ed8; text-decoration:underline; }
