@@ -104,6 +104,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
 
     Route::redirect('/operation/auto-dispatch', '/operation/auto-scheduling')->name('auto-dispatch');
     Route::get('/operation/trip-records', [TripRecordController::class, 'index'])->name('trip-records');
+    Route::get('/operation/trip-records/export', [TripRecordController::class, 'export'])->middleware('system.permission:operation,view')->name('trip-records.export');
 
     Route::controller(DailyDriverReportController::class)->prefix('operation/daily-driver-reports')->group(function () {
         Route::get('/', 'index')->name('daily-driver-reports');
