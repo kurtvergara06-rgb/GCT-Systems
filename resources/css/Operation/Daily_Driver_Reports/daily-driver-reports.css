@@ -1728,6 +1728,23 @@ button.ddr-new-btn {
     padding: 0 12px;
 }
 
+/* Reserve a separate text area for leading field icons. This must follow
+   the modal's compact input padding override above. */
+#ddrEncodeModal .ui-input-wrap.has-icon input,
+#ddrEncodeModal .ui-input-wrap.has-icon select {
+    padding-left: 44px;
+    padding-right: 12px;
+}
+#ddrEncodeModal .ui-input-wrap .ui-input-icon {
+    left: 14px;
+    width: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+
 
 #ddrEncodeModal .ddr-modal-alert {
     margin-bottom: 10px;
