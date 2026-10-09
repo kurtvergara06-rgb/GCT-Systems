@@ -169,13 +169,9 @@
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
-                                            <a href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" class="inc-action view" title="View Incident Details" aria-label="View incident details">
-                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                            </a>
+                                            <x-ui.action-button type="view" :href="route('incidents.show', ['incident' => $incident->incident_no])" class="inc-action" title="View Incident Details" aria-label="View incident details" />
                                             @if($canModifyIncident)
-                                                <a href="{{ route('incidents.edit', ['incident' => $incident->incident_no]) }}" class="inc-action inc-edit-action" title="Edit Incident" aria-label="Edit incident">
-                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                                                </a>
+                                                <x-ui.action-button type="edit" :href="route('incidents.edit', ['incident' => $incident->incident_no])" class="inc-action inc-edit-action" title="Edit Incident" aria-label="Edit incident" />
                                             @else
                                                 <button type="button" class="inc-action inc-edit-action inc-action-disabled" disabled title="Editing is locked once incident processing begins" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @endif
@@ -183,9 +179,7 @@
                                                 <form method="POST" action="{{ route('incidents.destroy', ['incident' => $incident->incident_no]) }}" onsubmit="return confirm('Archive this unprocessed incident? This action will remove it from active records while preserving its audit history.');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident">
-                                                        <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                                                    </button>
+                                                    <x-ui.action-button type="delete" button-type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident" />
                                                 </form>
                                             @else
                                                 <button type="button" class="inc-action inc-delete-action inc-action-disabled" disabled title="Archive unavailable: incident is a breakdown or has workflow activity" aria-label="Archive unavailable"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
