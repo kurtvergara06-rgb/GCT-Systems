@@ -1747,3 +1747,26 @@
         grid-template-columns: 1fr;
     }
 }
+/* Operation incident list refinement: clear table hierarchy and protected actions. */
+.inc-page .inc-card { padding: 18px; }
+.inc-page .inc-card-header { margin-bottom: 18px; }
+.inc-page .inc-card-header h2 { font-size: 17px; }
+.inc-page .inc-toolbar { gap: 12px; padding: 12px; margin-bottom: 16px; background: #f8fafc; }
+.inc-page .inc-toolbar .inc-search { flex: 1 1 340px; }
+.inc-page .inc-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid #e2eaf3; border-radius: 11px; }
+.inc-page .inc-table { min-width: 1050px; }
+.inc-page .inc-table th { padding: 12px 11px; font-size: 10px; letter-spacing: .035em; }
+.inc-page .inc-table td { padding: 13px 11px; font-size: 12px; }
+.inc-page .inc-table tbody tr:hover { background: #f5f9ff; }
+.inc-page .inc-table td:nth-child(6) { max-width: 220px; }
+.inc-page .inc-record-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; min-width: 94px; }
+.inc-page .inc-record-actions form { margin: 0; display: inline-flex; }
+.inc-page .inc-record-actions .inc-action { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; padding: 0; border: 1px solid #d5e3fa; border-radius: 8px; background: #eff5ff; color: #2155ad; text-decoration: none; cursor: pointer; }
+.inc-page .inc-record-actions .inc-action:hover { background: #dce9ff; border-color: #a9c7f6; }
+.inc-page .inc-record-actions .inc-action:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.inc-page .inc-referral-label { font-size: 10px; font-weight: 700; line-height: 1.25; max-width: 110px; overflow-wrap: anywhere; text-align: center; color: #475569; }
+@media (max-width: 760px) {
+  .inc-page .inc-card { padding: 12px; }
+  .inc-page .inc-card-header { align-items: flex-start; flex-wrap: wrap; }
+  .inc-page .inc-toolbar .inc-search, .inc-page .inc-toolbar .inc-filter { flex: 1 1 100%; min-width: 0; }
+}
