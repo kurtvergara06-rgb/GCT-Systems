@@ -135,7 +135,19 @@
                                     $canArchiveIncident = $canModifyIncident && $incident->incident_type !== 'Bus Breakdown';
                                 @endphp
 
-                                <tr>
+                                <tr data-incident-record
+                                    data-incident-no="{{ $incident->incident_no }}"
+                                    data-incident-type="{{ $incident->incident_type }}"
+                                    data-incident-status="{{ $incident->status }}"
+                                    data-incident-bus="{{ $incident->bus?->bus_no ?? '' }}"
+                                    data-incident-plate="{{ $incident->bus?->plate_no ?? '' }}"
+                                    data-incident-trip="{{ $tripCode }}"
+                                    data-incident-route="{{ $routeLabel ?? '' }}"
+                                    data-incident-driver="{{ $incident->driver_name ?? '' }}"
+                                    data-incident-driver-id="{{ $incident->driver_id ?? '' }}"
+                                    data-incident-location="{{ $incident->location }}"
+                                    data-incident-description="{{ $incident->description }}"
+                                    data-incident-reported="{{ $incident->incident_reported_at?->format('M d, Y g:i A') ?? '' }}">
                                     <td><x-ui.id-badge :value="$incident->incident_no" /></td>
                                     <td>
                                         <span class="inc-type-pill {{ $typeKey === 'bus-breakdown' ? 'breakdown' : ($typeKey === 'accident-road-incident' ? 'accident' : $typeKey) }}">
@@ -169,9 +181,9 @@
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
-                                            <x-ui.action-button type="view" :href="route('incidents.show', ['incident' => $incident->incident_no])" class="inc-action" title="View Incident Details" aria-label="View incident details" />
+                                            <button type="button" class="action-btn view inc-action" data-incident-modal-action="view" aria-label="View incident details" title="View Incident Details"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
                                             @if($canModifyIncident)
-                                                <x-ui.action-button type="edit" :href="route('incidents.edit', ['incident' => $incident->incident_no])" class="inc-action inc-edit-action" title="Edit Incident" aria-label="Edit incident" />
+                                                <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @else
                                                 <button type="button" class="inc-action inc-edit-action inc-action-disabled" disabled title="Editing is locked once incident processing begins" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @endif
@@ -216,6 +228,44 @@
         </main>
     </div>
 
+
+    <!-- Body-level modal: backdrop click is intentionally not a dismissal action. -->
+    <div class="inc-record-modal-backdrop" id="incidentRecordModal" hidden>
+        <section class="inc-record-modal" role="dialog" aria-modal="true" aria-labelledby="incidentRecordModalTitle" tabindex="-1">
+            <header class="inc-record-modal-header">
+                <div><h2 id="incidentRecordModalTitle">Incident Details</h2><p id="incidentRecordModalSubtitle"></p></div>
+                <button type="button" class="inc-record-modal-close" data-incident-modal-close aria-label="Close incident modal"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="inc-record-modal-body">
+                <div data-incident-view-panel>
+                    <div class="inc-record-detail-grid">
+                        <div><small>Incident No.</small><strong data-incident-display="no"></strong></div>
+                        <div><small>Status</small><strong data-incident-display="status"></strong></div>
+                        <div><small>Incident Type</small><strong data-incident-display="type"></strong></div>
+                        <div><small>Reported</small><strong data-incident-display="reported"></strong></div>
+                        <div><small>Bus / Plate</small><strong data-incident-display="bus"></strong></div>
+                        <div><small>Trip / Route</small><strong data-incident-display="trip"></strong></div>
+                        <div><small>Driver</small><strong data-incident-display="driver"></strong></div>
+                        <div><small>Location</small><strong data-incident-display="location"></strong></div>
+                    </div>
+                    <div class="inc-record-description"><small>Description / Details</small><p data-incident-display="description"></p></div>
+                    <p class="inc-record-modal-helper">For response history, replacement dispatch, status changes, and Maintenance referral details, use the complete incident workflow.</p>
+                    <a href="#" class="inc-record-full-details" data-incident-full-link>Open Complete Incident Workflow</a>
+                </div>
+                <form data-incident-edit-panel hidden>
+                    @csrf
+                    @method('PATCH')
+                    <p class="inc-record-modal-helper">Only location and description can be corrected before the incident enters processing.</p>
+                    <label for="incidentEditLocation">Current Location <span class="ui-required">*</span></label>
+                    <input id="incidentEditLocation" name="location" required maxlength="255" />
+                    <label for="incidentEditDescription">Description / Details</label>
+                    <textarea id="incidentEditDescription" name="description" maxlength="2000" rows="5"></textarea>
+                    <div class="inc-record-modal-error" data-incident-modal-error role="alert" hidden></div>
+                    <div class="inc-record-modal-footer"><button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Cancel</button><button type="submit" class="inc-record-modal-save">Save Changes</button></div>
+                </form>
+            </div>
+        </section>
+    </div>
     <x-ui.form-modal
         id="incidentReportModal"
         title="Report Incident"
