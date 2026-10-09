@@ -28,6 +28,8 @@ class IncidentController extends Controller
             ->with([
                 'tripSchedule.shuttleRoute',
                 'bus',
+                'reporter',
+                'maintenanceReferral',
                 'replacement.originalBus',
                 'replacement.replacementBus',
                 'responses.responder',
