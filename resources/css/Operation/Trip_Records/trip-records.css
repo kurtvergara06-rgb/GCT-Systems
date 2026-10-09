@@ -1426,3 +1426,9 @@
 .trip-records-page .trip-table { min-width: 970px; }
 .trip-records-page .trip-table td { vertical-align: middle; }
 @media (max-width: 700px) { .trip-records-page .trip-toolbar .trip-search { flex-basis: 100%; } .trip-records-page .trip-toolbar .trip-filter { flex: 1 1 42%; } .trip-records-page .trip-export-btn { flex: 1 1 auto; } }
+
+/* Export belongs to the Trip History heading, not the crowded filter row. */
+.trip-records-page .trip-card-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.trip-records-page .trip-export-header { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffb900; border-color: #ffb900; color: #102649; font-weight: 800; }
+.trip-records-page .trip-export-header:hover { background: #ffc83d; border-color: #ffc83d; }
+@media (max-width: 600px) { .trip-records-page .trip-export-header { width: 100%; } }
