@@ -222,6 +222,17 @@ class IncidentTest extends TestCase
         $this->assertDatabaseHas('incidents', ['id' => $incident->id]);
     }
 
+    public function test_breakdown_incident_cannot_be_archived_from_incident_table(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+
+        $this->actingAs($this->user)
+            ->delete(route('incidents.destroy', ['incident' => $incident->incident_no]))
+            ->assertForbidden();
+
+        $this->assertNull($incident->fresh()->deleted_at);
+    }
+
     public function test_incident_cannot_be_edited_or_deleted_after_processing(): void
     {
         $incident = $this->createIncident('Traffic');
