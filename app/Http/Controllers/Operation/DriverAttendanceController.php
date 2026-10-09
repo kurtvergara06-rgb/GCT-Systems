@@ -248,9 +248,9 @@ class DriverAttendanceController extends Controller
     public function destroy(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
         $deleted = DB::transaction(function () use ($driverAttendance): bool {
-            // Serialize deletion with assignment creation, which locks the same driver/attendance.
-            Driver::query()->where('driver_id', $driverAttendance->driver_id)->lockForUpdate()->firstOrFail();
+            // Match assignment creation lock order: attendance first, then driver master.
             $locked = DriverAttendance::query()->lockForUpdate()->findOrFail($driverAttendance->id);
+            Driver::query()->where('driver_id', $locked->driver_id)->lockForUpdate()->firstOrFail();
             if ($locked->tripAssignments()->exists()) {
                 return false;
             }
