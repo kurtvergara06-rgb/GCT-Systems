@@ -391,6 +391,15 @@ button {
   -webkit-backdrop-filter: blur(3px) !important;
 }
 
+/* Global confirmation is always above an open edit/view/delete dialog.
+   Explicit priority prevents equal-z-index overlays from covering its actions. */
+#globalConfirmationModal.global-confirmation-overlay.show,
+#globalConfirmationModal.global-confirmation-overlay.active {
+  position: fixed !important;
+  z-index: calc(var(--modal-stacked-z-index, 105000) + 10) !important;
+  isolation: isolate;
+}
+
 /* Base display toggles */
 .modal-overlay,
 .delete-modal-overlay,
