@@ -78,6 +78,52 @@ class SafeRouteRenderingTest extends TestCase
         $response->assertDontSee('simple-page-button');
     }
 
+    public function test_batch_file_processing_bounds_large_batch_rendering_with_server_pagination(): void
+    {
+        $user = $this->adminUser();
+        $batch = \App\Models\Admin\BatchUpload::create([
+            'file_name' => 'large_gps.csv',
+            'stored_name' => 'large_gps.csv',
+            'file_type' => 'csv',
+            'file_path' => 'uploads/large_gps.csv',
+            'status' => 'Processed',
+            'total_records' => 120,
+            'processed_records' => 120,
+            'failed_records' => 0,
+            'module' => 'Operation',
+            'data_type' => 'GPS Trip Records',
+        ]);
+
+        $now = now();
+        $rows = collect(range(1, 120))->map(fn (int $number): array => [
+            'batch_upload_id' => $batch->id,
+            'bus_no' => 'GCT-'.str_pad((string) $number, 3, '0', STR_PAD_LEFT),
+            'record_no' => 'LARGE-'.str_pad((string) $number, 4, '0', STR_PAD_LEFT),
+            'grouping' => 'Large Batch Route',
+            'trip_type' => 'Trip',
+            'beginning_at' => $now->copy()->addMinutes($number),
+            'ending_at' => $now->copy()->addMinutes($number + 30),
+            'raw_data' => json_encode(['source' => 'large-test', 'row' => $number]),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->all();
+        \App\Models\Admin\GpsTripRecord::query()->insert($rows);
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('batch-file-processing', ['batch_id' => $batch->id]));
+
+        $response->assertOk();
+        $response->assertSeeText('Showing 1–50 of 120 records');
+        $response->assertSee('simple-page-button');
+
+        $this->assertSame(50, $response->viewData('records')->count());
+        $this->assertSame(120, $response->viewData('records')->total());
+        $this->assertSame(50, $response->viewData('allSelectedRecords')->count());
+        $this->assertSame(120, $response->viewData('allSelectedRecords')->total());
+        $this->assertFalse($response->viewData('selectedBatch')->relationLoaded('tripRecords'));
+    }
+
     public function test_data_history_page_renders_cleanly_without_pagination_buttons(): void
     {
         $user = $this->adminUser();

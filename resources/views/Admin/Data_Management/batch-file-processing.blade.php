@@ -128,7 +128,10 @@
 
     <x-layout.sidebar department="Admin" />
 
-    <main class="main batch-main batch-processing-page">
+    <main
+        class="main batch-main batch-processing-page"
+        data-auto-open-preview="{{ in_array(request('preview'), ['raw', 'clean'], true) ? request('preview') : '' }}"
+    >
         <x-layout.topbar
             title="Batch File Processing"
             subtitle="Convert raw, messy, or semi-structured files into reviewed structured records."
