@@ -2289,3 +2289,66 @@
 .inc-record-modal-save { border:1px solid #efac00; background:#ffb900; color:#10213a; }
 .inc-record-modal-save:disabled { opacity:.6; cursor:wait; }
 @media(max-width:600px) { .inc-record-detail-grid { grid-template-columns:1fr; } .inc-record-modal-body { padding:15px; } }
+
+/* Approved read-only View Incident design: compact sections and responsive cards. */
+#incidentRecordModal:has([data-incident-view-panel]:not([hidden])) .inc-record-modal {
+    width:min(1020px,100%);
+}
+#incidentRecordModal .inc-modal-section {
+    border:1px solid #dce7f5; border-radius:12px; padding:12px 14px;
+    margin-bottom:12px; background:#fff;
+}
+#incidentRecordModal .inc-modal-section h3 {
+    margin:0 0 12px; font-size:13px; font-weight:800; color:#132e55;
+    display:flex; align-items:center; gap:9px;
+}
+#incidentRecordModal .inc-modal-section h3 > i {
+    width:27px; height:27px; display:grid; place-items:center;
+    border-radius:8px; color:#2165c6; background:#e8f2ff; font-size:12px;
+}
+#incidentRecordModal .inc-modal-kpis {
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+}
+#incidentRecordModal .inc-modal-kpis.inc-modal-two-col {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+}
+#incidentRecordModal .inc-modal-kpis > div {
+    display:flex; flex-direction:column; gap:6px; min-width:0;
+    background:#f5f8fd; border-radius:10px; padding:12px;
+}
+#incidentRecordModal .inc-modal-kpis small { font-size:10px; color:#6c7f9b; }
+#incidentRecordModal .inc-modal-kpis strong {
+    font-size:12px; font-weight:750; color:#152d52;
+    overflow-wrap:anywhere; white-space:pre-wrap;
+}
+#incidentRecordModal .inc-modal-timeline {
+    background:#f1f7ff; border-radius:10px; padding:12px 14px;
+}
+#incidentRecordModal .inc-modal-timeline-item {
+    display:flex; flex-direction:column; gap:4px;
+    padding:3px 0 10px 13px; border-left:2px solid #9fc6ff;
+}
+#incidentRecordModal .inc-modal-timeline-item + .inc-modal-timeline-item { margin-top:8px; }
+#incidentRecordModal .inc-modal-timeline-item strong { font-size:11px; color:#164eaa; }
+#incidentRecordModal .inc-modal-timeline-item small { font-size:11px; color:#667993; }
+#incidentRecordModal .inc-modal-view-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:12px; padding-top:14px; border-top:1px solid #e2eaf3;
+}
+#incidentRecordModal .inc-modal-view-actions { display:flex; gap:9px; align-items:center; }
+#incidentRecordModal .inc-modal-view-actions button {
+    min-height:37px; padding:0 16px; border-radius:8px;
+    font-size:12px; font-weight:750; border:1px solid #d0dced;
+}
+#incidentRecordModal .inc-modal-view-actions .inc-record-modal-save {
+    border-color:#efac00; background:#ffb900; color:#10213a;
+}
+#incidentRecordModal .inc-modal-view-actions [hidden] { display:none!important; }
+@media(max-width:800px) {
+ #incidentRecordModal .inc-modal-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:480px) {
+ #incidentRecordModal .inc-modal-kpis, #incidentRecordModal .inc-modal-kpis.inc-modal-two-col { grid-template-columns:1fr; }
+ #incidentRecordModal .inc-modal-view-footer { align-items:stretch; }
+ #incidentRecordModal .inc-modal-view-actions { justify-content:flex-end; }
+}
