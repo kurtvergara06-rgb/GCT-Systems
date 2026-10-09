@@ -1453,3 +1453,34 @@
 .trip-records-page .trip-filter-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e6edf6; padding-top: 13px; }
 .trip-records-page .trip-filter-actions .trip-clear-btn { display: inline-flex; align-items: center; padding: 0 15px; text-decoration: none; }
 @media(max-width:650px) { .trip-records-page .trip-extra-filters { grid-template-columns: 1fr; } .trip-records-page .trip-toolbar-search-submit { order: 3; } }
+
+/* Separate popover controls clearly and align the filter footer. */
+.trip-records-page .trip-extra-filters {
+  column-gap: 16px !important;
+  row-gap: 16px !important;
+  padding: 18px !important;
+  align-items: start;
+}
+.trip-records-page .trip-extra-filters .trip-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.trip-records-page .trip-extra-filters .trip-filter label {
+  display: block;
+  color: #344563;
+  font-size: 11px;
+  font-weight: 700;
+}
+.trip-records-page .trip-extra-filters .trip-filter input,
+.trip-records-page .trip-extra-filters .trip-filter select {
+  min-height: 42px;
+  border-radius: 9px;
+}
+.trip-records-page .trip-filter-actions {
+  margin-top: 3px;
+  padding-top: 16px;
+  gap: 12px;
+}
+.trip-records-page .trip-toolbar .trip-search { flex-grow: 1; }
