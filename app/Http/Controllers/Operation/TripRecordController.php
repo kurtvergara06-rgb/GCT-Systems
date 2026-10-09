@@ -139,7 +139,7 @@ class TripRecordController extends Controller
         // Only arrival timestamps can prove punctuality; incomplete data is
         // deliberately excluded from the denominator, never called on-time.
         $timedTrips = TripSchedule::query()
-            ->where('status', 'Completed')
+            ->whereIn('status', ['Completed', 'Delayed'])
             ->whereNotNull('actual_arrival_time')
             ->whereNotNull('estimated_arrival_time')
             ->whereNotNull('departure_time')
