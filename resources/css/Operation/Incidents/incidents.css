@@ -2090,3 +2090,29 @@
  #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); }
  #incidentReportModal .inc-bus-trip-context > div { border-right:0; }
 }
+
+/* Four-column matched-trip card, visible even before a bus is selected. */
+#incidentReportModal .inc-bus-trip-summary { margin-top:3px; }
+#incidentReportModal .inc-bus-trip-context { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; }
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail {
+    display:flex; flex-direction:row; align-items:flex-start; gap:9px;
+    padding:3px 12px; min-width:0; border-right:1px solid #dce6f5;
+}
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail:first-child { padding-left:0; }
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail:last-child { padding-right:0; border-right:0; }
+#incidentReportModal .inc-summary-detail > i {
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 31px; width:31px; height:31px;
+    border-radius:50%; color:#215db2; background:#e2edff; font-size:12px;
+}
+#incidentReportModal .inc-summary-detail > span { display:flex; flex-direction:column; gap:3px; min-width:0; }
+#incidentReportModal .inc-summary-detail small { color:#637a99; font-size:10px; }
+#incidentReportModal .inc-summary-detail strong { color:#132e54; font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
+#incidentReportModal .inc-summary-detail em { color:#7d8eaa; font-style:normal; font-size:10px; overflow-wrap:anywhere; }
+#incidentReportModal [data-incident-trip-status].is-pending { color:#64748b; background:#e8eef6; }
+#incidentReportModal .inc-trip-empty-note { margin:10px 0 0; font-size:11px; color:#7485a0; }
+#incidentReportModal .inc-trip-empty-note[hidden] { display:none!important; }
+@media(max-width:730px) {
+ #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:13px; }
+ #incidentReportModal .inc-bus-trip-context .inc-summary-detail:nth-child(2) { border-right:0; }
+}
