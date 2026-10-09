@@ -2047,3 +2047,46 @@
 .inc-bus-trip-context small { font-size:10px; color:#637894; }
 .inc-bus-trip-context strong { font-size:11px; color:#132e54; overflow-wrap:anywhere; }
 @media(max-width:600px) { .inc-bus-trip-context { grid-template-columns:1fr; } }
+
+/* Approved incident modal: bus-first lookup followed by a read-only trip card. */
+#incidentReportModal .inc-autofill-internals { display:none !important; }
+#incidentReportModal .inc-modal-form-grid { gap:15px 16px; }
+#incidentReportModal .inc-bus-lookup { position:relative; }
+#incidentReportModal .inc-bus-lookup > label { font-size:12px; font-weight:750; }
+#incidentReportModal .inc-bus-lookup > input[data-incident-bus-search] {
+    height:45px; padding-left:42px; border-radius:10px;
+    background-image:none; background-color:#fff;
+}
+#incidentReportModal .inc-bus-lookup:before {
+    content:""; position:absolute; left:14px; top:38px;
+    width:15px; height:15px; background:currentColor;
+    color:#365b92; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 16V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v10h1v2h-2v2h-2v-2H7v2H5v-2H3v-2zm3-11a1 1 0 0 0-1 1v6h12V6a1 1 0 0 0-1-1zm-1 9v2h12v-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+    pointer-events:none;
+}
+#incidentReportModal .inc-bus-search-help { margin:0; color:#768aa3; font-size:11px; }
+#incidentReportModal .inc-bus-trip-summary {
+    border:1px solid #d9e6f7; background:#f5f9ff;
+    border-radius:12px; padding:13px 14px;
+}
+#incidentReportModal .inc-bus-trip-summary[hidden] { display:none!important; }
+#incidentReportModal .inc-bus-trip-summary-head {
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
+}
+#incidentReportModal .inc-bus-trip-summary-head strong { font-size:13px; color:#102b54; }
+#incidentReportModal .inc-bus-trip-summary-head small { font-size:11px; font-weight:500; color:#7588a1; }
+#incidentReportModal [data-incident-trip-status] {
+    display:inline-flex; color:#166534; background:#dcfce7; border-radius:999px;
+    padding:5px 10px; font-size:10px; font-weight:700;
+}
+#incidentReportModal .inc-bus-trip-context {
+    grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; border:0; padding:0; background:transparent;
+}
+#incidentReportModal .inc-bus-trip-context > div { border-right:1px solid #dce6f5; padding-right:8px; }
+#incidentReportModal .inc-bus-trip-context > div:last-child { border-right:0; }
+#incidentReportModal .inc-bus-trip-context small { color:#7288a6; }
+#incidentReportModal .inc-bus-trip-context strong { color:#122b53; font-size:12px; }
+#incidentReportModal .inc-bus-lookup-results { position:relative; z-index:4; box-shadow:0 8px 20px rgba(16,42,86,.07); }
+@media(max-width:640px) {
+ #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #incidentReportModal .inc-bus-trip-context > div { border-right:0; }
+}
