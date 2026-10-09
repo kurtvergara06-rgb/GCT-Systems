@@ -458,6 +458,7 @@
                 <button type="button" class="ddr-add-trip" data-ddr-add-trip><i class="fa-solid fa-plus"></i> Add Another Trip</button>
             </div>
             <div data-ddr-trip-rows></div>
+            <script type="application/json" data-ddr-old-trips>@json(array_values(old("additional_trips", [])))</script>
             <template data-ddr-trip-template>
                 <div class="ddr-extra-trip">
                     <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash"></i> Remove</button></div>
