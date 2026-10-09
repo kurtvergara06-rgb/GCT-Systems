@@ -300,13 +300,29 @@
                 <form data-incident-edit-panel hidden>
                     @csrf
                     @method('PATCH')
-                    <p class="inc-record-modal-helper">Only location and description can be corrected before the incident enters processing.</p>
-                    <label for="incidentEditLocation">Current Location <span class="ui-required">*</span></label>
-                    <input id="incidentEditLocation" name="location" required maxlength="255" />
-                    <label for="incidentEditDescription">Description / Details</label>
-                    <textarea id="incidentEditDescription" name="description" maxlength="2000" rows="5"></textarea>
+                    <div class="inc-edit-intro"><i class="fa-solid fa-circle-info"></i><span>You can correct the current location and description before incident processing begins. Core incident information is protected.</span></div>
+                    <section class="inc-modal-section inc-edit-summary">
+                        <h3><i class="fa-solid fa-file-lines"></i> Incident Information</h3>
+                        <div class="inc-modal-kpis inc-edit-kpis">
+                            <div><small>Incident No.</small><strong data-incident-edit-info="no">—</strong></div>
+                            <div><small>Reported Date & Time</small><strong data-incident-edit-info="reported">—</strong></div>
+                            <div><small>Status</small><strong data-incident-edit-info="status">—</strong></div>
+                            <div><small>Bus</small><strong data-incident-edit-info="bus">—</strong></div>
+                            <div><small>Driver</small><strong data-incident-edit-info="driver">—</strong></div>
+                            <div><small>Trip / Route</small><strong data-incident-edit-info="trip">—</strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section inc-edit-fields">
+                        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Details</h3>
+                        <div class="inc-edit-field-grid">
+                            <div class="inc-edit-field"><label for="incidentEditType">Incident Type (Read-only)</label><input id="incidentEditType" type="text" readonly data-incident-edit-type /></div>
+                            <div class="inc-edit-field"><label for="incidentEditLocation">Current Location <span class="ui-required">*</span></label><input id="incidentEditLocation" name="location" required maxlength="255" /></div>
+                            <div class="inc-edit-field inc-edit-field-full"><label for="incidentEditDescription">Description / Details</label><textarea id="incidentEditDescription" name="description" maxlength="2000" rows="4"></textarea><small class="inc-edit-character-count" data-incident-edit-count>0 / 2000</small></div>
+                        </div>
+                        <div class="inc-edit-restriction"><i class="fa-solid fa-triangle-exclamation"></i><div><strong>Editing Restrictions</strong><p>Only an unprocessed incident can be edited. Once processing begins or dependent records exist, editing is locked to preserve the audit trail.</p></div></div>
+                    </section>
                     <div class="inc-record-modal-error" data-incident-modal-error role="alert" hidden></div>
-                    <div class="inc-record-modal-footer"><button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Cancel</button><button type="submit" class="inc-record-modal-save">Save Changes</button></div>
+                    <div class="inc-record-modal-footer"><button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Cancel</button><button type="submit" class="inc-record-modal-save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button></div>
                 </form>
             </div>
         </section>
