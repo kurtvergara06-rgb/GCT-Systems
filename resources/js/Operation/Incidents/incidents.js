@@ -172,35 +172,45 @@ function initIncidentBusLookup() {
             tripSelect.value = '';
             tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
             if (driverSelect) { driverSelect.disabled = false; driverSelect.value = ''; }
-            context.hidden = true;
-            if (summary) summary.hidden = true;
-            context.replaceChildren();
+            showDetails(null);
         };
         const matchingTrips = (busId) => trips.filter(option => option.dataset.busId === String(busId));
         const showDetails = (option) => {
-            context.replaceChildren();
-            if (!option?.value) { context.hidden = true; if (summary) summary.hidden = true; return; }
-            const values = [
-                ['Driver', [option.dataset.driverName, option.dataset.driverId].filter(Boolean).join(' · ')],
-                ['Route', option.dataset.route],
-                ['From / To', [option.dataset.origin, option.dataset.destination].filter(Boolean).join(' → ')],
-                ['Trip', option.textContent.trim().split('•')[0].trim()],
-                ['Scheduled', [option.dataset.departure, option.dataset.arrival].filter(Boolean).join(' → ')],
-                ['Status', option.dataset.tripStatus]
-            ];
-            values.forEach(([label, value]) => {
-                if (!value) return;
-                const box = document.createElement('div');
-                const heading = document.createElement('small');
-                const text = document.createElement('strong');
-                heading.textContent = label;
-                text.textContent = value;
-                box.append(heading, text);
-                context.appendChild(box);
+            const bus = buses.find(item => item.dataset.busId === (option?.dataset.busId || confirmedBus));
+            const details = {
+                trip: option?.value ? option.textContent.trim().split('•')[0].trim() : 'Not selected',
+                route: option?.dataset.route || 'Not available',
+                bus: bus?.dataset.busNo || 'Select a bus',
+                driver: option?.dataset.driverName || 'Not available',
+            };
+            const metas = {
+                trip: option?.value ? [option.dataset.departure, option.dataset.arrival].filter(Boolean).join(' → ') : '—',
+                route: option?.dataset.origin && option?.dataset.destination
+                    ? option.dataset.origin + ' → ' + option.dataset.destination : '—',
+                bus: bus?.dataset.plateNo || '—',
+                driver: option?.dataset.driverId || '—',
+            };
+            Object.entries(details).forEach(([key, value]) => {
+                const field = context.querySelector('[data-trip-summary="' + key + '"]');
+                if (field) field.textContent = value;
             });
-            context.hidden = !context.childElementCount;
-            if (summary) summary.hidden = context.hidden;
-            if (status) status.textContent = option.dataset.tripStatus || 'Scheduled';
+            Object.entries(metas).forEach(([key, value]) => {
+                const field = context.querySelector('[data-trip-meta="' + key + '"]');
+                if (field) field.textContent = value;
+            });
+            const emptyNote = lookup.querySelector('[data-trip-empty-note]');
+            if (emptyNote) {
+                emptyNote.textContent = bus
+                    ? 'No scheduled trip matched this bus today. You can still report the incident.'
+                    : 'Enter a Bus ID to see matching trip and driver details.';
+                emptyNote.hidden = Boolean(option?.value);
+            }
+            context.hidden = false;
+            if (summary) summary.hidden = false;
+            if (status) {
+                status.textContent = option?.value ? (option.dataset.tripStatus || 'Scheduled') : (bus ? 'No Trip Match' : 'Awaiting Bus ID');
+                status.classList.toggle('is-pending', !option?.value);
+            }
         };
         const chooseTrip = (option) => {
             tripSelect.value = option.value;
@@ -242,6 +252,7 @@ function initIncidentBusLookup() {
             input.setCustomValidity('');
             clearTrip();
             showTripOptions(bus);
+            if (!matchingTrips(confirmedBus).length) showDetails(null);
         };
         const search = () => {
             const typed = input.value.trim().toLowerCase();
