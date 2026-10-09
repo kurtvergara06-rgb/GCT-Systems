@@ -3,6 +3,7 @@ window.GCTPartialNavigation.registerInitializer('operation-incidents', '.inc-pag
     initTripPrefill();
     initIncidentBusLookup();
     initIncidentReportModal();
+    initIncidentRecordModals();
 });
 
 /* =========================================================
@@ -455,4 +456,114 @@ function initIncidentReportModal() {
     if (modal.querySelector('.ui-field-error, .inc-modal-alert')) {
         open(true);
     }
+}
+
+/* Incident row actions: View and Edit stay in the incident list modal.
+ * The full workflow is available through an explicit link in View. */
+function initIncidentRecordModals() {
+    const modal = document.getElementById('incidentRecordModal');
+    const page = document.querySelector('.inc-page');
+    if (!modal || !page || modal.dataset.initialized === '1') return;
+    modal.dataset.initialized = '1';
+    const dialog = modal.querySelector('[role="dialog"]');
+    const view = modal.querySelector('[data-incident-view-panel]');
+    const edit = modal.querySelector('[data-incident-edit-panel]');
+    const error = modal.querySelector('[data-incident-modal-error]');
+    const title = modal.querySelector('#incidentRecordModalTitle');
+    const subtitle = modal.querySelector('#incidentRecordModalSubtitle');
+    const fullLink = modal.querySelector('[data-incident-full-link]');
+    let opener = null;
+    let bodyOverflow = '';
+
+    function close() {
+        modal.hidden = true;
+        document.body.style.overflow = bodyOverflow;
+        opener?.focus();
+    }
+    function open(button) {
+        const record = button.closest('[data-incident-record]');
+        if (!record) return;
+        opener = button;
+        const data = record.dataset;
+        const isEdit = button.dataset.incidentModalAction === 'edit';
+        title.textContent = isEdit ? 'Edit Incident' : 'Incident Details';
+        subtitle.textContent = data.incidentNo || '';
+        view.hidden = isEdit;
+        edit.hidden = !isEdit;
+        error.hidden = true;
+        error.textContent = '';
+        if (isEdit) {
+            edit.action = button.dataset.updateUrl || '';
+            edit.elements.location.value = data.incidentLocation || '';
+            edit.elements.description.value = data.incidentDescription || '';
+        } else {
+            const fields = {
+                no: data.incidentNo, status: data.incidentStatus,
+                type: data.incidentType, reported: data.incidentReported,
+                bus: [data.incidentBus, data.incidentPlate].filter(Boolean).join(' / '),
+                trip: [data.incidentTrip !== '—' ? data.incidentTrip : '', data.incidentRoute].filter(Boolean).join(' · '),
+                driver: [data.incidentDriver, data.incidentDriverId].filter(Boolean).join(' · '),
+                location: data.incidentLocation, description: data.incidentDescription
+            };
+            for (const [key, value] of Object.entries(fields)) {
+                const target = modal.querySelector('[data-incident-display="' + key + '"]');
+                if (target) target.textContent = value || '—';
+            }
+            const viewAnchor = record.querySelector('[data-incident-full-url]');
+            const fallback = record.querySelector('[data-incident-modal-action="view"]');
+            fullLink.href = viewAnchor?.dataset.incidentFullUrl || fallback?.dataset.incidentFullUrl || '#';
+        }
+        bodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        modal.hidden = false;
+        (isEdit ? edit.elements.location : dialog)?.focus();
+    }
+    page.addEventListener('click', event => {
+        const button = event.target.closest('[data-incident-modal-action]');
+        if (button && !button.disabled) open(button);
+    });
+    modal.querySelectorAll('[data-incident-modal-close]').forEach(button => button.addEventListener('click', close));
+    modal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+        if (event.key !== 'Tab') return;
+        const elements = Array.from(modal.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href]'))
+            .filter(el => !el.closest('[hidden]') && el.getClientRects().length);
+        if (!elements.length) return;
+        if (event.shiftKey && document.activeElement === elements[0]) { event.preventDefault(); elements[elements.length - 1].focus(); }
+        else if (!event.shiftKey && document.activeElement === elements[elements.length - 1]) { event.preventDefault(); elements[0].focus(); }
+    });
+    edit.addEventListener('submit', async event => {
+        event.preventDefault();
+        const save = edit.querySelector('[type="submit"]');
+        if (!edit.reportValidity() || save.disabled) return;
+        save.disabled = true;
+        error.hidden = true;
+        try {
+            const response = await fetch(edit.action, {
+                method: 'POST',
+                body: new FormData(edit),
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            if (response.ok) {
+                close();
+                window.location.reload();
+                return;
+            }
+            if (response.status === 422) {
+                const result = await response.json();
+                error.textContent = Object.values(result.errors || {}).flat().join(' ') || result.message || 'Please review the form.';
+            } else if (response.status === 403) {
+                error.textContent = 'This incident is locked and cannot be edited.';
+            } else {
+                error.textContent = 'Unable to save changes. Please try again.';
+            }
+            error.hidden = false;
+        } catch (_) {
+            error.textContent = 'Network error. Your changes have not been confirmed.';
+            error.hidden = false;
+        } finally {
+            save.disabled = false;
+        }
+    });
 }
