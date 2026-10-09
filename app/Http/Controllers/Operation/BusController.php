@@ -69,6 +69,9 @@ class BusController extends Controller
                 ?->tripSchedule
                 ?->shuttleRoute
                 ?->route_name;
+
+            // Mirror the existing server-side Bus No. history guard in the UI.
+            $bus->bus_no_locked = $this->hasHistoricalBusReferences($bus);
         });
 
         $totalBuses = Bus::count();
