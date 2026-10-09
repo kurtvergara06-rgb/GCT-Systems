@@ -16,7 +16,7 @@
         @if($tripSchedule)
             <option
                 value="{{ $tripSchedule->id }}"
-                data-assignment-id="{{ $activeTripAssignment?->id }}"
+                data-assignment-id="{{ $activeTripAssignment?->id }}" data-driver-id="{{ $activeTripAssignment?->driver_id }}" data-bus-id="{{ $activeTripAssignment?->bus_id }}"
                 selected
             >
                 {{ $tripSchedule->trip_code }}
@@ -31,7 +31,7 @@
             @endif
             <option
                 value="{{ $trip->id }}"
-                data-assignment-id="{{ $trip->assignment?->id }}"
+                data-assignment-id="{{ $trip->assignment?->id }}" data-driver-id="{{ $trip->assignment?->driver_id }}" data-bus-id="{{ $trip->assignment?->bus_id }}"
                 @selected(old('trip_schedule_id') == $trip->id)
             >
                 {{ $trip->trip_code }}
@@ -66,7 +66,7 @@
         />
         <input type="hidden" name="bus_id" value="{{ $activeTripAssignment->bus_id }}" />
     @else
-        <select name="bus_id">
+        <select name="bus_id" data-incident-bus-select>
             <option value="">Select bus...</option>
             @foreach($availableTrips->pluck('assignment.bus')->unique('id')->filter() as $bus)
                 <option value="{{ $bus->id }}" @selected(old('bus_id') == $bus->id)>
@@ -93,14 +93,16 @@
         <input type="hidden" name="driver_id" value="{{ $activeTripAssignment->driver_id }}" />
         <input type="hidden" name="driver_name" value="{{ $activeTripAssignment->driver_name }}" />
     @else
-        <input
-            type="text"
-            name="driver_name"
-            value="{{ old('driver_name') }}"
-            placeholder="Driver name / ID"
-        />
-        <input type="hidden" name="driver_id" value="{{ old('driver_id') }}" />
-        @error('driver_name')
+        <select name="driver_id" data-incident-driver-select>
+            <option value="">Select driver from master list (optional)...</option>
+            @foreach($activeDrivers as $driver)
+                <option value="{{ $driver->driver_id }}" @selected(old('driver_id') == $driver->driver_id)>
+                    {{ $driver->driver_name }} ({{ $driver->driver_id }})
+                </option>
+            @endforeach
+        </select>
+        <input type="hidden" name="driver_name" value="" />
+        @error('driver_id')
             <span class="ui-field-error">{{ $message }}</span>
         @enderror
     @endif
