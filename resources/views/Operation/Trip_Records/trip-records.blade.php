@@ -135,7 +135,6 @@
                             </div>
                         </div>
                     </details>
-                    <button class="trip-export-btn trip-toolbar-search-submit" type="submit">Search</button>
                 </form>
 
                 <!-- Trip Table Container with Contained Scroll -->
