@@ -121,6 +121,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::get('/', 'index')->name('incidents');
         Route::get('/create', 'create')->name('incidents.create');
         Route::post('/', 'store')->name('incidents.store');
+        Route::get('/{incident}/edit', 'edit')->middleware('system.permission:operation,edit')->name('incidents.edit');
+        Route::patch('/{incident}/details', 'updateDetails')->middleware('system.permission:operation,edit')->name('incidents.details.update');
+        Route::delete('/{incident}', 'destroy')->middleware('system.permission:operation,edit')->name('incidents.destroy');
         Route::get('/{incident}', 'show')->name('incidents.show');
         Route::put('/{incident}', 'update')->name('incidents.update');
         Route::post('/{incident}/dispatch', 'dispatchReplacement')->name('incidents.dispatch');
