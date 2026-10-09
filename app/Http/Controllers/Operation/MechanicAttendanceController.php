@@ -227,7 +227,7 @@ class MechanicAttendanceController extends Controller
             ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
             ->where('status', 'On Going')
             ->exists()) {
-            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+            throw \Illuminate\Validation\ValidationException::withMessages([
                 'attendance' => 'This mechanic has an active Job Order. Attendance cannot be deleted.',
             ]);
         }
