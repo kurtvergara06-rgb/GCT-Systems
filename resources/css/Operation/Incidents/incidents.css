@@ -2352,3 +2352,33 @@
  #incidentRecordModal .inc-modal-view-footer { align-items:stretch; }
  #incidentRecordModal .inc-modal-view-actions { justify-content:flex-end; }
 }
+
+/* Approved Edit Incident modal — existing secure fields, refreshed presentation. */
+#incidentRecordModal:has([data-incident-edit-panel]:not([hidden])) .inc-record-modal { width:min(760px,100%); }
+#incidentRecordModal .inc-edit-intro {
+    display:flex; align-items:center; gap:10px; background:#edf5ff;
+    border:1px solid #c8ddfc; border-radius:9px; padding:11px 13px;
+    color:#285b9e; font-size:11px; line-height:1.5; margin-bottom:2px;
+}
+#incidentRecordModal .inc-edit-intro i { color:#246ade; font-size:14px; }
+#incidentRecordModal .inc-edit-summary, #incidentRecordModal .inc-edit-fields { margin:0; }
+#incidentRecordModal .inc-edit-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+#incidentRecordModal .inc-edit-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+#incidentRecordModal .inc-edit-field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+#incidentRecordModal .inc-edit-field-full { grid-column:1/-1; }
+#incidentRecordModal .inc-edit-field input[readonly] { background:#f2f5fa; color:#546781; cursor:default; }
+#incidentRecordModal .inc-edit-field textarea { min-height:100px; }
+#incidentRecordModal .inc-edit-character-count { text-align:right; color:#8291a9; font-size:10px; }
+#incidentRecordModal .inc-edit-restriction {
+    display:flex; gap:12px; margin-top:14px; padding:12px;
+    background:#fff8e8; border:1px solid #ffe1aa; border-radius:9px;
+    color:#92530b;
+}
+#incidentRecordModal .inc-edit-restriction i { font-size:16px; margin-top:2px; color:#e2a019; }
+#incidentRecordModal .inc-edit-restriction strong { font-size:11px; }
+#incidentRecordModal .inc-edit-restriction p { margin-top:4px; font-size:11px; line-height:1.5; }
+#incidentRecordModal [data-incident-edit-panel] .inc-record-modal-footer { margin-top:2px; }
+@media(max-width:560px) {
+ #incidentRecordModal .inc-edit-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #incidentRecordModal .inc-edit-field-grid { grid-template-columns:1fr; }
+}
