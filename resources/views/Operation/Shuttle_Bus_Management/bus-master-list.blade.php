@@ -508,6 +508,8 @@
                     >
                 </div>
 
+                <p id="editBusMaintenanceNotice" class="bus-maintenance-lock-notice full-width" role="status" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> This bus is Under Maintenance. Master-list editing is disabled until Maintenance releases it.</p>
+
                 <div class="modal-actions full-width">
                     <button
                         type="button"
