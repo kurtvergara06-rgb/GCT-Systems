@@ -101,6 +101,25 @@
                     </div>
                 </section>
 
+                <section class="ddr-card">
+                    <div class="ddr-card-header"><div>
+                        <h2>Trip Entries ({{ 1 + $report->additionalTrips->count() }})</h2>
+                        <p>Trips transcribed from this single physical DDR. The original trip is displayed first.</p>
+                    </div></div>
+                    <div class="table-wrap ddr-table-wrap">
+                        <table class="ddr-table">
+                            <thead><tr><th>#</th><th>Trip Ticket</th><th>From</th><th>To</th><th>Departure</th><th>Arrival</th><th>Passengers</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>{{ $report->trip_ticket }}</td><td>{{ $report->from_location }}</td><td>{{ $report->to_location }}</td><td>{{ $report->departure_time?->format('H:i') }}</td><td>{{ $report->arrival_time?->format('H:i') }}</td><td>{{ number_format($report->passengers) }}</td></tr>
+                                @foreach($report->additionalTrips as $trip)
+                                    <tr><td>{{ $trip->sequence }}</td><td>{{ $trip->trip_ticket }}</td><td>{{ $trip->from_location }}</td><td>{{ $trip->to_location }}</td><td>{{ substr($trip->departure_time, 0, 5) }}</td><td>{{ substr($trip->arrival_time, 0, 5) }}</td><td>{{ number_format($trip->passengers) }}</td></tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="ddr-trips-total">Total passengers across all entries: <strong>{{ number_format($report->passengers + $report->additionalTrips->sum('passengers')) }}</strong></p>
+                </section>
+
                 <!-- Schedule Comparison -->
                 <section class="ddr-card">
                     <div class="ddr-card-header">
