@@ -50,9 +50,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::post('/operation/routes', [RouteController::class, 'store'])->middleware('system.permission:operation,edit')->name('operation.routes.store');
     Route::put('/operation/routes/{shuttleRoute}', [RouteController::class, 'update'])->middleware('system.permission:operation,edit')->name('operation.routes.update');
     Route::delete('/operation/routes/{shuttleRoute}', [RouteController::class, 'destroy'])->middleware('system.permission:operation,edit')->name('operation.routes.destroy');
-    Route::get('/operation/routes/location-search', [RouteController::class, 'searchLocations'])->middleware('throttle:60,1')->name('operation.routes.location-search');
-    Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware('throttle:60,1')->name('operation.routes.reverse-location');
-    Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware('throttle:60,1')->name('operation.routes.calculate');
+    Route::get('/operation/routes/location-search', [RouteController::class, 'searchLocations'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.location-search');
+    Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.reverse-location');
+    Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.calculate');
 
     Route::controller(TripScheduleController::class)
         ->prefix('operation/trip-schedule')
