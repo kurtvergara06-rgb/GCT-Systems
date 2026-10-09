@@ -9,10 +9,10 @@ class DailyDriverReportTripEntry extends Model
 {
     protected $fillable = [
         'sequence', 'trip_ticket', 'from_location', 'to_location',
-        'departure_time', 'arrival_time', 'passengers',
+        'departure_time', 'arrival_time', 'passengers', 'km',
     ];
 
-    protected $casts = ['passengers' => 'integer'];
+    protected $casts = ['passengers' => 'integer', 'km' => 'decimal:2'];
 
     public function report(): BelongsTo
     {
