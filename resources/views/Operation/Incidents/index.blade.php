@@ -181,7 +181,7 @@
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
-                                            <button type="button" class="action-btn view inc-action" data-incident-modal-action="view" aria-label="View incident details" title="View Incident Details"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                                            <button type="button" class="action-btn view inc-action" data-incident-modal-action="view" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="View incident details" title="View Incident Details"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
                                             @if($canModifyIncident)
                                                 <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @else
