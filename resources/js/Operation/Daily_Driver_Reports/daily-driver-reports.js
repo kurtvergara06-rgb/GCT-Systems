@@ -384,6 +384,15 @@ function initDdrAdditionalTrips() {
         container.appendChild(row);
         renumber();
     };
+    const previousRows = modal.querySelector('[data-ddr-old-trips]');
+    if (previousRows) {
+        try {
+            const restored = JSON.parse(previousRows.textContent);
+            if (Array.isArray(restored)) restored.forEach((values) => append(values));
+        } catch (_) {
+            // Invalid preserved input must not prevent new rows being added.
+        }
+    }
     add.addEventListener('click', () => append());
     modal.querySelector('#ddrEncodeForm')?.addEventListener('reset', () => {
         container.replaceChildren();
