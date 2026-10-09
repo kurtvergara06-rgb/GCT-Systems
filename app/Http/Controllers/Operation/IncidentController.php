@@ -301,9 +301,13 @@ class IncidentController extends Controller
 
         unset($validated['trip_assignment_id']);
 
-        $incidentNo = '';
+        $existingMaximum = Incident::withTrashed()
+            ->selectRaw('MAX(CAST(RIGHT(incident_no, 5) AS UNSIGNED)) AS maximum')
+            ->value('maximum');
+        $nextNumber = $this->numberSequenceService->next('incident', (int) $existingMaximum);
+        $incidentNo = 'INC-'.str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
 
-        DB::transaction(function () use ($validated, &$incidentNo): void {
+        DB::transaction(function () use ($validated, $incidentNo): void {
             if ($validated['incident_type'] === 'Bus Breakdown') {
                 $activeBreakdownKey = ! empty($validated['trip_schedule_id'])
                     ? 'trip:'.$validated['trip_schedule_id']
@@ -318,18 +322,6 @@ class IncidentController extends Controller
                     ]);
                 }
             }
-
-            $existingMaximum = Incident::withTrashed()->get(['incident_no'])
-                ->max(fn (Incident $incident) => (int) substr($incident->incident_no, -5));
-            $nextNumber = $this->numberSequenceService->next('incident', (int) $existingMaximum);
-
-            $incidentNo = 'INC-'
-                .str_pad(
-                    (string) $nextNumber,
-                    5,
-                    '0',
-                    STR_PAD_LEFT
-                );
 
             $incident = Incident::create([
                 'incident_no' => $incidentNo,
@@ -355,7 +347,7 @@ class IncidentController extends Controller
                     'created_at' => now(),
                 ]);
             }
-        });
+        }, 5);
 
         $this->broadcastSystemDataUpdated(
             'Operation',

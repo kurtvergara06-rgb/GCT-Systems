@@ -277,6 +277,20 @@ class DailyDriverReportController extends Controller
 
         $ddrNo = '';
 
+        $year = substr($validated['report_date'], 0, 4);
+        $latestNumber = DailyDriverReport::query()
+            ->where('ddr_no', 'like', "DDR-{$year}-%")
+            ->selectRaw('MAX(CAST(RIGHT(ddr_no, 4) AS UNSIGNED)) AS maximum')
+            ->value('maximum');
+        $nextNumber = $this->numberSequenceService->next(
+            "ddr:{$year}",
+            (int) $latestNumber
+        );
+        $ddrNo = 'DDR-'
+            .$year
+            .'-'
+            .str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+
         try {
             DB::transaction(function () use (
                 $validated,
@@ -285,30 +299,8 @@ class DailyDriverReportController extends Controller
                 $arrival,
                 $allTickets,
                 $normalizedTickets,
-                &$ddrNo
+                $ddrNo
             ): void {
-                $year = substr($validated['report_date'], 0, 4);
-
-                $latestNumber = DailyDriverReport::query()
-                    ->where('ddr_no', 'like', "DDR-{$year}-%")
-                    ->get(['ddr_no'])
-                    ->max(fn (DailyDriverReport $report) => (int) substr($report->ddr_no, -4));
-
-                $nextNumber = $this->numberSequenceService->next(
-                    "ddr:{$year}",
-                    (int) $latestNumber
-                );
-
-                $ddrNo = 'DDR-'
-                    .$year
-                    .'-'
-                    .str_pad(
-                        (string) $nextNumber,
-                        4,
-                        '0',
-                        STR_PAD_LEFT
-                    );
-
                 $report = DailyDriverReport::create([
                     'ddr_no' => $ddrNo,
                     'report_date' => $validated['report_date'],
@@ -355,7 +347,7 @@ class DailyDriverReportController extends Controller
                         'km' => $trip['km'] ?? null,
                     ]);
                 }
-            });
+            }, 5);
         } catch (ValidationException $exception) {
             if (isset($exception->errors()['trip_ticket'])) {
                 return back()->withInput()->with(

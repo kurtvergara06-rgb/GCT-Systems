@@ -8,27 +8,25 @@ class OperationNumberSequenceService
 {
     public function next(string $key, int $existingMaximum = 0): int
     {
-        DB::table('operation_number_sequences')->insertOrIgnore([
-            'sequence_key' => $key,
-            'next_number' => $existingMaximum + 1,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $minimum = $existingMaximum + 1;
+        $timestamp = now();
 
-        $sequence = DB::table('operation_number_sequences')
-            ->where('sequence_key', $key)
-            ->lockForUpdate()
-            ->first();
+        // LAST_INSERT_ID(expr) is connection-scoped. This single statement either
+        // creates the counter at the historical floor or increments it atomically,
+        // without holding a SELECT ... FOR UPDATE lock while the caller creates its
+        // parent and child records.
+        DB::statement(
+            <<<'SQL'
+                INSERT INTO operation_number_sequences
+                    (sequence_key, next_number, created_at, updated_at)
+                VALUES (?, LAST_INSERT_ID(?), ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    next_number = LAST_INSERT_ID(GREATEST(next_number + 1, ?)),
+                    updated_at = ?
+            SQL,
+            [$key, $minimum, $timestamp, $timestamp, $minimum, $timestamp]
+        );
 
-        $number = max((int) $sequence->next_number, $existingMaximum + 1);
-
-        DB::table('operation_number_sequences')
-            ->where('sequence_key', $key)
-            ->update([
-                'next_number' => $number + 1,
-                'updated_at' => now(),
-            ]);
-
-        return $number;
+        return (int) DB::scalar('SELECT LAST_INSERT_ID()');
     }
 }
