@@ -231,7 +231,7 @@ class IncidentController extends Controller
                 || (int) $matched->trip_schedule_id !== (int) ($validated['trip_schedule_id'] ?? 0)
                 || ! in_array($schedule->status, ['Scheduled', 'Dispatched', 'Ready'], true)
                 || $schedule->trip_date?->toDateString() !== now(config('app.business_timezone', 'Asia/Manila'))->toDateString()) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                throw \Illuminate\Validation\ValidationException::withMessages([
                     'trip_schedule_id' => 'Select an assigned trip for this Bus ID today.',
                 ]);
             }
