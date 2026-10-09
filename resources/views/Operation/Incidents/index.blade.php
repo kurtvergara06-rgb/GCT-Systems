@@ -193,8 +193,8 @@
                                     <td colspan="9" style="text-align:center;padding:48px 20px;">
                                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--inc-muted);">
                                             <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:#cbd5e1;"></i>
-                                            <strong style="font-size:15px;color:var(--inc-navy);">No Incidents Found</strong>
-                                            <p style="font-size:13px;margin:0;max-width:420px;">No incidents matched your search or filter criteria. Try adjusting the status or type filters.</p>
+                                            <strong style="font-size:15px;color:var(--inc-navy);">{{ $tab === 'history' ? 'No Incident History Found' : 'No Active Incidents Found' }}</strong>
+                                            <p style="font-size:13px;margin:0;max-width:420px;">{{ request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('type') && request('type') !== 'all') ? 'No records match your current filters. Try adjusting the search, status, or incident type.' : ($tab === 'history' ? 'Resolved and cancelled incidents will appear here.' : 'No ongoing incidents need attention right now.') }}</p>
                                         </div>
                                     </td>
                                 </tr>
