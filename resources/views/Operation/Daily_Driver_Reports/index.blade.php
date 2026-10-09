@@ -298,7 +298,7 @@
                 type="date"
                 value="{{ old('report_date') }}"
                 required
-                icon="fa-calendar-day"
+
             />
 
             <x-ui.form-field
@@ -307,7 +307,7 @@
                 value="{{ old('trip_ticket') }}"
                 placeholder="Ticket number printed on the DDR"
                 required
-                icon="fa-ticket"
+
                 list="ddrTripTicketList"
             />
             <datalist id="ddrTripTicketList">
@@ -408,7 +408,7 @@
                 value="{{ old('from_location') }}"
                 placeholder="Origin terminal / stop"
                 required
-                icon="fa-circle-play"
+
             />
 
             <x-ui.form-field
@@ -417,7 +417,7 @@
                 value="{{ old('to_location') }}"
                 placeholder="Destination terminal / stop"
                 required
-                icon="fa-circle-flag"
+
                 unit=""
             />
 
@@ -427,7 +427,7 @@
                 type="time"
                 value="{{ old('departure_time') }}"
                 required
-                icon="fa-clock"
+
             />
 
             <x-ui.form-field
@@ -436,7 +436,7 @@
                 type="time"
                 value="{{ old('arrival_time') }}"
                 required
-                icon="fa-flag-checkered"
+
             />
 
             <x-ui.form-field
@@ -448,7 +448,7 @@
                 step="1"
                 placeholder="0"
                 required
-                icon="fa-users"
+
             />
         </div>
 
