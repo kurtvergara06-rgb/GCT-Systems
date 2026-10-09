@@ -73,10 +73,14 @@
                         <h2>Operational Trip History</h2>
                         <p>Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.</p>
                     </div>
+                    <button class="trip-export-btn trip-export-header" type="submit" form="tripRecordsFilterForm"
+                        formaction="{{ route('trip-records.export') }}" formmethod="GET">
+                        <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
+                    </button>
                 </div>
 
                 <!-- Filter & Search Toolbar -->
-                <form method="GET" action="{{ route('trip-records') }}" class="trip-toolbar">
+                <form method="GET" action="{{ route('trip-records') }}" id="tripRecordsFilterForm" class="trip-toolbar">
                     <div class="trip-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input
@@ -143,7 +147,6 @@
                     </div>
 
                     <button class="trip-export-btn" type="submit">Apply Filters</button>
-                    <button class="trip-export-btn" type="submit" formaction="{{ route('trip-records.export') }}" formmethod="GET"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV</button>
                     @if(request()->anyFilled(['search', 'trip_date', 'date_from', 'date_to', 'route', 'shift', 'status']))
                         <a href="{{ route('trip-records') }}" class="trip-clear-btn" title="Reset all filters">
                             <i class="fa-solid fa-rotate-left"></i> Reset
