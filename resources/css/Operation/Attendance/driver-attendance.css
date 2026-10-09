@@ -1222,3 +1222,11 @@
   box-sizing: border-box;
   min-height: 46px;
 }
+
+/* Keep Driver Attendance details aligned with Operation's refreshed modal layout. */
+#viewDriverAttendanceModal .ui-form-modal { width: min(660px, calc(100vw - 32px)); }
+#viewDriverAttendanceModal .attendance-details-grid { gap: 12px; }
+#viewDriverAttendanceModal .attendance-detail-card { border-color: #dbe5f1; background: #f8fafc; transition: border-color .15s ease; }
+#viewDriverAttendanceModal .attendance-detail-card label { font-size: 10px; letter-spacing: .06em; }
+#viewDriverAttendanceModal .attendance-detail-value { color: #10213e; }
+#viewDriverAttendanceModal .ui-form-actions { border-top: 1px solid #e8eef5; padding-top: 17px; }
