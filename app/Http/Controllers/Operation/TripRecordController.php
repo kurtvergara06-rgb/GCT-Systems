@@ -82,7 +82,7 @@ class TripRecordController extends Controller
             'trip_date' => ['nullable', 'date_format:Y-m-d'],
             'shift' => ['nullable', 'in:all,Morning,Afternoon,Night'],
             'status' => ['nullable', 'in:all,Completed,Delayed,Cancelled,Missed'],
-            'route' => ['nullable', 'integer', 'min:1'],
+            'route' => ['nullable', 'regex:/^(all|[1-9][0-9]*)$/'],
             'search' => ['nullable', 'string', 'max:150'],
         ]);
         return response()->streamDownload(function () use ($request): void {
@@ -115,7 +115,7 @@ class TripRecordController extends Controller
             'trip_date' => ['nullable', 'date_format:Y-m-d'],
             'shift' => ['nullable', 'in:all,Morning,Afternoon,Night'],
             'status' => ['nullable', 'in:all,Completed,Delayed,Cancelled,Missed'],
-            'route' => ['nullable', 'integer', 'min:1'],
+            'route' => ['nullable', 'regex:/^(all|[1-9][0-9]*)$/'],
             'search' => ['nullable', 'string', 'max:150'],
         ]);
 
@@ -133,7 +133,6 @@ class TripRecordController extends Controller
             ->withQueryString();
 
         // Summary KPI statistics (historical trips only).
-        $allTripsCount = TripSchedule::whereIn('status', ['Completed', 'Delayed', 'Cancelled', 'Missed'])->count();
         $completedTripsCount = TripSchedule::where('status', 'Completed')->count();
         $delayedTripsCount = TripSchedule::where('status', 'Delayed')->count();
 
@@ -143,6 +142,7 @@ class TripRecordController extends Controller
             ->where('status', 'Completed')
             ->whereNotNull('actual_arrival_time')
             ->whereNotNull('estimated_arrival_time')
+            ->whereNotNull('departure_time')
             ->get(['trip_date', 'estimated_arrival_date', 'departure_time', 'estimated_arrival_time', 'actual_arrival_time']);
         $onTimeCount = $timedTrips->filter(function (TripSchedule $trip): bool {
             $scheduled = $trip->estimatedArrivalDateTime();
