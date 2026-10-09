@@ -539,7 +539,7 @@ function initIncidentRecordModals() {
                 // Omit invalid optional timeline data rather than inventing events.
             }
         }
-        bodyOverflow = document.body.style.overflow;
+        if (modal.hidden) bodyOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         modal.hidden = false;
         (isEdit ? edit.elements.location : dialog)?.focus();
