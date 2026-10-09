@@ -633,3 +633,20 @@ button.action-btn.edit:disabled i,
 button.action-btn.edit[aria-disabled="true"] i {
   color: inherit !important;
 }
+
+/* Keep assignment-protected Delete actions visible but clearly unavailable. */
+button.action-btn.delete:disabled,
+button.action-btn.delete[aria-disabled="true"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+  opacity: .85 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+button.action-btn.delete:disabled i,
+button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
