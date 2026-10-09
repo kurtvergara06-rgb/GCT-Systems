@@ -198,10 +198,8 @@
                         data-status="{{ $attendance->status }}">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                      <x-ui.action-buttom-modal
-                        class="edit open-edit-attendance-modal"
+                      <button type="button" class="action-btn edit open-edit-attendance-modal"
                         @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
-                        icon="fa-pen-to-square"
                         data-id="{{ $attendance->id }}"
                         data-mechanic-id="{{ $attendance->mechanic_id }}"
                         data-mechanic-name="{{ $attendance->mechanic_name }}"
@@ -212,7 +210,9 @@
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
                         data-update-url="{{ route('mechanic-attendance.update', $attendance->id, false) }}"
-                      />
+                      >
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                      </button>
 
                       <form
                         id="deleteAttendanceForm-{{ $attendance->id }}"
@@ -224,7 +224,7 @@
                         <button
                           type="button"
                           class="action-btn delete open-delete-attendance-modal"
-                          title="Delete"
+                          @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Delete" @endif
                           data-id="{{ $attendance->id }}"
                           data-mechanic-id="{{ $attendance->mechanic_id }}"
                           data-mechanic-name="{{ $attendance->mechanic_name }}"
