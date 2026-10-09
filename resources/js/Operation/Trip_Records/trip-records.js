@@ -46,8 +46,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (elDistance) elDistance.textContent = data.distance_km ? `${data.distance_km} km` : '—';
         if (elEstTime) elEstTime.textContent = data.estimated_time_minutes ? `${data.estimated_time_minutes} mins` : '—';
 
-        if (elBusNo) elBusNo.textContent = data.bus_no || '—';
-        if (elBusDetails) elBusDetails.textContent = [data.plate_no, data.bus_model].filter(Boolean).join(' • ') || '—';
+        if (elBusNo) elBusNo.textContent = data.plate_no || 'No plate recorded';
+        if (elBusDetails) elBusDetails.textContent = [data.bus_no ? `Internal Bus: ${data.bus_no}` : null, data.bus_model].filter(Boolean).join(' • ') || '—';
 
         if (elDriverName) elDriverName.textContent = data.driver_name || '—';
         if (elDriverId) elDriverId.textContent = data.driver_id ? `ID: ${data.driver_id}` : '';
@@ -67,6 +67,13 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         modalOverlay.classList.remove('show');
         document.body.style.overflow = '';
     };
+
+    // The modal lives outside <main>; handle its controls on the overlay.
+    modalOverlay.addEventListener('click', (event) => {
+        if (event.target.closest('.trip-modal-close, .trip-modal-dismiss')) {
+            closeModal();
+        }
+    }, { signal });
 
     page.addEventListener('click', (event) => {
         const viewButton = event.target.closest('.view-trip-btn');
