@@ -72,6 +72,15 @@ class PersonnelController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $driverIds = $drivers->getCollection()->pluck('driver_id');
+        $lockedDriverIds = $driverIds->isEmpty() ? collect() : TripAssignment::query()
+            ->whereIn('driver_id', $driverIds)
+            ->whereHas('tripSchedule', fn ($query) => $query->whereNotIn('status', ['Cancelled', 'Completed']))
+            ->pluck('driver_id');
+        $drivers->getCollection()->each(function (Driver $driver) use ($lockedDriverIds): void {
+            $driver->deactivation_locked = $lockedDriverIds->contains($driver->driver_id);
+        });
+
         return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats'));
     }
 
@@ -132,6 +141,15 @@ class PersonnelController extends Controller
                 return $mechanic;
             })
         );
+
+        $mechanicNames = $mechanics->getCollection()->pluck('mechanic_name');
+        $lockedMechanicNames = $mechanicNames->isEmpty() ? collect() : JobOrder::query()
+            ->whereIn('assigned_mechanic', $mechanicNames)
+            ->where('status', 'On Going')
+            ->pluck('assigned_mechanic');
+        $mechanics->getCollection()->each(function (Mechanic $mechanic) use ($lockedMechanicNames): void {
+            $mechanic->deactivation_locked = $lockedMechanicNames->contains($mechanic->mechanic_name);
+        });
 
         return view(
             'Operation.Personnel Management.mechanic_master_list',
