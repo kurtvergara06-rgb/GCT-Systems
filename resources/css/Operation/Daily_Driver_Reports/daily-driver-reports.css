@@ -1888,3 +1888,28 @@ button.ddr-new-btn {
     text-align: center;
     font-size: 12px;
 }
+
+/* Shared form-field component styling for repeatable physical DDR trip rows. */
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ui-input-wrap { width: 100%; min-width: 0; }
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group > label {
+    font-size: 11px;
+    font-weight: 650;
+    color: #334155;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ui-input-wrap input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 39px;
+    padding: 0 11px;
+    border: 1px solid #d3dfec;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+}
