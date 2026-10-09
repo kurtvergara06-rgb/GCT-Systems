@@ -463,12 +463,12 @@
                 <div class="ddr-extra-trip">
                     <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Remove</span></button></div>
                     <div class="ddr-extra-trip-grid">
-                        <label>Trip Ticket No. *<input required type="text" data-trip-field="trip_ticket" maxlength="50" placeholder="Trip ticket number"></label>
-                        <label>From Location *<input required type="text" data-trip-field="from_location" maxlength="150" placeholder="Origin terminal / stop"></label>
-                        <label>To Location *<input required type="text" data-trip-field="to_location" maxlength="150" placeholder="Destination terminal / stop"></label>
-                        <label>Departure Time *<input required type="time" data-trip-field="departure_time"></label>
-                        <label>Arrival Time *<input required type="time" data-trip-field="arrival_time"></label>
-                        <label>Passengers *<input required type="number" data-trip-field="passengers" min="0" step="1" placeholder="0"></label>
+                        <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
+                        <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
+                        <x-ui.form-field label="To Location" name="ddr_trip_template_to" required placeholder="Destination terminal / stop" maxlength="150" data-trip-field="to_location" />
+                        <x-ui.form-field label="Departure Time" name="ddr_trip_template_departure" type="time" required data-trip-field="departure_time" />
+                        <x-ui.form-field label="Arrival Time" name="ddr_trip_template_arrival" type="time" required data-trip-field="arrival_time" />
+                        <x-ui.form-field label="Passengers" name="ddr_trip_template_passengers" type="number" min="0" step="1" required placeholder="0" data-trip-field="passengers" />
                     </div>
                 </div>
             </template>
