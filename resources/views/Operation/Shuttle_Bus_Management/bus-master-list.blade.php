@@ -187,7 +187,8 @@
                                     <td>
                                         <div class="actions">
                                             <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
-                                                data-bus-no="{{ $bus->bus_no }}" data-plate-no="{{ $bus->plate_no }}"
+                                                data-bus-no="{{ $bus->bus_no }}"
+                                                data-bus-no-locked="{{ $bus->bus_no_locked ? '1' : '0' }}" data-plate-no="{{ $bus->plate_no }}"
                                                 data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
                                                 data-capacity="{{ $bus->capacity }}" data-status="{{ $bus->status }}"
                                                 data-route-grouping="{{ $bus->route_grouping }}"
@@ -428,9 +429,11 @@
                         name="bus_no"
                         id="edit_bus_no"
                         required
+                        aria-describedby="editBusNoLockHint"
                     >
                 </div>
 
+                <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus No. is locked because this bus has related operational history.</p>
                 <div class="form-group">
                     <label>Plate No.</label>
 
