@@ -109,11 +109,9 @@
                             <tr>
                                 <th>Incident No.</th>
                                 <th>Type</th>
-                                <th>Trip</th>
+                                <th>Trip / Route</th>
                                 <th>Bus</th>
                                 <th>Driver</th>
-                                <th>Location</th>
-                                <th>Reported</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -122,8 +120,6 @@
                         <tbody>
                             @forelse($incidents as $incident)
                                 @php
-                                    $reportedDate = $incident->incident_reported_at?->format('M d, Y') ?? '—';
-                                    $reportedTime = $incident->incident_reported_at?->format('g:i A') ?? '';
                                     $tripCode = $incident->tripSchedule?->trip_code ?: '—';
                                     $routeLabel = $incident->tripSchedule?->shuttleRoute?->route_name;
                                     $typeKey = strtolower(str_replace(['/', ' '], '-', $incident->incident_type));
@@ -150,7 +146,7 @@
                                     <td>
                                         <div class="inc-driver-cell">
                                             <span>{{ $tripCode }}</span>
-                                            @if($routeLabel)<small>{{ $routeLabel }}</small>@endif
+                                            @if($routeLabel)<small title="{{ $routeLabel }}">{{ $routeLabel }}</small>@endif
                                         </div>
                                     </td>
                                     <td>
@@ -170,8 +166,6 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td><div class="inc-loc-cell"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ $incident->location ?: '—' }}</span></div></td>
-                                    <td><div class="inc-driver-cell inc-reported-cell"><span>{{ $reportedDate }}</span><small>{{ $reportedTime }}</small></div></td>
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
@@ -210,7 +204,7 @@
                                 </tr>
                             @empty
                                 <tr class="empty-row">
-                                    <td colspan="9" style="text-align:center;padding:48px 20px;">
+                                    <td colspan="7" style="text-align:center;padding:48px 20px;">
                                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--inc-muted);">
                                             <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:#cbd5e1;"></i>
                                             <strong style="font-size:15px;color:var(--inc-navy);">{{ $tab === 'history' ? 'No Incident History Found' : 'No Active Incidents Found' }}</strong>
