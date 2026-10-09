@@ -118,32 +118,34 @@ function initSearchableCombos() {
 ========================================================= */
 
 function initTripPrefill() {
-    const tripSelect = document.querySelector('[data-trip-select]');
-    const assignmentInput = document.querySelector('[data-trip-assignment-id]');
-    const prefillLink = document.querySelector('[data-prefill-link]');
+    document.querySelectorAll('[data-trip-select]').forEach((tripSelect) => {
+        const form = tripSelect.closest('form');
+        if (!form) return;
+        const assignmentInput = form.querySelector('[data-trip-assignment-id]');
+        const driverSelect = form.querySelector('[data-incident-driver-select]');
+        const busSelect = form.querySelector('[data-incident-bus-select]');
+        const prefillLink = form.querySelector('[data-prefill-link]');
 
-    if (!tripSelect) return;
+        const syncPrefill = () => {
+            const selected = tripSelect.selectedOptions[0];
+            const assignmentId = selected?.dataset.assignmentId || '';
+            if (assignmentInput) assignmentInput.value = assignmentId;
 
-    const syncPrefill = () => {
-        const selected = tripSelect.options[tripSelect.selectedIndex];
-        const assignmentId = selected ? selected.dataset.assignmentId || '' : '';
-
-        if (assignmentInput) {
-            assignmentInput.value = assignmentId;
-        }
-
-        if (prefillLink) {
+            // Follow the selected schedule's actual assignment, never guess.
+            // Without a trip, let staff select the driver and bus manually.
             if (assignmentId) {
-                prefillLink.href = `?trip_assignment_id=${encodeURIComponent(assignmentId)}`;
-                prefillLink.style.display = '';
-            } else {
-                prefillLink.style.display = 'none';
+                if (driverSelect) driverSelect.value = selected.dataset.driverId || '';
+                if (busSelect) busSelect.value = selected.dataset.busId || '';
             }
-        }
-    };
+            if (prefillLink) {
+                prefillLink.hidden = !assignmentId;
+                if (assignmentId) prefillLink.href = '?trip_assignment_id=' + encodeURIComponent(assignmentId);
+            }
+        };
 
-    tripSelect.addEventListener('change', syncPrefill);
-    syncPrefill();
+        tripSelect.addEventListener('change', syncPrefill);
+        syncPrefill();
+    });
 }
 
 /* =========================================================
