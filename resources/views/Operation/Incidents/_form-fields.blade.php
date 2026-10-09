@@ -10,11 +10,15 @@
         @endforeach
     </div>
     <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
-    <div class="inc-bus-trip-context" data-incident-trip-context hidden></div>
+    <p class="inc-bus-search-help">Type to search and select a bus from the master list.</p>
+    <div class="inc-bus-trip-summary" data-incident-trip-summary hidden>
+        <div class="inc-bus-trip-summary-head"><strong>Matched Trip <small>(Auto-filled)</small></strong><span data-incident-trip-status></span></div>
+        <div class="inc-bus-trip-context" data-incident-trip-context hidden></div>
+    </div>
 </div>
 
 <!-- Assigned trip auto-detected -->
-<div class="inc-form-group full">
+<div class="inc-form-group full inc-autofill-internals">
     <label for="{{ $formPrefix ?? '' }}tripSelect">
         Matched Trip <small class="inc-optional-label">(Auto-filled)</small>
     </label>
@@ -69,7 +73,7 @@
 </div>
 
 <!-- Read-only trip / bus / driver context from assignment -->
-<div class="inc-form-group">
+<div class="inc-form-group inc-autofill-internals">
     <label>Bus Assigned</label>
 
     @if($activeTripAssignment?->bus)
@@ -95,7 +99,7 @@
     @endif
 </div>
 
-<div class="inc-form-group">
+<div class="inc-form-group inc-autofill-internals">
     <label>Driver on Trip</label>
 
     @if($activeTripAssignment?->driver_name)
@@ -158,6 +162,7 @@
     </label>
 
     <textarea
+        maxlength="2000"
         name="description"
         id="{{ $formPrefix ?? '' }}description"
         placeholder="Describe what happened, vehicles involved, passengers affected, and any help needed..."
