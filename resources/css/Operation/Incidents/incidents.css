@@ -2116,3 +2116,18 @@
  #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:13px; }
  #incidentReportModal .inc-bus-trip-context .inc-summary-detail:nth-child(2) { border-right:0; }
 }
+
+/* Bus ID: reserve actual text space after the decorative bus icon. */
+#incidentReportModal .inc-form-group.inc-bus-lookup > input[data-incident-bus-search] {
+    padding-left: 46px !important;
+    padding-right: 34px;
+    text-indent: 0;
+    background-image: none;
+}
+#incidentReportModal .inc-form-group.inc-bus-lookup::before {
+    left: 15px;
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    pointer-events: none;
+}
