@@ -2151,3 +2151,38 @@
 .inc-page .inc-edit-form .inc-form-group > textarea { min-height:130px; resize:vertical; }
 .inc-page .inc-edit-form .inc-form-group > input:focus,
 .inc-page .inc-edit-form .inc-form-group > textarea:focus { outline:2px solid #bfdbfe; outline-offset:0; border-color:#3767bb; }
+
+/* Align Incident Records with Driver Master List action controls. */
+.inc-page .inc-record-actions { min-width: 128px; justify-content:center; gap:6px; }
+.inc-page .inc-record-actions .inc-action,
+.inc-page .inc-record-actions .inc-action.view,
+.inc-page .inc-record-actions .inc-edit-action {
+    display:inline-flex; align-items:center; justify-content:center;
+    flex:0 0 30px; width:30px; height:30px; padding:0;
+    border:1px solid #bfdbfe; border-radius:8px;
+    background:#eff6ff; color:#2563eb; box-shadow:none;
+}
+.inc-page .inc-record-actions .inc-action.view:hover,
+.inc-page .inc-record-actions .inc-edit-action:hover {
+    border-color:#93c5fd; background:#dbeafe; color:#1d4ed8;
+}
+.inc-page .inc-record-actions .inc-delete-action {
+    border:1px solid #fecaca; background:#fef2f2; color:#dc2626;
+}
+.inc-page .inc-record-actions .inc-delete-action:hover {
+    border-color:#fca5a5; background:#fee2e2; color:#b91c1c;
+}
+.inc-page .inc-record-actions .inc-action-disabled,
+.inc-page .inc-record-actions .inc-action-disabled:hover {
+    opacity:.5; cursor:not-allowed; border-color:#dbe2eb;
+    background:#f1f5f9; color:#64748b;
+}
+/* Keep the existing colored status pills but remove the leading dot. */
+.inc-page .inc-table td .badge[data-ui-component="status-badge"]::before {
+    display:none !important;
+    content:none !important;
+}
+.inc-page .inc-table td .badge[data-ui-component="status-badge"] {
+    justify-content:center;
+    gap:0;
+}
