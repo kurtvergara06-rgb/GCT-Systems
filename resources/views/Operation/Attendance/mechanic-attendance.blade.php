@@ -35,11 +35,6 @@
       min-height: 46px;
       border-radius: 10px;
     }
-    #editMechanicAttendanceModal #edit_assigned_job[readonly] {
-      background: #f3f6fa;
-      color: #64748b;
-      cursor: not-allowed;
-    }
     #editMechanicAttendanceModal .mechanic-attendance-field-hint {
       display: block;
       margin-top: 5px;
@@ -287,11 +282,6 @@
             <option value="Afternoon">Afternoon</option>
             <option value="Night">Night</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label>Assigned Job</label>
-          <input type="text" id="edit_assigned_job" readonly aria-readonly="true" title="Assigned jobs are managed from Maintenance Job Orders">
-          <small class="mechanic-attendance-field-hint">Assigned jobs are managed through Maintenance Job Orders.</small>
         </div>
         <div class="form-group">
           <label>Date</label>
