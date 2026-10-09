@@ -147,7 +147,14 @@
                                     data-incident-driver-id="{{ $incident->driver_id ?? '' }}"
                                     data-incident-location="{{ $incident->location }}"
                                     data-incident-description="{{ $incident->description }}"
-                                    data-incident-reported="{{ $incident->incident_reported_at?->format('M d, Y g:i A') ?? '' }}">
+                                    data-incident-reported="{{ $incident->incident_reported_at?->format('M d, Y g:i A') ?? '' }}"
+                                    data-incident-reporter="{{ $incident->reporter?->name ?? '' }}"
+                                    data-incident-updated="{{ $incident->updated_at?->format('M d, Y g:i A') ?? '' }}"
+                                    data-incident-referral="{{ $incident->maintenanceReferral?->id ?? '' }}"
+                                    data-incident-replacement="{{ $incident->replacement?->replacementBus?->bus_no ?? '' }}"
+                                    data-incident-schedule="{{ $incident->tripSchedule?->departure_time ?? '' }}"
+                                    data-incident-can-edit="{{ $canModifyIncident ? '1' : '0' }}"
+                                    data-incident-timeline="{{ $incident->responses->map(fn ($response) => ['time' => $response->created_at?->format('M d, Y g:i A'), 'status' => $response->status ?? '', 'note' => $response->remarks ?? $response->notes ?? 'Incident response recorded'])->toJson() }}">
                                     <td><x-ui.id-badge :value="$incident->incident_no" /></td>
                                     <td>
                                         <span class="inc-type-pill {{ $typeKey === 'bus-breakdown' ? 'breakdown' : ($typeKey === 'accident-road-incident' ? 'accident' : $typeKey) }}">
@@ -238,19 +245,57 @@
             </header>
             <div class="inc-record-modal-body">
                 <div data-incident-view-panel>
-                    <div class="inc-record-detail-grid">
-                        <div><small>Incident No.</small><strong data-incident-display="no"></strong></div>
-                        <div><small>Status</small><strong data-incident-display="status"></strong></div>
-                        <div><small>Incident Type</small><strong data-incident-display="type"></strong></div>
-                        <div><small>Reported</small><strong data-incident-display="reported"></strong></div>
-                        <div><small>Bus / Plate</small><strong data-incident-display="bus"></strong></div>
-                        <div><small>Trip / Route</small><strong data-incident-display="trip"></strong></div>
-                        <div><small>Driver</small><strong data-incident-display="driver"></strong></div>
-                        <div><small>Location</small><strong data-incident-display="location"></strong></div>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-file-lines"></i> Incident Overview</h3>
+                        <div class="inc-modal-kpis">
+                            <div><small>Incident No.</small><strong data-incident-display="no"></strong></div>
+                            <div><small>Status</small><strong data-incident-display="status"></strong></div>
+                            <div><small>Incident Type</small><strong data-incident-display="type"></strong></div>
+                            <div><small>Reported Date & Time</small><strong data-incident-display="reported"></strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-bus"></i> Trip & Vehicle Information</h3>
+                        <div class="inc-modal-kpis">
+                            <div><small>Bus</small><strong data-incident-display="bus"></strong></div>
+                            <div><small>Driver</small><strong data-incident-display="driver"></strong></div>
+                            <div><small>Trip / Route</small><strong data-incident-display="trip"></strong></div>
+                            <div><small>Schedule</small><strong data-incident-display="schedule"></strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-location-dot"></i> Location & Details</h3>
+                        <div class="inc-modal-kpis inc-modal-two-col">
+                            <div><small>Current Location</small><strong data-incident-display="location"></strong></div>
+                            <div><small>Description / Details</small><strong data-incident-display="description"></strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-circle-info"></i> Additional Information</h3>
+                        <div class="inc-modal-kpis">
+                            <div><small>Reported By</small><strong data-incident-display="reporter"></strong></div>
+                            <div><small>Department</small><strong>Operation</strong></div>
+                            <div><small>Last Updated</small><strong data-incident-display="updated"></strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-link"></i> Related Records</h3>
+                        <div class="inc-modal-kpis inc-modal-two-col">
+                            <div><small>Maintenance Referral</small><strong data-incident-display="referral"></strong></div>
+                            <div><small>Replacement Bus</small><strong data-incident-display="replacement"></strong></div>
+                        </div>
+                    </section>
+                    <section class="inc-modal-section">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Incident Timeline</h3>
+                        <div class="inc-modal-timeline" data-incident-timeline-panel></div>
+                    </section>
+                    <div class="inc-modal-view-footer">
+                        <a href="#" class="inc-record-full-details" data-incident-full-link>Open Complete Incident Workflow</a>
+                        <div class="inc-modal-view-actions">
+                            <button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Close</button>
+                            <button type="button" class="inc-record-modal-save" data-incident-switch-edit><i class="fa-solid fa-pen-to-square"></i> Edit Incident</button>
+                        </div>
                     </div>
-                    <div class="inc-record-description"><small>Description / Details</small><p data-incident-display="description"></p></div>
-                    <p class="inc-record-modal-helper">For response history, replacement dispatch, status changes, and Maintenance referral details, use the complete incident workflow.</p>
-                    <a href="#" class="inc-record-full-details" data-incident-full-link>Open Complete Incident Workflow</a>
                 </div>
                 <form data-incident-edit-panel hidden>
                     @csrf
