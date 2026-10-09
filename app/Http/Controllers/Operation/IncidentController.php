@@ -222,7 +222,12 @@ class IncidentController extends Controller
                 ->where('id', $validated['trip_assignment_id'] ?? 0)
                 ->first();
             $schedule = $matched?->tripSchedule;
-            if (! $matched || ! $schedule
+            $enteredBus = trim((string) $request->input('bus_lookup_display'));
+            $busMatches = $matched?->bus && $enteredBus !== '' && (
+                strcasecmp($enteredBus, $matched->bus->bus_no) === 0
+                || strcasecmp($enteredBus, (string) $matched->bus->plate_no) === 0
+            );
+            if (! $busMatches || ! $matched || ! $schedule
                 || (int) $matched->trip_schedule_id !== (int) ($validated['trip_schedule_id'] ?? 0)
                 || ! in_array($schedule->status, ['Scheduled', 'Dispatched', 'Ready'], true)
                 || $schedule->trip_date?->toDateString() !== now(config('app.business_timezone', 'Asia/Manila'))->toDateString()) {
