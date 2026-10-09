@@ -2,6 +2,7 @@ window.GCTPartialNavigation.registerInitializer('operation-daily-driver-reports'
     initSearchableCombos();
     initScheduleContextPanel();
     initDdrEncodeModal();
+    initDdrAdditionalTrips();
 });
 
 /* =========================================================
@@ -349,4 +350,42 @@ function initDdrEncodeModal() {
 
         focusTarget?.focus();
     }
+}
+
+/* Physical DDR: extra trip rows are children of one daily report. */
+function initDdrAdditionalTrips() {
+    const modal = document.getElementById('ddrEncodeModal');
+    if (!modal || modal.dataset.ddrRowsInitialized === '1') return;
+    modal.dataset.ddrRowsInitialized = '1';
+
+    const container = modal.querySelector('[data-ddr-trip-rows]');
+    const template = modal.querySelector('template[data-ddr-trip-template]');
+    const add = modal.querySelector('[data-ddr-add-trip]');
+    if (!container || !template || !add) return;
+
+    const renumber = () => {
+        Array.from(container.children).forEach((row, index) => {
+            row.querySelector('[data-trip-title]').textContent = 'Trip ' + (index + 2);
+            row.querySelectorAll('[data-trip-field]').forEach((field) => {
+                field.name = 'additional_trips[' + index + '][' + field.dataset.tripField + ']';
+            });
+        });
+    };
+    const append = (values = {}) => {
+        if (container.children.length >= 30) return;
+        const row = template.content.firstElementChild.cloneNode(true);
+        row.querySelectorAll('[data-trip-field]').forEach((field) => {
+            field.value = values[field.dataset.tripField] || '';
+        });
+        row.querySelector('[data-ddr-remove-trip]').addEventListener('click', () => {
+            row.remove();
+            renumber();
+        });
+        container.appendChild(row);
+        renumber();
+    };
+    add.addEventListener('click', () => append());
+    modal.querySelector('#ddrEncodeForm')?.addEventListener('reset', () => {
+        container.replaceChildren();
+    });
 }
