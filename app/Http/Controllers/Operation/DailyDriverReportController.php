@@ -223,6 +223,7 @@ class DailyDriverReportController extends Controller
                 'integer',
                 'min:0',
             ],
+            'km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'additional_trips' => ['sometimes', 'array', 'max:30'],
             'additional_trips.*.trip_ticket' => ['required', 'string', 'max:50'],
             'additional_trips.*.from_location' => ['required', 'string', 'max:150'],
@@ -230,6 +231,7 @@ class DailyDriverReportController extends Controller
             'additional_trips.*.departure_time' => ['required', 'date_format:H:i'],
             'additional_trips.*.arrival_time' => ['required', 'date_format:H:i'],
             'additional_trips.*.passengers' => ['required', 'integer', 'min:0'],
+            'additional_trips.*.km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ]);
 
         $allTickets = collect([$validated['trip_ticket']])
@@ -311,6 +313,7 @@ class DailyDriverReportController extends Controller
                 'departure_time' => $departure->format('H:i:s'),
                 'arrival_time' => $arrival->format('H:i:s'),
                 'passengers' => $validated['passengers'],
+                'km' => $validated['km'] ?? null,
                 'encoded_by' => auth()->id(),
             ]);
             foreach (($validated['additional_trips'] ?? []) as $index => $trip) {
@@ -322,6 +325,7 @@ class DailyDriverReportController extends Controller
                     'departure_time' => $trip['departure_time'] . ':00',
                     'arrival_time' => $trip['arrival_time'] . ':00',
                     'passengers' => $trip['passengers'],
+                    'km' => $trip['km'] ?? null,
                 ]);
             }
         });
