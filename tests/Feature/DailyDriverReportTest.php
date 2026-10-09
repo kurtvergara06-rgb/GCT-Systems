@@ -70,6 +70,69 @@ class DailyDriverReportTest extends TestCase
         ]);
     }
 
+    public function test_one_ddr_can_save_and_display_multiple_trip_rows(): void
+    {
+        $payload = $this->validPayload();
+        $payload['additional_trips'] = [
+            [
+                'trip_ticket' => 'TT-10002',
+                'from_location' => 'Lipa',
+                'to_location' => 'Tanauan',
+                'departure_time' => '07:00',
+                'arrival_time' => '07:45',
+                'passengers' => 17,
+            ],
+            [
+                'trip_ticket' => 'TT-10003',
+                'from_location' => 'Tanauan',
+                'to_location' => 'Batangas',
+                'departure_time' => '08:00',
+                'arrival_time' => '09:00',
+                'passengers' => 18,
+            ],
+        ];
+
+        $this->actingAs($this->user)
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('daily-driver-reports'));
+
+        $this->assertDatabaseCount('daily_driver_reports', 1);
+        $this->assertDatabaseCount('daily_driver_report_trip_entries', 2);
+        $report = DailyDriverReport::firstOrFail();
+        $this->assertSame(3, 1 + $report->additionalTrips->count());
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.show', ['dailyDriverReport' => $report->ddr_no]))
+            ->assertOk()
+            ->assertSee('TT-10002')
+            ->assertSee('TT-10003')
+            ->assertSee('60');
+    }
+
+    public function test_repeated_tickets_in_one_ddr_are_rejected(): void
+    {
+        $payload = $this->validPayload();
+        $payload['additional_trips'] = [
+            [
+                'trip_ticket' => 'TT-10001',
+                'from_location' => 'Lipa',
+                'to_location' => 'Tanauan',
+                'departure_time' => '07:00',
+                'arrival_time' => '07:45',
+                'passengers' => 17,
+            ],
+        ];
+
+        $this->actingAs($this->user)
+            ->from(route('daily-driver-reports.create'))
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertRedirect(route('daily-driver-reports.create'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('daily_driver_reports', 0);
+        $this->assertDatabaseCount('daily_driver_report_trip_entries', 0);
+    }
+
     public function test_store_rejects_a_duplicate_trip_ticket_on_the_same_date(): void
     {
         DailyDriverReport::create([
