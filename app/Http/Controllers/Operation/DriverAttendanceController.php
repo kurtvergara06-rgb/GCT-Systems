@@ -80,8 +80,35 @@ class DriverAttendanceController extends Controller
         ));
     }
 
+    private function normalizeAttendanceTimes(Request $request): void
+    {
+        $normalized = [];
+        foreach (['time_in', 'time_out'] as $field) {
+            $raw = $request->input($field);
+            if (! is_string($raw) || trim($raw) === '') {
+                continue;
+            }
+            $value = trim($raw);
+            foreach (['H:i', 'H:i:s', 'h:i A', 'g:i A', 'h:i:s A', 'g:i:s A'] as $format) {
+                try {
+                    $parsed = Carbon::createFromFormat('!'.$format, strtoupper($value));
+                    if ($parsed && $parsed->format($format) === strtoupper($value)) {
+                        $normalized[$field] = $parsed->format('H:i');
+                        break;
+                    }
+                } catch (Throwable) {
+                    // Keep the invalid input unchanged for standard validation.
+                }
+            }
+        }
+        if ($normalized !== []) {
+            $request->merge($normalized);
+        }
+    }
+
     public function store(Request $request): JsonResponse|RedirectResponse
     {
+        $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
@@ -148,6 +175,7 @@ class DriverAttendanceController extends Controller
 
     public function update(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
+        $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'shift' => 'required|string|max:255',
             'attendance_date' => 'required|date_format:Y-m-d',
