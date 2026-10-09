@@ -290,39 +290,39 @@ class MechanicAttendanceController extends Controller
 
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
-        // Do not remove attendance while the mechanic is on an active Job Order.
-        if (JobOrder::query()
-            ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
-            ->where('status', 'On Going')
-            ->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'attendance' => 'This mechanic has an active Job Order. Attendance cannot be deleted.',
-            ]);
-        }
+        $deleted = DB::transaction(function () use ($mechanicAttendance): bool {
+            // Use the master mechanic lock consistently with attendance updates.
+            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
+            $locked = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
+            if (JobOrder::query()
+                ->where('assigned_mechanic', $locked->mechanic_name)
+                ->where('status', 'On Going')
+                ->exists()) {
+                return false;
+            }
+            $locked->delete();
+            return true;
+        }, 5);
 
-        $attendanceId = $mechanicAttendance->id;
-        $mechanicAttendance->delete();
+        if (! $deleted) {
+            $message = 'This mechanic has an active Job Order. Attendance cannot be deleted.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return redirect()->route('mechanic-attendance')->with('error', $message);
+        }
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Attendance',
-            'deleted',
-            $attendanceId,
+            'Operation', 'Attendance', 'deleted', $mechanicAttendance->id,
             'A mechanic attendance record was deleted.'
         );
-
         if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Mechanic attendance record deleted successfully.',
-            ]);
+            return response()->json(['success' => true, 'message' => 'Mechanic attendance record deleted successfully.']);
         }
-
-        return redirect()->route('mechanic-attendance')
-            ->with('success', 'Mechanic attendance record deleted successfully.');
+        return redirect()->route('mechanic-attendance')->with('success', 'Mechanic attendance record deleted successfully.');
     }
 
-    public function import(Request $request): RedirectResponse
+        public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
