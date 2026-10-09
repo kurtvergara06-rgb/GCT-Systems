@@ -100,7 +100,7 @@ class MechanicAttendanceController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
