@@ -74,7 +74,6 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
   const editMechanicId = document.getElementById('edit_mechanic_id');
   const editMechanicName = document.getElementById('edit_mechanic_name');
   const editShift = document.getElementById('edit_shift');
-  const editAssignedJob = document.getElementById('edit_assigned_job');
   const editAttendanceDate = document.getElementById('edit_attendance_date');
   const editTimeIn = document.getElementById('edit_time_in');
   const editTimeOut = document.getElementById('edit_time_out');
@@ -121,10 +120,14 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
         ['Status', button.dataset.status],
       ];
       if (viewMechanicAttendanceContent) {
-        viewMechanicAttendanceContent.innerHTML = fields.map(([label, value]) =>
-          '<div class="mechanic-attendance-detail-card"><strong>' + escapeDetail(label) +
-          '</strong><span>' + escapeDetail(value) + '</span></div>'
-        ).join('');
+        viewMechanicAttendanceContent.innerHTML = fields.map(([label, value]) => {
+          const status = String(value ?? '').trim().toLowerCase();
+          const content = label === 'Status'
+            ? '<span class="attendance-status-pill" data-status="' + escapeDetail(status) + '">' + escapeDetail(value) + '</span>'
+            : '<span>' + escapeDetail(value) + '</span>';
+          return '<div class="mechanic-attendance-detail-card"><strong>' + escapeDetail(label) +
+            '</strong>' + content + '</div>';
+        }).join('');
       }
       openModal(viewMechanicAttendanceModal);
     });
@@ -148,10 +151,18 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
         if (editMechanicId) editMechanicId.value = button.dataset.mechanicId || '';
         if (editMechanicName) editMechanicName.value = button.dataset.mechanicName || '';
         if (editShift) editShift.value = button.dataset.shift || 'Morning';
-        if (editAssignedJob) editAssignedJob.value = button.dataset.assignedJob || '';
-        if (editAttendanceDate) editAttendanceDate.value = button.dataset.attendanceDate || '';
-        if (editTimeIn) editTimeIn.value = button.dataset.timeIn || '';
-        if (editTimeOut) editTimeOut.value = button.dataset.timeOut || '';
+        if (editAttendanceDate) {
+          editAttendanceDate.value = button.dataset.attendanceDate || '';
+          editAttendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (editTimeIn) {
+          editTimeIn.value = button.dataset.timeIn || '';
+          editTimeIn.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (editTimeOut) {
+          editTimeOut.value = button.dataset.timeOut || '';
+          editTimeOut.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         if (editStatus) editStatus.value = button.dataset.status || 'Present';
 
         openModal(editMechanicAttendanceModal);

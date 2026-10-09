@@ -23,7 +23,10 @@
     'resources/js/Main-js/sidebar.js',
     'resources/js/Main-js/confirmation-modal.js',
     'resources/js/app.js',
-  ], $assets)));
+  ], $assets, [
+    'resources/css/Operation/operation-action-buttons.css',
+    'resources/css/Main-styles/record-action-buttons.css',
+  ])));
 @endphp
 
 <!DOCTYPE html>

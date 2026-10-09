@@ -95,9 +95,18 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         if (driverId) driverId.value = button.dataset.driverId || '';
         if (driverName) driverName.value = button.dataset.driverName || '';
         if (shift) shift.value = button.dataset.shift || 'Morning';
-        if (attendanceDate) attendanceDate.value = button.dataset.attendanceDate || '';
-        if (timeIn) timeIn.value = button.dataset.timeIn || '';
-        if (timeOut) timeOut.value = button.dataset.timeOut || '';
+        if (attendanceDate) {
+          attendanceDate.value = button.dataset.attendanceDate || '';
+          attendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (timeIn) {
+          timeIn.value = button.dataset.timeIn || '';
+          timeIn.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (timeOut) {
+          timeOut.value = button.dataset.timeOut || '';
+          timeOut.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         if (status) status.value = button.dataset.status || 'Present';
 
         openModal(attendanceModal);

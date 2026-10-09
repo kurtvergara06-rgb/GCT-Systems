@@ -2,6 +2,7 @@ window.GCTPartialNavigation.registerInitializer('operation-daily-driver-reports'
     initSearchableCombos();
     initScheduleContextPanel();
     initDdrEncodeModal();
+    initDdrAdditionalTrips();
 });
 
 /* =========================================================
@@ -349,4 +350,54 @@ function initDdrEncodeModal() {
 
         focusTarget?.focus();
     }
+}
+
+/* Physical DDR: extra trip rows are children of one daily report. */
+function initDdrAdditionalTrips() {
+    const modal = document.getElementById('ddrEncodeModal');
+    if (!modal || modal.dataset.ddrRowsInitialized === '1') return;
+    modal.dataset.ddrRowsInitialized = '1';
+
+    const container = modal.querySelector('[data-ddr-trip-rows]');
+    const template = modal.querySelector('template[data-ddr-trip-template]');
+    const add = modal.querySelector('[data-ddr-add-trip]');
+    if (!container || !template || !add) return;
+
+    const renumber = () => {
+        Array.from(container.children).forEach((row, index) => {
+            row.querySelector('[data-trip-title]').textContent = 'Trip ' + (index + 2);
+            row.querySelectorAll('[data-trip-field]').forEach((field) => {
+                field.name = 'additional_trips[' + index + '][' + field.dataset.tripField + ']';
+                field.id = 'ddr_extra_trip_' + index + '_' + field.dataset.tripField;
+                const label = field.closest('.ui-form-group')?.querySelector('label');
+                if (label) label.htmlFor = field.id;
+            });
+        });
+    };
+    const append = (values = {}) => {
+        if (container.children.length >= 30) return;
+        const row = template.content.firstElementChild.cloneNode(true);
+        row.querySelectorAll('[data-trip-field]').forEach((field) => {
+            field.value = values[field.dataset.tripField] || '';
+        });
+        row.querySelector('[data-ddr-remove-trip]').addEventListener('click', () => {
+            row.remove();
+            renumber();
+        });
+        container.appendChild(row);
+        renumber();
+    };
+    const previousRows = modal.querySelector('[data-ddr-old-trips]');
+    if (previousRows) {
+        try {
+            const restored = JSON.parse(previousRows.textContent);
+            if (Array.isArray(restored)) restored.forEach((values) => append(values));
+        } catch (_) {
+            // Invalid preserved input must not prevent new rows being added.
+        }
+    }
+    add.addEventListener('click', () => append());
+    modal.querySelector('#ddrEncodeForm')?.addEventListener('reset', () => {
+        container.replaceChildren();
+    });
 }

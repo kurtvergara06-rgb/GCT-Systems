@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -79,14 +80,41 @@ class DriverAttendanceController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    private function normalizeAttendanceTimes(Request $request): void
     {
+        $normalized = [];
+        foreach (['time_in', 'time_out'] as $field) {
+            $raw = $request->input($field);
+            if (! is_string($raw) || trim($raw) === '') {
+                continue;
+            }
+            $value = trim($raw);
+            foreach (['H:i', 'H:i:s', 'h:i A', 'g:i A', 'h:i:s A', 'g:i:s A'] as $format) {
+                try {
+                    $parsed = Carbon::createFromFormat('!'.$format, strtoupper($value));
+                    if ($parsed && $parsed->format($format) === strtoupper($value)) {
+                        $normalized[$field] = $parsed->format('H:i');
+                        break;
+                    }
+                } catch (Throwable) {
+                    // Keep the invalid input unchanged for standard validation.
+                }
+            }
+        }
+        if ($normalized !== []) {
+            $request->merge($normalized);
+        }
+    }
+
+    public function store(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -117,7 +145,13 @@ class DriverAttendanceController extends Controller
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = $driver->shift ?: $validated['shift'];
 
-        $attendance = DriverAttendance::create($validated);
+        // Serialize attendance writes per master-list employee to protect the
+        // model's duplicate-date check against simultaneous requests.
+        $attendance = DB::transaction(function () use ($validated) {
+            Driver::query()->where('driver_id', $validated['driver_id'])->lockForUpdate()->firstOrFail();
+
+            return DriverAttendance::create($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -141,17 +175,24 @@ class DriverAttendanceController extends Controller
 
     public function update(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
+        $this->normalizeAttendanceTimes($request);
+        if ($driverAttendance->tripAssignments()->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
+            ]);
+        }
+
         $validated = $request->validate([
-            'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
+        // Never allow an attendance edit to reassign the record to another person.
         $driver = Driver::query()
-            ->where('driver_name', $validated['driver_name'])
+            ->where('driver_id', $driverAttendance->driver_id)
             ->first();
 
         if (! $driver) {
@@ -171,7 +212,18 @@ class DriverAttendanceController extends Controller
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = $driver->shift ?: $validated['shift'];
 
-        $driverAttendance->update($validated);
+        if ($driverAttendance->tripAssignments()->exists()
+            && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
+                || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'attendance_date' => 'Assigned driver attendance cannot be moved to another date or marked unavailable.',
+            ]);
+        }
+
+        DB::transaction(function () use ($driverAttendance, $validated) {
+            Driver::query()->where('driver_id', $driverAttendance->driver_id)->lockForUpdate()->firstOrFail();
+            $driverAttendance->update($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -195,40 +247,36 @@ class DriverAttendanceController extends Controller
 
     public function destroy(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
-        if ($driverAttendance->tripAssignments()->exists()) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'This attendance record cannot be deleted because it has a trip assignment.',
-                ], 422);
+        $deleted = DB::transaction(function () use ($driverAttendance): bool {
+            // Match assignment creation lock order: attendance first, then driver master.
+            $locked = DriverAttendance::query()->lockForUpdate()->findOrFail($driverAttendance->id);
+            Driver::query()->where('driver_id', $locked->driver_id)->lockForUpdate()->firstOrFail();
+            if ($locked->tripAssignments()->exists()) {
+                return false;
             }
+            $locked->delete();
+            return true;
+        }, 5);
 
-            return redirect()->route('driver-attendance')
-                ->with('error', 'This attendance record cannot be deleted because it has a trip assignment.');
+        if (! $deleted) {
+            $message = 'This attendance record cannot be deleted because it has a trip assignment.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return redirect()->route('driver-attendance')->with('error', $message);
         }
-
-        $attendanceId = $driverAttendance->id;
-        $driverAttendance->delete();
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Attendance',
-            'deleted',
-            $attendanceId,
+            'Operation', 'Attendance', 'deleted', $driverAttendance->id,
             'A driver attendance record was deleted.'
         );
-
         if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Driver attendance record deleted successfully.',
-            ]);
+            return response()->json(['success' => true, 'message' => 'Driver attendance record deleted successfully.']);
         }
-
-        return redirect()->route('driver-attendance')
-            ->with('success', 'Driver attendance record deleted successfully.');
+        return redirect()->route('driver-attendance')->with('success', 'Driver attendance record deleted successfully.');
     }
 
-    public function import(Request $request): RedirectResponse
+        public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',

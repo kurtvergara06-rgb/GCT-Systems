@@ -25,6 +25,41 @@
       font-weight: 700;
       line-height: 1;
     }
+    /* Edit modal: align native selectors with the custom 46px date/time pickers. */
+    #editMechanicAttendanceModal .form-group > input:not([type="hidden"]),
+    #editMechanicAttendanceModal .form-group > select,
+    #editMechanicAttendanceModal .form-group > .gct-picker-trigger {
+      box-sizing: border-box;
+      width: 100%;
+      height: 46px;
+      min-height: 46px;
+      border-radius: 10px;
+    }
+    #editMechanicAttendanceModal .mechanic-attendance-field-hint {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #64748b;
+    }
+    /* Shared attendance-details presentation with driver records. */
+    #viewMechanicAttendanceModal .modal-box { width: min(650px, calc(100vw - 32px)); max-width: calc(100vw - 32px); padding: 0; overflow: hidden; }
+    #viewMechanicAttendanceModal .modal-header { display: flex; align-items: center; gap: 12px; padding: 22px 24px; border-bottom: 1px solid #e8eef5; }
+    #viewMechanicAttendanceModal .modal-header h2 { margin: 0; font-size: 19px; }
+    #viewMechanicAttendanceModal .attendance-view-icon { width: 46px; height: 46px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; background: #fff1c7; color: #bc8400; }
+    #viewMechanicAttendanceModal .attendance-view-intro { margin: 5px 0 0; font-size: 12px; color: #64748b; }
+    #viewMechanicAttendanceModal .attendance-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 20px 24px; max-height: 55vh; overflow-y: auto; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card { min-width: 0; padding: 13px 14px; border: 1px solid #dbe5f1; background: #f8fafc; border-radius: 10px; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card strong { display: block; margin-bottom: 7px; color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card span { display: block; color: #10213e; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card .attendance-status-pill { display: inline-flex; width: auto; padding: 6px 12px; border-radius: 999px; background: #dff8e7; color: #166534; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card .attendance-status-pill[data-status="absent"] { background: #fee2e2; color: #991b1b; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card .attendance-status-pill[data-status="late"] { background: #fef3c7; color: #92400e; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card .attendance-status-pill[data-status="on leave"] { background: #ede9fe; color: #6d28d9; }
+    #viewMechanicAttendanceModal .mechanic-attendance-detail-card .attendance-status-pill[data-status="on duty"] { background: #dbeafe; color: #1e40af; }
+    #viewMechanicAttendanceModal .modal-actions { margin: 0 24px; padding: 16px 0 22px; border-top: 1px solid #e8eef5; justify-content: flex-end; }
+    #viewMechanicAttendanceModal .modal-actions .cancel-btn { background: #ffb900; color: #111827; border-color: #ffb900; font-weight: 800; }
+    @media (max-width: 580px) { #viewMechanicAttendanceModal .attendance-details-grid { grid-template-columns: 1fr; } #viewMechanicAttendanceModal .modal-header { padding: 18px; } }
   </style>
 
   <div class="app">
@@ -163,10 +198,8 @@
                         data-status="{{ $attendance->status }}">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                      <x-ui.action-buttom-modal
-                        class="edit open-edit-attendance-modal"
-                        title="Edit"
-                        icon="fa-pen-to-square"
+                      <button type="button" class="action-btn edit open-edit-attendance-modal"
+                        @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
                         data-mechanic-id="{{ $attendance->mechanic_id }}"
                         data-mechanic-name="{{ $attendance->mechanic_name }}"
@@ -177,7 +210,9 @@
                         data-time-out="{{ $attendance->time_out }}"
                         data-status="{{ $attendance->status }}"
                         data-update-url="{{ route('mechanic-attendance.update', $attendance->id, false) }}"
-                      />
+                      >
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                      </button>
 
                       <form
                         id="deleteAttendanceForm-{{ $attendance->id }}"
@@ -189,7 +224,7 @@
                         <button
                           type="button"
                           class="action-btn delete open-delete-attendance-modal"
-                          title="Delete"
+                          @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Delete" @endif
                           data-id="{{ $attendance->id }}"
                           data-mechanic-id="{{ $attendance->mechanic_id }}"
                           data-mechanic-name="{{ $attendance->mechanic_name }}"
@@ -215,8 +250,12 @@
   <div id="viewMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="viewMechanicAttendanceTitle">
       <div class="modal-header">
-        <h2 id="viewMechanicAttendanceTitle">Mechanic Attendance Details</h2>
-        <button type="button" id="closeViewMechanicAttendanceModal" class="close-btn" aria-label="Close">&times;</button>
+        <span class="attendance-view-icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></span>
+        <div class="attendance-view-heading">
+          <h2 id="viewMechanicAttendanceTitle">Mechanic Attendance Details</h2>
+          <p class="attendance-view-intro">Complete mechanic attendance information.</p>
+        </div>
+        <button type="button" id="closeViewMechanicAttendanceModal" class="close-btn" aria-label="Close" style="margin-left:auto">&times;</button>
       </div>
       <div class="attendance-details-grid" id="viewMechanicAttendanceContent"></div>
       <div class="modal-actions">
@@ -256,7 +295,7 @@
         </div>
         <div class="form-group">
           <label>Mechanic Name</label>
-          <input type="text" name="mechanic_name" id="edit_mechanic_name" required>
+          <input type="text" id="edit_mechanic_name" readonly aria-readonly="true" title="Mechanic identity is managed in the Master List">
         </div>
         <div class="form-group">
           <label>Shift</label>
@@ -265,10 +304,6 @@
             <option value="Afternoon">Afternoon</option>
             <option value="Night">Night</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label>Assigned Job</label>
-          <input type="text" name="assigned_job" id="edit_assigned_job">
         </div>
         <div class="form-group">
           <label>Date</label>

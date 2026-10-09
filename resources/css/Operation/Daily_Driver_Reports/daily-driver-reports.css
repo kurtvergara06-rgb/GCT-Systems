@@ -1728,6 +1728,23 @@ button.ddr-new-btn {
     padding: 0 12px;
 }
 
+/* Reserve a separate text area for leading field icons. This must follow
+   the modal's compact input padding override above. */
+#ddrEncodeModal .ui-input-wrap.has-icon input,
+#ddrEncodeModal .ui-input-wrap.has-icon select {
+    padding-left: 44px;
+    padding-right: 12px;
+}
+#ddrEncodeModal .ui-input-wrap .ui-input-icon {
+    left: 14px;
+    width: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+
 
 #ddrEncodeModal .ddr-modal-alert {
     margin-bottom: 10px;
@@ -1812,4 +1829,87 @@ button.ddr-new-btn {
     max-height: 240px;
 
     overflow-y: auto;
+}
+
+/* Physical DDR multi-trip encoding: keep extra entries legible in the modal. */
+#ddrEncodeModal .ddr-multi-trips { margin:16px 0; border:1px solid #d9e2ee; border-radius:12px; padding:14px; background:#f8fafc; }
+#ddrEncodeModal .ddr-multi-header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+#ddrEncodeModal .ddr-multi-header strong { font-size:13px; color:#112747; }
+#ddrEncodeModal .ddr-multi-header p { margin:3px 0 0; font-size:11px; color:#64748b; }
+#ddrEncodeModal .ddr-add-trip { background:#ffbd00; border:0; border-radius:8px; padding:10px 12px; font-size:12px; font-weight:750; color:#152238; cursor:pointer; }
+#ddrEncodeModal .ddr-extra-trip { border:1px solid #d9e2ee; border-radius:10px; background:#fff; padding:12px; margin-top:12px; }
+#ddrEncodeModal .ddr-extra-trip-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:#112747; font-size:12px; }
+#ddrEncodeModal .ddr-remove-trip { background:#fff; border:1px solid #fecaca; color:#b91c1c; padding:6px 10px; border-radius:7px; cursor:pointer; }
+#ddrEncodeModal .ddr-extra-trip-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#ddrEncodeModal .ddr-extra-trip-grid label { display:flex; flex-direction:column; gap:5px; font-size:11px; font-weight:650; color:#334155; min-width:0; }
+#ddrEncodeModal .ddr-extra-trip-grid input { box-sizing:border-box; width:100%; min-width:0; height:39px; border:1px solid #d3dfec; border-radius:8px; padding:0 11px; font-size:12px; background:#fff; }
+#ddrEncodeModal .ddr-extra-trip-grid input:focus { outline:2px solid #bfdbfe; outline-offset:0; }
+.ddr-trips-total { margin:12px 16px 16px; font-size:12px; color:#334155; }
+@media (max-width:600px) { #ddrEncodeModal .ddr-extra-trip-grid { grid-template-columns:minmax(0,1fr); } }
+
+/* Make Driver/Bus autocomplete fields visually match other DDR modal inputs. */
+#ddrEncodeModal .ddr-form-group .ddr-combo {
+    width: 100%;
+}
+#ddrEncodeModal .ddr-form-group .ddr-combo-input {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 40px;
+    padding: 0 38px 0 12px;
+    background: #ffffff;
+    border: 1px solid #d3dfec;
+    border-radius: 9px;
+    color: #172b4d;
+    font-size: 13px;
+    outline: none;
+}
+#ddrEncodeModal .ddr-form-group .ddr-combo-input:focus {
+    border-color: #3767bb;
+    box-shadow: 0 0 0 3px rgba(55,103,187,.12);
+}
+#ddrEncodeModal .ddr-form-group .ddr-combo-input::placeholder {
+    color: #8a98ac;
+}
+
+/* Consistent remove action icon spacing and vertical alignment. */
+#ddrEncodeModal .ddr-remove-trip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    line-height: 1;
+    white-space: nowrap;
+}
+#ddrEncodeModal .ddr-remove-trip > i {
+    display: inline-block;
+    width: 13px;
+    flex: 0 0 13px;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* Shared form-field component styling for repeatable physical DDR trip rows. */
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ui-input-wrap { width: 100%; min-width: 0; }
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group > label {
+    font-size: 11px;
+    font-weight: 650;
+    color: #334155;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ui-input-wrap input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 39px;
+    padding: 0 11px;
+    border: 1px solid #d3dfec;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
 }
