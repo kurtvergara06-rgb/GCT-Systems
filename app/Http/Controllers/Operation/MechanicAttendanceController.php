@@ -80,6 +80,17 @@ class MechanicAttendanceController extends Controller
                 : (trim((string) $attendance->assigned_job) ?: 'Unassigned');
         });
 
+        // Preload active JO names for permission-aware Edit buttons.
+        $mechanicNames = $mechanicAttendances->getCollection()->pluck('mechanic_name')->filter()->unique();
+        $busyMechanicNames = $mechanicNames->isEmpty() ? collect() : JobOrder::query()
+            ->where('status', 'On Going')
+            ->whereIn('assigned_mechanic', $mechanicNames)
+            ->pluck('assigned_mechanic')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+        $mechanicAttendances->getCollection()->each(function (MechanicAttendance $attendance) use ($busyMechanicNames): void {
+            $attendance->has_active_job = $busyMechanicNames->contains(mb_strtolower(trim((string) $attendance->mechanic_name)));
+        });
+
         $summaryQuery = MechanicAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
 
