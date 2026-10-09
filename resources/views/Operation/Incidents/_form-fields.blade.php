@@ -1,8 +1,9 @@
 <!-- Bus-first lookup uses actual assignment data already loaded for today. -->
 <div class="inc-form-group full inc-bus-lookup" data-incident-bus-lookup>
-    <label for="{{ $formPrefix ?? '' }}incidentBusLookup">Find Assigned Trip by Bus ID <small class="inc-optional-label">(Optional)</small></label>
+    <label for="{{ $formPrefix ?? '' }}incidentBusLookup">Bus ID <span class="ui-required">*</span></label>
     <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" data-incident-bus-search
-        placeholder="Type Bus ID or plate number (e.g. GCT-205)" autocomplete="off" />
+        placeholder="Enter Bus ID or plate number (e.g. GCT-205)" autocomplete="off" required />
+    <input type="hidden" name="bus_lookup_required" value="1" />
     <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
     <div class="inc-bus-trip-context" data-incident-trip-context hidden></div>
 </div>
@@ -10,7 +11,7 @@
 <!-- Assigned trip auto-detected -->
 <div class="inc-form-group full">
     <label for="{{ $formPrefix ?? '' }}tripSelect">
-        Current Trip <small class="inc-optional-label">(Optional)</small>
+        Matched Trip <small class="inc-optional-label">(Auto-filled)</small>
     </label>
 
     <select
