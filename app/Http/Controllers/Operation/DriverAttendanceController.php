@@ -142,7 +142,6 @@ class DriverAttendanceController extends Controller
     public function update(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
@@ -150,8 +149,9 @@ class DriverAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
+        // Never allow an attendance edit to reassign the record to another person.
         $driver = Driver::query()
-            ->where('driver_name', $validated['driver_name'])
+            ->where('driver_id', $driverAttendance->driver_id)
             ->first();
 
         if (! $driver) {
@@ -170,6 +170,14 @@ class DriverAttendanceController extends Controller
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = $driver->shift ?: $validated['shift'];
+
+        if ($driverAttendance->tripAssignments()->exists()
+            && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
+                || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
+            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                'attendance_date' => 'Assigned driver attendance cannot be moved to another date or marked unavailable.',
+            ]);
+        }
 
         $driverAttendance->update($validated);
 
