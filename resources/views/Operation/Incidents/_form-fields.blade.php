@@ -11,9 +11,18 @@
     </div>
     <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
     <p class="inc-bus-search-help">Type to search and select a bus from the master list.</p>
-    <div class="inc-bus-trip-summary" data-incident-trip-summary hidden>
-        <div class="inc-bus-trip-summary-head"><strong>Matched Trip <small>(Auto-filled)</small></strong><span data-incident-trip-status></span></div>
-        <div class="inc-bus-trip-context" data-incident-trip-context hidden></div>
+    <div class="inc-bus-trip-summary" data-incident-trip-summary>
+        <div class="inc-bus-trip-summary-head">
+            <strong>Matched Trip <small>(Auto-filled)</small></strong>
+            <span data-incident-trip-status class="is-pending">Awaiting Bus ID</span>
+        </div>
+        <div class="inc-bus-trip-context" data-incident-trip-context>
+            <div class="inc-summary-detail"><i class="fa-solid fa-route" aria-hidden="true"></i><span><small>Trip</small><strong data-trip-summary="trip">Not selected</strong><em data-trip-meta="trip">—</em></span></div>
+            <div class="inc-summary-detail"><i class="fa-solid fa-link" aria-hidden="true"></i><span><small>Route</small><strong data-trip-summary="route">Not available</strong><em data-trip-meta="route">—</em></span></div>
+            <div class="inc-summary-detail"><i class="fa-solid fa-bus" aria-hidden="true"></i><span><small>Bus Assigned</small><strong data-trip-summary="bus">Select a bus</strong><em data-trip-meta="bus">—</em></span></div>
+            <div class="inc-summary-detail"><i class="fa-solid fa-user" aria-hidden="true"></i><span><small>Driver on Trip</small><strong data-trip-summary="driver">Not available</strong><em data-trip-meta="driver">—</em></span></div>
+        </div>
+        <p class="inc-trip-empty-note" data-trip-empty-note>Enter a Bus ID to see matching trip and driver details.</p>
     </div>
 </div>
 
