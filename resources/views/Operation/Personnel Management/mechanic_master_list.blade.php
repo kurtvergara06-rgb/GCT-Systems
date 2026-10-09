@@ -187,7 +187,7 @@
                                     <form method="POST" action="{{ route('operation.personnel.mechanics.deactivate', $mechanic, false) }}" data-confirm-form data-confirm-title="Deactivate Mechanic?" data-confirm-message="This removes the mechanic from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="action-btn delete" title="Deactivate" aria-label="Deactivate {{ $mechanic->mechanic_name }}"><i class="fa-solid fa-user-slash"></i></button>
+                                        <button type="submit" class="action-btn delete" @if($mechanic->deactivation_locked) disabled aria-disabled="true" title="Locked: ongoing Maintenance Job Order" @else title="Deactivate" @endif aria-label="Deactivate {{ $mechanic->mechanic_name }}"><i class="fa-solid fa-user-slash"></i></button>
                                     </form>
                                     @else
                                     <form method="POST" action="{{ route('operation.personnel.mechanics.activate', $mechanic, false) }}" data-confirm-form data-confirm-title="Reactivate Mechanic?" data-confirm-message="This restores the mechanic profile to Active so it can be used in future attendance and assignments." data-confirm-button="Reactivate" data-confirm-type="info">
