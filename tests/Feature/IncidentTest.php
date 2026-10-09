@@ -189,6 +189,56 @@ class IncidentTest extends TestCase
         ]);
     }
 
+    public function test_unprocessed_incident_details_can_be_edited(): void
+    {
+        $incident = $this->createIncident('Traffic');
+
+        $this->actingAs($this->user)
+            ->get(route('incidents.edit', ['incident' => $incident->incident_no]))
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->patch(route('incidents.details.update', ['incident' => $incident->incident_no]), [
+                'location' => 'Updated terminal',
+                'description' => 'Corrected description',
+            ])->assertRedirect(route('incidents.show', ['incident' => $incident->incident_no]));
+
+        $this->assertDatabaseHas('incidents', [
+            'id' => $incident->id,
+            'location' => 'Updated terminal',
+            'description' => 'Corrected description',
+        ]);
+    }
+
+    public function test_unprocessed_incident_is_soft_deleted_not_destroyed(): void
+    {
+        $incident = $this->createIncident('Traffic');
+
+        $this->actingAs($this->user)
+            ->delete(route('incidents.destroy', ['incident' => $incident->incident_no]))
+            ->assertRedirect(route('incidents'));
+
+        $this->assertSoftDeleted('incidents', ['id' => $incident->id]);
+        $this->assertDatabaseHas('incidents', ['id' => $incident->id]);
+    }
+
+    public function test_incident_cannot_be_edited_or_deleted_after_processing(): void
+    {
+        $incident = $this->createIncident('Traffic');
+        $incident->update(['status' => 'Monitoring']);
+
+        $this->actingAs($this->user)
+            ->patch(route('incidents.details.update', ['incident' => $incident->incident_no]), [
+                'location' => 'Should not change',
+            ])->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->delete(route('incidents.destroy', ['incident' => $incident->incident_no]))
+            ->assertForbidden();
+
+        $this->assertNull($incident->fresh()->deleted_at);
+    }
+
     public function test_breakdown_incident_can_dispatch_eligible_replacement_bus(): void
     {
         $incident = $this->createIncident('Bus Breakdown');
