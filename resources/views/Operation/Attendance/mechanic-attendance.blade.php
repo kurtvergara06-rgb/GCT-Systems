@@ -200,7 +200,7 @@
                       </button>
                       <x-ui.action-buttom-modal
                         class="edit open-edit-attendance-modal"
-                        title="Edit"
+                        @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         icon="fa-pen-to-square"
                         data-id="{{ $attendance->id }}"
                         data-mechanic-id="{{ $attendance->mechanic_id }}"
