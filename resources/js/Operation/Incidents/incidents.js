@@ -223,6 +223,48 @@ function initIncidentReportModal() {
         }
     });
 
+    // Show a useful inline validation message instead of relying on the
+    // browser's generic "Please fill out this field" tooltip.
+    const fieldMessage = (field) => {
+        if (field.validity.valueMissing) return 'This field is required.';
+        if (field.validity.typeMismatch) return 'Enter a valid value.';
+        if (field.validity.tooLong) return 'This value is too long.';
+        return field.validationMessage || 'Please check this field.';
+    };
+    const clearFieldError = (field) => {
+        field.removeAttribute('aria-invalid');
+        const group = field.closest('.inc-form-group, .ui-form-group');
+        group?.querySelectorAll('[data-incident-validation-error]').forEach((el) => el.remove());
+    };
+    form?.addEventListener('invalid', (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) return;
+        event.preventDefault();
+        const group = field.closest('.inc-form-group, .ui-form-group');
+        if (!group) return;
+        clearFieldError(field);
+        field.setAttribute('aria-invalid', 'true');
+        const error = document.createElement('span');
+        error.className = 'ui-field-error inc-inline-error';
+        error.dataset.incidentValidationError = 'true';
+        error.setAttribute('role', 'alert');
+        error.textContent = fieldMessage(field);
+        group.appendChild(error);
+        if (!form.dataset.incidentValidationFocused) {
+            field.focus();
+            form.dataset.incidentValidationFocused = 'true';
+            queueMicrotask(() => { delete form.dataset.incidentValidationFocused; });
+        }
+    }, true);
+    ['input', 'change'].forEach((eventName) => {
+        form?.addEventListener(eventName, (event) => {
+            const field = event.target;
+            if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+                if (field.checkValidity()) clearFieldError(field);
+            }
+        });
+    });
+
     form?.addEventListener('submit', (event) => {
         if (isSubmitting) {
             event.preventDefault();
