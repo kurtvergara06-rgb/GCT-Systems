@@ -1,7 +1,7 @@
 <!-- Bus-first lookup uses actual assignment data already loaded for today. -->
 <div class="inc-form-group full inc-bus-lookup" data-incident-bus-lookup>
     <label for="{{ $formPrefix ?? '' }}incidentBusLookup">Bus ID <span class="ui-required">*</span></label>
-    <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" data-incident-bus-search
+    <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" name="bus_lookup_display" data-incident-bus-search
         placeholder="Enter Bus ID or plate number (e.g. GCT-205)" autocomplete="off" required />
     <input type="hidden" name="bus_lookup_required" value="1" />
     <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
