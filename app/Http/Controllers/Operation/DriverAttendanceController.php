@@ -247,40 +247,36 @@ class DriverAttendanceController extends Controller
 
     public function destroy(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
-        if ($driverAttendance->tripAssignments()->exists()) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'This attendance record cannot be deleted because it has a trip assignment.',
-                ], 422);
+        $deleted = DB::transaction(function () use ($driverAttendance): bool {
+            // Serialize deletion with assignment creation, which locks the same driver/attendance.
+            Driver::query()->where('driver_id', $driverAttendance->driver_id)->lockForUpdate()->firstOrFail();
+            $locked = DriverAttendance::query()->lockForUpdate()->findOrFail($driverAttendance->id);
+            if ($locked->tripAssignments()->exists()) {
+                return false;
             }
+            $locked->delete();
+            return true;
+        }, 5);
 
-            return redirect()->route('driver-attendance')
-                ->with('error', 'This attendance record cannot be deleted because it has a trip assignment.');
+        if (! $deleted) {
+            $message = 'This attendance record cannot be deleted because it has a trip assignment.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return redirect()->route('driver-attendance')->with('error', $message);
         }
-
-        $attendanceId = $driverAttendance->id;
-        $driverAttendance->delete();
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Attendance',
-            'deleted',
-            $attendanceId,
+            'Operation', 'Attendance', 'deleted', $driverAttendance->id,
             'A driver attendance record was deleted.'
         );
-
         if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Driver attendance record deleted successfully.',
-            ]);
+            return response()->json(['success' => true, 'message' => 'Driver attendance record deleted successfully.']);
         }
-
-        return redirect()->route('driver-attendance')
-            ->with('success', 'Driver attendance record deleted successfully.');
+        return redirect()->route('driver-attendance')->with('success', 'Driver attendance record deleted successfully.');
     }
 
-    public function import(Request $request): RedirectResponse
+        public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
