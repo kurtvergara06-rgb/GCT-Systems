@@ -197,7 +197,7 @@
                                             </button>
                                             @if($canEditOperation)
                                             <button
-                                                class="edit open-edit-bus"
+                                                class="action-btn edit open-edit-bus"
                                                 type="button"
                                                 @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Edit Bus" @endif
                                                 data-id="{{ $bus->id }}"
@@ -220,7 +220,7 @@
                                                 @method('DELETE')
 
                                                 <button
-                                                    class="delete open-delete-bus"
+                                                    class="action-btn delete open-delete-bus"
                                                     type="button"
                                                     @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Delete Bus" @endif
                                                     data-id="{{ $bus->id }}"
