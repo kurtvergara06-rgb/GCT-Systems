@@ -99,17 +99,21 @@
                         <label for="filterTo">To</label>
                         <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
                     </div>
-                    <div class="trip-filter date-filter">
-                        <label for="filterDate">Date</label>
-                        <input
-                            type="date"
-                            id="filterDate"
-                            name="trip_date"
-                            value="{{ request('trip_date') }}"
-                            onchange="this.form.submit()"
-                        />
+                    <div class="trip-filter">
+                        <label for="filterStatus">Status</label>
+                        <select id="filterStatus" name="status" onchange="this.form.submit()">
+                            <option value="all">All Statuses</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status }}" @selected(request('status') === $status)>
+                                    {{ $status }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
+                    <details class="trip-more-filters" @if(request()->filled('route') && request('route') !== 'all' || request()->filled('shift') && request('shift') !== 'all') open @endif>
+                        <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i> More Filters</summary>
+                        <div class="trip-extra-filters">
                     <div class="trip-filter">
                         <label for="filterRoute">Route</label>
                         <select id="filterRoute" name="route" onchange="this.form.submit()">
@@ -134,20 +138,10 @@
                         </select>
                     </div>
 
-                    <div class="trip-filter">
-                        <label for="filterStatus">Status</label>
-                        <select id="filterStatus" name="status" onchange="this.form.submit()">
-                            <option value="all">All Statuses</option>
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" @selected(request('status') === $status)>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+                        </div>
+                    </details>
                     <button class="trip-export-btn" type="submit">Apply Filters</button>
-                    @if(request()->anyFilled(['search', 'trip_date', 'date_from', 'date_to', 'route', 'shift', 'status']))
+                    @if(request()->anyFilled(['search', 'date_from', 'date_to', 'route', 'shift', 'status']))
                         <a href="{{ route('trip-records') }}" class="trip-clear-btn" title="Reset all filters">
                             <i class="fa-solid fa-rotate-left"></i> Reset
                         </a>
@@ -329,13 +323,13 @@
                     data-total="{{ $trips->total() }}"
                 >
                     <span data-entry-count>
-                        Showing {{ $trips->firstItem() ?? 0 }} to {{ $trips->lastItem() ?? 0 }} of {{ $trips->total() }} matching trip records
+                        Showing {{ $trips->total() ? $trips->firstItem() : 0 }} to {{ $trips->total() ? $trips->lastItem() : 0 }} of {{ $trips->total() }} matching trip records
                     </span>
                     <span class="table-loading-all" data-table-loading hidden>
                         <x-ui.spinner size="sm" />
                         <span data-table-loading-label>Loading more records...</span>
                     </span>
-                    <span class="trip-scroll-hint">Scroll to load more historical records</span>
+                    @if($trips->hasMorePages())<span class="trip-scroll-hint">Scroll to load more historical records</span>@endif
                 </div>
             </section>
         </main>
