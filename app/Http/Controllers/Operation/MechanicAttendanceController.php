@@ -105,7 +105,6 @@ class MechanicAttendanceController extends Controller
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'assigned_job' => 'nullable|string|max:255',
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
@@ -170,7 +169,6 @@ class MechanicAttendanceController extends Controller
     public function update(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
@@ -178,8 +176,9 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
+        // Never allow an attendance edit to reassign the record to another person.
         $mechanic = Mechanic::query()
-            ->where('mechanic_name', $validated['mechanic_name'])
+            ->where('mechanic_id', $mechanicAttendance->mechanic_id)
             ->first();
 
         if (! $mechanic) {
@@ -223,6 +222,16 @@ class MechanicAttendanceController extends Controller
 
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
+        // Do not remove attendance while the mechanic is on an active Job Order.
+        if (JobOrder::query()
+            ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
+            ->where('status', 'On Going')
+            ->exists()) {
+            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                'attendance' => 'This mechanic has an active Job Order. Attendance cannot be deleted.',
+            ]);
+        }
+
         $attendanceId = $mechanicAttendance->id;
         $mechanicAttendance->delete();
 
@@ -319,7 +328,6 @@ class MechanicAttendanceController extends Controller
                         [
                             'mechanic_name' => $mechanic->mechanic_name,
                             'shift' => $mechanic->shift ?: trim($data['shift'] ?? 'Morning'),
-                            'assigned_job' => trim($data['assigned_job'] ?? ''),
                             'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
                             'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
                             'status' => $status,
