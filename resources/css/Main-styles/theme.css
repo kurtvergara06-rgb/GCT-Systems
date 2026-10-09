@@ -612,3 +612,24 @@ header.topbar::before {
 .personnel-status-input-shell > .personnel-status-input-dot {
   display: none !important;
 }
+
+
+/* Shared read-only action treatment: keep forbidden actions visible and gray.
+   Buttons must also receive a real disabled attribute and server-side guard. */
+button.action-btn.edit:disabled,
+button.action-btn.edit[aria-disabled="true"],
+button.open-edit-bus:disabled,
+button.open-edit-attendance-modal:disabled,
+button.open-edit-driver-attendance-modal:disabled {
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+  opacity: 0.85 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+button.action-btn.edit:disabled i,
+button.action-btn.edit[aria-disabled="true"] i {
+  color: inherit !important;
+}
