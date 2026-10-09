@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\SystemDataUpdated;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
@@ -14,6 +15,7 @@ use App\Models\Operation\TripSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class OperationTripScheduleHardeningTest extends TestCase
@@ -151,6 +153,31 @@ class OperationTripScheduleHardeningTest extends TestCase
             ->assertSessionHas('trip_validation_mode', 'create');
 
         $this->assertDatabaseCount('trip_schedules', 0);
+    }
+
+    public function test_selected_trip_date_is_shared_and_updated_after_trip_creation(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $selectedDate = now()->addDays(2)->toDateString();
+        $createdDate = now()->addDays(3)->toDateString();
+
+        $this->actingAs($user)
+            ->get(route('trip-schedule', ['trip_date' => $selectedDate]))
+            ->assertOk()
+            ->assertSessionHas('operation.selected_trip_date', $selectedDate);
+
+        $this->get(route('driver-bus-assignment'))
+            ->assertOk()
+            ->assertViewHas('selectedTripDate', $selectedDate);
+
+        $this->post(route('trip-schedule.store'), [
+            'trip_date' => $createdDate,
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '08:00',
+        ])
+            ->assertRedirect('/operation/trip-schedule')
+            ->assertSessionHas('operation.selected_trip_date', $createdDate);
     }
 
     public function test_cancelled_trip_does_not_block_replacement_departure(): void
@@ -1029,6 +1056,96 @@ class OperationTripScheduleHardeningTest extends TestCase
                     return $ids->contains($missed->id)
                         && ! $ids->contains($future->id);
                 });
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_overdue_unassigned_trips_are_persisted_as_missed_without_changing_terminal_trips(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00', 'Asia/Manila'));
+
+        try {
+            Event::fake([SystemDataUpdated::class]);
+
+            $route = $this->route();
+            $overdue = $this->trip($route, [
+                'trip_code' => 'T-OVERDUE-UNASSIGNED',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+            ]);
+            $future = $this->trip($route, [
+                'trip_code' => 'T-FUTURE-UNASSIGNED',
+                'trip_date' => '2026-10-10',
+                'estimated_arrival_date' => '2026-10-10',
+            ]);
+            $cancelled = $this->trip($route, [
+                'trip_code' => 'T-CANCELLED-OLDER',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+                'status' => 'Cancelled',
+            ]);
+            $completed = $this->trip($route, [
+                'trip_code' => 'T-COMPLETED-OLDER',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+                'status' => 'Completed',
+            ]);
+            $dispatched = $this->trip($route, [
+                'trip_code' => 'T-DISPATCHED-OLDER',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+                'status' => 'Dispatched',
+            ]);
+            $assigned = $this->trip($route, [
+                'trip_code' => 'T-ASSIGNMENT-HISTORY',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+            ]);
+            [, $attendance, $bus] = $this->assignmentResources(
+                '2026-10-07',
+                'MISSED-PROTECTED'
+            );
+            TripAssignment::create([
+                'trip_schedule_id' => $assigned->id,
+                'driver_attendance_id' => $attendance->id,
+                'driver_id' => 'D-MISSED-PROTECTED',
+                'driver_name' => $attendance->driver_name,
+                'bus_id' => $bus->id,
+            ]);
+            $incidentTrip = $this->trip($route, [
+                'trip_code' => 'T-INCIDENT-HISTORY',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+            ]);
+            Incident::create([
+                'incident_no' => 'INC-MISSED-PROTECTED',
+                'trip_schedule_id' => $incidentTrip->id,
+                'incident_type' => 'Traffic Delay',
+                'location' => 'Test Location',
+                'description' => 'Operational history must remain protected.',
+                'incident_reported_at' => now(),
+                'status' => 'Reported',
+            ]);
+
+            $this->artisan('operation:mark-missed-trips')->assertSuccessful();
+
+            $this->assertSame('Missed', $overdue->fresh()->status);
+            $this->assertSame('Scheduled', $future->fresh()->status);
+            $this->assertSame('Cancelled', $cancelled->fresh()->status);
+            $this->assertSame('Completed', $completed->fresh()->status);
+            $this->assertSame('Dispatched', $dispatched->fresh()->status);
+            $this->assertSame('Scheduled', $assigned->fresh()->status);
+            $this->assertSame('Scheduled', $incidentTrip->fresh()->status);
+            Event::assertDispatched(SystemDataUpdated::class, function ($event): bool {
+                return $event->module === 'Operation'
+                    && $event->entity === 'TripSchedule'
+                    && $event->action === 'updated';
+            });
+
+            $this->artisan('operation:mark-missed-trips')->assertSuccessful();
+            $this->assertSame('Missed', $overdue->fresh()->status);
+            Event::assertDispatchedTimes(SystemDataUpdated::class, 1);
         } finally {
             Carbon::setTestNow();
         }

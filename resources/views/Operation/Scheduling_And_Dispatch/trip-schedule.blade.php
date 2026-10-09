@@ -126,7 +126,7 @@
                             aria-label="Status"
                         >
                             <option value="all">All Statuses</option>
-                            @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled'] as $status)
+                            @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled', 'Missed'] as $status)
                                 <option
                                     value="{{ $status }}"
                                     @selected(request('status') === $status)
