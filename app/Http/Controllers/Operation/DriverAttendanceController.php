@@ -174,7 +174,7 @@ class DriverAttendanceController extends Controller
         if ($driverAttendance->tripAssignments()->exists()
             && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
                 || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
-            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+            throw \Illuminate\Validation\ValidationException::withMessages([
                 'attendance_date' => 'Assigned driver attendance cannot be moved to another date or marked unavailable.',
             ]);
         }
