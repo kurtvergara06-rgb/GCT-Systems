@@ -91,61 +91,51 @@
                         />
                     </div>
 
-                    <div class="trip-filter date-filter">
-                        <label for="filterFrom">From</label>
-                        <input type="date" id="filterFrom" name="date_from" value="{{ request('date_from') }}" />
-                    </div>
-                    <div class="trip-filter date-filter">
-                        <label for="filterTo">To</label>
-                        <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
-                    </div>
-                    <div class="trip-filter">
-                        <label for="filterStatus">Status</label>
-                        <select id="filterStatus" name="status" onchange="this.form.submit()">
-                            <option value="all">All Statuses</option>
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" @selected(request('status') === $status)>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <details class="trip-more-filters" @if(request()->filled('route') && request('route') !== 'all' || request()->filled('shift') && request('shift') !== 'all') open @endif>
+                    <details class="trip-more-filters">
                         <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i> More Filters</summary>
                         <div class="trip-extra-filters">
-                    <div class="trip-filter">
-                        <label for="filterRoute">Route</label>
-                        <select id="filterRoute" name="route" onchange="this.form.submit()">
-                            <option value="all">All Routes</option>
-                            @foreach($routes as $route)
-                                <option value="{{ $route->id }}" @selected(request('route') == $route->id)>
-                                    {{ $route->route_code }} - {{ $route->route_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="trip-filter">
-                        <label for="filterShift">Shift</label>
-                        <select id="filterShift" name="shift" onchange="this.form.submit()">
-                            <option value="all">All Shifts</option>
-                            @foreach($shifts as $shift)
-                                <option value="{{ $shift }}" @selected(request('shift') === $shift)>
-                                    {{ $shift }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+                            <div class="trip-filter date-filter">
+                                <label for="filterFrom">Date From</label>
+                                <input type="date" id="filterFrom" name="date_from" value="{{ request('date_from') }}" />
+                            </div>
+                            <div class="trip-filter date-filter">
+                                <label for="filterTo">Date To</label>
+                                <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterStatus">Status</label>
+                                <select id="filterStatus" name="status">
+                                    <option value="all">All Statuses</option>
+                                    @foreach($statuses as $status)
+                                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterRoute">Route</label>
+                                <select id="filterRoute" name="route">
+                                    <option value="all">All Routes</option>
+                                    @foreach($routes as $route)
+                                        <option value="{{ $route->id }}" @selected(request('route') == $route->id)>{{ $route->route_code }} - {{ $route->route_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterShift">Shift</label>
+                                <select id="filterShift" name="shift">
+                                    <option value="all">All Shifts</option>
+                                    @foreach($shifts as $shift)
+                                        <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter-actions">
+                                <a href="{{ route('trip-records') }}" class="trip-clear-btn">Reset</a>
+                                <button class="trip-export-btn" type="submit">Apply Filters</button>
+                            </div>
                         </div>
                     </details>
-                    <button class="trip-export-btn" type="submit">Apply Filters</button>
-                    @if(request()->anyFilled(['search', 'date_from', 'date_to', 'route', 'shift', 'status']))
-                        <a href="{{ route('trip-records') }}" class="trip-clear-btn" title="Reset all filters">
-                            <i class="fa-solid fa-rotate-left"></i> Reset
-                        </a>
-                    @endif
+                    <button class="trip-export-btn trip-toolbar-search-submit" type="submit">Search</button>
                 </form>
 
                 <!-- Trip Table Container with Contained Scroll -->
