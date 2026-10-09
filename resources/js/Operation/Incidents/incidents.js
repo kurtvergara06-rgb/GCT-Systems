@@ -158,116 +158,146 @@ function initIncidentBusLookup() {
         const results = lookup.querySelector('[data-incident-bus-results]');
         const context = lookup.querySelector('[data-incident-trip-context]');
         const tripSelect = form?.querySelector('[data-trip-select]');
-        if (!form || !input || !results || !context || !tripSelect) return;
-        const options = Array.from(tripSelect.options).filter(opt => opt.value && opt.dataset.busId);
-        const driverSelect = form.querySelector('[data-incident-driver-select]');
-        const busSelect = form.querySelector('[data-incident-bus-select]');
-        const validBusSelection = () => Boolean(tripSelect.value && tripSelect.selectedOptions[0]?.dataset.busId);
-        input.setCustomValidity('Enter a Bus ID and select its assigned trip.');
+        const busSelect = form?.querySelector('[data-incident-bus-select]');
+        const driverSelect = form?.querySelector('[data-incident-driver-select]');
+        if (!form || !input || !results || !context || !tripSelect || !busSelect) return;
 
-        function showContext(option) {
+        const buses = Array.from(lookup.querySelectorAll('[data-bus-id]'));
+        const trips = Array.from(tripSelect.options).filter(option => option.value && option.dataset.busId);
+        let confirmedBus = '';
+
+        const clearTrip = () => {
+            tripSelect.value = '';
+            tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            if (driverSelect) { driverSelect.disabled = false; driverSelect.value = ''; }
+            context.hidden = true;
             context.replaceChildren();
-            if (!option || !option.dataset.busId) {
-                context.hidden = true;
-                return;
-            }
-            const details = [
-                ['Bus', [option.dataset.busNo, option.dataset.plateNo].filter(Boolean).join(' / ')],
+        };
+        const matchingTrips = (busId) => trips.filter(option => option.dataset.busId === String(busId));
+        const showDetails = (option) => {
+            context.replaceChildren();
+            if (!option?.value) { context.hidden = true; return; }
+            const values = [
                 ['Driver', [option.dataset.driverName, option.dataset.driverId].filter(Boolean).join(' · ')],
                 ['Route', option.dataset.route],
                 ['From / To', [option.dataset.origin, option.dataset.destination].filter(Boolean).join(' → ')],
-                ['Trip Code', option.textContent.trim().split('•')[0].trim()],
+                ['Trip', option.textContent.trim().split('•')[0].trim()],
                 ['Scheduled', [option.dataset.departure, option.dataset.arrival].filter(Boolean).join(' → ')],
-                ['Status', option.dataset.tripStatus],
+                ['Status', option.dataset.tripStatus]
             ];
-            details.forEach(([label, value]) => {
+            values.forEach(([label, value]) => {
                 if (!value) return;
-                const item = document.createElement('div');
-                const title = document.createElement('small');
+                const box = document.createElement('div');
+                const heading = document.createElement('small');
                 const text = document.createElement('strong');
-                title.textContent = label;
+                heading.textContent = label;
                 text.textContent = value;
-                item.append(title, text);
-                context.appendChild(item);
+                box.append(heading, text);
+                context.appendChild(box);
             });
             context.hidden = !context.childElementCount;
-        }
-
-        function selectTrip(option) {
+        };
+        const chooseTrip = (option) => {
             tripSelect.value = option.value;
             tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
-            input.value = option.dataset.busNo || option.dataset.plateNo || '';
-            results.hidden = true;
+            if (driverSelect) driverSelect.disabled = false;
+            showDetails(option);
+        };
+        const showTripOptions = (bus) => {
             results.replaceChildren();
-            showContext(option);
-            input.setCustomValidity('');
-            if (driverSelect) driverSelect.disabled = true;
-            if (busSelect) busSelect.disabled = true;
-        }
-
-        function search() {
-            const term = input.value.trim().toLowerCase();
-            const selected = tripSelect.selectedOptions[0];
-            if (selected?.value && term !== (selected.dataset.busNo || '').toLowerCase()
-                && term !== (selected.dataset.plateNo || '').toLowerCase()) {
-                tripSelect.value = '';
-                tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                // Preserve the user's search string while clearing stale assignment.
-                input.value = term;
-                if (driverSelect) driverSelect.disabled = false;
-                if (busSelect) busSelect.disabled = false;
-            }
-            results.replaceChildren();
-            context.hidden = true;
-            input.setCustomValidity('Enter a Bus ID with a matching assigned trip.');
-            if (!term) {
+            const options = matchingTrips(bus.dataset.busId);
+            if (options.length === 1) {
+                chooseTrip(options[0]);
                 results.hidden = true;
-                return;
-            }
-            const matches = options.filter(opt => [opt.dataset.busNo, opt.dataset.plateNo]
-                .some(value => (value || '').toLowerCase().includes(term)));
-            const exact = matches.filter(opt => [opt.dataset.busNo, opt.dataset.plateNo]
-                .some(value => (value || '').toLowerCase() === term));
-            if (exact.length === 1) {
-                selectTrip(exact[0]);
-                return;
-            }
-            if (!matches.length) {
-                const hint = document.createElement('p');
-                hint.textContent = 'No assigned trip found for this Bus ID today. Check the bus number or contact dispatch.';
-                results.appendChild(hint);
-            } else {
-                matches.forEach(option => {
+            } else if (options.length > 1) {
+                const notice = document.createElement('p');
+                notice.textContent = 'Multiple trips assigned today. Select the correct trip:';
+                results.appendChild(notice);
+                options.forEach(option => {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.className = 'inc-bus-lookup-option';
-                    const code = option.textContent.trim().split('•')[0].trim();
-                    button.textContent = [option.dataset.busNo, option.dataset.plateNo, code, option.dataset.route,
-                        option.dataset.driverName, option.dataset.departure].filter(Boolean).join(' · ');
-                    button.addEventListener('click', () => selectTrip(option));
+                    button.textContent = [option.textContent.trim().split('•')[0].trim(),
+                        option.dataset.route, option.dataset.driverName, option.dataset.departure].filter(Boolean).join(' · ');
+                    button.addEventListener('click', () => { chooseTrip(option); results.hidden = true; });
+                    results.appendChild(button);
+                });
+                results.hidden = false;
+            } else {
+                const notice = document.createElement('p');
+                notice.textContent = 'Bus found in Master List. No scheduled trip assigned today; enter incident details manually.';
+                results.appendChild(notice);
+                results.hidden = false;
+            }
+        };
+        const selectBus = (bus) => {
+            confirmedBus = bus.dataset.busId;
+            busSelect.value = confirmedBus;
+            input.value = bus.dataset.busNo;
+            input.setCustomValidity('');
+            clearTrip();
+            showTripOptions(bus);
+        };
+        const search = () => {
+            const typed = input.value.trim().toLowerCase();
+            if (busSelect.value !== confirmedBus || !buses.some(bus => bus.dataset.busId === confirmedBus &&
+                [bus.dataset.busNo, bus.dataset.plateNo].some(s => (s || '').toLowerCase() === typed))) {
+                confirmedBus = '';
+                busSelect.value = '';
+                clearTrip();
+                input.setCustomValidity('Select a Bus ID from the suggestions.');
+            }
+            results.replaceChildren();
+            if (!typed) { results.hidden = true; return; }
+            const matches = buses.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
+                .some(value => (value || '').toLowerCase().includes(typed))).slice(0, 30);
+            const exact = matches.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
+                .some(value => (value || '').toLowerCase() === typed));
+            if (exact.length === 1) { selectBus(exact[0]); return; }
+            if (!matches.length) {
+                const notice = document.createElement('p');
+                notice.textContent = 'No Bus ID or plate number matches the Bus Master List.';
+                results.appendChild(notice);
+            } else {
+                matches.forEach(bus => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'inc-bus-lookup-option';
+                    button.textContent = [bus.dataset.busNo, bus.dataset.plateNo, bus.dataset.busStatus].filter(Boolean).join(' · ');
+                    button.addEventListener('click', () => selectBus(bus));
                     results.appendChild(button);
                 });
             }
             results.hidden = false;
-        }
-
+        };
         input.addEventListener('input', search);
+        input.addEventListener('focus', () => {
+            if (input.value && !confirmedBus) search();
+        });
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];
-            showContext(selected);
-            if (selected?.dataset.busNo) {
-                input.value = selected.dataset.busNo;
-                input.setCustomValidity('');
-            } else {
-                input.setCustomValidity('Enter a Bus ID and select its assigned trip.');
+            if (selected?.dataset.busId) {
+                const bus = buses.find(item => item.dataset.busId === selected.dataset.busId);
+                if (bus) {
+                    confirmedBus = bus.dataset.busId;
+                    input.value = bus.dataset.busNo;
+                    busSelect.value = confirmedBus;
+                    input.setCustomValidity('');
+                }
             }
+            showDetails(selected);
         });
-        const initialOption = tripSelect.selectedOptions[0];
-        showContext(initialOption);
-        if (validBusSelection()) {
-            input.value = initialOption.dataset.busNo || initialOption.dataset.plateNo || '';
-            input.setCustomValidity('');
+        const initialTrip = tripSelect.selectedOptions[0];
+        if (initialTrip?.dataset.busId) {
+            const bus = buses.find(item => item.dataset.busId === initialTrip.dataset.busId);
+            if (bus) {
+                confirmedBus = bus.dataset.busId;
+                input.value = bus.dataset.busNo;
+                busSelect.value = confirmedBus;
+            }
         }
+        input.setCustomValidity(confirmedBus ? '' : 'Select a Bus ID from the suggestions.');
+        showDetails(initialTrip);
     });
 }
 
