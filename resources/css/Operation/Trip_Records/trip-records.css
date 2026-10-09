@@ -1441,3 +1441,15 @@
 .trip-records-page .trip-extra-filters { position: absolute; right: 0; top: calc(100% + 7px); display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 10px; min-width: min(390px, 85vw); padding: 15px; border: 1px solid #d9e4f2; border-radius: 12px; background: #fff; box-shadow: 0 14px 35px rgba(12, 37, 72, .15); z-index: 10; }
 .trip-records-page .trip-extra-filters .trip-filter { min-width: 0; width: 100%; }
 @media(max-width:650px) { .trip-records-page .trip-more-filters { position: static; } .trip-records-page .trip-extra-filters { position: static; min-width: 0; grid-template-columns: 1fr; margin-top: 8px; box-shadow: none; } }
+
+/* Compact two-action toolbar and accessible filter panel. */
+.trip-records-page .trip-toolbar { position: relative; display: flex; align-items: center; gap: 10px; }
+.trip-records-page .trip-toolbar .trip-search { flex: 1 1 420px; min-width: 180px; }
+.trip-records-page .trip-more-filters { flex: 0 0 auto; order: 2; }
+.trip-records-page .trip-toolbar-search-submit { order: 3; flex: 0 0 auto; background: #ffb900; border-color: #ffb900; }
+.trip-records-page .trip-extra-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: min(440px, 88vw); max-height: min(75vh, 520px); overflow-y: auto; }
+.trip-records-page .trip-extra-filters .trip-filter { flex: initial; min-width: 0; }
+.trip-records-page .trip-extra-filters .trip-filter select, .trip-records-page .trip-extra-filters .trip-filter input { width: 100%; box-sizing: border-box; }
+.trip-records-page .trip-filter-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e6edf6; padding-top: 13px; }
+.trip-records-page .trip-filter-actions .trip-clear-btn { display: inline-flex; align-items: center; padding: 0 15px; text-decoration: none; }
+@media(max-width:650px) { .trip-records-page .trip-extra-filters { grid-template-columns: 1fr; } .trip-records-page .trip-toolbar-search-submit { order: 3; } }
