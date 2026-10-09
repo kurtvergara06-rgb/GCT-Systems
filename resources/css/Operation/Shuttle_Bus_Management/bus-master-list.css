@@ -1625,3 +1625,22 @@
 #editBusModal .form-group label { font-size:12px; font-weight:800; color:#102649; }
 #editBusModal .form-group input, #editBusModal .form-group select { box-sizing:border-box; padding:0 13px; }
 @media(max-width:600px) { #editBusModal .bus-edit-design > .modal-header { padding:18px; } #editBusModal .job-form { grid-template-columns:1fr; padding:18px; } }
+
+/* Immutable master identifier: visibly locked without omitting its form value. */
+#editBusModal #edit_bus_no.bus-locked-input,
+#editBusModal #edit_bus_no[readonly] {
+  background: #e9edf3 !important;
+  color: #526176 !important;
+  border-color: #cbd5e1 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+#editBusModal .bus-no-lock-hint:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -7px 0 0;
+  color: #64748b;
+  font-size: 11px;
+}
+#editBusModal .bus-no-lock-hint[hidden] { display: none !important; }
