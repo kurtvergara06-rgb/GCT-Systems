@@ -2014,3 +2014,36 @@
     color: #8a98ac;
     opacity: 1;
 }
+
+/* Bus-first incident lookup: matches only real scheduled assignments. */
+.inc-form-group.inc-bus-lookup > input[data-incident-bus-search] {
+    width:100%; box-sizing:border-box; height:42px; padding:0 12px;
+    border:1px solid #dce5f2; border-radius:9px; background:#fff;
+    color:#172b4d; font-size:12px; outline:0;
+}
+.inc-form-group.inc-bus-lookup > input:focus {
+    border-color:#3767bb; box-shadow:0 0 0 3px rgba(55,103,187,.12);
+}
+.inc-bus-lookup-results {
+    max-height:180px; overflow:auto; border:1px solid #dce5f2;
+    border-radius:9px; background:#fff; padding:5px;
+}
+.inc-bus-lookup-results[hidden], .inc-bus-trip-context[hidden] { display:none !important; }
+.inc-bus-lookup-results p { padding:8px 10px; margin:0; color:#64748b; font-size:11px; }
+.inc-bus-lookup-option {
+    display:block; width:100%; text-align:left; padding:10px 11px;
+    background:#fff; border:0; border-radius:7px; color:#1c3559;
+    font-size:12px; cursor:pointer;
+}
+.inc-bus-lookup-option:hover, .inc-bus-lookup-option:focus-visible {
+    background:#eff6ff; outline:1px solid #bfdbfe;
+}
+.inc-bus-trip-context {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px; padding:12px; border:1px solid #cdddf3;
+    border-radius:9px; background:#f5f9ff;
+}
+.inc-bus-trip-context > div { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.inc-bus-trip-context small { font-size:10px; color:#637894; }
+.inc-bus-trip-context strong { font-size:11px; color:#132e54; overflow-wrap:anywhere; }
+@media(max-width:600px) { .inc-bus-trip-context { grid-template-columns:1fr; } }
