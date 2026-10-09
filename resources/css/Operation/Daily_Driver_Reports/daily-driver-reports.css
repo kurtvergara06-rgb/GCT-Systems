@@ -1871,3 +1871,20 @@ button.ddr-new-btn {
 #ddrEncodeModal .ddr-form-group .ddr-combo-input::placeholder {
     color: #8a98ac;
 }
+
+/* Consistent remove action icon spacing and vertical alignment. */
+#ddrEncodeModal .ddr-remove-trip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    line-height: 1;
+    white-space: nowrap;
+}
+#ddrEncodeModal .ddr-remove-trip > i {
+    display: inline-block;
+    width: 13px;
+    flex: 0 0 13px;
+    text-align: center;
+    font-size: 12px;
+}
