@@ -1952,3 +1952,65 @@
 #incidentReportModal .inc-modal-form-grid .inc-form-group > input[aria-invalid="true"] {
     border-color: #dc2626;
 }
+
+/* Keep the body-level Report Incident modal consistent with the listing UI. */
+#incidentReportModal .ui-form-modal {
+    border: 1px solid #dce5f2;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(6, 31, 61, .20);
+}
+#incidentReportModal .inc-modal-form-grid {
+    column-gap: 14px;
+    row-gap: 15px;
+}
+#incidentReportModal .inc-modal-form-grid .inc-form-group,
+#incidentReportModal .inc-modal-form-grid .ui-form-group {
+    min-width: 0;
+    gap: 7px;
+}
+#incidentReportModal .inc-modal-form-grid .inc-form-group > label,
+#incidentReportModal .inc-modal-form-grid .ui-form-group > label {
+    color: #263d5c;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+#incidentReportModal .inc-modal-form-grid .inc-form-group > select,
+#incidentReportModal .inc-modal-form-grid .inc-form-group > input:not([type="hidden"]),
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input {
+    height: 42px;
+    border: 1px solid #dce5f2;
+    border-radius: 9px;
+    background-color: #fff;
+    color: #172b4d;
+    font-size: 12px;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap.has-icon input {
+    padding-left: 43px;
+}
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input:focus {
+    border-color: #3767bb;
+    box-shadow: 0 0 0 3px rgba(55,103,187,.12);
+}
+#incidentReportModal .inc-modal-form-grid .inc-form-group textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 92px;
+    padding: 11px 12px;
+    border: 1px solid #dce5f2;
+    border-radius: 9px;
+    color: #172b4d;
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+}
+#incidentReportModal .inc-modal-form-grid .inc-form-group textarea:focus {
+    border-color: #3767bb;
+    box-shadow: 0 0 0 3px rgba(55,103,187,.12);
+}
+#incidentReportModal .inc-modal-form-grid input::placeholder,
+#incidentReportModal .inc-modal-form-grid textarea::placeholder {
+    color: #8a98ac;
+    opacity: 1;
+}
