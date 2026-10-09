@@ -38,8 +38,8 @@
                     </div>
                     <div>
                         <p>On-Time Rate</p>
-                        <h2>{{ $onTimeRate }}%</h2>
-                        <small>Punctual arrivals</small>
+                        <h2>{{ $onTimeRate === null ? '—' : $onTimeRate.'%' }}</h2>
+                        <small>Completed trips with verified arrival times</small>
                     </div>
                 </article>
 
@@ -48,7 +48,7 @@
                         <i class="fa-solid fa-road"></i>
                     </div>
                     <div>
-                        <p>Total Distance Logged</p>
+                        <p>Total Distance Traveled</p>
                         <h2>{{ number_format($totalDistanceKm, 1) }} <span style="font-size: 15px; font-weight: 600;">km</span></h2>
                         <small>Recorded operational mileage</small>
                     </div>
@@ -59,9 +59,9 @@
                         <i class="fa-solid fa-bus"></i>
                     </div>
                     <div>
-                        <p>Active Fleet Logged</p>
-                        <h2>{{ $activeFleetCount }}</h2>
-                        <small>Buses deployed historically</small>
+                        <p>Delayed Trips</p>
+                        <h2>{{ number_format($delayedTripsCount) }}</h2>
+                        <small>Trip delays recorded</small>
                     </div>
                 </article>
             </section>
@@ -71,7 +71,7 @@
                 <div class="trip-card-header">
                     <div>
                         <h2>Operational Trip History</h2>
-                        <p>Complete historical log of shuttle bus trips, scheduled vs actual timings, vehicle assignments, and route performance.</p>
+                        <p>Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.</p>
                     </div>
                 </div>
 
@@ -87,6 +87,14 @@
                         />
                     </div>
 
+                    <div class="trip-filter date-filter">
+                        <label for="filterFrom">From</label>
+                        <input type="date" id="filterFrom" name="date_from" value="{{ request('date_from') }}" />
+                    </div>
+                    <div class="trip-filter date-filter">
+                        <label for="filterTo">To</label>
+                        <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
+                    </div>
                     <div class="trip-filter date-filter">
                         <label for="filterDate">Date</label>
                         <input
@@ -134,7 +142,9 @@
                         </select>
                     </div>
 
-                    @if(request()->anyFilled(['search', 'trip_date', 'route', 'shift', 'status']))
+                    <button class="trip-export-btn" type="submit">Apply Filters</button>
+                    <button class="trip-export-btn" type="submit" formaction="{{ route('trip-records.export') }}" formmethod="GET"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV</button>
+                    @if(request()->anyFilled(['search', 'trip_date', 'date_from', 'date_to', 'route', 'shift', 'status']))
                         <a href="{{ route('trip-records') }}" class="trip-clear-btn" title="Reset all filters">
                             <i class="fa-solid fa-rotate-left"></i> Reset
                         </a>
@@ -149,7 +159,7 @@
                                 <th>Trip ID</th>
                                 <th>Date & Shift</th>
                                 <th>Route & Terminals</th>
-                                <th>Bus No.</th>
+                                <th>Plate Number</th>
                                 <th>Driver</th>
                                 <th>Scheduled</th>
                                 <th>Actual Times</th>
@@ -225,7 +235,7 @@
 
                                     <td>
                                         @if($bus)
-                                            <x-ui.id-badge :value="$bus->bus_no" />
+                                            <x-ui.id-badge :value="$bus->plate_no ?: 'No plate'" />
                                         @else
                                             <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
                                         @endif
@@ -322,7 +332,7 @@
                         <x-ui.spinner size="sm" />
                         <span data-table-loading-label>Loading more records...</span>
                     </span>
-                    <span class="trip-scroll-hint">Scroll within the table to browse records</span>
+                    <span class="trip-scroll-hint">Scroll to load more historical records</span>
                 </div>
             </section>
         </main>
@@ -385,7 +395,7 @@
                     <h3 class="trip-detail-section-title">Assigned Bus & Driver</h3>
                     <div class="trip-detail-grid">
                         <div class="trip-detail-item">
-                            <span class="trip-detail-label">Assigned Bus No.</span>
+                            <span class="trip-detail-label">Assigned Plate Number</span>
                             <span id="modalBusNo" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
                             <small id="modalBusDetails" style="color: #64748b; font-size: 11px;">—</small>
                         </div>
