@@ -214,6 +214,24 @@ class IncidentController extends Controller
 
         $tripAssignment = null;
 
+        // Bus-first incident modal must resolve to a real scheduled assignment.
+        // Other incident entry paths retain their existing compatibility behavior.
+        if ($request->boolean('bus_lookup_required')) {
+            $matched = TripAssignment::query()
+                ->with(['tripSchedule', 'bus'])
+                ->where('id', $validated['trip_assignment_id'] ?? 0)
+                ->first();
+            $schedule = $matched?->tripSchedule;
+            if (! $matched || ! $schedule
+                || (int) $matched->trip_schedule_id !== (int) ($validated['trip_schedule_id'] ?? 0)
+                || ! in_array($schedule->status, ['Scheduled', 'Dispatched', 'Ready'], true)
+                || $schedule->trip_date?->toDateString() !== now(config('app.business_timezone', 'Asia/Manila'))->toDateString()) {
+                throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                    'trip_schedule_id' => 'Select an assigned trip for this Bus ID today.',
+                ]);
+            }
+        }
+
         if (! empty($validated['trip_assignment_id'])) {
             $tripAssignment = TripAssignment::query()
                 ->with(['tripSchedule', 'bus'])
