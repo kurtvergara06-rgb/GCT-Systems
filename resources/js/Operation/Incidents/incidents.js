@@ -200,6 +200,14 @@ function initIncidentBusLookup() {
 
         function search() {
             const term = input.value.trim().toLowerCase();
+            const selected = tripSelect.selectedOptions[0];
+            if (selected?.value && term !== (selected.dataset.busNo || '').toLowerCase()
+                && term !== (selected.dataset.plateNo || '').toLowerCase()) {
+                tripSelect.value = '';
+                tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                // Preserve the user's search string while clearing stale assignment.
+                input.value = term;
+            }
             results.replaceChildren();
             context.hidden = true;
             if (!term) {
