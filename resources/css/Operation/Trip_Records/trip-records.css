@@ -1432,3 +1432,12 @@
 .trip-records-page .trip-export-header { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffb900; border-color: #ffb900; color: #102649; font-weight: 800; }
 .trip-records-page .trip-export-header:hover { background: #ffc83d; border-color: #ffc83d; }
 @media (max-width: 600px) { .trip-records-page .trip-export-header { width: 100%; } }
+
+/* Compact Trip History filters; Route and Shift remain accessible on demand. */
+.trip-records-page .trip-more-filters { position: relative; flex: 0 0 auto; align-self: end; }
+.trip-records-page .trip-more-filters > summary { display: inline-flex; align-items: center; gap: 8px; list-style: none; min-height: 39px; padding: 0 13px; border: 1px solid #d4e1f3; border-radius: 9px; background: #fff; color: #102649; font-size: 12px; font-weight: 700; cursor: pointer; }
+.trip-records-page .trip-more-filters > summary::-webkit-details-marker { display: none; }
+.trip-records-page .trip-more-filters > summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.trip-records-page .trip-extra-filters { position: absolute; right: 0; top: calc(100% + 7px); display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 10px; min-width: min(390px, 85vw); padding: 15px; border: 1px solid #d9e4f2; border-radius: 12px; background: #fff; box-shadow: 0 14px 35px rgba(12, 37, 72, .15); z-index: 10; }
+.trip-records-page .trip-extra-filters .trip-filter { min-width: 0; width: 100%; }
+@media(max-width:650px) { .trip-records-page .trip-more-filters { position: static; } .trip-records-page .trip-extra-filters { position: static; min-width: 0; grid-template-columns: 1fr; margin-top: 8px; box-shadow: none; } }
