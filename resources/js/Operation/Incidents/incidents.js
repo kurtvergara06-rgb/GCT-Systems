@@ -160,6 +160,10 @@ function initIncidentBusLookup() {
         const tripSelect = form?.querySelector('[data-trip-select]');
         if (!form || !input || !results || !context || !tripSelect) return;
         const options = Array.from(tripSelect.options).filter(opt => opt.value && opt.dataset.busId);
+        const driverSelect = form.querySelector('[data-incident-driver-select]');
+        const busSelect = form.querySelector('[data-incident-bus-select]');
+        const validBusSelection = () => Boolean(tripSelect.value && tripSelect.selectedOptions[0]?.dataset.busId);
+        input.setCustomValidity('Enter a Bus ID and select its assigned trip.');
 
         function showContext(option) {
             context.replaceChildren();
@@ -196,6 +200,9 @@ function initIncidentBusLookup() {
             results.hidden = true;
             results.replaceChildren();
             showContext(option);
+            input.setCustomValidity('');
+            if (driverSelect) driverSelect.disabled = true;
+            if (busSelect) busSelect.disabled = true;
         }
 
         function search() {
@@ -207,18 +214,27 @@ function initIncidentBusLookup() {
                 tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 // Preserve the user's search string while clearing stale assignment.
                 input.value = term;
+                if (driverSelect) driverSelect.disabled = false;
+                if (busSelect) busSelect.disabled = false;
             }
             results.replaceChildren();
             context.hidden = true;
+            input.setCustomValidity('Enter a Bus ID with a matching assigned trip.');
             if (!term) {
                 results.hidden = true;
                 return;
             }
             const matches = options.filter(opt => [opt.dataset.busNo, opt.dataset.plateNo]
                 .some(value => (value || '').toLowerCase().includes(term)));
+            const exact = matches.filter(opt => [opt.dataset.busNo, opt.dataset.plateNo]
+                .some(value => (value || '').toLowerCase() === term));
+            if (exact.length === 1) {
+                selectTrip(exact[0]);
+                return;
+            }
             if (!matches.length) {
                 const hint = document.createElement('p');
-                hint.textContent = 'No assigned trip found for this Bus ID today. You can still report an incident manually.';
+                hint.textContent = 'No assigned trip found for this Bus ID today. Check the bus number or contact dispatch.';
                 results.appendChild(hint);
             } else {
                 matches.forEach(option => {
@@ -239,9 +255,19 @@ function initIncidentBusLookup() {
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];
             showContext(selected);
-            if (selected?.dataset.busNo) input.value = selected.dataset.busNo;
+            if (selected?.dataset.busNo) {
+                input.value = selected.dataset.busNo;
+                input.setCustomValidity('');
+            } else {
+                input.setCustomValidity('Enter a Bus ID and select its assigned trip.');
+            }
         });
-        showContext(tripSelect.selectedOptions[0]);
+        const initialOption = tripSelect.selectedOptions[0];
+        showContext(initialOption);
+        if (validBusSelection()) {
+            input.value = initialOption.dataset.busNo || initialOption.dataset.plateNo || '';
+            input.setCustomValidity('');
+        }
     });
 }
 
