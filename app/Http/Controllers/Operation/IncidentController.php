@@ -416,7 +416,8 @@ class IncidentController extends Controller
     {
         DB::transaction(function () use ($incident) {
             $locked = Incident::query()->lockForUpdate()->findOrFail($incident->id);
-            abort_unless($locked->status === 'Reported'
+            abort_unless($locked->incident_type !== 'Bus Breakdown'
+                && $locked->status === 'Reported'
                 && ! $locked->maintenanceReferral()->exists()
                 && ! $locked->replacement()->exists()
                 && $locked->responses()->count() <= 1, 403,
