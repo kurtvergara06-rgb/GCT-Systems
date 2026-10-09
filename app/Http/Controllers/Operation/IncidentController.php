@@ -32,6 +32,15 @@ class IncidentController extends Controller
                 'responses.responder',
             ]);
 
+        // The active roster contains every non-terminal incident, including dispatch.
+        // Historical records remain searchable without changing their workflow status.
+        $tab = $request->query('tab') === 'history' ? 'history' : 'active';
+        if ($tab === 'history') {
+            $query->whereIn('status', ['Resolved', 'Cancelled']);
+        } else {
+            $query->whereNotIn('status', ['Resolved', 'Cancelled']);
+        }
+
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
 
@@ -90,7 +99,8 @@ class IncidentController extends Controller
                     'totalIncidents',
                     'activeIncidents',
                     'breakdownIncidents',
-                    'resolvedToday'
+                    'resolvedToday',
+                    'tab'
                 ),
                 $this->incidentFormData($request)
             )
