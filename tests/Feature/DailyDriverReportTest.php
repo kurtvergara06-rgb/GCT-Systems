@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\DailyDriverReport;
@@ -47,6 +48,21 @@ class DailyDriverReportTest extends TestCase
             ->assertSee('Encode Daily Driver Report');
     }
 
+    public function test_operation_staff_without_edit_permission_can_view_but_not_encode(): void
+    {
+        $staff = User::factory()->create(['department' => 'Operation', 'role' => 'staff']);
+        $permission = RolePermission::where('role_key', 'operation_staff')->firstOrFail();
+        $permissions = $permission->permissions;
+        data_set($permissions, 'operation.edit', false);
+        $permission->update(['permissions' => $permissions]);
+
+        $this->actingAs($staff)->get(route('daily-driver-reports'))->assertOk();
+        $this->actingAs($staff)
+            ->post(route('daily-driver-reports.store'), $this->validPayload())
+            ->assertForbidden();
+        $this->assertDatabaseCount('daily_driver_reports', 0);
+    }
+
     public function test_store_creates_a_report_with_ddr_numbering(): void
     {
         $response = $this->actingAs($this->user)
@@ -67,6 +83,10 @@ class DailyDriverReportTest extends TestCase
             'arrival_time' => '06:30:00',
             'passengers' => 25,
             'encoded_by' => $this->user->id,
+        ]);
+        $this->assertDatabaseHas('daily_driver_report_ticket_claims', [
+            'report_date' => '2026-09-15',
+            'normalized_ticket' => 'tt-10001',
         ]);
     }
 
@@ -296,6 +316,68 @@ class DailyDriverReportTest extends TestCase
             ->assertOk()
             ->assertJsonPath('schedules.0.trip_code', 'T-SCHED-1')
             ->assertJsonPath('schedules.0.departure_time', '06:15');
+    }
+
+    public function test_ambiguous_non_exact_ticket_is_not_silently_matched(): void
+    {
+        [$first, $attendance] = $this->createAssignedSchedule('05:00:00', '06:00:00');
+        $second = TripSchedule::create([
+            'trip_code' => 'T-SCHED-2',
+            'trip_date' => '2026-09-15',
+            'shuttle_route_id' => $first->shuttle_route_id,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '09:00:00',
+            'shift' => 'Morning',
+            'assignment_status' => 'Assigned',
+            'status' => 'Scheduled',
+            'created_by' => $this->user->id,
+        ]);
+        TripAssignment::create([
+            'trip_schedule_id' => $second->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $this->driver->driver_id,
+            'driver_name' => $this->driver->driver_name,
+            'bus_id' => $this->bus->id,
+            'assigned_by' => $this->user->id,
+        ]);
+
+        $report = DailyDriverReport::create(array_merge($this->validPayload(), [
+            'ddr_no' => 'DDR-2026-0001',
+            'driver_name' => $this->driver->driver_name,
+            'trip_ticket' => 'UNKNOWN-TICKET',
+            'departure_time' => '05:05:00',
+            'arrival_time' => '06:00:00',
+            'encoded_by' => $this->user->id,
+        ]));
+
+        $this->assertNull($report->fresh()->trip_schedule_id);
+        $this->assertNull($report->fresh()->trip_assignment_id);
+    }
+
+    public function test_additional_trip_persists_its_exact_schedule_relationship(): void
+    {
+        [$schedule, $attendance] = $this->createAssignedSchedule('05:00:00', '06:00:00');
+        $schedule->update(['trip_code' => 'TT-10002']);
+
+        $payload = $this->validPayload();
+        $payload['additional_trips'] = [[
+            'trip_ticket' => 'TT-10002',
+            'from_location' => 'Lipa',
+            'to_location' => 'Tanauan',
+            'departure_time' => '07:00',
+            'arrival_time' => '07:45',
+            'passengers' => 17,
+            'km' => 12.75,
+        ]];
+
+        $this->actingAs($this->user)
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertSessionHasNoErrors();
+
+        $entry = DailyDriverReport::firstOrFail()->additionalTrips()->firstOrFail();
+        $this->assertSame($schedule->id, $entry->trip_schedule_id);
+        $this->assertSame($schedule->assignment->id, $entry->trip_assignment_id);
+        $this->assertSame(12.75, (float) $entry->km);
     }
 
     private function validPayload(): array

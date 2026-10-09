@@ -8,6 +8,8 @@ use App\Models\Operation\Incident;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MaintenanceReferralController extends Controller
 {
@@ -17,41 +19,47 @@ class MaintenanceReferralController extends Controller
     {
         $this->authorizeOperationHead();
 
-        if ($incident->incident_type !== 'Bus Breakdown') {
-            return back()->with('error', 'Only Bus Breakdown incidents can be referred to Maintenance.');
-        }
-
-        if (! $incident->bus_id) {
-            return back()->with('error', 'The incident must be linked to a bus before it can be referred to Maintenance.');
-        }
-
-        if ($incident->maintenanceReferral()->exists()) {
-            return back()->with('error', 'This incident already has a Maintenance referral.');
-        }
-
         $validated = $request->validate([
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $incident->loadMissing(['bus', 'tripSchedule']);
+        $referral = DB::transaction(function () use ($incident, $validated): MaintenanceReferral {
+            $locked = Incident::query()->with(['bus', 'tripSchedule'])
+                ->lockForUpdate()->findOrFail($incident->id);
 
-        if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
-            $incident->bus->update(['status' => 'Under Maintenance']);
-        }
+            if ($locked->incident_type !== 'Bus Breakdown') {
+                throw ValidationException::withMessages([
+                    'incident' => 'Only Bus Breakdown incidents can be referred to Maintenance.',
+                ]);
+            }
+            if (! $locked->bus_id) {
+                throw ValidationException::withMessages([
+                    'incident' => 'The incident must be linked to a bus before it can be referred to Maintenance.',
+                ]);
+            }
+            if ($locked->maintenanceReferral()->lockForUpdate()->exists()) {
+                throw ValidationException::withMessages([
+                    'incident' => 'This incident already has a Maintenance referral.',
+                ]);
+            }
 
-        $notes = trim((string) ($validated['notes'] ?? ''));
+            if ($locked->bus && $locked->bus->status !== 'Under Maintenance') {
+                $locked->bus->update(['status' => 'Under Maintenance']);
+            }
 
-        if ($notes === '' && $incident->is_unplanned_breakdown) {
-            $tripCode = $incident->tripSchedule?->trip_code ?: 'the active trip';
-            $notes = "Unplanned breakdown during {$tripCode}. Original bus was placed Under Maintenance for inspection and repair.";
-        }
+            $notes = trim((string) ($validated['notes'] ?? ''));
+            if ($notes === '' && $locked->is_unplanned_breakdown) {
+                $tripCode = $locked->tripSchedule?->trip_code ?: 'the active trip';
+                $notes = "Unplanned breakdown during {$tripCode}. Original bus was placed Under Maintenance for inspection and repair.";
+            }
 
-        $referral = MaintenanceReferral::create([
-            'incident_id' => $incident->id,
-            'status' => 'Pending',
-            'notes' => $notes !== '' ? $notes : null,
-            'referred_by' => auth()->id(),
-        ]);
+            return MaintenanceReferral::create([
+                'incident_id' => $locked->id,
+                'status' => 'Pending',
+                'notes' => $notes !== '' ? $notes : null,
+                'referred_by' => auth()->id(),
+            ]);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',

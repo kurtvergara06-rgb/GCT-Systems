@@ -394,7 +394,7 @@ class BusController extends Controller
                 ->firstOrFail();
             if ($lockedBus->status === 'Under Maintenance') {
                 throw ValidationException::withMessages([
-                    'bus' => 'This bus is Under Maintenance. Its master-list information is locked until Maintenance releases it.',
+                    $validated['status'] === 'Active' ? 'status' : 'bus_no' => 'This bus is Under Maintenance. Its master-list information is locked until Maintenance releases it.',
                 ]);
             }
 

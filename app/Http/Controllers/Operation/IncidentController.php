@@ -4,23 +4,29 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
-use App\Models\Operation\Incident;
 use App\Models\Operation\Driver;
+use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\IncidentResponse;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
+use App\Services\Operation\OperationNumberSequenceService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class IncidentController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    public function __construct(
+        private readonly OperationNumberSequenceService $numberSequenceService
+    ) {}
 
     public function index(Request $request): View
     {
@@ -228,7 +234,7 @@ class IncidentController extends Controller
                 strcasecmp($typed, $bus->bus_no) !== 0
                 && strcasecmp($typed, (string) $bus->plate_no) !== 0
             )) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'bus_id' => 'Select a valid Bus ID from the suggestions.',
                 ]);
             }
@@ -240,7 +246,7 @@ class IncidentController extends Controller
                     ->where('trip_schedule_id', $validated['trip_schedule_id'] ?? 0)
                     ->first();
                 if (! $assignment) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'trip_schedule_id' => 'The selected trip does not match this Bus ID.',
                     ]);
                 }
@@ -253,12 +259,31 @@ class IncidentController extends Controller
                 ->where('id', $validated['trip_assignment_id'])
                 ->first();
 
-            if ($tripAssignment) {
-                $validated['trip_schedule_id'] = $tripAssignment->trip_schedule_id;
-                $validated['bus_id'] = $tripAssignment->bus_id;
-                $validated['driver_id'] = $tripAssignment->driver_id;
-                $validated['driver_name'] = $tripAssignment->driver_name;
+            if (! $tripAssignment) {
+                throw ValidationException::withMessages([
+                    'trip_assignment_id' => 'The selected trip assignment is no longer available.',
+                ]);
             }
+
+            $validated['trip_schedule_id'] = $tripAssignment->trip_schedule_id;
+            $validated['bus_id'] = $tripAssignment->bus_id;
+            $validated['driver_id'] = $tripAssignment->driver_id;
+            $validated['driver_name'] = $tripAssignment->driver_name;
+        } elseif (! empty($validated['trip_schedule_id'])) {
+            $tripAssignment = TripAssignment::query()
+                ->with(['tripSchedule', 'bus'])
+                ->where('trip_schedule_id', $validated['trip_schedule_id'])
+                ->first();
+
+            if (! $tripAssignment) {
+                throw ValidationException::withMessages([
+                    'trip_schedule_id' => 'The selected trip does not have a valid driver and bus assignment.',
+                ]);
+            }
+
+            $validated['bus_id'] = $tripAssignment->bus_id;
+            $validated['driver_id'] = $tripAssignment->driver_id;
+            $validated['driver_name'] = $tripAssignment->driver_name;
         }
 
         // Only a master-listed driver can be selected; names are sourced from the
@@ -267,7 +292,7 @@ class IncidentController extends Controller
             $driver = Driver::query()->where('driver_id', $validated['driver_id'])
                 ->where('employment_status', 'Active')->first();
             if (! $driver) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'driver_id' => 'Please select an active driver from the Driver Master List.',
                 ]);
             }
@@ -278,15 +303,25 @@ class IncidentController extends Controller
 
         $incidentNo = '';
 
-        DB::transaction(function () use ($validated, &$incidentNo) {
-            $latest = Incident::query()
-                ->lockForUpdate()
-                ->orderByDesc('id')
-                ->first();
+        DB::transaction(function () use ($validated, &$incidentNo): void {
+            if ($validated['incident_type'] === 'Bus Breakdown') {
+                $activeBreakdownKey = ! empty($validated['trip_schedule_id'])
+                    ? 'trip:'.$validated['trip_schedule_id']
+                    : null;
 
-            $nextNumber = $latest
-                ? $latest->id + 1
-                : 1;
+                if ($activeBreakdownKey && Incident::query()
+                    ->where('active_breakdown_key', $activeBreakdownKey)
+                    ->lockForUpdate()
+                    ->exists()) {
+                    throw ValidationException::withMessages([
+                        'incident_type' => 'An active breakdown incident already exists for this trip or bus.',
+                    ]);
+                }
+            }
+
+            $existingMaximum = Incident::withTrashed()->get(['incident_no'])
+                ->max(fn (Incident $incident) => (int) substr($incident->incident_no, -5));
+            $nextNumber = $this->numberSequenceService->next('incident', (int) $existingMaximum);
 
             $incidentNo = 'INC-'
                 .str_pad(
@@ -303,6 +338,7 @@ class IncidentController extends Controller
                 'driver_id' => $validated['driver_id'] ?? null,
                 'driver_name' => $validated['driver_name'] ?? null,
                 'incident_type' => $validated['incident_type'],
+                'active_breakdown_key' => $activeBreakdownKey ?? null,
                 'location' => $validated['location'],
                 'description' => $validated['description'] ?? null,
                 'incident_reported_at' => now(),
@@ -457,40 +493,41 @@ class IncidentController extends Controller
                 'max:255',
             ],
             'resolution_notes' => [
+                Rule::requiredIf(fn () => in_array($request->input('status'), ['Resolved', 'Cancelled'], true)),
                 'nullable',
                 'string',
                 'max:2000',
             ],
         ]);
 
-        $updateData = [
-            'status' => $validated['status'],
-        ];
+        DB::transaction(function () use ($incident, $validated): void {
+            $locked = Incident::query()->lockForUpdate()->findOrFail($incident->id);
+            $this->assertStatusTransitionAllowed($locked->status, $validated['status']);
 
-        if (! empty($validated['location'])) {
-            $updateData['location'] = $validated['location'];
-        }
+            $updateData = ['status' => $validated['status']];
+            if (! empty($validated['location'])) {
+                $updateData['location'] = $validated['location'];
+            }
+            if ($validated['status'] === 'Resolved') {
+                $updateData['resolved_at'] = now();
+                $updateData['resolved_by'] = auth()->id();
+            }
+            if (! empty($validated['resolution_notes'])) {
+                $updateData['resolution_notes'] = $validated['resolution_notes'];
+            }
 
-        if ($validated['status'] === 'Resolved') {
-            $updateData['resolved_at'] = now();
-            $updateData['resolved_by'] = auth()->id();
-        }
+            $locked->update($updateData);
 
-        if (! empty($validated['resolution_notes'])) {
-            $updateData['resolution_notes'] = $validated['resolution_notes'];
-        }
-
-        $incident->update($updateData);
-
-        if (Schema::hasTable('incident_responses')) {
-            IncidentResponse::create([
-                'incident_id' => $incident->id,
-                'status' => $validated['status'],
-                'notes' => $validated['resolution_notes'] ?? null,
-                'responded_by' => auth()->id(),
-                'created_at' => now(),
-            ]);
-        }
+            if (Schema::hasTable('incident_responses')) {
+                IncidentResponse::create([
+                    'incident_id' => $locked->id,
+                    'status' => $validated['status'],
+                    'notes' => $validated['resolution_notes'] ?? null,
+                    'responded_by' => auth()->id(),
+                    'created_at' => now(),
+                ]);
+            }
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -520,100 +557,89 @@ class IncidentController extends Controller
             ],
         ]);
 
-        if ($incident->incident_type !== 'Bus Breakdown') {
-            return redirect()
-                ->route('incidents.show', ['incident' => $incident->incident_no])
-                ->with(
-                    'error',
-                    'Replacement bus dispatch is only available for Bus Breakdown incidents.'
-                );
-        }
+        $result = DB::transaction(function () use ($incident, $validated): array {
+            $locked = Incident::query()->with('tripSchedule')->lockForUpdate()->findOrFail($incident->id);
+            $replacementBus = Bus::query()->lockForUpdate()->find($validated['replacement_bus_id']);
 
-        if ($incident->status === 'Resolved' || $incident->status === 'Cancelled') {
-            return redirect()
-                ->route('incidents.show', ['incident' => $incident->incident_no])
-                ->with(
-                    'error',
-                    'Cannot dispatch a replacement bus for a resolved or cancelled incident.'
-                );
-        }
-
-        $replacementBus = Bus::query()
-            ->where('status', 'Active')
-            ->find($validated['replacement_bus_id']);
-
-        if (! $replacementBus) {
-            return redirect()
-                ->route('incidents.show', ['incident' => $incident->incident_no])
-                ->with(
-                    'error',
-                    'The selected replacement bus is not available.'
-                );
-        }
-
-        if ($incident->bus_id && $replacementBus->id === $incident->bus_id) {
-            return redirect()
-                ->route('incidents.show', ['incident' => $incident->incident_no])
-                ->with(
-                    'error',
-                    'The replacement bus cannot be the same as the original breakdown bus.'
-                );
-        }
-
-        if ($incident->replacement()->exists()) {
-            return redirect()
-                ->route('incidents.show', ['incident' => $incident->incident_no])
-                ->with(
-                    'error',
-                    'A replacement bus has already been dispatched for this incident.'
-                );
-        }
-
-        if ($incident->trip_schedule_id) {
-            $conflict = TripAssignment::query()
-                ->whereHas('tripSchedule', function ($tripQuery) use ($incident) {
-                    $tripQuery
-                        ->whereDate('trip_date', $incident->tripSchedule->trip_date)
-                        ->where('id', '!=', $incident->trip_schedule_id)
-                        ->where('departure_time', '<', $incident->tripSchedule->estimated_arrival_time)
-                        ->where('estimated_arrival_time', '>', $incident->tripSchedule->departure_time);
-                })
-                ->where('bus_id', $replacementBus->id)
-                ->exists();
-
-            if ($conflict) {
-                return redirect()
-                    ->route('incidents.show', ['incident' => $incident->incident_no])
-                    ->with(
-                        'error',
-                        'The selected bus has an overlapping trip assignment at this time.'
-                    );
+            if ($locked->incident_type !== 'Bus Breakdown') {
+                return ['error' => 'Replacement bus dispatch is only available for Bus Breakdown incidents.'];
             }
-        }
+            if (in_array($locked->status, ['Resolved', 'Cancelled'], true)) {
+                return ['error' => 'Cannot dispatch a replacement bus for a resolved or cancelled incident.'];
+            }
+            if (! $replacementBus || $replacementBus->status !== 'Active') {
+                return ['error' => 'The selected replacement bus is not available.'];
+            }
+            if ($locked->bus_id && $replacementBus->id === $locked->bus_id) {
+                return ['error' => 'The replacement bus cannot be the same as the original breakdown bus.'];
+            }
+            if ($locked->replacement()->lockForUpdate()->exists()) {
+                return ['error' => 'A replacement bus has already been dispatched for this incident.'];
+            }
 
-        DB::transaction(function () use ($incident, $replacementBus) {
+            if ($locked->trip_schedule_id && $locked->tripSchedule) {
+                $tripStart = $locked->tripSchedule->departureDateTime();
+                $tripEnd = $locked->tripSchedule->estimatedArrivalDateTime();
+                $conflict = TripAssignment::query()
+                    ->with('tripSchedule')
+                    ->whereHas('tripSchedule', function ($tripQuery) use ($locked, $tripStart, $tripEnd): void {
+                        $tripQuery
+                            ->where('id', '!=', $locked->trip_schedule_id)
+                            ->whereNotIn('status', ['Cancelled', 'Completed'])
+                            ->whereBetween('trip_date', [
+                                $tripStart->copy()->subDay()->toDateString(),
+                                $tripEnd->toDateString(),
+                            ]);
+                    })
+                    ->where('bus_id', $replacementBus->id)
+                    ->lockForUpdate()
+                    ->get()
+                    ->contains(function (TripAssignment $assignment) use ($tripStart, $tripEnd): bool {
+                        $otherTrip = $assignment->tripSchedule;
+
+                        return $otherTrip
+                            && $tripStart->lt($otherTrip->estimatedArrivalDateTime())
+                            && $tripEnd->gt($otherTrip->departureDateTime());
+                    });
+
+                if ($conflict) {
+                    return ['error' => 'The selected bus has an overlapping trip assignment at this time.'];
+                }
+            }
+
             IncidentReplacement::create([
-                'incident_id' => $incident->id,
-                'original_bus_id' => $incident->bus_id,
+                'incident_id' => $locked->id,
+                'original_bus_id' => $locked->bus_id,
                 'replacement_bus_id' => $replacementBus->id,
                 'dispatched_at' => now(),
                 'dispatched_by' => auth()->id(),
             ]);
 
-            $incident->update([
+            $locked->update([
                 'status' => 'Replacement Bus Dispatched',
             ]);
 
             if (Schema::hasTable('incident_responses')) {
                 IncidentResponse::create([
-                    'incident_id' => $incident->id,
+                    'incident_id' => $locked->id,
                     'status' => 'Replacement Bus Dispatched',
                     'notes' => "Replacement bus {$replacementBus->bus_no} dispatched.",
                     'responded_by' => auth()->id(),
                     'created_at' => now(),
                 ]);
             }
+
+            return ['bus' => $replacementBus];
         });
+
+        if (isset($result['error'])) {
+            return redirect()
+                ->route('incidents.show', ['incident' => $incident->incident_no])
+                ->with('error', $result['error']);
+        }
+
+        /** @var Bus $replacementBus */
+        $replacementBus = $result['bus'];
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -643,15 +669,24 @@ class IncidentController extends Controller
             ],
         ]);
 
-        if (Schema::hasTable('incident_responses')) {
-            IncidentResponse::create([
-                'incident_id' => $incident->id,
-                'status' => $incident->status,
-                'notes' => $validated['notes'],
-                'responded_by' => auth()->id(),
-                'created_at' => now(),
-            ]);
-        }
+        DB::transaction(function () use ($incident, $validated): void {
+            $locked = Incident::query()->lockForUpdate()->findOrFail($incident->id);
+            if (in_array($locked->status, ['Resolved', 'Cancelled'], true)) {
+                throw ValidationException::withMessages([
+                    'notes' => 'Responses cannot be added to a closed incident.',
+                ]);
+            }
+
+            if (Schema::hasTable('incident_responses')) {
+                IncidentResponse::create([
+                    'incident_id' => $locked->id,
+                    'status' => $locked->status,
+                    'notes' => $validated['notes'],
+                    'responded_by' => auth()->id(),
+                    'created_at' => now(),
+                ]);
+            }
+        });
 
         return redirect()
             ->route('incidents.show', ['incident' => $incident->incident_no])
@@ -659,5 +694,23 @@ class IncidentController extends Controller
                 'success',
                 'Response added successfully.'
             );
+    }
+
+    private function assertStatusTransitionAllowed(string $from, string $to): void
+    {
+        $allowed = [
+            'Reported' => ['Reported', 'Monitoring', 'Responding', 'Resolved', 'Cancelled'],
+            'Monitoring' => ['Monitoring', 'Responding', 'Resolved', 'Cancelled'],
+            'Responding' => ['Responding', 'Resolved', 'Cancelled'],
+            'Replacement Bus Dispatched' => ['Replacement Bus Dispatched', 'Responding', 'Resolved', 'Cancelled'],
+            'Resolved' => ['Resolved'],
+            'Cancelled' => ['Cancelled'],
+        ];
+
+        if (! in_array($to, $allowed[$from] ?? [], true)) {
+            throw ValidationException::withMessages([
+                'status' => "Incident status cannot move from {$from} to {$to}.",
+            ]);
+        }
     }
 }

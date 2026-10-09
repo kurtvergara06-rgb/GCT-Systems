@@ -103,31 +103,32 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         });
 
     Route::redirect('/operation/auto-dispatch', '/operation/auto-scheduling')->name('auto-dispatch');
-    Route::get('/operation/trip-records', [TripRecordController::class, 'index'])->name('trip-records');
+    Route::get('/operation/trip-records', [TripRecordController::class, 'index'])->middleware('system.permission:operation,view')->name('trip-records');
     Route::get('/operation/trip-records/export', [TripRecordController::class, 'export'])->middleware('system.permission:operation,view')->name('trip-records.export');
 
-    Route::controller(DailyDriverReportController::class)->prefix('operation/daily-driver-reports')->group(function () {
+    Route::controller(DailyDriverReportController::class)->prefix('operation/daily-driver-reports')->middleware('system.permission:operation,view')->group(function () {
         Route::get('/', 'index')->name('daily-driver-reports');
         Route::get('/create', 'create')->name('daily-driver-reports.create');
-        Route::post('/', 'store')->name('daily-driver-reports.store');
+        Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
         Route::get('/{dailyDriverReport}', 'show')->name('daily-driver-reports.show');
     });
 
     Route::post('/operation/incidents/{incident}/maintenance-referral', [MaintenanceReferralController::class, 'store'])
+        ->middleware('system.permission:operation,edit')
         ->name('incidents.maintenance-referral.store');
 
-    Route::controller(IncidentController::class)->prefix('operation/incidents')->group(function () {
+    Route::controller(IncidentController::class)->prefix('operation/incidents')->middleware('system.permission:operation,view')->group(function () {
         Route::get('/', 'index')->name('incidents');
         Route::get('/create', 'create')->name('incidents.create');
-        Route::post('/', 'store')->name('incidents.store');
+        Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('incidents.store');
         Route::get('/{incident}/edit', 'edit')->middleware('system.permission:operation,edit')->name('incidents.edit');
         Route::patch('/{incident}/details', 'updateDetails')->middleware('system.permission:operation,edit')->name('incidents.details.update');
         Route::delete('/{incident}', 'destroy')->middleware('system.permission:operation,edit')->name('incidents.destroy');
         Route::get('/{incident}', 'show')->name('incidents.show');
-        Route::put('/{incident}', 'update')->name('incidents.update');
-        Route::post('/{incident}/dispatch', 'dispatchReplacement')->name('incidents.dispatch');
-        Route::post('/{incident}/response', 'addResponse')->name('incidents.response');
+        Route::put('/{incident}', 'update')->middleware('system.permission:operation,edit')->name('incidents.update');
+        Route::post('/{incident}/dispatch', 'dispatchReplacement')->middleware('system.permission:operation,edit')->name('incidents.dispatch');
+        Route::post('/{incident}/response', 'addResponse')->middleware('system.permission:operation,edit')->name('incidents.response');
     });
 });
 

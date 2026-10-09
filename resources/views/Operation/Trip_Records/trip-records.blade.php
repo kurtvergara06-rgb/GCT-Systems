@@ -48,9 +48,9 @@
                         <i class="fa-solid fa-road"></i>
                     </div>
                     <div>
-                        <p>Total Distance Traveled</p>
+                        <p>Recorded Distance</p>
                         <h2>{{ number_format($totalDistanceKm, 1) }} <span style="font-size: 15px; font-weight: 600;">km</span></h2>
-                        <small>Recorded operational mileage</small>
+                        <small>Distance entered in matched driver reports</small>
                     </div>
                 </article>
 
@@ -149,7 +149,7 @@
                                 <th>Driver</th>
                                 <th>Scheduled</th>
                                 <th>Actual Times</th>
-                                <th>Distance</th>
+                                <th>Recorded Distance</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -161,6 +161,13 @@
                                     $assignment = $trip->assignment;
                                     $bus = $assignment?->bus;
                                     $route = $trip->shuttleRoute;
+                                    $routeCode = $trip->route_code_snapshot ?: $route?->route_code;
+                                    $routeName = $trip->route_name_snapshot ?: $route?->route_name;
+                                    $routeOrigin = $trip->route_origin_snapshot ?: $route?->origin;
+                                    $routeDestination = $trip->route_destination_snapshot ?: $route?->destination;
+                                    $plannedDistance = $trip->planned_distance_km ?? $route?->distance_km;
+                                    $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0)
+                                        + (float) ($trip->additional_recorded_distance_km ?? 0);
                                     $tripDateFormatted = \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y');
                                     $shiftClass = strtolower($trip->shift);
                                     $statusClass = strtolower($trip->status);
@@ -176,12 +183,13 @@
                                         'trip_date' => $tripDateFormatted,
                                         'shift' => $trip->shift,
                                         'status' => $trip->status,
-                                        'route_code' => $route?->route_code,
-                                        'route_name' => $route?->route_name,
-                                        'origin' => $route?->origin,
-                                        'destination' => $route?->destination,
-                                        'distance_km' => $route?->distance_km ? number_format($route->distance_km, 2) : null,
-                                        'estimated_time_minutes' => $route?->estimated_time_minutes,
+                                        'route_code' => $routeCode,
+                                        'route_name' => $routeName,
+                                        'origin' => $routeOrigin,
+                                        'destination' => $routeDestination,
+                                        'distance_km' => $recordedDistance > 0 ? number_format($recordedDistance, 2) : null,
+                                        'planned_distance_km' => $plannedDistance ? number_format($plannedDistance, 2) : null,
+                                        'estimated_time_minutes' => $trip->planned_duration_minutes ?? $route?->estimated_time_minutes,
                                         'bus_no' => $bus?->bus_no,
                                         'plate_no' => $bus?->plate_no,
                                         'bus_model' => $bus?->bus_model,
@@ -210,11 +218,11 @@
 
                                     <td>
                                         <div class="route-cell">
-                                            <strong>{{ $route?->route_name ?: '—' }}</strong>
+                                            <strong>{{ $routeName ?: '—' }}</strong>
                                             <span>
-                                                {{ $route?->origin ?: '—' }}
+                                                {{ $routeOrigin ?: '—' }}
                                                 <i class="fa-solid fa-arrow-right-long" style="font-size: 9px; margin: 0 3px; color: var(--trip-blue);"></i>
-                                                {{ $route?->destination ?: '—' }}
+                                                {{ $routeDestination ?: '—' }}
                                             </span>
                                         </div>
                                     </td>
@@ -263,7 +271,7 @@
 
                                     <td>
                                         <strong style="color: var(--trip-navy); font-size: 12px;">
-                                            {{ $route?->distance_km ? number_format($route->distance_km, 1) . ' km' : '—' }}
+                                            {{ $recordedDistance > 0 ? number_format($recordedDistance, 1) . ' km' : '—' }}
                                         </strong>
                                     </td>
 
@@ -366,7 +374,7 @@
                             <span id="modalRouteSpan" class="trip-detail-value">—</span>
                         </div>
                         <div class="trip-detail-item">
-                            <span class="trip-detail-label">Route Distance</span>
+                            <span class="trip-detail-label">Recorded Distance</span>
                             <span id="modalDistance" class="trip-detail-value">—</span>
                         </div>
                         <div class="trip-detail-item">
