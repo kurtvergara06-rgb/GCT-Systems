@@ -58,9 +58,9 @@
                         <p>Operational incidents reported by drivers during active trips.</p>
                     </div>
 
-                <nav class="inc-record-tabs inc-header-tabs" aria-label="Incident record groups">
-                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'active'])) }}" class="inc-record-tab {{ $tab === 'active' ? 'is-active' : '' }}" @if($tab === 'active') aria-current="page" @endif><i class="fa-solid fa-bolt" aria-hidden="true"></i> Active Incidents</a>
-                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'history'])) }}" class="inc-record-tab {{ $tab === 'history' ? 'is-active' : '' }}" @if($tab === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+                <nav class="inc-record-tabs inc-header-tabs" role="tablist" aria-label="Incident record groups">
+                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'active'])) }}" class="inc-record-tab {{ $tab === 'active' ? 'is-active' : '' }}" role="tab" aria-selected="{{ $tab === 'active' ? 'true' : 'false' }}"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active</a>
+                    <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'history'])) }}" class="inc-record-tab {{ $tab === 'history' ? 'is-active' : '' }}" role="tab" aria-selected="{{ $tab === 'history' ? 'true' : 'false' }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
                 </nav>
                 </div>
 
