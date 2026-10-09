@@ -58,16 +58,11 @@
                         <p>Operational incidents reported by drivers during active trips.</p>
                     </div>
 
-                    <button type="button" id="openIncidentReportModal" class="inc-new-btn">
-                        <i class="fa-solid fa-plus"></i>
-                        Report Incident
-                    </button>
-                </div>
-
-                <nav class="inc-record-tabs" aria-label="Incident record groups">
+                <nav class="inc-record-tabs inc-header-tabs" aria-label="Incident record groups">
                     <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'active'])) }}" class="inc-record-tab {{ $tab === 'active' ? 'is-active' : '' }}" @if($tab === 'active') aria-current="page" @endif><i class="fa-solid fa-bolt" aria-hidden="true"></i> Active Incidents</a>
                     <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'history'])) }}" class="inc-record-tab {{ $tab === 'history' ? 'is-active' : '' }}" @if($tab === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
                 </nav>
+                </div>
 
                 <form method="GET" action="{{ route('incidents') }}" class="inc-toolbar">
                     <input type="hidden" name="tab" value="{{ $tab }}">
@@ -95,6 +90,11 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <button type="button" id="openIncidentReportModal" class="inc-new-btn">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Report Incident
+                    </button>
 
                     @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('type') && request('type') !== 'all'))
                         <a href="{{ route('incidents', ['tab' => $tab]) }}" class="inc-clear-btn" title="Reset all filters">
