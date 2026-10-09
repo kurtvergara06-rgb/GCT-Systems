@@ -167,20 +167,20 @@
                                     <td><div class="inc-driver-cell"><span>{{ $reportedFmt }}</span></div></td>
                                     <td><x-ui.status-badge :status="$incident->status" /></td>
                                     <td>
-                                        <div class="inc-actions" style="display:flex;gap:6px;align-items:center;">
-                                            <a href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" class="inc-action view" title="View Incident Details">
+                                        <div class="inc-actions inc-record-actions">
+                                            <a href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" class="inc-action view" title="View Incident Details" aria-label="View incident details">
                                                 <i class="fa-regular fa-eye"></i>
                                             </a>
 
                                             @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
                                                 <form method="POST" action="{{ route('incidents.maintenance-referral.store', $incident) }}">
                                                     @csrf
-                                                    <button type="submit" class="inc-action view" title="Refer to Maintenance" style="border:0;cursor:pointer;">
+                                                    <button type="submit" class="inc-action view" title="Refer to Maintenance" aria-label="Refer incident to Maintenance">
                                                         <i class="fa-solid fa-screwdriver-wrench"></i>
                                                     </button>
                                                 </form>
                                             @elseif($maintenanceReferral)
-                                                <span title="Maintenance referral status" style="font-size:10px;font-weight:700;white-space:nowrap;">
+                                                <span class="inc-referral-label" title="Maintenance referral status">
                                                     {{ $maintenanceReferral->status }}
                                                 </span>
                                             @endif
