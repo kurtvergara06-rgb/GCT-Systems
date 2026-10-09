@@ -2233,3 +2233,29 @@
     background:#fff0f0; border-color:#ffbfc3; color:#d92d36;
 }
 .inc-page .inc-table .inc-record-actions .inc-action i { font-size:14px; }
+
+/* Driver Master List reference: enabled trash is red; locked trash is neutral gray. */
+.inc-page .inc-table .inc-record-actions .inc-delete-action:not(:disabled) {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #dc2626;
+    opacity: 1;
+}
+.inc-page .inc-table .inc-record-actions .inc-delete-action:disabled,
+.inc-page .inc-table .inc-record-actions .inc-delete-action.inc-action-disabled,
+.inc-page .inc-table .inc-record-actions .inc-delete-action:disabled:hover,
+.inc-page .inc-table .inc-record-actions .inc-delete-action.inc-action-disabled:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #737373;
+    opacity: 1;
+    cursor: not-allowed;
+}
+.inc-page .inc-table .inc-record-actions .inc-edit-action:disabled,
+.inc-page .inc-table .inc-record-actions .inc-edit-action.inc-action-disabled {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #737373;
+    opacity: 1;
+    cursor: not-allowed;
+}
