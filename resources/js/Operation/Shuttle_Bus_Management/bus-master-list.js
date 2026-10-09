@@ -427,6 +427,8 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         closeModal(busModal);
         closeModal(editBusModal);
         closeModal(deleteBusModal);
+        closeModal(viewBusModal);
+        viewBusModal?.setAttribute('aria-hidden', 'true');
     });
 
 });
