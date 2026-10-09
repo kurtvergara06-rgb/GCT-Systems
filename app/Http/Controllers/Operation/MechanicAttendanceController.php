@@ -172,7 +172,6 @@ class MechanicAttendanceController extends Controller
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'assigned_job' => 'nullable|string|max:255',
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
