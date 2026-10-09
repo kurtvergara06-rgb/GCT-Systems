@@ -1214,3 +1214,11 @@
     min-width: 900px;
   }
 }
+
+/* Driver attendance editor: match native status/shift selects to the visible
+   date/time picker height without changing date picker dimensions. */
+#driverAttendanceModal .driver-attendance-form-grid .ui-form-group select,
+#driverAttendanceModal .driver-attendance-form-grid .ui-form-group input:not([type="hidden"]) {
+  box-sizing: border-box;
+  min-height: 46px;
+}
