@@ -1826,3 +1826,40 @@
 .inc-page .inc-table td .inc-type-pill.breakdown { background:#f1f5f9; border:1px solid #d8e2ed; color:#334155; }
 .inc-page .inc-table td .inc-type-pill.accident { background:#fff0f0; border:1px solid #fecaca; color:#b91c1c; }
 @media (max-width:600px) { .inc-page .inc-record-tabs { gap:0; } .inc-page .inc-record-tab { flex:1; padding:10px 8px; } }
+
+/* Maintenance-style header tabs; new report action lives beside type filter. */
+.inc-page .inc-card-header .inc-header-tabs {
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+}
+.inc-page .inc-card-header .inc-header-tabs .inc-record-tab {
+    border: 1px solid #dae4f0;
+    border-radius: 9px;
+    padding: 9px 13px;
+    background: #fff;
+    white-space: nowrap;
+}
+.inc-page .inc-card-header .inc-header-tabs .inc-record-tab.is-active {
+    background: #fff7d9;
+    border-color: #f2ca4a;
+    color: #132d51;
+}
+.inc-page .inc-toolbar .inc-new-btn {
+    flex: 0 0 auto;
+    height: 40px;
+    margin: 0;
+    white-space: nowrap;
+}
+.inc-page .inc-toolbar .inc-clear-btn {
+    margin-left: 0;
+}
+@media (max-width: 900px) {
+    .inc-page .inc-card-header { flex-wrap: wrap; }
+    .inc-page .inc-card-header .inc-header-tabs { justify-content: flex-start; }
+}
+@media (max-width: 600px) {
+    .inc-page .inc-toolbar .inc-new-btn { width: 100%; }
+}
