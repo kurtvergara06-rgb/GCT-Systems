@@ -1599,3 +1599,29 @@
 #busModal .ui-form-actions { margin-top: 21px; padding-top: 17px; border-top: 1px solid #e4edf7; }
 #busModal .ui-form-btn-primary { background: #ffb900; color: #102649; border-color: #ffb900; font-weight: 800; }
 @media (max-width: 600px) { #busModal .ui-form-modal-scrollable { grid-template-columns: 1fr; } #busModal .ui-form-modal-header, #busModal .ui-form-modal-body { padding-left: 18px; padding-right: 18px; } }
+
+
+/* Screenshot-matched Bus Master List form design, scoped to bus dialogs. */
+#busModal .ui-form-intro { display: none; }
+#busModal .ui-form-title-icon, #editBusModal .bus-header-icon { position: relative; flex-shrink: 0; display:grid; place-items:center; width:56px; height:56px; border-radius:14px; background:#e8f0ff; color:#1451cb; font-size:24px; }
+#editBusModal .bus-header-icon::after, #busModal .ui-form-title-icon::after { content:""; position:absolute; right:-6px; top:-5px; width:22px; height:22px; border-radius:50%; background:rgba(255,185,0,.21); z-index:-1; }
+#busModal .ui-form-heading h2 { font-size:23px; }
+#busModal .ui-form-heading p { font-size:12px; }
+#busModal .bus-form-section, #editBusModal .bus-form-section { display:flex; align-items:center; gap:12px; margin-bottom:2px; }
+#busModal .bus-form-section:first-child, #editBusModal .bus-form-section:first-child { border-top:1px solid #e3ebf6; padding-top:18px; }
+#busModal .bus-form-section strong, #editBusModal .bus-form-section strong { font-size:14px; font-weight:800; color:#102649; }
+#busModal .bus-form-section p, #editBusModal .bus-form-section p { margin:5px 0 0; color:#71829a; font-size:12px; }
+#busModal .bus-section-icon, #editBusModal .bus-section-icon { width:33px; height:33px; flex:0 0 33px; display:grid; place-items:center; border:1px solid #dce8fb; border-radius:9px; background:#f7faff; color:#1c5ed5; }
+#busModal .bus-route-section, #editBusModal .bus-route-section { margin-top:8px; padding-top:18px; border-top:1px solid #e3ebf6; }
+#busModal .bus-form-section + .form-group label, #editBusModal .bus-form-section + .form-group label { font-weight:800; }
+#busModal .form-group input, #busModal .form-group select, #editBusModal .form-group input, #editBusModal .form-group select { min-height:46px; border-radius:10px; border-color:#d8e4f3; }
+#busModal .ui-form-btn-primary, #editBusModal .save-btn { background:#ffb900; color:#102649; border-color:#ffb900; box-shadow:0 4px 12px rgba(255,185,0,.16); }
+#editBusModal .bus-edit-design { width:min(740px,calc(100vw - 32px)); max-width:calc(100vw - 32px); padding:0; overflow:hidden; border:1px solid #e3eaf4; border-radius:18px; }
+#editBusModal .bus-edit-design > .modal-header { margin:0; padding:24px 28px; align-items:center; justify-content:flex-start; gap:16px; border-bottom:1px solid #e4edf7; }
+#editBusModal .bus-edit-heading { flex:1; }
+#editBusModal .bus-edit-heading h2 { font-size:22px; }
+#editBusModal .job-form { padding:22px 28px 24px; gap:16px 18px; max-height:70vh; overflow:auto; }
+#editBusModal .modal-actions { border-top:1px solid #e4edf7; padding-top:17px; margin-top:2px; }
+#editBusModal .form-group label { font-size:12px; font-weight:800; color:#102649; }
+#editBusModal .form-group input, #editBusModal .form-group select { box-sizing:border-box; padding:0 13px; }
+@media(max-width:600px) { #editBusModal .bus-edit-design > .modal-header { padding:18px; } #editBusModal .job-form { grid-template-columns:1fr; padding:18px; } }
