@@ -73,9 +73,11 @@ class DailyDriverReportTest extends TestCase
     public function test_one_ddr_can_save_and_display_multiple_trip_rows(): void
     {
         $payload = $this->validPayload();
+        $payload['km'] = 40.5;
         $payload['additional_trips'] = [
             [
                 'trip_ticket' => 'TT-10002',
+                'km' => 12.75,
                 'from_location' => 'Lipa',
                 'to_location' => 'Tanauan',
                 'departure_time' => '07:00',
@@ -84,6 +86,7 @@ class DailyDriverReportTest extends TestCase
             ],
             [
                 'trip_ticket' => 'TT-10003',
+                'km' => 13,
                 'from_location' => 'Tanauan',
                 'to_location' => 'Batangas',
                 'departure_time' => '08:00',
@@ -101,6 +104,8 @@ class DailyDriverReportTest extends TestCase
         $this->assertDatabaseCount('daily_driver_report_trip_entries', 2);
         $report = DailyDriverReport::firstOrFail();
         $this->assertSame(3, 1 + $report->additionalTrips->count());
+        $this->assertEquals(40.5, $report->km);
+        $this->assertEquals([12.75, 13.0], $report->additionalTrips->pluck('km')->map(fn ($km) => (float) $km)->all());
         $this->actingAs($this->user)
             ->get(route('daily-driver-reports.show', ['dailyDriverReport' => $report->ddr_no]))
             ->assertOk()
