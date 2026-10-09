@@ -1770,3 +1770,45 @@
   .inc-page .inc-card-header { align-items: flex-start; flex-wrap: wrap; }
   .inc-page .inc-toolbar .inc-search, .inc-page .inc-toolbar .inc-filter { flex: 1 1 100%; min-width: 0; }
 }
+
+/* Incident-only status palette: shared status-badge markup, explicit operational states. */
+.inc-page .inc-table td .badge[data-ui-component="status-badge"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+.inc-page .inc-table td .badge[data-ui-component="status-badge"]::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: 0 0 7px;
+}
+.inc-page .inc-table td .badge[data-status="reported"] { background:#eaf2ff; border-color:#c7dcff; color:#1656b8; }
+.inc-page .inc-table td .badge[data-status="monitoring"] { background:#fff7df; border-color:#f9e1a2; color:#9a6300; }
+.inc-page .inc-table td .badge[data-status="responding"] { background:#fff0e5; border-color:#fdceaf; color:#b45309; }
+.inc-page .inc-table td .badge[data-status="replacement-bus-dispatched"] { background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+.inc-page .inc-table td .badge[data-status="resolved"] { background:#e6f8ed; border-color:#b6ebc9; color:#15803d; }
+.inc-page .inc-table td .badge[data-status="cancelled"] { background:#f1f5f9; border-color:#d7e0e9; color:#64748b; }
+
+/* Quiet, consistent icon-only actions. */
+.inc-page .inc-record-actions .inc-action {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #d8e2f0;
+    border-radius: 9px;
+    background: #fff;
+    color: #264b85;
+    box-shadow: none;
+}
+.inc-page .inc-record-actions .inc-action i { font-size: 14px; line-height: 1; }
+.inc-page .inc-record-actions .inc-action:hover { background:#f1f6ff; border-color:#9cbaeb; color:#154ea0; }
