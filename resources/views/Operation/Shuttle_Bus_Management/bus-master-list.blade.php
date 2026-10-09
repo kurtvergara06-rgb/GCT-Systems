@@ -186,6 +186,14 @@
 
                                     <td>
                                         <div class="actions">
+                                            <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
+                                                data-bus-no="{{ $bus->bus_no }}" data-plate-no="{{ $bus->plate_no }}"
+                                                data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
+                                                data-capacity="{{ $bus->capacity }}" data-status="{{ $bus->status }}"
+                                                data-route-grouping="{{ $bus->route_grouping }}"
+                                                data-display-route="{{ $bus->display_route_name }}">
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                            </button>
                                             @if($canEditOperation)
                                             <x-ui.action-buttom-modal
                                                 class="edit open-edit-bus"
@@ -220,8 +228,6 @@
                                                     data-bus-no="{{ $bus->bus_no }}"
                                                 />
                                             </form>
-                                            @else
-                                                <span class="empty">View only</span>
                                             @endif
                                         </div>
                                     </td>
@@ -239,6 +245,42 @@
                 <x-ui.table-footer :items="$buses" />
             </section>
         </main>
+    </div>
+
+    {{-- Read-only Bus Details: no form, editable controls, or update action. --}}
+    <div id="viewBusModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-box wide-modal bus-details-modal" role="dialog" aria-modal="true" aria-labelledby="viewBusTitle">
+            <div class="bus-details-header">
+                <span class="bus-details-icon" aria-hidden="true"><i class="fa-solid fa-bus"></i></span>
+                <div class="bus-details-heading">
+                    <h2 id="viewBusTitle">Bus Information</h2>
+                    <p>Official bus record and operational details. View only.</p>
+                </div>
+                <button type="button" class="close-btn" id="closeViewBusModal" aria-label="Close bus details">&times;</button>
+            </div>
+            <div class="bus-details-body">
+                <div class="bus-details-section">
+                    <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
+                    <div><strong>Bus Details</strong><p>Registered vehicle information</p></div>
+                </div>
+                <dl class="bus-details-grid">
+                    <div><dt>Bus No.</dt><dd data-bus-detail="busNo">—</dd></div>
+                    <div><dt>Plate No.</dt><dd data-bus-detail="plateNo">—</dd></div>
+                    <div><dt>Bus Model</dt><dd data-bus-detail="busModel">—</dd></div>
+                    <div><dt>Year Model</dt><dd data-bus-detail="yearModel">—</dd></div>
+                    <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
+                    <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
+                </dl>
+                <div class="bus-details-section bus-details-route-heading">
+                    <i class="fa-solid fa-route" aria-hidden="true"></i>
+                    <div><strong>Route / Grouping</strong><p>Assigned route or grouping information</p></div>
+                </div>
+                <div class="bus-details-route" data-bus-detail="routeGrouping">—</div>
+            </div>
+            <div class="bus-details-footer">
+                <button type="button" class="primary-btn" id="dismissViewBusModal">Close</button>
+            </div>
+        </div>
     </div>
 
     @if($canEditOperation)
