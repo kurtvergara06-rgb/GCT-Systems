@@ -377,6 +377,60 @@ class IncidentController extends Controller
         );
     }
 
+    public function edit(Incident $incident): View
+    {
+        abort_unless($incident->status === 'Reported'
+            && ! $incident->maintenanceReferral()->exists()
+            && ! $incident->replacement()->exists()
+            && $incident->responses()->count() <= 1, 403,
+            'This incident has already entered an operational workflow and cannot be edited.');
+
+        return view('Operation.Incidents.edit', compact('incident'));
+    }
+
+    public function updateDetails(Request $request, Incident $incident): RedirectResponse
+    {
+        $validated = $request->validate([
+            'location' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($incident, $validated) {
+            $locked = Incident::query()->lockForUpdate()->findOrFail($incident->id);
+            abort_unless($locked->status === 'Reported'
+                && ! $locked->maintenanceReferral()->exists()
+                && ! $locked->replacement()->exists()
+                && $locked->responses()->count() <= 1, 403,
+                'This incident has already entered an operational workflow and cannot be edited.');
+            $locked->update($validated);
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Incident', 'updated',
+            $incident->incident_no, "Incident {$incident->incident_no} details corrected");
+
+        return redirect()->route('incidents.show', ['incident' => $incident->incident_no])
+            ->with('success', 'Incident details updated successfully.');
+    }
+
+    public function destroy(Incident $incident): RedirectResponse
+    {
+        DB::transaction(function () use ($incident) {
+            $locked = Incident::query()->lockForUpdate()->findOrFail($incident->id);
+            abort_unless($locked->status === 'Reported'
+                && ! $locked->maintenanceReferral()->exists()
+                && ! $locked->replacement()->exists()
+                && $locked->responses()->count() <= 1, 403,
+                'This incident has dependent records or workflow activity and cannot be deleted.');
+            $locked->delete();
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Incident', 'deleted',
+            $incident->incident_no, "Incident {$incident->incident_no} archived");
+
+        return redirect()->route('incidents')->with('success',
+            "Incident {$incident->incident_no} archived successfully.");
+    }
+
     public function update(
         Request $request,
         Incident $incident
