@@ -286,6 +286,7 @@
     @if($canEditOperation)
     <x-ui.form-modal
         id="busModal"
+        icon="fa-bus"
         title="Add New Bus"
         subtitle="Bus Information"
         description="Add an official bus record for Operations, GPS matching, PMS, and Job Orders."
