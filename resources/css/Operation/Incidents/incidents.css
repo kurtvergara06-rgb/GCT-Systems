@@ -2186,3 +2186,20 @@
     justify-content:center;
     gap:0;
 }
+
+/* Compact incident roster: match the approved seven-column preview. */
+.inc-page .inc-table { width:100%; min-width:900px; table-layout:fixed; }
+.inc-page .inc-table th:nth-child(1), .inc-page .inc-table td:nth-child(1) { width:14%; }
+.inc-page .inc-table th:nth-child(2), .inc-page .inc-table td:nth-child(2) { width:14%; }
+.inc-page .inc-table th:nth-child(3), .inc-page .inc-table td:nth-child(3) { width:20%; }
+.inc-page .inc-table th:nth-child(4), .inc-page .inc-table td:nth-child(4) { width:11%; }
+.inc-page .inc-table th:nth-child(5), .inc-page .inc-table td:nth-child(5) { width:17%; }
+.inc-page .inc-table th:nth-child(6), .inc-page .inc-table td:nth-child(6) { width:11%; }
+.inc-page .inc-table th:nth-child(7), .inc-page .inc-table td:nth-child(7) { width:13%; }
+.inc-page .inc-table td:nth-child(6) { max-width:none; }
+.inc-page .inc-table .inc-driver-cell { min-width:0; }
+.inc-page .inc-table .inc-driver-cell > span { display:block; overflow-wrap:anywhere; }
+.inc-page .inc-table .inc-driver-cell > small { display:block; margin-top:4px; color:#75849d; font-weight:500; font-size:11px; overflow-wrap:anywhere; }
+.inc-page .inc-table th:last-child { text-align:center; }
+.inc-page .inc-table td:last-child { text-align:center; }
+.inc-page .inc-table .inc-record-actions { min-width:0; }
