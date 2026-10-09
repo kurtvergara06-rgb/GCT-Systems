@@ -368,6 +368,9 @@ function initDdrAdditionalTrips() {
             row.querySelector('[data-trip-title]').textContent = 'Trip ' + (index + 2);
             row.querySelectorAll('[data-trip-field]').forEach((field) => {
                 field.name = 'additional_trips[' + index + '][' + field.dataset.tripField + ']';
+                field.id = 'ddr_extra_trip_' + index + '_' + field.dataset.tripField;
+                const label = field.closest('.ui-form-group')?.querySelector('label');
+                if (label) label.htmlFor = field.id;
             });
         });
     };
