@@ -27,7 +27,7 @@ class DailyDriverReportController extends Controller
     public function index(Request $request): View
     {
         $query = DailyDriverReport::query()
-            ->with(['driver', 'bus'])
+            ->with(['driver', 'bus', 'additionalTrips'])
             ->orderByDesc('report_date')
             ->orderByDesc('id');
 
@@ -42,6 +42,11 @@ class DailyDriverReportController extends Controller
                     ->orWhere('trip_ticket', 'like', "%{$search}%")
                     ->orWhere('from_location', 'like', "%{$search}%")
                     ->orWhere('to_location', 'like', "%{$search}%")
+                    ->orWhereHas('additionalTrips', function ($trips) use ($search) {
+                        $trips->where('trip_ticket', 'like', "%{$search}%")
+                            ->orWhere('from_location', 'like', "%{$search}%")
+                            ->orWhere('to_location', 'like', "%{$search}%");
+                    })
                     ->orWhereHas('bus', function ($busQuery) use ($search) {
                         $busQuery->where('bus_no', 'like', "%{$search}%");
                     });
@@ -83,10 +88,17 @@ class DailyDriverReportController extends Controller
 
         $passengersToday = DailyDriverReport::query()
             ->whereDate('report_date', $today)
-            ->sum('passengers');
+            ->sum('passengers')
+            + \App\Models\Operation\DailyDriverReportTripEntry::query()
+                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))
+                ->sum('passengers');
 
-        $passengerCount = $reportsToday > 0
-            ? $passengersToday / $reportsToday
+        $tripsToday = DailyDriverReport::query()->whereDate('report_date', $today)->count()
+            + \App\Models\Operation\DailyDriverReportTripEntry::query()
+                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))->count();
+
+        $passengerCount = $tripsToday > 0
+            ? $passengersToday / $tripsToday
             : 0;
 
         $drivers = Driver::query()
@@ -211,14 +223,33 @@ class DailyDriverReportController extends Controller
                 'integer',
                 'min:0',
             ],
+            'additional_trips' => ['sometimes', 'array', 'max:30'],
+            'additional_trips.*.trip_ticket' => ['required', 'string', 'max:50'],
+            'additional_trips.*.from_location' => ['required', 'string', 'max:150'],
+            'additional_trips.*.to_location' => ['required', 'string', 'max:150'],
+            'additional_trips.*.departure_time' => ['required', 'date_format:H:i'],
+            'additional_trips.*.arrival_time' => ['required', 'date_format:H:i'],
+            'additional_trips.*.passengers' => ['required', 'integer', 'min:0'],
         ]);
+
+        $allTickets = collect([$validated['trip_ticket']])
+            ->merge(collect($validated['additional_trips'] ?? [])->pluck('trip_ticket'))
+            ->map(fn ($ticket) => trim((string) $ticket));
+        if ($allTickets->count() !== $allTickets->unique(fn ($ticket) => mb_strtolower($ticket))->count()) {
+            return back()->withInput()->with('error', 'A trip ticket cannot be repeated within the same DDR.');
+        }
+
+        $childTicketExists = \App\Models\Operation\DailyDriverReportTripEntry::query()
+            ->whereIn('trip_ticket', $allTickets)
+            ->whereHas('report', fn ($q) => $q->whereDate('report_date', $validated['report_date']))
+            ->exists();
 
         $duplicateExists = DailyDriverReport::query()
             ->where('report_date', $validated['report_date'])
-            ->where('trip_ticket', $validated['trip_ticket'])
+            ->whereIn('trip_ticket', $allTickets)
             ->exists();
 
-        if ($duplicateExists) {
+        if ($duplicateExists || $childTicketExists) {
             return redirect()
                 ->back()
                 ->withInput()
@@ -267,7 +298,7 @@ class DailyDriverReportController extends Controller
                     STR_PAD_LEFT
                 );
 
-            DailyDriverReport::create([
+            $report = DailyDriverReport::create([
                 'ddr_no' => $ddrNo,
                 'report_date' => $validated['report_date'],
                 'driver_id' => $validated['driver_id'],
@@ -282,6 +313,17 @@ class DailyDriverReportController extends Controller
                 'passengers' => $validated['passengers'],
                 'encoded_by' => auth()->id(),
             ]);
+            foreach (($validated['additional_trips'] ?? []) as $index => $trip) {
+                $report->additionalTrips()->create([
+                    'sequence' => $index + 2,
+                    'trip_ticket' => trim($trip['trip_ticket']),
+                    'from_location' => $trip['from_location'],
+                    'to_location' => $trip['to_location'],
+                    'departure_time' => $trip['departure_time'] . ':00',
+                    'arrival_time' => $trip['arrival_time'] . ':00',
+                    'passengers' => $trip['passengers'],
+                ]);
+            }
         });
 
         return redirect()
@@ -296,7 +338,7 @@ class DailyDriverReportController extends Controller
         Request $request,
         DailyDriverReport $dailyDriverReport
     ): View {
-        $report = $dailyDriverReport->load(['driver', 'bus', 'encoder']);
+        $report = $dailyDriverReport->load(['driver', 'bus', 'encoder', 'additionalTrips']);
 
         $schedule = $this->scheduleMatchService->match($report);
 
