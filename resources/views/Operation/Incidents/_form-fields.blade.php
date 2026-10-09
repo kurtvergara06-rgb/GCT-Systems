@@ -4,6 +4,11 @@
     <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" name="bus_lookup_display" data-incident-bus-search
         placeholder="Enter Bus ID or plate number (e.g. GCT-205)" autocomplete="off" required />
     <input type="hidden" name="bus_lookup_required" value="1" />
+    <div data-incident-bus-options hidden>
+        @foreach($incidentBuses as $busOption)
+            <span data-bus-id="{{ $busOption->id }}" data-bus-no="{{ $busOption->bus_no }}" data-plate-no="{{ $busOption->plate_no }}" data-bus-status="{{ $busOption->status }}"></span>
+        @endforeach
+    </div>
     <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
     <div class="inc-bus-trip-context" data-incident-trip-context hidden></div>
 </div>
@@ -78,7 +83,7 @@
     @else
         <select name="bus_id" data-incident-bus-select>
             <option value="">Select bus...</option>
-            @foreach($availableTrips->pluck('assignment.bus')->unique('id')->filter() as $bus)
+            @foreach($incidentBuses as $bus)
                 <option value="{{ $bus->id }}" @selected(old('bus_id') == $bus->id)>
                     {{ $bus->bus_no }} ({{ $bus->plate_no }})
                 </option>
