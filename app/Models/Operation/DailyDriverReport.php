@@ -84,6 +84,11 @@ class DailyDriverReport extends Model
         );
     }
 
+    public function additionalTrips(): HasMany
+    {
+        return $this->hasMany(DailyDriverReportTripEntry::class, 'daily_driver_report_id')->orderBy('sequence');
+    }
+
     public function incidents(): HasMany
     {
         return $this->hasMany(
