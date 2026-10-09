@@ -176,6 +176,12 @@ class DriverAttendanceController extends Controller
     public function update(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
         $this->normalizeAttendanceTimes($request);
+        if ($driverAttendance->tripAssignments()->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
+            ]);
+        }
+
         $validated = $request->validate([
             'shift' => 'required|string|max:255',
             'attendance_date' => 'required|date_format:Y-m-d',
