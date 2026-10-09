@@ -276,8 +276,16 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 */
 
                 if (editBusNo) {
-                    editBusNo.value =
-                        button.dataset.busNo || '';
+                    editBusNo.value = button.dataset.busNo || '';
+                    const locked = button.dataset.busNoLocked === '1';
+                    editBusNo.readOnly = locked;
+                    editBusNo.classList.toggle('bus-locked-input', locked);
+                    editBusNo.setAttribute('aria-readonly', locked ? 'true' : 'false');
+                    editBusNo.title = locked
+                        ? 'Bus No. cannot be changed after operational history exists.'
+                        : '';
+                    const hint = document.getElementById('editBusNoLockHint');
+                    if (hint) hint.hidden = !locked;
                 }
 
 
