@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -84,9 +85,9 @@ class DriverAttendanceController extends Controller
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -117,7 +118,13 @@ class DriverAttendanceController extends Controller
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = $driver->shift ?: $validated['shift'];
 
-        $attendance = DriverAttendance::create($validated);
+        // Serialize attendance writes per master-list employee to protect the
+        // model's duplicate-date check against simultaneous requests.
+        $attendance = DB::transaction(function () use ($validated) {
+            Driver::query()->where('driver_id', $validated['driver_id'])->lockForUpdate()->firstOrFail();
+
+            return DriverAttendance::create($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -143,9 +150,9 @@ class DriverAttendanceController extends Controller
     {
         $validated = $request->validate([
             'shift' => 'required|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -179,7 +186,10 @@ class DriverAttendanceController extends Controller
             ]);
         }
 
-        $driverAttendance->update($validated);
+        DB::transaction(function () use ($driverAttendance, $validated) {
+            Driver::query()->where('driver_id', $driverAttendance->driver_id)->lockForUpdate()->firstOrFail();
+            $driverAttendance->update($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
