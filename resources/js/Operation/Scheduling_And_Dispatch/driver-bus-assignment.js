@@ -1,4 +1,27 @@
 window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment', '.assignment-page', () => {
+    // Resource filters are page-local and never change assignment eligibility.
+    // Re-evaluate after AJAX region refreshes without introducing a page reload.
+    const applyResourceFilter = (toolbar) => {
+        if (!toolbar) return;
+        const group = toolbar.dataset.resourceFilter;
+        const query = (toolbar.querySelector('input[type="search"]')?.value || '').trim().toLowerCase();
+        const category = (toolbar.querySelector('select')?.value || '').trim().toLowerCase();
+        const card = toolbar.closest('.resource-card');
+        card?.querySelectorAll('[data-resource-row]').forEach((row) => {
+            if (row.dataset.resourceRow !== group) return;
+            row.hidden = !(String(row.dataset.resourceText || '').includes(query)
+                && (!category || String(row.dataset.resourceCategory || '') === category));
+        });
+    };
+    document.addEventListener('input', (event) => {
+        const toolbar = event.target.closest?.('[data-resource-filter]');
+        if (toolbar) applyResourceFilter(toolbar);
+    });
+    document.addEventListener('change', (event) => {
+        const toolbar = event.target.closest?.('[data-resource-filter]');
+        if (toolbar) applyResourceFilter(toolbar);
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Modal Elements
