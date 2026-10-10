@@ -3023,3 +3023,24 @@ body.ai-modal-open {
         justify-content: center;
     }
 }
+
+/* Approved Auto Scheduling visual refresh — existing dynamic behavior preserved. */
+.auto-scheduling-page .auto-summary-grid{gap:12px;margin-bottom:18px}
+.auto-scheduling-page .auto-summary-card{min-height:98px;padding:15px 17px;border-radius:13px;box-shadow:0 4px 15px rgba(15,40,76,.05)}
+.auto-scheduling-page .auto-summary-card h2{font-size:26px;letter-spacing:-.025em}
+.auto-scheduling-page .auto-main-grid{grid-template-columns:minmax(0,1.8fr) minmax(290px,.85fr);gap:15px}
+.auto-scheduling-page .auto-card{border-radius:14px;padding:19px;box-shadow:0 5px 20px rgba(15,40,76,.055)}
+.auto-scheduling-page .auto-card-header h2{font-size:18px;letter-spacing:-.02em}
+.auto-scheduling-page .auto-scheduling-assurance{max-width:270px;display:flex;align-items:flex-start;gap:9px;background:#eef5ff;border:1px solid #dce9ff;border-radius:10px;padding:12px;color:#1353b8;font-size:11px;font-weight:650;line-height:1.45}
+.auto-scheduling-page .auto-scheduling-assurance i{font-size:16px;flex:none;margin-top:1px}
+.auto-scheduling-page .schedule-form-grid{gap:13px}
+.auto-scheduling-page .schedule-field label{font-size:11px;font-weight:800}
+.auto-scheduling-page .field-control input,.auto-scheduling-page .field-control select{height:44px;min-height:44px;border-radius:9px;font-size:12px}
+.auto-scheduling-page .generate-schedule-btn{height:52px;border-radius:10px;background:linear-gradient(115deg,#2276ed,#0536a8);box-shadow:0 6px 14px rgba(11,64,181,.17);font-size:14px}
+.auto-scheduling-page .resource-item{padding:13px 0}
+.auto-scheduling-page .resource-info strong{font-weight:800}
+.auto-scheduling-page .rules-grid{gap:9px}
+.auto-scheduling-page .rule-item{border-radius:9px;background:#f8fafc}
+.auto-scheduling-page .scheduling-rules-card,.auto-scheduling-page .auto-main-grid{margin-bottom:16px}
+@media(max-width:1150px){.auto-scheduling-page .auto-main-grid{grid-template-columns:1fr}.auto-scheduling-page .auto-scheduling-assurance{max-width:260px}}
+@media(max-width:660px){.auto-scheduling-page .auto-card-header{flex-wrap:wrap}.auto-scheduling-page .auto-scheduling-assurance{max-width:100%}.auto-scheduling-page .schedule-form-grid{grid-template-columns:1fr}.auto-scheduling-page .auto-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
