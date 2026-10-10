@@ -311,10 +311,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignmentBusOptionsContainer) {
             assignmentBusOptionsContainer.innerHTML = buses.length
                 ? buses.map((bus) => {
-                    const label = bus.model ? `${bus.bus_no} — ${bus.model}` : bus.bus_no;
+                    const busIdentifier = bus.plate_no || 'Plate not recorded';
+                    const label = bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier;
                     const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
 
-                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(bus.bus_no)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
         }
