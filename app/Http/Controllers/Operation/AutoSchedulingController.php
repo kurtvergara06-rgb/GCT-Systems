@@ -494,6 +494,10 @@ class AutoSchedulingController extends Controller
 
                     'issue_type' => 'resource_unavailable',
 
+                    'missing_driver' => ! $driver,
+
+                    'missing_bus' => ! $bus,
+
                     'reason' =>
                         implode(
                             ' ',
