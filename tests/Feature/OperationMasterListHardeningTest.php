@@ -429,6 +429,29 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertGreaterThan(strpos($html, '</main>'), strpos($html, 'id="availabilityBusModal"'));
     }
 
+    public function test_bus_realtime_route_subscriptions_include_availability_and_dispatch(): void
+    {
+        $echo = file_get_contents(resource_path('js/echo.js'));
+
+        foreach (['Operation:Bus', 'Operation:TripSchedule', 'Maintenance:JobOrder'] as $eventKey) {
+            $this->assertMatchesRegularExpression(
+                '/'.preg_quote("'".$eventKey."':", '/').'.*'.preg_quote('/operation/bus-availability', '/').'/',
+                $echo
+            );
+        }
+    }
+
+    public function test_auto_scheduling_and_manual_bus_assignment_reject_unresolved_job_orders(): void
+    {
+        $manual = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
+        $automatic = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+
+        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $manual);
+        $this->assertStringContainsString('unresolved Maintenance Job Order', $manual);
+        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $automatic);
+        $this->assertStringContainsString('unresolved Maintenance Job Order', $automatic);
+    }
+
     private function operationUser(string $role = 'head'): User
     {
         return User::factory()->create([
