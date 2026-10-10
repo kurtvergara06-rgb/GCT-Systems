@@ -20,8 +20,8 @@
 
             <section data-ajax-region="summary" class="stats-grid availability-stats" aria-label="Fleet status summary">
                 <x-ui.summary-card label="Total Buses" value="{{ $totalBuses }}" small="Registered fleet" icon="fa-bus" color="blue" />
-                <x-ui.summary-card label="Active" value="{{ $activeBuses }}" small="Active master status" icon="fa-circle-check" color="green" />
-                <x-ui.summary-card label="Under Maintenance" value="{{ $maintenanceBuses }}" small="Not ready for dispatch" icon="fa-screwdriver-wrench" color="red" />
+                <x-ui.summary-card label="Eligible Active" value="{{ $activeBuses }}" small="Active without open JO" icon="fa-circle-check" color="green" />
+                <x-ui.summary-card label="Maintenance Restricted" value="{{ $maintenanceBuses }}" small="Master status or open JO" icon="fa-screwdriver-wrench" color="red" />
                 <x-ui.summary-card label="Inactive" value="{{ $inactiveBuses }}" small="Out of service" icon="fa-circle-pause" color="yellow" />
             </section>
 
@@ -74,7 +74,7 @@
                             @forelse($buses as $bus)
                                 @php
                                     $readiness = match (true) {
-                                        $bus->status === 'Under Maintenance' => 'Under Maintenance',
+                                        $bus->status === 'Under Maintenance' || $bus->has_unresolved_job_order => 'Under Maintenance',
                                         $bus->status !== 'Active' => 'Out of Service',
                                         $bus->is_on_trip => 'On Trip',
                                         default => 'Available',
@@ -128,7 +128,7 @@
                     {{ $buses->links() }}
                 </div>
             </section>
-            <p class="availability-note">A future assignment does not make a bus unavailable now. Availability is determined from recorded master status and trip status, not live GPS position.</p>
+            <p class="availability-note">A future assignment does not make a bus unavailable now. Availability reflects recorded bus status, unresolved Maintenance Job Orders and trip status, not live GPS position.</p>
         </main>
     </div>
     {{-- Body-level read-only modal, outside scrollable table to prevent clipping. --}}
@@ -145,7 +145,7 @@
             <div class="bus-details-body">
                 <div class="bus-details-section">
                     <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
-                    <div><strong>Bus Information</strong><p>Official identification and current condition</p></div>
+                    <div><strong>Bus Information</strong><p>Official identification and recorded operational status</p></div>
                 </div>
                 <dl class="bus-details-grid">
                     <div><dt>Plate Number (Bus ID)</dt><dd data-availability-detail="plate">—</dd></div>
