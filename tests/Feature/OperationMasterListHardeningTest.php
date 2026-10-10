@@ -452,6 +452,25 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString('unresolved Maintenance Job Order', $automatic);
     }
 
+    public function test_assignment_page_uses_route_endpoints_and_respects_locked_trips(): void
+    {
+        $user = $this->operationUser();
+        $this->bus();
+
+        $response = $this->actingAs($user)->get(route('driver-bus-assignment'));
+        $response->assertOk()
+            ->assertSee('Pickup', false)
+            ->assertSee('Dropoff', false);
+
+        $template = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $this->assertStringContainsString('$route?->origin', $template);
+        $this->assertStringContainsString('$route?->destination', $template);
+        $this->assertStringContainsString("['Cancelled', 'Dispatched', 'Completed']", $template);
+        $this->assertStringContainsString('!$isLocked', $template);
+        $this->assertStringContainsString('resource-assign-bus', $template);
+        $this->assertStringContainsString('resource-assign-driver', $template);
+    }
+
     private function operationUser(string $role = 'head'): User
     {
         return User::factory()->create([
