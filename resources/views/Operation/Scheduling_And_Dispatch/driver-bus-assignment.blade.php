@@ -153,7 +153,6 @@
                                 <th>Trip ID</th>
                                 <th>Schedule</th>
                                 <th>Route</th>
-                                <th>Pickup → Dropoff</th>
                                 <th>Driver</th>
                                 <th>Bus</th>
                                 <th>Status</th>
@@ -218,13 +217,6 @@
                                         <div class="route-cell">
                                             <strong>{{ $route?->route_code ?? '—' }}</strong>
                                             <span>{{ $route?->route_name ?? 'Deleted route' }}</span>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <div class="assignment-journey">
-                                            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $route?->origin ?: 'Origin not recorded' }}</span>
-                                            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $route?->destination ?: 'Destination not recorded' }}</span>
                                         </div>
                                     </td>
 
@@ -359,7 +351,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="8"
+                                    colspan="7"
                                     message="No trip schedules found."
                                 />
                             @endforelse
@@ -382,9 +374,9 @@
 
                     <div class="resource-filter-bar" data-resource-filter="drivers">
                         <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search driver name, ID, or shift..." aria-label="Search visible unallocated drivers"></label>
-                        <select aria-label="Filter visible drivers by shift"><option value="">All Shifts</option>@foreach($availableDrivers->pluck('shift')->filter()->unique()->sort()->values() as $shift)<option value="{{ $shift }}">{{ $shift }} Shift</option>@endforeach</select>
+                        <select aria-label="Filter visible drivers by shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon', 'Night'] as $shift)<option value="{{ $shift }}">{{ $shift }} Shift</option>@endforeach</select>
                     </div>
-                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver ID</span><span>Name</span><span>Shift</span><span>Attendance</span><span>Action</span></div>
+                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Attendance</span></div>
                     @forelse($availableDrivers as $driver)
                         <div class="resource-record" data-resource-row="drivers" data-resource-text="{{ strtolower($driver->driver_name.' '.$driver->shift.' '.$driver->driver_id) }}" data-resource-category="{{ strtolower($driver->shift) }}">
                             <div class="driver-avatar">
@@ -404,9 +396,6 @@
                             <span class="availability available">
                                 {{ $driver->status }}
                             </span>
-                            @if($canEditOperation)
-                                <button type="button" class="resource-assign-btn resource-assign-driver" data-driver-id="{{ $driver->id }}" title="Choose an unassigned trip to assign this driver">Assign</button>
-                            @endif
                         </div>
                     @empty
                         <p class="resource-empty">No unallocated, eligible drivers for the selected date.</p>
@@ -428,9 +417,8 @@
 
                     <div class="resource-filter-bar" data-resource-filter="buses">
                         <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search plate number or model..." aria-label="Search visible unallocated buses"></label>
-                        <select aria-label="Filter visible buses by model"><option value="">All Models</option>@foreach($availableBuses->pluck('bus_model')->filter()->unique()->sort()->values() as $model)<option value="{{ $model }}">{{ $model }}</option>@endforeach</select>
                     </div>
-                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Plate Number</span><span>Model</span><span>Status</span><span>Action</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Plate Number</span><span>Model</span><span>Status</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record" data-resource-row="buses" data-resource-text="{{ strtolower($bus->plate_no.' '.$bus->bus_model.' '.$bus->bus_no) }}" data-resource-category="{{ strtolower($bus->bus_model) }}">
                             <div class="bus-resource-icon">
@@ -444,9 +432,6 @@
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
 
                             <span class="availability available">Active</span>
-                            @if($canEditOperation)
-                                <button type="button" class="resource-assign-btn resource-assign-bus" data-bus-id="{{ $bus->id }}" title="Choose an unassigned trip to assign this bus">Assign</button>
-                            @endif
                         </div>
                     @empty
                         <p class="resource-empty">No unallocated active buses for the selected date.</p>
