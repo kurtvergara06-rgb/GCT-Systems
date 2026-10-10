@@ -36,9 +36,7 @@ class BatchFileProcessingController extends Controller
         }
 
         $selectedBatch = $selectedBatchId
-            ? BatchUpload::with(['tripRecords' => function ($query) {
-                $query->orderBy('beginning_at');
-            }])->find($selectedBatchId)
+            ? BatchUpload::withCount('tripRecords')->find($selectedBatchId)
             : null;
 
         /*
@@ -87,7 +85,8 @@ class BatchFileProcessingController extends Controller
 
         $records = $recordsQuery
             ->latest('beginning_at')
-            ->get();
+            ->paginate(50, ['*'], 'records_page')
+            ->withQueryString();
 
         $selectedRecordId = $request->integer('selected_record');
 
@@ -106,8 +105,11 @@ class BatchFileProcessingController extends Controller
         }
 
         $allSelectedRecords = $selectedBatch
-            ? $selectedBatch->tripRecords()->orderBy('beginning_at')->get()
-            : collect();
+            ? $selectedBatch->tripRecords()
+                ->orderBy('beginning_at')
+                ->paginate(50, ['*'], 'preview_page')
+                ->withQueryString()
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 50);
 
         $filesUploaded = BatchUpload::count();
 
