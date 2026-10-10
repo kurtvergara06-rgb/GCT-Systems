@@ -1859,3 +1859,41 @@
 .assignment-page .resource-filter-bar select:focus {border-color:#3978d9;box-shadow:0 0 0 2px rgba(57,120,217,.12)}
 .assignment-page .resource-card .resource-record[hidden]{display:none!important}
 @media(max-width:460px){.assignment-page .resource-filter-bar{grid-template-columns:1fr}}
+
+/* Simplified resource tables — three aligned data columns, no action buttons. */
+.assignment-page .assignment-table { min-width: 0; }
+.assignment-page .assignment-table th:nth-child(1) { width: 9%; }
+.assignment-page .assignment-table th:nth-child(2) { width: 14%; }
+.assignment-page .assignment-table th:nth-child(3) { width: 19%; }
+.assignment-page .assignment-table th:nth-child(4) { width: 22%; }
+.assignment-page .assignment-table th:nth-child(5) { width: 13%; }
+.assignment-page .assignment-table th:nth-child(6) { width: 11%; }
+.assignment-page .assignment-table th:nth-child(7) { width: 12%; }
+.assignment-page .resource-card .resource-list-head--drivers,
+.assignment-page .resource-card .resource-list-head--buses {
+    display: grid;
+    grid-template-columns: minmax(0,1.6fr) minmax(0,1fr) minmax(70px,.75fr);
+    align-items: center;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-record {
+    display: grid;
+    grid-template-columns: 34px minmax(0,1.6fr) minmax(0,1fr) minmax(70px,.75fr);
+    align-items:center;
+    gap:10px;
+    min-height:52px;
+}
+.assignment-page .resource-card .resource-list-head--drivers span:last-child,
+.assignment-page .resource-card .resource-list-head--buses span:last-child { text-align: center; }
+.assignment-page .resource-filter-bar[data-resource-filter="buses"] { grid-template-columns:minmax(0,1fr); }
+@media(max-width:900px) {
+    .assignment-page .resource-card .resource-list-head--drivers,
+    .assignment-page .resource-card .resource-list-head--buses { display:none; }
+    .assignment-page .resource-card .resource-record {
+        grid-template-columns:34px minmax(0,1fr) auto;
+        gap:8px;
+    }
+    .assignment-page .resource-card .resource-record .availability {
+        grid-column:3;grid-row:1;justify-self:end;
+    }
+}
