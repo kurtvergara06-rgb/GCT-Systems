@@ -24,3 +24,41 @@
 .bus-availability-page .availability-footer{margin-top:14px;padding-top:14px;border-top:1px solid #e7edf5}
 @media(max-width:1050px){.bus-availability-page .availability-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.bus-availability-page .availability-toolbar .availability-search{grid-column:1/-1}}
 @media(max-width:620px){.bus-availability-page .availability-toolbar{grid-template-columns:minmax(0,1fr)}.bus-availability-page .availability-toolbar .availability-search{grid-column:auto}}
+
+/* Match the Bus Master List single-input search pattern: no nested double border. */
+.bus-availability-page .availability-toolbar .availability-search{
+  display:block;
+  position:relative;
+  flex:none;
+  min-width:0;
+  width:100%;
+  height:auto;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.bus-availability-page .availability-toolbar .availability-search input{
+  display:block;
+  width:100%;
+  height:40px;
+  min-height:40px;
+  box-sizing:border-box;
+  padding:0 14px 0 40px !important;
+  border:1px solid #d9e4f0 !important;
+  border-radius:9px;
+  background:#fff;
+  box-shadow:none;
+}
+.bus-availability-page .availability-toolbar .availability-search input:focus{
+  border-color:#0b40b5 !important;
+  box-shadow:0 0 0 3px rgba(11,64,181,.12) !important;
+}
+.bus-availability-page .availability-toolbar .availability-search > i{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  z-index:1;
+}
