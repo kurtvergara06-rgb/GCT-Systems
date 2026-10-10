@@ -83,7 +83,7 @@
                             type="text"
                             name="search"
                             value="{{ request('search') }}"
-                            placeholder="Search bus ID, model, route, or status..."
+                            placeholder="Search plate number, unit number, model or status..."
                             aria-label="Search bus records"
                         >
                     </div>
@@ -144,7 +144,7 @@
                     <table class="bus-table">
                         <thead>
                             <tr>
-                                <th>Bus ID</th>
+                                <th>Bus ID (Plate Number)</th>
                                 <th>Model</th>
                                 <th>Assigned Route</th>
 
@@ -157,12 +157,12 @@
                             @forelse($buses as $bus)
                                 <tr>
                                     <td>
-                                        <x-ui.id-badge :value="$bus->bus_no" />
+                                        <x-ui.id-badge :value="$bus->plate_no ?: 'Plate not recorded'" />
                                     </td>
 
                                     <td>
                                         <strong>{{ $bus->bus_model ?: '—' }}</strong>
-                                        <div class="bus-plate-detail">{{ $bus->plate_no ?: 'No plate number' }}</div>
+                                        <div class="bus-plate-detail">Unit No. {{ $bus->bus_no }}</div>
                                     </td>
 
                                     <td>
