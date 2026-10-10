@@ -1841,7 +1841,7 @@ function updateMlStatus(conflicts) {
                                 <div class="gct-finding-list">${renderFindings(findings)}</div>
                             </section>
 
-                            ${drivers.length ? `
+                            ${drivers.length && !missingDriver ? `
                                 <section class="gct-panel-block">
                                     <div class="gct-option-section-header">
                                         <strong><i class="fa-solid fa-user-tie"></i> Alternative Drivers</strong>
@@ -1869,7 +1869,7 @@ function updateMlStatus(conflicts) {
                             <section class="gct-panel-block">
                                 <h4 class="gct-panel-heading">
                                     <i class="fa-regular fa-star"></i>
-                                    Best Recommended Action
+                                    ${missingDriver || missingBus ? 'Required Before Scheduling' : 'Best Recommended Action'}
                                 </h4>
                                 <div class="gct-best-action">
                                     <div class="gct-best-action-top">
@@ -1877,7 +1877,7 @@ function updateMlStatus(conflicts) {
                                             <h4>${escapeHtml(actionTitle)}</h4>
                                             <p>${escapeHtml(actionDescription)}</p>
                                         </div>
-                                        <div class="gct-confidence">
+                                        <div class="gct-confidence" ${missingDriver || missingBus ? 'hidden' : ''}>
                                             <span>Score</span>
                                             <strong>${score}</strong>
                                             <small>${escapeHtml(confidence)}</small>
@@ -1905,7 +1905,7 @@ function updateMlStatus(conflicts) {
                                 ` : ''}
 
                                 ${missingDriver ? '<p class="gct-availability-note">Bus availability is informational until a valid driver attendance record exists.</p>' : ''}
-                                <div class="gct-selected-combination">
+                                <div class="gct-selected-combination" ${missingDriver || missingBus ? 'hidden' : ''}>
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-user-check"></i>
                                         ${escapeHtml(missingDriver ? 'No eligible driver' : (selectedDriver?.label || 'Best available driver'))}
