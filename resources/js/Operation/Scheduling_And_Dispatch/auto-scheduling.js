@@ -1730,6 +1730,10 @@ function updateMlStatus(conflicts) {
     const renderConflict = (conflict, index) => {
         const ai = conflict?.ai || {};
         const aiConflict = ai?.conflict || {};
+        const isResourceShortage = conflict?.issue_type === 'resource_unavailable';
+        const issueDescription = isResourceShortage
+            ? 'This trip needs an eligible driver or bus before an assignment can be created.'
+            : 'The system could not create a conflict-free assignment.';
         const findings = Array.isArray(aiConflict.findings)
             ? aiConflict.findings
             : [];
@@ -1794,7 +1798,7 @@ function updateMlStatus(conflicts) {
                                 || conflict.reason
                                 || 'Unable to assign resources.'
                             )}</strong>
-                            <small>The system could not create a conflict-free assignment.</small>
+                            <small>${escapeHtml(issueDescription)}</small>
                         </div>
                     </div>
                 </div>
@@ -1804,8 +1808,8 @@ function updateMlStatus(conflicts) {
                         <div class="gct-ai-title-wrap">
                             <span class="gct-ai-icon"><i class="fa-solid fa-microchip"></i></span>
                             <div>
-                                <span class="section-eyebrow warning">AI Conflict Analysis</span>
-                                <h3>${escapeHtml(aiConflict.title || 'Scheduling conflict detected')}</h3>
+                                <span class="section-eyebrow warning">${isResourceShortage ? 'Availability Analysis' : 'AI Conflict Analysis'}</span>
+                                <h3>${escapeHtml(aiConflict.title || (isResourceShortage ? 'Eligible resources unavailable' : 'Scheduling conflict detected'))}</h3>
                                 <p>${escapeHtml(
                                     aiConflict.explanation
                                     || ai.conflict_explanation
@@ -1953,6 +1957,16 @@ function updateMlStatus(conflicts) {
         }
 
         container.dataset.gctRedesignSignature = signature;
+        const hasResourceShortage = conflicts.some((item) => item.issue_type === 'resource_unavailable');
+        const hasOtherConflict = conflicts.some((item) => item.issue_type !== 'resource_unavailable');
+        const section = document.getElementById('autoSchedulingConflictSection');
+        const title = section?.querySelector('.conflict-header h2');
+        const description = section?.querySelector('.conflict-header p');
+        if (title) title.textContent = hasResourceShortage && !hasOtherConflict
+            ? 'Resource Availability Issues' : 'Scheduling Issues';
+        if (description) description.textContent = hasResourceShortage && !hasOtherConflict
+            ? 'Some trips cannot be assigned because eligible resources are unavailable.'
+            : 'Some trips need additional review before they can be assigned.';
         container.innerHTML = conflicts.map(renderConflict).join('');
     };
 
