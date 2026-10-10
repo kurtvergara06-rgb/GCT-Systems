@@ -452,23 +452,23 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString('unresolved Maintenance Job Order', $automatic);
     }
 
-    public function test_assignment_page_uses_route_endpoints_and_respects_locked_trips(): void
+    public function test_assignment_page_keeps_trip_locks_and_read_only_resource_lists(): void
     {
         $user = $this->operationUser();
         $this->bus();
 
         $response = $this->actingAs($user)->get(route('driver-bus-assignment'));
         $response->assertOk()
-            ->assertSee('Pickup', false)
-            ->assertSee('Dropoff', false);
+            ->assertSee('Route', false)
+            ->assertDontSee('Pickup → Dropoff', false);
 
         $template = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
-        $this->assertStringContainsString('$route?->origin', $template);
-        $this->assertStringContainsString('$route?->destination', $template);
+        $this->assertStringNotContainsString('assignment-journey', $template);
         $this->assertStringContainsString("['Cancelled', 'Dispatched', 'Completed']", $template);
         $this->assertStringContainsString('!$isLocked', $template);
-        $this->assertStringContainsString('resource-assign-bus', $template);
-        $this->assertStringContainsString('resource-assign-driver', $template);
+        $this->assertStringNotContainsString('resource-assign-bus', $template);
+        $this->assertStringNotContainsString('resource-assign-driver', $template);
+        $this->assertStringContainsString("'Night'", $template);
     }
 
     private function operationUser(string $role = 'head'): User
