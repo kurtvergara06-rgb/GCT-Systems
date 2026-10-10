@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Operation\AutoSchedulingController;
+use App\Http\Controllers\Operation\BusAvailabilityController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
@@ -32,6 +33,10 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
                 ->middleware('system.permission:operation,edit')
                 ->name('bus-master-list.destroy');
         });
+
+    Route::get('/operation/bus-availability', [BusAvailabilityController::class, 'index'])
+        ->middleware('system.permission:operation,view')
+        ->name('bus-availability');
 
     Route::controller(DriverAttendanceController::class)
         ->prefix('driver-attendance')
