@@ -36,7 +36,7 @@ window.realtimePageRouteMap = {
     'Warehouse:PurchaseOrder': ['/warehouse/dashboard','/warehouse/incoming-deliveries','/inventory','/warehouse/stock-movements','/part-requests','/purchase-orders','/maintenance-requests','/job-orders','/maintenance-dashboard','/admin/dashboard'],
     'Warehouse:RolePermission': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/incoming-deliveries','/warehouse/stock-movements'],
     'Maintenance:PurchaseRequest': ['/purchase-requests','/job-orders','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
-    'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
+    'Maintenance:JobOrder': ['/operation/bus-availability','/operation/driver-bus-assignment','/operation/auto-scheduling','/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:RolePermission': ['/maintenance-dashboard','/maintenance-referrals','/pms-scheduling','/fuel-reports','/job-orders','/purchase-requests','/mechanic-list'],
     'Maintenance:FuelReport': ['/fuel-reports','/maintenance-dashboard','/admin/dashboard'],
     'Maintenance:PmsSchedule': ['/pms-scheduling','/job-orders','/maintenance-dashboard','/admin/dashboard'],
@@ -47,9 +47,9 @@ window.realtimePageRouteMap = {
     'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/operation/driver-bus-assignment','/dashboard-operation','/admin/dashboard','/mechanic-list'],
     'Operation:Driver': ['/operation/personnel/drivers','/driver-attendance','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
     'Operation:Mechanic': ['/operation/personnel/mechanics','/mechanic-attendance','/mechanic-list','/job-orders','/maintenance-dashboard','/dashboard-operation','/admin/dashboard'],
-    'Operation:Bus': ['/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
+    'Operation:Bus': ['/operation/bus-availability','/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
     'Operation:Incident': ['/operation/incidents','/dashboard-operation','/admin/dashboard'],
-    'Operation:TripSchedule': ['/operation/trip-schedule','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/trip-records','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
+    'Operation:TripSchedule': ['/operation/bus-availability','/operation/trip-schedule','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/trip-records','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
 };
 
 window.showSystemNotification = function (message) {
