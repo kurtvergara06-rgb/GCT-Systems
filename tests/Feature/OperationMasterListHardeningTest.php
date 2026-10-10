@@ -382,6 +382,53 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString("'Operation:Mechanic'", $echo);
     }
 
+    public function test_bus_availability_flags_unresolved_job_orders_even_if_master_status_is_active(): void
+    {
+        $user = $this->operationUser();
+        $restricted = $this->bus();
+        $clear = $this->bus([
+            'bus_no' => 'BUS-002',
+            'plate_no' => 'ABC-1002',
+        ]);
+
+        $jobOrder = $this->jobOrder($restricted, null);
+
+        $this->actingAs($user)
+            ->get(route('bus-availability'))
+            ->assertOk()
+            ->assertViewHas('activeBuses', 1)
+            ->assertViewHas('maintenanceBuses', 1)
+            ->assertSee('ABC-1001')
+            ->assertSee('Under Maintenance')
+            ->assertSee('ABC-1002')
+            ->assertSee('Available');
+
+        $jobOrder->update(['status' => 'Completed']);
+
+        $this->actingAs($user)
+            ->get(route('bus-availability'))
+            ->assertOk()
+            ->assertViewHas('activeBuses', 2)
+            ->assertViewHas('maintenanceBuses', 0);
+    }
+
+    public function test_bus_availability_view_modal_is_outside_scrollable_table_and_read_only(): void
+    {
+        $user = $this->operationUser();
+        $this->bus();
+
+        $response = $this->actingAs($user)->get(route('bus-availability'));
+        $response->assertOk()
+            ->assertSee('id="availabilityBusModal"', false)
+            ->assertSee('open-availability-bus')
+            ->assertDontSee('open-edit-bus')
+            ->assertDontSee('open-delete-bus');
+
+        $html = $response->getContent();
+        $this->assertGreaterThan(strpos($html, 'class="table-wrap availability-table-wrap"'), strpos($html, 'id="availabilityBusModal"'));
+        $this->assertGreaterThan(strpos($html, '</main>'), strpos($html, 'id="availabilityBusModal"'));
+    }
+
     private function operationUser(string $role = 'head'): User
     {
         return User::factory()->create([
