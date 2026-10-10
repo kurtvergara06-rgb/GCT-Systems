@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\TripAssignment;
@@ -581,6 +582,15 @@ class TripAssignmentController extends Controller
         if (! $bus) {
             throw ValidationException::withMessages([
                 'bus_id' => 'The selected bus is inactive or unavailable.',
+            ]);
+        }
+
+        if (JobOrder::query()
+            ->where('bus_no', $bus->bus_no)
+            ->where('status', '!=', 'Completed')
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'This bus has an unresolved Maintenance Job Order and cannot be assigned until Maintenance clears it.',
             ]);
         }
 
