@@ -54,8 +54,8 @@
                     <table class="bus-table">
                         <thead>
                             <tr>
-                                <th>Bus No.</th>
-                                <th>Plate No.</th>
+                                <th>Bus ID (Plate Number)</th>
+                                <th>Unit No.</th>
                                 <th>Model</th>
                                 <th>Availability</th>
                                 <th>Next / Active Assignment</th>
@@ -78,8 +78,8 @@
                                     };
                                 @endphp
                                 <tr>
-                                    <td><strong>{{ $bus->bus_no }}</strong></td>
-                                    <td>{{ $bus->plate_no ?: '—' }}</td>
+                                    <td><strong>{{ $bus->plate_no ?: 'Plate not recorded' }}</strong></td>
+                                    <td>{{ $bus->bus_no }}</td>
                                     <td>{{ $bus->bus_model ?: '—' }}</td>
                                     <td>
                                         <span style="font-weight:600;color:{{ $readinessColor }}">{{ $readiness }}</span>
