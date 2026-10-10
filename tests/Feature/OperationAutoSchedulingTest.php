@@ -397,6 +397,31 @@ class OperationAutoSchedulingTest extends TestCase
         ]);
     }
 
+    public function test_auto_scheduling_confirm_rejects_expired_driver_license(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $attendance, $bus] = $this->makeScheduleResources();
+
+        Driver::query()
+            ->where('driver_id', $attendance->driver_id)
+            ->update(['license_expiration' => $trip->trip_date->copy()->subDay()->toDateString()]);
+
+        $this->actingAs($user)
+            ->postJson(route('auto-scheduling.confirm'), [
+                'recommendations' => [[
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $attendance->id,
+                    'bus_id' => $bus->id,
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('recommendations.0');
+
+        $this->assertDatabaseMissing('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+        ]);
+    }
+
     public function test_auto_scheduling_resolve_rejects_inactive_master_driver(): void
     {
         $user = User::factory()->create();
