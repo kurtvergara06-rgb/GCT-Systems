@@ -28,7 +28,7 @@ class RealtimeNotificationScopingTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            "'Operation:Bus': ['/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard']",
+            "'Operation:Bus': ['/operation/bus-availability','/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard']",
             $js
         );
 

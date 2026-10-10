@@ -168,9 +168,6 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
-            ->whereNotIn('bus_no', JobOrder::query()
-                ->where('status', '!=', 'Completed')
-                ->select('bus_no'))
             ->orderBy('route_code')
             ->get([
                 'id',
