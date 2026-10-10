@@ -174,6 +174,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
+                'resources/css/Operation/Shuttle_Bus_Management/bus-availability.css',
                 'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
 
                 // ======================================================
