@@ -14,7 +14,7 @@
         <main class="main bus-availability-page">
             <x-layout.topbar
                 title="Bus Availability"
-                subtitle="Live operational readiness from bus and trip records"
+                subtitle="Operational readiness from current bus and trip records"
             />
 
             <section data-ajax-region="summary" class="availability-stats" aria-label="Fleet status summary">
@@ -33,14 +33,10 @@
                             <p>Read-only fleet overview. Manage official records in Bus Master List or Maintenance.</p>
                         </div>
                     </div>
-                    <div class="availability-heading-actions">
-                        <span class="availability-as-of"><i class="fa-regular fa-clock" aria-hidden="true"></i> As of {{ now(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y g:i A') }}</span>
-                        <a href="{{ route('bus-availability', request()->only(['search', 'status', 'model'])) }}" class="availability-refresh"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</a>
-                    </div>
                 </div>
 
-                <form method="GET" action="{{ route('bus-availability') }}" class="availability-toolbar" data-server-filter="true">
-                    <label class="availability-search">
+                <form method="GET" action="{{ route('bus-availability') }}" class="toolbar availability-toolbar" data-server-filter="true">
+                    <label class="search-box availability-search">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         <span class="sr-only">Search by plate number or model</span>
                         <input type="search" name="search" value="{{ request('search') }}" placeholder="Search plate number or model...">
@@ -63,10 +59,9 @@
                             @endforeach
                         </select>
                     </label>
-                    <button class="availability-apply" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Apply Filters</button>
                 </form>
 
-                <div class="availability-table-wrap">
+                <div class="table-wrap availability-table-wrap">
                     <table class="availability-table">
                         <thead>
                             <tr>
@@ -129,7 +124,7 @@
                     </table>
                 </div>
 
-                <div class="availability-footer">
+                <div class="table-footer availability-footer">
                     <span>Showing {{ $buses->firstItem() ?? 0 }} to {{ $buses->lastItem() ?? 0 }} of {{ $buses->total() }} buses</span>
                     {{ $buses->links() }}
                 </div>
