@@ -490,7 +490,9 @@ class AutoSchedulingController extends Controller
                         ?? 'Unknown route',
 
                     'result' =>
-                        'Conflict',
+                        'Needs Review',
+
+                    'issue_type' => 'resource_unavailable',
 
                     'reason' =>
                         implode(
