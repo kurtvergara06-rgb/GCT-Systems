@@ -1909,3 +1909,44 @@
 .assignment-page .assignment-bus-info{display:flex;flex-direction:column;gap:3px;min-width:0}
 .assignment-page .assignment-bus-info strong,.assignment-page .assignment-resource-empty strong{color:#132744;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .assignment-page .assignment-bus-info span{color:#637894;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Seven-column Trip Assignments table: header and body use matching alignment. */
+.assignment-page .assignment-table {
+    width: 100%;
+    min-width: 980px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.assignment-page .assignment-table thead th {
+    box-sizing: border-box;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.assignment-page .assignment-table tbody td {
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+.assignment-page .assignment-table thead th:nth-child(1),
+.assignment-page .assignment-table tbody td:nth-child(1),
+.assignment-page .assignment-table thead th:nth-child(5),
+.assignment-page .assignment-table tbody td:nth-child(5),
+.assignment-page .assignment-table thead th:nth-child(6),
+.assignment-page .assignment-table tbody td:nth-child(6),
+.assignment-page .assignment-table thead th:nth-child(7),
+.assignment-page .assignment-table tbody td:nth-child(7) { text-align: center; }
+.assignment-page .assignment-table thead th:nth-child(2),
+.assignment-page .assignment-table tbody td:nth-child(2),
+.assignment-page .assignment-table thead th:nth-child(3),
+.assignment-page .assignment-table tbody td:nth-child(3),
+.assignment-page .assignment-table thead th:nth-child(4),
+.assignment-page .assignment-table tbody td:nth-child(4) { text-align: left; }
+.assignment-page .assignment-table tbody td:nth-child(5) .assignment-bus-cell,
+.assignment-page .assignment-table tbody td:nth-child(5) .assignment-resource-empty,
+.assignment-page .assignment-table tbody td:nth-child(7) .assignment-actions {
+    justify-content: center;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status { margin-inline: auto; }
