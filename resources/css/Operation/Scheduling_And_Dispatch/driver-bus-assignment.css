@@ -1769,3 +1769,68 @@
 .assignment-page .resource-empty{min-height:120px}
 @media(max-width:1200px){.assignment-page .resource-list-head--drivers,.assignment-page .resource-list-head--buses{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px}.assignment-page .resource-record{grid-template-columns:30px minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px;gap:6px}.assignment-page .resource-assign-btn{width:62px}}
 @media(max-width:650px){.assignment-page .resource-list-head{display:none}.assignment-page .resource-record{grid-template-columns:34px minmax(0,1fr) auto;gap:10px}.assignment-page .resource-record .resource-row-detail{display:none}.assignment-page .resource-assign-btn{grid-column:3}.assignment-page .resource-record .availability{grid-column:2;justify-self:start}}
+
+
+/* Compact resource tables: five child cells stay on one row at desktop sizes.
+   Override older 4-column resource-card rules without changing trip logic. */
+.assignment-page .resource-card .resource-record {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 9px 11px;
+    min-height: 52px;
+}
+.assignment-page .resource-card .resource-list-head--drivers {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-list-head--buses {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-record .resource-record-info,
+.assignment-page .resource-card .resource-record .resource-row-detail,
+.assignment-page .resource-card .resource-record .availability,
+.assignment-page .resource-card .resource-record .resource-assign-btn { min-width: 0; }
+.assignment-page .resource-card .resource-record .availability { justify-self: start; }
+.assignment-page .resource-card .resource-record .resource-assign-btn {
+    grid-column: 5;
+    justify-self: end;
+    width: 76px;
+    height: 32px;
+    background: #ffbd00;
+    border: 1px solid #f2b400;
+    color: #102a4e;
+    font-size: 11px;
+    font-weight: 800;
+}
+.assignment-page .resource-card .resource-record .resource-assign-btn:hover { background: #ffd23d; }
+.assignment-page .resource-card .resource-list-head--drivers span:last-child,
+.assignment-page .resource-card .resource-list-head--buses span:last-child { text-align: right; }
+@media (max-width: 1350px) {
+    .assignment-page .resource-card .resource-record,
+    .assignment-page .resource-card .resource-list-head--drivers {
+        grid-template-columns: 30px minmax(0, 1.3fr) minmax(0, .9fr) minmax(64px, .7fr) 68px;
+        gap: 6px;
+    }
+    .assignment-page .resource-card .resource-list-head--buses {
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr) minmax(64px, .7fr) 68px;
+        gap: 6px;
+    }
+    .assignment-page .resource-card .resource-record .resource-assign-btn { width: 68px; }
+}
+@media (max-width: 900px) {
+    .assignment-page .resource-card .resource-list-head--drivers,
+    .assignment-page .resource-card .resource-list-head--buses { display: none; }
+    .assignment-page .resource-card .resource-record {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 8px;
+    }
+    .assignment-page .resource-card .resource-record .resource-row-detail { display: none; }
+    .assignment-page .resource-card .resource-record .resource-assign-btn { grid-column: 3; grid-row: 1; }
+    .assignment-page .resource-card .resource-record .availability { grid-column: 2; grid-row: 2; }
+}
