@@ -873,6 +873,10 @@ class AutoSchedulingController extends Controller
                     || ! Driver::query()
                         ->where('driver_id', $driver->driver_id)
                         ->where('employment_status', 'Active')
+                        ->where(function ($query) use ($trip) {
+                            $query->whereNull('license_expiration')
+                                ->orWhereDate('license_expiration', '>=', $trip->trip_date);
+                        })
                         ->lockForUpdate()
                         ->first()
                 ) {
