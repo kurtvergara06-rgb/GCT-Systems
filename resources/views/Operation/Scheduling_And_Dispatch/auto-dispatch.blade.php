@@ -201,12 +201,16 @@
         </section>
 
         <section class="auto-card scheduling-rules-card">
-            <div class="auto-card-header">
-                <div>
-                    <span class="section-eyebrow">Dispatch Logic</span>
-                    <h2>Scheduling Rules</h2>
-                    <p>Rules checked before assigning a driver or shuttle bus.</p>
+            <div class="auto-card-header rules-section-header">
+                <div class="rules-section-heading">
+                    <span class="rules-heading-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+                    <div>
+                        <span class="section-eyebrow">Dispatch Logic</span>
+                        <h2>Scheduling Rules</h2>
+                        <p>Rules checked before assigning a driver or shuttle bus.</p>
+                    </div>
                 </div>
+                <span class="rules-enforced-label"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Automatically enforced by the system</span>
             </div>
 
             <div class="rules-grid">
