@@ -127,9 +127,27 @@
     if (in_array($componentDepartment, ['operation', 'operations'], true)) {
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
-            ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
             [
-                'label' => 'Scheduling',
+                'label' => 'Master Data',
+                'icon' => 'fa-database',
+                'children' => [
+                    ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
+                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
+                    ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
+                    ['label' => 'Route Management', 'route' => 'operation.routes', 'icon' => 'fa-route'],
+                ],
+            ],
+            [
+                'label' => 'Attendance & Availability',
+                'icon' => 'fa-calendar-check',
+                'children' => [
+                    ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
+                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
+                    ['label' => 'Bus Availability', 'route' => 'bus-availability', 'icon' => 'fa-bus-simple'],
+                ],
+            ],
+            [
+                'label' => 'Trip Planning & Dispatch',
                 'icon' => 'fa-calendar-days',
                 'children' => [
                     ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
@@ -138,34 +156,13 @@
                 ],
             ],
             [
-                'label' => 'Personnel Management',
-                'icon' => 'fa-address-book',
+                'label' => 'Trip Operations',
+                'icon' => 'fa-clipboard-list',
                 'children' => [
-                    ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
-                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
+                    ['label' => 'Trip Records', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
+                    ['label' => 'Daily Drivers Report', 'route' => 'daily-driver-reports', 'icon' => 'fa-file-lines', 'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*']],
+                    ['label' => 'Incident Management', 'route' => 'incidents', 'icon' => 'fa-triangle-exclamation', 'active_routes' => ['incidents', 'incidents.*']],
                 ],
-            ],
-            [
-                'label' => 'Attendance',
-                'icon' => 'fa-calendar-check',
-                'children' => [
-                    ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
-                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
-                ],
-            ],
-            ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
-            ['label' => 'Trip Records', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
-            [
-                'label' => 'Daily Drivers Report',
-                'route' => 'daily-driver-reports',
-                'icon' => 'fa-file-lines',
-                'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*'],
-            ],
-            [
-                'label' => 'Incidents',
-                'route' => 'incidents',
-                'icon' => 'fa-triangle-exclamation',
-                'active_routes' => ['incidents', 'incidents.*'],
             ],
         ];
     }
