@@ -471,6 +471,26 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString("'Night'", $template);
     }
 
+    public function test_unresolved_maintenance_job_order_excludes_bus_from_manual_dispatch_options(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+        $jobOrder = $this->jobOrder($bus, null);
+        $date = now()->addDays(2)->toDateString();
+
+        $this->actingAs($user)
+            ->get(route('driver-bus-assignment', ['trip_date' => $date]))
+            ->assertOk()
+            ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 0);
+
+        $jobOrder->update(['status' => 'Completed']);
+
+        $this->actingAs($user)
+            ->get(route('driver-bus-assignment', ['trip_date' => $date]))
+            ->assertOk()
+            ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 1);
+    }
+
     private function operationUser(string $role = 'head'): User
     {
         return User::factory()->create([
