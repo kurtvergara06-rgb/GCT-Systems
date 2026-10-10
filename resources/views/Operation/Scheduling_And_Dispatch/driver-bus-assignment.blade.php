@@ -242,7 +242,7 @@
 
                                     <td>
                                         @if($bus)
-                                            <x-ui.id-badge :value="$bus->bus_no" />
+                                            <x-ui.id-badge :value="$bus->plate_no ?: 'Plate not recorded'" />
                                         @else
                                             <span class="not-assigned">Not Assigned</span>
                                         @endif
@@ -419,7 +419,7 @@
                             </div>
 
                             <div class="resource-record-info">
-                                <strong>{{ $bus->bus_no }}</strong>
+                                <strong>{{ $bus->plate_no ?: 'Plate not recorded' }}</strong>
                                 <span class="resource-mobile-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
                             </div>
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
