@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\TripAssignment;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +18,15 @@ class BusAvailabilityController extends Controller
         $status = (string) $request->query('status', '');
         $model = trim((string) $request->query('model', ''));
         $models = Bus::query()->whereNotNull('bus_model')->where('bus_model', '!=', '')->distinct()->orderBy('bus_model')->pluck('bus_model');
+
+        // A stale Active master status must never override an unresolved JO.
+        // Match on the internal bus_no used by Maintenance, not the plate number.
+        $restrictedBusNumbers = JobOrder::query()
+            ->where('status', '!=', 'Completed')
+            ->distinct()
+            ->pluck('bus_no')
+            ->filter()
+            ->values();
 
         $query = Bus::query();
 
@@ -51,7 +61,8 @@ class BusAvailabilityController extends Controller
             ->sortBy(fn ($assignment) => $assignment->tripSchedule->trip_date->format('Y-m-d').' '.$assignment->tripSchedule->departure_time)
             ->groupBy('bus_id');
 
-        $buses->getCollection()->each(function (Bus $bus) use ($assignments): void {
+        $buses->getCollection()->each(function (Bus $bus) use ($assignments, $restrictedBusNumbers): void {
+            $bus->has_unresolved_job_order = $restrictedBusNumbers->contains($bus->bus_no);
             $bus->next_assignment = $assignments->get($bus->id)?->first()?->tripSchedule;
             $bus->is_on_trip = $assignments->get($bus->id)?->contains(
                 fn ($assignment) => in_array($assignment->tripSchedule?->status, ['Dispatched'], true)
@@ -62,8 +73,8 @@ class BusAvailabilityController extends Controller
             'buses' => $buses,
             'models' => $models,
             'totalBuses' => Bus::count(),
-            'activeBuses' => Bus::where('status', 'Active')->count(),
-            'maintenanceBuses' => Bus::where('status', 'Under Maintenance')->count(),
+            'activeBuses' => Bus::where('status', 'Active')->whereNotIn('bus_no', $restrictedBusNumbers)->count(),
+            'maintenanceBuses' => Bus::where('status', 'Under Maintenance')->orWhere(fn ($query) => $query->where('status', 'Active')->whereIn('bus_no', $restrictedBusNumbers))->count(),
             'inactiveBuses' => Bus::where('status', 'Inactive')->count(),
         ]);
     }
