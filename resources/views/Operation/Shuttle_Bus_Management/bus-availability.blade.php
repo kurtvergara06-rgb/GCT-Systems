@@ -104,9 +104,14 @@
                                         @endif
                                     </td>
                                     <td class="availability-actions-cell">
-                                        <details class="availability-detail">
-                                            <summary aria-label="View details for {{ $bus->plate_no ?: 'bus with no recorded plate' }}" title="View bus details"><i class="fa-regular fa-eye" aria-hidden="true"></i></summary>
-                                            <div class="availability-detail-content">
+                                        <div class="availability-detail">
+                                            <x-ui.action-button
+                                                type="view"
+                                                title="View Bus Details"
+                                                aria-label="View details for {{ $bus->plate_no ?: 'bus with no recorded plate' }}"
+                                                onclick="const detail = this.nextElementSibling; detail.hidden = !detail.hidden;"
+                                            />
+                                            <div class="availability-detail-content" hidden>
                                                 <strong>Bus Details</strong>
                                                 <p><b>Plate Number:</b> {{ $bus->plate_no ?: 'Not recorded' }}</p>
                                                 <p><b>Model:</b> {{ $bus->bus_model ?: 'Not recorded' }}</p>
@@ -114,7 +119,7 @@
                                                 <p><b>Current Availability:</b> {{ $readiness }}</p>
                                                 <p><b>Next Trip:</b> {{ $bus->next_assignment?->trip_date?->format('M d, Y') ?: 'None scheduled' }}</p>
                                             </div>
-                                        </details>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
