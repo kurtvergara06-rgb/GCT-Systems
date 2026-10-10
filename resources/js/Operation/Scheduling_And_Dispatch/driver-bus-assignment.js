@@ -783,6 +783,16 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     */
 
     document.addEventListener('click', async (event) => {
+        const resourceButton = event.target.closest('.resource-assign-driver, .resource-assign-bus');
+        if (resourceButton && !resourceButton.disabled) {
+            resetAssignmentForm();
+            openModal(assignmentModal);
+            assignmentTrip?.focus();
+            // Trip selection controls which resources are eligible. Never
+            // preselect a driver or bus without validating that trip first.
+            return;
+        }
+
         const newButton = event.target.closest('#openAssignmentModal');
 
         if (newButton && !newButton.disabled) {
