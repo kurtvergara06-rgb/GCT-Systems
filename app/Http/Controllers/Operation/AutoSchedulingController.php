@@ -122,6 +122,9 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
+            ->whereNotIn('bus_no', JobOrder::query()
+                ->where('status', '!=', 'Completed')
+                ->select('bus_no'))
             ->count();
 
         $unavailableDrivers =
@@ -165,6 +168,9 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
+            ->whereNotIn('bus_no', JobOrder::query()
+                ->where('status', '!=', 'Completed')
+                ->select('bus_no'))
             ->orderBy('route_code')
             ->get([
                 'id',
@@ -311,6 +317,9 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
+            ->whereNotIn('bus_no', JobOrder::query()
+                ->where('status', '!=', 'Completed')
+                ->select('bus_no'))
             ->orderBy('bus_no')
             ->get();
 
@@ -872,6 +881,15 @@ class AutoSchedulingController extends Controller
                 ) {
                     throw ValidationException::withMessages([
                         $field => 'A selected driver is no longer eligible for this trip. Generate the schedule again.',
+                    ]);
+                }
+
+                if ($bus && JobOrder::query()
+                    ->where('bus_no', $bus->bus_no)
+                    ->where('status', '!=', 'Completed')
+                    ->exists()) {
+                    throw ValidationException::withMessages([
+                        $field => 'A selected bus has an unresolved Maintenance Job Order. Generate the schedule again.',
                     ]);
                 }
 
