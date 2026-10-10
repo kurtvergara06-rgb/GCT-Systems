@@ -71,7 +71,7 @@
                         <h2>Generate Dispatch Schedule</h2>
                         <p>Select the date, shift, and route to prepare driver and bus recommendations.</p>
                     </div>
-                    <div class="auto-header-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks attendance, bus availability, and schedule conflicts before confirming assignments.</span></div>
                 </div>
 
                 <form id="autoSchedulingForm" class="auto-scheduling-form">
@@ -159,7 +159,7 @@
                 <div class="auto-card-header compact">
                     <div>
                         <span class="section-eyebrow">Resource Status</span>
-                        <h2>Availability</h2>
+                        <h2>Current Availability</h2>
                         <p>Resources eligible for scheduling.</p>
                     </div>
                 </div>
