@@ -102,21 +102,17 @@
                                         @endif
                                     </td>
                                     <td class="availability-actions-cell">
-                                        <div class="actions availability-detail">
-                                            <x-ui.action-button
-                                                type="view"
+                                        <div class="actions">
+                                            <x-ui.action-button type="view" class="open-availability-bus"
                                                 title="View Bus Details"
                                                 aria-label="View details for {{ $bus->plate_no ?: 'bus with no recorded plate' }}"
-                                                onclick="const detail = this.nextElementSibling; detail.hidden = !detail.hidden;"
+                                                data-plate="{{ $bus->plate_no ?: 'Not recorded' }}"
+                                                data-model="{{ $bus->bus_model ?: 'Not recorded' }}"
+                                                data-master-status="{{ $bus->status }}"
+                                                data-availability="{{ $readiness }}"
+                                                data-next-trip="{{ $bus->next_assignment ? (($bus->next_assignment->trip_date?->format('M d, Y') ?? '') . ' ' . $bus->next_assignment->departure_time) : 'None scheduled' }}"
+                                                data-next-route="{{ $bus->next_assignment ? ($bus->next_assignment->route_name_snapshot ?: ($bus->next_assignment->shuttleRoute?->route_name ?? 'Route unavailable')) : '—' }}"
                                             />
-                                            <div class="availability-detail-content" hidden>
-                                                <strong>Bus Details</strong>
-                                                <p><b>Plate Number:</b> {{ $bus->plate_no ?: 'Not recorded' }}</p>
-                                                <p><b>Model:</b> {{ $bus->bus_model ?: 'Not recorded' }}</p>
-                                                <p><b>Master Status:</b> {{ $bus->status }}</p>
-                                                <p><b>Current Availability:</b> {{ $readiness }}</p>
-                                                <p><b>Next Trip:</b> {{ $bus->next_assignment?->trip_date?->format('M d, Y') ?: 'None scheduled' }}</p>
-                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -134,5 +130,41 @@
             </section>
             <p class="availability-note">A future assignment does not make a bus unavailable now. Availability is determined from recorded master status and trip status, not live GPS position.</p>
         </main>
+    </div>
+    {{-- Body-level read-only modal, outside scrollable table to prevent clipping. --}}
+    <div id="availabilityBusModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-box wide-modal bus-details-modal availability-view-modal" role="dialog" aria-modal="true" aria-labelledby="availabilityBusTitle" tabindex="-1">
+            <div class="bus-details-header">
+                <span class="bus-details-icon" aria-hidden="true"><i class="fa-solid fa-bus"></i></span>
+                <div class="bus-details-heading">
+                    <h2 id="availabilityBusTitle">Bus Availability Details</h2>
+                    <p>Operational status and next assignment. Read only.</p>
+                </div>
+                <button class="close-btn" type="button" data-close-availability-bus aria-label="Close bus details">&times;</button>
+            </div>
+            <div class="bus-details-body">
+                <div class="bus-details-section">
+                    <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
+                    <div><strong>Bus Information</strong><p>Official identification and current condition</p></div>
+                </div>
+                <dl class="bus-details-grid">
+                    <div><dt>Plate Number (Bus ID)</dt><dd data-availability-detail="plate">—</dd></div>
+                    <div><dt>Bus Model</dt><dd data-availability-detail="model">—</dd></div>
+                    <div><dt>Master Status</dt><dd data-availability-detail="masterStatus">—</dd></div>
+                    <div><dt>Current Availability</dt><dd><span class="bus-details-status" data-availability-detail="availability">—</span></dd></div>
+                </dl>
+                <div class="bus-details-section">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <div><strong>Next / Active Trip Assignment</strong><p>Based on trip scheduling records</p></div>
+                </div>
+                <dl class="bus-details-grid">
+                    <div><dt>Scheduled Departure</dt><dd data-availability-detail="nextTrip">—</dd></div>
+                    <div><dt>Route</dt><dd data-availability-detail="nextRoute">—</dd></div>
+                </dl>
+            </div>
+            <div class="bus-details-footer">
+                <button type="button" class="primary-btn" data-close-availability-bus>Close</button>
+            </div>
+        </div>
     </div>
 </x-layout.app>
