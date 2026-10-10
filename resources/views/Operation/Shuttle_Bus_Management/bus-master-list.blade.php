@@ -65,7 +65,7 @@
                     <div>
                         <h2>Registered Buses</h2>
                         <p>
-                            Bus availability and assigned routes reflect current operational records.
+                            Bus status reflects current operational and maintenance records.
                         </p>
                     </div>
                 </div>
@@ -146,8 +146,6 @@
                             <tr>
                                 <th>Bus ID (Plate Number)</th>
                                 <th>Model</th>
-                                <th>Assigned Route</th>
-
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -163,10 +161,6 @@
                                     <td>
                                         <strong>{{ $bus->bus_model ?: '—' }}</strong>
                                         <div class="bus-plate-detail">Unit No. {{ $bus->bus_no }}</div>
-                                    </td>
-
-                                    <td>
-                                        <span class="gct-pill {{ $bus->display_route_name ? 'gct-pill--scheduled' : 'gct-pill--unassigned' }}">{{ $bus->display_route_name ?: 'Unassigned' }}</span>
                                     </td>
 
                                     <td>
@@ -233,7 +227,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="6"
+                                    colspan="4"
                                     message="No bus records found. Add your first bus."
                                 />
                             @endforelse
