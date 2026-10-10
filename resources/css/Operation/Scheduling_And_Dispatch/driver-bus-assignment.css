@@ -1834,3 +1834,28 @@
     .assignment-page .resource-card .resource-record .resource-assign-btn { grid-column: 3; grid-row: 1; }
     .assignment-page .resource-card .resource-record .availability { grid-column: 2; grid-row: 2; }
 }
+
+/* User-selected compact resource filter layout. */
+.assignment-page .resource-filter-bar {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 112px;
+    gap:8px;
+    margin:0 0 10px;
+}
+.assignment-page .resource-filter-search {position:relative;display:block;min-width:0}
+.assignment-page .resource-filter-search i {
+    position:absolute;top:50%;left:11px;transform:translateY(-50%);
+    color:#53719a;font-size:12px;pointer-events:none;
+}
+.assignment-page .resource-filter-bar input,
+.assignment-page .resource-filter-bar select {
+    box-sizing:border-box;width:100%;height:34px;min-height:34px;
+    border:1px solid #dbe5f1;border-radius:7px;background:#fff;
+    color:#294264;font-size:11px;outline:none;
+}
+.assignment-page .resource-filter-bar input {padding:0 10px 0 32px}
+.assignment-page .resource-filter-bar select {padding:0 7px}
+.assignment-page .resource-filter-bar input:focus,
+.assignment-page .resource-filter-bar select:focus {border-color:#3978d9;box-shadow:0 0 0 2px rgba(57,120,217,.12)}
+.assignment-page .resource-card .resource-record[hidden]{display:none!important}
+@media(max-width:460px){.assignment-page .resource-filter-bar{grid-template-columns:1fr}}
