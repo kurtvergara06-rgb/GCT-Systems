@@ -1897,3 +1897,15 @@
         grid-column:3;grid-row:1;justify-self:end;
     }
 }
+
+/* Trip Assignment identity cells: visual-only, no status badges. */
+.assignment-page .assignment-table .driver-cell{display:flex;align-items:center;gap:9px;min-width:0}
+.assignment-page .assignment-table .driver-cell .driver-avatar{width:32px;height:32px;flex:0 0 32px;border-radius:8px}
+.assignment-page .assignment-table .driver-cell > div:last-child{min-width:0;display:block}
+.assignment-page .assignment-table .driver-cell strong{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:800}
+.assignment-page .assignment-bus-cell,.assignment-page .assignment-resource-empty{display:flex;align-items:center;gap:9px;min-width:0}
+.assignment-page .assignment-resource-icon{display:inline-grid;place-items:center;width:32px;height:32px;flex:0 0 32px;background:#e9f1ff;color:#0958c7;border-radius:8px;font-size:13px;font-weight:800}
+.assignment-page .assignment-resource-empty .assignment-resource-icon{color:#64748b;background:#f1f5f9}
+.assignment-page .assignment-bus-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.assignment-page .assignment-bus-info strong,.assignment-page .assignment-resource-empty strong{color:#132744;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.assignment-page .assignment-bus-info span{color:#637894;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
