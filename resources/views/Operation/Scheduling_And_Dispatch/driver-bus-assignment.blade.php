@@ -153,6 +153,7 @@
                                 <th>Trip ID</th>
                                 <th>Schedule</th>
                                 <th>Route</th>
+                                <th>Pickup → Dropoff</th>
                                 <th>Driver</th>
                                 <th>Bus</th>
                                 <th>Status</th>
@@ -217,6 +218,13 @@
                                         <div class="route-cell">
                                             <strong>{{ $route?->route_code ?? '—' }}</strong>
                                             <span>{{ $route?->route_name ?? 'Deleted route' }}</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="assignment-journey">
+                                            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $route?->origin ?: 'Origin not recorded' }}</span>
+                                            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ $route?->destination ?: 'Destination not recorded' }}</span>
                                         </div>
                                     </td>
 
@@ -351,7 +359,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="7"
+                                    colspan="8"
                                     message="No trip schedules found."
                                 />
                             @endforelse
@@ -372,7 +380,7 @@
                         <strong class="resource-total resource-total--available">{{ $availableDrivers->total() }} Available</strong>
                     </div>
 
-                    <div class="resource-list-head" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Status</span></div>
+                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Status</span><span>Actions</span></div>
                     @forelse($availableDrivers as $driver)
                         <div class="resource-record">
                             <div class="driver-avatar">
@@ -392,6 +400,9 @@
                             <span class="availability available">
                                 {{ $driver->status }}
                             </span>
+                            @if($canEditOperation)
+                                <button type="button" class="resource-assign-btn resource-assign-driver" data-driver-id="{{ $driver->id }}" title="Choose an unassigned trip to assign this driver">Assign</button>
+                            @endif
                         </div>
                     @empty
                         <p class="resource-empty">No unallocated, eligible drivers for the selected date.</p>
@@ -411,7 +422,7 @@
                         <strong class="resource-total resource-total--available">{{ $availableBuses->total() }} Available</strong>
                     </div>
 
-                    <div class="resource-list-head" aria-hidden="true"><span>Bus</span><span>Model</span><span>Status</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus</span><span>Model</span><span>Status</span><span>Actions</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record">
                             <div class="bus-resource-icon">
@@ -425,6 +436,9 @@
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
 
                             <span class="availability available">Active</span>
+                            @if($canEditOperation)
+                                <button type="button" class="resource-assign-btn resource-assign-bus" data-bus-id="{{ $bus->id }}" title="Choose an unassigned trip to assign this bus">Assign</button>
+                            @endif
                         </div>
                     @empty
                         <p class="resource-empty">No unallocated active buses for the selected date.</p>
