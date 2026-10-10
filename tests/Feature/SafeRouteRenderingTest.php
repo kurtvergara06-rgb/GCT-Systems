@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin\BatchUpload;
+use App\Models\Admin\DataActivity;
+use App\Models\Admin\GpsTripRecord;
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,7 +36,7 @@ class SafeRouteRenderingTest extends TestCase
     {
         $user = $this->adminUser();
 
-        $batch = \App\Models\Admin\BatchUpload::create([
+        $batch = BatchUpload::create([
             'file_name' => 'test_gps.csv',
             'stored_name' => 'test_gps.csv',
             'file_type' => 'csv',
@@ -46,7 +49,7 @@ class SafeRouteRenderingTest extends TestCase
             'data_type' => 'GPS Trip Records',
         ]);
 
-        \App\Models\Admin\GpsTripRecord::create([
+        GpsTripRecord::create([
             'batch_upload_id' => $batch->id,
             'bus_no' => 'GCT-101',
             'record_no' => 'REC-001',
@@ -57,7 +60,7 @@ class SafeRouteRenderingTest extends TestCase
             'duration_minutes' => 60,
         ]);
 
-        \App\Models\Admin\GpsTripRecord::create([
+        GpsTripRecord::create([
             'batch_upload_id' => $batch->id,
             'bus_no' => 'GCT-102',
             'record_no' => 'REC-002',
@@ -81,7 +84,7 @@ class SafeRouteRenderingTest extends TestCase
     public function test_batch_file_processing_bounds_large_batch_rendering_with_server_pagination(): void
     {
         $user = $this->adminUser();
-        $batch = \App\Models\Admin\BatchUpload::create([
+        $batch = BatchUpload::create([
             'file_name' => 'large_gps.csv',
             'stored_name' => 'large_gps.csv',
             'file_type' => 'csv',
@@ -107,7 +110,7 @@ class SafeRouteRenderingTest extends TestCase
             'created_at' => $now,
             'updated_at' => $now,
         ])->all();
-        \App\Models\Admin\GpsTripRecord::query()->insert($rows);
+        GpsTripRecord::query()->insert($rows);
 
         $response = $this
             ->actingAs($user)
@@ -128,7 +131,7 @@ class SafeRouteRenderingTest extends TestCase
     {
         $user = $this->adminUser();
 
-        \App\Models\Admin\DataActivity::create([
+        DataActivity::create([
             'activity_type' => 'Batch Processing',
             'module' => 'Operation',
             'data_type' => 'GPS Trip Records',
