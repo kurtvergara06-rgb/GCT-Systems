@@ -27,6 +27,7 @@ import './Main-js/system-animations.js';
 import './Main-js/system-toast.js';
 import './Main-js/page-transitions.js';
 import './Main-js/automatic-table-search.js';
+import './Operation/Shuttle_Bus_Management/bus-availability-modal.js';
 import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
 import './Main-js/scroll-table-pagination.js';
