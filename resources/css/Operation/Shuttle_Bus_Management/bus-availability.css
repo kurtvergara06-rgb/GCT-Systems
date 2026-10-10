@@ -4,3 +4,23 @@
 .bus-availability-page .availability-table thead th{position:sticky;top:0;z-index:2;background:#f6f9fd}
 .bus-availability-page .availability-detail-content[hidden]{display:none!important}
 .bus-availability-page .availability-actions-cell .gct-record-action{display:inline-flex;align-items:center;justify-content:center}
+
+/* Bus Availability mirrors the official Bus Master List design. */
+.bus-availability-page .availability-stats{margin:0 0 18px;gap:14px}
+.bus-availability-page .availability-panel{margin-top:0;padding:14px;border-radius:14px;box-shadow:none}
+.bus-availability-page .availability-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 160px 160px;gap:10px;align-items:center;padding:10px 12px;background:#fff;border:1px solid #d9e4f0;border-radius:10px}
+.bus-availability-page .availability-toolbar .availability-search{min-width:0;width:100%;height:40px;background:#fff;border:1px solid #d9e4f0;border-radius:9px;padding:0 12px}
+.bus-availability-page .availability-toolbar .availability-search input{height:38px;border:none!important}
+.bus-availability-page .availability-toolbar .availability-select{width:100%;min-width:0;max-width:none}
+.bus-availability-page .availability-toolbar .availability-select select{height:40px;min-height:40px;border-radius:9px;border-color:#d9e4f0}
+.bus-availability-page .availability-table{min-width:760px}
+.bus-availability-page .availability-table th,.bus-availability-page .availability-table td{font-size:inherit}
+.bus-availability-page .availability-table td{padding:12px}
+.bus-availability-page .availability-table .availability-status{border-radius:999px;padding:5px 11px;font-size:11px}
+.bus-availability-page .availability-table .availability-actions-cell .action-btn{width:34px;height:34px;min-width:34px;min-height:34px;border-radius:8px}
+.bus-availability-page .availability-table-wrap{max-height:430px;overflow-y:auto;overflow-x:auto;scrollbar-width:thin}
+.bus-availability-page .availability-table thead th{position:sticky;top:0;z-index:2}
+.bus-availability-page .availability-detail-content{z-index:10}
+.bus-availability-page .availability-footer{margin-top:14px;padding-top:14px;border-top:1px solid #e7edf5}
+@media(max-width:1050px){.bus-availability-page .availability-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.bus-availability-page .availability-toolbar .availability-search{grid-column:1/-1}}
+@media(max-width:620px){.bus-availability-page .availability-toolbar{grid-template-columns:minmax(0,1fr)}.bus-availability-page .availability-toolbar .availability-search{grid-column:auto}}
