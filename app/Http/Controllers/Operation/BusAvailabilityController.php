@@ -15,6 +15,8 @@ class BusAvailabilityController extends Controller
         $today = today(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $search = trim((string) $request->query('search', ''));
         $status = (string) $request->query('status', '');
+        $model = trim((string) $request->query('model', ''));
+        $models = Bus::query()->whereNotNull('bus_model')->where('bus_model', '!=', '')->distinct()->orderBy('bus_model')->pluck('bus_model');
 
         $query = Bus::query();
 
@@ -30,7 +32,11 @@ class BusAvailabilityController extends Controller
             $query->where('status', $status);
         }
 
-        $buses = $query->orderBy('bus_no')->paginate(15)->withQueryString();
+        if ($model !== '' && $models->contains($model)) {
+            $query->where('bus_model', $model);
+        }
+
+        $buses = $query->orderBy('plate_no')->paginate(15)->withQueryString();
 
         // Upcoming assignments are informational. An assignment tomorrow does
         // not make an operational bus unavailable for the entire day today.
@@ -54,6 +60,7 @@ class BusAvailabilityController extends Controller
 
         return view('Operation.Shuttle_Bus_Management.bus-availability', [
             'buses' => $buses,
+            'models' => $models,
             'totalBuses' => Bus::count(),
             'activeBuses' => Bus::where('status', 'Active')->count(),
             'maintenanceBuses' => Bus::where('status', 'Under Maintenance')->count(),
