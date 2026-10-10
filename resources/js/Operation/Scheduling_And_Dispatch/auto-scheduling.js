@@ -1739,6 +1739,8 @@ function updateMlStatus(conflicts) {
             : [];
         const drivers = getAlternatives(conflict, 'alternative_drivers');
         const buses = getAlternatives(conflict, 'alternative_buses');
+        const missingDriver = conflict?.missing_driver === true;
+        const missingBus = conflict?.missing_bus === true;
         const action = getTimeAction(conflict);
         const selection = getSelection(index);
         const selectedDriver = findAlternative(drivers, selection.driverId);
@@ -1749,11 +1751,19 @@ function updateMlStatus(conflicts) {
             : score >= 55
                 ? 'Review advised'
                 : 'Needs review';
-        const actionTitle = action?.suggested_time
-            ? `Move departure to ${displayTime(action.suggested_time)}`
-            : 'Manual review required';
+        const actionTitle = missingDriver
+            ? 'Driver attendance required'
+            : missingBus
+                ? 'Eligible bus required'
+                : action?.suggested_time
+                    ? `Move departure to ${displayTime(action.suggested_time)}`
+                    : 'Manual review required';
         const actionDescription = String(
-            action?.explanation
+            missingDriver
+                ? 'Record valid attendance for the trip date and shift before generating an assignment. Available buses alone cannot resolve this trip.'
+                : missingBus
+                    ? 'An eligible bus is required before this trip can be assigned.'
+                    : action?.explanation
             || 'Review the available resources and validate the final combination before saving.'
         )
             .replaceAll('Laravel must recheck', 'The system will recheck')
@@ -1882,7 +1892,7 @@ function updateMlStatus(conflicts) {
                                     </div>
                                 </div>
 
-                                ${buses.length ? `
+                                ${buses.length && !missingDriver ? `
                                     <div class="gct-option-section">
                                         <div class="gct-option-section-header">
                                             <strong><i class="fa-solid fa-bus"></i> Alternative Buses</strong>
@@ -1894,14 +1904,15 @@ function updateMlStatus(conflicts) {
                                     </div>
                                 ` : ''}
 
+                                ${missingDriver ? '<p class="gct-availability-note">Bus availability is informational until a valid driver attendance record exists.</p>' : ''}
                                 <div class="gct-selected-combination">
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-user-check"></i>
-                                        ${escapeHtml(selectedDriver?.label || 'Best available driver')}
+                                        ${escapeHtml(missingDriver ? 'No eligible driver' : (selectedDriver?.label || 'Best available driver'))}
                                     </span>
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-bus-simple"></i>
-                                        ${escapeHtml(selectedBus?.label || 'Best available bus')}
+                                        ${escapeHtml(missingDriver ? 'Bus selection unavailable' : (selectedBus?.label || 'Best available bus'))}
                                     </span>
                                     <span class="gct-selected-chip">
                                         <i class="fa-regular fa-clock"></i>
@@ -1923,7 +1934,7 @@ function updateMlStatus(conflicts) {
                             type="button"
                             class="ai-resolution-btn primary"
                             data-review-ai-resolution="${index}"
-                            ${action ? '' : 'disabled'}
+                            ${action && !missingDriver && !missingBus && drivers.length && buses.length ? '' : 'disabled'}
                         >
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
                             Review Selected Resolution
@@ -1990,6 +2001,10 @@ function updateMlStatus(conflicts) {
         }
 
         const conflict = conflicts[index];
+        if (conflict?.missing_driver || conflict?.missing_bus) {
+            window.showSystemToast?.('Eligible driver attendance and a bus are required before a resolution can be reviewed.', 'warning', 'Resources unavailable');
+            return;
+        }
         const action = getTimeAction(conflict);
 
         if (!conflict || !action) {
