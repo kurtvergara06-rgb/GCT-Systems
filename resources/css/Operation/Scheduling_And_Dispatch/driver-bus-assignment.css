@@ -1743,3 +1743,29 @@
     .assignment-page .resource-card .resource-record .resource-row-detail { display: none; }
     .assignment-page .resource-card .resource-record .resource-mobile-detail { display: block; }
 }
+
+/* Approved fleet-dispatch layout: journey column and paired resource tables. */
+.assignment-page .assignment-table-wrap{overflow-x:auto}
+.assignment-page .assignment-table{min-width:1060px;table-layout:fixed}
+.assignment-page .assignment-table th:nth-child(1){width:8%}
+.assignment-page .assignment-table th:nth-child(2){width:12%}
+.assignment-page .assignment-table th:nth-child(3){width:13%}
+.assignment-page .assignment-table th:nth-child(4){width:19%}
+.assignment-page .assignment-table th:nth-child(5){width:14%}
+.assignment-page .assignment-table th:nth-child(6){width:11%}
+.assignment-page .assignment-table th:nth-child(7){width:10%}
+.assignment-page .assignment-table th:nth-child(8){width:13%}
+.assignment-page .assignment-journey{display:flex;flex-direction:column;gap:5px;max-width:100%;min-width:0}
+.assignment-page .assignment-journey span{display:flex;align-items:center;gap:8px;font-size:11px;color:#385274;overflow-wrap:anywhere;line-height:1.4}
+.assignment-page .assignment-journey i{font-size:12px;color:#0b64cf;flex:none}
+.assignment-page .resource-list-head--drivers,.assignment-page .resource-list-head--buses{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,.8fr) 76px}
+.assignment-page .resource-record{display:grid;grid-template-columns:34px minmax(0,1.55fr) minmax(0,1fr) minmax(0,.8fr) 76px;gap:9px;align-items:center}
+.assignment-page .resource-record-info{min-width:0}
+.assignment-page .resource-record-info strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assignment-page .resource-record .resource-row-detail{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assignment-page .resource-assign-btn{min-height:32px;width:72px;padding:0 9px;border:1px solid #bbd2fa;border-radius:7px;background:#edf4ff;color:#1655c1;font-size:11px;font-weight:800;cursor:pointer}
+.assignment-page .resource-assign-btn:hover{background:#dbeaff}
+.assignment-page .resource-total--available{white-space:nowrap}
+.assignment-page .resource-empty{min-height:120px}
+@media(max-width:1200px){.assignment-page .resource-list-head--drivers,.assignment-page .resource-list-head--buses{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px}.assignment-page .resource-record{grid-template-columns:30px minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px;gap:6px}.assignment-page .resource-assign-btn{width:62px}}
+@media(max-width:650px){.assignment-page .resource-list-head{display:none}.assignment-page .resource-record{grid-template-columns:34px minmax(0,1fr) auto;gap:10px}.assignment-page .resource-record .resource-row-detail{display:none}.assignment-page .resource-assign-btn{grid-column:3}.assignment-page .resource-record .availability{grid-column:2;justify-self:start}}
