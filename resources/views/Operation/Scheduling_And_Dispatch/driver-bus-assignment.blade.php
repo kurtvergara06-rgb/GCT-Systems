@@ -232,19 +232,18 @@
                                                 </div>
                                                 <div>
                                                     <strong>{{ $assignment->driver_name }}</strong>
-                                                    <span>{{ $driver?->status ?? 'Recorded' }}</span>
                                                 </div>
                                             </div>
                                         @else
-                                            <span class="not-assigned">Not Assigned</span>
+                                            <div class="assignment-resource-empty"><span class="assignment-resource-icon">—</span><strong>Not Assigned</strong></div>
                                         @endif
                                     </td>
 
                                     <td>
                                         @if($bus)
-                                            <x-ui.id-badge :value="$bus->plate_no ?: 'Plate not recorded'" />
+                                            <div class="assignment-bus-cell"><span class="assignment-resource-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span><div class="assignment-bus-info"><strong>{{ $bus->plate_no ?: 'Plate not recorded' }}</strong><span>{{ $bus->bus_model ?: 'Model not recorded' }}</span></div></div>
                                         @else
-                                            <span class="not-assigned">Not Assigned</span>
+                                            <div class="assignment-resource-empty"><span class="assignment-resource-icon">—</span><strong>Not Assigned</strong></div>
                                         @endif
                                     </td>
 
