@@ -48,7 +48,7 @@ class BusAvailabilityController extends Controller
         $buses->getCollection()->each(function (Bus $bus) use ($assignments): void {
             $bus->next_assignment = $assignments->get($bus->id)?->first()?->tripSchedule;
             $bus->is_on_trip = $assignments->get($bus->id)?->contains(
-                fn ($assignment) => in_array($assignment->tripSchedule?->status, ['In Progress', 'Ongoing'], true)
+                fn ($assignment) => in_array($assignment->tripSchedule?->status, ['Dispatched'], true)
             ) ?? false;
         });
 
