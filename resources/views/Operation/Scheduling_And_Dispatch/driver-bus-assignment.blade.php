@@ -380,7 +380,7 @@
                         <strong class="resource-total resource-total--available">{{ $availableDrivers->total() }} Available</strong>
                     </div>
 
-                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Status</span><span>Actions</span></div>
+                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver ID</span><span>Name</span><span>Shift</span><span>Attendance</span><span>Action</span></div>
                     @forelse($availableDrivers as $driver)
                         <div class="resource-record">
                             <div class="driver-avatar">
@@ -422,7 +422,7 @@
                         <strong class="resource-total resource-total--available">{{ $availableBuses->total() }} Available</strong>
                     </div>
 
-                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus</span><span>Model</span><span>Status</span><span>Actions</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Plate Number</span><span>Model</span><span>Status</span><span>Action</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record">
                             <div class="bus-resource-icon">
