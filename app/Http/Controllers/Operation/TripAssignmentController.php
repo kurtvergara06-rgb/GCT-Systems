@@ -164,6 +164,7 @@ class TripAssignmentController extends Controller
 
         $availableBuses = Bus::query()
             ->where('status', 'Active')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->whereDoesntHave('tripAssignments', function ($assignmentQuery) use ($selectedTripDate): void {
                 $assignmentQuery->whereHas('tripSchedule', function ($tripQuery) use ($selectedTripDate): void {
                     $tripQuery
@@ -269,6 +270,7 @@ class TripAssignmentController extends Controller
 
         $buses = Bus::query()
             ->where('status', 'Active')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->when(
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
@@ -576,6 +578,7 @@ class TripAssignmentController extends Controller
         $bus = Bus::query()
             ->whereKey($busId)
             ->where('status', 'Active')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->lockForUpdate()
             ->first();
 
