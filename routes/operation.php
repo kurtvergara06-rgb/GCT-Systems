@@ -138,7 +138,6 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
 
     Route::controller(DailyDriverReportController::class)->prefix('operation/daily-driver-reports')->middleware('system.permission:operation,view')->group(function () {
         Route::get('/', 'index')->name('daily-driver-reports');
-        Route::get('/create', 'create')->name('daily-driver-reports.create');
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
         Route::put('/{dailyDriverReport}', 'update')->middleware('system.permission:operation,edit')->name('daily-driver-reports.update');
@@ -153,7 +152,6 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::get('/', 'index')->name('incidents');
         Route::get('/create', 'create')->name('incidents.create');
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('incidents.store');
-        Route::get('/{incident}/edit', 'edit')->middleware('system.permission:operation,edit')->name('incidents.edit');
         Route::patch('/{incident}/details', 'updateDetails')->middleware('system.permission:operation,edit')->name('incidents.details.update');
         Route::delete('/{incident}', 'destroy')->middleware('system.permission:operation,edit')->name('incidents.destroy');
         Route::get('/{incident}', 'show')->name('incidents.show');

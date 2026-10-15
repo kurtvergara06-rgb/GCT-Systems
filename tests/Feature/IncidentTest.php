@@ -236,10 +236,6 @@ class IncidentTest extends TestCase
         $incident = $this->createIncident('Traffic');
 
         $this->actingAs($this->user)
-            ->get(route('incidents.edit', ['incident' => $incident->incident_no]))
-            ->assertOk();
-
-        $this->actingAs($this->user)
             ->patch(route('incidents.details.update', ['incident' => $incident->incident_no]), [
                 'location' => 'Updated terminal',
                 'description' => 'Corrected description',
