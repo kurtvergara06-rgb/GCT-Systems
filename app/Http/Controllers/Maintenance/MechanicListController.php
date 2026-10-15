@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Support\TableSort;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -65,8 +66,8 @@ class MechanicListController extends Controller
             });
         }
 
+        TableSort::apply($query, $request, ['mechanic_name' => 'mechanic_name', 'mechanic_id' => 'mechanic_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'mechanic_name');
         $mechanics = $query
-            ->orderBy('mechanic_name')
             ->paginate(10)
             ->withQueryString();
 
@@ -94,7 +95,9 @@ class MechanicListController extends Controller
         if ($request->filled('availability') && $request->availability !== 'All Types') {
             $filtered = $mechanics->getCollection()->filter(function (Mechanic $mechanic) use ($request) {
                 return $request->availability === 'Available'
-                    ? in_array($mechanic->effective_status, ['Present', 'Late'], true)
+                    ? $mechanic->employment_status === 'Active'
+                        && ! $mechanic->active_job
+                        && in_array($mechanic->effective_status, ['Present', 'Late'], true)
                     : in_array($mechanic->effective_status, ['On Duty', 'Absent', 'On Leave', 'No Attendance'], true);
             })->values();
 
@@ -102,7 +105,7 @@ class MechanicListController extends Controller
         }
 
         $allMechanics = Mechanic::query()
-            ->where('employment_status', '!=', 'Inactive')
+            ->where('employment_status', 'Active')
             ->get();
         $activeAssignedNames = $activeJobs->keys();
 

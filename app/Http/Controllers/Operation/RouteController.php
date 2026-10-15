@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Operation\ShuttleRoute;
+use App\Support\TableSort;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +32,9 @@ class RouteController extends Controller
         $query = ShuttleRoute::query()
             ->with('stops')
             ->withCount('tripSchedules');
+
+        // Tabs define the record group; the old status filter remains optional within it.
+        $query->where('status', $request->query('tab') === 'history' ? 'Inactive' : 'Active');
 
         /*
         |--------------------------------------------------------------------------
@@ -109,8 +113,8 @@ class RouteController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        TableSort::apply($query, $request, ['id' => 'id', 'route_code' => 'route_code', 'route_name' => 'route_name', 'origin' => 'origin', 'destination' => 'destination', 'distance_km' => 'distance_km', 'status' => 'status'], 'id', 'desc');
         $routes = $query
-            ->orderByDesc('id')
             ->paginate(8)
             ->withQueryString();
 
@@ -186,64 +190,47 @@ class RouteController extends Controller
                 return [
                     'id' => $record->id,
 
-                    'record_no' =>
-                        $record->record_no,
+                    'record_no' => $record->record_no,
 
-                    'bus_no' =>
-                        $record->bus_no,
+                    'bus_no' => $record->bus_no,
 
-                    'grouping' =>
-                        $record->grouping,
+                    'grouping' => $record->grouping,
 
-                    'trip_type' =>
-                        $record->trip_type,
+                    'trip_type' => $record->trip_type,
 
-                    'beginning_at' =>
-                        optional(
-                            $record->beginning_at
-                        )?->format('Y-m-d H:i:s'),
+                    'beginning_at' => optional(
+                        $record->beginning_at
+                    )?->format('Y-m-d H:i:s'),
 
-                    'initial_location' =>
-                        $record->initial_location,
+                    'initial_location' => $record->initial_location,
 
-                    'ending_at' =>
-                        optional(
-                            $record->ending_at
-                        )?->format('Y-m-d H:i:s'),
+                    'ending_at' => optional(
+                        $record->ending_at
+                    )?->format('Y-m-d H:i:s'),
 
-                    'final_location' =>
-                        $record->final_location,
+                    'final_location' => $record->final_location,
 
-                    'duration_minutes' =>
-                        $record->duration_minutes,
+                    'duration_minutes' => $record->duration_minutes,
 
-                    'total_minutes' =>
-                        $record->total_minutes,
+                    'total_minutes' => $record->total_minutes,
 
-                    'in_motion_minutes' =>
-                        $record->in_motion_minutes,
+                    'in_motion_minutes' => $record->in_motion_minutes,
 
-                    'idling_minutes' =>
-                        $record->idling_minutes,
+                    'idling_minutes' => $record->idling_minutes,
 
-                    'mileage_km' =>
-                        $record->mileage_km !== null
+                    'mileage_km' => $record->mileage_km !== null
                             ? (float) $record->mileage_km
                             : null,
 
-                    'engine_hours' =>
-                        $record->engine_hours !== null
+                    'engine_hours' => $record->engine_hours !== null
                             ? (float) $record->engine_hours
                             : null,
 
-                    'location' =>
-                        $record->location,
+                    'location' => $record->location,
 
-                    'coordinates' =>
-                        $record->coordinates,
+                    'coordinates' => $record->coordinates,
 
-                    'description' =>
-                        $record->description,
+                    'description' => $record->description,
                 ];
             })
             ->values();
@@ -293,14 +280,11 @@ class RouteController extends Controller
                 ],
             ],
             [
-                'q.required' =>
-                    'Enter a location to search.',
+                'q.required' => 'Enter a location to search.',
 
-                'q.min' =>
-                    'Enter at least two characters.',
+                'q.min' => 'Enter at least two characters.',
 
-                'q.max' =>
-                    'The location search may not exceed 160 characters.',
+                'q.max' => 'The location search may not exceed 160 characters.',
             ]
         );
 
@@ -314,11 +298,11 @@ class RouteController extends Controller
                 'philippines'
             )
                 ? $search
-                : $search . ' Philippines';
+                : $search.' Philippines';
 
         $cacheKey =
             'route-photon-geocode:v1:'
-            . sha1(
+            .sha1(
                 mb_strtolower($remoteSearch)
             );
 
@@ -329,10 +313,8 @@ class RouteController extends Controller
                 function () use ($remoteSearch): array {
                     $response = Http::acceptJson()
                         ->withHeaders([
-                            'User-Agent' =>
-                                'GCT-Systems/1.0 (route location search)',
-                            'Accept-Language' =>
-                                'en',
+                            'User-Agent' => 'GCT-Systems/1.0 (route location search)',
+                            'Accept-Language' => 'en',
                         ])
                         ->timeout(10)
                         ->get(
@@ -342,7 +324,7 @@ class RouteController extends Controller
                                     'https://photon.komoot.io'
                                 ),
                                 '/'
-                            ) . '/api/',
+                            ).'/api/',
                             [
                                 'q' => $remoteSearch,
                                 'limit' => 10,
@@ -427,10 +409,9 @@ class RouteController extends Controller
                                         ?? null,
                                 ])
                                     ->map(
-                                        fn ($value) =>
-                                            trim(
-                                                (string) $value
-                                            )
+                                        fn ($value) => trim(
+                                            (string) $value
+                                        )
                                     )
                                     ->filter()
                                     ->unique()
@@ -446,30 +427,24 @@ class RouteController extends Controller
                                         )
                                     ),
 
-                                    'name' =>
-                                        $name !== ''
+                                    'name' => $name !== ''
                                             ? $name
                                             : 'Unknown location',
 
-                                    'address' =>
-                                        $address !== ''
+                                    'address' => $address !== ''
                                             ? $address
                                             : $name,
 
-                                    'latitude' =>
-                                        $latitude,
+                                    'latitude' => $latitude,
 
-                                    'longitude' =>
-                                        $longitude,
+                                    'longitude' => $longitude,
 
-                                    'source' =>
-                                        'OpenStreetMap',
+                                    'source' => 'OpenStreetMap',
                                 ];
                             }
                         )
                         ->filter(
-                            fn (array $place) =>
-                                $place['latitude']
+                            fn (array $place) => $place['latitude']
                                     !== null
                                 && $place['longitude']
                                     !== null
@@ -485,8 +460,7 @@ class RouteController extends Controller
         } catch (ConnectionException $exception) {
             return response()->json(
                 [
-                    'message' =>
-                        'OpenStreetMap location search could not be reached.',
+                    'message' => 'OpenStreetMap location search could not be reached.',
 
                     'results' => [],
                 ],
@@ -497,8 +471,7 @@ class RouteController extends Controller
 
             return response()->json(
                 [
-                    'message' =>
-                        'OpenStreetMap location search failed.',
+                    'message' => 'OpenStreetMap location search failed.',
 
                     'results' => [],
                 ],
@@ -527,10 +500,10 @@ class RouteController extends Controller
         $longitude = (float) $validated['longitude'];
 
         $cacheKey = 'route-photon-reverse:v1:'
-            . sha1(
+            .sha1(
                 number_format($latitude, 6, '.', '')
-                . ','
-                . number_format($longitude, 6, '.', '')
+                .','
+                .number_format($longitude, 6, '.', '')
             );
 
         try {
@@ -543,10 +516,8 @@ class RouteController extends Controller
                 ): ?array {
                     $response = Http::acceptJson()
                         ->withHeaders([
-                            'User-Agent' =>
-                                'GCT-Systems/1.0 (route reverse geocoding)',
-                            'Accept-Language' =>
-                                'en',
+                            'User-Agent' => 'GCT-Systems/1.0 (route reverse geocoding)',
+                            'Accept-Language' => 'en',
                         ])
                         ->timeout(10)
                         ->get(
@@ -556,7 +527,7 @@ class RouteController extends Controller
                                     'https://photon.komoot.io'
                                 ),
                                 '/'
-                            ) . '/reverse',
+                            ).'/reverse',
                             [
                                 'lat' => $latitude,
                                 'lon' => $longitude,
@@ -627,10 +598,9 @@ class RouteController extends Controller
                             ?? null,
                     ])
                         ->map(
-                            fn ($value) =>
-                                trim(
-                                    (string) $value
-                                )
+                            fn ($value) => trim(
+                                (string) $value
+                            )
                         )
                         ->filter()
                         ->unique()
@@ -658,19 +628,15 @@ class RouteController extends Controller
 
                         'name' => $name,
 
-                        'address' =>
-                            $address !== ''
+                        'address' => $address !== ''
                                 ? $address
                                 : $name,
 
-                        'latitude' =>
-                            $resolvedLatitude,
+                        'latitude' => $resolvedLatitude,
 
-                        'longitude' =>
-                            $resolvedLongitude,
+                        'longitude' => $resolvedLongitude,
 
-                        'source' =>
-                            'Manual Pin',
+                        'source' => 'Manual Pin',
                     ];
                 }
             );
@@ -681,8 +647,7 @@ class RouteController extends Controller
         } catch (ConnectionException $exception) {
             return response()->json(
                 [
-                    'message' =>
-                        'The location lookup service could not be reached.',
+                    'message' => 'The location lookup service could not be reached.',
                     'place' => null,
                 ],
                 503
@@ -692,8 +657,7 @@ class RouteController extends Controller
 
             return response()->json(
                 [
-                    'message' =>
-                        'Unable to identify the pinned location.',
+                    'message' => 'Unable to identify the pinned location.',
                     'place' => null,
                 ],
                 502
@@ -732,14 +696,11 @@ class RouteController extends Controller
                 ],
             ],
             [
-                'points.required' =>
-                    'Select an origin and destination.',
+                'points.required' => 'Select an origin and destination.',
 
-                'points.min' =>
-                    'At least an origin and destination are required.',
+                'points.min' => 'At least an origin and destination are required.',
 
-                'points.max' =>
-                    'A maximum of 20 route points is allowed.',
+                'points.max' => 'A maximum of 20 route points is allowed.',
             ]
         );
 
@@ -758,8 +719,7 @@ class RouteController extends Controller
         } catch (ConnectionException $exception) {
             return response()->json(
                 [
-                    'message' =>
-                        'The routing service could not be reached. Try again after the connection is restored.',
+                    'message' => 'The routing service could not be reached. Try again after the connection is restored.',
                 ],
                 503
             );
@@ -768,8 +728,7 @@ class RouteController extends Controller
 
             return response()->json(
                 [
-                    'message' =>
-                        'Road route calculation failed. Please retry the confirmed route points.',
+                    'message' => 'Road route calculation failed. Please retry the confirmed route points.',
                 ],
                 502
             );
@@ -781,12 +740,11 @@ class RouteController extends Controller
     ): array {
         $coordinates = collect($points)
             ->map(
-                fn (array $point) =>
-                    sprintf(
-                        '%.7F,%.7F',
-                        $point['longitude'],
-                        $point['latitude']
-                    )
+                fn (array $point) => sprintf(
+                    '%.7F,%.7F',
+                    $point['longitude'],
+                    $point['latitude']
+                )
             )
             ->implode(';');
 
@@ -821,22 +779,22 @@ class RouteController extends Controller
 
         $cacheHash = sha1(
             $coordinates
-            . '|'
-            . number_format(
+            .'|'
+            .number_format(
                 $operationalSpeedKph,
                 2,
                 '.',
                 ''
             )
-            . '|'
-            . $stopDwellMinutes
+            .'|'
+            .$stopDwellMinutes
         );
 
         $freshKey =
-            'route-osrm:v4:' . $cacheHash;
+            'route-osrm:v4:'.$cacheHash;
 
         $staleKey =
-            'route-osrm-stale:v2:' . $cacheHash;
+            'route-osrm-stale:v2:'.$cacheHash;
 
         $cached = Cache::get($freshKey);
 
@@ -864,8 +822,7 @@ class RouteController extends Controller
                 || ! $response->json('routes.0')
             ) {
                 throw ValidationException::withMessages([
-                    'points' =>
-                        'No drivable route was found for the selected locations.',
+                    'points' => 'No drivable route was found for the selected locations.',
                 ]);
             }
 
@@ -897,23 +854,18 @@ class RouteController extends Controller
             $result = [
                 'distance_km' => $distanceKm,
 
-                'duration_minutes' =>
-                    max(
-                        $osrmDurationMinutes,
-                        $operationalDurationMinutes
-                    ) + $dwellMinutes,
-
-                'routing_duration_minutes' =>
+                'duration_minutes' => max(
                     $osrmDurationMinutes,
+                    $operationalDurationMinutes
+                ) + $dwellMinutes,
 
-                'dwell_minutes' =>
-                    $dwellMinutes,
+                'routing_duration_minutes' => $osrmDurationMinutes,
 
-                'geometry' =>
-                    $route['geometry'],
+                'dwell_minutes' => $dwellMinutes,
 
-                'source' =>
-                    'OSRM Operational ETA',
+                'geometry' => $route['geometry'],
+
+                'source' => 'OSRM Operational ETA',
             ];
 
             Cache::put(
@@ -1071,8 +1023,7 @@ class RouteController extends Controller
                     }
 
                     $lockedRoute->update([
-                        'status' =>
-                            $validatedStatus['status'],
+                        'status' => $validatedStatus['status'],
                     ]);
                 }
             );
@@ -1124,8 +1075,7 @@ class RouteController extends Controller
                     }
 
                     $lockedRoute->update([
-                        'status' =>
-                            $validated['status'],
+                        'status' => $validated['status'],
                     ]);
 
                     return;
@@ -1238,29 +1188,25 @@ class RouteController extends Controller
         ?ShuttleRoute $shuttleRoute = null
     ): array {
         $request->merge([
-            'route_name' =>
-                $this->normalizeRouteText(
-                    $request->input('route_name')
-                ),
+            'route_name' => $this->normalizeRouteText(
+                $request->input('route_name')
+            ),
 
-            'origin' =>
-                $this->normalizeRouteText(
-                    $request->input('origin')
-                ),
+            'origin' => $this->normalizeRouteText(
+                $request->input('origin')
+            ),
 
-            'destination' =>
-                $this->normalizeRouteText(
-                    $request->input('destination')
-                ),
+            'destination' => $this->normalizeRouteText(
+                $request->input('destination')
+            ),
 
             'stops' => collect(
                 $request->input('stops', [])
             )
                 ->map(
-                    fn ($stop) =>
-                        $this->normalizeRouteText(
-                            $stop
-                        )
+                    fn ($stop) => $this->normalizeRouteText(
+                        $stop
+                    )
                 )
                 ->all(),
         ]);
@@ -1418,44 +1364,31 @@ class RouteController extends Controller
                 ],
             ],
             [
-                'route_name.required' =>
-                    'The route name is required.',
+                'route_name.required' => 'The route name is required.',
 
-                'route_name.unique' =>
-                    'A route with this name already exists. Use a distinct name for route variants.',
+                'route_name.unique' => 'A route with this name already exists. Use a distinct name for route variants.',
 
-                'origin.required' =>
-                    'The route origin is required.',
+                'origin.required' => 'The route origin is required.',
 
-                'origin.different' =>
-                    'The origin and destination labels must be different.',
+                'origin.different' => 'The origin and destination labels must be different.',
 
-                'origin_latitude.required' =>
-                    'Select a valid origin from the location suggestions or map.',
+                'origin_latitude.required' => 'Select a valid origin from the location suggestions or map.',
 
-                'origin_longitude.required' =>
-                    'Select a valid origin from the location suggestions or map.',
+                'origin_longitude.required' => 'Select a valid origin from the location suggestions or map.',
 
-                'destination.required' =>
-                    'The route destination is required.',
+                'destination.required' => 'The route destination is required.',
 
-                'destination.different' =>
-                    'The destination and origin labels must be different.',
+                'destination.different' => 'The destination and origin labels must be different.',
 
-                'destination_latitude.required' =>
-                    'Select a valid destination from the location suggestions or map.',
+                'destination_latitude.required' => 'Select a valid destination from the location suggestions or map.',
 
-                'destination_longitude.required' =>
-                    'Select a valid destination from the location suggestions or map.',
+                'destination_longitude.required' => 'Select a valid destination from the location suggestions or map.',
 
-                'status.required' =>
-                    'Select the route status.',
+                'status.required' => 'Select the route status.',
 
-                'status.in' =>
-                    'The selected route status is invalid.',
+                'status.in' => 'The selected route status is invalid.',
 
-                'stops.max' =>
-                    'A route may contain a maximum of 18 intermediate stops.',
+                'stops.max' => 'A route may contain a maximum of 18 intermediate stops.',
             ]
         );
 
@@ -1539,32 +1472,24 @@ class RouteController extends Controller
             report($exception);
 
             throw ValidationException::withMessages([
-                'origin' =>
-                    'The route could not be verified by the routing service. Confirm the map locations and try again.',
+                'origin' => 'The route could not be verified by the routing service. Confirm the map locations and try again.',
             ]);
         }
 
         return [
-            'distance_km' =>
-                $verified['distance_km'],
+            'distance_km' => $verified['distance_km'],
 
-            'calculated_distance_km' =>
-                $verified['distance_km'],
+            'calculated_distance_km' => $verified['distance_km'],
 
-            'calculated_time_minutes' =>
-                $verified['duration_minutes'],
+            'calculated_time_minutes' => $verified['duration_minutes'],
 
-            'distance_source' =>
-                $verified['source'],
+            'distance_source' => $verified['source'],
 
-            'distance_is_manual' =>
-                false,
+            'distance_is_manual' => false,
 
-            'time_is_manual' =>
-                false,
+            'time_is_manual' => false,
 
-            'route_geometry' =>
-                $verified['geometry'],
+            'route_geometry' => $verified['geometry'],
         ];
     }
 
@@ -1600,8 +1525,7 @@ class RouteController extends Controller
                 !== null
         ) {
             throw ValidationException::withMessages([
-                'route_name' =>
-                    'A route with this name already exists. Use a distinct name for route variants.',
+                'route_name' => 'A route with this name already exists. Use a distinct name for route variants.',
             ]);
         }
     }
@@ -1614,7 +1538,7 @@ class RouteController extends Controller
             ->whereDate(
                 'trip_date',
                 '>=',
-                now()->toDateString()
+                today(config('app.business_timezone', 'Asia/Manila'))->toDateString()
             )
             ->whereNotIn(
                 'status',
@@ -1642,8 +1566,7 @@ class RouteController extends Controller
         array $validated
     ): void {
         foreach (
-            $validated['stops'] ?? []
-            as $index => $stop
+            $validated['stops'] ?? [] as $index => $stop
         ) {
             $name =
                 $this->normalizeRouteText(
@@ -1669,11 +1592,10 @@ class RouteController extends Controller
                 || ! is_numeric($longitude)
             ) {
                 throw ValidationException::withMessages([
-                    "stops.{$index}" =>
-                        sprintf(
-                            'Confirm %s from the location suggestions or pin it on the map.',
-                            $name
-                        ),
+                    "stops.{$index}" => sprintf(
+                        'Confirm %s from the location suggestions or pin it on the map.',
+                        $name
+                    ),
                 ]);
             }
         }
@@ -1684,21 +1606,18 @@ class RouteController extends Controller
     ): array {
         $points = [
             [
-                'latitude' =>
-                    (float) $validated[
+                'latitude' => (float) $validated[
                         'origin_latitude'
                     ],
 
-                'longitude' =>
-                    (float) $validated[
+                'longitude' => (float) $validated[
                         'origin_longitude'
                     ],
             ],
         ];
 
         foreach (
-            $validated['stops'] ?? []
-            as $index => $stop
+            $validated['stops'] ?? [] as $index => $stop
         ) {
             if (
                 $this->normalizeRouteText(
@@ -1709,26 +1628,22 @@ class RouteController extends Controller
             }
 
             $points[] = [
-                'latitude' =>
-                    (float) $validated[
+                'latitude' => (float) $validated[
                         'stop_latitudes'
                     ][$index],
 
-                'longitude' =>
-                    (float) $validated[
+                'longitude' => (float) $validated[
                         'stop_longitudes'
                     ][$index],
             ];
         }
 
         $points[] = [
-            'latitude' =>
-                (float) $validated[
+            'latitude' => (float) $validated[
                     'destination_latitude'
                 ],
 
-            'longitude' =>
-                (float) $validated[
+            'longitude' => (float) $validated[
                     'destination_longitude'
                 ],
         ];
@@ -1755,8 +1670,7 @@ class RouteController extends Controller
             < self::MIN_ENDPOINT_DISTANCE_KM
         ) {
             throw ValidationException::withMessages([
-                'destination' =>
-                    'Origin and destination resolve to the same physical location. Choose points at least 50 meters apart.',
+                'destination' => 'Origin and destination resolve to the same physical location. Choose points at least 50 meters apart.',
             ]);
         }
 
@@ -1772,8 +1686,7 @@ class RouteController extends Controller
                 ) < 0.01
             ) {
                 throw ValidationException::withMessages([
-                    'stops' =>
-                        'Two consecutive route points are effectively the same location. Move or remove the duplicate stop.',
+                    'stops' => 'Two consecutive route points are effectively the same location. Move or remove the duplicate stop.',
                 ]);
             }
         }
@@ -1874,101 +1787,83 @@ class RouteController extends Controller
                 $validated['origin']
             ),
 
-            'origin_address' =>
-                $this->nullableTrim(
-                    $validated[
-                        'origin_address'
-                    ] ?? null
-                ),
-
-            'origin_latitude' =>
+            'origin_address' => $this->nullableTrim(
                 $validated[
+                    'origin_address'
+                ] ?? null
+            ),
+
+            'origin_latitude' => $validated[
                     'origin_latitude'
                 ],
 
-            'origin_longitude' =>
-                $validated[
+            'origin_longitude' => $validated[
                     'origin_longitude'
                 ],
 
-            'origin_source' =>
-                $this->nullableTrim(
-                    $validated[
-                        'origin_source'
-                    ] ?? null
-                ),
+            'origin_source' => $this->nullableTrim(
+                $validated[
+                    'origin_source'
+                ] ?? null
+            ),
 
             'destination' => trim(
                 $validated['destination']
             ),
 
-            'destination_address' =>
-                $this->nullableTrim(
-                    $validated[
-                        'destination_address'
-                    ] ?? null
-                ),
-
-            'destination_latitude' =>
+            'destination_address' => $this->nullableTrim(
                 $validated[
+                    'destination_address'
+                ] ?? null
+            ),
+
+            'destination_latitude' => $validated[
                     'destination_latitude'
                 ],
 
-            'destination_longitude' =>
-                $validated[
+            'destination_longitude' => $validated[
                     'destination_longitude'
                 ],
 
-            'destination_source' =>
-                $this->nullableTrim(
-                    $validated[
-                        'destination_source'
-                    ] ?? null
-                ),
-
-            'distance_km' =>
+            'destination_source' => $this->nullableTrim(
                 $validated[
+                    'destination_source'
+                ] ?? null
+            ),
+
+            'distance_km' => $validated[
                     'calculated_distance_km'
                 ],
 
-            'estimated_time_minutes' =>
-                $validated[
+            'estimated_time_minutes' => $validated[
                     'calculated_time_minutes'
                 ],
 
-            'calculated_distance_km' =>
-                $validated[
+            'calculated_distance_km' => $validated[
                     'calculated_distance_km'
                 ] ?? null,
 
-            'calculated_time_minutes' =>
-                $validated[
+            'calculated_time_minutes' => $validated[
                     'calculated_time_minutes'
                 ] ?? null,
 
-            'distance_source' =>
-                $this->nullableTrim(
-                    $validated[
-                        'distance_source'
-                    ] ?? null
-                ),
+            'distance_source' => $this->nullableTrim(
+                $validated[
+                    'distance_source'
+                ] ?? null
+            ),
 
-            'distance_is_manual' =>
-                false,
+            'distance_is_manual' => false,
 
-            'time_is_manual' =>
-                false,
+            'time_is_manual' => false,
 
-            'route_geometry' =>
-                $geometry,
+            'route_geometry' => $geometry,
 
-            'route_calculated_at' =>
-                $geometry !== null
+            'route_calculated_at' => $geometry !== null
                     ? now()
                     : null,
 
-            'status' =>
-                $validated['status'],
+            'status' => $validated['status'],
         ];
 
         if ($routeCode !== null) {
@@ -2023,35 +1918,29 @@ class RouteController extends Controller
             }
 
             $route->stops()->create([
-                'stop_name' =>
-                    $stopName,
+                'stop_name' => $stopName,
 
-                'stop_order' =>
-                    $stopOrder++,
+                'stop_order' => $stopOrder++,
 
-                'address' =>
-                    $this->nullableTrim(
-                        $addresses[
-                            $index
-                        ] ?? null
-                    ),
+                'address' => $this->nullableTrim(
+                    $addresses[
+                        $index
+                    ] ?? null
+                ),
 
-                'latitude' =>
-                    $latitudes[
+                'latitude' => $latitudes[
                         $index
                     ] ?? null,
 
-                'longitude' =>
-                    $longitudes[
+                'longitude' => $longitudes[
                         $index
                     ] ?? null,
 
-                'location_source' =>
-                    $this->nullableTrim(
-                        $sources[
-                            $index
-                        ] ?? null
-                    ),
+                'location_source' => $this->nullableTrim(
+                    $sources[
+                        $index
+                    ] ?? null
+                ),
             ]);
         }
     }
@@ -2097,7 +1986,7 @@ class RouteController extends Controller
         do {
             $candidate =
                 'R-'
-                . str_pad(
+                .str_pad(
                     (string) $nextNumber,
                     2,
                     '0',
@@ -2107,12 +1996,11 @@ class RouteController extends Controller
             $exists = in_array(
                 strtoupper($candidate),
                 array_map(
-                    fn ($code) =>
-                        strtoupper(
-                            trim(
-                                (string) $code
-                            )
-                        ),
+                    fn ($code) => strtoupper(
+                        trim(
+                            (string) $code
+                        )
+                    ),
                     $routeCodes
                 ),
                 true
@@ -2143,10 +2031,10 @@ class RouteController extends Controller
 
             $matched = preg_match(
                 '/(-?\d+(?:\.\d+)?)\s*,\s*'
-                . '(-?\d+(?:\.\d+)?)\s*'
-                . '(?:->|→|to)\s*'
-                . '(-?\d+(?:\.\d+)?)\s*,\s*'
-                . '(-?\d+(?:\.\d+)?)/i',
+                .'(-?\d+(?:\.\d+)?)\s*'
+                .'(?:->|→|to)\s*'
+                .'(-?\d+(?:\.\d+)?)\s*,\s*'
+                .'(-?\d+(?:\.\d+)?)/i',
                 $coordinates,
                 $matches
             );
@@ -2195,32 +2083,24 @@ class RouteController extends Controller
                 );
 
                 $locations[$key] ??= [
-                    'id' =>
-                        'gps-'
-                        . sha1($key),
+                    'id' => 'gps-'
+                        .sha1($key),
 
-                    'name' =>
-                        $locationName,
+                    'name' => $locationName,
 
-                    'address' =>
-                        $locationName,
+                    'address' => $locationName,
 
-                    'latitude' =>
-                        $latitude,
+                    'latitude' => $latitude,
 
-                    'longitude' =>
-                        $longitude,
+                    'longitude' => $longitude,
 
-                    'source' =>
-                        'GPS Batch',
+                    'source' => 'GPS Batch',
 
-                    'grouping' =>
-                        $record[
+                    'grouping' => $record[
                             'grouping'
                         ] ?? null,
 
-                    'bus_no' =>
-                        $record[
+                    'bus_no' => $record[
                             'bus_no'
                         ] ?? null,
                 ];

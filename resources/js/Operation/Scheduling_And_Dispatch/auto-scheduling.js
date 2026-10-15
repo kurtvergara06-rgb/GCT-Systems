@@ -18,6 +18,41 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const previewBody =
         document.getElementById('autoSchedulePreviewBody');
 
+    const incomingPreviewBody =
+        document.getElementById('autoScheduleIncomingBody');
+
+    const outgoingPreviewBody =
+        document.getElementById('autoScheduleOutgoingBody');
+
+    const incomingTripCount =
+        document.getElementById('incomingTripCount');
+
+    const incomingRequiredBusesCount =
+        document.getElementById('incomingRequiredBusesCount');
+
+    const incomingReadyCount =
+        document.getElementById('incomingReadyCount');
+
+    const incomingReviewCount =
+        document.getElementById('incomingReviewCount');
+
+    const outgoingTripCount =
+        document.getElementById('outgoingTripCount');
+
+    const outgoingRequiredBusesCount =
+        document.getElementById('outgoingRequiredBusesCount');
+
+    const outgoingReadyCount =
+        document.getElementById('outgoingReadyCount');
+
+    const outgoingReviewCount =
+        document.getElementById('outgoingReviewCount');
+
+    const incomingManualCount = document.getElementById('incomingManualCount');
+    const incomingExternalCount = document.getElementById('incomingExternalCount');
+    const outgoingManualCount = document.getElementById('outgoingManualCount');
+    const outgoingExternalCount = document.getElementById('outgoingExternalCount');
+
     const previewSection =
         document.getElementById('generatedScheduleSection');
 
@@ -63,19 +98,507 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const resourceAvailableBuses =
         document.getElementById('resourceAvailableBuses');
 
+    const rulesToggle = pageRoot?.querySelector('[data-rules-toggle]');
+    const rulesGrid = pageRoot?.querySelector('#autoSchedulingRulesGrid');
+    rulesToggle?.addEventListener('click', () => {
+        if (!rulesGrid) return;
+        const expand = rulesGrid.hidden;
+        rulesGrid.hidden = !expand;
+        rulesToggle.setAttribute('aria-expanded', String(expand));
+        rulesToggle.querySelector('span').textContent = expand ? 'Hide rules' : 'Show rules';
+        rulesToggle.querySelector('i').className = expand ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+    });
+
+    // Refresh resource counts whenever the selected schedule criteria change.
+    // Reuse the server-side index queries so these numbers match actual eligibility.
+    const filterControls = [
+        document.getElementById('autoScheduleDate'),
+        document.getElementById('autoScheduleShift'),
+        document.getElementById('autoScheduleRoute'),
+    ].filter(Boolean);
+    let availabilityRequest = null;
+    let availabilityVersion = 0;
+    const refreshAvailability = async () => {
+        if (!form) return;
+        availabilityRequest?.abort();
+        const request = new AbortController();
+        availabilityRequest = request;
+        const version = ++availabilityVersion;
+        const params = new URLSearchParams(new FormData(form));
+        params.delete('_token');
+        const url = new URL(window.location.pathname, window.location.origin);
+        url.search = params.toString();
+        const targets = [
+            'summaryTrips', 'summaryDrivers', 'summaryBuses', 'summaryConflicts',
+            'generationTripCount', 'generationDriverCount', 'generationBusCount',
+            'resourceAvailableDrivers', 'resourceAvailableBuses',
+        ];
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: request.signal,
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error('Availability refresh failed');
+            const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+            if (version !== availabilityVersion || !pageRoot.isConnected) return;
+            for (const id of targets) {
+                const source = doc.getElementById(id);
+                const target = document.getElementById(id);
+                if (source && target) target.textContent = source.textContent.trim();
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.warn('Auto Scheduling counts could not refresh:', error);
+            }
+        }
+    };
+    for (const control of filterControls) {
+        control.addEventListener('change', refreshAvailability);
+    }
+
     let recommendations = [];
     let schedulingConflicts = [];
-
-
-    form?.addEventListener('submit', async (event) => {
+    let deferredSlots = [];
+    const oicApprovalDialog = document.createElement('dialog');
+    oicApprovalDialog.className = 'auto-oic-approval-dialog';
+    oicApprovalDialog.setAttribute('aria-label', 'Record OIC Approval');
+    oicApprovalDialog.innerHTML = `
+        <form method="dialog" class="auto-oic-approval-form">
+            <header><h2><i class="fa-solid fa-shield-halved"></i> Record OIC Approval</h2>
+            <button type="button" data-close-oic-approval aria-label="Close approval form"><i class="fa-solid fa-xmark"></i></button></header>
+            <p class="auto-oic-approval-context"></p>
+            <label>Approval Method <select name="method" required>
+                <option value="">Select approval method</option><option value="Phone">Phone</option>
+                <option value="Radio">Radio</option><option value="In Person">In Person</option>
+            </select></label>
+            <label>OIC Confirmation Time <input name="approved_at" type="datetime-local" required></label>
+            <label>Remarks <textarea name="remarks" maxlength="2000" rows="3"
+                placeholder="Record what the OIC confirmed."></textarea></label>
+            <p class="auto-oic-approval-disclaimer">Operations records approval received from OIC externally.
+                This does not confirm or dispatch the schedule.</p>
+            <footer><button type="button" data-close-oic-approval>Cancel</button>
+                <button type="submit" class="auto-oic-save">Save Approval</button></footer>
+        </form>`;
+    pageRoot.appendChild(oicApprovalDialog);
+    let oicApprovalIndex = null;
+    function openOicApproval(index) {
+        if (!canEditOperation || !recommendations[index]) return;
+        const item = recommendations[index];
+        if (item.bus_purpose !== 'Reserve' && !item.reserve_approval_required) return;
+        oicApprovalIndex = index;
+        const approval = item.oic_approval || {};
+        const approvalForm = oicApprovalDialog.querySelector('form');
+        approvalForm.elements.method.value = approval.method || '';
+        approvalForm.elements.approved_at.value = approval.approved_at || '';
+        approvalForm.elements.remarks.value = approval.remarks || '';
+        oicApprovalDialog.querySelector('.auto-oic-approval-context').textContent =
+            (item.base_trip_code || item.trip_code || 'Trip') + ' · ' + (item.bus_no || 'Reserve Bus');
+        oicApprovalDialog.showModal();
+    }
+    oicApprovalDialog.querySelectorAll('[data-close-oic-approval]').forEach(button => {
+        button.addEventListener('click', () => oicApprovalDialog.close());
+    });
+    oicApprovalDialog.querySelector('form').addEventListener('submit', event => {
         event.preventDefault();
-        await generateSchedule();
+        const entry = recommendations[oicApprovalIndex];
+        const approvalForm = event.currentTarget;
+        if (!entry || !approvalForm.reportValidity()) return;
+        const value = approvalForm.elements.approved_at.value;
+        if (new Date(value).getTime() > Date.now()) {
+            window.showSystemToast?.('The approval time cannot be in the future.', 'warning', 'Invalid Time');
+            return;
+        }
+        entry.oic_approval = {
+            method: approvalForm.elements.method.value,
+            approved_at: value,
+            remarks: approvalForm.elements.remarks.value.trim(),
+        };
+        oicApprovalDialog.close();
+        renderRecommendations(recommendations, schedulingConflicts);
+        queueDraftSave();
+        window.showSystemToast?.('OIC approval recorded in the draft. Confirm Schedule to save the assignment.', 'success', 'Approval Recorded');
     });
 
 
-    regenerateButton?.addEventListener('click', async () => {
-        await generateSchedule();
+    // Drafts persist preview decisions, but never reserve a vehicle.
+    const draftSaveStatus = document.getElementById('autoDraftSaveStatus');
+    const setDraftSaveStatus = (message, state = 'idle') => {
+        if (!draftSaveStatus) return;
+        draftSaveStatus.textContent = message;
+        draftSaveStatus.dataset.state = state;
+    };
+    const draftButton = document.getElementById('saveAutoScheduleDraftButton');
+    const draftPrintButton = document.getElementById('printAutoScheduleDraftButton');
+    const draftKey = () => {
+        const values = new FormData(form);
+        return new URLSearchParams({
+            schedule_date: String(values.get('schedule_date') || ''),
+            shift: String(values.get('shift') || 'all'),
+            shuttle_route_id: String(values.get('shuttle_route_id') || 'all'),
+        });
+    };
+    let draftSaveTimer = null;
+    let draftRestoreVersion = 0;
+    let draftRestoreInProgress = false;
+    let draftConfirmed = false;
+    let lastSummary = {};
+    let previewScope = null;
+    const currentScope = () => draftKey().toString();
+    const hasPreview = () => recommendations.length > 0 || schedulingConflicts.length > 0 || deferredSlots.length > 0;
+    const draftCsrfToken = () => form?.querySelector('input[name="_token"]')?.value || '';
+    async function saveScheduleDraft({ silent = false } = {}) {
+        if (!canEditOperation || !form) return;
+        const key = draftKey();
+        if (!key.get('schedule_date') || previewScope !== key.toString()) return;
+        const result = await fetch('/operation/auto-scheduling/draft', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json', 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': draftCsrfToken(),
+            },
+            body: JSON.stringify({
+                ...Object.fromEntries(key),
+                recommendations, conflicts: schedulingConflicts, decisions: deferredSlots, summary: lastSummary,
+            }),
+        });
+        const responseData = await result.json().catch(() => ({}));
+        if (!result.ok) {
+            setDraftSaveStatus('Draft not saved', 'error');
+            throw new Error(getErrorMessage(responseData) || 'Unable to save draft. Please retry.');
+        }
+        setDraftSaveStatus('Draft saved', 'saved');
+        if (!silent) window.showSystemToast?.('Schedule draft saved.', 'success', 'Draft Saved');
+    }
+    function queueDraftSave() {
+        if (!canEditOperation || !form || previewScope !== currentScope()) return;
+        clearTimeout(draftSaveTimer);
+        setDraftSaveStatus('Saving changes...', 'saving');
+        draftSaveTimer = setTimeout(() => {
+            saveScheduleDraft({ silent: true }).catch(error => {
+                window.showSystemToast?.(error.message, 'error', 'Draft Not Saved');
+            });
+        }, 750);
+    }
+    async function restoreScheduleDraft() {
+        if (!form || !pageRoot?.isConnected || draftConfirmed) return;
+        clearTimeout(draftSaveTimer);
+        const version = ++draftRestoreVersion;
+        const key = draftKey();
+        const targetScope = key.toString();
+        previewScope = null;
+        recommendations = [];
+        schedulingConflicts = [];
+        deferredSlots = [];
+        lastSummary = {};
+        draftRestoreInProgress = true;
+        try {
+            renderRecommendations([], []);
+            renderConflicts([]);
+            updateMlStatus([]);
+        } finally {
+            draftRestoreInProgress = false;
+        }
+        setDraftSaveStatus('No draft for selected filters', 'idle');
+        if (footerMessage) footerMessage.textContent = 'Generate a schedule for the selected date, shift and route.';
+        if (!key.get('schedule_date')) return;
+        try {
+            const response = await fetch('/operation/auto-scheduling/draft?' + key, {
+                headers: { Accept: 'application/json' }, credentials: 'same-origin',
+            });
+            if (!response.ok || version !== draftRestoreVersion || targetScope !== currentScope()) return;
+            const { draft } = await response.json();
+            if (!draft || version !== draftRestoreVersion || targetScope !== currentScope()) return;
+            previewScope = targetScope;
+            recommendations = Array.isArray(draft.recommendations) ? draft.recommendations : [];
+            // Migrate older drafts that hid review slots but left them in the active conflict list.
+            schedulingConflicts = Array.isArray(draft.conflicts)
+                ? draft.conflicts.filter(conflict => !conflict.dismissed_from_preview)
+                : [];
+            deferredSlots = Array.isArray(draft.decisions) ? draft.decisions : [];
+            lastSummary = draft.summary || {};
+            draftRestoreInProgress = true;
+            try {
+                updateSummary(lastSummary);
+                renderRecommendations(recommendations, schedulingConflicts);
+                renderConflicts(schedulingConflicts);
+                updateMlStatus(schedulingConflicts);
+            } finally {
+                draftRestoreInProgress = false;
+            }
+            setDraftSaveStatus('Draft restored', 'saved');
+            if (footerMessage) footerMessage.textContent = 'Saved draft restored. Availability will be revalidated before confirmation.';
+        } catch (error) {
+            console.warn('Unable to restore Auto-Scheduling draft:', error);
+        }
+    }
+    const savedDraftsButton = document.getElementById('openAutoScheduleDrafts');
+    const savedDraftsDialog = document.createElement('dialog');
+    savedDraftsDialog.className = 'auto-saved-drafts-dialog';
+    savedDraftsDialog.setAttribute('aria-label', 'Saved Auto-Scheduling drafts');
+    savedDraftsDialog.innerHTML = `
+        <header><h2><i class="fa-solid fa-folder-open"></i> Saved Drafts</h2>
+        <button type="button" data-close-drafts aria-label="Close saved drafts"><i class="fa-solid fa-xmark"></i></button></header>
+        <p>Choose a draft to restore. Drafts are previews and do not reserve buses.</p>
+        <div class="auto-drafts-list" aria-live="polite">Loading drafts...</div>`;
+    pageRoot.appendChild(savedDraftsDialog);
+    savedDraftsDialog.querySelector('[data-close-drafts]').addEventListener('click', () => savedDraftsDialog.close());
+    savedDraftsButton?.addEventListener('click', async () => {
+        savedDraftsDialog.showModal();
+        const list = savedDraftsDialog.querySelector('.auto-drafts-list');
+        list.textContent = 'Loading drafts...';
+        try {
+            const response = await fetch('/operation/auto-scheduling/drafts', {
+                headers: { Accept: 'application/json' }, credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error('Unable to load drafts.');
+            const data = await response.json();
+            const drafts = Array.isArray(data.drafts) ? data.drafts : [];
+            list.replaceChildren();
+            if (!drafts.length) {
+                list.textContent = 'No saved drafts yet. Generate recommendations to create your first draft.';
+            }
+            drafts.forEach(draft => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'auto-draft-choice';
+                const label = document.createElement('strong');
+                label.textContent = draft.schedule_date + ' · ' + draft.shift + ' · ' + draft.shuttle_route_id;
+                const details = document.createElement('small');
+                details.textContent = draft.ready_count + ' recommendations · '
+                    + draft.review_count + ' active conflicts · '
+                    + Number(draft.decision_count || 0) + ' deferred slots · Saved ' + draft.updated_at;
+                button.append(label, details);
+                button.addEventListener('click', () => {
+                    for (const [name, value] of Object.entries({
+                        schedule_date: draft.schedule_date,
+                        shift: draft.shift,
+                        shuttle_route_id: draft.shuttle_route_id,
+                    })) {
+                        const field = form?.elements.namedItem(name);
+                        if (field) field.value = value;
+                    }
+                    savedDraftsDialog.close();
+                    void restoreScheduleDraft();
+                });
+                list.appendChild(button);
+            });
+        } catch (error) {
+            list.textContent = error.message;
+        }
     });
+
+    draftButton?.addEventListener('click', () => {
+        saveScheduleDraft().catch(error => window.showSystemToast?.(error.message, 'error', 'Draft Not Saved'));
+    });
+    draftPrintButton?.addEventListener('click', () => window.print());
+    for (const control of filterControls) control.addEventListener('change', restoreScheduleDraft);
+    void restoreScheduleDraft();
+
+
+
+    // Edits remain client-side until the existing Confirm Schedule transaction.
+    let editing = null;
+    const editDialog = document.createElement('dialog');
+    editDialog.className = 'auto-preview-edit-dialog';
+    editDialog.setAttribute('aria-label', 'Edit schedule assignment');
+    editDialog.innerHTML = `
+        <form method="dialog" class="auto-preview-edit-form">
+            <h3>Edit Assignment</h3>
+            <p class="auto-preview-edit-context"></p>
+            <label>Driver<select name="driver" required></select></label>
+            <label>Bus<select name="bus" required></select></label>
+            <p class="auto-preview-edit-error" role="alert" hidden></p>
+            <div class="auto-preview-edit-actions">
+                <button type="button" data-cancel-preview-edit>Cancel</button>
+                <button type="submit" class="schedule-primary-btn">Apply to Preview</button>
+            </div>
+        </form>`;
+    pageRoot?.append(editDialog);
+    editDialog.querySelector('[data-cancel-preview-edit]')?.addEventListener('click', () => editDialog.close());
+    const previewEditUrl = '/operation/auto-scheduling/edit-preview';
+    const csrfTokenForPreview = () => form?.querySelector('input[name="_token"]')?.value || '';
+    const otherPreviewAssignments = () => recommendations
+        .filter((_, index) => !(editing?.kind === 'ready' && index === editing.index))
+        .map(({ trip_schedule_id, driver_attendance_id, bus_id }) => ({
+            trip_schedule_id, driver_attendance_id, bus_id,
+        }));
+    async function previewEditRequest(payload) {
+        const response = await fetch(previewEditUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfTokenForPreview(),
+            },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(getErrorMessage(data));
+        return data;
+    }
+    // Report-side selection is a preview action, not an Edit Assignment modal.
+    document.addEventListener('gct:apply-reserve-selection', async (event) => {
+        if (!canEditOperation) return;
+        const index = Number(event.detail?.index);
+        const item = schedulingConflicts[index];
+        if (!item || item.issue_type !== 'reserve_approval_required') return;
+        const driverId = Number(item.suggested_driver_attendance_id);
+        const busId = Number(item.suggested_bus_id);
+        if (!driverId || !busId) return;
+
+        try {
+            const data = await previewEditRequest({
+                trip_schedule_id: item.trip_schedule_id,
+                driver_attendance_id: driverId,
+                bus_id: busId,
+                recommendations: recommendations.map(({ trip_schedule_id, driver_attendance_id, bus_id }) => ({
+                    trip_schedule_id, driver_attendance_id, bus_id,
+                })),
+            });
+            const replacement = {
+                ...item,
+                driver_attendance_id: data.driver.id,
+                driver_id: data.driver.driver_id,
+                driver_name: data.driver.name,
+                driver_status: data.driver.status,
+                bus_id: data.bus.id,
+                bus_no: data.bus.name,
+                bus_purpose: data.bus.purpose || 'Reserve',
+                reserve_approval_required: true,
+                result: 'Ready',
+            };
+            schedulingConflicts.splice(index, 1);
+            recommendations.push(replacement);
+            renderRecommendations(recommendations, schedulingConflicts);
+            renderConflicts(schedulingConflicts);
+            updateReadyBadgeOnly();
+            document.dispatchEvent(new CustomEvent('gct:reserve-preview-applied', { detail: { index } }));
+            window.showSystemToast?.('Reserve Bus added to the preview. Confirm Schedule is still required.', 'success');
+        } catch (error) {
+            window.showSystemToast?.(error.message, 'error', 'Reserve Bus not eligible');
+        }
+    });
+
+    document.addEventListener('gct:defer-conflict-slot', (event) => {
+        if (!canEditOperation) return;
+        const index = Number(event.detail?.index);
+        const decision = event.detail?.decision;
+        if (!Number.isInteger(index) || !['manual_later', 'external_bus'].includes(decision)) return;
+        const conflict = schedulingConflicts[index];
+        if (!conflict) return;
+        schedulingConflicts.splice(index, 1);
+        deferredSlots.push({ ...conflict, result: 'Deferred', decision, notes: '' });
+        renderRecommendations(recommendations, schedulingConflicts);
+        renderConflicts(schedulingConflicts);
+        updateMlStatus(schedulingConflicts);
+        updateReadyBadgeOnly();
+    });
+
+    previewSection?.addEventListener('click', async (event) => {
+        const btn = event.target.closest('[data-edit-kind][data-edit-index]');
+        if (!btn || !canEditOperation) return;
+        const kind = btn.dataset.editKind;
+        const index = Number(btn.dataset.editIndex);
+        const item = kind === 'ready' ? recommendations[index] : schedulingConflicts[index];
+        if (!item) return;
+        editing = { kind, index, item };
+        const errorEl = editDialog.querySelector('.auto-preview-edit-error');
+        errorEl.hidden = true;
+        editDialog.querySelector('.auto-preview-edit-context').textContent =
+            `${item.base_trip_code || item.trip_code} — Slot ${item.slot || 1} of ${item.required_buses || 1}`;
+        try {
+            const data = await previewEditRequest({ trip_schedule_id: item.trip_schedule_id });
+            for (const [field, choices, selected] of [
+                ['driver', data.drivers, item.driver_attendance_id],
+                ['bus', data.buses, item.bus_id],
+            ]) {
+                const select = editDialog.querySelector(`[name="${field}"]`);
+                select.replaceChildren(new Option('Select ' + field, ''));
+                for (const option of choices) {
+                    select.add(new Option(option.name, String(option.id)));
+                }
+                if (selected) select.value = String(selected);
+            }
+            editDialog.showModal();
+        } catch (error) {
+            window.showSystemToast?.(error.message, 'error', 'Cannot edit assignment');
+        }
+    });
+    editDialog.querySelector('form')?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!editing) return;
+        const submit = editDialog.querySelector('[type="submit"]');
+        const errorEl = editDialog.querySelector('.auto-preview-edit-error');
+        submit.disabled = true;
+        errorEl.hidden = true;
+        try {
+            const driverId = Number(editDialog.querySelector('[name="driver"]').value);
+            const busId = Number(editDialog.querySelector('[name="bus"]').value);
+            if (!driverId || !busId) throw new Error('Select an eligible driver and bus.');
+            const data = await previewEditRequest({
+                trip_schedule_id: editing.item.trip_schedule_id,
+                driver_attendance_id: driverId,
+                bus_id: busId,
+                recommendations: otherPreviewAssignments(),
+            });
+            const replacement = {
+                ...editing.item,
+                driver_attendance_id: data.driver.id,
+                driver_id: data.driver.driver_id,
+                driver_name: data.driver.name,
+                driver_status: data.driver.status,
+                bus_id: data.bus.id,
+                bus_no: data.bus.name,
+                bus_purpose: data.bus.purpose || 'Regular',
+                reserve_approval_required: data.bus.purpose === 'Reserve',
+                result: 'Ready',
+            };
+            if (editing.kind === 'ready') {
+                recommendations[editing.index] = replacement;
+            } else {
+                schedulingConflicts.splice(editing.index, 1);
+                recommendations.push(replacement);
+            }
+            editDialog.close();
+            editing = null;
+            renderRecommendations(recommendations, schedulingConflicts);
+            renderConflicts(schedulingConflicts);
+            updateReadyBadgeOnly();
+        } catch (error) {
+            errorEl.textContent = error.message;
+            errorEl.hidden = false;
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    const requestRegeneration = () => {
+        if (previewScope !== currentScope() || !hasPreview()) {
+            void generateSchedule();
+            return;
+        }
+        if (typeof window.openSystemConfirmation === 'function') {
+            window.openSystemConfirmation({
+                title: 'Replace Existing Draft?',
+                message: 'Regenerating will replace this preview with new recommendations. Your current saved draft will be overwritten.',
+                button: 'Regenerate Draft',
+                type: 'warning',
+                closeOnConfirm: true,
+            }, () => { void generateSchedule(); });
+            return;
+        }
+        window.showSystemToast?.('Save or remove the current preview before generating again.', 'warning', 'Draft Already Open');
+    };
+    form?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        requestRegeneration();
+    });
+
+    regenerateButton?.addEventListener('click', requestRegeneration);
 
 
     confirmButton?.addEventListener('click', async () => {
@@ -343,8 +866,11 @@ function updateMlStatus(conflicts) {
     }
 
     if (!found) {
-        aiMlStatus.hidden = true;
-        aiMlStatus.innerHTML = '';
+        aiMlStatus.innerHTML = `
+            <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Ranking Source</span>
+            <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: Not reported</span>
+            <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: Not reported</span>
+        `;
         return;
     }
 
@@ -364,11 +890,10 @@ function updateMlStatus(conflicts) {
         </span>
     `;
 
-    aiMlStatus.hidden = false;
     aiMlStatus.innerHTML = `
         <span class="ai-status-label">
-            <i class="fa-solid fa-robot"></i>
-            Ranking source
+            <i class="fa-solid fa-microchip"></i>
+            Ranking Source
         </span>
         ${badge(busReady, busSource, 'Bus')}
         ${badge(driverReady, driverSource, 'Driver')}
@@ -565,6 +1090,7 @@ function updateMlStatus(conflicts) {
                 '/operation/auto-scheduling/generate'
             );
 
+        draftRestoreVersion += 1;
         setLoading(true);
 
         try {
@@ -593,13 +1119,24 @@ function updateMlStatus(conflicts) {
                     ? data.recommendations
                     : [];
 
-            updateSummary(data.summary || {});
-            renderRecommendations(recommendations);
-
             schedulingConflicts =
                 Array.isArray(data.conflicts)
                     ? data.conflicts
                     : [];
+            deferredSlots = [];
+
+            previewScope = currentScope();
+            lastSummary = data.summary || {};
+            updateSummary(lastSummary);
+            renderRecommendations(recommendations, schedulingConflicts);
+            clearTimeout(draftSaveTimer);
+            if (canEditOperation) {
+                try {
+                    await saveScheduleDraft({ silent: true });
+                } catch (saveError) {
+                    window.showSystemToast?.(saveError.message, 'error', 'Draft Not Saved');
+                }
+            }
 
             renderConflicts(schedulingConflicts);
             updateMlStatus(schedulingConflicts);
@@ -612,6 +1149,7 @@ function updateMlStatus(conflicts) {
             console.error(error);
 
             recommendations = [];
+            deferredSlots = [];
 
             renderError(
                 error.message
@@ -637,7 +1175,26 @@ function updateMlStatus(conflicts) {
             return;
         }
 
-        if (!confirmButton || !recommendations.length) {
+        if (!confirmButton || (recommendations.length === 0 && deferredSlots.length === 0)) {
+            return;
+        }
+        if (schedulingConflicts.length > 0) {
+            window.showSystemToast?.(
+                'Resolve all scheduling conflicts before confirming. Removing a review slot from the preview does not resolve its conflict.',
+                'warning', 'Conflicts Pending'
+            );
+            return;
+        }
+
+        const reserveRecommendations = recommendations.filter(
+            (item) => item.bus_purpose === 'Reserve' || item.reserve_approval_required
+        );
+        const missingApproval = reserveRecommendations.find(item => !item.oic_approval?.method || !item.oic_approval?.approved_at);
+        if (missingApproval) {
+            window.showSystemToast?.(
+                'Record OIC approval for ' + (missingApproval.bus_no || 'the Reserve Bus') + ' before confirming.',
+                'warning', 'Approval Required'
+            );
             return;
         }
 
@@ -662,10 +1219,21 @@ function updateMlStatus(conflicts) {
                     'X-CSRF-TOKEN': csrfToken || '',
                 },
                 body: JSON.stringify({
+                    draft_filters: Object.fromEntries(draftKey()),
+                    conflicts: schedulingConflicts,
+                    decisions: deferredSlots.map((item) => ({
+                        trip_schedule_id: item.trip_schedule_id,
+                        slot: item.slot,
+                        decision: item.decision,
+                        notes: item.notes || null,
+                    })),
                     recommendations: recommendations.map((item) => ({
                         trip_schedule_id: item.trip_schedule_id,
                         driver_attendance_id: item.driver_attendance_id,
                         bus_id: item.bus_id,
+                        slot: item.slot,
+                        ...((item.bus_purpose === 'Reserve' || item.reserve_approval_required)
+                            ? { oic_approval: item.oic_approval } : {}),
                     })),
                 }),
             });
@@ -676,8 +1244,13 @@ function updateMlStatus(conflicts) {
                 throw new Error(getErrorMessage(data));
             }
 
+            draftConfirmed = true;
+            setDraftSaveStatus('Schedule confirmed', 'saved');
+            clearTimeout(draftSaveTimer);
             recommendations = [];
-            renderRecommendations(recommendations);
+            schedulingConflicts = [];
+            deferredSlots = [];
+            renderRecommendations(recommendations, schedulingConflicts);
 
             if (footerMessage) {
                 footerMessage.textContent =
@@ -718,7 +1291,7 @@ function updateMlStatus(conflicts) {
         }
 
         confirmButton.disabled =
-            loading || recommendations.length === 0;
+            loading || (recommendations.length === 0 && deferredSlots.length === 0) || schedulingConflicts.length > 0;
 
         confirmButton.innerHTML = loading
             ? `
@@ -785,7 +1358,7 @@ function updateMlStatus(conflicts) {
         if (readyBadge) {
             readyBadge.innerHTML = `
                 <i class="fa-solid fa-circle-check"></i>
-                <span>${Number(summary.ready || 0)} Ready</span>
+                <span>${Number(summary.ready || 0)} Ready Slots</span>
             `;
         }
 
@@ -805,136 +1378,357 @@ function updateMlStatus(conflicts) {
     }
 
 
-    function renderRecommendations(items) {
-        if (!previewBody) {
+    function getDirection(item) {
+        return String(item?.direction || '').trim().toLowerCase();
+    }
+
+    function renderRecommendations(items, conflicts = schedulingConflicts) {
+        const safeItems = Array.isArray(items) ? items : [];
+        const safeConflicts = Array.isArray(conflicts) ? conflicts : [];
+        const safeDecisions = Array.isArray(deferredSlots) ? deferredSlots : [];
+        const visibleConflicts = safeConflicts;
+
+        // Partition exclusively by each trip's actual direction field
+        const incomingRecs = safeItems.filter((r) => getDirection(r) === 'incoming');
+        const incomingConfs = visibleConflicts.filter((c) => getDirection(c) === 'incoming');
+        const incomingDecisions = safeDecisions.filter((d) => getDirection(d) === 'incoming');
+
+        const outgoingRecs = safeItems.filter((r) => getDirection(r) === 'outgoing');
+        const outgoingConfs = visibleConflicts.filter((c) => getDirection(c) === 'outgoing');
+        const outgoingDecisions = safeDecisions.filter((d) => getDirection(d) === 'outgoing');
+
+        setText(incomingManualCount, incomingDecisions.filter((d) => d.decision === 'manual_later').length);
+        setText(incomingExternalCount, incomingDecisions.filter((d) => d.decision === 'external_bus').length);
+        setText(outgoingManualCount, outgoingDecisions.filter((d) => d.decision === 'manual_later').length);
+        setText(outgoingExternalCount, outgoingDecisions.filter((d) => d.decision === 'external_bus').length);
+
+        // Counts are per trip, not slot positions: Slot 3 of 3 is not 3 buses assigned.
+        const assignedByTrip = new Map();
+        for (const rec of safeItems) {
+            if (rec.result !== 'Ready') continue;
+            const tripKey = String(rec.trip_schedule_id || rec.base_trip_code || rec.trip_code || '');
+            assignedByTrip.set(tripKey, (assignedByTrip.get(tripKey) || 0) + 1);
+        }
+        const withAssignmentCount = (row) => ({
+            ...row,
+            tripAssignedCount: assignedByTrip.get(
+                String(row.trip_schedule_id || row.base_trip_code || row.trip_code || '')
+            ) || 0,
+        });
+
+        // Build combined rows with original master recommendations index
+        const incomingRows = [
+            ...incomingRecs.map((item) => ({
+                ...withAssignmentCount(item),
+                originalIndex: safeItems.indexOf(item),
+            })),
+            ...incomingConfs.map((conf) => ({
+                ...withAssignmentCount(conf),
+                originalIndex: null,
+                conflictIndex: safeConflicts.indexOf(conf),
+            })),
+            ...incomingDecisions.map((decision) => ({
+                ...withAssignmentCount(decision),
+                result: 'Deferred',
+                decisionIndex: safeDecisions.indexOf(decision),
+            })),
+        ];
+
+        const outgoingRows = [
+            ...outgoingRecs.map((item) => ({
+                ...withAssignmentCount(item),
+                originalIndex: safeItems.indexOf(item),
+            })),
+            ...outgoingConfs.map((conf) => ({
+                ...withAssignmentCount(conf),
+                originalIndex: null,
+                conflictIndex: safeConflicts.indexOf(conf),
+            })),
+            ...outgoingDecisions.map((decision) => ({
+                ...withAssignmentCount(decision),
+                result: 'Deferred',
+                decisionIndex: safeDecisions.indexOf(decision),
+            })),
+        ];
+
+        const sortedIncoming = sortScheduleRows(incomingRows);
+        const sortedOutgoing = sortScheduleRows(outgoingRows);
+
+        renderDirectionSection({
+            tbody: incomingPreviewBody,
+            rows: sortedIncoming,
+            directionName: 'Incoming',
+            emptyMessage: 'No Scheduled and Unassigned incoming trips found for this date.',
+            tripCountEl: incomingTripCount,
+            requiredBusesEl: incomingRequiredBusesCount,
+            readyCountEl: incomingReadyCount,
+            reviewCountEl: incomingReviewCount,
+            recs: incomingRecs,
+            confs: [...incomingConfs, ...incomingDecisions],
+        });
+
+        renderDirectionSection({
+            tbody: outgoingPreviewBody,
+            rows: sortedOutgoing,
+            directionName: 'Outgoing',
+            emptyMessage: 'No Scheduled and Unassigned outgoing trips found for this date.',
+            tripCountEl: outgoingTripCount,
+            requiredBusesEl: outgoingRequiredBusesCount,
+            readyCountEl: outgoingReadyCount,
+            reviewCountEl: outgoingReviewCount,
+            recs: outgoingRecs,
+            confs: [...outgoingConfs, ...outgoingDecisions],
+        });
+
+        if (previewBody && previewBody.style.display !== 'none') {
+            const allSorted = [...sortedIncoming, ...sortedOutgoing];
+            previewBody.innerHTML = allSorted.length
+                ? allSorted.map((item) => renderRowHtml(item)).join('')
+                : `<tr><td colspan="8"><div class="auto-empty-state"><i class="fa-solid fa-calendar-xmark"></i><strong>No recommendations</strong><span>No recommendations were generated.</span></div></td></tr>`;
+        }
+
+        document.querySelectorAll('[data-oic-approve-index]').forEach((button) => {
+            button.addEventListener('click', () => openOicApproval(Number(button.dataset.oicApproveIndex)));
+        });
+
+        document.querySelectorAll('[data-remove-index]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const index = Number(button.dataset.removeIndex);
+
+                if (
+                    Number.isNaN(index)
+                    || !recommendations[index]
+                ) {
+                    return;
+                }
+
+                const [removed] = recommendations.splice(index, 1);
+                schedulingConflicts.push({
+                    ...removed,
+                    result: 'Conflict',
+                    issue_type: 'recommendation_removed',
+                    missing_driver: true,
+                    missing_bus: true,
+                    driver_attendance_id: null,
+                    driver_id: null,
+                    driver_name: null,
+                    bus_id: null,
+                    bus_no: null,
+                    reason: 'The AI recommendation was removed. Choose Manual Later, External Bus, or select another eligible assignment.',
+                });
+
+                renderRecommendations(
+                    recommendations,
+                    schedulingConflicts
+                );
+
+                renderConflicts(schedulingConflicts);
+                updateMlStatus(schedulingConflicts);
+
+                updateReadyBadgeOnly();
+            });
+        });
+
+        document.querySelectorAll('[data-defer-decision][data-conflict-index]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const index = Number(button.dataset.conflictIndex);
+                if (!Number.isInteger(index) || index < 0 || !schedulingConflicts[index]) return;
+
+                const [conflict] = schedulingConflicts.splice(index, 1);
+                deferredSlots.push({
+                    ...conflict,
+                    result: 'Deferred',
+                    decision: button.dataset.deferDecision,
+                    notes: '',
+                });
+                renderRecommendations(recommendations, schedulingConflicts);
+                renderConflicts(schedulingConflicts);
+                updateMlStatus(schedulingConflicts);
+                updateReadyBadgeOnly();
+            });
+        });
+
+        document.querySelectorAll('[data-reopen-decision-index]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const index = Number(button.dataset.reopenDecisionIndex);
+                if (!Number.isInteger(index) || index < 0 || !deferredSlots[index]) return;
+                const [decision] = deferredSlots.splice(index, 1);
+                schedulingConflicts.push({ ...decision, result: 'Conflict', decision: undefined });
+                renderRecommendations(recommendations, schedulingConflicts);
+                renderConflicts(schedulingConflicts);
+                updateMlStatus(schedulingConflicts);
+                updateReadyBadgeOnly();
+            });
+        });
+
+        if (!draftRestoreInProgress && !draftConfirmed && (recommendations.length || schedulingConflicts.length || deferredSlots.length)) queueDraftSave();
+        updateConfirmButton();
+    }
+
+    function renderDirectionSection({
+        tbody,
+        rows,
+        directionName,
+        emptyMessage,
+        tripCountEl,
+        requiredBusesEl,
+        readyCountEl,
+        reviewCountEl,
+        recs,
+        confs,
+    }) {
+        if (!tbody) {
             return;
         }
 
-        if (!items.length) {
-            previewBody.innerHTML = `
+        const uniqueTripCodes = new Set();
+        let totalRequiredBuses = 0;
+
+        rows.forEach((r) => {
+            const code = String(r.base_trip_code || r.trip_code || '').split(' ')[0];
+            if (code && !uniqueTripCodes.has(code)) {
+                uniqueTripCodes.add(code);
+                totalRequiredBuses += Math.max(1, Number(r.required_buses || 1));
+            }
+        });
+
+        const readyCount = recs.filter((r) => r.result === 'Ready').length;
+        const reviewCount = confs.length + (totalRequiredBuses > (readyCount + confs.length) ? (totalRequiredBuses - readyCount - confs.length) : 0);
+
+        setText(tripCountEl, uniqueTripCodes.size);
+        setText(requiredBusesEl, totalRequiredBuses);
+        setText(readyCountEl, readyCount);
+        setText(reviewCountEl, reviewCount);
+
+        if (!rows.length) {
+            tbody.innerHTML = `
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="auto-empty-state">
                             <i class="fa-solid fa-calendar-xmark"></i>
-                            <strong>No ready recommendations</strong>
-                            <span>
-                                No Scheduled and Unassigned trips could be
-                                assigned using the selected filters.
-                            </span>
+                            <strong>No ${escapeHtml(directionName.toLowerCase())} recommendations</strong>
+                            <span>${escapeHtml(emptyMessage)}</span>
                         </div>
                     </td>
                 </tr>
             `;
-
-            updateConfirmButton();
             return;
         }
 
-        previewBody.innerHTML = items
-            .map((item, index) => `
-                <tr>
-                    <td>${escapeHtml(item.trip_code)}</td>
-
-                    <td>
-                        <div class="auto-time-cell">
-                            <strong>
-                                ${escapeHtml(
-                                    item.departure_display
-                                    || formatDisplayTime(
-                                        item.departure_time
-                                    )
-                                )}
-                            </strong>
-
-                            <small>
-                                to
-                                ${escapeHtml(
-                                    item.arrival_display
-                                    || formatDisplayTime(
-                                        item.estimated_arrival_time
-                                    )
-                                )}
-                            </small>
-                        </div>
-                    </td>
-
-                    <td>
-                        <div class="route-cell">
-                            <strong>
-                                ${escapeHtml(item.route_code)}
-                            </strong>
-
-                            <span>
-                                ${escapeHtml(item.route_name)}
-                            </span>
-                        </div>
-                    </td>
-
-                    <td>
-                        ${renderDriver(item)}
-                    </td>
-
-                    <td>
-                        <span class="bus-chip">
-                            ${escapeHtml(item.bus_no)}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="schedule-status ready">
-                            Ready
-                        </span>
-                    </td>
-
-                    <td>
-                        <button
-                            type="button"
-                            class="schedule-action-btn remove"
-                            data-remove-index="${index}"
-                            title="Remove recommendation"
-                        >
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </td>
-                </tr>
-            `)
-            .join('');
-
-        document
-            .querySelectorAll('[data-remove-index]')
-            .forEach((button) => {
-                button.addEventListener('click', () => {
-                    const index =
-                        Number(button.dataset.removeIndex);
-
-                    if (
-                        Number.isNaN(index)
-                        || !recommendations[index]
-                    ) {
-                        return;
-                    }
-
-                    recommendations.splice(index, 1);
-
-                    renderRecommendations(
-                        recommendations
-                    );
-
-                    updateReadyBadgeOnly();
-                });
-            });
-
-        updateConfirmButton();
+        tbody.innerHTML = rows.map((item) => renderRowHtml(item)).join('');
     }
 
+    function sortScheduleRows(rows) {
+        return rows.slice().sort((a, b) => {
+            const timeA = String(a.departure_time || '');
+            const timeB = String(b.departure_time || '');
+            if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+            const tripA = String(a.base_trip_code || a.trip_code || '');
+            const tripB = String(b.base_trip_code || b.trip_code || '');
+            if (tripA !== tripB) return tripA.localeCompare(tripB);
+
+            const slotA = Number(a.slot || 1);
+            const slotB = Number(b.slot || 1);
+            return slotA - slotB;
+        });
+    }
+
+    function renderRowHtml(item) {
+        const cleanTripCode = escapeHtml(item.base_trip_code || String(item.trip_code || '').split(' ')[0]);
+        const required = Math.max(1, Number(item.required_buses || 1));
+        const slotNumber = Math.max(1, Number(item.slot || 1));
+        const assigned = Math.min(required, Math.max(0, Number(item.tripAssignedCount || 0)));
+        const slotLabel = required > 1
+            ? `Slot ${slotNumber} of ${required}`
+            : 'Single bus slot';
+        const assignmentProgress = `${assigned}/${required} buses ready`;
+
+        const isConflict = item.result === 'Conflict';
+
+        return `
+            <tr class="${isConflict ? 'conflict-row' : ''}">
+                <td>
+                    <strong>${cleanTripCode}</strong>
+                </td>
+
+                <td>
+                    <div class="auto-time-cell">
+                        <strong>
+                            ${escapeHtml(
+                                item.departure_display
+                                || formatDisplayTime(item.departure_time)
+                            )}
+                        </strong>
+
+                        <small>
+                            to
+                            ${escapeHtml(
+                                item.arrival_display
+                                || formatDisplayTime(item.estimated_arrival_time)
+                            )}
+                        </small>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="route-cell">
+                        <strong>
+                            ${escapeHtml(item.route_code || '—')}
+                        </strong>
+
+                        <span>
+                            ${escapeHtml(item.route_name || 'Route')}
+                        </span>
+                    </div>
+                </td>
+
+                <td>
+                    <span class="required-bus-count">
+                        <i class="fa-solid fa-bus"></i>
+                        ${escapeHtml(slotLabel)}
+                    </span>
+                    <small class="auto-bus-assignment-progress">${escapeHtml(assignmentProgress)}</small>
+                </td>
+
+                <td>
+                    ${renderDriver(item)}
+                </td>
+
+                <td>
+                    ${renderBus(item)}
+                </td>
+
+                <td>
+                    ${renderResultBadge(item)}
+                </td>
+
+                <td>
+                    ${renderAction(item)}
+                </td>
+            </tr>
+        `;
+    }
 
     function renderDriver(item) {
+        if (!item || !item.driver_name || ['Conflict', 'Deferred'].includes(item.result)) {
+            return `
+                <div class="driver-cell unassigned">
+                    <div class="driver-avatar unassigned">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <div>
+                        <strong class="unassigned-text">Unassigned</strong>
+                        <span class="unassigned-sub">${item?.missing_driver ? 'No driver available' : 'Pending review'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
         return `
             <div class="driver-cell">
                 <div class="driver-avatar">
-                    ${escapeHtml(
-                        getInitials(item.driver_name)
-                    )}
+                    ${escapeHtml(getInitials(item.driver_name))}
                 </div>
 
                 <div>
@@ -943,14 +1737,128 @@ function updateMlStatus(conflicts) {
                     </strong>
 
                     <span>
-                        ${escapeHtml(
-                            item.driver_status
-                            || 'Available'
-                        )}
+                        ${escapeHtml(item.driver_status || 'Eligible')}
                     </span>
                 </div>
             </div>
         `;
+    }
+
+    function renderBus(item) {
+        if (!item || !item.bus_no || ['Conflict', 'Deferred'].includes(item.result)) {
+            return `
+                <span class="bus-chip unassigned">
+                    <span class="unassigned-text">Unassigned</span>
+                </span>
+            `;
+        }
+
+        return `
+            <span class="auto-bus-preview">
+                <span class="bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(item.bus_no)}</span>
+                ${item.bus_purpose === 'Reserve' || item.reserve_approval_required
+                    ? (item.oic_approval
+                        ? '<span class="auto-reserve-note auto-reserve-approved"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Reserve · OIC Approved</span>'
+                        : '<span class="auto-reserve-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Reserve · Approval required</span>')
+                    : ''}
+            </span>
+        `;
+    }
+
+    function renderResultBadge(item) {
+        if (!item || item.result === 'Conflict') {
+            return `
+                <span class="schedule-status conflict">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Needs Review
+                </span>
+            `;
+        }
+        if (item.result === 'Deferred') {
+            const external = item.decision === 'external_bus';
+            return `
+                <span class="schedule-status ${external ? 'external-pending' : 'manual-pending'}">
+                    <i class="fa-solid ${external ? 'fa-building' : 'fa-user-gear'}"></i>
+                    ${external ? 'External Bus Pending' : 'Pending Manual'}
+                </span>
+            `;
+        }
+        if (item.result === 'Unassigned') {
+            return `
+                <span class="schedule-status unassigned">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Unassigned
+                </span>
+            `;
+        }
+        if ((item.bus_purpose === 'Reserve' || item.reserve_approval_required) && !item.oic_approval) {
+            return `<span class="schedule-status conflict"><i class="fa-solid fa-shield-halved"></i> Approval Required</span>`;
+        }
+        return `
+            <span class="schedule-status ready">
+                <i class="fa-solid fa-circle-check"></i>
+                ${item.oic_approval ? 'OIC Approved' : 'Ready'}
+            </span>
+        `;
+    }
+
+    function renderAction(item) {
+        if (item.result === 'Deferred' && Number.isInteger(item.decisionIndex)) {
+            return `
+                <button type="button" class="schedule-action-btn edit"
+                    data-reopen-decision-index="${item.decisionIndex}"
+                    title="Return this slot to active review">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span>Reopen</span>
+                </button>
+            `;
+        }
+        if (item.result === 'Ready' && item.originalIndex !== null && item.originalIndex !== undefined
+            && (item.bus_purpose === 'Reserve' || item.reserve_approval_required)) {
+            return `
+                <div class="auto-reserve-actions">
+                    <button type="button" class="schedule-action-btn auto-oic-approval-button"
+                        data-oic-approve-index="${item.originalIndex}"
+                        title="Record externally confirmed OIC approval">
+                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                        <span>${item.oic_approval ? 'Edit Approval' : 'Record OIC Approval'}</span>
+                    </button>
+                    <button type="button" class="schedule-action-btn remove"
+                        data-remove-index="${item.originalIndex}"
+                        title="Remove from preview">
+                        <i class="fa-solid fa-circle-minus" aria-hidden="true"></i><span class="schedule-remove-label">Remove</span>
+                    </button>
+                </div>`;
+        }
+        if (item.result === 'Conflict' && Number.isInteger(item.conflictIndex) && item.conflictIndex >= 0) {
+            return `
+                <div class="auto-conflict-decision-actions">
+                    <button type="button" class="schedule-action-btn edit"
+                        data-defer-decision="manual_later" data-conflict-index="${item.conflictIndex}"
+                        title="Keep this slot for manual assignment later">
+                        <i class="fa-solid fa-user-gear" aria-hidden="true"></i><span>Manual Later</span>
+                    </button>
+                    <button type="button" class="schedule-action-btn remove"
+                        data-defer-decision="external_bus" data-conflict-index="${item.conflictIndex}"
+                        title="Record an external bus arrangement as pending">
+                        <i class="fa-solid fa-building" aria-hidden="true"></i><span>External Bus</span>
+                    </button>
+                </div>
+            `;
+        }
+        if (item.result === 'Ready' && item.originalIndex !== null && item.originalIndex !== undefined) {
+            return `
+                <button
+                    type="button"
+                    class="schedule-action-btn remove"
+                    data-remove-index="${item.originalIndex}"
+                    title="Remove from preview"
+                    aria-label="Remove ${escapeHtml(item.trip_code)} recommendation from preview"
+                >
+                    <i class="fa-solid fa-circle-minus" aria-hidden="true"></i><span class="schedule-remove-label">Remove</span>
+                </button>
+            `;
+        }
+        return `<span class="schedule-action-empty">—</span>`;
     }
 
 
@@ -962,6 +1870,9 @@ function updateMlStatus(conflicts) {
         if (!items.length) {
             conflictSection.hidden = true;
             conflictContent.innerHTML = '';
+            document.dispatchEvent(new CustomEvent('gct:auto-conflicts-updated', {
+                detail: { conflicts: [] },
+            }));
             return;
         }
 
@@ -1091,6 +2002,12 @@ function updateMlStatus(conflicts) {
                 `;
             })
             .join('');
+
+        // Keep the detailed AI Conflict Report synchronized with saved drafts
+        // and edits, not only with fresh /generate network responses.
+        document.dispatchEvent(new CustomEvent('gct:auto-conflicts-updated', {
+            detail: { conflicts: items.slice() },
+        }));
     }
 
 
@@ -1348,9 +2265,8 @@ function updateMlStatus(conflicts) {
                     body: JSON.stringify({
                         trip_schedule_id:
                             conflict.trip_schedule_id,
-                        resolution_type:
-                            'adjust_departure_time',
-                        suggested_time:
+                        slot: Number(conflict.slot || 1),
+                        proposed_departure_time:
                             normalizeApiTime(
                                 action.suggested_time
                             ),
@@ -1411,13 +2327,9 @@ function updateMlStatus(conflicts) {
 
 
     function renderError(message) {
-        if (!previewBody) {
-            return;
-        }
-
-        previewBody.innerHTML = `
+        const errorHtml = `
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="auto-empty-state error">
                         <i class="fa-solid fa-circle-exclamation"></i>
                         <strong>Schedule generation failed</strong>
@@ -1426,6 +2338,28 @@ function updateMlStatus(conflicts) {
                 </td>
             </tr>
         `;
+
+        if (incomingPreviewBody) {
+            incomingPreviewBody.innerHTML = errorHtml;
+        }
+
+        if (outgoingPreviewBody) {
+            outgoingPreviewBody.innerHTML = errorHtml;
+        }
+
+        if (previewBody) {
+            previewBody.innerHTML = errorHtml;
+        }
+
+        setText(incomingTripCount, 0);
+        setText(incomingRequiredBusesCount, 0);
+        setText(incomingReadyCount, 0);
+        setText(incomingReviewCount, 0);
+
+        setText(outgoingTripCount, 0);
+        setText(outgoingRequiredBusesCount, 0);
+        setText(outgoingReadyCount, 0);
+        setText(outgoingReviewCount, 0);
 
         if (footerMessage) {
             footerMessage.textContent =
@@ -1438,15 +2372,13 @@ function updateMlStatus(conflicts) {
         if (readyBadge) {
             readyBadge.innerHTML = `
                 <i class="fa-solid fa-circle-check"></i>
-                <span>${recommendations.length} Ready</span>
+                <span>${recommendations.length} Ready Slots</span>
             `;
         }
 
         if (footerMessage) {
-            footerMessage.textContent =
-                recommendations.length > 0
-                    ? `${recommendations.length} recommendation(s) remain in the preview.`
-                    : 'No recommendations remain in the preview.';
+            footerMessage.textContent = `${recommendations.length} valid recommendation(s), `
+                + `${deferredSlots.length} deferred slot(s), and ${schedulingConflicts.length} active conflict(s).`;
         }
 
         updateConfirmButton();
@@ -1456,7 +2388,10 @@ function updateMlStatus(conflicts) {
     function updateConfirmButton() {
         if (confirmButton) {
             confirmButton.disabled =
-                recommendations.length === 0;
+                (recommendations.length === 0 && deferredSlots.length === 0) || schedulingConflicts.length > 0;
+            confirmButton.title = schedulingConflicts.length
+                ? 'Resolve all ' + schedulingConflicts.length + ' scheduling conflict(s) before confirming'
+                : '';
         }
     }
 
@@ -1668,6 +2603,45 @@ function updateMlStatus(conflicts) {
         (item) => Number(item.id) === Number(id)
     ) || null;
 
+    const getConflictSeverity = (conflict) => {
+        const findings = Array.isArray(conflict?.ai?.conflict?.findings)
+            ? conflict.ai.conflict.findings
+            : [];
+        const issueText = [
+            conflict?.reason,
+            conflict?.ai?.conflict?.title,
+            conflict?.ai?.conflict?.explanation,
+        ].join(' ').toLowerCase();
+
+        if (
+            conflict?.missing_driver
+            || conflict?.missing_bus
+            || issueText.includes('maintenance')
+        ) {
+            return { key: 'high', label: 'High' };
+        }
+
+        if (
+            findings.length
+            || issueText.includes('overlap')
+            || issueText.includes('conflict')
+        ) {
+            return { key: 'medium', label: 'Medium' };
+        }
+
+        return { key: 'low', label: 'Low' };
+    };
+
+    const formatOrdinal = (value) => {
+        const number = Math.max(1, Number(value || 1));
+        const remainder = number % 100;
+        const suffix = remainder >= 11 && remainder <= 13
+            ? 'th'
+            : ({ 1: 'st', 2: 'nd', 3: 'rd' }[number % 10] || 'th');
+
+        return `${number}${suffix}`;
+    };
+
     const renderFindings = (findings) => {
         if (!findings.length) {
             return `
@@ -1691,6 +2665,8 @@ function updateMlStatus(conflicts) {
             </div>
         `).join('');
     };
+
+    const scoringSourceLabel = (source) => ({ ml: 'Trained ML model', data_fallback: 'Attendance-based estimate', rule_fallback: 'Rule-based estimate' }[source] || 'Source unavailable');
 
     const renderOptionCards = (items, type, selectedId, index) => {
         if (!items.length) {
@@ -1719,22 +2695,29 @@ function updateMlStatus(conflicts) {
                     <span class="gct-option-radio" aria-hidden="true"></span>
                     <strong>${escapeHtml(item.label || `${type} ${item.id}`)}</strong>
                     ${item.score !== null && item.score !== undefined
-                        ? `<span class="gct-option-score">Score ${Number(item.score)}</span>`
+                        ? `<span class="gct-option-score">Suitability ${Number(item.score)}/100</span>`
                         : ''}
                     <p>${escapeHtml(item.reason || 'Available for final validation.')}</p>
+                    <small class="gct-scoring-source">${escapeHtml(scoringSourceLabel(conflicts[index]?.ai?.ml?.[type === 'driver' ? 'driver_source' : 'bus_source']))}</small>
                 </button>
             `;
         }).join('');
     };
 
-    const renderConflict = (conflict, index) => {
+    const renderConflictLegacy = (conflict, index) => {
         const ai = conflict?.ai || {};
         const aiConflict = ai?.conflict || {};
+        const isResourceShortage = conflict?.issue_type === 'resource_unavailable';
+        const issueDescription = isResourceShortage
+            ? 'This trip needs an eligible driver or bus before an assignment can be created.'
+            : 'The system could not create a conflict-free assignment.';
         const findings = Array.isArray(aiConflict.findings)
             ? aiConflict.findings
             : [];
         const drivers = getAlternatives(conflict, 'alternative_drivers');
         const buses = getAlternatives(conflict, 'alternative_buses');
+        const missingDriver = conflict?.missing_driver === true;
+        const missingBus = conflict?.missing_bus === true;
         const action = getTimeAction(conflict);
         const selection = getSelection(index);
         const selectedDriver = findAlternative(drivers, selection.driverId);
@@ -1745,11 +2728,19 @@ function updateMlStatus(conflicts) {
             : score >= 55
                 ? 'Review advised'
                 : 'Needs review';
-        const actionTitle = action?.suggested_time
-            ? `Move departure to ${displayTime(action.suggested_time)}`
-            : 'Manual review required';
+        const actionTitle = missingDriver
+            ? 'Driver attendance required'
+            : missingBus
+                ? 'Eligible bus required'
+                : action?.suggested_time
+                    ? `Move departure to ${displayTime(action.suggested_time)}`
+                    : 'Manual review required';
         const actionDescription = String(
-            action?.explanation
+            missingDriver
+                ? 'Record valid attendance for the trip date and shift before generating an assignment. Available buses alone cannot resolve this trip.'
+                : missingBus
+                    ? 'An eligible bus is required before this trip can be assigned.'
+                    : action?.explanation
             || 'Review the available resources and validate the final combination before saving.'
         )
             .replaceAll('Laravel must recheck', 'The system will recheck')
@@ -1794,7 +2785,7 @@ function updateMlStatus(conflicts) {
                                 || conflict.reason
                                 || 'Unable to assign resources.'
                             )}</strong>
-                            <small>The system could not create a conflict-free assignment.</small>
+                            <small>${escapeHtml(issueDescription)}</small>
                         </div>
                     </div>
                 </div>
@@ -1804,8 +2795,8 @@ function updateMlStatus(conflicts) {
                         <div class="gct-ai-title-wrap">
                             <span class="gct-ai-icon"><i class="fa-solid fa-microchip"></i></span>
                             <div>
-                                <span class="section-eyebrow warning">AI Conflict Analysis</span>
-                                <h3>${escapeHtml(aiConflict.title || 'Scheduling conflict detected')}</h3>
+                                <span class="section-eyebrow warning">${isResourceShortage ? 'Availability Analysis' : 'AI Conflict Analysis'}</span>
+                                <h3>${escapeHtml(aiConflict.title || (isResourceShortage ? 'Eligible resources unavailable' : 'Scheduling conflict detected'))}</h3>
                                 <p>${escapeHtml(
                                     aiConflict.explanation
                                     || ai.conflict_explanation
@@ -1814,7 +2805,7 @@ function updateMlStatus(conflicts) {
                                 )}</p>
                             </div>
                         </div>
-                        <span class="gct-ai-score"><i class="fa-solid fa-chart-line"></i> Score ${score}</span>
+                        <span class="gct-ai-score"><i class="fa-solid fa-chart-line"></i> ${missingDriver || missingBus || ai.status === 'conflict' ? 'No viable assignment' : `Suitability ${score}/100`}</span>
                     </div>
 
                     <div class="gct-ai-layout">
@@ -1827,7 +2818,7 @@ function updateMlStatus(conflicts) {
                                 <div class="gct-finding-list">${renderFindings(findings)}</div>
                             </section>
 
-                            ${drivers.length ? `
+                            ${drivers.length && !missingDriver ? `
                                 <section class="gct-panel-block">
                                     <div class="gct-option-section-header">
                                         <strong><i class="fa-solid fa-user-tie"></i> Alternative Drivers</strong>
@@ -1855,7 +2846,7 @@ function updateMlStatus(conflicts) {
                             <section class="gct-panel-block">
                                 <h4 class="gct-panel-heading">
                                     <i class="fa-regular fa-star"></i>
-                                    Best Recommended Action
+                                    ${missingDriver || missingBus ? 'Required Before Scheduling' : 'Best Recommended Action'}
                                 </h4>
                                 <div class="gct-best-action">
                                     <div class="gct-best-action-top">
@@ -1863,7 +2854,7 @@ function updateMlStatus(conflicts) {
                                             <h4>${escapeHtml(actionTitle)}</h4>
                                             <p>${escapeHtml(actionDescription)}</p>
                                         </div>
-                                        <div class="gct-confidence">
+                                        <div class="gct-confidence" ${missingDriver || missingBus ? 'hidden' : ''}>
                                             <span>Score</span>
                                             <strong>${score}</strong>
                                             <small>${escapeHtml(confidence)}</small>
@@ -1878,7 +2869,7 @@ function updateMlStatus(conflicts) {
                                     </div>
                                 </div>
 
-                                ${buses.length ? `
+                                ${buses.length && !missingDriver ? `
                                     <div class="gct-option-section">
                                         <div class="gct-option-section-header">
                                             <strong><i class="fa-solid fa-bus"></i> Alternative Buses</strong>
@@ -1890,14 +2881,15 @@ function updateMlStatus(conflicts) {
                                     </div>
                                 ` : ''}
 
-                                <div class="gct-selected-combination">
+                                ${missingDriver ? '<p class="gct-availability-note">Bus availability is informational until a valid driver attendance record exists.</p>' : ''}
+                                <div class="gct-selected-combination" ${missingDriver || missingBus ? 'hidden' : ''}>
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-user-check"></i>
-                                        ${escapeHtml(selectedDriver?.label || 'Best available driver')}
+                                        ${escapeHtml(missingDriver ? 'No eligible driver' : (selectedDriver?.label || 'Best available driver'))}
                                     </span>
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-bus-simple"></i>
-                                        ${escapeHtml(selectedBus?.label || 'Best available bus')}
+                                        ${escapeHtml(missingDriver ? 'Bus selection unavailable' : (selectedBus?.label || 'Best available bus'))}
                                     </span>
                                     <span class="gct-selected-chip">
                                         <i class="fa-regular fa-clock"></i>
@@ -1911,15 +2903,19 @@ function updateMlStatus(conflicts) {
 
                 <footer class="gct-conflict-actions">
                     ${canEditOperation ? `
-                        <a href="${assignmentPath}" class="ai-resolution-btn manual">
-                            <i class="fa-solid fa-screwdriver-wrench"></i>
-                            Resolve Manually
-                        </a>
+                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            Handle Manually Later
+                        </button>
+                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="external_bus" data-gct-conflict-index="${index}">
+                            <i class="fa-solid fa-building"></i>
+                            External Bus Pending
+                        </button>
                         <button
                             type="button"
                             class="ai-resolution-btn primary"
                             data-review-ai-resolution="${index}"
-                            ${action ? '' : 'disabled'}
+                            ${action && !missingDriver && !missingBus && drivers.length && buses.length ? '' : 'disabled'}
                         >
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
                             Review Selected Resolution
@@ -1935,26 +2931,446 @@ function updateMlStatus(conflicts) {
         `;
     };
 
+    const recommendationTabs = new Map();
+
+    const renderReportOptionCards = (items, type, selectedId, index) => items
+        .map((item) => {
+            const selected = Number(item.id) === Number(selectedId);
+
+            return `
+                <button
+                    type="button"
+                    class="gct-option-card gct-report-option ${selected ? 'is-selected' : ''}"
+                    data-gct-conflict-index="${index}"
+                    data-gct-option-type="${type}"
+                    data-gct-option-id="${Number(item.id)}"
+                    aria-pressed="${selected ? 'true' : 'false'}"
+                >
+                    <span class="gct-option-radio" aria-hidden="true"></span>
+                    <span class="gct-report-option-copy">
+                        <strong>${escapeHtml(item.label || `${type} ${item.id}`)}</strong>
+                        <small>${escapeHtml(item.reason || 'Available for final server validation.')}</small>
+                    </span>
+                    <span class="gct-option-score">
+                        ${item.score !== null && item.score !== undefined && Number.isFinite(Number(item.score))
+                            ? `Suitability ${Number(item.score)}/100`
+                            : 'Suitability unavailable'}
+                        · ${escapeHtml(scoringSourceLabel(conflicts[index]?.ai?.ml?.[type === 'driver' ? 'driver_source' : 'bus_source']))}
+                    </span>
+                </button>
+            `;
+        })
+        .join('');
+
+    const renderRecommendationGroup = (
+        items,
+        type,
+        selectedId,
+        index,
+        alternativesOnly = false
+    ) => {
+        const visibleItems = alternativesOnly
+            ? items.slice(1, 6)
+            : items.slice(0, 1);
+
+        if (!visibleItems.length) {
+            return `
+                <div class="gct-report-empty">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>No ${alternativesOnly ? 'additional ' : ''}${type === 'driver' ? 'driver' : 'bus'} option is currently available.</span>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="gct-report-options" data-resource-type="${type}">
+                ${renderReportOptionCards(visibleItems, type, selectedId, index)}
+            </div>
+        `;
+    };
+
+    const renderConflict = (conflict, index) => {
+        const ai = conflict?.ai || {};
+        const aiConflict = ai?.conflict || {};
+        const missingDriver = conflict?.missing_driver === true;
+        const missingBus = conflict?.missing_bus === true;
+        // A missing bus is not fixed by swapping drivers, and vice versa.
+        const drivers = missingBus && !missingDriver ? [] : getAlternatives(conflict, 'alternative_drivers');
+        const buses = missingDriver && !missingBus ? [] : getAlternatives(conflict, 'alternative_buses');
+        const action = getTimeAction(conflict);
+        const selection = getSelection(index);
+        const severity = getConflictSeverity(conflict);
+        const hardConflict = missingDriver || missingBus || ai.status === 'conflict';
+        const ml = ai.ml || {};
+        const sourceLabel = (source) => ({
+            ml: 'ML model', data: 'Data-derived fallback', data_fallback: 'Data-derived fallback',
+            rule: 'Rule-based fallback', rule_fallback: 'Rule-based fallback'
+        }[source] || 'Source unavailable');
+        const score = Number(ai.score);
+        const suitabilityText = hardConflict
+            ? 'No viable assignment'
+            : Number.isFinite(score) && ai.score !== null && ai.score !== undefined
+                ? `Assignment suitability: ${score}/100`
+                : 'Assignment suitability unavailable';
+        const activeTab = recommendationTabs.get(index) || 'recommended';
+        const issueTitle = aiConflict.title
+            || conflict.reason
+            || 'Scheduling conflict detected';
+        const explanation = aiConflict.explanation
+            || ai.conflict_explanation
+            || conflict.reason
+            || 'The trip could not be assigned using the resources available for its departure window.';
+        const requiredBuses = Math.max(1, Number(conflict.required_buses || 1));
+        const assignedBuses = Math.min(requiredBuses, Math.max(0, Number(conflict.already_assigned_count || 0)));
+        const assignmentProgress = `${assignedBuses}/${requiredBuses}`;
+        const requiredLabel = `${assignmentProgress} assigned`;
+        const reportTripCode = conflict.base_trip_code || String(conflict.trip_code || 'Trip').replace(/\s*\(Bus \d+\/\d+\)$/, '');
+        const stripSlotSuffix = (text) => String(text || '').replace(/\s*\(Bus \d+\/\d+\)/g, '');
+        const canApply = Boolean(
+            action
+            && !missingDriver
+            && !missingBus
+            && drivers.length
+            && buses.length
+        );
+        const issueDetail = missingDriver && missingBus
+            ? 'An eligible driver and bus are required before this slot can be assigned.'
+            : missingDriver
+                ? 'A driver with valid attendance, shift eligibility, and no overlapping trip is required.'
+                : missingBus
+                    ? 'A bus that is active, clear of maintenance, and free during this trip window is required.'
+                    : 'The selected resources or departure time conflict with another operational requirement.';
+        const isReserveReview = conflict.issue_type === 'reserve_approval_required';
+        const reserveSelected = selections.get(index)?.busId === Number(conflict.suggested_bus_id);
+        const direction = conflict.direction || 'Incoming';
+
+        return `
+            <article class="gct-conflict-record gct-report" data-gct-conflict-record="${index}">
+                <header class="gct-report-trip">
+                    <span class="gct-report-direction ${direction.toLowerCase()}">
+                        <i class="fa-solid fa-arrow-${direction === 'Outgoing' ? 'up' : 'down'}"></i>
+                    </span>
+                    <div>
+                        <strong>${escapeHtml(reportTripCode)} (${escapeHtml(assignmentProgress)})</strong>
+                        <span>${escapeHtml(`${conflict.route_code || '-'} - ${conflict.route_name || 'Unknown route'}`)}</span>
+                    </div>
+                    <span class="gct-conflict-severity ${severity.key}">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        ${severity.label} Severity
+                    </span>
+                </header>
+
+                <div class="gct-report-meta">
+                    <div>
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>Departure<strong>${escapeHtml(conflict.departure_display || displayTime(conflict.departure_time))}</strong></span>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-bus"></i>
+                        <span>Required buses<strong>${escapeHtml(requiredLabel)}</strong></span>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Terminal<strong>${escapeHtml(conflict.terminal || conflict.shift || 'Not specified')}</strong></span>
+                    </div>
+                </div>
+
+                <section class="gct-report-alert">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <span>Issue Summary</span>
+                        <strong>${escapeHtml(stripSlotSuffix(issueTitle))}</strong>
+                        <p>${escapeHtml(issueDetail)}</p>
+                    </div>
+                </section>
+
+                <section class="gct-report-explanation">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <div>
+                        <strong>Detailed Explanation</strong>
+                        <p>${escapeHtml(stripSlotSuffix(explanation))}</p>
+                        <p><strong>${escapeHtml(suitabilityText)}</strong></p>
+                        <p>Bus scoring: ${escapeHtml(sourceLabel(ml.bus_source))} · Driver scoring: ${escapeHtml(sourceLabel(ml.driver_source))}</p>
+                        ${Array.isArray(aiConflict.findings) && aiConflict.findings.length ? `
+                            <div class="gct-report-findings">
+                                <strong>Findings</strong>
+                                <ul>${aiConflict.findings.map(finding => `<li>${escapeHtml(typeof finding === 'string' ? finding : finding?.message || finding?.description || finding?.title || 'Scheduling restriction identified')}</li>`).join('')}</ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                </section>
+
+                <div class="gct-report-tabs" role="tablist" aria-label="Conflict recommendation options">
+                    <button
+                        type="button"
+                        role="tab"
+                        data-gct-option-tab="recommended"
+                        data-gct-conflict-index="${index}"
+                        class="${activeTab === 'recommended' ? 'active' : ''}"
+                    >
+                        Recommended Assignments (${Math.max(drivers.length ? 1 : 0, buses.length ? 1 : 0)})
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        data-gct-option-tab="alternative"
+                        data-gct-conflict-index="${index}"
+                        class="${activeTab === 'alternative' ? 'active' : ''}"
+                    >Alternative Options (${Math.max(0, drivers.length - 1) + Math.max(0, buses.length - 1) + (isReserveReview ? 1 : 0)})</button>
+                </div>
+
+                <div class="gct-report-recommendations">
+                    ${isReserveReview && activeTab === 'alternative' ? `
+                        <button type="button" class="gct-option-card gct-report-option ${reserveSelected ? 'is-selected' : ''}"
+                            data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}"
+                            style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px;">
+                            <span class="gct-option-radio" aria-hidden="true"></span>
+                            <span class="gct-report-option-copy">
+                                <strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong>
+                                <small>Active and eligible at generation time · Operations approval required · Revalidated before confirmation</small>
+                            </span>
+                        </button>
+                    ` : ''}
+                    ${isReserveReview && activeTab === 'recommended' ? '<div class="gct-report-empty">Open Alternative Options to select the proposed Reserve Bus.</div>' : ''}
+                    ${!isReserveReview && missingBus && !missingDriver ? '<div class="gct-report-empty">An eligible bus is required; a different driver alone cannot resolve this conflict.</div>' : renderRecommendationGroup(drivers, 'driver', selection.driverId, index, activeTab === 'alternative')}
+                    ${missingDriver && !missingBus ? '<div class="gct-report-empty">Eligible driver attendance is required; a different bus alone cannot resolve this conflict.</div>' : renderRecommendationGroup(buses, 'bus', selection.busId, index, activeTab === 'alternative')}
+                    ${action?.suggested_time ? `
+                        <div class="gct-report-time-option">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>Proposed departure<strong>${escapeHtml(displayTime(action.suggested_time))}</strong><small>${escapeHtml(action.explanation || 'This time is a suggestion, not a validated solution. Driver, bus, maintenance and overlap rules must be rechecked.')}</small></span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <footer class="gct-conflict-actions gct-report-actions">
+                    ${canEditOperation ? `
+                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            Handle Manually Later
+                        </button>
+                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="external_bus" data-gct-conflict-index="${index}">
+                            <i class="fa-solid fa-building"></i>
+                            External Bus Pending
+                        </button>
+                        ${conflict.issue_type === 'reserve_approval_required' ? `
+                            <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}"
+                                ${activeTab !== 'alternative' || !reserveSelected ? 'disabled' : ''}>
+                                <i class="fa-solid fa-shield-halved"></i> Apply Selected Reserve to Preview
+                            </button>
+                        ` : `
+                        <button
+                            type="button"
+                            class="ai-resolution-btn primary"
+                            data-review-ai-resolution="${index}"
+                            ${canApply ? '' : 'disabled'}
+                        >
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Apply Recommendation
+                        </button>
+                        `}
+                    ` : `
+                        <span class="ai-resolution-btn manual" aria-disabled="true">
+                            <i class="fa-solid fa-eye"></i>
+                            View-only access
+                        </span>
+                    `}
+                </footer>
+            </article>
+        `;
+    };
+
+    let selectedConflictIndex = 0;
+    let conflictDirectionFilter = 'all';
+    let conflictSearch = '';
+    let conflictReportClosed = false;
+    let conflictSortKey = null;
+    let conflictSortDirection = 'asc';
+
+    const renderConflictSortHeader = (label, key) => {
+        const active = conflictSortKey === key;
+        const icon = active
+            ? (conflictSortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down')
+            : 'fa-sort';
+
+        return `
+            <button
+                type="button"
+                class="gct-conflict-sort ${active ? 'is-active' : ''}"
+                data-gct-conflict-sort="${key}"
+                aria-label="Sort by ${label}"
+            >
+                ${label}
+                <i class="fa-solid ${icon}" aria-hidden="true"></i>
+            </button>
+        `;
+    };
+
     const redesignConflicts = () => {
         redesignQueued = false;
         const container = document.getElementById('autoSchedulingConflictContent');
+        const section = document.getElementById('autoSchedulingConflictSection');
+        if (!container || !section || !conflicts.length || section.hidden) return;
+        const signature = JSON.stringify(conflicts.map(c => [c.trip_schedule_id, c.slot, c.reason, c.result]));
+        if (container.dataset.gctWorkspaceSignature === signature && container.querySelector('.gct-conflict-workspace')) return;
+        container.dataset.gctWorkspaceSignature = signature;
 
-        if (!container || !conflicts.length) {
-            return;
+        selectedConflictIndex = Math.max(0, Math.min(selectedConflictIndex, conflicts.length - 1));
+        const incomingCount = conflicts.filter(c => (c.direction || 'Incoming') === 'Incoming').length;
+        const outgoingCount = conflicts.length - incomingCount;
+        const indexed = conflicts.map((item, index) => ({ item, index }));
+        let shown = indexed.filter(({ item }) => {
+            const direction = item.direction || 'Incoming';
+            const text = [item.trip_code, item.route_code, item.route_name, item.reason, item.issue_type]
+                .join(' ').toLowerCase();
+            return (conflictDirectionFilter === 'all' || direction === conflictDirectionFilter)
+                && text.includes(conflictSearch.toLowerCase());
+        });
+
+        if (conflictSortKey) {
+            shown = [...shown].sort((left, right) => {
+                const severityOrder = { low: 1, medium: 2, high: 3 };
+                const values = {
+                    trip: (entry) => entry.item.base_trip_code || entry.item.trip_code || '',
+                    route: (entry) => `${entry.item.route_code || ''} ${entry.item.route_name || ''}`,
+                    time: (entry) => normalizeTime(entry.item.departure_time),
+                    issue: (entry) => entry.item.reason || '',
+                    severity: (entry) => severityOrder[getConflictSeverity(entry.item).key] || 0,
+                    status: () => 'Needs Review',
+                };
+                const getter = values[conflictSortKey] || values.trip;
+                const leftValue = getter(left);
+                const rightValue = getter(right);
+                const comparison = typeof leftValue === 'number'
+                    ? leftValue - rightValue
+                    : String(leftValue).localeCompare(String(rightValue));
+
+                return conflictSortDirection === 'asc' ? comparison : -comparison;
+            });
         }
 
-        const signature = conflicts.map((item) => item.trip_schedule_id).join('-');
-
-        if (
-            container.dataset.gctRedesignSignature === signature
-            && container.querySelector('.gct-conflict-record')
-        ) {
-            return;
-        }
-
-        container.dataset.gctRedesignSignature = signature;
-        container.innerHTML = conflicts.map(renderConflict).join('');
+        const rows = shown.map(({ item, index }) => {
+            const direction = item.direction || 'Incoming';
+            const issue = String(item.reason || 'Resources unavailable')
+                .replace(/\s*\(Bus\s+\d+\/\d+\)\.?\s*$/i, '.');
+            const trip = item.base_trip_code || item.trip_code || 'Trip';
+            const severity = getConflictSeverity(item);
+            const required = Math.max(1, Number(item.required_buses || 1));
+            const assigned = Math.max(0, Number(item.already_assigned_count || 0));
+            const ready = Math.max(0, Math.min(required, Number(item.ready_buses || 0)));
+            const slot = Math.min(required, assigned + Math.max(1, Number(item.slot || 1)));
+            const slotLabel = required === 1 ? 'Single bus slot' : `Slot ${slot} of ${required}`;
+            return `<tr class="${index === selectedConflictIndex ? 'is-selected' : ''}" data-gct-report-index="${index}" tabindex="0" role="button" aria-selected="${index === selectedConflictIndex}" aria-label="View AI conflict report for ${escapeHtml(trip)}, ${escapeHtml(item.slot_label || '')}">
+                <td><span class="gct-conflict-trip-cell">
+                    <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${direction === 'Incoming' ? 'IN' : 'OUT'}</span>
+                    <span class="gct-conflict-trip-meta"><strong>${escapeHtml(trip)}</strong><span class="gct-conflict-slot-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(slotLabel)}</span><small>${ready}/${required} buses ready</small></span>
+                </span></td>
+                <td><strong>${escapeHtml(item.route_code || '—')}</strong><small>${escapeHtml(item.route_name || '')}</small></td>
+                <td>${escapeHtml(item.departure_display || displayTime(item.departure_time))}</td>
+                <td class="gct-conflict-issue">${escapeHtml(issue)}</td>
+                <td><span class="gct-conflict-severity ${severity.key}"><i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}"></i> ${severity.label}</span></td>
+                <td><span class="gct-conflict-state"><i class="fa-regular fa-clock"></i> Needs Review</span></td>
+            </tr>`;
+        }).join('');
+        container.innerHTML = `
+            <div class="gct-conflict-workspace ${conflictReportClosed ? 'is-report-closed' : ''}">
+                <div class="gct-conflict-list">
+                    <div class="gct-conflict-toolbar">
+                        <div class="gct-conflict-tabs">
+                            <button type="button" data-gct-direction="all" class="${conflictDirectionFilter === 'all' ? 'active' : ''}">All Conflicts (${conflicts.length})</button>
+                            <button type="button" data-gct-direction="Incoming" class="${conflictDirectionFilter === 'Incoming' ? 'active' : ''}">Incoming (${incomingCount})</button>
+                            <button type="button" data-gct-direction="Outgoing" class="${conflictDirectionFilter === 'Outgoing' ? 'active' : ''}">Outgoing (${outgoingCount})</button>
+                        </div>
+                        <input type="search" data-gct-conflict-search placeholder="Search trip, route or issue..." value="${escapeHtml(conflictSearch)}" aria-label="Search scheduling conflicts">
+                    </div>
+                    <div class="gct-conflict-table-scroll"><table class="gct-conflict-table">
+                        <thead><tr>
+                            <th>${renderConflictSortHeader('Trip / Slot', 'trip')}</th>
+                            <th>${renderConflictSortHeader('Route', 'route')}</th>
+                            <th>${renderConflictSortHeader('Time', 'time')}</th>
+                            <th>${renderConflictSortHeader('Issue', 'issue')}</th>
+                            <th>${renderConflictSortHeader('Severity', 'severity')}</th>
+                            <th>${renderConflictSortHeader('Status', 'status')}</th>
+                        </tr></thead>
+                        <tbody>${rows || '<tr><td colspan="6">No conflicts match your filters.</td></tr>'}</tbody>
+                    </table></div>
+                    <p class="gct-conflict-count">Showing ${shown.length} of ${conflicts.length} conflicts</p>
+                </div>
+                ${conflictReportClosed ? '' : `
+                    <aside class="gct-conflict-report-panel" aria-label="AI Conflict Report">
+                        <div class="gct-conflict-report-header">
+                            <strong><span class="gct-report-header-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span> AI Conflict Report</strong>
+                            <button type="button" data-gct-close-report aria-label="Close conflict report">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="gct-conflict-report-body">${renderConflict(conflicts[selectedConflictIndex], selectedConflictIndex)}</div>
+                    </aside>
+                `}
+            </div>`;
     };
+
+    document.getElementById('autoSchedulingConflictContent')?.addEventListener('click', (event) => {
+        const tab = event.target.closest('[data-gct-direction]');
+        if (tab) {
+            conflictDirectionFilter = tab.dataset.gctDirection;
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            redesignConflicts();
+            return;
+        }
+        const sortButton = event.target.closest('[data-gct-conflict-sort]');
+        if (sortButton) {
+            const nextKey = sortButton.dataset.gctConflictSort;
+            conflictSortDirection = conflictSortKey === nextKey && conflictSortDirection === 'asc'
+                ? 'desc'
+                : 'asc';
+            conflictSortKey = nextKey;
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            redesignConflicts();
+            return;
+        }
+        const optionTab = event.target.closest('[data-gct-option-tab]');
+        if (optionTab) {
+            const index = Number(optionTab.dataset.gctConflictIndex);
+            recommendationTabs.set(index, optionTab.dataset.gctOptionTab);
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            redesignConflicts();
+            return;
+        }
+        const closeReport = event.target.closest('[data-gct-close-report]');
+        if (closeReport) {
+            conflictReportClosed = true;
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            redesignConflicts();
+            return;
+        }
+        const row = event.target.closest('[data-gct-report-index]');
+        if (row) {
+            selectedConflictIndex = Number(row.dataset.gctReportIndex);
+            conflictReportClosed = false;
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            redesignConflicts();
+            const reportBody = document.querySelector('#autoSchedulingConflictContent .gct-conflict-report-body');
+            if (reportBody) reportBody.scrollTop = 0;
+        }
+    });
+    document.getElementById('autoSchedulingConflictContent')?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const row = event.target.closest('tr[data-gct-report-index]');
+        if (!row || event.target !== row) return;
+        event.preventDefault();
+        row.click();
+        document.querySelector('tr[data-gct-report-index="' + row.dataset.gctReportIndex + '"]')?.focus();
+    });
+    document.getElementById('autoSchedulingConflictContent')?.addEventListener('input', (event) => {
+        if (!event.target.matches('[data-gct-conflict-search]')) return;
+        conflictSearch = event.target.value;
+        document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+        const selectionStart = event.target.selectionStart;
+        redesignConflicts();
+        const input = document.querySelector('[data-gct-conflict-search]');
+        input?.focus();
+        if (selectionStart !== null) input?.setSelectionRange(selectionStart, selectionStart);
+    });
 
     const queueRedesign = () => {
         if (redesignQueued) {
@@ -1976,6 +3392,10 @@ function updateMlStatus(conflicts) {
         }
 
         const conflict = conflicts[index];
+        if (conflict?.missing_driver || conflict?.missing_bus) {
+            window.showSystemToast?.('Eligible driver attendance and a bus are required before a resolution can be reviewed.', 'warning', 'Resources unavailable');
+            return;
+        }
         const action = getTimeAction(conflict);
 
         if (!conflict || !action) {
@@ -2260,6 +3680,27 @@ function updateMlStatus(conflicts) {
         };
     };
 
+    document.addEventListener('gct:auto-conflicts-updated', (event) => {
+        if (!document.querySelector('.auto-scheduling-page')) return;
+        conflicts = Array.isArray(event.detail?.conflicts) ? event.detail.conflicts.slice() : [];
+        const container = document.getElementById('autoSchedulingConflictContent');
+        if (container) delete container.dataset.gctWorkspaceSignature;
+        if (!conflicts.length) {
+            selections.clear();
+            return;
+        }
+        queueRedesign();
+    });
+
+    document.addEventListener('gct:reserve-preview-applied', (event) => {
+        const index = Number(event.detail?.index);
+        conflicts.splice(index, 1);
+        selections.clear();
+        const container = document.getElementById('autoSchedulingConflictContent');
+        if (container) delete container.dataset.gctWorkspaceSignature;
+        queueRedesign();
+    });
+
     installFetchCapture();
 
     const content = document.getElementById('autoSchedulingConflictContent');
@@ -2268,9 +3709,10 @@ function updateMlStatus(conflicts) {
         const observer = new MutationObserver(() => {
             if (
                 conflicts.length
+                && !conflictReportClosed
                 && !content.querySelector('.gct-conflict-record')
             ) {
-                delete content.dataset.gctRedesignSignature;
+                delete content.dataset.gctWorkspaceSignature;
                 queueRedesign();
             }
         });
@@ -2282,6 +3724,41 @@ function updateMlStatus(conflicts) {
     }
 
     document.addEventListener('click', (event) => {
+        const deferSlot = event.target.closest('[data-gct-defer-slot]');
+        if (deferSlot) {
+            event.preventDefault();
+            document.dispatchEvent(new CustomEvent('gct:defer-conflict-slot', {
+                detail: {
+                    index: Number(deferSlot.dataset.gctConflictIndex),
+                    decision: deferSlot.dataset.gctDeferSlot,
+                },
+            }));
+            return;
+        }
+
+        const selectReserve = event.target.closest('[data-gct-select-reserve]');
+        if (selectReserve) {
+            event.preventDefault();
+            const index = Number(selectReserve.dataset.gctSelectReserve);
+            const conflict = conflicts[index];
+            if (!conflict || conflict.issue_type !== 'reserve_approval_required') return;
+            selections.set(index, { ...getSelection(index), busId: Number(conflict.suggested_bus_id) });
+            const container = document.getElementById('autoSchedulingConflictContent');
+            if (container) delete container.dataset.gctWorkspaceSignature;
+            queueRedesign();
+            return;
+        }
+        const applyReserve = event.target.closest('[data-apply-selected-reserve]');
+        if (applyReserve && !applyReserve.disabled) {
+            event.preventDefault();
+            const index = Number(applyReserve.dataset.applySelectedReserve);
+            const conflict = conflicts[index];
+            if (!conflict || selections.get(index)?.busId !== Number(conflict.suggested_bus_id)) return;
+            applyReserve.disabled = true;
+            document.dispatchEvent(new CustomEvent('gct:apply-reserve-selection', { detail: { index } }));
+            return;
+        }
+
         const option = event.target.closest('[data-gct-option-type]');
 
         if (option) {
@@ -2300,7 +3777,7 @@ function updateMlStatus(conflicts) {
             selections.set(index, selection);
             const container = document.getElementById('autoSchedulingConflictContent');
             if (container) {
-                delete container.dataset.gctRedesignSignature;
+                delete container.dataset.gctWorkspaceSignature;
             }
             queueRedesign();
             return;
@@ -2335,23 +3812,35 @@ if (!window.__gctAutoSchedulingRealtimeReinitBound) {
                 return;
             }
 
+            const resetHtml = `
+                <tr>
+                    <td colspan="8">
+                        <div class="auto-empty-state">
+                            <i class="fa-solid fa-rotate"></i>
+                            <strong>Schedule data changed</strong>
+                            <span>Generate the schedule again to review current recommendations.</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            const incomingBody = document.getElementById('autoScheduleIncomingBody');
+            if (incomingBody) {
+                incomingBody.innerHTML = resetHtml;
+            }
+
+            const outgoingBody = document.getElementById('autoScheduleOutgoingBody');
+            if (outgoingBody) {
+                outgoingBody.innerHTML = resetHtml;
+            }
+
             const previewBody =
                 document.getElementById(
                     'autoSchedulePreviewBody'
                 );
 
             if (previewBody) {
-                previewBody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="auto-empty-state">
-                                <i class="fa-solid fa-rotate"></i>
-                                <strong>Schedule data changed</strong>
-                                <span>Generate the schedule again to review current recommendations.</span>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                previewBody.innerHTML = resetHtml;
             }
 
             const readyBadge =
@@ -2361,7 +3850,7 @@ if (!window.__gctAutoSchedulingRealtimeReinitBound) {
 
             if (readyBadge) {
                 readyBadge.innerHTML =
-                    '<i class="fa-solid fa-circle-check"></i><span>0 Ready</span>';
+                    '<i class="fa-solid fa-circle-check"></i><span>0 Ready Slots</span>';
             }
 
             const footerMessage =

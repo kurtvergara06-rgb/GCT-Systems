@@ -3,24 +3,24 @@
    their purpose through placeholder text, selected values, or aria-labels.
    Form labels outside filtering/search toolbars remain untouched. */
 
-[class*="toolbar"] .filter-group > label,
-[class*="toolbar"] [class*="filter"] > label,
-[class*="toolbar"] label[for*="department" i]:has(+ select),
-[class*="toolbar"] label:has(+ input[type="date"]),
-[class*="toolbar"] label:has(+ select) {
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) .filter-group > label,
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) [class*="filter"]:not(.gct-table-filter-fields):not(.gct-table-filter-field) > label:not(.gct-table-filter-field),
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) label[for*="department" i]:has(+ select),
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) label:not(.gct-table-filter-field):has(+ input[type="date"]),
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) label:not(.gct-table-filter-field):has(+ select) {
     display: none !important;
 }
 
 /* Filter forms that wrap each control in a label keep the label as the
    accessible container while hiding only the small caption above it. */
-[class*="filters"] label > span:first-child,
+[class*="filters"]:not(.gct-table-toolbar):not([data-table-toolbar]) label:not(.gct-table-filter-field) > span:first-child,
 .analytics-stage-filters label > span:first-child {
     display: none !important;
 }
 
 /* Once captions are removed, keep toolbar controls on the same baseline. */
-[class*="toolbar"] .filter-group,
-[class*="toolbar"] [class*="filter"] {
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) .filter-group,
+[class*="toolbar"]:not(.gct-table-toolbar):not([data-table-toolbar]) [class*="filter"]:not(.gct-table-filter-fields):not(.gct-table-filter-field) {
     justify-content: flex-end;
     gap: 0 !important;
 }

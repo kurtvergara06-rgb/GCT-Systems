@@ -12,6 +12,7 @@
     'resources/css/Main-styles/sidebar-state.css',
     'resources/css/Main-styles/identifier-text.css',
     'resources/css/Main-styles/admin-records.css',
+    'resources/css/Main-styles/table-toolbar.css',
     /*
      * Load the partial-navigation runtime as its own early Vite entry.
      * Maintenance page scripts register their modal/button initializers against
@@ -26,6 +27,7 @@
   ], $assets, [
     'resources/css/Operation/operation-action-buttons.css',
     'resources/css/Main-styles/record-action-buttons.css',
+    'resources/css/Main-styles/gct-scrollbar.css',
   ])));
 @endphp
 
@@ -78,7 +80,9 @@
     mode="global-confirmation"
   />
 
-  <x-ui.system-toast />
+  @unless(request()->boolean('embedded') && request()->routeIs('incidents.show'))
+        <x-ui.system-toast />
+        @endunless
 
   @if(request()->routeIs('operation.routes') && $errors->any())
     <script type="application/json" id="routeValidationOldInput">@json(session()->getOldInput())</script>

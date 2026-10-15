@@ -30,12 +30,12 @@
                             </span>
                         </div>
 
-                        <span class="{{ $batch->status === 'Processed'
-                            ? 'processed-badge'
-                            : ($batch->status === 'Failed' ? 'failed-badge' : 'review-badge') }}"
-                        >
-                            {{ $batch->status }}
-                        </span>
+                        <x-ui.status-badge
+                            :status="$batch->status"
+                            class="{{ $batch->status === 'Processed'
+                                ? 'processed-badge'
+                                : ($batch->status === 'Failed' ? 'failed-badge' : 'review-badge') }}"
+                        />
                     </a>
 
                     <button
@@ -350,9 +350,10 @@
                         {{ number_format($allSelectedRecords->total()) }} records
                     </span>
 
-                    <span class="{{ $selectedBatch->status === 'Processed' ? 'processed-badge' : 'review-badge' }}">
-                        {{ $selectedBatch->status }}
-                    </span>
+                    <x-ui.status-badge
+                        :status="$selectedBatch->status"
+                        class="{{ $selectedBatch->status === 'Processed' ? 'processed-badge' : 'review-badge' }}"
+                    />
 
                     @if($selectedBatch->status === 'In Review')
                         <form

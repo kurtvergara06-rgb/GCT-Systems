@@ -1,6 +1,8 @@
 window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', () => {
   const toolbarSelector = [
     '.toolbar',
+    '.gct-table-toolbar',
+    '[data-table-toolbar]',
     '.requested-toolbar',
     '.restock-toolbar',
     '.po-toolbar',
@@ -8,7 +10,12 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     '.assignment-toolbar',
   ].join(', ');
 
-  const searchInputSelector = '.search-box input[type="text"], .search-box input[type="search"]';
+  const searchInputSelector = [
+    '.search-box input[type="text"]',
+    '.search-box input[type="search"]',
+    '.gct-table-search-field input[type="text"]',
+    '.gct-table-search-field input[type="search"]',
+  ].join(', ');
 
   const findTableContext = (toolbar, root = document) => {
     let node = toolbar?.parentElement;
@@ -50,7 +57,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     }
 
     return Array.from(table.tBodies[0].rows).filter((row) => {
-      return !row.classList.contains('empty-row')
+      return !row.classList.contains('inc-expanded-row') && !row.classList.contains('empty-row')
         && !row.classList.contains('gct-search-empty-row')
         && !row.classList.contains('inventory-client-empty');
     });
@@ -69,8 +76,14 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
     const columnCount = Math.max(1, table.tHead?.rows?.[0]?.cells?.length || 1);
     const row = document.createElement('tr');
-    row.className = 'empty-row gct-search-empty-row';
-    row.innerHTML = `<td colspan="${columnCount}">No matching records found.</td>`;
+    row.className = 'empty-row gct-search-empty-row gct-empty-table-row';
+    row.innerHTML = `<td colspan="${columnCount}" class="empty-row gct-empty-cell" style="text-align: center; padding: 48px 20px; background: transparent; border-bottom: 0;">
+      <div class="gct-empty-content" role="status" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: 0 auto; max-width: 440px; text-align: center;">
+        <i class="fa-solid fa-magnifying-glass gct-empty-icon" style="font-size: 32px; color: #cbd5e1; line-height: 1;" aria-hidden="true"></i>
+        <strong class="gct-empty-title" style="font-size: 15px; font-weight: 700; color: #0b2344;">No Matching Records Found</strong>
+        <p class="gct-empty-description" style="font-size: 13px; margin: 0; color: #64748b; line-height: 1.5; max-width: 420px;">No records match your search or filter criteria. Try adjusting the search terms or filters.</p>
+      </div>
+    </td>`;
     body.appendChild(row);
   };
 
@@ -88,7 +101,9 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const activeFilterValues = (toolbar) => {
-    return Array.from(toolbar.querySelectorAll('select')).map((select) => {
+    return Array.from(
+      toolbar.querySelectorAll('select:not([name="sort"]):not([name="sort_direction"])')
+    ).map((select) => {
       const value = String(select.value || '').trim().toLowerCase();
 
       if (!value || value === 'all' || value.startsWith('all ')) {
@@ -155,13 +170,20 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return null;
     }
 
+    if (toolbar.id) {
+      const byId = parsed.getElementById(toolbar.id);
+      if (byId instanceof HTMLFormElement) {
+        return byId;
+      }
+    }
+
     const currentToolbars = Array.from(
       document.querySelectorAll(toolbarSelector)
-    ).filter((item) => usesServerFilter(item));
+    ).filter((item) => usesServerFilter(item) || item.matches('[data-table-toolbar]'));
 
     const parsedToolbars = Array.from(
       parsed.querySelectorAll(toolbarSelector)
-    ).filter((item) => usesServerFilter(item));
+    ).filter((item) => usesServerFilter(item) || item.matches('[data-table-toolbar]'));
 
     const currentIndex = currentToolbars.indexOf(toolbar);
 
@@ -199,16 +221,6 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return false;
     }
 
-    currentBody.replaceWith(
-      document.importNode(parsedBody, true)
-    );
-
-    if (currentContext.footer && parsedContext.footer) {
-      currentContext.footer.replaceWith(
-        document.importNode(parsedContext.footer, true)
-      );
-    }
-
     const currentContainer = toolbar.closest(
       'section, .table-card, .card'
     );
@@ -216,8 +228,42 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       'section, .table-card, .card'
     );
 
+    const currentSurface = currentContainer?.querySelector('.service-panels-surface');
+    const parsedSurface = parsedContainer?.querySelector('.service-panels-surface');
+
+    if (currentSurface && parsedSurface) {
+      currentSurface.replaceWith(document.importNode(parsedSurface, true));
+    } else {
+      currentBody.replaceWith(
+        document.importNode(parsedBody, true)
+      );
+    }
+
+    if (currentContext.footer && parsedContext.footer) {
+      currentContext.footer.replaceWith(
+        document.importNode(parsedContext.footer, true)
+      );
+    }
+
+    toolbar.querySelectorAll('[data-table-tool-trigger]').forEach((trigger) => {
+      const toolType = trigger.getAttribute('data-table-tool-trigger');
+      const parsedTrigger = parsedToolbar.querySelector(`[data-table-tool-trigger="${toolType}"]`);
+      if (parsedTrigger) {
+        trigger.classList.toggle('is-active', parsedTrigger.classList.contains('is-active'));
+      }
+    });
+
+    const currentFilterBadge = toolbar.querySelector('[data-table-filter-count]');
+    const parsedFilterBadge = parsedToolbar.querySelector('[data-table-filter-count]');
+    if (currentFilterBadge && parsedFilterBadge) {
+      currentFilterBadge.textContent = parsedFilterBadge.textContent;
+      currentFilterBadge.toggleAttribute('hidden', parsedFilterBadge.hasAttribute('hidden'));
+    }
+
     [
       '.section-count',
+      '.purchase-section-count',
+      '.toolbar-count-chip',
       '.activity-count',
       '[data-server-filter-count]',
     ].forEach((selector) => {
@@ -600,7 +646,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     const control = event.target.closest?.('select, input[type="date"]');
     const toolbar = closestToolbar(control);
 
-    if (!control || !toolbar) {
+    if (!control || !toolbar || control.closest('.gct-table-tool-popover')) {
       return;
     }
 
@@ -683,7 +729,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
-    if (usesServerFilter(form)) {
+    if (usesServerFilter(form) || form.matches('[data-table-toolbar]')) {
       event.preventDefault();
       void runServerFilter(form);
       return;

@@ -43,8 +43,8 @@ class MaintenanceReferralController extends Controller
                 ]);
             }
 
-            if ($locked->bus && $locked->bus->status !== 'Under Maintenance') {
-                $locked->bus->update(['status' => 'Under Maintenance']);
+            if ($locked->bus) {
+                $locked->bus->placeUnderMaintenance();
             }
 
             $notes = trim((string) ($validated['notes'] ?? ''));

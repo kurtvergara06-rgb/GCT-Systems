@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,8 +49,8 @@ class PurchaseOrderController extends Controller
             $query->where('status', $request->status);
         }
 
+        TableSort::apply($query, $request, ['po_date' => 'po_date', 'po_no' => 'po_no', 'supplier_name' => 'supplier_name', 'total_amount' => 'net_amount', 'status' => 'status'], 'po_date', 'desc');
         $purchaseOrders = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 

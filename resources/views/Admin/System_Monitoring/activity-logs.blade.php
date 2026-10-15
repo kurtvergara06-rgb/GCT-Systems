@@ -188,7 +188,9 @@
                             @empty
                                 <x-ui.empty-row
                                     :colspan="7"
-                                    message="No activity records found for the selected filters."
+                                    icon="fa-clock-rotate-left"
+                                    message="No Activity Logs Found"
+                                    description="No system audit logs match your search or date filter."
                                 />
                             @endforelse
                         </tbody>

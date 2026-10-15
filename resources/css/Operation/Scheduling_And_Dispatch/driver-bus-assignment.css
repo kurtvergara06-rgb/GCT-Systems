@@ -1743,3 +1743,421 @@
     .assignment-page .resource-card .resource-record .resource-row-detail { display: none; }
     .assignment-page .resource-card .resource-record .resource-mobile-detail { display: block; }
 }
+
+/* Approved fleet-dispatch layout: journey column and paired resource tables. */
+.assignment-page .assignment-table-wrap{overflow-x:auto}
+.assignment-page .assignment-table{min-width:1060px;table-layout:fixed}
+.assignment-page .assignment-table th:nth-child(1){width:8%}
+.assignment-page .assignment-table th:nth-child(2){width:12%}
+.assignment-page .assignment-table th:nth-child(3){width:13%}
+.assignment-page .assignment-table th:nth-child(4){width:19%}
+.assignment-page .assignment-table th:nth-child(5){width:14%}
+.assignment-page .assignment-table th:nth-child(6){width:11%}
+.assignment-page .assignment-table th:nth-child(7){width:10%}
+.assignment-page .assignment-table th:nth-child(8){width:13%}
+.assignment-page .assignment-journey{display:flex;flex-direction:column;gap:5px;max-width:100%;min-width:0}
+.assignment-page .assignment-journey span{display:flex;align-items:center;gap:8px;font-size:11px;color:#385274;overflow-wrap:anywhere;line-height:1.4}
+.assignment-page .assignment-journey i{font-size:12px;color:#0b64cf;flex:none}
+.assignment-page .resource-list-head--drivers,.assignment-page .resource-list-head--buses{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,.8fr) 76px}
+.assignment-page .resource-record{display:grid;grid-template-columns:34px minmax(0,1.55fr) minmax(0,1fr) minmax(0,.8fr) 76px;gap:9px;align-items:center}
+.assignment-page .resource-record-info{min-width:0}
+.assignment-page .resource-record-info strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assignment-page .resource-record .resource-row-detail{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assignment-page .resource-assign-btn{min-height:32px;width:72px;padding:0 9px;border:1px solid #bbd2fa;border-radius:7px;background:#edf4ff;color:#1655c1;font-size:11px;font-weight:800;cursor:pointer}
+.assignment-page .resource-assign-btn:hover{background:#dbeaff}
+.assignment-page .resource-total--available{white-space:nowrap}
+.assignment-page .resource-empty{min-height:120px}
+@media(max-width:1200px){.assignment-page .resource-list-head--drivers,.assignment-page .resource-list-head--buses{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px}.assignment-page .resource-record{grid-template-columns:30px minmax(0,1.4fr) minmax(0,1fr) minmax(0,.75fr) 64px;gap:6px}.assignment-page .resource-assign-btn{width:62px}}
+@media(max-width:650px){.assignment-page .resource-list-head{display:none}.assignment-page .resource-record{grid-template-columns:34px minmax(0,1fr) auto;gap:10px}.assignment-page .resource-record .resource-row-detail{display:none}.assignment-page .resource-assign-btn{grid-column:3}.assignment-page .resource-record .availability{grid-column:2;justify-self:start}}
+
+
+/* Compact resource tables: five child cells stay on one row at desktop sizes.
+   Override older 4-column resource-card rules without changing trip logic. */
+.assignment-page .resource-card .resource-record {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 9px 11px;
+    min-height: 52px;
+}
+.assignment-page .resource-card .resource-list-head--drivers {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-list-head--buses {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(76px, .8fr) 78px;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-record .resource-record-info,
+.assignment-page .resource-card .resource-record .resource-row-detail,
+.assignment-page .resource-card .resource-record .availability,
+.assignment-page .resource-card .resource-record .resource-assign-btn { min-width: 0; }
+.assignment-page .resource-card .resource-record .availability { justify-self: start; }
+.assignment-page .resource-card .resource-record .resource-assign-btn {
+    grid-column: 5;
+    justify-self: end;
+    width: 76px;
+    height: 32px;
+    background: #ffbd00;
+    border: 1px solid #f2b400;
+    color: #102a4e;
+    font-size: 11px;
+    font-weight: 800;
+}
+.assignment-page .resource-card .resource-record .resource-assign-btn:hover { background: #ffd23d; }
+.assignment-page .resource-card .resource-list-head--drivers span:last-child,
+.assignment-page .resource-card .resource-list-head--buses span:last-child { text-align: right; }
+@media (max-width: 1350px) {
+    .assignment-page .resource-card .resource-record,
+    .assignment-page .resource-card .resource-list-head--drivers {
+        grid-template-columns: 30px minmax(0, 1.3fr) minmax(0, .9fr) minmax(64px, .7fr) 68px;
+        gap: 6px;
+    }
+    .assignment-page .resource-card .resource-list-head--buses {
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr) minmax(64px, .7fr) 68px;
+        gap: 6px;
+    }
+    .assignment-page .resource-card .resource-record .resource-assign-btn { width: 68px; }
+}
+@media (max-width: 900px) {
+    .assignment-page .resource-card .resource-list-head--drivers,
+    .assignment-page .resource-card .resource-list-head--buses { display: none; }
+    .assignment-page .resource-card .resource-record {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 8px;
+    }
+    .assignment-page .resource-card .resource-record .resource-row-detail { display: none; }
+    .assignment-page .resource-card .resource-record .resource-assign-btn { grid-column: 3; grid-row: 1; }
+    .assignment-page .resource-card .resource-record .availability { grid-column: 2; grid-row: 2; }
+}
+
+/* User-selected compact resource filter layout. */
+.assignment-page .resource-filter-bar {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 112px;
+    gap:8px;
+    margin:0 0 10px;
+}
+.assignment-page .resource-filter-search {position:relative;display:block;min-width:0}
+.assignment-page .resource-filter-search i {
+    position:absolute;top:50%;left:11px;transform:translateY(-50%);
+    color:#53719a;font-size:12px;pointer-events:none;
+}
+.assignment-page .resource-filter-bar input,
+.assignment-page .resource-filter-bar select {
+    box-sizing:border-box;width:100%;height:34px;min-height:34px;
+    border:1px solid #dbe5f1;border-radius:7px;background:#fff;
+    color:#294264;font-size:11px;outline:none;
+}
+.assignment-page .resource-filter-bar input {padding:0 10px 0 32px}
+.assignment-page .resource-filter-bar select {padding:0 7px}
+.assignment-page .resource-filter-bar input:focus,
+.assignment-page .resource-filter-bar select:focus {border-color:#3978d9;box-shadow:0 0 0 2px rgba(57,120,217,.12)}
+.assignment-page .resource-card .resource-record[hidden]{display:none!important}
+@media(max-width:460px){.assignment-page .resource-filter-bar{grid-template-columns:1fr}}
+
+/* Simplified resource tables — three aligned data columns, no action buttons. */
+.assignment-page .assignment-table { min-width: 0; }
+.assignment-page .assignment-table th:nth-child(1) { width: 9%; }
+.assignment-page .assignment-table th:nth-child(2) { width: 14%; }
+.assignment-page .assignment-table th:nth-child(3) { width: 19%; }
+.assignment-page .assignment-table th:nth-child(4) { width: 22%; }
+.assignment-page .assignment-table th:nth-child(5) { width: 13%; }
+.assignment-page .assignment-table th:nth-child(6) { width: 11%; }
+.assignment-page .assignment-table th:nth-child(7) { width: 12%; }
+.assignment-page .resource-card .resource-list-head--drivers,
+.assignment-page .resource-card .resource-list-head--buses {
+    display: grid;
+    grid-template-columns: minmax(0,1.6fr) minmax(0,1fr) minmax(70px,.75fr);
+    align-items: center;
+    gap: 10px;
+}
+.assignment-page .resource-card .resource-record {
+    display: grid;
+    grid-template-columns: 34px minmax(0,1.6fr) minmax(0,1fr) minmax(70px,.75fr);
+    align-items:center;
+    gap:10px;
+    min-height:52px;
+}
+.assignment-page .resource-card .resource-list-head--drivers span:last-child,
+.assignment-page .resource-card .resource-list-head--buses span:last-child { text-align: center; }
+.assignment-page .resource-filter-bar[data-resource-filter="buses"] { grid-template-columns:minmax(0,1fr); }
+@media(max-width:900px) {
+    .assignment-page .resource-card .resource-list-head--drivers,
+    .assignment-page .resource-card .resource-list-head--buses { display:none; }
+    .assignment-page .resource-card .resource-record {
+        grid-template-columns:34px minmax(0,1fr) auto;
+        gap:8px;
+    }
+    .assignment-page .resource-card .resource-record .availability {
+        grid-column:3;grid-row:1;justify-self:end;
+    }
+}
+
+/* Trip Assignment identity cells: visual-only, no status badges. */
+.assignment-page .assignment-table .driver-cell{display:flex;align-items:center;gap:9px;min-width:0}
+.assignment-page .assignment-table .driver-cell .driver-avatar{width:32px;height:32px;flex:0 0 32px;border-radius:8px}
+.assignment-page .assignment-table .driver-cell > div:last-child{min-width:0;display:block}
+.assignment-page .assignment-table .driver-cell strong{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:800}
+.assignment-page .assignment-bus-cell,.assignment-page .assignment-resource-empty{display:flex;align-items:center;gap:9px;min-width:0}
+.assignment-page .assignment-resource-icon{display:inline-grid;place-items:center;width:32px;height:32px;flex:0 0 32px;background:#e9f1ff;color:#0958c7;border-radius:8px;font-size:13px;font-weight:800}
+.assignment-page .assignment-resource-empty .assignment-resource-icon{color:#64748b;background:#f1f5f9}
+.assignment-page .assignment-bus-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.assignment-page .assignment-bus-info strong,.assignment-page .assignment-resource-empty strong{color:#132744;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.assignment-page .assignment-bus-info span{color:#637894;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Seven-column Trip Assignments table: header and body use matching alignment. */
+.assignment-page .assignment-table {
+    width: 100%;
+    min-width: 980px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.assignment-page .assignment-table thead th {
+    box-sizing: border-box;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.assignment-page .assignment-table tbody td {
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+.assignment-page .assignment-table thead th:nth-child(1),
+.assignment-page .assignment-table tbody td:nth-child(1),
+.assignment-page .assignment-table thead th:nth-child(5),
+.assignment-page .assignment-table tbody td:nth-child(5),
+.assignment-page .assignment-table thead th:nth-child(6),
+.assignment-page .assignment-table tbody td:nth-child(6),
+.assignment-page .assignment-table thead th:nth-child(7),
+.assignment-page .assignment-table tbody td:nth-child(7) { text-align: center; }
+.assignment-page .assignment-table thead th:nth-child(2),
+.assignment-page .assignment-table tbody td:nth-child(2),
+.assignment-page .assignment-table thead th:nth-child(3),
+.assignment-page .assignment-table tbody td:nth-child(3),
+.assignment-page .assignment-table thead th:nth-child(4),
+.assignment-page .assignment-table tbody td:nth-child(4) { text-align: left; }
+.assignment-page .assignment-table tbody td:nth-child(5) .assignment-bus-cell,
+.assignment-page .assignment-table tbody td:nth-child(5) .assignment-resource-empty,
+.assignment-page .assignment-table tbody td:nth-child(7) .assignment-actions {
+    justify-content: center;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status { margin-inline: auto; }
+
+/* Match Driver Master List: light segmented tabs beside the search/filter/sort toolbar. */
+.assignment-page .assignment-record-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+.assignment-page .assignment-record-controls .personnel-record-tabs {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 4px;
+    padding: 4px;
+    background: #f1f5fa;
+    border: 1px solid #d5e0ee;
+    border-radius: 12px;
+}
+.assignment-page .assignment-record-controls .personnel-record-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 31px;
+    padding: 7px 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: #40546f;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.assignment-page .assignment-record-controls .personnel-record-tab.is-active {
+    background: #fff;
+    color: #112b50;
+    box-shadow: 0 1px 3px rgba(24, 49, 84, 0.12);
+}
+.assignment-page .assignment-record-controls .personnel-record-tab:hover:not(.is-active) {
+    background: rgba(255, 255, 255, 0.65);
+}
+.assignment-page .assignment-record-controls .personnel-record-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.assignment-page .assignment-record-controls .gct-table-toolbar {
+    margin-left: auto;
+}
+@media (max-width: 720px) {
+    .assignment-page .assignment-record-controls .gct-table-toolbar { margin-left: 0; }
+}
+
+/* Print the fetched assignment document directly from this page, without any frame. */
+#assignmentPrintDocument { display: none; }
+@media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body.printing-assignment-sheet { margin: 0 !important; background: #fff !important; }
+    body.printing-assignment-sheet > :not(#assignmentPrintDocument) { display: none !important; }
+    body.printing-assignment-sheet #assignmentPrintDocument {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #15253c !important;
+        font: 10px/1.4 Arial, sans-serif !important;
+    }
+    #assignmentPrintDocument * { box-sizing: border-box; }
+    #assignmentPrintDocument header {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 16px; border-bottom: 1px solid #18375c;
+        padding-bottom: 9px; margin-bottom: 10px;
+    }
+    #assignmentPrintDocument h1 { font-size: 16px; margin: 0 0 3px; }
+    #assignmentPrintDocument h2 { font-size: 11px; margin: 0; }
+    #assignmentPrintDocument .muted { color: #52637b; }
+    #assignmentPrintDocument .meta {
+        display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px;
+    }
+    #assignmentPrintDocument table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+    #assignmentPrintDocument th, #assignmentPrintDocument td {
+        border: 1px solid #cbd5e1; padding: 6px 5px; text-align: left;
+        vertical-align: top; overflow-wrap: anywhere; font-size: 10px;
+    }
+    #assignmentPrintDocument th {
+        background: #f1f5f9 !important; font-size: 9px; text-transform: uppercase;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    #assignmentPrintDocument tr { break-inside: avoid; }
+    #assignmentPrintDocument thead { display: table-header-group; }
+    #assignmentPrintDocument .signatures { display: flex; gap: 25px; margin-top: 45px; }
+    #assignmentPrintDocument .signature {
+        flex: 1; border-top: 1px solid #555; padding-top: 5px; text-align: center;
+    }
+}
+
+.assignment-bus-info .assignment-oic-approved,
+.assignment-bus-info .assignment-oic-missing { display:inline-flex;align-items:center;gap:5px;width:fit-content;margin-top:5px;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:700;line-height:1.3; }
+.assignment-bus-info .assignment-oic-approved {background:#e7f8ee;border:1px solid #b5e8c9;color:#137b49;}
+.assignment-bus-info .assignment-oic-missing {background:#fffbeb;border:1px solid #fcd34d;color:#92400e;}
+.assignment-slot-decision {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+    padding: 0.24rem 0.48rem;
+    border: 1px solid #f6c453;
+    border-radius: 999px;
+    background: #fff8df;
+    color: #9a5a00;
+    font-size: 0.69rem;
+    font-weight: 700;
+}
+
+/* Compact, conditional pending-slot assignment modal */
+#assignmentModal .ui-form-modal { width: min(690px, calc(100vw - 32px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; overflow: hidden; }
+#assignmentModal .ui-form-modal-body { overflow-y: auto; overflow-x: hidden; min-height: 0; overscroll-behavior: contain; }
+#assignmentSourceSelector[hidden], #externalRentalFields[hidden], #companyAssignmentFields[hidden] { display: none !important; }
+.assignment-choice-section { margin-bottom: 16px; }
+.assignment-choice-heading { display: flex; flex-direction: column; gap: 3px; margin-bottom: 11px; }
+.assignment-choice-heading strong { color: #172d4c; font-size: 13px; }
+.assignment-choice-heading span { color: #697b96; font-size: 12px; }
+.assignment-source-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.assignment-source-option { display: flex; align-items: center; text-align: left; width: 100%; gap: 10px; min-width: 0; background: #fff; border: 1px solid #d8e2f0; border-radius: 10px; padding: 13px 11px; color: #1d3655; cursor: pointer; font: inherit; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease; }
+.assignment-source-option:hover { border-color: #85a6e8; background: #f8fbff; }
+.assignment-source-option:focus-visible { outline: 3px solid rgba(35,104,229,.2); outline-offset: 2px; }
+.assignment-source-option.is-selected { background: #eff6ff; border-color: #2865d8; box-shadow: inset 0 0 0 1px #2865d8; }
+.assignment-source-option > span:nth-child(2) { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.assignment-source-option strong { font-size: 12px; font-weight: 750; line-height: 1.35; }
+.assignment-source-option small { font-size: 11px; color: #65758f; line-height: 1.35; }
+.assignment-source-icon { display: flex; flex: 0 0 34px; height: 34px; align-items: center; justify-content: center; color: #1859c8; border-radius: 9px; background: #eaf2ff; }
+.assignment-source-check { color: #2462d4; visibility: hidden; }
+.assignment-source-option.is-selected .assignment-source-check { visibility: visible; }
+.external-rental-fields { margin-bottom: 10px; }
+.assignment-rental-intro { display: flex; gap: 10px; align-items: flex-start; background: #fff8e8; border: 1px solid #f9e3ab; border-radius: 9px; padding: 10px 12px; color: #85550e; font-size: 12px; margin-bottom: 13px; }
+.external-rental-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.external-rental-form-grid .ui-form-group { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; color: #273b55; min-width: 0; }
+.external-rental-form-grid .ui-form-full { grid-column: 1 / -1; }
+.external-rental-form-grid input, .external-rental-form-grid select, .external-rental-form-grid textarea { width: 100%; min-width: 0; font: inherit; font-size: 12px; color: #172d4c; padding: 10px 11px; background: #fff; border: 1px solid #cad7e7; border-radius: 8px; outline: none; }
+.external-rental-form-grid input:focus, .external-rental-form-grid select:focus, .external-rental-form-grid textarea:focus { border-color: #2b65d9; box-shadow: 0 0 0 3px rgba(43,101,217,.12); }
+@media (max-width: 610px) { .assignment-source-options, .external-rental-form-grid { grid-template-columns: 1fr; } }
+
+/* Clear bordered selectors in Assign Pending Slot (company mode). */
+#assignmentModal #companyAssignmentFields .assignment-combobox {
+    border: 1px solid #cbd7e8;
+    background: #fff;
+    border-radius: 10px;
+    min-width: 0;
+}
+#assignmentModal #companyAssignmentFields .assignment-combobox-trigger {
+    border: 1px solid transparent;
+    border-radius: 9px;
+    min-height: 43px;
+    background: #fff;
+    padding: 0 12px;
+}
+#assignmentModal #companyAssignmentFields .assignment-combobox:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+#assignmentModal #companyAssignmentFields .assignment-combobox-trigger:hover {
+    background: #f8fbff;
+}
+#assignmentModal #companyAssignmentFields .ui-form-group { min-width: 0; }
+#assignmentModal .assignment-source-option { position: relative; z-index: 1; pointer-events: auto; }
+#assignmentModal .assignment-source-option * { pointer-events: none; }
+
+/* Scheduled time window ended; this does not indicate verified completion. */
+.assignment-page .assignment-status.schedule-ended { background:#eef2f7; border:1px solid #d5deea; color:#52657f; min-width:118px; }
+
+/* Scheduling completion is not evidence of actual vehicle arrival. */
+.assignment-page .assignment-status.completed-scheduled { background:#eef2f7; border:1px solid #d5deea; color:#52657f; min-width:148px; }
+
+/* Compact History badges, while keeping their scheduling meaning clear. */
+.assignment-page .assignment-table .assignment-status {
+    min-width:0;
+    min-height:24px;
+    padding:4px 8px;
+    font-size:10px;
+    line-height:1.15;
+    gap:4px;
+    max-width:100%;
+}
+.assignment-page .assignment-table .assignment-status.completed-scheduled {
+    min-width:0;
+    background:#eef2f7;
+    border:1px solid #d5deea;
+    color:#52657f;
+}
+.assignment-page .assignment-table .assignment-status.partially-missed {
+    min-width:0;
+    background:#fff4df;
+    border:1px solid #f5d8a1;
+    color:#9a5a13;
+}
+
+/* Compact scheduled completion, green but distinct from verified trip completion. */
+.assignment-page .assignment-table .assignment-status.scheduled-done { min-width:0; padding:4px 8px; background:#dcfce7; border:1px solid #b7efca; color:#15803d; }
+
+/* Short, readable Partial badge without changing the underlying assignment status. */
+.assignment-page .assignment-table .assignment-status.partially-assigned { min-width:0; padding:4px 8px; white-space:nowrap; }
+
+/* Incident-linked assignment slots: incident status is separate from the trip's scheduled status. */
+.assignment-incident-indicator { display:inline-flex; align-items:center; gap:5px; width:fit-content; margin-top:4px; padding:3px 7px; border:1px solid #f3c982; background:#fff7e6; color:#9d5b06; border-radius:6px; font-size:10px; font-weight:700; text-decoration:none; }
+.assignment-incident-indicator:hover { background:#ffecce; color:#7c4200; }
+.assignment-incident-indicator:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }

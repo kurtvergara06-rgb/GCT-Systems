@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,19 +24,31 @@ class TripAssignmentController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $query = TripSchedule::query()
             ->with([
                 'shuttleRoute',
+                'externalRentals',
+                'incidents' => fn ($incidentQuery) => $incidentQuery->where('incident_type', 'Bus Breakdown')->with('replacement'),
+                'assignments.bus',
+                'assignments.driverAttendance',
+                'assignments.reserveApproval',
+                'slotDecisions' => fn ($decisionQuery) => $decisionQuery
+                    ->where('status', 'Pending')
+                    ->orderBy('slot_number'),
+                'assignments' => fn ($assignmentQuery) => $assignmentQuery
+                    ->withCount(['dailyDriverReports', 'incidents']),
                 'assignment.bus',
                 'assignment.driverAttendance',
+                'assignment.reserveApproval',
                 'assignment' => fn ($assignmentQuery) => $assignmentQuery
                     ->withCount(['dailyDriverReports', 'incidents']),
             ])
             ->withCount([
                 'dailyDriverReports',
                 'incidents',
+                'assignments',
             ]);
 
         if ($request->filled('search')) {
@@ -50,7 +64,7 @@ class TripAssignmentController extends Controller
                             ->where('route_code', 'like', "%{$search}%")
                             ->orWhere('route_name', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('assignment', function ($assignmentQuery) use ($search) {
+                    ->orWhereHas('assignments', function ($assignmentQuery) use ($search) {
                         $assignmentQuery
                             ->where('driver_name', 'like', "%{$search}%")
                             ->orWhereHas('bus', function ($busQuery) use ($search) {
@@ -74,7 +88,23 @@ class TripAssignmentController extends Controller
         $selectedTripDate = $request->input('trip_date')
             ?: $request->session()->get('operation.selected_trip_date')
             ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        // Historical assignments now live exclusively in Trip History.
+        if ($request->query('tab') === 'history') {
+            return redirect()->route('trip-records', ['view' => 'assignments']);
+        }
+
         $query->whereDate('trip_date', $selectedTripDate);
+        $now = now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d H:i:s');
+        $driver = DB::connection()->getDriverName();
+        $endExpression = $driver === 'sqlite'
+            ? "CASE WHEN estimated_arrival_date IS NOT NULL THEN datetime(estimated_arrival_date || ' ' || estimated_arrival_time) ELSE datetime(trip_date || ' ' || estimated_arrival_time, CASE WHEN time(estimated_arrival_time) <= time(departure_time) THEN '+1 day' ELSE '+0 day' END) END"
+            : "CASE WHEN estimated_arrival_date IS NOT NULL THEN TIMESTAMP(estimated_arrival_date, estimated_arrival_time) ELSE DATE_ADD(TIMESTAMP(trip_date, estimated_arrival_time), INTERVAL IF(estimated_arrival_time <= departure_time, 1, 0) DAY) END";
+        // Missed filtering must include expired unassigned trips, even after ETA.
+        // All other views remain scoped to future/ongoing assignment windows.
+        if ($request->input('status') !== 'Missed') {
+            $query->whereNotIn('status', ['Completed', 'Cancelled', 'Missed'])
+                ->whereRaw("($endExpression) > ?", [$now]);
+        }
 
         if (
             $request->filled('status')
@@ -82,7 +112,7 @@ class TripAssignmentController extends Controller
         ) {
             $status = $request->input('status');
 
-            if (in_array($status, ['Assigned', 'Unassigned'], true)) {
+            if (in_array($status, ['Assigned', 'Partially Assigned', 'Unassigned'], true)) {
                 $query
                     ->where('assignment_status', $status)
                     ->whereNotIn('status', ['Cancelled']);
@@ -110,9 +140,8 @@ class TripAssignmentController extends Controller
             }
         }
 
+        TableSort::apply($query, $request, ['departure_time' => 'departure_time', 'trip_code' => 'trip_code', 'status' => 'status'], 'departure_time');
         $trips = $query
-            ->orderByDesc('trip_date')
-            ->orderBy('departure_time')
             ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
@@ -124,9 +153,8 @@ class TripAssignmentController extends Controller
         $pendingAssignments = TripSchedule::query()
             ->notDeparted()
             ->whereDate('trip_date', $selectedTripDate)
-            ->where('assignment_status', 'Unassigned')
-            ->whereDoesntHave('assignment')
-            ->where('status', 'Scheduled')
+            ->whereIn('status', ['Scheduled', 'Ready'])
+            ->where('assignment_status', '!=', 'Assigned')
             ->whereHas(
                 'shuttleRoute',
                 fn ($query) => $query->where(
@@ -146,45 +174,25 @@ class TripAssignmentController extends Controller
                         ->whereNull('license_expiration')
                         ->orWhereDate('license_expiration', '>=', $selectedTripDate);
                 }))
-            ->whereDoesntHave('tripAssignments', function ($assignmentQuery) use ($selectedTripDate): void {
-                $assignmentQuery->whereHas('tripSchedule', function ($tripQuery) use ($selectedTripDate): void {
-                    $tripQuery
-                        ->whereNotIn('status', ['Cancelled', 'Completed'])
-                        ->whereDate('trip_date', '<=', $selectedTripDate)
-                        ->whereRaw(
-                            'COALESCE(estimated_arrival_date, trip_date) >= ?',
-                            [$selectedTripDate]
-                        );
-                });
-            })
             ->orderBy('driver_name')
             ->paginate(10, ['*'], 'driver_page')
             ->withQueryString();
 
         $availableBuses = Bus::query()
             ->where('status', 'Active')
-            ->whereDoesntHave('tripAssignments', function ($assignmentQuery) use ($selectedTripDate): void {
-                $assignmentQuery->whereHas('tripSchedule', function ($tripQuery) use ($selectedTripDate): void {
-                    $tripQuery
-                        ->whereNotIn('status', ['Cancelled', 'Completed'])
-                        ->whereDate('trip_date', '<=', $selectedTripDate)
-                        ->whereRaw(
-                            'COALESCE(estimated_arrival_date, trip_date) >= ?',
-                            [$selectedTripDate]
-                        );
-                });
-            })
+            ->where('fleet_purpose', 'Regular')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->orderBy('bus_no')
             ->paginate(10, ['*'], 'bus_page')
             ->withQueryString();
 
         $unassignedTrips = TripSchedule::query()
-            ->with('shuttleRoute')
+            ->with(['shuttleRoute', 'assignments.bus', 'assignments.driverAttendance'])
+            ->withCount('assignments')
             ->notDeparted()
             ->whereDate('trip_date', $selectedTripDate)
-            ->where('assignment_status', 'Unassigned')
-            ->whereDoesntHave('assignment')
-            ->where('status', 'Scheduled')
+            ->whereIn('status', ['Scheduled', 'Ready'])
+            ->where('assignment_status', '!=', 'Assigned')
             ->whereHas(
                 'shuttleRoute',
                 fn ($query) => $query->where(
@@ -210,7 +218,47 @@ class TripAssignmentController extends Controller
         );
     }
 
-    public function availability(TripSchedule $tripSchedule): JsonResponse
+    /**
+     * Print saved assignments for a selected trip date, without modifying records.
+     */
+    public function printSheet(Request $request): View
+    {
+        $validated = $request->validate([
+            'trip_date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $selectedTripDate = $validated['trip_date'];
+        $assignments = TripAssignment::query()
+            ->with(['bus', 'reserveApproval', 'tripSchedule.shuttleRoute'])
+            ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $selectedTripDate))
+            ->orderBy('trip_schedule_id')
+            ->orderBy('id')
+            ->get()
+            ->sortBy(fn ($assignment) => $assignment->tripSchedule->departure_time.'|'.str_pad((string) $assignment->trip_schedule_id, 10, '0', STR_PAD_LEFT).'|'.str_pad((string) $assignment->id, 10, '0', STR_PAD_LEFT))
+            ->values();
+
+        $slotNumbers = [];
+        foreach ($assignments->groupBy('trip_schedule_id') as $group) {
+            foreach ($group->values() as $index => $assignment) {
+                $slotNumbers[$assignment->id] = $index + 1;
+            }
+        }
+
+        $externalAssignments = \App\Models\Operation\ExternalBusRental::query()
+            ->with('tripSchedule.shuttleRoute')
+            ->where('status', 'Assigned')
+            ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $selectedTripDate))
+            ->get();
+
+        return view('Operation.Scheduling_And_Dispatch.assignment-print', compact(
+            'assignments',
+            'externalAssignments',
+            'selectedTripDate',
+            'slotNumbers'
+        ));
+    }
+
+    public function availability(Request $request, TripSchedule $tripSchedule): JsonResponse
     {
         if (
             $tripSchedule->hasDeparted()
@@ -224,20 +272,37 @@ class TripAssignmentController extends Controller
         $tripSchedule->loadMissing('shuttleRoute');
         $this->assertRouteIsActive($tripSchedule);
 
+        $ignoreAssignmentId = $request->integer('assignment_id');
+
+        $assignedToThisTrip = $tripSchedule->assignments()
+            ->when($ignoreAssignmentId, fn ($q) => $q->where('id', '!=', $ignoreAssignmentId))
+            ->get();
+
+        if (! $ignoreAssignmentId && $assignedToThisTrip->count() >= max(1, (int) ($tripSchedule->required_buses ?? 1))) {
+            throw ValidationException::withMessages([
+                'trip_schedule_id' => 'This trip is already fully assigned ('.$assignedToThisTrip->count().'/'.$tripSchedule->required_buses.' buses).',
+            ]);
+        }
+
         $conflictingAssignments = $this->conflictingAssignmentsForTrip(
-            $tripSchedule
+            $tripSchedule,
+            $ignoreAssignmentId
         );
 
         $busyDriverIds = $conflictingAssignments
             ->pluck('driver_id')
+            ->concat($assignedToThisTrip->pluck('driver_id'))
             ->filter()
             ->unique()
+            ->values()
             ->all();
 
         $busyBusIds = $conflictingAssignments
             ->pluck('bus_id')
+            ->concat($assignedToThisTrip->pluck('bus_id'))
             ->filter()
             ->unique()
+            ->values()
             ->all();
 
         $drivers = DriverAttendance::query()
@@ -268,6 +333,8 @@ class TripAssignmentController extends Controller
 
         $buses = Bus::query()
             ->where('status', 'Active')
+            ->where('fleet_purpose', 'Regular')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->when(
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
@@ -306,12 +373,48 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 if (
-                    $trip->assignment_status !== 'Unassigned'
-                    || $trip->status !== 'Scheduled'
-                    || $trip->assignment()->exists()
+                    $trip->hasDeparted()
+                    || ! in_array($trip->status, ['Scheduled', 'Ready'], true)
+                    || $trip->assignment_status === 'Assigned'
                 ) {
                     throw ValidationException::withMessages([
                         'trip_schedule_id' => 'This trip is no longer available for assignment.',
+                    ]);
+                }
+
+                $assignedCount = $trip->assignments()->lockForUpdate()->count()
+                    + DB::table('external_bus_rentals')
+                        ->where('trip_schedule_id', $trip->id)
+                        ->where('status', 'Assigned')->count();
+                $requiredCount = max(1, (int) ($trip->required_buses ?? 1));
+
+                if ($assignedCount >= $requiredCount) {
+                    throw ValidationException::withMessages([
+                        'trip_schedule_id' => "This trip is already fully assigned ({$assignedCount}/{$requiredCount} buses).",
+                    ]);
+                }
+
+                $usedSlots = $trip->assignments()
+                    ->lockForUpdate()
+                    ->pluck('slot_number')
+                    ->merge(DB::table('external_bus_rentals')
+                        ->where('trip_schedule_id', $trip->id)
+                        ->where('status', 'Assigned')
+                        ->pluck('slot_number'))
+                    ->filter()
+                    ->map(fn ($slot) => (int) $slot);
+                $slotNumber = collect(range(1, $requiredCount))
+                    ->first(fn (int $slot): bool => ! $usedSlots->contains($slot));
+
+                if ($slotNumber === null) {
+                    throw ValidationException::withMessages([
+                        'trip_schedule_id' => 'No unfilled assignment slot remains for this trip.',
+                    ]);
+                }
+
+                if (isset($validated['slot_number']) && (int) $validated['slot_number'] !== $slotNumber) {
+                    throw ValidationException::withMessages([
+                        'slot_number' => 'The pending slot has changed. Refresh the assignment list and try again.',
                     ]);
                 }
 
@@ -325,14 +428,27 @@ class TripAssignmentController extends Controller
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
 
+                if ($trip->assignments()->where('driver_id', $driver->driver_id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'driver_attendance_id' => 'The selected driver is already assigned to this trip schedule.',
+                    ]);
+                }
+
+                if ($trip->assignments()->where('bus_id', $bus->id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'bus_id' => 'The selected bus is already assigned to this trip schedule.',
+                    ]);
+                }
+
                 $this->ensureNoConflict(
                     $trip,
                     $driver->driver_id,
                     $bus->id
                 );
 
-                TripAssignment::create([
+                $assignment = TripAssignment::create([
                     'trip_schedule_id' => $trip->id,
+                    'slot_number' => $slotNumber,
                     'driver_attendance_id' => $driver->id,
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
@@ -340,13 +456,32 @@ class TripAssignmentController extends Controller
                     'assigned_by' => auth()->id(),
                 ]);
 
-                $trip->update([
-                    'assignment_status' => 'Assigned',
-                    'status' => 'Ready',
-                ]);
+                // A later internal assignment replaces a rental arrangement for this slot.
+                DB::table('external_bus_rentals')
+                    ->where('trip_schedule_id', $trip->id)
+                    ->where('slot_number', $slotNumber)
+                    ->whereIn('status', ['Pending', 'Confirmed'])
+                    ->update([
+                        'status' => 'Superseded',
+                        'updated_at' => now(),
+                    ]);
+
+                DB::table('auto_schedule_slot_decisions')
+                    ->where('trip_schedule_id', $trip->id)
+                    ->where('slot_number', $slotNumber)
+                    ->where('status', 'Pending')
+                    ->update([
+                        'status' => 'Resolved',
+                        'fulfilled_by_assignment_id' => $assignment->id,
+                        'resolved_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                $trip->syncAssignmentStatus();
 
                 return $trip;
-            }
+            },
+            5
         );
 
         $this->broadcastSystemDataUpdated(
@@ -354,7 +489,7 @@ class TripAssignmentController extends Controller
             'TripSchedule',
             'updated',
             $trip->id,
-            "{$trip->trip_code} is ready after driver and bus assignment."
+            "{$trip->trip_code} driver and bus assignment was added ({$trip->assignments()->count()}/{$trip->required_buses})."
         );
 
         session()->flash(
@@ -397,6 +532,18 @@ class TripAssignmentController extends Controller
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
 
+                if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('driver_id', $driver->driver_id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'driver_attendance_id' => 'The selected driver is already assigned to another bus on this trip schedule.',
+                    ]);
+                }
+
+                if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('bus_id', $bus->id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'bus_id' => 'The selected bus is already assigned to another driver on this trip schedule.',
+                    ]);
+                }
+
                 $this->ensureNoConflict(
                     $trip,
                     $driver->driver_id,
@@ -411,8 +558,11 @@ class TripAssignmentController extends Controller
                     'bus_id' => $bus->id,
                 ]);
 
+                $trip->syncAssignmentStatus();
+
                 return $trip;
-            }
+            },
+            5
         );
 
         $this->broadcastSystemDataUpdated(
@@ -449,23 +599,35 @@ class TripAssignmentController extends Controller
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
 
+                DB::table('auto_schedule_slot_decisions')
+                    ->where('fulfilled_by_assignment_id', $lockedAssignment->id)
+                    ->update([
+                        'status' => 'Pending',
+                        'fulfilled_by_assignment_id' => null,
+                        'resolved_at' => null,
+                        'updated_at' => now(),
+                    ]);
+
                 $lockedAssignment->delete();
 
-                $trip->update([
-                    'assignment_status' => 'Unassigned',
-                    'status' => 'Scheduled',
-                ]);
+                $trip->syncAssignmentStatus();
 
                 return $trip;
-            }
+            },
+            5
         );
+
+        $remainingCount = $trip->assignments()->count();
+        $message = $remainingCount === 0
+            ? "{$trip->trip_code} returned to Unassigned after its assignment was removed."
+            : "{$trip->trip_code} has {$remainingCount}/{$trip->required_buses} assigned bus(es) remaining.";
 
         $this->broadcastSystemDataUpdated(
             'Operation',
             'TripSchedule',
             'updated',
             $trip->id,
-            "{$trip->trip_code} returned to Unassigned after its assignment was removed."
+            $message
         );
 
         session()->flash(
@@ -526,7 +688,7 @@ class TripAssignmentController extends Controller
 
         if (! $attendance) {
             throw ValidationException::withMessages([
-                'driver_attendance_id' => 'Select a present or late driver attendance record for this trip date and shift.',
+                'driver_attendance_id' => 'Select a present driver attendance record for this trip date and shift.',
             ]);
         }
 
@@ -575,12 +737,23 @@ class TripAssignmentController extends Controller
         $bus = Bus::query()
             ->whereKey($busId)
             ->where('status', 'Active')
+            ->where('fleet_purpose', 'Regular')
+            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
             ->lockForUpdate()
             ->first();
 
         if (! $bus) {
             throw ValidationException::withMessages([
                 'bus_id' => 'The selected bus is inactive or unavailable.',
+            ]);
+        }
+
+        if (JobOrder::query()
+            ->where('bus_no', $bus->bus_no)
+            ->where('status', '!=', 'Completed')
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'This bus has an unresolved Maintenance Job Order and cannot be assigned until Maintenance clears it.',
             ]);
         }
 
@@ -607,6 +780,7 @@ class TripAssignmentController extends Controller
                 'integer',
                 Rule::exists('buses', 'id'),
             ],
+            'slot_number' => ['sometimes', 'integer', 'min:1', 'max:30'],
         ]);
     }
 

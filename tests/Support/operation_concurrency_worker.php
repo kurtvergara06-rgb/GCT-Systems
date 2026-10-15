@@ -47,7 +47,7 @@ try {
         $app->make(DailyDriverReportController::class)->store($request);
     } else {
         $request = Request::create('/incidents', 'POST', [
-            'incident_type' => 'Traffic',
+            'incident_type' => 'Accident/Road Incident',
             'location' => "CONC-INC-{$batch}-{$index}",
             'description' => 'Concurrent incident validation.',
         ]);

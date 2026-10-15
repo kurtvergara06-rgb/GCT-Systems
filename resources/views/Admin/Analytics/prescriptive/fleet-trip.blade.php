@@ -149,10 +149,10 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="prescriptive-status-pill {{ strtolower(str_replace(' ', '-', $action['status'])) }}">
-                                    <i class="fa-solid {{ str_contains(strtolower($action['status']), 'recommend') ? 'fa-circle-check' : 'fa-clock' }}"></i>
-                                    <span>{{ $action['status'] }}</span>
-                                </span>
+                                <x-ui.status-badge
+                                    :status="$action['status']"
+                                    class="prescriptive-status-pill {{ strtolower(str_replace(' ', '-', $action['status'])) }}"
+                                />
                             </td>
                             <td class="text-right">
                                 <a href="{{ $action['action_url'] }}" class="btn-table-action">

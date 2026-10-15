@@ -127,7 +127,7 @@ class DailyDriverReportTest extends TestCase
         $this->assertEquals(40.5, $report->km);
         $this->assertEquals([12.75, 13.0], $report->additionalTrips->pluck('km')->map(fn ($km) => (float) $km)->all());
         $this->actingAs($this->user)
-            ->get(route('daily-driver-reports.show', ['dailyDriverReport' => $report->ddr_no]))
+            ->get(route('daily-driver-reports'))
             ->assertOk()
             ->assertSee('TT-10002')
             ->assertSee('TT-10003')
@@ -156,6 +156,27 @@ class DailyDriverReportTest extends TestCase
 
         $this->assertDatabaseCount('daily_driver_reports', 0);
         $this->assertDatabaseCount('daily_driver_report_trip_entries', 0);
+    }
+
+    public function test_ticket_duplicates_are_case_insensitive_across_primary_and_additional_entries(): void
+    {
+        $payload = $this->validPayload();
+        $payload['additional_trips'] = [[
+            'trip_ticket' => ' tt-10001 ',
+            'from_location' => 'Lipa',
+            'to_location' => 'Tanauan',
+            'departure_time' => '07:00',
+            'arrival_time' => '07:45',
+            'passengers' => 17,
+        ]];
+
+        $this->actingAs($this->user)
+            ->from(route('daily-driver-reports.create'))
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertRedirect(route('daily-driver-reports.create'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('daily_driver_reports', 0);
     }
 
     public function test_store_rejects_a_duplicate_trip_ticket_on_the_same_date(): void
@@ -239,15 +260,13 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('daily-driver-reports.show', [
-                'dailyDriverReport' => $report->ddr_no,
-            ]))
+            ->get(route('daily-driver-reports'))
             ->assertOk()
             ->assertSee('DDR-2026-0001')
             ->assertSee('Schedule match unavailable');
     }
 
-    public function test_show_computes_delayed_status_from_a_real_schedule_only(): void
+    public function test_index_does_not_infer_delayed_status_without_linked_schedule(): void
     {
         $this->createAssignedSchedule('05:00:00', '05:40:00');
 
@@ -267,16 +286,13 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('daily-driver-reports.show', [
-                'dailyDriverReport' => $report->ddr_no,
-            ]))
+            ->get(route('daily-driver-reports'))
             ->assertOk()
-            ->assertSee('T-SCHED-1')
-            ->assertSee('Delayed')
-            ->assertSee('Late by 45 min');
+            ->assertSee('DDR-2026-0001')
+            ->assertSee('Schedule match unavailable');
     }
 
-    public function test_show_computes_on_time_when_actual_matches_schedule(): void
+    public function test_index_does_not_infer_on_time_without_linked_schedule(): void
     {
         $this->createAssignedSchedule('05:00:00', '05:40:00');
 
@@ -296,11 +312,10 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('daily-driver-reports.show', [
-                'dailyDriverReport' => $report->ddr_no,
-            ]))
+            ->get(route('daily-driver-reports'))
             ->assertOk()
-            ->assertSee('On Time');
+            ->assertSee('DDR-2026-0001')
+            ->assertSee('Schedule match unavailable');
     }
 
     public function test_schedule_lookup_returns_matching_trips_for_driver_and_bus(): void
@@ -315,6 +330,7 @@ class DailyDriverReportTest extends TestCase
             ]))
             ->assertOk()
             ->assertJsonPath('schedules.0.trip_code', 'T-SCHED-1')
+            ->assertJsonPath('schedules.0.route_label', 'R-001 - Test Route')
             ->assertJsonPath('schedules.0.departure_time', '06:15');
     }
 
@@ -378,6 +394,62 @@ class DailyDriverReportTest extends TestCase
         $this->assertSame($schedule->id, $entry->trip_schedule_id);
         $this->assertSame($schedule->assignment->id, $entry->trip_assignment_id);
         $this->assertSame(12.75, (float) $entry->km);
+    }
+
+    public function test_secondary_bus_assignment_matches_its_exact_driver_and_bus(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('06:15:00', '07:10:00');
+        $schedule->update(['required_buses' => 2]);
+
+        $secondDriver = Driver::create([
+            'driver_id' => 'D-2026-0002',
+            'driver_name' => 'Second Bus Driver',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+        $secondBus = Bus::create([
+            'bus_no' => 'BUS-002',
+            'plate_no' => 'ABC-5678',
+            'bus_model' => 'Second Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+        ]);
+        $attendance = DriverAttendance::create([
+            'driver_id' => $secondDriver->driver_id,
+            'driver_name' => $secondDriver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => '2026-09-15',
+            'status' => 'Present',
+        ]);
+        $secondAssignment = TripAssignment::create([
+            'trip_schedule_id' => $schedule->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $secondDriver->driver_id,
+            'driver_name' => $secondDriver->driver_name,
+            'bus_id' => $secondBus->id,
+            'assigned_by' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.schedule-lookup', [
+                'report_date' => '2026-09-15',
+                'driver_id' => $secondDriver->driver_id,
+                'bus_id' => $secondBus->id,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('schedules.0.trip_code', $schedule->trip_code);
+
+        $report = DailyDriverReport::create(array_merge($this->validPayload(), [
+            'ddr_no' => 'DDR-2026-0002',
+            'driver_id' => $secondDriver->driver_id,
+            'driver_name' => $secondDriver->driver_name,
+            'bus_id' => $secondBus->id,
+            'trip_ticket' => $schedule->trip_code,
+            'encoded_by' => $this->user->id,
+        ]));
+
+        $this->assertSame($schedule->id, $report->fresh()->trip_schedule_id);
+        $this->assertSame($secondAssignment->id, $report->fresh()->trip_assignment_id);
     }
 
     private function validPayload(): array

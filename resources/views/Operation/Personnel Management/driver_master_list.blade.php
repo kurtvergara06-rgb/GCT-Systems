@@ -31,34 +31,27 @@
                     <h2>Driver Records</h2>
                     <p>Permanent driver information only. Daily transactions remain in Driver Attendance.</p>
                 </div>
-            </div>
-
-            <form method="GET" action="{{ route('operation.personnel.drivers', [], false) }}" class="toolbar attendance-toolbar personnel-master-toolbar driver-master-toolbar" data-server-filter="true">
-                <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="search" name="search" value="{{ request('search') }}" placeholder="Search ID, name, contact, or shift..." aria-label="Search driver records"></div>
-                <div class="filter-group personnel-filter">
-                    <label class="sr-only" for="driverStatusFilter">Status</label>
-                    <select id="driverStatusFilter" name="status" aria-label="Filter by status">
-                        <option value="">All Statuses</option>
-                        <option value="Active" @selected(request('status') === 'Active')>Active</option>
-                        <option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option>
-                    </select>
-                </div>
-                <div class="filter-group personnel-filter">
-                    <label class="sr-only" for="driverShiftFilter">Default Shift</label>
-                    <select id="driverShiftFilter" name="shift" aria-label="Filter by default shift">
-                        <option value="">All Shifts</option>
-                        @foreach(['Morning', 'Afternoon', 'Night'] as $shift)
-                            <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                @if($canEditOperation)
+@if($canEditOperation)
                 <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Driver</span>
                 </button>
                 @endif
-            </form>
+
+            </div>
+
+
+            <div class="personnel-record-controls">
+                <nav class="personnel-record-tabs" aria-label="Driver record groups">
+                    <a class="personnel-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.drivers', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Active Drivers</a>
+                    <a class="personnel-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.drivers', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+                </nav>
+                <x-ui.table-toolbar action="{{ route('operation.personnel.drivers', [], false) }}" search-label="Search Drivers" search-placeholder="Search ID, name, or contact..." :filter-count="(int) request()->filled('shift')" filter-title="Filter Drivers" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'employment_status' => 'Status']" default-sort="driver_name">
+                    <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                    <x-slot:filters><x-ui.table-toolbar-field label="Default Shift" name="shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon', 'Night'] as $shift)<option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+
+                </x-ui.table-toolbar>
+            </div>
             <div class="personnel-filter-loading" data-server-filter-loading hidden>
                 <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
                 Updating driver records...
@@ -66,7 +59,7 @@
 
             <div class="table-wrap personnel-master-table-wrap">
                 <table class="attendance-table personnel-master-table">
-                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Default Shift</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($drivers as $driver)
                         @php
@@ -81,9 +74,8 @@
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar"><i class="fa-solid fa-user"></i></span><div><strong>{{ $driver->driver_name }}</strong><small>Driver profile</small></div></div></td>
-                            <td><span class="gct-pill gct-pill--shift-{{ strtolower($driver->shift) }}">{{ $driver->shift }}</span></td>
                             <td>{{ $driver->contact_number ?: '—' }}</td>
-                            <td><span class="badge personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}">{{ $driver->employment_status }}</span></td>
+                            <td><x-ui.status-badge :status="$driver->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}" /></td>
                             <td><div class="actions">
                                 <button type="button" class="action-btn view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-eye"></i></button>
                                 @if($canEditOperation)
@@ -95,7 +87,12 @@
                             </div></td>
                         </tr>
                     @empty
-                        <x-ui.empty-row colspan="6" message="No driver master records found." />
+                        <x-ui.empty-row
+                            colspan="5"
+                            icon="fa-id-card"
+                            message="No Driver Records Found"
+                            description="No driver profiles match your search or filter criteria. Try adjusting your filters."
+                        />
                     @endforelse
                     </tbody>
                 </table>
@@ -162,7 +159,7 @@
                     <i class="fa-regular fa-clock" aria-hidden="true"></i>
                     <select name="shift" required>
                         <option value="">Select shift</option>
-                        @foreach(['Morning','Afternoon','Night'] as $shift)
+                        @foreach(['Morning','Afternoon'] as $shift)
                             <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
                         @endforeach
                     </select>

@@ -34,7 +34,7 @@ class DailyDriverReportScheduleMatchService
             && $report->trip_assignment_id
         ) {
             $assignment = TripAssignment::query()
-                ->with(['tripSchedule.shuttleRoute', 'tripSchedule.assignment'])
+                ->with(['tripSchedule.shuttleRoute', 'tripSchedule.assignments'])
                 ->find($report->trip_assignment_id);
 
             if ($assignment?->tripSchedule) {
@@ -48,7 +48,7 @@ class DailyDriverReportScheduleMatchService
 
         $query = $this->scheduleQuery()
             ->whereDate('trip_date', $report->report_date->toDateString())
-            ->whereHas('assignment', function (Builder $assignmentQuery) use ($report) {
+            ->whereHas('assignments', function (Builder $assignmentQuery) use ($report) {
                 $assignmentQuery
                     ->where('driver_id', $report->driver_id)
                     ->where(function (Builder $busQuery) use ($report) {
@@ -101,9 +101,15 @@ class DailyDriverReportScheduleMatchService
             return null;
         }
 
-        $assignment = $schedule->relationLoaded('assignment')
-            ? $schedule->assignment
-            : $schedule->assignment()->first();
+        $assignment = $schedule->assignments()
+            ->where('driver_id', $report->driver_id)
+            ->where(function (Builder $busQuery) use ($report): void {
+                $busQuery->where('bus_id', $report->bus_id);
+                if (Schema::hasColumn('trip_assignments', 'original_bus_id')) {
+                    $busQuery->orWhere('original_bus_id', $report->bus_id);
+                }
+            })
+            ->first();
 
         $updates = [
             'trip_schedule_id' => $schedule->id,
@@ -136,9 +142,15 @@ class DailyDriverReportScheduleMatchService
             return null;
         }
 
-        $assignment = $schedule->relationLoaded('assignment')
-            ? $schedule->assignment
-            : $schedule->assignment()->first();
+        $assignment = $schedule->assignments()
+            ->where('driver_id', $report->driver_id)
+            ->where(function (Builder $busQuery) use ($report): void {
+                $busQuery->where('bus_id', $report->bus_id);
+                if (Schema::hasColumn('trip_assignments', 'original_bus_id')) {
+                    $busQuery->orWhere('original_bus_id', $report->bus_id);
+                }
+            })
+            ->first();
 
         $entry->forceFill([
             'trip_schedule_id' => $schedule->id,
@@ -158,7 +170,7 @@ class DailyDriverReportScheduleMatchService
 
         $query = $this->scheduleQuery()
             ->whereDate('trip_date', $report->report_date->toDateString())
-            ->whereHas('assignment', function (Builder $assignmentQuery) use ($report): void {
+            ->whereHas('assignments', function (Builder $assignmentQuery) use ($report): void {
                 $assignmentQuery->where('driver_id', $report->driver_id)
                     ->where(function (Builder $busQuery) use ($report): void {
                         $busQuery->where('bus_id', $report->bus_id);

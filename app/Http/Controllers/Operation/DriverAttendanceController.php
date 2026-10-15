@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -32,11 +34,9 @@ class DriverAttendanceController extends Controller
                     ->orWhere('driver_name', 'like', "%{$search}%")
                     ->orWhere('shift', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereHas('tripAssignments.bus', fn ($busQuery) =>
-                        $busQuery->where('bus_no', 'like', "%{$search}%")
+                    ->orWhereHas('tripAssignments.bus', fn ($busQuery) => $busQuery->where('bus_no', 'like', "%{$search}%")
                     )
-                    ->orWhereHas('tripAssignments.tripSchedule', fn ($tripQuery) =>
-                        $tripQuery->where('trip_code', 'like', "%{$search}%")
+                    ->orWhereHas('tripAssignments.tripSchedule', fn ($tripQuery) => $tripQuery->where('trip_code', 'like', "%{$search}%")
                     );
             });
         }
@@ -51,13 +51,10 @@ class DriverAttendanceController extends Controller
             ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $query->whereDate('attendance_date', $summaryDate);
 
+        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in'], 'driver_name');
         $driverAttendances = $query
-            ->latest('attendance_date')
-            ->latest('id')
             ->paginate(10)
             ->withQueryString();
-
-
 
         $summaryQuery = DriverAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
@@ -111,11 +108,11 @@ class DriverAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
-            'shift' => 'required|string|max:255',
+            'shift' => 'required|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
-            'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
+            'status' => 'required|string|in:Present,Absent,On Leave,On Duty',
         ]);
 
         $driver = Driver::query()
@@ -136,14 +133,14 @@ class DriverAttendanceController extends Controller
         }
 
         if ($driver->employment_status !== 'Active') {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'driver_name' => 'Only active drivers can receive new attendance records.',
             ]);
         }
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $driver->shift ?: $validated['shift'];
+        $validated['shift'] = $validated['shift'];
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -177,17 +174,17 @@ class DriverAttendanceController extends Controller
     {
         $this->normalizeAttendanceTimes($request);
         if ($driverAttendance->tripAssignments()->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
             ]);
         }
 
         $validated = $request->validate([
-            'shift' => 'required|string|max:255',
+            'shift' => 'required|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
-            'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
+            'status' => 'required|string|in:Present,Absent,On Leave,On Duty',
         ]);
 
         // Never allow an attendance edit to reassign the record to another person.
@@ -210,12 +207,12 @@ class DriverAttendanceController extends Controller
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $driver->shift ?: $validated['shift'];
+        $validated['shift'] = $validated['shift'];
 
         if ($driverAttendance->tripAssignments()->exists()
             && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
                 || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'attendance_date' => 'Assigned driver attendance cannot be moved to another date or marked unavailable.',
             ]);
         }
@@ -255,6 +252,7 @@ class DriverAttendanceController extends Controller
                 return false;
             }
             $locked->delete();
+
             return true;
         }, 5);
 
@@ -263,6 +261,7 @@ class DriverAttendanceController extends Controller
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
+
             return redirect()->route('driver-attendance')->with('error', $message);
         }
 
@@ -273,10 +272,11 @@ class DriverAttendanceController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Driver attendance record deleted successfully.']);
         }
+
         return redirect()->route('driver-attendance')->with('success', 'Driver attendance record deleted successfully.');
     }
 
-        public function import(Request $request): RedirectResponse
+    public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
@@ -298,6 +298,7 @@ class DriverAttendanceController extends Controller
 
             $header = array_map(function ($value) {
                 $value = preg_replace('/^\xEF\xBB\xBF/', '', trim((string) $value));
+
                 return strtolower($value);
             }, $header);
 
@@ -318,6 +319,7 @@ class DriverAttendanceController extends Controller
             while (($row = fgetcsv($handle)) !== false) {
                 if (count($row) !== count($header)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -326,6 +328,7 @@ class DriverAttendanceController extends Controller
 
                 if ($name === '') {
                     $skipped++;
+
                     continue;
                 }
 
@@ -333,12 +336,13 @@ class DriverAttendanceController extends Controller
 
                 if (! $driver) {
                     $skipped++;
+
                     continue;
                 }
 
                 try {
                     $status = trim($data['status'] ?? 'Present');
-                    if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
+                    if (! in_array($status, ['Present', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 

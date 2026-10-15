@@ -1,4 +1,27 @@
 window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment', '.assignment-page', () => {
+    // Resource filters are page-local and never change assignment eligibility.
+    // Re-evaluate after AJAX region refreshes without introducing a page reload.
+    const applyResourceFilter = (toolbar) => {
+        if (!toolbar) return;
+        const group = toolbar.dataset.resourceFilter;
+        const query = (toolbar.querySelector('input[type="search"]')?.value || '').trim().toLowerCase();
+        const category = (toolbar.querySelector('select')?.value || '').trim().toLowerCase();
+        const card = toolbar.closest('.resource-card');
+        card?.querySelectorAll('[data-resource-row]').forEach((row) => {
+            if (row.dataset.resourceRow !== group) return;
+            row.hidden = !(String(row.dataset.resourceText || '').includes(query)
+                && (!category || String(row.dataset.resourceCategory || '') === category));
+        });
+    };
+    document.addEventListener('input', (event) => {
+        const toolbar = event.target.closest?.('[data-resource-filter]');
+        if (toolbar) applyResourceFilter(toolbar);
+    });
+    document.addEventListener('change', (event) => {
+        const toolbar = event.target.closest?.('[data-resource-filter]');
+        if (toolbar) applyResourceFilter(toolbar);
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Modal Elements
@@ -311,10 +334,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignmentBusOptionsContainer) {
             assignmentBusOptionsContainer.innerHTML = buses.length
                 ? buses.map((bus) => {
-                    const label = bus.model ? `${bus.bus_no} — ${bus.model}` : bus.bus_no;
+                    const busIdentifier = bus.plate_no || 'Plate not recorded';
+                    const label = bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier;
                     const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
 
-                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(bus.bus_no)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
         }
@@ -352,6 +376,13 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
 
     async function loadAvailability(tripId, explicitUrl = '') {
+        const pendingSlotInput = document.getElementById('assignmentPendingSlot');
+        const lockedTripInput = document.getElementById('assignmentLockedTrip');
+        const pendingContext = document.getElementById('assignmentPendingSlotContext');
+        if (pendingSlotInput) { pendingSlotInput.disabled = true; pendingSlotInput.value = ''; }
+        if (lockedTripInput) { lockedTripInput.disabled = true; lockedTripInput.value = ''; }
+        if (pendingContext) { pendingContext.hidden = true; pendingContext.textContent = ''; }
+
         resetDriverSelection();
         resetBusSelection();
         availabilityController?.abort();
@@ -795,12 +826,34 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignButton && !assignButton.disabled) {
             resetAssignmentForm();
 
+            const tripId = assignButton.dataset.tripId || '';
+            const slotNumber = assignButton.dataset.slotNumber || '';
             if (assignmentTrip) {
-                assignmentTrip.value = assignButton.dataset.tripId || '';
+                assignmentTrip.value = tripId;
+            }
+            const pendingSlotInput = document.getElementById('assignmentPendingSlot');
+            const lockedTripInput = document.getElementById('assignmentLockedTrip');
+            const pendingContext = document.getElementById('assignmentPendingSlotContext');
+            if (slotNumber) {
+                if (pendingSlotInput) { pendingSlotInput.value = slotNumber; pendingSlotInput.disabled = false; }
+                if (lockedTripInput) { lockedTripInput.value = tripId; lockedTripInput.disabled = false; }
+                if (assignmentTrip) { assignmentTrip.disabled = true; assignmentTrip.required = false; }
+                if (pendingContext) {
+                    pendingContext.textContent = (assignButton.dataset.tripLabel || 'Trip') + ' — Slot ' + slotNumber + ' awaiting assignment';
+                    pendingContext.hidden = false;
+                }
+                if (assignmentModalTitle) assignmentModalTitle.textContent = 'Assign Pending Slot';
+                if (assignmentSubmitText) assignmentSubmitText.textContent = 'Confirm Assignment';
             }
 
-            await loadAvailability(assignButton.dataset.tripId || '');
+            // Open immediately: loading availability must never block the modal.
             openModal(assignmentModal);
+            try {
+                await loadAvailability(tripId, assignButton.dataset.availabilityUrl || '');
+            } catch (error) {
+                setAvailabilityMessage('Unable to load available resources. Please try again.');
+                console.error('Assignment availability load failed:', error);
+            }
             return;
         }
 
@@ -1255,6 +1308,103 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
     }
+
+    const applySource = () => {
+        const form = document.getElementById('assignmentForm');
+        const source = document.getElementById('assignmentSource');
+        const pending = document.getElementById('assignmentPendingSlot');
+        const company = document.getElementById('companyAssignmentFields');
+        const rental = document.getElementById('externalRentalFields');
+        if (!form || !source || !pending || !company || !rental) return;
+        const selector = document.getElementById('assignmentSourceSelector');
+        const isRental = Boolean(selector && !selector.hidden && source.value === 'rental');
+        document.querySelectorAll('[data-assignment-source]').forEach((button) => {
+            const selected = button.dataset.assignmentSource === source.value;
+            button.classList.toggle('is-selected', selected);
+            button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+        company.hidden = isRental;
+        company.style.display = isRental ? 'none' : '';
+        rental.hidden = !isRental;
+        rental.style.display = isRental ? 'block' : 'none';
+        const validation = form.querySelector('.assignment-validation');
+        if (validation) validation.hidden = isRental;
+        for (const field of rental.querySelectorAll('input,textarea,select')) {
+            field.disabled = !isRental;
+        }
+        const confirmed = rental.querySelector('[name="rental_status"]')?.value === 'Confirmed';
+        for (const name of ['company_name', 'plate_number', 'driver_name']) {
+            const field = rental.querySelector('[name="' + name + '"]');
+            if (field) field.required = isRental && (name === 'company_name' || confirmed);
+        }
+        for (const name of ['driver_attendance_id', 'bus_id']) {
+            const field = form.elements.namedItem(name);
+            if (field) { field.disabled = isRental; field.required = !isRental; }
+        }
+        if (isRental) {
+            if (!form.dataset.companyAction) form.dataset.companyAction = form.action;
+            form.action = "/operation/external-bus-rentals";
+            const method = document.getElementById('assignmentFormMethod');
+            if (method) method.disabled = true;
+            const trip = document.getElementById('assignmentLockedTrip');
+            if (trip) trip.disabled = false;
+            const submit = document.getElementById('assignmentSubmitText');
+            if (submit) submit.textContent = 'Save Rental';
+        } else {
+            if (form.dataset.companyAction) form.action = form.dataset.companyAction;
+            const submit = document.getElementById('assignmentSubmitText');
+            if (submit && !pending.disabled) submit.textContent = 'Confirm Assignment';
+        }
+    };
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('.open-assignment');
+        const selector = document.getElementById('assignmentSourceSelector');
+        const source = document.getElementById('assignmentSource');
+        const form = document.getElementById('assignmentForm');
+        if (button && selector && source && form) {
+            form.dataset.companyAction = form.action;
+            selector.hidden = false;
+            source.value = 'company';
+            const rental = document.getElementById('externalRentalFields');
+            if (rental) {
+                const values = {
+                    company_name: button.dataset.rentalCompany || '',
+                    contact_details: button.dataset.rentalContact || '',
+                    plate_number: button.dataset.rentalPlate || '',
+                    driver_name: button.dataset.rentalDriver || '',
+                    notes: button.dataset.rentalNotes || '',
+                    rental_status: button.dataset.rentalStatus || 'Pending',
+                };
+                for (const [name,value] of Object.entries(values)) {
+                    const field = rental.querySelector('[name="' + name + '"]');
+                    if (field) field.value = value;
+                }
+            }
+            applySource();
+        }
+        if (event.target.closest('#openAssignmentModal, .edit-assignment')) {
+            if (form) form.dataset.companyAction = form.action;
+            if (selector) selector.hidden = true;
+            if (source) source.value = 'company';
+            applySource();
+        }
+    });
+    // Capture card clicks before generic modal handlers; cards are not form submits.
+    assignmentModal?.addEventListener('click', (event) => {
+        const choice = event.target.closest('[data-assignment-source]');
+        if (!choice) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const source = document.getElementById('assignmentSource');
+        if (!source) return;
+        source.value = choice.dataset.assignmentSource;
+        applySource();
+    }, true);
+    assignmentModal?.addEventListener('change', (event) => {
+        if (event.target?.id === 'assignmentSource' || event.target?.id === 'externalRentalStatus') {
+            applySource();
+        }
+    });
 });
 
 if (!window.__gctAssignmentModalRefreshBound) {
@@ -1275,3 +1425,49 @@ if (!window.__gctAssignmentModalRefreshBound) {
         }
     });
 }
+
+
+/* Print the existing authenticated assignment sheet without a modal, iframe, or navigation. */
+(() => {
+    if (window.__gctAssignmentDirectPrintBound) return;
+    window.__gctAssignmentDirectPrintBound = true;
+
+    document.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-direct-assignment-print]');
+        if (!button) return;
+        event.preventDefault();
+        if (button.disabled || !button.dataset.printUrl) return;
+
+        button.disabled = true;
+        let sheet = null;
+        try {
+            const response = await fetch(button.dataset.printUrl, {
+                credentials: 'same-origin',
+                headers: { Accept: 'text/html' },
+            });
+            if (!response.ok) throw new Error('Assignment sheet request failed');
+            const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const sections = ['header', '.meta', 'table', '.signatures'];
+            if (sections.some((selector) => !parsed.body.querySelector(selector))) {
+                throw new Error('The printable assignment sheet is unavailable');
+            }
+            document.getElementById('assignmentPrintDocument')?.remove();
+            sheet = document.createElement('section');
+            sheet.id = 'assignmentPrintDocument';
+            sheet.setAttribute('aria-label', 'Printable Driver and Bus Assignment Sheet');
+            for (const selector of sections) {
+                sheet.appendChild(document.importNode(parsed.body.querySelector(selector), true));
+            }
+            document.body.appendChild(sheet);
+            document.body.classList.add('printing-assignment-sheet');
+            // Print the current document: no extra browser page or iframe is created.
+            window.print();
+        } catch (error) {
+            window.alert('Unable to print the assignment sheet. Please try again.');
+        } finally {
+            document.body.classList.remove('printing-assignment-sheet');
+            sheet?.remove();
+            button.disabled = false;
+        }
+    });
+})();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Mechanic;
@@ -23,7 +24,6 @@ class BatchAttendanceController extends Controller
     private const SHIFT_STARTS = [
         'Morning' => '06:00:00',
         'Afternoon' => '14:00:00',
-        'Night' => '22:00:00',
     ];
 
     private const GRACE_MINUTES = 10;
@@ -34,11 +34,11 @@ class BatchAttendanceController extends Controller
 
         $validated = $request->validate([
             'date' => ['required', 'date'],
-            'shift' => ['nullable', Rule::in(['all', 'Morning', 'Afternoon', 'Night'])],
+            'shift' => ['nullable', Rule::in(['all', 'Morning', 'Afternoon'])],
         ]);
 
-        if ($type === 'mechanic' && ($validated['shift'] ?? 'all') === 'Night') {
-            throw ValidationException::withMessages(['shift' => 'Mechanic Night shift is unavailable.']);
+        if ($type === 'mechanic' && ($validated['shift'] ?? 'all') === 'Afternoon') {
+            throw ValidationException::withMessages(['shift' => 'Mechanic attendance is Morning only.']);
         }
 
         $date = Carbon::parse($validated['date'])->toDateString();
@@ -50,7 +50,7 @@ class BatchAttendanceController extends Controller
 
         $people = $personModel::query()
             ->where('employment_status', 'Active')
-            ->when($type === 'mechanic', fn ($query) => $query->whereIn('shift', ['Morning', 'Afternoon']))
+            ->when($type === 'mechanic', fn ($query) => $query->where('shift', 'Morning'))
             ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->orderBy($nameColumn)
             ->get();
@@ -113,15 +113,15 @@ class BatchAttendanceController extends Controller
             'rows.*.shift' => ['required', Rule::in(array_keys(self::SHIFT_STARTS))],
             'rows.*.time_in' => ['nullable', 'date_format:H:i'],
             'rows.*.time_out' => ['nullable', 'date_format:H:i'],
-            'rows.*.status' => ['required', Rule::in(['Present', 'Late', 'Absent', 'On Leave'])],
+            'rows.*.status' => ['required', Rule::in($type === 'mechanic' ? ['Present', 'Late', 'Absent', 'On Leave'] : ['Present', 'Absent', 'On Leave'])],
             'rows.*.assigned_job' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($type === 'mechanic') {
             foreach ($validated['rows'] as $index => $row) {
-                if (! in_array($row['shift'], ['Morning', 'Afternoon'], true)) {
+                if ($row['shift'] !== 'Morning') {
                     throw ValidationException::withMessages([
-                        "rows.{$index}.shift" => 'Mechanic attendance only supports Morning and Afternoon shifts.',
+                        "rows.{$index}.shift" => 'Mechanic attendance only supports Morning shift.',
                     ]);
                 }
             }
@@ -143,7 +143,54 @@ class BatchAttendanceController extends Controller
                 $idColumn,
                 &$saved
             ): void {
+                $personModel = $this->personModelFor($type);
+                $seenIds = [];
+
                 foreach ($validated['rows'] as $index => $row) {
+                    $personId = (string) $row['person_id'];
+                    if (isset($seenIds[$personId])) {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'This person appears more than once in the batch.',
+                        ]);
+                    }
+                    $seenIds[$personId] = true;
+
+                    $person = $personModel::query()
+                        ->where($idColumn, $personId)
+                        ->lockForUpdate()
+                        ->first();
+                    if (! $person || $person->employment_status !== 'Active') {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'Choose an active person from the master list.',
+                        ]);
+                    }
+                    if ($type === 'mechanic' && $row['shift'] !== 'Morning') {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.shift" => 'Mechanic attendance only supports Morning shift.',
+                        ]);
+                    }
+
+                    $existing = $attendanceModel::query()
+                        ->where($idColumn, $personId)
+                        ->whereDate('attendance_date', $date)
+                        ->lockForUpdate()->first();
+
+                    // Match the individual attendance controllers: linked records
+                    // cannot be rewritten through the batch endpoint.
+                    if ($type === 'driver' && $existing?->tripAssignments()->exists()) {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'Attendance is linked to a trip assignment and cannot be changed through batch attendance.',
+                        ]);
+                    }
+                    if ($type === 'mechanic' && JobOrder::query()
+                        ->where('assigned_mechanic', $person->mechanic_name)
+                        ->where('status', 'On Going')
+                        ->exists()) {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'This mechanic has an ongoing Job Order. Attendance must not be changed through the batch.',
+                        ]);
+                    }
+
                     $status = $row['status'];
                     $timeIn = $row['time_in'] ?? null;
                     $timeOut = $row['time_out'] ?? null;
@@ -158,11 +205,13 @@ class BatchAttendanceController extends Controller
                             ]);
                         }
 
-                        $status = $this->attendanceStatus($row['shift'], $timeIn);
+                        $status = $type === 'mechanic'
+                            ? $this->attendanceStatus($row['shift'], $timeIn)
+                            : 'Present';
                     }
 
                     $values = [
-                        $nameColumn => trim($row['name']),
+                        $nameColumn => (string) $person->{$nameColumn},
                         'shift' => $row['shift'],
                         'time_in' => $timeIn ? $timeIn . ':00' : null,
                         'time_out' => $timeOut ? $timeOut . ':00' : null,
@@ -173,13 +222,14 @@ class BatchAttendanceController extends Controller
                         $values['assigned_job'] = trim((string) ($row['assigned_job'] ?? ''));
                     }
 
-                    $attendanceModel::query()->updateOrCreate(
-                        [
-                            $idColumn => $row['person_id'],
+                    if ($existing) {
+                        $existing->update($values);
+                    } else {
+                        $attendanceModel::query()->create(array_merge([
+                            $idColumn => $personId,
                             'attendance_date' => $date,
-                        ],
-                        $values
-                    );
+                        ], $values));
+                    }
 
                     $saved++;
                 }

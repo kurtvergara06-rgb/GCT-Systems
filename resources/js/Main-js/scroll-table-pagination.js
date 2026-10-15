@@ -36,7 +36,7 @@
 
     const tableRows = (table) => {
         return table?.tBodies?.[0]
-            ? Array.from(table.tBodies[0].rows).filter((row) => !row.classList.contains('empty-row'))
+            ? Array.from(table.tBodies[0].rows).filter((row) => !row.classList.contains('empty-row') && !row.classList.contains('inc-expanded-row') && !row.querySelector('td.empty-row'))
             : [];
     };
 

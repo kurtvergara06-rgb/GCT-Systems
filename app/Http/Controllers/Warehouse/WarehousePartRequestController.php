@@ -9,6 +9,7 @@ use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -136,8 +137,8 @@ class WarehousePartRequestController extends Controller
             $query->where('status', $request->status);
         }
 
+        TableSort::apply($query, $request, ['pr_no' => 'pr_no', 'created_at' => 'created_at', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 
@@ -550,7 +551,7 @@ class WarehousePartRequestController extends Controller
                 $q->whereNull('source_type')
                     ->orWhere('source_type', 'Maintenance Request');
             })
-            ->where('pr_no', 'like', $purchaseRequest->pr_no . '-P%')
+            ->where('pr_no', 'like', $purchaseRequest->pr_no.'-P%')
             ->latest()
             ->first();
     }
@@ -597,7 +598,7 @@ class WarehousePartRequestController extends Controller
                         'name' => $name,
                         'quantity' => max(1, $quantity),
                         'unit' => $unit,
-                        'needed_display' => trim(max(1, $quantity) . ($unit ? ' ' . $unit : '')),
+                        'needed_display' => trim(max(1, $quantity).($unit ? ' '.$unit : '')),
                     ];
                 }
 
@@ -610,7 +611,7 @@ class WarehousePartRequestController extends Controller
                         'name' => $name,
                         'quantity' => max(1, $quantity),
                         'unit' => $unit,
-                        'needed_display' => trim(max(1, $quantity) . ($unit ? ' ' . $unit : '')),
+                        'needed_display' => trim(max(1, $quantity).($unit ? ' '.$unit : '')),
                     ];
                 }
 
@@ -662,9 +663,9 @@ class WarehousePartRequestController extends Controller
                 'name' => $name,
                 'needed' => $neededQty,
                 'unit' => $inventoryUnit,
-                'needed_display' => trim($neededQty . ($inventoryUnit ? ' ' . $inventoryUnit : '')),
+                'needed_display' => trim($neededQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                 'available' => $availableQty,
-                'available_display' => trim($availableQty . ($inventoryUnit ? ' ' . $inventoryUnit : '')),
+                'available_display' => trim($availableQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                 'status' => $partStatus,
                 'matched_inventory_id' => $inventoryItem?->id,
             ];
@@ -674,9 +675,9 @@ class WarehousePartRequestController extends Controller
                     'name' => $name,
                     'needed' => $neededQty,
                     'unit' => $inventoryUnit,
-                    'needed_display' => trim($neededQty . ($inventoryUnit ? ' ' . $inventoryUnit : '')),
+                    'needed_display' => trim($neededQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                     'available' => $availableQty,
-                    'available_display' => trim($availableQty . ($inventoryUnit ? ' ' . $inventoryUnit : '')),
+                    'available_display' => trim($availableQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                     'status' => 'Not Available',
                 ];
             }
@@ -758,19 +759,19 @@ class WarehousePartRequestController extends Controller
                 $qty = (int) ($part['needed'] ?? 1);
                 $unit = $this->normalizeUnit($part['unit'] ?? '');
 
-                return $name . ' - Qty: ' . $qty . ($unit ? ' ' . $unit : '');
+                return $name.' - Qty: '.$qty.($unit ? ' '.$unit : '');
             })
             ->implode(', ');
     }
 
     private function generateMissingPrNo(string $originalPrNo): string
     {
-        $base = $originalPrNo . '-P';
+        $base = $originalPrNo.'-P';
         $prNo = $base;
         $counter = 2;
 
         while (PurchaseRequest::where('pr_no', $prNo)->exists()) {
-            $prNo = $base . $counter;
+            $prNo = $base.$counter;
             $counter++;
         }
 

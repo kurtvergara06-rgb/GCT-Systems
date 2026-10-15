@@ -2219,3 +2219,231 @@ body::-webkit-scrollbar {
   cursor: not-allowed; box-shadow: none;
 }
 @media (max-width: 650px) { .gct-section-header { flex-wrap: wrap; } }
+
+/* Shared table action hover feedback (visual only; never applies to status badges). */
+:is(table, .table-wrap, .table-card) :is(.actions, .table-actions, .action-buttons) :is(button, a):is(.action-btn, .view-btn, .edit-btn, .delete-btn):not(:disabled):not([aria-disabled="true"]) {
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transform-origin: center;
+}
+:is(table, .table-wrap, .table-card) :is(.actions, .table-actions, .action-buttons) :is(button, a):is(.action-btn, .view-btn, .edit-btn, .delete-btn):not(:disabled):not([aria-disabled="true"]):hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 5px 12px rgba(15, 35, 70, .18);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(table, .table-wrap, .table-card) :is(.actions, .table-actions, .action-buttons) :is(button, a):is(.action-btn, .view-btn, .edit-btn, .delete-btn) {
+    transition: none;
+    transform: none;
+  }
+}
+
+
+/* Shared table empty-state presentation (Operation-style, reusable). */
+tr.gct-empty-table-row > td.gct-empty-cell,
+tr.gct-search-empty-row > td,
+tr.empty-row > td.empty-row {
+  text-align: center;
+  padding: 48px 20px;
+  background: transparent;
+  border-bottom: 0;
+}
+.gct-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 440px;
+  color: #64748b;
+  line-height: 1.5;
+  text-align: center;
+}
+.gct-empty-content .gct-empty-icon {
+  font-size: 32px;
+  color: #cbd5e1;
+  line-height: 1;
+}
+.gct-empty-content .gct-empty-title {
+  color: #0b2344;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.gct-empty-content .gct-empty-description {
+  font-size: 13px;
+  color: #64748b;
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0 auto;
+}
+
+/* Operation section actions sit alongside the title, never in search/filter rows. */
+.attendance-card > .section-header,
+.routes-card > .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.attendance-card > .section-header > div:first-child,
+.routes-card > .section-header > div:first-child {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.attendance-card > .section-header > .primary-btn,
+.attendance-card > .section-header > .personnel-add-btn,
+.routes-card > .section-header > .new-route-btn {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+@media (max-width: 600px) {
+  .attendance-card > .section-header > .primary-btn,
+  .routes-card > .section-header > .new-route-btn {
+    margin-left: 0;
+  }
+}
+
+
+/* Consistent Operation master-record navigation: title/action, tabs, filters. */
+.gct-record-tabs,
+.table-card > .bus-fleet-tabs,
+.inc-card > .inc-segmented-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #e5eaf1;
+}
+.gct-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 7px 16px;
+  border: 1px solid #dbe3ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #53647d;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.gct-record-tab:hover { background: #f4f7fb; color: #062b4f; }
+.gct-record-tab.is-active {
+  background: #062b4f;
+  border-color: #062b4f;
+  color: #fff;
+}
+.inc-card > .inc-card-header,
+.table-card > .section-header,
+.routes-card > .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.inc-card > .inc-card-header > div:first-child { flex: 1 1 260px; }
+.inc-card > .inc-card-header > .inc-new-btn { margin-left: auto; }
+
+
+/* Unified compact table actions — Image 2 visual standard.
+   Applies to row actions only; modal/footer/toolbar buttons are unchanged. */
+table .actions,
+table .trip-actions,
+table .table-action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+table .actions form,
+table .table-action-group form {
+  display: inline-flex;
+  margin: 0;
+}
+table .actions > button,
+table .actions > a,
+table .actions > form > button,
+table .actions > form > a,
+table .actions .action-btn,
+table .trip-actions .trip-action,
+table .table-action-group .table-action-btn {
+  box-sizing: border-box;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  vertical-align: middle;
+  box-shadow: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+table .actions :is(button, a) > i,
+table .trip-actions .trip-action > i,
+table .table-action-group .table-action-btn > i {
+  font-size: 13px;
+  line-height: 1;
+  flex: none;
+}
+table .actions :is(button, a):hover:not(:disabled),
+table .trip-actions .trip-action:hover:not(:disabled),
+table .table-action-group .table-action-btn:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  transform: none;
+}
+table .actions :is(.delete, .danger, .deactivate),
+table .trip-actions :is(.delete, .danger),
+table .table-action-group :is(.delete, .danger) {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+table .actions :is(.delete, .danger, .deactivate):hover:not(:disabled),
+table .trip-actions :is(.delete, .danger):hover:not(:disabled),
+table .table-action-group :is(.delete, .danger):hover:not(:disabled) {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+table .actions :is(button, a):disabled,
+table .actions :is(button, a).disabled,
+table .actions :is(button, a)[aria-disabled="true"],
+table .trip-actions :is(button, a):disabled,
+table .trip-actions :is(button, a).disabled,
+table .table-action-group :is(button, a):disabled,
+table .table-action-group :is(button, a).disabled {
+  color: #9ca3af;
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 1;
+  transform: none;
+}
+table .actions :is(button, a):focus-visible,
+table .trip-actions .trip-action:focus-visible,
+table .table-action-group .table-action-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

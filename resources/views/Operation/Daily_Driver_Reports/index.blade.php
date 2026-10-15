@@ -18,15 +18,6 @@
                 subtitle="Encoded actual trip execution from physical daily driver reports"
             />
 
-            @if (session('success'))
-                <div class="ddr-alert ddr-alert-success" role="alert">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>{{ session('success') }}</strong>
-                    </div>
-                </div>
-            @endif
-
             <!-- Summary KPI Cards -->
             <section data-ajax-region="summary" class="ddr-summary-grid">
                 <article class="ddr-summary-card">
@@ -89,61 +80,16 @@
                 </div>
 
                 <!-- Filter & Search Toolbar -->
-                <form method="GET" action="{{ route('daily-driver-reports') }}" class="ddr-toolbar">
-                    <div class="ddr-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search by DDR no, driver, trip ticket, location..."
-                        />
-                    </div>
-
-                    <div class="ddr-filter date-filter">
-                        <label for="filterDate">Report Date</label>
-                        <input
-                            type="date"
-                            id="filterDate"
-                            name="report_date"
-                            value="{{ request('report_date') }}"
-                            onchange="this.form.submit()"
-                        />
-                    </div>
-
-                    <div class="ddr-filter">
-                        <label for="filterDriver">Driver</label>
-                        <select id="filterDriver" name="driver" onchange="this.form.submit()">
-                            <option value="all">All Drivers</option>
-                            @foreach($drivers as $driver)
-                                <option value="{{ $driver->driver_id }}" @selected(request('driver') == $driver->driver_id)>
-                                    {{ $driver->driver_name }} ({{ $driver->driver_id }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="ddr-filter">
-                        <label for="filterBus">Bus</label>
-                        <select id="filterBus" name="bus" onchange="this.form.submit()">
-                            <option value="all">All Buses</option>
-                            @foreach($buses as $bus)
-                                <option value="{{ $bus->id }}" @selected(request('bus') == $bus->id)>
-                                    {{ $bus->bus_no }} - {{ $bus->plate_no }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if(request()->anyFilled(['search', 'report_date', 'driver', 'bus']))
-                        <a href="{{ route('daily-driver-reports') }}" class="ddr-clear-btn" title="Reset all filters">
-                            <i class="fa-solid fa-rotate-left"></i> Reset
-                        </a>
-                    @endif
-                </form>
+                <x-ui.table-toolbar action="{{ route('daily-driver-reports') }}" search-label="Search Daily Driver Reports" search-placeholder="Search DDR no., driver, ticket, or location..." :filter-count="(int) request()->filled('report_date') + (int) (request()->filled('driver') && request('driver') !== 'all') + (int) (request()->filled('bus') && request('bus') !== 'all')" filter-title="Filter Daily Driver Reports" :sort-options="['report_date' => 'Report Date', 'ddr_no' => 'DDR Number', 'driver_name' => 'Driver Name', 'passengers' => 'Passengers']" default-sort="report_date" default-direction="desc">
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Report Date" name="report_date" type="date" />
+                        <x-ui.table-toolbar-field label="Driver" name="driver" default="all"><option value="all">All Drivers</option>@foreach($drivers as $driver)<option value="{{ $driver->driver_id }}" @selected(request('driver') == $driver->driver_id)>{{ $driver->driver_name }} ({{ $driver->driver_id }})</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Bus" name="bus" default="all"><option value="all">All Buses</option>@foreach($buses as $bus)<option value="{{ $bus->id }}" @selected(request('bus') == $bus->id)>{{ $bus->bus_no }} - {{ $bus->plate_no }}</option>@endforeach</x-ui.table-toolbar-field>
+                    </x-slot:filters>
+                </x-ui.table-toolbar>
 
                 <!-- DDR Table Container with Contained Scroll -->
-                <div class="table-wrap ddr-table-wrap">
+                <div class="table-wrap ddr-table-wrap" style="margin-top: 16px;">
                     <table class="ddr-table">
                         <thead>
                             <tr>
@@ -233,28 +179,39 @@
 
                                     <td>
                                         <div class="ddr-actions">
-                                            <a
-                                                href="{{ route('daily-driver-reports.show', ['dailyDriverReport' => $report->ddr_no]) }}"
-                                                class="ddr-action view"
-                                                title="View Report Details"
-                                            >
-                                                <i class="fa-regular fa-eye"></i>
-                                            </a>
+                                            <button type="button" class="ddr-action view ddr-open-modal" data-ddr-modal="ddrView-{{ $report->id }}" title="View Report Details" aria-label="View {{ $report->ddr_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                                            @php
+                                                $ddrLinked = $report->trip_schedule_id !== null || $report->trip_assignment_id !== null
+                                                    || $report->additionalTrips->contains(fn ($entry) => $entry->trip_schedule_id !== null || $entry->trip_assignment_id !== null);
+                                                $canDeleteDdr = (auth()->user()?->hasSystemPermission('operation', 'edit') ?? false) && ! $ddrLinked;
+                                            @endphp
+                                            @if($canDeleteDdr)
+                                                <button type="button" class="ddr-action ddr-edit-action ddr-open-modal" data-ddr-modal="ddrEdit-{{ $report->id }}" title="Edit report" aria-label="Edit {{ $report->ddr_no }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                            @else
+                                                <button type="button" class="ddr-action ddr-edit-action" disabled
+                                                    title="Unavailable: linked history or insufficient permission"
+                                                    aria-label="Edit unavailable for {{ $report->ddr_no }}">
+                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                                </button>
+                                            @endif
+                                            <button type="button" class="ddr-action ddr-delete-trigger"
+                                                data-ddr-id="{{ $report->ddr_no }}"
+                                                data-delete-url="{{ route('daily-driver-reports.destroy', ['dailyDriverReport' => $report->ddr_no], false) }}"
+                                                aria-label="Delete {{ $report->ddr_no }}"
+                                                title="{{ $canDeleteDdr ? 'Delete unlinked DDR' : 'Unavailable: linked history or insufficient permission' }}"
+                                                @disabled(! $canDeleteDdr)>
+                                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
-                                <tr class="empty-row">
-                                    <td colspan="9" style="text-align: center; padding: 48px 20px;">
-                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--ddr-muted);">
-                                            <i class="fa-solid fa-file-lines" style="font-size: 32px; color: #cbd5e1;"></i>
-                                            <strong style="font-size: 15px; color: var(--ddr-navy);">No Daily Driver Reports Found</strong>
-                                            <p style="font-size: 13px; margin: 0; max-width: 420px;">
-                                                No encoded reports matched your search or filter criteria. Try adjusting the date, driver, or bus filters.
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <x-ui.empty-row
+                                    colspan="9"
+                                    icon="fa-file-lines"
+                                    message="No Daily Driver Reports Found"
+                                    description="No encoded reports matched your search or filter criteria. Try adjusting the date, driver, or bus filters."
+                                />
                             @endforelse
                         </tbody>
                     </table>
@@ -262,8 +219,111 @@
 
                 <x-ui.table-footer :items="$reports" />
             </section>
-        </main>
-    </div>
+
+        {{-- View and correction forms are page-owned modal dialogs, never separate screens. --}}
+        @foreach($reports as $report)
+            <div id="ddrView-{{ $report->id }}" class="ddr-record-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ddrViewTitle-{{ $report->id }}">
+                <section class="ddr-record-dialog">
+                    <header class="ddr-record-header">
+                        <div class="ddr-record-title-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></div><div><h2 id="ddrViewTitle-{{ $report->id }}">Daily Driver Report Details</h2><p>{{ $report->ddr_no }} · Actual encoded trip record</p></div>
+                        <button type="button" class="ddr-record-close" aria-label="Close report details"><i class="fa-solid fa-xmark"></i></button>
+                    </header>
+                    <div class="ddr-record-body">
+                        <div class="ddr-record-info ddr-record-info-iconic">
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>Report Date</small><strong>{{ $report->report_date?->format('M d, Y') }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>Driver</small><strong>{{ $report->driver_name }} ({{ $report->driver_id }})</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>Bus</small><strong>{{ $report->bus?->bus_no ?? '—' }} · {{ $report->bus?->plate_no ?? '—' }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>Trip Ticket</small><strong>{{ $report->trip_ticket }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Route</small><strong>{{ $report->from_location }} → {{ $report->to_location }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Trip Time</small><strong>{{ ($report->getRawOriginal('departure_time') ? \Carbon\Carbon::parse($report->getRawOriginal('departure_time'))->format('h:i A') : '—') }} → {{ ($report->getRawOriginal('arrival_time') ? \Carbon\Carbon::parse($report->getRawOriginal('arrival_time'))->format('h:i A') : '—') }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Trip Passengers</small><strong>{{ $report->passengers }}</strong></span></div>
+                            <div><span class="ddr-info-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Trip KM</small><strong>{{ $report->km !== null ? (string) (float) $report->km : '—' }}</strong></span></div>
+                        </div>
+                        <h3>Trip Entries ({{ 1 + $report->additionalTrips->count() }})</h3>
+                        <div class="ddr-record-table-wrap"><table class="ddr-record-table">
+                            <thead><tr><th>#</th><th>Ticket</th><th>From → To</th><th>Departure</th><th>Arrival</th><th>Passengers</th><th>KM</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>{{ $report->trip_ticket }}</td><td>{{ $report->from_location }} → {{ $report->to_location }}</td><td>{{ ($report->getRawOriginal('departure_time') ? \Carbon\Carbon::parse($report->getRawOriginal('departure_time'))->format('h:i A') : '—') }}</td><td>{{ ($report->getRawOriginal('arrival_time') ? \Carbon\Carbon::parse($report->getRawOriginal('arrival_time'))->format('h:i A') : '—') }}</td><td>{{ $report->passengers }}</td><td>{{ $report->km !== null ? (string) (float) $report->km : '—' }}</td></tr>
+                                @foreach($report->additionalTrips as $entry)
+                                    <tr><td>{{ $loop->iteration + 1 }}</td><td>{{ $entry->trip_ticket }}</td><td>{{ $entry->from_location }} → {{ $entry->to_location }}</td><td>{{ ($entry->departure_time ? \Carbon\Carbon::parse($entry->departure_time)->format('h:i A') : '—') }}</td><td>{{ ($entry->arrival_time ? \Carbon\Carbon::parse($entry->arrival_time)->format('h:i A') : '—') }}</td><td>{{ $entry->passengers }}</td><td>{{ $entry->km !== null ? (string) (float) $entry->km : '—' }}</td></tr>
+                                @endforeach
+                            </tbody>
+                        </table></div>
+                        <div class="ddr-record-total"><div><i class="fa-solid fa-users" aria-hidden="true"></i><span>Total Passengers<strong>{{ $report->passengers + $report->additionalTrips->sum('passengers') }}</strong></span></div><div><i class="fa-solid fa-road" aria-hidden="true"></i><span>Total KM<strong>{{ (string) ((float) $report->km + $report->additionalTrips->sum('km')) }}</strong></span></div></div>
+                        <div class="ddr-record-compare">
+                            <h3><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Schedule Comparison</h3>
+                            <p>{{ $report->trip_schedule_id ? 'A trip schedule is linked to this report. The original recorded values are shown above.' : 'Schedule match unavailable: no matching trip schedule was recorded for this DDR.' }}</p>
+                        </div>
+                    </div>
+                    <footer class="ddr-record-footer"><button type="button" class="ddr-record-close">Close</button></footer>
+                </section>
+            </div>
+
+            @if((auth()->user()?->hasSystemPermission('operation', 'edit') ?? false)
+                && !$report->trip_schedule_id && !$report->trip_assignment_id
+                && !$report->additionalTrips->contains(fn ($entry) => $entry->trip_schedule_id !== null || $entry->trip_assignment_id !== null))
+                <div id="ddrEdit-{{ $report->id }}" class="ddr-record-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ddrEditTitle-{{ $report->id }}">
+                    <section class="ddr-record-dialog ddr-record-dialog-edit">
+                        <header class="ddr-record-header">
+                            <div><h2 id="ddrEditTitle-{{ $report->id }}">Edit Daily Driver Report</h2><p>{{ $report->ddr_no }} · Correct values from the physical DDR</p></div>
+                            <button type="button" class="ddr-record-close" aria-label="Close edit report"><i class="fa-solid fa-xmark"></i></button>
+                        </header>
+                        <form method="POST" action="{{ route('daily-driver-reports.update', ['dailyDriverReport' => $report->ddr_no], false) }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="ddr-record-body">
+                                <p class="ddr-record-note">Select a trip to correct its details. Report identity, driver, bus, and trip tickets remain protected.</p>
+                                <div class="ddr-edit-trip-list">
+                                    <details class="ddr-edit-trip" open>
+                                        <summary><span>Trip 1 <small>{{ $report->trip_ticket }}</small></span><i class="fa-solid fa-chevron-down"></i></summary>
+                                        <div class="ddr-record-fields">
+                                            <label>From *<input name="from_location" value="{{ $report->from_location }}" maxlength="150" required></label>
+                                            <label>To *<input name="to_location" value="{{ $report->to_location }}" maxlength="150" required></label>
+                                            <label>Departure *<input type="time" name="departure_time" value="{{ substr((string) $report->getRawOriginal('departure_time'), 0, 5) }}" required></label>
+                                            <label>Arrival *<input type="time" name="arrival_time" value="{{ substr((string) $report->getRawOriginal('arrival_time'), 0, 5) }}" required></label>
+                                            <label>Passengers *<input type="number" name="passengers" value="{{ $report->passengers }}" min="0" required></label>
+                                            <label>Kilometers<input type="number" name="km" value="{{ $report->km }}" min="0" step=".01"></label>
+                                        </div>
+                                    </details>
+                                    @foreach($report->additionalTrips as $entry)
+                                        <details class="ddr-edit-trip">
+                                            <summary><span>Trip {{ $loop->iteration + 1 }} <small>{{ $entry->trip_ticket }}</small></span><i class="fa-solid fa-chevron-down"></i></summary>
+                                            <input type="hidden" name="additional_trips[{{ $loop->index }}][id]" value="{{ $entry->id }}">
+                                            <div class="ddr-record-fields">
+                                                <label>From *<input name="additional_trips[{{ $loop->index }}][from_location]" value="{{ $entry->from_location }}" maxlength="150" required></label>
+                                                <label>To *<input name="additional_trips[{{ $loop->index }}][to_location]" value="{{ $entry->to_location }}" maxlength="150" required></label>
+                                                <label>Departure *<input type="time" name="additional_trips[{{ $loop->index }}][departure_time]" value="{{ substr((string) $entry->departure_time, 0, 5) }}" required></label>
+                                                <label>Arrival *<input type="time" name="additional_trips[{{ $loop->index }}][arrival_time]" value="{{ substr((string) $entry->arrival_time, 0, 5) }}" required></label>
+                                                <label>Passengers *<input type="number" name="additional_trips[{{ $loop->index }}][passengers]" value="{{ $entry->passengers }}" min="0" required></label>
+                                                <label>Kilometers<input type="number" name="additional_trips[{{ $loop->index }}][km]" value="{{ $entry->km }}" min="0" step=".01"></label>
+                                            </div>
+                                        </details>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <footer class="ddr-record-footer"><button type="button" class="ddr-record-close">Cancel</button><button type="submit" class="ddr-record-save"><i class="fa-solid fa-floppy-disk"></i> Save Corrections</button></footer>
+                        </form>
+                    </section>
+                </div>
+            @endif
+        @endforeach
+
+        <x-ui.action-buttom-modal
+            mode="delete"
+            id="ddrDeleteModal"
+            delete-title="Delete Daily Driver Report?"
+            delete-message="Are you sure you want to delete"
+            name-id="ddrDeleteNumber"
+            cancel-id="ddrDeleteCancel"
+            confirm-id="ddrDeleteConfirm"
+        />
+        <form id="ddrDeleteForm" method="POST" action="" hidden>
+            @csrf
+            @method('DELETE')
+        </form>
+
+        {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
+
 
     <x-ui.form-modal
         id="ddrEncodeModal"
@@ -462,7 +522,7 @@
             <script type="application/json" data-ddr-old-trips>@json(array_values(old("additional_trips", [])))</script>
             <template data-ddr-trip-template>
                 <div class="ddr-extra-trip">
-                    <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Remove</span></button></div>
+                    <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash" aria-hidden="true"></i><span>Remove</span></button></div>
                     <div class="ddr-extra-trip-grid">
                         <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
                         <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
@@ -509,6 +569,8 @@
         </details>
     </x-ui.form-modal>
 
+        </main>
+    </div>
     @push('scripts')
         <script>
             window.ddrScheduleLookupUrl = "{{ route('daily-driver-reports.schedule-lookup', [], false) }}";

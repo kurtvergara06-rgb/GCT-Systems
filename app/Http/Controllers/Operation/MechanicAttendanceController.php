@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class MechanicAttendanceController extends Controller
@@ -44,13 +46,10 @@ class MechanicAttendanceController extends Controller
             ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $query->whereDate('attendance_date', $summaryDate);
 
+        TableSort::apply($query, $request, ['mechanic_name' => 'mechanic_name', 'mechanic_id' => 'mechanic_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in'], 'mechanic_name');
         $mechanicAttendances = $query
-            ->latest('attendance_date')
-            ->latest('id')
             ->paginate(8)
             ->withQueryString();
-
-
 
         // Attendance history retains its original job reference. For today's
         // records, show the live On Going Job Order assigned in Maintenance.
@@ -143,7 +142,7 @@ class MechanicAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
-            'shift' => 'required|string|max:255',
+            'shift' => 'required|string|in:Morning',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -168,20 +167,20 @@ class MechanicAttendanceController extends Controller
         }
 
         if ($mechanic->employment_status !== 'Active') {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'mechanic_name' => 'Only active mechanics can receive new attendance records.',
             ]);
         }
 
-        if (! in_array($mechanic->shift, ['Morning', 'Afternoon'], true)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'mechanic_name' => 'New mechanic attendance requires a Morning or Afternoon master-list shift.',
+        if (! in_array($mechanic->shift, ['Morning'], true)) {
+            throw ValidationException::withMessages([
+                'mechanic_name' => 'New mechanic attendance requires a Morning master-list shift.',
             ]);
         }
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = $mechanic->shift ?: $validated['shift'];
+        $validated['shift'] = $validated['shift'];
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -215,13 +214,13 @@ class MechanicAttendanceController extends Controller
     {
         $this->normalizeAttendanceTimes($request);
         if (JobOrder::query()->where('assigned_mechanic', $mechanicAttendance->mechanic_name)->where('status', 'On Going')->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
             ]);
         }
 
         $validated = $request->validate([
-            'shift' => 'required|string|max:255',
+            'shift' => 'required|string|in:Morning',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -248,7 +247,7 @@ class MechanicAttendanceController extends Controller
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = $mechanic->shift ?: $validated['shift'];
+        $validated['shift'] = $validated['shift'];
 
         // Prevent an ongoing Maintenance Job Order from being made unavailable
         // or moved to a different attendance day.
@@ -258,7 +257,7 @@ class MechanicAttendanceController extends Controller
             ->exists()
             && ($mechanicAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
                 || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'status' => 'A mechanic with an ongoing Job Order cannot be marked unavailable or moved to another date.',
             ]);
         }
@@ -301,6 +300,7 @@ class MechanicAttendanceController extends Controller
                 return false;
             }
             $locked->delete();
+
             return true;
         }, 5);
 
@@ -309,6 +309,7 @@ class MechanicAttendanceController extends Controller
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
+
             return redirect()->route('mechanic-attendance')->with('error', $message);
         }
 
@@ -319,10 +320,11 @@ class MechanicAttendanceController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Mechanic attendance record deleted successfully.']);
         }
+
         return redirect()->route('mechanic-attendance')->with('success', 'Mechanic attendance record deleted successfully.');
     }
 
-        public function import(Request $request): RedirectResponse
+    public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
@@ -344,6 +346,7 @@ class MechanicAttendanceController extends Controller
 
             $header = array_map(function ($value) {
                 $value = preg_replace('/^\xEF\xBB\xBF/', '', trim((string) $value));
+
                 return strtolower($value);
             }, $header);
 
@@ -364,6 +367,7 @@ class MechanicAttendanceController extends Controller
             while (($row = fgetcsv($handle)) !== false) {
                 if (count($row) !== count($header)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -372,6 +376,7 @@ class MechanicAttendanceController extends Controller
 
                 if ($name === '') {
                     $skipped++;
+
                     continue;
                 }
 
@@ -379,12 +384,13 @@ class MechanicAttendanceController extends Controller
 
                 if (! $mechanic) {
                     $skipped++;
+
                     continue;
                 }
 
                 try {
                     $status = trim($data['status'] ?? 'Present');
-                    if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
+                    if (! in_array($status, ['Present', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 

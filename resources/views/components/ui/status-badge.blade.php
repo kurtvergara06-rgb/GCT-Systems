@@ -2,88 +2,26 @@
     'status' => '',
     'type' => 'default',
     'class' => '',
+    'icon' => null,
+    'label' => null,
+    'showIcon' => true,
 ])
 
 @php
-    $value = trim((string) ($status ?? ''));
-    $statusKey = strtolower(str_replace([' ', '/', '_'], '-', $value));
-
-    /*
-     * Shared visual aliases keep status colors consistent across modules.
-     * Purchase statuses now use the same mapped visual classes instead of
-     * falling back to unstyled raw status names.
-     */
-    $statusMap = [
-        'active' => 'active',
-        'present' => 'active',
-        'available' => 'active',
-        'approved' => 'active',
-        'issued' => 'active',
-        'in-stock' => 'active',
-        'allowed' => 'active',
-
-        'completed' => 'completed',
-        'done' => 'completed',
-        'delivered' => 'completed',
-        'picked-up' => 'completed',
-        'success' => 'completed',
-
-        'ongoing' => 'ongoing',
-        'on-going' => 'ongoing',
-        'on-duty' => 'ongoing',
-        'in-progress' => 'ongoing',
-        'processing' => 'ongoing',
-        'for-delivery' => 'ongoing',
-
-        'pending' => 'pending',
-        'submitted' => 'pending',
-        'late' => 'pending',
-        'on-hold' => 'pending',
-        'hold' => 'pending',
-        'on-leave' => 'pending',
-        'in-review' => 'pending',
-        'for-purchase' => 'pending',
-        'for-pick-up' => 'pending',
-        'not-requested' => 'pending',
-
-        'upcoming' => 'upcoming',
-        'ordered' => 'upcoming',
-        'due-soon' => 'due-soon',
-        'overdue' => 'overdue',
-
-        'efficient' => 'efficient',
-        'normal' => 'normal',
-        'inefficient' => 'inefficient',
-        'under-maintenance' => 'under-maintenance',
-        'under-maintainance' => 'under-maintenance',
-
-        'inactive' => 'inactive',
-        'absent' => 'inactive',
-        'rejected' => 'inactive',
-        'failed' => 'inactive',
-        'cancelled' => 'inactive',
-        'canceled' => 'inactive',
-        'not-available' => 'inactive',
-        'restricted' => 'inactive',
-
-        'draft' => 'draft',
-        'no-attendance' => 'draft',
-        'unknown' => 'draft',
-        'protected' => 'draft',
-        'review-mode' => 'draft',
-        'edit-mode-active' => 'ongoing',
-    ];
-
-    $statusClass = $statusMap[$statusKey] ?? ($statusKey ?: 'draft');
-    $displayValue = $type === 'purchase' && $statusKey === 'submitted'
-        ? 'Under Review'
-        : ($value ?: 'Unknown');
+    $presentation = \App\Support\StatusBadge::resolve($status, $type);
+    $statusKey = $presentation['key'];
+    $statusTone = $presentation['tone'];
+    $statusIcon = $icon ?: $presentation['icon'];
+    $displayValue = $label ?: $presentation['label'];
+    $renderIcon = $showIcon;
+    $statusData = $statusTone;
 
     if ($type === 'user') {
         $userStatuses = ['active', 'inactive', 'pending'];
-        $badgeClass = in_array($statusClass, $userStatuses, true)
-            ? 'status-pill ' . $statusClass
-            : 'role-pill ' . $statusClass;
+        $isUserStatus = in_array($statusKey, $userStatuses, true);
+        $badgeClass = ($isUserStatus ? 'status-pill ' : 'role-pill ') . $statusKey;
+        $renderIcon = $isUserStatus && $showIcon;
+        $statusData = $isUserStatus ? $statusTone : $statusKey;
     } else {
         $badgeClass = 'badge';
 
@@ -91,8 +29,8 @@
             $badgeClass .= ' ' . $type . '-badge';
         }
 
-        if ($statusClass) {
-            $badgeClass .= ' ' . $statusClass;
+        if ($statusKey) {
+            $badgeClass .= ' ' . $statusKey;
         }
     }
 
@@ -104,7 +42,11 @@
 <span {{ $attributes->merge([
     'class' => $badgeClass,
     'data-ui-component' => 'status-badge',
-    'data-status' => $statusClass,
+    'data-status' => $statusData,
+    'data-status-key' => $statusKey,
 ]) }}>
-    {{ $displayValue }}
+    @if($renderIcon)
+        <i class="fa-solid {{ $statusIcon }} status-badge__icon" aria-hidden="true"></i>
+    @endif
+    <span class="status-badge__label">{{ $displayValue }}</span>
 </span>

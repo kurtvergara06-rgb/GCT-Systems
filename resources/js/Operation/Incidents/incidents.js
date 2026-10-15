@@ -4,7 +4,58 @@ window.GCTPartialNavigation.registerInitializer('operation-incidents', '.inc-pag
     initIncidentBusLookup();
     initIncidentReportModal();
     initIncidentRecordModals();
+    initIncidentWorkflowModal();
+    initEmbeddedIncidentWorkflow();
 });
+
+function initEmbeddedIncidentWorkflow() {
+    const workflow = document.querySelector('[data-embedded-incident-workflow]');
+    if (!workflow || workflow.dataset.ready === '1') return;
+    workflow.dataset.ready = '1';
+
+    const tabs = Array.from(workflow.querySelectorAll('[data-wf-tab]'));
+    const panels = Array.from(workflow.querySelectorAll('[data-wf-panel]'));
+
+    const activatePanel = (name, focusId = '') => {
+        tabs.forEach((tab) => {
+            const active = tab.dataset.wfTab === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+        });
+        panels.forEach((panel) => {
+            const active = panel.dataset.wfPanel === name;
+            panel.hidden = !active;
+            panel.classList.toggle('is-active', active);
+        });
+
+        if (focusId) {
+            window.requestAnimationFrame(() => {
+                const target = document.getElementById(focusId);
+                target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target?.focus({ preventScroll: true });
+            });
+        }
+    };
+
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activatePanel(tab.dataset.wfTab));
+        tab.addEventListener('keydown', (event) => {
+            if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+            event.preventDefault();
+            const direction = event.key === 'ArrowRight' ? 1 : -1;
+            const next = tabs[(index + direction + tabs.length) % tabs.length];
+            activatePanel(next.dataset.wfTab);
+            next.focus();
+        });
+    });
+
+    workflow.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-wf-show-panel]');
+        if (!trigger) return;
+        activatePanel(trigger.dataset.wfShowPanel, trigger.dataset.wfFocus || '');
+    });
+}
 
 /* =========================================================
    SEARCHABLE COMBO SELECT
@@ -202,7 +253,7 @@ function initIncidentBusLookup() {
             const emptyNote = lookup.querySelector('[data-trip-empty-note]');
             if (emptyNote) {
                 emptyNote.textContent = bus
-                    ? 'No scheduled trip matched this bus today. You can still report the incident.'
+                    ? 'No Ready trip assignment matches this bus today.'
                     : 'Enter a Bus ID to see matching trip and driver details.';
                 emptyNote.hidden = Boolean(option?.value);
             }
@@ -214,7 +265,8 @@ function initIncidentBusLookup() {
             }
         };
         const chooseTrip = (option) => {
-            tripSelect.value = option.value;
+            // Trip IDs repeat across slots; select the exact option/assignment.
+            tripSelect.selectedIndex = option.index;
             tripSelect.dispatchEvent(new Event('change', { bubbles: true }));
             if (driverSelect) driverSelect.disabled = false;
             showDetails(option);
@@ -241,7 +293,7 @@ function initIncidentBusLookup() {
                 results.hidden = false;
             } else {
                 const notice = document.createElement('p');
-                notice.textContent = 'Bus found in Master List. No scheduled trip assigned today; enter incident details manually.';
+                notice.textContent = 'No Ready trip assignment matches this bus today.';
                 results.appendChild(notice);
                 results.hidden = false;
             }
@@ -273,7 +325,7 @@ function initIncidentBusLookup() {
             if (exact.length === 1) { selectBus(exact[0]); return; }
             if (!matches.length) {
                 const notice = document.createElement('p');
-                notice.textContent = 'No Bus ID or plate number matches the Bus Master List.';
+                notice.textContent = 'No bus assigned to a Ready trip matches this search.';
                 results.appendChild(notice);
             } else {
                 matches.forEach(bus => {
@@ -288,6 +340,15 @@ function initIncidentBusLookup() {
             results.hidden = false;
         };
         input.addEventListener('input', search);
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                results.hidden = true;
+                event.stopPropagation();
+            }
+        });
+        form.addEventListener('pointerdown', (event) => {
+            if (!lookup.contains(event.target)) results.hidden = true;
+        });
         input.addEventListener('focus', () => {
             if (input.value && !confirmedBus) search();
         });
@@ -566,6 +627,21 @@ function initIncidentRecordModals() {
         const button = event.target.closest('[data-incident-modal-action]');
         if (button && !button.disabled) open(button);
     });
+    fullLink?.addEventListener('click', (event) => {
+        event.preventDefault();
+        const baseUrl = fullLink.getAttribute('href');
+        if (baseUrl && baseUrl !== '#') {
+            close();
+            const workflowUrl = baseUrl.includes('?') ? `${baseUrl}&embedded=1` : `${baseUrl}?embedded=1`;
+            const workflowModal = document.getElementById('incidentWorkflowModal');
+            const frame = workflowModal?.querySelector('iframe');
+            if (workflowModal && frame) {
+                frame.src = workflowUrl;
+                workflowModal.hidden = false;
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    });
     modal.querySelectorAll('[data-incident-modal-close]').forEach(button => button.addEventListener('click', close));
     modal.querySelector('[data-incident-switch-edit]')?.addEventListener('click', () => {
         const editButton = currentRecord?.querySelector('[data-incident-modal-action="edit"]:not(:disabled)');
@@ -613,6 +689,79 @@ function initIncidentRecordModals() {
             error.hidden = false;
         } finally {
             save.disabled = false;
+        }
+    });
+}
+
+function initIncidentWorkflowModal() {
+    const modal = document.getElementById('incidentWorkflowModal');
+    const page = document.querySelector('.inc-page');
+    if (!modal || !page || modal.dataset.bound === '1') return;
+    modal.dataset.bound = '1';
+    const dialog = modal.querySelector('[role="dialog"]');
+    const frame = modal.querySelector('iframe');
+    let returnFocus = null;
+    let previousOverflow = '';
+    const close = () => {
+        if (modal.hidden) return;
+        modal.hidden = true;
+        frame.removeAttribute('src');
+        document.body.style.overflow = previousOverflow;
+        returnFocus?.focus?.();
+    };
+    const openWorkflow = (url, triggerEl) => {
+        if (!url) return;
+        returnFocus = triggerEl || returnFocus;
+        previousOverflow = document.body.style.overflow;
+        frame.src = url;
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        dialog?.focus();
+    };
+    frame.addEventListener('load', () => {
+        try {
+            frame.contentWindow?.scrollTo(0, 0);
+        } catch (_) {
+            // Same-origin locally, but a failed reset must never block the workflow.
+        }
+    });
+    page.addEventListener('click', event => {
+        const trigger = event.target.closest('[data-incident-workflow-open]');
+        if (!trigger) return;
+        event.preventDefault();
+        const targetUrl = trigger.dataset.workflowUrl || trigger.getAttribute('href') || trigger.href;
+        openWorkflow(targetUrl, trigger);
+    });
+    modal.querySelector('[data-incident-workflow-close]')?.addEventListener('click', close);
+    window.addEventListener('message', event => {
+        if (event.origin !== window.location.origin || event.source !== frame.contentWindow) return;
+        if (event.data === 'close-incident-modal') {
+            close();
+            return;
+        }
+        if (event.data?.type === 'gct:incident-workflow-toast') {
+            const message = String(event.data.message || '').trim();
+            if (!message) return;
+            const level = event.data.level === 'error' ? 'error' : 'success';
+            window.showSystemToast?.(message, level, level === 'error' ? 'Validation Error' : 'Success');
+        }
+    });
+    modal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            close();
+        }
+        if (event.key === 'Tab') {
+            const controls = Array.from(modal.querySelectorAll('button:not(:disabled), iframe'));
+            if (controls.length < 2) return;
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         }
     });
 }

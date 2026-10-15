@@ -92,8 +92,8 @@ class ReferralJobOrderController extends Controller
                 }
             }
 
-            if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
-                $incident->bus->update(['status' => 'Under Maintenance']);
+            if ($incident->bus) {
+                $incident->bus->placeUnderMaintenance();
             }
 
             $jobOrder = JobOrder::create([

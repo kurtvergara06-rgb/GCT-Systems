@@ -34,33 +34,15 @@
         <span class="purchase-section-count">{{ $schedules->total() }} schedules</span>
       </div>
 
-      <form method="GET" action="{{ route('scheduled-purchase') }}" class="toolbar schedule-toolbar records-toolbar" data-server-filter="true">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" name="search" value="{{ request('search') }}" placeholder="Search schedule, supplier, item, or frequency...">
-        </div>
-
-        <div class="filter-group">
-          <label for="frequencyFilter">Frequency</label>
-          <select name="frequency" id="frequencyFilter">
-            <option value="All Frequencies" {{ request('frequency', 'All Frequencies') === 'All Frequencies' ? 'selected' : '' }}>All Frequencies</option>
-            @foreach($frequencies as $frequency)
-              <option value="{{ $frequency }}" {{ request('frequency') === $frequency ? 'selected' : '' }}>{{ $frequency }}</option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="statusFilter">Status</label>
-          <select name="status" id="statusFilter">
-            @foreach(['All Statuses','Active','Due Soon','Overdue','Paused','Completed'] as $status)
-              <option value="{{ $status }}" {{ request('status', 'All Statuses') === $status ? 'selected' : '' }}>{{ $status }}</option>
-            @endforeach
-          </select>
-        </div>
-
+      <div class="gct-table-toolbar-row">
+        <x-ui.table-toolbar action="{{ route('scheduled-purchase') }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Schedules" search-placeholder="Search schedule, supplier, item, or frequency..." :filter-count="(int) (request()->filled('frequency') && request('frequency') !== 'All Frequencies') + (int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase Schedules" :sort-options="['next_purchase_date' => 'Next Purchase', 'schedule_name' => 'Schedule Name', 'supplier_name' => 'Supplier', 'estimated_cost' => 'Estimated Cost', 'status' => 'Status']" default-sort="next_purchase_date">
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Frequency" name="frequency" default="All Frequencies"><option value="All Frequencies">All Frequencies</option>@foreach($frequencies as $frequency)<option value="{{ $frequency }}" @selected(request('frequency') === $frequency)>{{ $frequency }}</option>@endforeach</x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">@foreach(['All Statuses','Active','Due Soon','Overdue','Paused','Completed'] as $status)<option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+          </x-slot:filters>
+        </x-ui.table-toolbar>
         <button type="button" id="openScheduleModal" class="primary-btn"><i class="fa-solid fa-plus"></i> New Schedule</button>
-      </form>
+      </div>
 
       <div class="table-wrap records-table-wrap">
         <table class="schedule-table records-table">
@@ -113,7 +95,12 @@
                 </td>
               </tr>
             @empty
-              <x-ui.empty-row colspan="9" message="No scheduled purchases found." />
+              <x-ui.empty-row
+                colspan="9"
+                icon="fa-calendar-check"
+                message="No Scheduled Purchases Found"
+                description="Upcoming scheduled purchases and recurring vendor orders will appear here."
+              />
             @endforelse
           </tbody>
         </table>

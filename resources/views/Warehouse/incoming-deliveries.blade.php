@@ -65,21 +65,10 @@
           <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
         @endif
 
-        <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-server-filter="true">
-          <input type="hidden" name="view" value="{{ $currentView }}">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO no., supplier, item, or delivery...">
-          </div>
-
-          <div class="filter-group">
-            <select name="status" id="deliveryStatus">
-              @foreach(array_merge(['All Statuses'], $statusOptions ?? []) as $status)
-                <option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>
-              @endforeach
-            </select>
-          </div>
-        </form>
+        <x-ui.table-toolbar action="{{ route('incoming-deliveries') }}" data-server-filter="true" search-label="Search Deliveries" search-placeholder="Search PO no., supplier, item, or delivery..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Deliveries" :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'status' => 'Status', 'inventory_posted_at' => 'Received Date']" default-sort="po_date" default-direction="desc">
+          <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
+          <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">@foreach(array_merge(['All Statuses'], $statusOptions ?? []) as $status)<option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap">
           <table class="incoming-delivery-table">
@@ -146,16 +135,12 @@
                   </td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="8" class="empty-deliveries">
-                    <x-ui.empty-state
-                      class="delivery-empty-state"
-                      icon="fa-truck-ramp-box"
-                      :title="$isHistory ? 'No delivery history' : 'No incoming deliveries'"
-                      :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Purchase Orders marked For Delivery or For Pick-up will appear here automatically.'"
-                    />
-                  </td>
-                </tr>
+                <x-ui.empty-row
+                  colspan="8"
+                  icon="fa-truck-ramp-box"
+                  :message="$isHistory ? 'No Delivery History Found' : 'No Incoming Deliveries Found'"
+                  :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Purchase Orders marked For Delivery or For Pick-up will appear here automatically.'"
+                />
               @endforelse
             </tbody>
           </table>

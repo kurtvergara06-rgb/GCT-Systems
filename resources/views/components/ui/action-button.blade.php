@@ -11,7 +11,7 @@
   $iconMap = [
     'view' => 'fa-eye',
     'edit' => 'fa-pen-to-square',
-    'delete' => 'fa-trash-can',
+    'delete' => 'fa-trash',
     'create-po' => 'fa-cart-plus',
     'issue' => 'fa-box-open',
     'send' => 'fa-cart-shopping',

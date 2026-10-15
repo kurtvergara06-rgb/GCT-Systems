@@ -271,7 +271,7 @@
                             <td><strong>{{ number_format($row->observed) }}</strong></td>
                             <td>{{ $row->detail }}</td>
                             <td><span class="diag-badge {{ strtolower($row->level) }}">{{ $row->level }}</span></td>
-                            <td><span class="diag-status {{ strtolower($row->status) }}"><i></i>{{ $row->status }}</span></td>
+                            <td><x-ui.status-badge :status="$row->status" class="diag-status {{ strtolower($row->status) }}" /></td>
                             <td>{{ $row->focus }}</td>
                         </tr>
                     @endforeach

@@ -14,9 +14,10 @@
                             {{ $genericReviewBatch->data_type }} Review
                         </h2>
 
-                        <span class="generic-batch-status {{ $genericReviewBatch->status === 'Processed' ? 'processed' : '' }}">
-                            {{ $genericReviewBatch->status }}
-                        </span>
+                        <x-ui.status-badge
+                            :status="$genericReviewBatch->status"
+                            class="generic-batch-status {{ $genericReviewBatch->status === 'Processed' ? 'processed' : '' }}"
+                        />
                     </div>
 
                     <p>

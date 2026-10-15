@@ -296,7 +296,6 @@
     border-radius: 10px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-left: 4px solid #94a3b8;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -306,22 +305,18 @@
 }
 
 .horizon-row--danger {
-    border-left-color: #ef4444;
     background: #fffafa;
 }
 
 .horizon-row--warning {
-    border-left-color: #f59e0b;
     background: #fffdf7;
 }
 
 .horizon-row--info {
-    border-left-color: #3b82f6;
     background: #f8faff;
 }
 
 .horizon-row--success {
-    border-left-color: #10b981;
     background: #f9fefb;
 }
 
@@ -541,18 +536,6 @@
 .inventory-priority-item:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.inventory-priority-item.priority--high {
-    border-left: 3px solid #ef4444;
-}
-
-.inventory-priority-item.priority--medium {
-    border-left: 3px solid #f59e0b;
-}
-
-.inventory-priority-item.priority--low {
-    border-left: 3px solid #10b981;
 }
 
 .inventory-priority-item__topline {

@@ -966,7 +966,6 @@
     padding: 12px;
     background: #f8fafc;
     border: 1px solid #edf2f7;
-    border-left: 3.5px solid #cbd5e1;
     border-radius: 10px;
     transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
@@ -978,22 +977,18 @@
 }
 
 .predictive-fleet-page .ft-insight-tile--blue {
-    border-left-color: #2563eb;
     background: #fcfdff;
 }
 
 .predictive-fleet-page .ft-insight-tile--orange {
-    border-left-color: #f59e0b;
     background: #fffdfa;
 }
 
 .predictive-fleet-page .ft-insight-tile--yellow {
-    border-left-color: #eab308;
     background: #fffff8;
 }
 
 .predictive-fleet-page .ft-insight-tile--green {
-    border-left-color: #10b981;
     background: #f9fefb;
 }
 

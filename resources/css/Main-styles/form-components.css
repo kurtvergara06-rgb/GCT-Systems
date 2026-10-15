@@ -1158,3 +1158,29 @@
     }
 
 }
+/* Shared neutral scrollbar for modal shells that own the scrollport.
+   This replaces the former 7px bright-blue modal-specific styling. */
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable) {
+    scrollbar-width: thin;
+    scrollbar-color: #a8b2bf #f4f6f8;
+}
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable)::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable)::-webkit-scrollbar-track {
+    background: #f4f6f8;
+    border-radius: 999px;
+}
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable)::-webkit-scrollbar-thumb {
+    background: #a8b2bf;
+    border-radius: 999px;
+}
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable)::-webkit-scrollbar-thumb:hover {
+    background: #778597;
+}
+:where(.ui-form-overlay, .ui-form-modal, .ui-form-modal-scrollable)::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}

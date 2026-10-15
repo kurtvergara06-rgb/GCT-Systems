@@ -218,8 +218,8 @@ button {
 .empty-state {
   text-align: center;
   color: var(--text-muted);
-  padding: 24px 16px;
-  background: #FCFDFF;
+  padding: 48px 20px;
+  background: transparent;
 }
 
 /* Shared badges */

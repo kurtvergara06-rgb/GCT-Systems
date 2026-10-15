@@ -993,86 +993,883 @@
 
 
 .trip-modal {
-    width: min(680px, 100%);
-
+    width: min(1180px, 96vw);
     max-height: calc(100vh - 40px);
-
-    overflow-y: auto;
-
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background: #ffffff;
-
     border: 1px solid var(--trip-border);
     border-radius: 18px;
-
-    box-shadow:
-        0 22px 60px rgba(6, 31, 61, 0.24);
+    box-shadow: 0 22px 60px rgba(6, 31, 61, 0.24);
 }
-
 
 .trip-modal-header {
-    padding: 20px 22px;
-
+    flex-shrink: 0;
+    padding: 18px 24px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-
-    gap: 15px;
-
-    border-bottom:
-        1px solid var(--trip-border);
+    gap: 16px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--trip-border);
 }
 
+.trip-modal-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
 .trip-modal-header h2 {
     margin: 0;
-
     color: var(--trip-navy);
-
     font-size: 20px;
     font-weight: 800;
+    letter-spacing: -0.01em;
 }
-
 
 .trip-modal-header p {
-    margin: 4px 0 0;
-
+    margin: 3px 0 0;
     color: var(--trip-muted);
-
     font-size: 12px;
 }
-
 
 .trip-modal-close {
     width: 36px;
     height: 36px;
-
     padding: 0;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     background: #ffffff;
-
     border: 1px solid var(--trip-border);
     border-radius: 9px;
-
     color: var(--trip-muted);
-
     font-size: 14px;
-
     cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.trip-modal-close:hover {
+    background: #f1f5f9;
+    color: var(--trip-navy);
+    border-color: #cbd5e1;
 }
 
 /* =========================================================
-   DETAIL INSPECTION MODAL
+   DETAIL INSPECTION MODAL BODY
 ========================================================= */
 
 .trip-detail-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #f8fafc;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.trip-detail-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.trip-detail-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.trip-detail-body::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.trip-detail-body::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+/* =========================================================
+   UI PREVIEW NOTICE BANNER
+========================================================= */
+
+.trip-preview-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+}
+
+.trip-preview-banner-icon {
+    font-size: 18px;
+    color: #2563eb;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.trip-preview-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.trip-preview-banner-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 2px 8px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+
+.trip-preview-banner-content p {
+    margin: 0;
+    font-size: 12px;
+    color: #1e3a8a;
+    line-height: 1.45;
+}
+
+/* =========================================================
+   UNIT RECORDS CARD (DESIGN REFERENCE)
+========================================================= */
+
+.unit-records-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     padding: 20px 22px;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+}
+
+.unit-records-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.unit-records-title-group h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.unit-records-title-group p {
+    margin: 3px 0 0;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.unit-records-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.unit-records-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 260px;
+}
+
+.unit-records-search i {
+    position: absolute;
+    left: 12px;
+    font-size: 13px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.unit-records-search input {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px 0 34px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 12.5px;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.unit-records-search input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.unit-records-search input::placeholder {
+    color: #94a3b8;
+}
+
+.unit-records-filter-btn {
+    height: 38px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.unit-records-filter-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.unit-records-export-btn {
+    height: 38px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border: 1px solid #d97706;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(217, 119, 6, 0.15);
+    transition: all 0.15s ease;
+}
+
+.unit-records-export-btn:hover {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+}
+
+/* =========================================================
+   UNIT RECORDS TABLE
+========================================================= */
+
+.unit-records-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.unit-records-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    text-align: left;
+}
+
+.unit-records-table thead th {
+    padding: 12px 16px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.unit-records-table tbody tr {
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.unit-records-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.unit-records-table tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Row 1 Incident Highlight */
+.unit-row-incident {
+    background-color: #fff1f2 !important;
+    border-left: 3px solid #ef4444;
+}
+
+.unit-row-incident td {
+    border-bottom-color: #fee2e2 !important;
+}
+
+.unit-slot-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.unit-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.unit-sub {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.unit-plate-text {
+    font-family: var(--font-mono, monospace, sans-serif);
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+}
+
+.unit-row-incident .unit-plate-text {
+    background: #ffe4e6;
+    border-color: #fecdd3;
+    color: #9f1239;
+}
+
+.unit-driver-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.unit-time-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.unit-time-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.unit-corridor-text {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+/* Status Badges */
+.unit-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-breakdown {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.badge-breakdown i {
+    color: #ef4444;
+    font-size: 11px;
+}
+
+.badge-on-trip {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.badge-on-trip i {
+    color: #16a34a;
+    font-size: 11px;
+}
+
+.badge-in-progress {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+/* Remarks & Incidents */
+.unit-remarks-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.unit-incident-heading {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.unit-incident-sub {
+    font-size: 11.5px;
+    color: #991b1b;
+}
+
+.unit-normal-heading {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.unit-normal-sub {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+/* Unit Action Buttons */
+.unit-action-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.unit-btn-view {
+    height: 32px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.unit-btn-view:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.unit-btn-more {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.unit-btn-more:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+.unit-table-pagination-info {
+    text-align: right;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    padding-top: 4px;
+}
+
+/* =========================================================
+   DUAL LAYOUT: INCIDENT DETAILS & OTHER UNITS
+========================================================= */
+
+.unit-details-dual-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     gap: 18px;
+    align-items: stretch;
+}
+
+/* Card 1: Incident Details (Light Red) */
+.unit-incident-card {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.unit-incident-card.highlight-focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    border-color: #ef4444;
+}
+
+.unit-incident-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #fee2e2;
+}
+
+.unit-incident-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.unit-incident-alert-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.unit-incident-header-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.unit-incident-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 14px;
+    padding: 16px 0;
+}
+
+.unit-incident-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.unit-item-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.unit-item-icon.spinner {
+    color: #dc2626;
+}
+
+.unit-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.unit-item-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.unit-item-val {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.unit-item-sub {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.unit-incident-remarks {
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.unit-remarks-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.unit-incident-remarks p {
+    margin: 0;
+    font-size: 12.5px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+/* Card 2: Other Units Status (White & Subtle Green) */
+.unit-other-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.unit-other-header {
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.unit-other-title-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.other-bus-header-icon {
+    font-size: 20px;
+    color: #0284c7;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.unit-other-title-wrap h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.unit-other-title-wrap p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.unit-other-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 14px;
+}
+
+.other-unit-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.other-unit-item:hover,
+.other-unit-item.highlight-focus {
+    border-color: #86efac;
+    background: #f0fdf4;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.08);
+}
+
+.other-unit-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.other-unit-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #dcfce7;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.other-unit-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.other-unit-info h4 {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.other-unit-plate {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.other-unit-driver {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.other-unit-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.other-unit-status-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.other-unit-route-note {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.other-unit-chevron {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* =========================================================
+   UNDERLYING DATABASE TELEMETRY DRAWER
+========================================================= */
+
+.trip-database-telemetry-drawer {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.trip-database-telemetry-drawer summary {
+    list-style: none;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    background: #ffffff;
+    transition: background 0.15s ease;
+}
+
+.trip-database-telemetry-drawer summary::-webkit-details-marker {
+    display: none;
+}
+
+.trip-database-telemetry-drawer summary:hover {
+    background: #f8fafc;
+}
+
+.telemetry-drawer-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.telemetry-drawer-summary-left i {
+    font-size: 16px;
+    color: var(--trip-navy);
+}
+
+.telemetry-drawer-summary-left div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.telemetry-drawer-summary-left strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.telemetry-drawer-summary-left span {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.telemetry-drawer-chevron {
+    color: #94a3b8;
+    font-size: 13px;
+    transition: transform 0.2s ease;
+}
+
+.trip-database-telemetry-drawer[open] .telemetry-drawer-chevron {
+    transform: rotate(180deg);
+}
+
+.telemetry-drawer-content {
+    padding: 18px 20px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .trip-detail-section {
@@ -1102,8 +1899,8 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    background: #f8fafc;
-    border: 1px solid #eef2f7;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 9px;
     padding: 10px 12px;
 }
@@ -1122,6 +1919,78 @@
     font-size: 13px;
     font-weight: 700;
     color: #0f172a;
+}
+
+/* Modal Actions Footer */
+.trip-modal-actions {
+    flex-shrink: 0;
+    padding: 14px 24px;
+    margin: 0;
+    background: #ffffff;
+    border-top: 1px solid var(--trip-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.trip-modal-footer-caption {
+    font-size: 12px;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.trip-modal-footer-caption i {
+    color: #3b82f6;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN FOR UNIT DETAILS
+========================================================= */
+
+@media (max-width: 1024px) {
+    .unit-details-dual-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .unit-incident-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .trip-modal {
+        width: 100%;
+        max-height: calc(100vh - 20px);
+        border-radius: 14px;
+    }
+
+    .trip-detail-body {
+        padding: 16px;
+    }
+
+    .unit-records-card {
+        padding: 16px;
+    }
+
+    .unit-records-search {
+        min-width: 100%;
+    }
+
+    .unit-incident-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-modal-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .trip-modal-actions .trip-secondary-btn {
+        width: 100%;
+    }
 }
 
 /* =========================================================
@@ -1484,3 +2353,65 @@
   gap: 12px;
 }
 .trip-records-page .trip-toolbar .trip-search { flex-grow: 1; }
+
+/* Unified Trip History — compact reference-matched records presentation. */
+.trip-records-page .trip-history-kpis { margin: 0 0 18px; }
+.trip-records-page .trip-history-kpis .trip-summary-card { box-sizing: border-box; height: 112px; min-height: 112px; }
+.trip-records-page .trip-history-card { margin-top: 0; padding: 16px; border-radius: 16px; }
+.trip-history-header { min-height: 44px; margin-bottom: 12px; }
+.trip-history-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.trip-history-controls .gct-table-toolbar { margin-left: auto; }
+.trip-history-tabs { display:inline-flex; align-items:center; gap:4px; flex:none; border:1px solid #dbe6f4; background:#f2f6fb; padding:4px; border-radius:10px; margin:0; }
+.trip-history-tab { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:33px; padding:6px 13px; text-decoration:none; font-size:11px; font-weight:750; color:#334d6e; border-radius:7px; }
+.trip-history-tab:hover { background:#e4effd; }
+.trip-history-tab.is-active { background:#fff; color:#0d3975; box-shadow:0 1px 5px rgba(18,54,94,.1); }
+.trip-history-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+.trip-history-helper { display:flex; gap:7px; align-items:center; font-size:10px; color:#647e9c; margin:0 0 10px; }
+.trip-history-helper i { color:#2563eb; }
+.trip-history-table-wrap { margin-top:0; border-radius:10px; border:1px solid #e0e9f4; }
+.trip-history-table { width:100%; min-width:970px; border-collapse:collapse; }
+.trip-history-table thead th { background:#f2f6fb; padding:12px 13px; color:#526a87; font-size:10px; letter-spacing:.035em; }
+.trip-history-table tbody td { padding:13px; font-size:11px; vertical-align:middle; border-bottom:1px solid #e7edf5; }
+.trip-history-table tbody tr:nth-child(even) { background:#fbfdff; }
+.trip-history-table tbody td:nth-child(4) { line-height:1.7; }
+.trip-history-table tbody td:nth-child(2) small { display:block; color:#7186a1; margin-top:3px; }
+.trip-history-slots { display:inline-block; padding:5px 9px; border-radius:7px; font-weight:800; background:#f1f5fa; color:#64748b; }
+.trip-history-slots.is-full { background:#e4f8ed; color:#16824c; }
+.trip-history-slots.is-partial { background:#fff3da; color:#a76510; }
+.trip-history-table .trip-history-outcome { white-space:nowrap; padding:5px 9px; min-height:25px; font-size:10px; }
+@media(max-width:700px) {
+    .trip-records-page .trip-history-card { padding:13px; }
+    .trip-history-controls { align-items:stretch; flex-direction:column; }
+    .trip-history-controls .gct-table-toolbar { align-self:flex-end; margin-left:0; }
+    .trip-history-tabs { display:flex; width:100%; }
+    .trip-history-tab { flex:1; text-align:center; }
+}
+/* Consistent layout on both Trip History tabs. */
+.trip-records-page .trip-history-kpis { margin:0 0 18px; }
+.trip-records-page .trip-history-card { margin-top:0; padding:16px; border-radius:16px; }
+.trip-records-page .trip-history-card > .trip-card-header { min-height:44px; margin-bottom:12px; }
+.trip-records-page .trip-history-card .trip-history-tabs { margin:6px 0 12px; }
+.trip-records-page .trip-history-card .trip-history-toolbar { margin:0 0 12px; }
+.trip-records-page .trip-history-card .trip-history-table-wrap { margin-top:0; }
+.trip-records-page .trip-history-card .trip-history-helper { margin:0 0 10px; }
+.trip-records-page .trip-history-card .trip-history-table tbody td { padding:13px; }
+
+/* Compact Assigned Resources cell with native anchored popovers. */
+.trip-resource-compact { display:flex; align-items:center; gap:8px; min-width:0; max-width:100%; }
+.trip-resource-icon { display:grid; place-items:center; width:29px; height:29px; border-radius:8px; background:#eaf2ff; color:#2460c6; flex:0 0 29px; }
+.trip-resource-primary { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto; }
+.trip-resource-primary strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:175px; font-size:11px; color:#1b3352; }
+.trip-resource-primary small { color:#71839a; font-size:10px; }
+.trip-resource-more { flex:none; display:inline-flex; align-items:center; gap:5px; padding:6px 8px; border:1px solid #d6e2f2; border-radius:7px; background:#f5f8fd; color:#1f5aaf; font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.trip-resource-more:hover { background:#e8f1ff; }
+.trip-resource-more:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+.trip-resource-empty { color:#7e90a6; font-style:italic; font-size:11px; }
+.trip-resource-popover:popover-open { position:fixed; position-area:bottom span-right; margin:7px 0 0; inset:auto; padding:12px; width:max-content; min-width:210px; max-width:min(310px,calc(100vw - 24px)); max-height:240px; overflow-y:auto; border:1px solid #d7e3f4; border-radius:10px; background:#fff; box-shadow:0 15px 40px rgba(16,47,90,.19); color:#1a3559; }
+.trip-resource-popover-title { color:#506a8b; font-size:11px; font-weight:800; padding:0 0 9px; border-bottom:1px solid #e9eff7; }
+.trip-resource-popover-row { display:flex; align-items:center; gap:9px; padding:10px 0; border-bottom:1px solid #edf2f8; }
+.trip-resource-popover-row:last-child { border-bottom:0; padding-bottom:2px; }
+.trip-resource-popover-row > i { color:#2867c4; }
+.trip-resource-popover-row > span { display:flex; flex-direction:column; gap:3px; }
+.trip-resource-popover-row strong { font-size:11px; font-weight:750; }
+.trip-resource-popover-row small { font-size:10px; color:#647b98; }
+@media(max-width:720px) { .trip-resource-primary strong { max-width:105px; } }

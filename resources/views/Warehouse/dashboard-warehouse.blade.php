@@ -310,11 +310,16 @@
                     <td><a href="{{ route('incoming-deliveries', ['search' => $delivery->po_no]) }}" class="warehouse-reference">{{ $delivery->po_no }}</a></td>
                     <td title="{{ $delivery->supplier_name ?? 'Supplier' }}">{{ $delivery->supplier_name ?? 'Supplier' }}</td>
                     <td>{{ $deliveryQty }}</td>
-                    <td><span class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'green' : 'yellow' }}"><i class="fa-solid fa-circle"></i>{{ $delivery->status }}</span></td>
+                    <td><x-ui.status-badge :status="$delivery->status" class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'green' : 'yellow' }}" /></td>
                     <td>{{ $delivery->po_date?->format('M d, Y') ?? 'No date' }}</td>
                   </tr>
                 @empty
-                  <tr class="warehouse-queue-empty-row"><td colspan="5"><div class="warehouse-table-empty">No incoming deliveries.</div></td></tr>
+                  <x-ui.empty-row
+                    colspan="5"
+                    icon="fa-truck-ramp-box"
+                    message="No Incoming Deliveries"
+                    description="No pending purchase orders are scheduled for warehouse delivery."
+                  />
                 @endforelse
               </tbody>
             </table>
@@ -341,22 +346,19 @@
               </thead>
               <tbody>
                 @forelse($activePartRequests->take(5) as $request)
-                  @php
-                    $requestStatusClass = match($request->status) {
-                      'Approved' => 'green',
-                      'For Purchase' => 'yellow',
-                      'Ordered' => 'purple',
-                      default => 'blue',
-                    };
-                  @endphp
                   <tr>
                     <td><a href="{{ route('part-requests', ['search' => $request->pr_no]) }}" class="warehouse-reference">{{ $request->pr_no }}</a></td>
                     <td title="{{ $request->job_order_no ?? '—' }}">{{ $request->job_order_no ?? '—' }}</td>
-                    <td><span class="warehouse-status {{ $requestStatusClass }}"><i class="fa-solid fa-circle"></i>{{ $request->status }}</span></td>
+                    <td><x-ui.status-badge :status="$request->status" class="warehouse-status" /></td>
                     <td>{{ $request->created_at?->format('M d') ?? '—' }}</td>
                   </tr>
                 @empty
-                  <tr class="warehouse-queue-empty-row"><td colspan="4"><div class="warehouse-table-empty">No active part requests.</div></td></tr>
+                  <x-ui.empty-row
+                    colspan="4"
+                    icon="fa-clipboard-list"
+                    message="No Active Part Requests"
+                    description="No maintenance requisitions are currently awaiting fulfillment."
+                  />
                 @endforelse
               </tbody>
             </table>
@@ -477,7 +479,7 @@
                     <td>
                       <strong>{{ number_format($reorder) }}</strong>
                     </td>
-                    <td><span class="warehouse-status {{ $critical ? 'red' : 'yellow' }}"><i class="fa-solid fa-circle"></i>{{ $critical ? 'Out of Stock' : 'Low Stock' }}</span></td>
+                    <td><x-ui.status-badge :status="$critical ? 'Out of Stock' : 'Low Stock'" class="warehouse-status {{ $critical ? 'red' : 'yellow' }}" /></td>
                   </tr>
                 @empty
                   <tr><td colspan="5"><div class="warehouse-table-empty">No low-stock items.</div></td></tr>

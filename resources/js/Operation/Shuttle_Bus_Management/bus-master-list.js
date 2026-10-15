@@ -2,6 +2,99 @@ import '../../echo';
 
 window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
+    // Popovers live in the AJAX-swapped records region: bind per initializer run.
+    const compactFilters = document.getElementById('busListFilters');
+    if (compactFilters) {
+        const tools = Array.from(compactFilters.querySelectorAll('[data-bus-tool]'));
+        const closeTools = () => {
+            tools.forEach((tool) => {
+                tool.querySelector('.bus-tool-popover')?.setAttribute('hidden', '');
+                tool.querySelector('[data-bus-tool-trigger]')?.setAttribute('aria-expanded', 'false');
+            });
+        };
+        const syncToolbarTriggerStates = () => {
+            const searchInput = compactFilters.querySelector('input[name="search"]');
+            const searchTrigger = compactFilters.querySelector('[data-bus-tool-trigger="search"]');
+            if (searchTrigger && searchInput) {
+                searchTrigger.classList.toggle('bus-tool-active', searchInput.value.trim() !== '');
+            }
+
+            const statusSelect = compactFilters.querySelector('[name="status"]');
+            const filterBadge = compactFilters.querySelector('[data-bus-filter-count]');
+            const hasStatus = Boolean(statusSelect && statusSelect.value && statusSelect.value !== 'All Status');
+            const statusBox = compactFilters.querySelector('#busStatusFilter')?.closest('.bus-filter-select-box');
+            if (statusBox && statusSelect) {
+                const statusTone = statusSelect.value === 'Active' ? 'active'
+                    : statusSelect.value === 'Under Maintenance' ? 'maintenance'
+                    : statusSelect.value === 'Inactive' ? 'inactive' : 'all';
+                statusBox.dataset.statusTone = statusTone;
+                const label = compactFilters.querySelector('.bus-filter-label');
+                if (label) label.dataset.statusTone = statusTone;
+            }
+            if (filterBadge) {
+                filterBadge.textContent = hasStatus ? '1' : '0';
+                filterBadge.hidden = !hasStatus;
+            }
+
+            const sortSelect = compactFilters.querySelector('[name="sort"]');
+            const directionSelect = compactFilters.querySelector('[name="direction"]');
+            const sortTrigger = compactFilters.querySelector('[data-bus-tool-trigger="sort"]');
+            if (sortTrigger) {
+                const isNonDefaultSort = (sortSelect && sortSelect.value !== 'bus_no')
+                    || (directionSelect && directionSelect.value !== 'asc');
+                sortTrigger.classList.toggle('bus-tool-active', Boolean(isNonDefaultSort));
+            }
+        };
+
+        tools.forEach((tool) => {
+            const trigger = tool.querySelector('[data-bus-tool-trigger]');
+            const popover = tool.querySelector('.bus-tool-popover');
+            trigger?.addEventListener('click', () => {
+                const opening = popover?.hasAttribute('hidden');
+                closeTools();
+                if (opening) {
+                    popover?.removeAttribute('hidden');
+                    trigger.setAttribute('aria-expanded', 'true');
+                    if (tool.dataset.busTool === 'search') popover.querySelector('input')?.focus();
+                }
+            });
+        });
+        const onOutside = (event) => {
+            if (!compactFilters.isConnected) {
+                document.removeEventListener('pointerdown', onOutside);
+                return;
+            }
+            if (!compactFilters.contains(event.target)) closeTools();
+        };
+        document.addEventListener('pointerdown', onOutside);
+        const onEscape = (event) => {
+            if (!compactFilters.isConnected) {
+                document.removeEventListener('keydown', onEscape);
+                return;
+            }
+            if (event.key === 'Escape') closeTools();
+        };
+        document.addEventListener('keydown', onEscape);
+        compactFilters.querySelector('[data-bus-clear-status]')?.addEventListener('click', () => {
+            const status = compactFilters.querySelector('#busStatusFilter');
+            if (status) status.value = 'All Status';
+            compactFilters.requestSubmit();
+        });
+        compactFilters.querySelector('[data-bus-reset-sort]')?.addEventListener('click', () => {
+            const sort = compactFilters.querySelector('#busSortField');
+            const direction = compactFilters.querySelector('#busSortDirection');
+            if (sort) sort.value = 'bus_no';
+            if (direction) direction.value = 'asc';
+            compactFilters.requestSubmit();
+        });
+        compactFilters.querySelectorAll('[data-bus-popover-close]').forEach((button) => {
+            button.addEventListener('click', closeTools);
+        });
+        compactFilters.addEventListener('input', syncToolbarTriggerStates);
+        compactFilters.addEventListener('change', syncToolbarTriggerStates);
+        syncToolbarTriggerStates();
+    }
+
     function normalizeBusPath(
         value,
         fallback = '/bus-master-list'
@@ -185,6 +278,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             yearModel: button.dataset.yearModel,
             capacity: button.dataset.capacity,
             status: button.dataset.status,
+            fleetPurpose: button.dataset.fleetPurpose,
             routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
         };
         for (const [key, value] of Object.entries(fields)) {
@@ -323,6 +417,8 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                     editStatus.value =
                         button.dataset.status || 'Active';
                 }
+                const editFleetPurpose = document.getElementById('edit_fleet_purpose');
+                if (editFleetPurpose) editFleetPurpose.value = button.dataset.fleetPurpose || 'Regular';
 
 
                 // Operation cannot edit any master-list field while Maintenance
@@ -340,14 +436,29 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                     } else if (field.dataset.busMaintenanceLocked === '1') {
                         field.removeAttribute('data-bus-maintenance-locked');
                         field.disabled = false;
-                        field.readOnly = false;
+                        field.readOnly = field.id === 'edit_route_grouping';
                         field.classList.remove('bus-maintenance-locked');
                     }
                 });
+                // Route / Grouping is always view-only, for both Regular and Reserve buses.
+                if (editRouteGrouping) {
+                    editRouteGrouping.readOnly = true;
+                    editRouteGrouping.setAttribute('aria-readonly', 'true');
+                }
                 // Reapply the independent history-based Bus No. restriction.
                 if (!maintenanceLocked && editBusNo) {
                     editBusNo.readOnly = button.dataset.busNoLocked === '1';
                 }
+                const fleetPurposeLocked = button.dataset.fleetPurposeLocked === '1';
+                if (editFleetPurpose) {
+                    editFleetPurpose.disabled = maintenanceLocked || fleetPurposeLocked;
+                    editFleetPurpose.classList.toggle('bus-maintenance-locked', maintenanceLocked || fleetPurposeLocked);
+                    editFleetPurpose.title = fleetPurposeLocked
+                        ? 'Bus Purpose cannot change while an ongoing or future trip assignment exists.'
+                        : '';
+                }
+                const fleetPurposeHint = document.getElementById('editFleetPurposeLockHint');
+                if (fleetPurposeHint) fleetPurposeHint.hidden = !fleetPurposeLocked;
                 const updateButton = editBusForm.querySelector('button[type="submit"]');
                 if (updateButton) {
                     updateButton.disabled = maintenanceLocked;

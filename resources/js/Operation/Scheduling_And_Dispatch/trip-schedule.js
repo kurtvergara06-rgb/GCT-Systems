@@ -10,6 +10,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripCode = document.getElementById('tripCode');
     const tripDate = document.getElementById('tripDate');
     const tripRoute = document.getElementById('tripRoute');
+    const tripDirection = document.getElementById('tripDirection');
+    const tripRequiredBuses = document.getElementById('tripRequiredBuses');
     const departureTime = document.getElementById('departureTime');
     const arrivalTime = document.getElementById('arrivalTime');
     const tripShift = document.getElementById('tripShift');
@@ -237,7 +239,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         if (tripSubmitText) {
-            tripSubmitText.textContent = 'Save Trip';
+            tripSubmitText.textContent = 'Create Trip';
         }
 
         updateNotesCount();
@@ -300,6 +302,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             if (tripRoute) {
                 tripRoute.value = button.dataset.routeId || '';
             }
+            if (tripDirection) tripDirection.value = button.dataset.direction || '';
+            if (tripRequiredBuses) tripRequiredBuses.value = button.dataset.requiredBuses || '1';
 
             if (departureTime) {
                 departureTime.value = button.dataset.departureTime || '';
@@ -385,6 +389,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 label: 'Route',
                 value: routeValue,
                 icon: 'fa-route',
+                full: true,
             },
             {
                 label: 'Status',
@@ -422,6 +427,17 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 value: trip.assignment,
                 icon: 'fa-user-group',
                 badge: 'assignment',
+            },
+            {
+                label: 'Service Direction',
+                value: trip.direction || 'Not specified',
+                icon: 'fa-arrows-up-down',
+            },
+            {
+                label: 'Required Buses',
+                value: String(trip.requiredBuses || 1),
+                icon: 'fa-bus',
+                full: true,
             },
             {
                 label: 'Notes',
@@ -478,6 +494,16 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         });
 
     document.addEventListener('click', (event) => {
+        const expandButton = event.target.closest('.service-expand-button');
+        if (expandButton) {
+            const detailRow = expandButton.closest('tr')?.nextElementSibling;
+            if (detailRow?.classList.contains('service-details-row')) {
+                detailRow.hidden = !detailRow.hidden;
+                expandButton.setAttribute('aria-expanded', String(!detailRow.hidden));
+            }
+            return;
+        }
+
         const openButton = event.target.closest('#openTripModal');
 
         if (openButton) {

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -26,11 +28,14 @@ class TripScheduleController extends Controller
         $query = TripSchedule::query()
             ->with([
                 'shuttleRoute',
-                'assignment',
+                'assignments.bus',
+                'assignments.driverAttendance',
+                'assignment.bus',
             ])
             ->withCount([
                 'dailyDriverReports',
                 'incidents',
+                'assignments',
             ]);
 
         if ($request->filled('search')) {
@@ -67,7 +72,11 @@ class TripScheduleController extends Controller
         $selectedTripDate = $request->input('trip_date')
             ?: $request->session()->get('operation.selected_trip_date')
             ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        $query->whereDate('trip_date', $selectedTripDate);
+        // Schedule History is an all-dates audit by default; an explicit date
+        // filter still narrows it. Active planning keeps the selected date.
+        if ($request->input('tab') !== 'history' || $request->filled('trip_date')) {
+            $query->whereDate('trip_date', $selectedTripDate);
+        }
 
         if (
             $request->filled('route')
@@ -79,6 +88,22 @@ class TripScheduleController extends Controller
             );
         }
 
+        $request->validate([
+            'direction' => ['sometimes', Rule::in(['all', 'Incoming', 'Outgoing'])],
+        ]);
+
+        if ($request->filled('direction') && $request->input('direction') !== 'all') {
+            $query->where('direction', $request->input('direction'));
+        }
+
+        $request->validate([
+            'tab' => ['sometimes', Rule::in(['active', 'history'])],
+        ]);
+        $historyTab = $request->input('tab') === 'history';
+        $query->whereIn('status', $historyTab
+            ? ['Completed', 'Delayed', 'Cancelled', 'Missed']
+            : ['Scheduled', 'Ready', 'Dispatched']);
+
         if (
             $request->filled('status')
             && $request->input('status') !== 'all'
@@ -89,11 +114,20 @@ class TripScheduleController extends Controller
             );
         }
 
-        $trips = $query
-            ->orderByDesc('trip_date')
-            ->orderBy('departure_time')
-            ->paginate(8)
-            ->withQueryString();
+        TableSort::apply($query, $request, ['departure_time' => 'departure_time', 'trip_code' => 'trip_code', 'trip_date' => 'trip_date', 'required_buses' => 'required_buses', 'status' => 'status'], $historyTab ? 'trip_date' : 'departure_time', $historyTab ? 'desc' : 'asc');
+        $trips = $query->get();
+
+        // Read-only reserve deployments: count actual replacement records linked to
+        // the filtered schedule rows. A reserve deployment does not increase required buses.
+        $reserveDeployedByTrip = IncidentReplacement::query()
+            ->whereNotNull('dispatched_at')
+            ->whereHas('incident', fn ($query) => $query
+                ->whereIn('trip_schedule_id', $trips->pluck('id'))
+                ->whereNull('deleted_at'))
+            ->with('incident:id,trip_schedule_id')
+            ->get()
+            ->groupBy(fn (IncidentReplacement $replacement) => $replacement->incident?->trip_schedule_id)
+            ->map(fn ($replacements) => $replacements->count());
 
         $activeRoutes = ShuttleRoute::query()
             ->where('status', 'Active')
@@ -134,6 +168,16 @@ class TripScheduleController extends Controller
             ->distinct()
             ->count('shuttle_route_id');
 
+        // Summary cards reflect the selected operational date, not today's unrelated data.
+        $selectedDateTrips = TripSchedule::query()
+            ->whereDate('trip_date', $selectedTripDate)
+            ->where('status', '!=', 'Cancelled');
+
+        $scheduledServices = (clone $selectedDateTrips)->count();
+        $incomingServices = (clone $selectedDateTrips)->where('direction', 'Incoming')->count();
+        $outgoingServices = (clone $selectedDateTrips)->where('direction', 'Outgoing')->count();
+        $totalBusesRequired = (int) (clone $selectedDateTrips)->sum('required_buses');
+
         return view(
             'Operation.Scheduling_And_Dispatch.trip-schedule',
             compact(
@@ -143,7 +187,12 @@ class TripScheduleController extends Controller
                 'assignedTrips',
                 'pendingAssignments',
                 'activeRoutesUsed',
-                'selectedTripDate'
+                'selectedTripDate',
+                'scheduledServices',
+                'incomingServices',
+                'outgoingServices',
+                'totalBusesRequired',
+                'reserveDeployedByTrip'
             )
         );
     }
@@ -180,6 +229,8 @@ class TripScheduleController extends Controller
                     'trip_code' => 'TMP-'.Str::upper(Str::random(20)),
                     'trip_date' => $validated['trip_date'],
                     'shuttle_route_id' => $route->id,
+                    'direction' => $validated['direction'] ?? null,
+                    'required_buses' => $validated['required_buses'] ?? 1,
                     'departure_time' => $departure->format('H:i:s'),
                     'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
                     'estimated_arrival_date' => $estimatedArrival->toDateString(),
@@ -274,9 +325,20 @@ class TripScheduleController extends Controller
                         $this->routeDurationMinutes($route)
                     );
 
+                    $newRequiredBuses = max(1, (int) ($validated['required_buses'] ?? $lockedTrip->required_buses ?? 1));
+                    $assignedCount = $lockedTrip->assignments()->count();
+
+                    if ($newRequiredBuses < $assignedCount) {
+                        throw ValidationException::withMessages([
+                            'required_buses' => "Required buses cannot be reduced below the {$assignedCount} existing assigned bus(es). Remove assignments first.",
+                        ]);
+                    }
+
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
+                        'direction' => $validated['direction'] ?? $lockedTrip->direction,
+                        'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
                         'estimated_arrival_time' => $estimatedArrival->format('H:i:s'),
                         'estimated_arrival_date' => $estimatedArrival->toDateString(),
@@ -284,6 +346,8 @@ class TripScheduleController extends Controller
                         'status' => $validated['status'],
                         'notes' => $validated['notes'] ?? null,
                     ]);
+
+                    $lockedTrip->syncAssignmentStatus();
 
                     return $lockedTrip;
                 }
@@ -328,7 +392,7 @@ class TripScheduleController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                $lockedTrip->loadMissing('assignment');
+                $lockedTrip->loadMissing(['assignments', 'assignment']);
                 $lockedTrip->loadCount([
                     'dailyDriverReports',
                     'incidents',
@@ -345,10 +409,11 @@ class TripScheduleController extends Controller
                 }
 
                 if (
-                    $lockedTrip->assignment_status !== 'Unassigned'
+                    ! in_array($lockedTrip->assignment_status, ['Unassigned', null], true)
+                    || $lockedTrip->assignments()->exists()
                     || $lockedTrip->assignment !== null
                 ) {
-                    return 'Remove the driver and bus assignment before deleting this trip.';
+                    return 'Remove all driver and bus assignments before deleting this trip.';
                 }
 
                 if (
@@ -434,6 +499,8 @@ class TripScheduleController extends Controller
                 'required',
                 'date_format:H:i',
             ],
+            'direction' => ['nullable', Rule::in(['Incoming', 'Outgoing'])],
+            'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
                 'nullable',
                 'string',

@@ -195,10 +195,10 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="status-chip {{ strtolower(str_replace(' ', '-', $row->status)) }}">
-                                        <span class="status-dot"></span>
-                                        {{ $row->status }}
-                                    </span>
+                                    <x-ui.status-badge
+                                        :status="$row->status"
+                                        class="status-chip {{ strtolower(str_replace(' ', '-', $row->status)) }}"
+                                    />
                                 </td>
                                 <td style="text-align: right;">
                                     <a href="{{ route('analytics.stage', ['stage' => 'prescriptive', 'domain' => $row->slug], false) }}" class="domain-explore-chip" title="View detailed {{ $row->domain }} prescriptive playbook">

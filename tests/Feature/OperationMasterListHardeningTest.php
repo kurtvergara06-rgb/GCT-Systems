@@ -50,6 +50,7 @@ class OperationMasterListHardeningTest extends TestCase
             ->assertOk()
             ->assertDontSee('id="openBusModal"', false)
             ->assertDontSee('open-edit-bus', false)
+            ->assertDontSee('Deactivate Bus?', false)
             ->assertDontSee('open-delete-bus', false);
 
         $requests = [
@@ -61,6 +62,8 @@ class OperationMasterListHardeningTest extends TestCase
             fn () => $this->patch(route('operation.personnel.mechanics.deactivate', $mechanic)),
             fn () => $this->post(route('bus-master-list.store'), $this->busPayload('BUS-NEW')),
             fn () => $this->put(route('bus-master-list.update', $bus), $this->busPayload($bus->bus_no)),
+            fn () => $this->patch(route('bus-master-list.deactivate', $bus)),
+            fn () => $this->patch(route('bus-master-list.activate', $bus)),
             fn () => $this->delete(route('bus-master-list.destroy', $bus)),
         ];
 
@@ -243,23 +246,25 @@ class OperationMasterListHardeningTest extends TestCase
     public function test_bus_history_blocks_rename_and_delete_and_maintenance_blocks_activation(): void
     {
         $user = $this->operationUser();
-        $bus = $this->bus(['status' => 'Under Maintenance']);
+        $bus = $this->bus();
         $this->jobOrder($bus, null);
 
         $this->actingAs($user)
             ->from(route('bus-master-list'))
-            ->put(route('bus-master-list.update', $bus), $this->busPayload('BUS-RENAMED', 'Under Maintenance'))
+            ->put(route('bus-master-list.update', $bus), $this->busPayload('BUS-RENAMED'))
             ->assertSessionHasErrors('bus_no');
-
-        $this->actingAs($user)
-            ->from(route('bus-master-list'))
-            ->put(route('bus-master-list.update', $bus), $this->busPayload($bus->bus_no, 'Active'))
-            ->assertSessionHasErrors('status');
 
         $this->actingAs($user)
             ->from(route('bus-master-list'))
             ->delete(route('bus-master-list.destroy', $bus))
             ->assertSessionHasErrors('bus');
+
+        $bus->update(['status' => 'Under Maintenance']);
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), $this->busPayload($bus->bus_no, 'Active'))
+            ->assertSessionHasErrors('status');
 
         $this->assertDatabaseHas('buses', ['id' => $bus->id, 'status' => 'Under Maintenance']);
     }
@@ -300,6 +305,159 @@ class OperationMasterListHardeningTest extends TestCase
         $this->actingAs($user)->post('/bus-master-list/import')->assertStatus(405);
     }
 
+    public function test_bus_purpose_cannot_change_while_current_or_future_assignment_is_unresolved(): void
+    {
+        $user = $this->operationUser();
+        $driver = $this->driver();
+        $date = now()->addDay()->toDateString();
+        $attendance = DriverAttendance::create([
+            'driver_name' => $driver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => $date,
+            'status' => 'Present',
+        ]);
+        $bus = $this->bus(['fleet_purpose' => 'Regular']);
+        $trip = $this->trip([
+            'trip_date' => $date,
+            'estimated_arrival_date' => $date,
+            'status' => 'Ready',
+            'assignment_status' => 'Assigned',
+        ]);
+        TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $driver->driver_name,
+            'bus_id' => $bus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload($bus->bus_no),
+                ['fleet_purpose' => 'Reserve']
+            ))
+            ->assertSessionHasErrors('fleet_purpose');
+
+        $this->assertSame('Regular', $bus->fresh()->fleet_purpose);
+
+        $this->actingAs($user)
+            ->get(route('bus-master-list'))
+            ->assertOk()
+            ->assertSee('data-fleet-purpose-locked="1"', false);
+
+        $trip->update(['status' => 'Completed']);
+
+        $this->actingAs($user)
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload($bus->bus_no),
+                ['fleet_purpose' => 'Reserve']
+            ))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Reserve', $bus->fresh()->fleet_purpose);
+    }
+
+    public function test_bus_can_be_deactivated_and_reactivated_with_workflow_guards(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus(['status' => 'Active']);
+
+        // 1. Can deactivate free bus
+        $this->actingAs($user)
+            ->patch(route('bus-master-list.deactivate', $bus))
+            ->assertRedirect(route('bus-master-list'))
+            ->assertSessionHas('success');
+
+        $this->assertSame('Inactive', $bus->fresh()->status);
+
+        // 2. Can reactivate inactive bus
+        $this->actingAs($user)
+            ->patch(route('bus-master-list.activate', $bus))
+            ->assertRedirect(route('bus-master-list'))
+            ->assertSessionHas('success');
+
+        $this->assertSame('Active', $bus->fresh()->status);
+
+        // 3. Ongoing assignment blocks deactivation
+        $driver = $this->driver();
+        $date = now()->addDay()->toDateString();
+        $attendance = DriverAttendance::create([
+            'driver_name' => $driver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => $date,
+            'status' => 'Present',
+        ]);
+        $trip = $this->trip([
+            'trip_date' => $date,
+            'estimated_arrival_date' => $date,
+            'status' => 'Ready',
+            'assignment_status' => 'Assigned',
+        ]);
+        TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $driver->driver_name,
+            'bus_id' => $bus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->patch(route('bus-master-list.deactivate', $bus))
+            ->assertSessionHasErrors('bus');
+
+        $this->assertSame('Active', $bus->fresh()->status);
+    }
+
+    public function test_reserve_replacement_cannot_be_reclassified_during_its_active_trip(): void
+    {
+        $user = $this->operationUser();
+        $driver = $this->driver();
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $attendance = DriverAttendance::create([
+            'driver_name' => $driver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => $date,
+            'status' => 'Present',
+        ]);
+        $originalBus = $this->bus();
+        $reserveBus = $this->bus([
+            'bus_no' => 'BUS-RESERVE-002',
+            'plate_no' => 'ABC-1002',
+            'fleet_purpose' => 'Reserve',
+        ]);
+        $trip = $this->trip([
+            'trip_date' => $date,
+            'estimated_arrival_date' => $date,
+            'status' => 'Dispatched',
+            'assignment_status' => 'Assigned',
+        ]);
+        TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $driver->driver_name,
+            'bus_id' => $reserveBus->id,
+            'original_bus_id' => $originalBus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('bus-master-list.update', $reserveBus), array_merge(
+                $this->busPayload($reserveBus->bus_no),
+                [
+                    'plate_no' => $reserveBus->plate_no,
+                    'fleet_purpose' => 'Regular',
+                ]
+            ))
+            ->assertSessionHasErrors('fleet_purpose');
+
+        $this->assertSame('Reserve', $reserveBus->fresh()->fleet_purpose);
+    }
+
     public function test_driver_morning_kpi_counts_only_active_morning_shift_drivers(): void
     {
         $user = $this->operationUser();
@@ -320,8 +478,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->actingAs($user)
             ->get(route('operation.personnel.drivers'))
             ->assertOk()
-            ->assertViewHas('stats', fn (array $stats) =>
-                $stats['morning'] === 1
+            ->assertViewHas('stats', fn (array $stats) => $stats['morning'] === 1
                 && $stats['active'] === 2
                 && $stats['inactive'] === 1
             );
@@ -380,6 +537,134 @@ class OperationMasterListHardeningTest extends TestCase
         $echo = file_get_contents(resource_path('js/echo.js'));
         $this->assertStringContainsString("'Operation:Driver'", $echo);
         $this->assertStringContainsString("'Operation:Mechanic'", $echo);
+    }
+
+    public function test_bus_availability_flags_unresolved_job_orders_even_if_master_status_is_active(): void
+    {
+        $user = $this->operationUser();
+        $restricted = $this->bus();
+        $clear = $this->bus([
+            'bus_no' => 'BUS-002',
+            'plate_no' => 'ABC-1002',
+        ]);
+
+        $jobOrder = $this->jobOrder($restricted, null);
+
+        $this->actingAs($user)
+            ->get(route('bus-availability'))
+            ->assertOk()
+            ->assertViewHas('activeBuses', 1)
+            ->assertViewHas('maintenanceBuses', 1)
+            ->assertSee('ABC-1001')
+            ->assertSee('Under Maintenance')
+            ->assertSee('ABC-1002')
+            ->assertSee('Available');
+
+        $jobOrder->update(['status' => 'Completed']);
+
+        $this->actingAs($user)
+            ->get(route('bus-availability'))
+            ->assertOk()
+            ->assertViewHas('activeBuses', 2)
+            ->assertViewHas('maintenanceBuses', 0);
+    }
+
+    public function test_bus_master_list_uses_maintenance_as_the_effective_status_for_legacy_drift(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus(['status' => 'Inactive']);
+        $this->jobOrder($bus, null);
+
+        $response = $this->actingAs($user)->get(route('bus-master-list'));
+
+        $response->assertOk()
+            ->assertViewHas('activeBuses', 0)
+            ->assertViewHas('underMaintenance', 1)
+            ->assertViewHas('availableBuses', 0)
+            ->assertSee($bus->bus_no)
+            ->assertSee('Under Maintenance')
+            ->assertDontSee('aria-label="Activate bus '.$bus->bus_no.'"', false);
+
+        $this->assertSame('Inactive', $bus->fresh()->status);
+    }
+
+    public function test_bus_availability_view_modal_is_outside_scrollable_table_and_read_only(): void
+    {
+        $user = $this->operationUser();
+        $this->bus();
+
+        $response = $this->actingAs($user)->get(route('bus-availability'));
+        $response->assertOk()
+            ->assertSee('id="availabilityBusModal"', false)
+            ->assertSee('open-availability-bus')
+            ->assertDontSee('open-edit-bus')
+            ->assertDontSee('open-delete-bus');
+
+        $html = $response->getContent();
+        $this->assertGreaterThan(strpos($html, 'class="table-wrap availability-table-wrap"'), strpos($html, 'id="availabilityBusModal"'));
+        $this->assertGreaterThan(strpos($html, '</main>'), strpos($html, 'id="availabilityBusModal"'));
+    }
+
+    public function test_bus_realtime_route_subscriptions_include_availability_and_dispatch(): void
+    {
+        $echo = file_get_contents(resource_path('js/echo.js'));
+
+        foreach (['Operation:Bus', 'Operation:TripSchedule', 'Maintenance:JobOrder'] as $eventKey) {
+            $this->assertMatchesRegularExpression(
+                '/'.preg_quote("'".$eventKey."':", '/').'.*'.preg_quote('/operation/bus-availability', '/').'/',
+                $echo
+            );
+        }
+    }
+
+    public function test_auto_scheduling_and_manual_bus_assignment_reject_unresolved_job_orders(): void
+    {
+        $manual = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
+        $automatic = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+
+        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $manual);
+        $this->assertStringContainsString('unresolved Maintenance Job Order', $manual);
+        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $automatic);
+        $this->assertStringContainsString('unresolved Maintenance Job Order', $automatic);
+    }
+
+    public function test_assignment_page_keeps_trip_locks_and_read_only_resource_lists(): void
+    {
+        $user = $this->operationUser();
+        $this->bus();
+
+        $response = $this->actingAs($user)->get(route('driver-bus-assignment'));
+        $response->assertOk()
+            ->assertSee('Route', false)
+            ->assertDontSee('Pickup → Dropoff', false);
+
+        $template = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $this->assertStringNotContainsString('assignment-journey', $template);
+        $this->assertStringContainsString("['Cancelled', 'Dispatched', 'Completed']", $template);
+        $this->assertStringContainsString('!$isLocked', $template);
+        $this->assertStringNotContainsString('resource-assign-bus', $template);
+        $this->assertStringNotContainsString('resource-assign-driver', $template);
+        $this->assertStringContainsString("'Night'", $template);
+    }
+
+    public function test_unresolved_maintenance_job_order_excludes_bus_from_manual_dispatch_options(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+        $jobOrder = $this->jobOrder($bus, null);
+        $date = now()->addDays(2)->toDateString();
+
+        $this->actingAs($user)
+            ->get(route('driver-bus-assignment', ['trip_date' => $date]))
+            ->assertOk()
+            ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 0);
+
+        $jobOrder->update(['status' => 'Completed']);
+
+        $this->actingAs($user)
+            ->get(route('driver-bus-assignment', ['trip_date' => $date]))
+            ->assertOk()
+            ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 1);
     }
 
     private function operationUser(string $role = 'head'): User

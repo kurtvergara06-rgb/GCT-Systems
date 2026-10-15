@@ -108,75 +108,6 @@
                         </p>
 
                     </div>
-
-                </div>
-
-
-                {{-- =================================================
-                    TOOLBAR
-                ================================================== --}}
-                <form
-                    method="GET"
-                    action="{{ route('operation.routes', [], false) }}"
-                    class="toolbar routes-toolbar"
-                    data-server-filter="true"
-                >
-
-                    <div class="search-box">
-
-                        <i class="fa-solid fa-magnifying-glass"></i>
-
-                        <input
-                            type="text"
-                            name="search"
-                            id="routeSearch"
-                            value="{{ request('search') }}"
-                            placeholder="Search route, origin, destination..."
-                        >
-
-                    </div>
-
-
-                    <div class="filter-group">
-
-                        <label
-                            for="routeStatusFilter"
-                            class="visually-hidden"
-                        >
-                        </label>
-
-                        <select
-                            name="status"
-                            id="routeStatusFilter"
-                            onchange="this.form.requestSubmit()"
-                        >
-
-                            <option
-                                value="all"
-                                {{ request('status', 'all') === 'all' ? 'selected' : '' }}
-                            >
-                                All Statuses
-                            </option>
-
-                            <option
-                                value="active"
-                                {{ request('status') === 'active' ? 'selected' : '' }}
-                            >
-                                Active
-                            </option>
-
-                            <option
-                                value="inactive"
-                                {{ request('status') === 'inactive' ? 'selected' : '' }}
-                            >
-                                Inactive
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
                     @if($canManageRoutes)
                                             <button
                         type="button"
@@ -189,7 +120,22 @@
                     </button>
                     @endif
 
-                </form>
+                </div>
+
+
+                <div class="gct-table-toolbar-row routes-record-controls">
+                    <nav class="gct-record-tabs routes-segmented-tabs" aria-label="Route record groups">
+                        <a class="gct-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-route" aria-hidden="true"></i> Active Routes</a>
+                        <a class="gct-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+                    </nav>
+
+                {{-- =================================================
+                    TOOLBAR
+                ================================================== --}}
+                <x-ui.table-toolbar action="{{ route('operation.routes', [], false) }}" search-label="Search Routes" search-placeholder="Search route, origin, destination, or stop..." :sort-options="['route_code' => 'Route ID', 'route_name' => 'Route Name', 'origin' => 'Origin', 'destination' => 'Destination', 'distance_km' => 'Distance', 'status' => 'Status']" default-sort="id" default-direction="desc">
+                    <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status"><option value="all">All Statuses</option><option value="Active" @selected(request('status') === 'Active')>Active</option><option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option></x-ui.table-toolbar-field></x-slot:filters>
+                </x-ui.table-toolbar></div>
 
 
                 {{-- =================================================
@@ -356,11 +302,7 @@
 
                                     {{-- STATUS --}}
                                     <td>
-
-                                        <span class="route-status {{ $statusClass }}">
-                                            {{ $route->status }}
-                                        </span>
-
+                                        <x-ui.status-badge :status="$route->status" class="route-status {{ $statusClass }}" />
                                     </td>
 
 
@@ -464,12 +406,12 @@
 
 
                             @empty
-
                                 <x-ui.empty-row
                                     colspan="9"
-                                    message="No route records found."
+                                    icon="fa-route"
+                                    message="No Routes Found"
+                                    description="No shuttle routes match your search or filter criteria. Try adjusting your filters."
                                 />
-
                             @endforelse
 
                         </tbody>

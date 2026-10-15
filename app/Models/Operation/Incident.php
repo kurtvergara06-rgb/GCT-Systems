@@ -49,9 +49,17 @@ class Incident extends Model
                 && $incident->trip_schedule_id
                 && ! $incident->trip_assignment_id
             ) {
-                $incident->trip_assignment_id = TripAssignment::query()
-                    ->where('trip_schedule_id', $incident->trip_schedule_id)
-                    ->value('id');
+                $assignmentQuery = TripAssignment::query()
+                    ->where('trip_schedule_id', $incident->trip_schedule_id);
+
+                if ($incident->bus_id) {
+                    $assignmentQuery->where(function ($query) use ($incident): void {
+                        $query->where('bus_id', $incident->bus_id)
+                            ->orWhere('original_bus_id', $incident->bus_id);
+                    });
+                }
+
+                $incident->trip_assignment_id = $assignmentQuery->value('id');
             }
 
             if (
@@ -64,9 +72,15 @@ class Incident extends Model
 
             if ($incident->incident_type === 'Bus Breakdown'
                 && ! in_array($incident->status, ['Resolved', 'Cancelled'], true)) {
-                $incident->active_breakdown_key = $incident->trip_schedule_id
-                    ? 'trip:'.$incident->trip_schedule_id
-                    : null;
+                if ($incident->trip_schedule_id && $incident->bus_id) {
+                    $incident->active_breakdown_key = 'trip:'.$incident->trip_schedule_id.':bus:'.$incident->bus_id;
+                } elseif ($incident->trip_schedule_id) {
+                    $incident->active_breakdown_key = 'trip:'.$incident->trip_schedule_id;
+                } elseif ($incident->bus_id) {
+                    $incident->active_breakdown_key = 'bus:'.$incident->bus_id;
+                } else {
+                    $incident->active_breakdown_key = null;
+                }
             } else {
                 $incident->active_breakdown_key = null;
             }
@@ -77,10 +91,7 @@ class Incident extends Model
                 return;
             }
 
-            Bus::query()
-                ->whereKey($incident->bus_id)
-                ->where('status', '!=', 'Under Maintenance')
-                ->update(['status' => 'Under Maintenance']);
+            Bus::query()->find($incident->bus_id)?->placeUnderMaintenance();
         });
     }
 

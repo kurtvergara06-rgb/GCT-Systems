@@ -83,30 +83,21 @@
                     <p class="referral-history-note">Job Order Created and Rejected referrals are kept here for reference and audit history.</p>
                 @endif
 
-                <form
-                    method="GET"
-                    action="{{ route('maintenance-referrals') }}"
-                    class="toolbar referral-toolbar"
-                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
-                >
-                    @if($recordView === 'history')
-                        <input type="hidden" name="record_view" value="history">
-                    @endif
-
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search incident, bus, location, or problem...">
-                    </div>
-
-                    <div class="filter-group referral-status-filter">
-                        <select name="status" onchange="this.form.submit()">
+                <x-ui.table-toolbar action="{{ route('maintenance-referrals') }}" search-label="Search Referrals" search-placeholder="Search incident, bus, location, or problem..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Referrals" :sort-options="['created_at' => 'Referral Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
+                    <x-slot:hidden>
+                        @if($recordView === 'history')
+                            <input type="hidden" name="record_view" value="history">
+                        @endif
+                    </x-slot:hidden>
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Status" name="status" default="all">
                             <option value="all">All Statuses</option>
                             @foreach($viewStatuses as $status)
                                 <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                             @endforeach
-                        </select>
-                    </div>
-                </form>
+                        </x-ui.table-toolbar-field>
+                    </x-slot:filters>
+                </x-ui.table-toolbar>
 
                 <div class="table-wrap">
                     <table class="referrals-table">
@@ -206,7 +197,12 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row colspan="6" :message="$recordView === 'history' ? 'No referral history found.' : 'No active maintenance referrals found.'" />
+                                <x-ui.empty-row
+                                    colspan="6"
+                                    icon="fa-arrows-split-up-and-left"
+                                    :message="$recordView === 'history' ? 'No Referral History Found' : 'No Active Maintenance Referrals Found'"
+                                    :description="$recordView === 'history' ? 'Processed and completed referrals will appear here.' : 'No incoming maintenance referrals currently require attention.'"
+                                />
                             @endforelse
                         </tbody>
                     </table>

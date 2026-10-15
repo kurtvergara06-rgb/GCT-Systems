@@ -344,7 +344,6 @@
                                 @php
                                     $moduleClass = strtolower($activity->module ?: 'admin');
                                     $typeClass = strtolower($activity->activity_type);
-                                    $statusClass = strtolower(str_replace(' ', '-', $activity->status));
                                 @endphp
 
                                 <tr>
@@ -369,7 +368,7 @@
                                     <td><span class="module-badge {{ $moduleClass }}">{{ $activity->module ?: '—' }}</span></td>
                                     <td><span class="source-text">{{ $activity->source ?: '—' }}</span></td>
                                     <td><span class="records-cell">{{ number_format($activity->total_records) }}</span></td>
-                                    <td><span class="status-badge {{ $statusClass }}">{{ $activity->status }}</span></td>
+                                    <td><x-ui.status-badge :status="$activity->status" /></td>
                                     <td>
                                         <div class="date-time-cell">
                                             <span class="date-value">{{ $activity->created_at?->format('M d, Y') ?? '—' }}</span>

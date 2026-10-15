@@ -71,7 +71,7 @@
                         <h2>Generate Dispatch Schedule</h2>
                         <p>Select the date, shift, and route to prepare driver and bus recommendations.</p>
                     </div>
-                    <div class="auto-header-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks attendance, bus availability, and schedule conflicts before confirming assignments.</span></div>
                 </div>
 
                 <form id="autoSchedulingForm" class="auto-scheduling-form">
@@ -141,7 +141,11 @@
                         </div>
                     </div>
 
-                    <div class="ai-ml-status" id="aiMlStatus" hidden></div>
+                    <div class="ai-ml-status" id="aiMlStatus" role="status" aria-live="polite">
+                        <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Ranking Source</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: Not evaluated</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: Not evaluated</span>
+                    </div>
 
                     <button
                         type="submit"
@@ -159,7 +163,7 @@
                 <div class="auto-card-header compact">
                     <div>
                         <span class="section-eyebrow">Resource Status</span>
-                        <h2>Availability</h2>
+                        <h2>Current Availability</h2>
                         <p>Resources eligible for scheduling.</p>
                     </div>
                 </div>
@@ -201,15 +205,19 @@
         </section>
 
         <section class="auto-card scheduling-rules-card">
-            <div class="auto-card-header">
-                <div>
-                    <span class="section-eyebrow">Dispatch Logic</span>
-                    <h2>Scheduling Rules</h2>
-                    <p>Rules checked before assigning a driver or shuttle bus.</p>
+            <div class="auto-card-header rules-section-header">
+                <div class="rules-section-heading">
+                    <span class="rules-heading-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+                    <div>
+                        <span class="section-eyebrow">Dispatch Logic</span>
+                        <h2>Scheduling Rules</h2>
+                        <p>Rules checked before assigning a driver or shuttle bus.</p>
+                    </div>
                 </div>
+                <div class="rules-header-actions"><span class="rules-enforced-label"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Automatically enforced by the system</span><button type="button" class="rules-collapse-toggle" aria-expanded="false" aria-controls="autoSchedulingRulesGrid" data-rules-toggle><i class="fa-solid fa-chevron-down" aria-hidden="true"></i><span>Show rules</span></button></div>
             </div>
 
-            <div class="rules-grid">
+            <div class="rules-grid" id="autoSchedulingRulesGrid" hidden>
                 @foreach([
                     ['Driver must be present', 'Only Present or Late drivers can be assigned.'],
                     ['Driver must be available', 'Prevent overlapping driver assignments.'],
@@ -234,47 +242,170 @@
                     <p>Review the recommendations before saving assignments.</p>
                 </div>
 
-                <div class="schedule-result-badge" id="generatedReadyCount">
+                <div class="auto-draft-navigation">
+                    <span id="autoDraftSaveStatus" class="auto-draft-save-status" role="status" aria-live="polite">No draft loaded</span>
+                    <button type="button" id="openAutoScheduleDrafts" class="schedule-secondary-btn">
+                        <i class="fa-solid fa-folder-open"></i> Saved Drafts
+                    </button>
+                    <a class="schedule-secondary-btn" href="{{ route('driver-bus-assignment') }}">
+                        <i class="fa-solid fa-clipboard-check"></i> Confirmed Assignments
+                    </a>
+                    <div class="schedule-result-badge" id="generatedReadyCount">
                     <i class="fa-solid fa-circle-check"></i>
-                    <span>0 Ready</span>
+                    <span>0 Ready Slots</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="auto-table-wrap">
-                <table class="auto-schedule-table">
-                    <thead>
-                        <tr>
-                            <th>Trip ID</th>
-                            <th>Time</th>
-                            <th>Route</th>
-                            <th>Driver</th>
-                            <th>Bus</th>
-                            <th>Result</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+            <div class="service-panels-surface auto-service-panels">
+                {{-- Incoming Trips Section --}}
+                <article class="service-direction-panel incoming" id="autoIncomingPanel">
+                    <header class="service-direction-header">
+                        <div class="service-direction-heading">
+                            <span class="service-direction-icon">
+                                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <h3>Incoming Trips</h3>
+                                <p>Buses transporting employees to work</p>
+                            </div>
+                        </div>
+                        <div class="service-direction-metrics">
+                            <div class="service-metric-stat">
+                                <span>Trips</span>
+                                <strong id="incomingTripCount">0</strong>
+                            </div>
+                            <div class="service-metric-stat">
+                                <span>Required Buses</span>
+                                <strong id="incomingRequiredBusesCount">0</strong>
+                            </div>
+                            <div class="service-metric-chips">
+                                <span class="service-chip modified auto-chip-ready">
+                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                    <span><strong id="incomingReadyCount">0</strong> Ready Slots</span>
+                                </span>
+                                <span class="service-chip cancelled auto-chip-review" id="incomingReviewChip">
+                                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                    <span><strong id="incomingReviewCount">0</strong> Slots to Review</span>
+                                </span>
+                                <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="incomingManualCount">0</strong> Manual</span></span>
+                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="incomingExternalCount">0</strong> External</span></span>
+                            </div>
+                        </div>
+                    </header>
 
-                    <tbody id="autoSchedulePreviewBody">
-                        <tr>
-                            <td colspan="7">
-                                <div class="auto-empty-state">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                    <strong>No schedule generated yet</strong>
-                                    <span>Select the date and filters, then click Generate Schedule.</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <div class="auto-table-wrap" role="region" aria-label="Incoming trip recommendations" tabindex="0">
+                        <table class="auto-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Trip ID</th>
+                                    <th>Time</th>
+                                    <th>Route</th>
+                                    <th>Required Buses</th>
+                                    <th>Driver</th>
+                                    <th>Bus</th>
+                                    <th>Result</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="autoScheduleIncomingBody">
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="auto-empty-state">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            <strong>No schedule generated yet</strong>
+                                            <span>Select the date and filters, then click Generate Schedule.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                {{-- Outgoing Trips Section --}}
+                <article class="service-direction-panel outgoing" id="autoOutgoingPanel">
+                    <header class="service-direction-header">
+                        <div class="service-direction-heading">
+                            <span class="service-direction-icon">
+                                <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <h3>Outgoing Trips</h3>
+                                <p>Buses transporting employees home</p>
+                            </div>
+                        </div>
+                        <div class="service-direction-metrics">
+                            <div class="service-metric-stat">
+                                <span>Trips</span>
+                                <strong id="outgoingTripCount">0</strong>
+                            </div>
+                            <div class="service-metric-stat">
+                                <span>Required Buses</span>
+                                <strong id="outgoingRequiredBusesCount">0</strong>
+                            </div>
+                            <div class="service-metric-chips">
+                                <span class="service-chip modified auto-chip-ready">
+                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                    <span><strong id="outgoingReadyCount">0</strong> Ready Slots</span>
+                                </span>
+                                <span class="service-chip cancelled auto-chip-review" id="outgoingReviewChip">
+                                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                    <span><strong id="outgoingReviewCount">0</strong> Slots to Review</span>
+                                </span>
+                                <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="outgoingManualCount">0</strong> Manual</span></span>
+                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="outgoingExternalCount">0</strong> External</span></span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div class="auto-table-wrap" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
+                        <table class="auto-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Trip ID</th>
+                                    <th>Time</th>
+                                    <th>Route</th>
+                                    <th>Required Buses</th>
+                                    <th>Driver</th>
+                                    <th>Bus</th>
+                                    <th>Result</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="autoScheduleOutgoingBody">
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="auto-empty-state">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            <strong>No schedule generated yet</strong>
+                                            <span>Select the date and filters, then click Generate Schedule.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
             </div>
 
-            <div class="schedule-footer">
+            <tbody id="autoSchedulePreviewBody" style="display:none;" aria-hidden="true"></tbody>
+
+            <div class="schedule-footer auto-sticky-actions">
                 <div class="schedule-footer-info">
                     <i class="fa-solid fa-circle-info"></i>
                     <span id="generatedFooterMessage">Generate a schedule to view recommendations.</span>
                 </div>
 
                 <div class="schedule-footer-actions">
+                    @if($canEditOperation)
+                        <button type="button" class="schedule-secondary-btn" id="saveAutoScheduleDraftButton">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Draft
+                        </button>
+                    @endif
+                    <button type="button" class="schedule-secondary-btn" id="printAutoScheduleDraftButton">
+                        <i class="fa-solid fa-print"></i> Print Draft
+                    </button>
                     <button type="button" class="schedule-secondary-btn" id="regenerateScheduleButton">
                         <i class="fa-solid fa-rotate"></i>
                         Regenerate

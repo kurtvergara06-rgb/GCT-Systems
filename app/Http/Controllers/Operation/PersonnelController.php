@@ -7,6 +7,7 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\TripAssignment;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,7 +57,7 @@ class PersonnelController extends Controller
                 ->count(),
         ];
 
-        $drivers = $query
+        $driversQuery = $query
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = trim((string) $request->search);
                 $query->where(function ($nested) use ($search): void {
@@ -66,9 +67,10 @@ class PersonnelController extends Controller
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('employment_status', $request->status))
-            ->when(in_array($request->query('shift'), ['Morning', 'Afternoon', 'Night'], true), fn ($query) => $query->where('shift', $request->query('shift')))
-            ->orderBy('driver_name')
+            ->where('employment_status', $request->query('tab') === 'history' ? 'Inactive' : 'Active')
+            ->when(in_array($request->query('shift'), ['Morning', 'Afternoon', 'Night'], true), fn ($query) => $query->where('shift', $request->query('shift')));
+        TableSort::apply($driversQuery, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'driver_name');
+        $drivers = $driversQuery
             ->paginate(12)
             ->withQueryString();
 
@@ -97,7 +99,7 @@ class PersonnelController extends Controller
             'specializations' => $recordedSpecializations->count(),
         ];
 
-        $mechanics = $query
+        $mechanicsQuery = $query
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = trim((string) $request->search);
                 $specializationTerms = $this->specializationSearchTerms($search);
@@ -116,7 +118,7 @@ class PersonnelController extends Controller
                     }
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('employment_status', $request->status))
+            ->where('employment_status', $request->query('tab') === 'history' ? 'Inactive' : 'Active')
             ->when($request->filled('shift'), fn ($query) => $query->where('shift', $request->shift))
             ->when($request->filled('specialization'), function ($query) use ($request): void {
                 $terms = $this->specializationSearchTerms((string) $request->specialization);
@@ -126,8 +128,9 @@ class PersonnelController extends Controller
                         $nested->orWhere('specialization', 'like', "%{$term}%");
                     }
                 });
-            })
-            ->orderBy('mechanic_name')
+            });
+        TableSort::apply($mechanicsQuery, $request, ['mechanic_name' => 'mechanic_name', 'mechanic_id' => 'mechanic_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'mechanic_name');
+        $mechanics = $mechanicsQuery
             ->paginate(12)
             ->withQueryString();
 
@@ -346,7 +349,7 @@ class PersonnelController extends Controller
         $validated = $request->validate([
             'driver_id' => ['required', 'string', 'max:100', Rule::unique('drivers', 'driver_id')->ignore($driver?->id)],
             'driver_name' => ['required', 'string', 'max:255', Rule::unique('drivers', 'driver_name')->ignore($driver?->id)],
-            'shift' => ['required', Rule::in(['Morning', 'Afternoon', 'Night'])],
+            'shift' => ['required', Rule::in(['Morning', 'Afternoon'])],
             'contact_number' => ['nullable', 'string', 'max:50'],
             'employment_status' => ['required', Rule::in(['Active', 'Inactive'])],
         ]);

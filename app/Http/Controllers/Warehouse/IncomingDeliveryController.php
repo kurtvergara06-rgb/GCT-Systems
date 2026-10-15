@@ -8,6 +8,7 @@ use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,9 +21,7 @@ class IncomingDeliveryController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    public function __construct(private InventoryLedgerService $ledger)
-    {
-    }
+    public function __construct(private InventoryLedgerService $ledger) {}
 
     public function index(Request $request)
     {
@@ -62,8 +61,8 @@ class IncomingDeliveryController extends Controller
             $deliveryQuery->where('status', $request->status);
         }
 
+        TableSort::apply($deliveryQuery, $request, ['po_date' => 'po_date', 'po_no' => 'po_no', 'supplier_name' => 'supplier_name', 'status' => 'status', 'inventory_posted_at' => 'inventory_posted_at'], 'po_date', 'desc');
         $deliveries = $deliveryQuery
-            ->latest($currentView === 'history' ? 'inventory_posted_at' : 'updated_at')
             ->paginate(20)
             ->withQueryString();
 

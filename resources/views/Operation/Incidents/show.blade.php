@@ -28,7 +28,63 @@
             ->reject(fn ($bus) => $incident->replacement && $bus->id === $incident->replacement->replacement_bus_id);
     @endphp
 
-    <div class="app">
+    @if(request()->boolean('embedded'))
+        <style>
+            html, body {
+                overflow-y: auto !important;
+                scrollbar-width: thin !important;
+                scrollbar-color: #94a3b8 #f1f5f9 !important;
+                background: #f8fafc !important;
+            }
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar {
+                display: block !important;
+                width: 8px !important;
+            }
+            html::-webkit-scrollbar-track,
+            body::-webkit-scrollbar-track {
+                background: #f1f5f9 !important;
+            }
+            html::-webkit-scrollbar-thumb,
+            body::-webkit-scrollbar-thumb {
+                background: #94a3b8 !important;
+                border-radius: 4px !important;
+            }
+            html::-webkit-scrollbar-thumb:hover,
+            body::-webkit-scrollbar-thumb:hover {
+                background: #64748b !important;
+            }
+            body:has(.inc-embedded-workflow) {
+                overflow-y: auto !important;
+                background: #f8fafc !important;
+            }
+            .inc-embedded-workflow {
+                min-height: 100%;
+                display: block !important;
+                background: #f8fafc !important;
+            }
+            .inc-embedded-workflow > .sidebar { display: none !important; }
+            .inc-embedded-workflow > main.inc-page {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                background: transparent !important;
+            }
+            .inc-embedded-workflow .topbar,
+            .inc-embedded-workflow .main-topbar {
+                display: none !important;
+            }
+            .inc-embedded-modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                padding-top: 20px;
+                margin-top: 10px;
+                border-top: 1px solid var(--inc-border);
+            }
+        </style>
+    @endif
+    <div class="app @if(request()->boolean('embedded')) inc-embedded-workflow @endif">
         <x-layout.sidebar department="Operation" />
 
         <main class="main inc-page">
@@ -37,7 +93,7 @@
                 subtitle="{{ $incident->incident_no }} &mdash; {{ $incident->incident_type }}"
             />
 
-            @if (session('success'))
+            @if (session('success') && !request()->boolean('embedded'))
                 <div class="inc-alert inc-alert-success" role="alert">
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
@@ -46,7 +102,7 @@
                 </div>
             @endif
 
-            @if (session('error'))
+            @if (session('error') && !request()->boolean('embedded'))
                 <div class="inc-alert inc-alert-error" role="alert">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <div>
@@ -54,6 +110,48 @@
                     </div>
                 </div>
             @endif
+
+            @php
+                $hasOicResponse = $incident->responses->count() > 1
+                    || $incident->responses->contains(fn ($response) => $response->status !== 'Reported');
+                $hasReferral = $incident->maintenanceReferral()->exists();
+                $workflowSteps = [
+                    ['label' => $isBreakdown ? 'Breakdown Reported' : 'Incident Reported', 'note' => 'Recorded by Operations after receiving the incident report.', 'done' => true, 'icon' => 'fa-file-circle-check'],
+                    ['label' => 'OIC Coordination (External)', 'note' => 'Driver contacts OIC. OIC coordinates with Maintenance Manager by phone or radio; Operations records updates.', 'done' => $hasOicResponse, 'icon' => 'fa-phone-volume'],
+                    ['label' => 'Reserve Bus Deployment', 'note' => $isBreakdown ? 'OIC selects and deploys the replacement unit. Operations records the actual deployment.' : 'Only applicable if a replacement bus is needed.', 'done' => (bool) $incident->replacement, 'icon' => 'fa-bus'],
+                    ['label' => 'Trip Continuation', 'note' => 'Driver resumes the trip; Operations records the operational outcome.', 'done' => $isResolved, 'icon' => 'fa-route'],
+                    ['label' => 'Maintenance Referral', 'note' => 'Maintenance Manager handles the affected vehicle and its repair workflow.', 'done' => $hasReferral, 'icon' => 'fa-screwdriver-wrench'],
+                ];
+            @endphp
+            @if(request()->boolean('embedded'))
+                @include('Operation.Incidents.partials.embedded-workflow')
+            @else
+            <div class="inc-workflow-overview">
+                <div class="inc-workflow-overview-heading">
+                    <div><h2><i class="fa-solid fa-diagram-project"></i> Incident Response Timeline</h2>
+                    <p>Driver and OIC communicate outside the system. Authorized Operations personnel record updates here.</p></div>
+                    <x-ui.status-badge :status="$incident->status" />
+                </div>
+                <div class="inc-workflow-step-list">
+                    @foreach($workflowSteps as $stepIndex => $step)
+                        @if($stepIndex === 3)
+                            <div class="inc-workflow-parallel-heading"><i class="fa-solid fa-code-branch"></i><span>Parallel follow-up activities — independently recorded</span></div>
+                        @endif
+                        <div class="inc-workflow-step {{ $step['done'] ? 'is-complete' : '' }}">
+                            <span class="inc-workflow-step-number">{{ $stepIndex + 1 }}</span>
+                            <span class="inc-workflow-step-icon"><i class="fa-solid {{ $step['icon'] }}"></i></span>
+                            <div class="inc-workflow-step-content">
+                                <strong>{{ $step['label'] }}</strong>
+                                <p>{{ $step['note'] }}</p>
+                            </div>
+                            <span class="inc-workflow-step-state">{{ $step['done'] ? 'Recorded' : 'Pending' }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            <div class="inc-workflow-information-note"><i class="fa-solid fa-circle-info"></i>
+                <span>Timeline states represent saved system records, not tasks assigned to the OIC. Reserve deployment and maintenance referral depend on the incident type and actual response.</span>
+            </div>
 
             <div class="inc-show-layout">
                 <!-- Main Details -->
@@ -205,7 +303,7 @@
                                     </span>
 
                                     <div class="inc-tl-head">
-                                        <span class="inc-tl-status">{{ $response->status }}</span>
+                                        <x-ui.status-badge :status="$response->status" class="inc-tl-status" />
                                         <span class="inc-tl-time">
                                             {{ $response->created_at?->format('M d, Y g:i A') }}
                                         </span>
@@ -291,8 +389,8 @@
             <section class="inc-card">
                 <div class="inc-card-header">
                     <div>
-                        <h2>Operations Actions</h2>
-                        <p>Respond to and manage this incident.</p>
+                        <h2>Record Operational Updates</h2>
+                        <p>Log information received from OIC and Maintenance. Neither OIC nor drivers need system accounts.</p>
                     </div>
                 </div>
 
@@ -306,6 +404,9 @@
                         >
                             @csrf
                             @method('PUT')
+                            @if(request()->boolean('embedded'))
+                                <input type="hidden" name="embedded" value="1">
+                            @endif
 
                             <div class="inc-form-group">
                                 <label for="statusSelect">
@@ -327,11 +428,21 @@
                             </div>
 
                             <div class="inc-form-group">
-                                <label for="resolution_notes">Response / Resolution Notes</label>
+                                @if($isBreakdown && $incident->trip_schedule_id)
+                                <label for="trip_outcome">Verified Trip Outcome</label>
+                                <select name="trip_outcome" id="trip_outcome">
+                                    <option value="">Select when confirmed...</option>
+                                    @foreach(['Continued','Interrupted','Cancelled','Unknown'] as $outcome)
+                                        <option value="{{ $outcome }}" @selected(old('trip_outcome') === $outcome)>{{ $outcome }}</option>
+                                    @endforeach
+                                </select>
+                                <small>This describes the trip response; it does not mark the scheduled trip Completed.</small>
+                            @endif
+                            <label for="resolution_notes">OIC / Maintenance Coordination Update</label>
                                 <textarea
                                     name="resolution_notes"
                                     id="resolution_notes"
-                                    placeholder="Notes about the response, monitoring plan, or resolution details..."
+                                    placeholder="Record the update relayed by OIC, coordination with Maintenance Manager, and operational decisions..."
                                 >{{ old('resolution_notes') }}</textarea>
                             </div>
 
@@ -349,8 +460,7 @@
                         <div class="inc-detail-item full">
                             <div class="inc-form-group">
                                 <label>
-                                    Dispatch Replacement Bus
-                                    <span class="ui-required">*</span>
+                                    Record OIC Reserve Bus Deployment
                                 </label>
 
                                 @if($incident->replacement)
@@ -379,9 +489,12 @@
                                         class="inc-status-form"
                                     >
                                         @csrf
+                                        @if(request()->boolean('embedded'))
+                                            <input type="hidden" name="embedded" value="1">
+                                        @endif
 
                                         <div class="inc-form-group">
-                                            <label for="replacement_bus_id">Available Active Buses</label>
+                                            <label for="replacement_bus_id">Available Reserve Buses</label>
                                             <select name="replacement_bus_id" id="replacement_bus_id" required>
                                                 <option value="">Select an available bus...</option>
                                                 @forelse($eligibleReplacementBuses as $replacementBus)
@@ -392,7 +505,7 @@
                                                         @endif
                                                     </option>
                                                 @empty
-                                                    <option value="" disabled>No active buses available</option>
+                                                    <option value="" disabled>No active reserve buses available</option>
                                                 @endforelse
                                             </select>
                                         </div>
@@ -400,15 +513,21 @@
                                         <div class="inc-form-note" style="margin-top: 12px;">
                                             <i class="fa-solid fa-circle-info"></i>
                                             <div>
-                                                <strong>Eligibility reuses existing bus logic</strong>
-                                                <span>Only buses marked {{ "'Active'" }} are offered, matching the same availability used by the driver &amp; bus assignment module. Buses with an overlapping assigned trip at this time are excluded.</span>
+                                                <strong>Reserve replacement eligibility</strong>
+                                                <span>Record only the Reserve Bus actually selected by OIC. Only active Reserve buses without an unresolved Maintenance Job Order are offered. Overlapping trip assignments are verified again when dispatch is submitted.</span>
                                             </div>
                                         </div>
 
+                                        <div class="inc-form-group">
+                                            <label style="display:flex;align-items:flex-start;gap:8px">
+                                                <input type="checkbox" name="oic_authorized" value="1" required style="width:auto;margin-top:3px">
+                                                I confirm the OIC authorized deployment of the selected Reserve Bus.
+                                            </label>
+                                        </div>
                                         <div class="inc-form-actions" style="margin-top: 4px; padding-top: 10px; border-top: none;">
-                                            <button type="submit" class="inc-danger-btn">
+                                            <button type="submit" class="inc-danger-btn" @disabled(!$hasOicResponse) title="{{ $hasOicResponse ? 'Confirm authorized reserve deployment' : 'Record OIC response first' }}">
                                                 <i class="fa-solid fa-truck-fast"></i>
-                                                Dispatch Replacement Bus
+                                                Record Reserve Bus Deployment
                                             </button>
                                         </div>
                                     </form>
@@ -419,16 +538,47 @@
                 </div>
             </section>
 
-            <div class="inc-form-actions inc-back-actions">
-                <a href="{{ route('incidents') }}" class="inc-secondary-btn">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Back to Incident List
-                </a>
-                <a href="{{ route('incidents.create') }}" class="inc-primary-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    Report New Incident
-                </a>
-            </div>
+            @if(request()->boolean('embedded'))
+                <div class="inc-embedded-modal-footer">
+                    <button type="button" class="inc-secondary-btn" onclick="window.parent.postMessage('close-incident-modal', '*')">
+                        <i class="fa-solid fa-xmark"></i>
+                        Close Workflow
+                    </button>
+                </div>
+            @else
+                <div class="inc-form-actions inc-back-actions">
+                    <a href="{{ route('incidents') }}" class="inc-secondary-btn">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Back to Incident List
+                    </a>
+                    <a href="{{ route('incidents.create') }}" class="inc-primary-btn">
+                        <i class="fa-solid fa-plus"></i>
+                        Report New Incident
+                    </a>
+                </div>
+            @endif
+            @endif
         </main>
     </div>
+
+    @if(request()->boolean('embedded'))
+        @php
+            $incidentToastMessage = $errors->any()
+                ? $errors->first()
+                : (session('error') ?: session('success'));
+            $incidentToastType = $errors->any() || session('error') ? 'error' : 'success';
+        @endphp
+        @if($incidentToastMessage)
+            <script>
+                window.addEventListener('DOMContentLoaded', () => {
+                    if (window.parent === window) return;
+                    window.parent.postMessage({
+                        type: 'gct:incident-workflow-toast',
+                        message: @json($incidentToastMessage),
+                        level: @json($incidentToastType)
+                    }, window.location.origin);
+                }, { once: true });
+            </script>
+        @endif
+    @endif
 </x-layout.app>

@@ -61,7 +61,6 @@ function initBatchAttendancePage() {
                                 <option value="all">All Shifts</option>
                                 <option value="Morning">Morning</option>
                                 <option value="Afternoon">Afternoon</option>
-                                ${type === "driver" ? '<option value="Night">Night</option>' : ""}
                             </select>
                         </div>
                     </label>
@@ -69,7 +68,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn success" id="batchMarkPresent"><i class="fa-solid fa-user-check"></i> Mark All Present</button>
                         <button type="button" class="batch-control-btn" id="batchUseCurrentTime"><i class="fa-regular fa-clock"></i> Use Current Time</button>
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
-                        <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-regular fa-trash-can"></i> Clear All</button>
+                        <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
                 </div>
 
@@ -108,7 +107,7 @@ function initBatchAttendancePage() {
                     </div>
                     <div class="batch-attendance-note">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>Late is detected automatically after a ${graceMinutes}-minute grace period based on the scheduled time.</span>
+                        <span>Mechanics are marked Late after the grace period; drivers remain Present when checked in.</span>
                     </div>
                 </div>
 
@@ -180,7 +179,7 @@ function initBatchAttendancePage() {
             graceMinutes = Number(data.grace_minutes || 10);
             const note = modal.querySelector('.batch-attendance-note span');
             if (note) {
-                note.textContent = `Late is detected automatically after a ${graceMinutes}-minute grace period based on the scheduled time.`;
+                note.textContent = `Mechanics are marked Late after the grace period; drivers remain Present when checked in.`;
             }
             renderRows(Array.isArray(data.rows) ? data.rows : []);
         } catch (error) {
@@ -248,7 +247,7 @@ function initBatchAttendancePage() {
                     <td>
                         <div class="batch-status-group" role="group" aria-label="Attendance status">
                             ${renderStatusButton('Present', normalizedStatus)}
-                            ${renderStatusButton('Late', normalizedStatus)}
+                            ${type === 'mechanic' ? renderStatusButton('Late', normalizedStatus) : ''}
                             ${renderStatusButton('Absent', normalizedStatus)}
                             ${renderStatusButton('On Leave', normalizedStatus)}
                         </div>
@@ -423,7 +422,7 @@ function initBatchAttendancePage() {
         if (!start) return;
 
         const late = minutes(time) > minutes(String(start).slice(0, 5)) + graceMinutes;
-        setSelectedStatus(row, late ? 'Late' : 'Present');
+        setSelectedStatus(row, type === 'mechanic' && late ? 'Late' : 'Present');
     }
 
     function updateAvailability(row) {
@@ -524,7 +523,7 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Late', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
+        return ['Present', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
     }
 
     function statusThemeClass(value) {

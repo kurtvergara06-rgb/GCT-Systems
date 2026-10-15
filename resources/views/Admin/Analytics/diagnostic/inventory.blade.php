@@ -227,9 +227,7 @@
                                 <strong class="{{ $row->state === 'Out of Stock' ? 'text-danger' : 'text-warning' }}">-{{ number_format($row->gap) }}</strong>
                             </div>
                             <div class="inv-item-badge">
-                                <span class="status-pill {{ $row->state === 'Out of Stock' ? 'inactive' : 'under-maintenance' }}">
-                                    <i></i>{{ $row->state }}
-                                </span>
+                                <x-ui.status-badge :status="$row->state" class="status-pill {{ $row->state === 'Out of Stock' ? 'inactive' : 'under-maintenance' }}" />
                             </div>
                         </div>
                     @endforeach
@@ -321,9 +319,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="status-pill {{ $row->state === 'Out of Stock' ? 'inactive' : 'under-maintenance' }}">
-                                        <i></i>{{ $row->state }}
-                                    </span>
+                                    <x-ui.status-badge :status="$row->state" class="status-pill {{ $row->state === 'Out of Stock' ? 'inactive' : 'under-maintenance' }}" />
                                 </td>
                             </tr>
                         @endforeach

@@ -19,8 +19,7 @@ class PmsSchedulingController extends Controller
 
     public function __construct(
         private readonly PmsStatusService $pmsStatusService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -167,6 +166,16 @@ class PmsSchedulingController extends Controller
                 ->values();
         }
 
+        $sort = in_array($request->query('sort'), ['bus_no', 'gps_report_date', 'current_km', 'overall_status'], true)
+            ? $request->query('sort')
+            : 'bus_no';
+        $descending = $request->query('sort_direction') === 'desc';
+        $groups = $groups->sortBy(
+            fn ($group) => data_get($group, $sort),
+            SORT_NATURAL | SORT_FLAG_CASE,
+            $descending
+        )->values();
+
         /*
         |--------------------------------------------------------------------------
         | Pagination
@@ -175,18 +184,18 @@ class PmsSchedulingController extends Controller
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
-            $rows = new LengthAwarePaginator(
-                $groups
-                    ->forPage($currentPage, self::PER_PAGE)
-                    ->values(),
-                $groups->count(),
-                self::PER_PAGE,
-                $currentPage,
-                [
-                    'path' => route('PMS-Scheduling', [], false),
-                    'query' => $request->except('page'),
-                ]
-            );
+        $rows = new LengthAwarePaginator(
+            $groups
+                ->forPage($currentPage, self::PER_PAGE)
+                ->values(),
+            $groups->count(),
+            self::PER_PAGE,
+            $currentPage,
+            [
+                'path' => route('PMS-Scheduling', [], false),
+                'query' => $request->except('page'),
+            ]
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -423,22 +432,22 @@ class PmsSchedulingController extends Controller
         }
 
         $issue = $pmsSchedule->maintenance_type
-            . ' is '
-            . strtolower($status)
-            . ' based on the PMS schedule threshold. '
-            . 'Current KM: '
-            . number_format($currentKm, 2)
-            . ' km. Next PMS KM: '
-            . number_format(
+            .' is '
+            .strtolower($status)
+            .' based on the PMS schedule threshold. '
+            .'Current KM: '
+            .number_format($currentKm, 2)
+            .' km. Next PMS KM: '
+            .number_format(
                 (float) $pmsSchedule->next_pms_km,
                 2
             )
-            . ' km.'
-            . (
+            .' km.'
+            .(
                 $pmsSchedule->recommended_date
                     ? ' Recommended Date: '
-                        . $pmsSchedule->recommended_date->format('M d, Y')
-                        . '.'
+                        .$pmsSchedule->recommended_date->format('M d, Y')
+                        .'.'
                     : ''
             );
 
@@ -456,5 +465,4 @@ class PmsSchedulingController extends Controller
             )
         );
     }
-
 }

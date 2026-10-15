@@ -96,84 +96,21 @@
                     :action="route('admin.users')"
                     class="records-toolbar users-toolbar"
                     search-placeholder="Search by name, email, role, or department..."
+                    search-label="Search Accounts"
+                    :filter-count="(int) (request()->filled('department') && request('department') !== 'All Departments') + (int) (request()->filled('role') && request('role') !== 'All Roles') + (int) (request()->filled('status') && request('status') !== 'All Status')"
+                    filter-title="Filter Accounts"
+                    :sort-options="['created_at' => 'Created Date', 'name' => 'Account Name', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status']"
+                    default-sort="created_at"
+                    default-direction="desc"
                     button-id="openAddUserModal"
                     button-label="Add Account"
                     button-icon="fa-user-plus"
                 >
-                    <div class="filter-group">
-                        <select
-                            name="department"
-                            id="departmentFilter"
-                            onchange="this.form.submit()"
-                            aria-label="Department"
-                        >
-                            <option
-                                value="All Departments"
-                                {{ request('department', 'All Departments') === 'All Departments' ? 'selected' : '' }}
-                            >
-                                All Departments
-                            </option>
-
-                            @foreach($departmentOptions as $department)
-                                <option
-                                    value="{{ $department }}"
-                                    {{ request('department') === $department ? 'selected' : '' }}
-                                >
-                                    {{ $department }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="roleFilter">Role</label>
-                        <select
-                            name="role"
-                            id="roleFilter"
-                            onchange="this.form.submit()"
-                        >
-                            <option
-                                value="All Roles"
-                                {{ request('role', 'All Roles') === 'All Roles' ? 'selected' : '' }}
-                            >
-                                All Roles
-                            </option>
-
-                            @foreach(($roles ?? []) as $roleValue => $roleLabel)
-                                <option
-                                    value="{{ $roleValue }}"
-                                    {{ request('role') === $roleValue ? 'selected' : '' }}
-                                >
-                                    {{ $roleLabel }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="statusFilter">Status</label>
-                        <select
-                            name="status"
-                            id="statusFilter"
-                            onchange="this.form.submit()"
-                        >
-                            <option
-                                value="All Status"
-                                {{ request('status', 'All Status') === 'All Status' ? 'selected' : '' }}
-                            >
-                                All Status
-                            </option>
-
-                            @foreach(($statuses ?? []) as $status)
-                                <option
-                                    value="{{ $status }}"
-                                    {{ request('status') === $status ? 'selected' : '' }}
-                                >
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Department" name="department" default="All Departments"><option value="All Departments">All Departments</option>@foreach($departmentOptions as $department)<option value="{{ $department }}" @selected(request('department') === $department)>{{ $department }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Role" name="role" default="All Roles"><option value="All Roles">All Roles</option>@foreach(($roles ?? []) as $roleValue => $roleLabel)<option value="{{ $roleValue }}" @selected(request('role') === $roleValue)>{{ $roleLabel }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
 
                 <div class="records-table-wrap users-table-wrap table-wrap">
@@ -391,7 +328,9 @@
                             @empty
                                 <x-ui.empty-row
                                     colspan="7"
-                                    message="No system accounts found."
+                                    icon="fa-users"
+                                    message="No User Accounts Found"
+                                    description="No system user accounts match your search or department filter."
                                 />
                             @endforelse
                         </tbody>

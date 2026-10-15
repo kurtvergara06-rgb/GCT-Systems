@@ -28,7 +28,7 @@ class BatchAttendanceTimeFlowTest extends TestCase
             ['D-0600', 'Six AM Driver', 'Morning', '06:00'],
             ['D-0730', 'Seven Thirty Driver', 'Morning', '07:30'],
             ['D-1430', 'Two Thirty PM Driver', 'Afternoon', '14:30'],
-            ['D-0000', 'Midnight Driver', 'Night', '00:00'],
+            ['D-0000', 'Midnight Driver', 'Morning', '00:00'],
             ['D-1200', 'Noon Driver', 'Morning', '12:00'],
         ])->map(function (array $data): array {
             Driver::create([
@@ -59,10 +59,10 @@ class BatchAttendanceTimeFlowTest extends TestCase
 
         $expectedDriverStatuses = [
             'D-0600' => 'Present',
-            'D-0730' => 'Late',
-            'D-1430' => 'Late',
+            'D-0730' => 'Present',
+            'D-1430' => 'Present',
             'D-0000' => 'Present',
-            'D-1200' => 'Late',
+            'D-1200' => 'Present',
         ];
 
         foreach ($drivers as $row) {
@@ -115,13 +115,52 @@ class BatchAttendanceTimeFlowTest extends TestCase
             ->assertJsonFragment([
                 'person_id' => 'D-1430',
                 'time_in' => '14:30',
-                'status' => 'Late',
+                'status' => 'Present',
             ])
             ->assertJsonFragment([
                 'person_id' => 'D-0000',
                 'time_in' => '00:00',
                 'status' => 'Present',
             ]);
+    }
+
+    public function test_batch_attendance_rejects_unsupported_night_shift_rows(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        Driver::create([
+            'driver_id' => 'D-NIGHT',
+            'driver_name' => 'Unsupported Night Driver',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('operation.attendance.batch.store', ['type' => 'driver']), [
+                'attendance_date' => '2026-10-08',
+                'rows' => [[
+                    'person_id' => 'D-NIGHT',
+                    'name' => 'Unsupported Night Driver',
+                    'shift' => 'Night',
+                    'time_in' => '00:00',
+                    'time_out' => null,
+                    'status' => 'Present',
+                    'assigned_job' => null,
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('rows.0.shift');
+
+        $this->assertDatabaseMissing('driver_attendances', [
+            'driver_id' => 'D-NIGHT',
+            'attendance_date' => '2026-10-08',
+        ]);
     }
 
     public function test_shared_picker_has_one_confirmation_path_and_accepts_valid_24_hour_values(): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
+use App\Support\TableSort;
 use Illuminate\Http\Request;
 
 class InventoryRestockController extends Controller
@@ -36,8 +37,8 @@ class InventoryRestockController extends Controller
             $query->where('status', $request->status);
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $restockRequests = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 

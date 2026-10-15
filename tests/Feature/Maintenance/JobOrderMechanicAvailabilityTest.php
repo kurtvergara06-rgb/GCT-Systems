@@ -213,4 +213,33 @@ class JobOrderMechanicAvailabilityTest extends TestCase
         }
     }
 
+    public function test_mechanic_master_availability_excludes_inactive_and_busy_people(): void
+    {
+        $user = $this->maintenanceUser();
+        $free = $this->mechanic('MEC-KPI-FREE', 'KPI Free Mechanic');
+        $busy = $this->mechanic('MEC-KPI-BUSY', 'KPI Busy Mechanic');
+        $inactive = $this->mechanic('MEC-KPI-OFF', 'KPI Inactive Mechanic', 'Inactive');
+        $this->attendance($free, 'Present');
+        $this->attendance($busy, 'Present');
+        $this->attendance($inactive, 'Present');
+
+        JobOrder::create([
+            'job_order_no' => 'JO-KPI-0001',
+            'bus_no' => 'BUS-KPI-01',
+            'problem_issue' => 'Scheduled repair',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => $busy->mechanic_name,
+            'status' => 'On Going',
+            'start_date' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->withoutMiddleware()
+            ->get(route('mechanic-list', ['availability' => 'Available']))
+            ->assertOk()
+            ->assertViewHas('totalMechanics', 2)
+            ->assertViewHas('availableMechanics', 1)
+            ->assertViewHas('onDutyMechanics', 1);
+    }
+
 }
