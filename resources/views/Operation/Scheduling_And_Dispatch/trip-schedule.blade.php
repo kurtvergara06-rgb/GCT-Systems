@@ -296,6 +296,14 @@
                                                         <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong> · {{ $trip->shift }} shift
                                                     </div>
                                                     <div class="service-detail-item">
+                                                        <span class="detail-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Client / Company:</span>
+                                                        @if(filled($trip->client_name))
+                                                            <strong>{{ $trip->client_name }}</strong>
+                                                        @else
+                                                            <span class="text-muted">No client assigned</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> ETA:</span>
                                                         <strong>{{ $arrivalDisplay }}</strong>
                                                     </div>
