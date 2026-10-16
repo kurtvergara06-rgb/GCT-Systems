@@ -229,6 +229,7 @@ class TripScheduleController extends Controller
                     'trip_code' => 'TMP-'.Str::upper(Str::random(20)),
                     'trip_date' => $validated['trip_date'],
                     'shuttle_route_id' => $route->id,
+                    'client_name' => $validated['client_name'],
                     'direction' => $validated['direction'] ?? null,
                     'required_buses' => $validated['required_buses'] ?? 1,
                     'departure_time' => $departure->format('H:i:s'),
@@ -337,6 +338,7 @@ class TripScheduleController extends Controller
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
+                        'client_name' => $validated['client_name'],
                         'direction' => $validated['direction'] ?? $lockedTrip->direction,
                         'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
@@ -499,7 +501,8 @@ class TripScheduleController extends Controller
                 'required',
                 'date_format:H:i',
             ],
-            'direction' => ['nullable', Rule::in(['Incoming', 'Outgoing'])],
+            'client_name' => [$tripSchedule === null ? 'required' : 'nullable', 'string', 'max:255'],
+            'direction' => [$tripSchedule === null ? 'required' : 'nullable', Rule::in(['Incoming', 'Outgoing'])],
             'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
                 'nullable',
