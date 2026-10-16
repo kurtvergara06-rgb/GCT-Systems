@@ -307,9 +307,25 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         updateSpecializationControls();
     };
 
+    const refreshBusOwnership = (currentDriverId = '') => {
+        if (entity !== 'Driver') return;
+        busOptions.forEach((option) => {
+            const owner = option.dataset.ownerId || '';
+            const locked = owner !== '' && owner !== String(currentDriverId);
+            const check = option.querySelector('[data-driver-bus-checkbox]');
+            if (!check) return;
+            check.disabled = locked;
+            if (locked) check.checked = false;
+            option.classList.toggle('is-ownership-locked', locked);
+            option.title = locked ? 'Already assigned to another active driver' : '';
+        });
+        updateBusPicker();
+    };
+
     const resetForm = () => {
         form.reset();
         busChecks.forEach((check) => { check.checked = false; check.disabled = false; });
+        refreshBusOwnership();
         if (busTrigger) busTrigger.disabled = false;
         if (busSearch) busSearch.value = '';
         busOptions.forEach((option) => { option.hidden = false; });
@@ -394,6 +410,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (headerIcon) headerIcon.className = 'fa-solid fa-pen-to-square';
             form.action = button.dataset.updateUrl;
             methodField.value = 'PUT';
+            refreshBusOwnership(button.dataset.recordId || '');
             // Preserve identifiers referenced by historical attendance and trips.
             if (entity === 'Driver' && record.identity_locked) {
                 for (const name of ['driver_id', 'driver_name']) {
