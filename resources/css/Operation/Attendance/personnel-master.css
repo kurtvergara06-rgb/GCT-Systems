@@ -2189,3 +2189,21 @@
 .driver-bus-more-row span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .driver-bus-more-row b { font-size: 11px; }
 .driver-bus-more-row small { font-size: 10px; color: #71819b; }
+
+/* Driver modal: compact assigned-bus control alongside contact number. */
+.personnel-modal-driver .driver-bus-field { display: flex; flex-direction: column; min-width: 0; gap: 5px; }
+.personnel-modal-driver .driver-bus-field > span { display: inline-flex; align-items: center; gap: 7px; }
+.personnel-modal-driver .driver-bus-field > span i { color: #2563eb; }
+.personnel-modal-driver .driver-bus-picker-trigger {
+    min-height: 40px; height: 40px; padding: 8px 11px; font-size: 12px;
+    border: 1px solid #d3e0f1; border-radius: 8px; background: #fdfefe;
+}
+.personnel-modal-driver .driver-bus-picker-trigger:hover { background: #f7faff; }
+.personnel-modal-driver .driver-bus-picker-panel { margin-top: 5px; padding: 7px; border-radius: 9px; }
+.personnel-modal-driver .driver-bus-picker-options { max-height: 144px; }
+.personnel-modal-driver .driver-bus-picker-option { min-height: 39px; padding: 6px 8px; }
+.personnel-modal-driver .driver-bus-option-text strong { font-size: 11px; }
+.personnel-modal-driver .driver-bus-option-text small { font-size: 10px; }
+.personnel-modal-driver .driver-bus-chips { gap: 5px; margin-top: 2px; }
+.personnel-modal-driver .driver-bus-chip { padding: 3px 7px; font-size: 10px; }
+.personnel-modal-driver .driver-bus-help { font-size: 10px; color: #7285a3; margin-top: 2px; }
