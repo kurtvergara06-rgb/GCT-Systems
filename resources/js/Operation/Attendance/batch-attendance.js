@@ -95,7 +95,7 @@ function initBatchAttendancePage() {
                                     <th>${type === 'driver' ? 'Duty' : 'Shift'}</th>
                                     <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
                                     <th>Time In</th>
-                                    <th>Time Out</th>
+                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}</th>
                                     <th>Attendance Status</th>
                                     <th>Availability</th>
                                 </tr>
@@ -240,9 +240,10 @@ function initBatchAttendancePage() {
                         </div>
                     </td>
                     <td>
-                        <div class="batch-time-cell batch-time-out-cell">
+                        <div class="batch-time-cell batch-time-out-cell" style="${type === 'driver' ? 'display:none' : ''}">
                             <input type="time" data-time-out data-native-picker="true" value="${escapeHtml(row.time_out || '')}">
                         </div>
+                        ${type === 'driver' ? '<span class="batch-scheduled-time">Daily</span>' : ''}
                     </td>
                     <td>
                         <div class="batch-status-group" role="group" aria-label="Attendance status">
