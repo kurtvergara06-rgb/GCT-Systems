@@ -2756,3 +2756,10 @@
   white-space: nowrap;
   text-align: left;
 }
+
+/* Client column: align its company avatar beneath the header label,
+   just as the driver avatar aligns beneath Authorized Drivers. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-summary {
+  box-sizing: border-box;
+  padding-left: 35px;
+}
