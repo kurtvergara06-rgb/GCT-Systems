@@ -69,7 +69,7 @@
             <colgroup><col style="width: 14%"><col style="width: 18%"><col style="width: 28%"><col style="width: 12%"><col style="width: 12%"><col style="width: 16%"></colgroup>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>Driver ID</th>
                 <th>Driver</th>
                 <th>Current Assignment</th>
                 <th>Time-in</th>
@@ -114,7 +114,7 @@
 
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
-                  <td><strong>{{ $attendance->driver_name }}</strong></td>
+                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>Driver profile</small></span></div></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
