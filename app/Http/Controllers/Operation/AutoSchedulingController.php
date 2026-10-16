@@ -444,7 +444,7 @@ class AutoSchedulingController extends Controller
                         ->map(fn (Bus $candidate) => [
                             'label' => $candidate->bus_no.' (Reserve)',
                             'score' => null,
-                            'reason' => 'Standby unit only. Requires Operations/OIC approval and an eligible replacement driver before deployment.',
+                            'reason' => 'Standby option. Operations Head may assign directly once an eligible driver and all safety checks are satisfied.',
                         ])
                         ->values()->all();
 
@@ -650,7 +650,7 @@ class AutoSchedulingController extends Controller
         if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
             return response()->json([
                 'drivers' => $drivers->map(fn ($d) => ['id' => $d->id, 'name' => $d->driver_name, 'status' => $d->status])->values(),
-                'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — approval required)' : ''), 'purpose' => $b->fleet_purpose])->values(),
+                'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — Head assignment only)' : ''), 'purpose' => $b->fleet_purpose])->values(),
             ]);
         }
         $driver = $drivers->firstWhere('id', (int) $validated['driver_attendance_id']);
@@ -1123,12 +1123,11 @@ class AutoSchedulingController extends Controller
                 }
 
                 if ($bus && $bus->fleet_purpose === 'Reserve') {
-                    $approval = $recommendation['oic_approval'] ?? null;
-                    if (! is_array($approval)
-                        || empty($approval['method'])
-                        || empty($approval['approved_at'])) {
+                    $actor = auth()->user();
+                    if (! $actor || strtolower(trim((string) $actor->role)) !== 'head'
+                        || ! in_array(strtolower(trim((string) $actor->department)), ['operation', 'admin'], true)) {
                         throw ValidationException::withMessages([
-                            $field => 'Record the OIC approval method and time before confirming a Reserve Bus.',
+                            $field => 'Only the Operations Head may assign a Reserve Bus.',
                         ]);
                     }
 
@@ -1214,7 +1213,6 @@ class AutoSchedulingController extends Controller
                     ]);
 
                 if ($bus->fleet_purpose === 'Reserve') {
-                    $approval = $recommendation['oic_approval'];
                     DB::table('auto_schedule_reserve_approvals')->insert([
                         'trip_assignment_id' => $assignment->id,
                         'trip_schedule_id' => $trip->id,
@@ -1222,10 +1220,10 @@ class AutoSchedulingController extends Controller
                         'trip_code' => $trip->trip_code,
                         'bus_no' => $bus->bus_no,
                         'recorded_by' => auth()->id(),
-                        'approved_by' => 'OIC (externally confirmed)',
-                        'approval_method' => $approval['method'],
-                        'approved_at' => Carbon::parse($approval['approved_at'])->toDateTimeString(),
-                        'remarks' => $approval['remarks'] ?? null,
+                        'approved_by' => 'Operations Head (direct assignment)',
+                        'approval_method' => 'Direct',
+                        'approved_at' => now(),
+                        'remarks' => 'Direct Reserve assignment by authorized Head.',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
