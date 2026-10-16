@@ -4681,3 +4681,27 @@ body.ai-modal-open {
     color: inherit !important;
   }
 }
+
+/* Reserve choices in AI Conflict Report: readable, clearly actionable cards. */
+.auto-scheduling-page .gct-report-reserve-alternatives { display: grid; gap: 10px; }
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  min-height: 100px; padding: 14px 16px !important; margin: 0 !important;
+  background: #fff; border: 1px solid #d9e4f4; border-radius: 12px;
+  font-size: 12px; line-height: 1.5; white-space: normal;
+  user-select: none;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option strong {
+  font-size: 13px; line-height: 1.4; color: #172d4e;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option small {
+  font-size: 12px; font-weight: 400; line-height: 1.5;
+  color: #5c6e88; margin: 0 !important;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option small:last-child {
+  color: #155bd4; font-weight: 700;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option:hover,
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option:focus-visible {
+  background: #f2f7ff; border-color: #3273dc; outline: 2px solid transparent;
+}
