@@ -123,7 +123,8 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         const query = busSearch.value.trim().toLowerCase();
         let count = 0;
         busOptions.forEach((option) => {
-            const match = option.textContent.toLowerCase().includes(query);
+            const match = option.textContent.toLowerCase().includes(query)
+                && !option.classList.contains('is-ownership-locked');
             option.hidden = !match;
             if (match) count++;
         });
@@ -317,6 +318,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             check.disabled = locked;
             if (locked) check.checked = false;
             option.classList.toggle('is-ownership-locked', locked);
+            option.hidden = locked;
             option.title = locked ? 'Already assigned to another active driver' : '';
         });
         updateBusPicker();
@@ -328,7 +330,9 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         refreshBusOwnership();
         if (busTrigger) busTrigger.disabled = false;
         if (busSearch) busSearch.value = '';
-        busOptions.forEach((option) => { option.hidden = false; });
+        busOptions.forEach((option) => {
+            option.hidden = option.classList.contains('is-ownership-locked');
+        });
         if (busEmpty) busEmpty.hidden = true;
         closeBusPicker();
         updateBusPicker();
