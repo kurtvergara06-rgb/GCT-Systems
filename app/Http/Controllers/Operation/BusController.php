@@ -515,8 +515,16 @@ class BusController extends Controller
 
             if ($allocation !== null) {
                 $lockedBus->load('operationClients');
-                $oldNames = $lockedBus->operationClients->pluck('name')->map(fn ($name) => mb_strtolower($name))->sort()->values()->all();
-                $newNames = array_map(fn ($name) => mb_strtolower($name), $allocation['names']);
+                // Ignore harmless differences in case and whitespace when
+                // comparing the submitted company against the saved allocation.
+                // This is comparison-only: stored names are not rewritten.
+                $normalizeClientName = static fn (string $name): string => mb_strtolower(
+                    trim((string) preg_replace('/\\s+/u', ' ', $name))
+                );
+                $oldNames = $lockedBus->operationClients->pluck('name')
+                    ->map(fn ($name) => $normalizeClientName((string) $name))
+                    ->sort()->values()->all();
+                $newNames = array_map($normalizeClientName, $allocation['names']);
                 sort($newNames);
                 // Keep the existing allocation type (including legacy Shared)
                 // when the submitted company name has not actually changed.
