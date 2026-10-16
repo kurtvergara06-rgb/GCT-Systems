@@ -659,6 +659,15 @@ class AutoSchedulingController extends Controller
         if (! $driver || ! $bus) {
             throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
         }
+        if ($bus->fleet_purpose === 'Reserve') {
+            $actor = auth()->user();
+            if (! $actor || strtolower(trim((string) $actor->role)) !== 'head'
+                || ! in_array(strtolower(trim((string) $actor->department)), ['operation', 'admin'], true)) {
+                throw ValidationException::withMessages([
+                    'bus_id' => 'Only Operations Head may select a Reserve Bus.',
+                ]);
+            }
+        }
         $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
         $this->assertBusMatchesTripClient($trip, $bus, 'assignment');
         $others = collect($validated['recommendations'] ?? []);
