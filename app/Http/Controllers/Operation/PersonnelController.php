@@ -88,7 +88,15 @@ class PersonnelController extends Controller
         });
 
         $availableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no', 'plate_no']);
-        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats', 'availableBuses'));
+        $activeBusOwners = Driver::query()
+            ->where('employment_status', 'Active')
+            ->with('authorizedBuses:id')
+            ->get()
+            ->flatMap(fn (Driver $driver) => $driver->authorizedBuses->map(
+                fn ($bus) => ['bus_id' => $bus->id, 'owner_id' => $driver->id, 'owner_name' => $driver->driver_name]
+            ))
+            ->keyBy('bus_id');
+        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats', 'availableBuses', 'activeBusOwners'));
     }
 
     public function mechanics(Request $request): View
