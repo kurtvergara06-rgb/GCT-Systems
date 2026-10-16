@@ -308,7 +308,6 @@ class TripAssignmentController extends Controller
 
         $drivers = DriverAttendance::query()
             ->whereDate('attendance_date', $tripSchedule->trip_date)
-            ->where('shift', $tripSchedule->shift)
             ->whereIn('status', ['Present', 'Late'])
             ->whereHas('driver', fn ($query) => $query
                 ->where('employment_status', 'Active')
@@ -428,6 +427,7 @@ class TripAssignmentController extends Controller
                 );
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
+                $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
 
                 if ($trip->assignments()->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -532,6 +532,7 @@ class TripAssignmentController extends Controller
                 );
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
+                $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
 
                 if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -682,14 +683,13 @@ class TripAssignmentController extends Controller
         $attendance = DriverAttendance::query()
             ->whereKey($attendanceId)
             ->whereDate('attendance_date', $trip->trip_date)
-            ->where('shift', $trip->shift)
             ->whereIn('status', ['Present', 'Late'])
             ->lockForUpdate()
             ->first();
 
         if (! $attendance) {
             throw ValidationException::withMessages([
-                'driver_attendance_id' => 'Select a present driver attendance record for this trip date and shift.',
+                'driver_attendance_id' => 'Select a present driver attendance record for this trip date.',
             ]);
         }
 
@@ -731,6 +731,20 @@ class TripAssignmentController extends Controller
         throw ValidationException::withMessages([
             'trip_schedule_id' => 'This trip uses an inactive route. Reactivate the route or move the trip to an active route before assigning a driver and bus.',
         ]);
+    }
+
+    private function assertDriverAuthorizedForBus(string $driverId, int $busId): void
+    {
+        $authorized = Driver::query()
+            ->where('driver_id', $driverId)
+            ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($busId))
+            ->exists();
+
+        if (! $authorized) {
+            throw ValidationException::withMessages([
+                'driver_attendance_id' => 'This driver is not authorized for the selected bus. Update Authorized Buses in the Driver Master List.',
+            ]);
+        }
     }
 
     private function lockEligibleBus(int $busId): Bus
