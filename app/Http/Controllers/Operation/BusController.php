@@ -71,7 +71,7 @@ class BusController extends Controller
         $direction = $request->query('sort_direction', $request->query('direction')) === 'desc' ? 'desc' : 'asc';
 
         $buses = $query
-            ->with('operationClients')
+            ->with(['operationClients', 'authorizedDrivers'])
             ->orderBy($sort, $direction)
             ->when($sort !== 'bus_no', fn ($builder) => $builder->orderBy('bus_no'))
             ->paginate(10)
@@ -140,12 +140,15 @@ class BusController extends Controller
             })
             ->count();
 
+        $companyOptions = OperationClient::query()->orderBy('name')->pluck('name');
+
         return view('Operation.Shuttle_Bus_Management.bus-master-list', compact(
             'buses',
             'totalBuses',
             'activeBuses',
             'underMaintenance',
-            'availableBuses'
+            'availableBuses',
+            'companyOptions'
         ));
     }
 
