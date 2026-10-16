@@ -300,6 +300,26 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
+    // Reserve is a shared standby asset: client details belong only to Regular buses.
+    const syncBusPurposeSections = (form) => {
+        if (!form) return;
+        const purpose = form.querySelector('select[name="fleet_purpose"]');
+        const reserve = purpose?.value === 'Reserve';
+        form.querySelectorAll('[data-bus-client-panel]').forEach((section) => {
+            section.hidden = reserve;
+            section.style.display = reserve ? 'none' : '';
+            section.querySelectorAll('input[name="client_name"]').forEach((input) => {
+                if (reserve) input.value = '';
+                input.disabled = reserve;
+            });
+        });
+    };
+    document.querySelectorAll('.bus-master-list-page select[name="fleet_purpose"]').forEach((select) => {
+        const form = select.closest('form');
+        syncBusPurposeSections(form);
+        select.addEventListener('change', () => syncBusPurposeSections(form));
+    });
+
     // Delegated view action works after AJAX table filtering and remains read-only.
     const viewBusModal = document.getElementById('viewBusModal');
     const viewBusPage = document.querySelector('.bus-master-list-page');
@@ -325,6 +345,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
             if (target) target.textContent = String(value || '—');
         }
+        viewBusModal.querySelectorAll('[data-bus-regular-detail]').forEach((item) => {
+            item.hidden = button.dataset.fleetPurpose === 'Reserve';
+        });
         const statusBadge = viewBusModal.querySelector('.bus-details-status');
         if (statusBadge) {
             const validStatuses = ['Active', 'Inactive', 'Under Maintenance'];
@@ -465,6 +488,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 }
                 const editFleetPurpose = document.getElementById('edit_fleet_purpose');
                 if (editFleetPurpose) editFleetPurpose.value = button.dataset.fleetPurpose || 'Regular';
+                syncBusPurposeSections(editBusForm);
 
 
                 // Operation cannot edit any master-list field while Maintenance
