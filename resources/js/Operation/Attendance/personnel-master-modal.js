@@ -78,7 +78,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const busOptions = [...(busPicker?.querySelectorAll('[data-driver-bus-option]') || [])];
     const busChecks = [...(busPicker?.querySelectorAll('[data-driver-bus-checkbox]') || [])];
     const busEmpty = busPicker?.querySelector('[data-driver-bus-empty]');
-    const busChips = busPicker?.querySelector('[data-driver-bus-chips]');
+    const busChips = form.querySelector('[data-driver-bus-chips]');
     const updateBusPicker = () => {
         if (!busLabel) return;
         const selected = busChecks.filter((check) => check.checked);
