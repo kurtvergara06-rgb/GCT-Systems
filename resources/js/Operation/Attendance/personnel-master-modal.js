@@ -84,7 +84,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         const selected = busChecks.filter((check) => check.checked);
         busLabel.textContent = selected.length
             ? `${selected.length} bus${selected.length === 1 ? '' : 'es'} selected`
-            : 'Select authorized buses';
+            : 'Choose buses';
         if (!busChips) return;
         busChips.replaceChildren();
         selected.forEach((check) => {
