@@ -528,9 +528,9 @@
                     </div>
                     <div class="form-group full-width" style="padding: 12px 16px">
                         <label>Client Allocation Type</label>
-                        <select name="client_allocation_type" id="edit_client_allocation_type" required><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
+                        <select name="client_allocation_type" id="edit_client_allocation_type"><option value="">Not allocated (legacy)</option><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
                         <label>Authorized Company Names (comma-separated for Shared)</label>
-                        <input name="client_names" id="edit_client_names" maxlength="2000" required>
+                        <input name="client_names" id="edit_client_names" maxlength="2000" placeholder="Company A, Company B">
                         <small>Cannot modify allocations with ongoing or future assignments.</small>
                     </div>
                     <div class="bus-modal-lower">
