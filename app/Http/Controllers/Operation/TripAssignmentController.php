@@ -330,7 +330,7 @@ class TripAssignmentController extends Controller
                 'driver_id' => $attendance->driver_id,
                 'name' => $attendance->driver_name,
                 'status' => $attendance->status,
-                'authorized_bus_ids' => $attendance->driver?->authorizedBuses?->pluck('id')->all() ?? [],
+                'authorized_bus_ids' => $attendance->driver?->authorizedBuses?->pluck('id')?->all() ?? [],
             ]);
 
         $buses = Bus::query()
