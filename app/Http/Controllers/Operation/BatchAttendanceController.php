@@ -51,13 +51,13 @@ class BatchAttendanceController extends Controller
         $people = $personModel::query()
             ->where('employment_status', 'Active')
             ->when($type === 'mechanic', fn ($query) => $query->where('shift', 'Morning'))
-            ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
+            ->when($type === 'mechanic' && $shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->orderBy($nameColumn)
             ->get();
 
         $dateRecords = $attendanceModel::query()
             ->whereDate('attendance_date', $date)
-            ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
+            ->when($type === 'mechanic' && $shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->get()
             ->keyBy($idColumn);
 
@@ -79,7 +79,7 @@ class BatchAttendanceController extends Controller
             return [
                 'person_id' => $personId,
                 'name' => (string) $person->{$nameColumn},
-                'shift' => (string) $person->shift,
+                'shift' => $type === 'driver' ? 'Morning' : (string) $person->shift,
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
@@ -212,7 +212,7 @@ class BatchAttendanceController extends Controller
 
                     $values = [
                         $nameColumn => (string) $person->{$nameColumn},
-                        'shift' => $row['shift'],
+                        'shift' => $type === 'driver' ? 'Morning' : $row['shift'],
                         'time_in' => $timeIn ? $timeIn . ':00' : null,
                         'time_out' => $timeOut ? $timeOut . ':00' : null,
                         'status' => $status,
