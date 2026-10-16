@@ -194,9 +194,10 @@
                         <input type="search" class="driver-bus-picker-search" data-driver-bus-search placeholder="Search bus number or plate..." aria-label="Search available buses">
                         <div class="driver-bus-picker-options">
                             @foreach($availableBuses as $busOption)
-                                <label class="driver-bus-picker-option" data-driver-bus-option>
+                                @php $activeOwner = $activeBusOwners->get($busOption->id); @endphp
+                                <label class="driver-bus-picker-option" data-driver-bus-option data-owner-id="{{ $activeOwner['owner_id'] ?? '' }}">
                                     <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox data-bus-number="{{ $busOption->bus_no }}" @checked(in_array($busOption->id, old('bus_ids', [])))>
-                                    <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $busOption->plate_no ?: 'No plate number' }}</small></span>
+                                    <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $activeOwner ? 'Assigned to '.$activeOwner['owner_name'] : ($busOption->plate_no ?: 'No plate number') }}</small></span>
                                 </label>
                             @endforeach
                         </div>
