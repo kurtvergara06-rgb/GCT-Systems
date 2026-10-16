@@ -423,10 +423,10 @@
                 </div>
 
                 <div class="ui-form-group ui-form-full">
-                    <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
+                    <label for="tripClientName">Client / Company <small>(Optional)</small></label>
                     <div class="ui-input-wrap has-icon">
                         <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                        <input type="text" id="tripClientName" name="client_name" maxlength="255" value="{{ old('client_name') }}" placeholder="e.g. EPSON or SM" required autocomplete="organization">
+                        <input type="text" id="tripClientName" name="client_name" maxlength="255" value="{{ old('client_name') }}" placeholder="Only for client-dedicated trips (e.g. EPSON)" autocomplete="organization">
                     </div>
                     @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
