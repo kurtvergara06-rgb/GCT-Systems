@@ -206,6 +206,11 @@ class BusController extends Controller
                 'fleet_purpose' => $validated['fleet_purpose'] ?? 'Regular',
             ]);
 
+            if ($createdBus->fleet_purpose === 'Reserve' && $allocation !== null) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Reserve buses are standby units and cannot have permanent client allocations.',
+                ]);
+            }
             if ($allocation !== null) $this->syncClientAllocation($createdBus, $allocation);
             $this->pmsScheduleSynchronizer->ensureDefaultsFor($createdBus);
 
@@ -503,6 +508,12 @@ class BusController extends Controller
                 ]);
             }
 
+            if ($newFleetPurpose === 'Reserve' && $allocation !== null) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Reserve buses must remain unallocated to clients.',
+                ]);
+            }
+
             $lockedBus->update([
                 'bus_no' => $newBusNo,
                 'plate_no' => $validated['plate_no'] ?? null,
@@ -513,7 +524,14 @@ class BusController extends Controller
                 'fleet_purpose' => $newFleetPurpose,
             ]);
 
-            if ($allocation !== null) {
+            if ($newFleetPurpose === 'Reserve') {
+                // Reserve is not a permanent client or driver resource.
+                // The fleet-purpose switch was already checked for unresolved
+                // active or future trips above; preserve historical trip rows.
+                $lockedBus->operationClients()->detach();
+                $lockedBus->authorizedDrivers()->detach();
+                $lockedBus->update(['client_allocation_type' => null]);
+            } elseif ($allocation !== null) {
                 $lockedBus->load('operationClients');
                 // Ignore harmless differences in case and whitespace when
                 // comparing the submitted company against the saved allocation.
