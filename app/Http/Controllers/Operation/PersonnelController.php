@@ -490,13 +490,7 @@ class PersonnelController extends Controller
 
     private function assertDriverCanBeDeactivated(Driver $driver): void
     {
-        // Attendance history locks deactivation independently of trip status.
-        if ($driver->attendances()->exists()) {
-            throw ValidationException::withMessages([
-                'employment_status' => 'This driver already has attendance history and cannot be deactivated from the Driver Master List.',
-            ]);
-        }
-
+        // Past attendance does not block deactivation; unresolved trips do.
         $hasActiveOrUpcomingTrip = TripAssignment::query()
             ->where('driver_id', $driver->driver_id)
             ->whereHas('tripSchedule', fn ($query) => $query
