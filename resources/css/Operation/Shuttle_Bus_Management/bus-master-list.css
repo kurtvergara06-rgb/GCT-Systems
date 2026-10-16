@@ -2731,3 +2731,13 @@
   width: 100%;
   text-align: left;
 }
+
+/* Match empty and allocated client rows to the driver's left-aligned identity cells. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell {
+  text-align: left;
+}
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
