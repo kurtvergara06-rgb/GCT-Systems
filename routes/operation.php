@@ -21,6 +21,11 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->name('dashboard-operation');
 
+    Route::redirect('/operation/shuttle-bus-management', '/bus-master-list')->name('operation.shuttle-bus-management');
+    Route::redirect('/operation/personnel-management/driver-master-list', '/operation/personnel/drivers')->name('operation.personnel-management.driver-master-list');
+    Route::redirect('/operation/personnel-management/mechanic-master-list', '/operation/personnel/mechanics')->name('operation.personnel-management.mechanic-master-list');
+    Route::redirect('/operation/routes-stops', '/operation/routes')->name('operation.routes-stops');
+
     Route::controller(BusController::class)
         ->prefix('bus-master-list')
         ->middleware('system.permission:operation,view')

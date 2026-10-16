@@ -2115,74 +2115,107 @@
     height:45px; padding-left:42px; border-radius:10px;
     background-image:none; background-color:#fff;
 }
-#incidentReportModal .inc-bus-lookup:before {
+#incidentReportModal .inc-bus-lookup:before,
+.inc-report-layout .inc-bus-lookup:before {
     content:""; position:absolute; left:14px; top:38px;
     width:15px; height:15px; background:currentColor;
     color:#365b92; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 16V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v10h1v2h-2v2h-2v-2H7v2H5v-2H3v-2zm3-11a1 1 0 0 0-1 1v6h12V6a1 1 0 0 0-1-1zm-1 9v2h12v-2z'/%3E%3C/svg%3E") center/contain no-repeat;
     pointer-events:none;
 }
-#incidentReportModal .inc-bus-search-help { margin:0; color:#768aa3; font-size:11px; }
-#incidentReportModal .inc-bus-trip-summary {
+#incidentReportModal .inc-bus-search-help,
+.inc-report-layout .inc-bus-search-help { margin:0; color:#768aa3; font-size:11px; }
+#incidentReportModal .inc-bus-trip-summary,
+.inc-report-layout .inc-bus-trip-summary {
     border:1px solid #d9e6f7; background:#f5f9ff;
     border-radius:12px; padding:13px 14px;
 }
-#incidentReportModal .inc-bus-trip-summary[hidden] { display:none!important; }
-#incidentReportModal .inc-bus-trip-summary-head {
+#incidentReportModal .inc-bus-trip-summary[hidden],
+.inc-report-layout .inc-bus-trip-summary[hidden] { display:none!important; }
+#incidentReportModal .inc-bus-trip-summary-head,
+.inc-report-layout .inc-bus-trip-summary-head {
     display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
 }
-#incidentReportModal .inc-bus-trip-summary-head strong { font-size:13px; color:#102b54; }
-#incidentReportModal .inc-bus-trip-summary-head small { font-size:11px; font-weight:500; color:#7588a1; }
-#incidentReportModal [data-incident-trip-status] {
+#incidentReportModal .inc-bus-trip-summary-head strong,
+.inc-report-layout .inc-bus-trip-summary-head strong { font-size:13px; color:#102b54; }
+#incidentReportModal .inc-bus-trip-summary-head small,
+.inc-report-layout .inc-bus-trip-summary-head small { font-size:11px; font-weight:500; color:#7588a1; }
+#incidentReportModal [data-incident-trip-status],
+.inc-report-layout [data-incident-trip-status] {
     display:inline-flex; color:#166534; background:#dcfce7; border-radius:999px;
     padding:5px 10px; font-size:10px; font-weight:700;
 }
-#incidentReportModal .inc-bus-trip-context {
+#incidentReportModal .inc-bus-trip-context,
+.inc-report-layout .inc-bus-trip-context {
     grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; border:0; padding:0; background:transparent;
 }
-#incidentReportModal .inc-bus-trip-context > div { border-right:1px solid #dce6f5; padding-right:8px; }
-#incidentReportModal .inc-bus-trip-context > div:last-child { border-right:0; }
-#incidentReportModal .inc-bus-trip-context small { color:#7288a6; }
-#incidentReportModal .inc-bus-trip-context strong { color:#122b53; font-size:12px; }
-#incidentReportModal .inc-bus-lookup-results { position:relative; z-index:4; box-shadow:0 8px 20px rgba(16,42,86,.07); }
+#incidentReportModal .inc-bus-trip-context > div,
+.inc-report-layout .inc-bus-trip-context > div { border-right:1px solid #dce6f5; padding-right:8px; }
+#incidentReportModal .inc-bus-trip-context > div:last-child,
+.inc-report-layout .inc-bus-trip-context > div:last-child { border-right:0; }
+#incidentReportModal .inc-bus-trip-context small,
+.inc-report-layout .inc-bus-trip-context small { color:#7288a6; }
+#incidentReportModal .inc-bus-trip-context strong,
+.inc-report-layout .inc-bus-trip-context strong { color:#122b53; font-size:12px; }
+#incidentReportModal .inc-bus-lookup-results,
+.inc-report-layout .inc-bus-lookup-results { position:relative; z-index:4; box-shadow:0 8px 20px rgba(16,42,86,.07); }
 @media(max-width:640px) {
- #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); }
- #incidentReportModal .inc-bus-trip-context > div { border-right:0; }
+ #incidentReportModal .inc-bus-trip-context,
+ .inc-report-layout .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #incidentReportModal .inc-bus-trip-context > div,
+ .inc-report-layout .inc-bus-trip-context > div { border-right:0; }
 }
 
 /* Four-column matched-trip card, visible even before a bus is selected. */
-#incidentReportModal .inc-bus-trip-summary { margin-top:3px; }
-#incidentReportModal .inc-bus-trip-context { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; }
-#incidentReportModal .inc-bus-trip-context .inc-summary-detail {
+#incidentReportModal .inc-bus-trip-summary,
+.inc-report-layout .inc-bus-trip-summary { margin-top:3px; }
+#incidentReportModal .inc-bus-trip-context,
+.inc-report-layout .inc-bus-trip-context { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; }
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail,
+.inc-report-layout .inc-bus-trip-context .inc-summary-detail {
     display:flex; flex-direction:row; align-items:flex-start; gap:9px;
     padding:3px 12px; min-width:0; border-right:1px solid #dce6f5;
 }
-#incidentReportModal .inc-bus-trip-context .inc-summary-detail:first-child { padding-left:0; }
-#incidentReportModal .inc-bus-trip-context .inc-summary-detail:last-child { padding-right:0; border-right:0; }
-#incidentReportModal .inc-summary-detail > i {
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail:first-child,
+.inc-report-layout .inc-bus-trip-context .inc-summary-detail:first-child { padding-left:0; }
+#incidentReportModal .inc-bus-trip-context .inc-summary-detail:last-child,
+.inc-report-layout .inc-bus-trip-context .inc-summary-detail:last-child { padding-right:0; border-right:0; }
+#incidentReportModal .inc-summary-detail > i,
+.inc-report-layout .inc-summary-detail > i {
     display:flex; align-items:center; justify-content:center;
     flex:0 0 31px; width:31px; height:31px;
     border-radius:50%; color:#215db2; background:#e2edff; font-size:12px;
 }
-#incidentReportModal .inc-summary-detail > span { display:flex; flex-direction:column; gap:3px; min-width:0; }
-#incidentReportModal .inc-summary-detail small { color:#637a99; font-size:10px; }
-#incidentReportModal .inc-summary-detail strong { color:#132e54; font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
-#incidentReportModal .inc-summary-detail em { color:#7d8eaa; font-style:normal; font-size:10px; overflow-wrap:anywhere; }
-#incidentReportModal [data-incident-trip-status].is-pending { color:#64748b; background:#e8eef6; }
-#incidentReportModal .inc-trip-empty-note { margin:10px 0 0; font-size:11px; color:#7485a0; }
-#incidentReportModal .inc-trip-empty-note[hidden] { display:none!important; }
+#incidentReportModal .inc-summary-detail > span,
+.inc-report-layout .inc-summary-detail > span { display:flex; flex-direction:column; gap:3px; min-width:0; }
+#incidentReportModal .inc-summary-detail small,
+.inc-report-layout .inc-summary-detail small { color:#637a99; font-size:10px; }
+#incidentReportModal .inc-summary-detail strong,
+.inc-report-layout .inc-summary-detail strong { color:#132e54; font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
+#incidentReportModal .inc-summary-detail em,
+.inc-report-layout .inc-summary-detail em { color:#7d8eaa; font-style:normal; font-size:10px; overflow-wrap:anywhere; }
+#incidentReportModal [data-incident-trip-status].is-pending,
+.inc-report-layout [data-incident-trip-status].is-pending { color:#64748b; background:#e8eef6; }
+#incidentReportModal .inc-trip-empty-note,
+.inc-report-layout .inc-trip-empty-note { margin:10px 0 0; font-size:11px; color:#7485a0; }
+#incidentReportModal .inc-trip-empty-note[hidden],
+.inc-report-layout .inc-trip-empty-note[hidden] { display:none!important; }
 @media(max-width:730px) {
- #incidentReportModal .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:13px; }
- #incidentReportModal .inc-bus-trip-context .inc-summary-detail:nth-child(2) { border-right:0; }
+ #incidentReportModal .inc-bus-trip-context,
+ .inc-report-layout .inc-bus-trip-context { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:13px; }
+ #incidentReportModal .inc-bus-trip-context .inc-summary-detail:nth-child(2),
+ .inc-report-layout .inc-bus-trip-context .inc-summary-detail:nth-child(2) { border-right:0; }
 }
 
 /* Bus ID: reserve actual text space after the decorative bus icon. */
-#incidentReportModal .inc-form-group.inc-bus-lookup > input[data-incident-bus-search] {
+#incidentReportModal .inc-form-group.inc-bus-lookup > input[data-incident-bus-search],
+.inc-report-layout .inc-form-group.inc-bus-lookup > input[data-incident-bus-search] {
     padding-left: 46px !important;
     padding-right: 34px;
     text-indent: 0;
     background-image: none;
 }
-#incidentReportModal .inc-form-group.inc-bus-lookup::before {
+#incidentReportModal .inc-form-group.inc-bus-lookup::before,
+.inc-report-layout .inc-form-group.inc-bus-lookup::before {
     left: 15px;
     width: 16px;
     height: 16px;
@@ -3636,21 +3669,27 @@
 @media(max-width:700px){.inc-wf-update-card{padding:12px;}.inc-wf-update-footer .inc-wf-primary-btn{width:100%;justify-content:center;}.inc-wf-records-grid{grid-template-columns:1fr;}}
 
 /* Keep Report Incident Bus ID suggestions floating instead of stretching the form. */
-#incidentReportModal .inc-bus-search-shell { position:relative; min-width:0; }
-#incidentReportModal .inc-bus-search-shell > input[data-incident-bus-search] {
+#incidentReportModal .inc-bus-search-shell,
+.inc-report-layout .inc-bus-search-shell { position:relative; min-width:0; }
+#incidentReportModal .inc-bus-search-shell > input[data-incident-bus-search],
+.inc-report-layout .inc-bus-search-shell > input[data-incident-bus-search] {
     display:block; box-sizing:border-box; width:100%; height:45px;
     padding:0 12px 0 42px; border:1px solid #dce5f2; border-radius:10px;
     background:#fff; color:#172b4d; font-size:12px;
 }
-#incidentReportModal .inc-bus-search-shell > input[data-incident-bus-search]:focus {
+#incidentReportModal .inc-bus-search-shell > input[data-incident-bus-search]:focus,
+.inc-report-layout .inc-bus-search-shell > input[data-incident-bus-search]:focus {
     border-color:#3767bb; box-shadow:0 0 0 3px rgba(55,103,187,.12);
 }
-#incidentReportModal .inc-bus-search-shell > .inc-bus-lookup-results {
+#incidentReportModal .inc-bus-search-shell > .inc-bus-lookup-results,
+.inc-report-layout .inc-bus-search-shell > .inc-bus-lookup-results {
     position:absolute; z-index:70; top:calc(100% + 5px); left:0; right:0;
     max-height:200px; overflow-y:auto; overflow-x:hidden;
     box-shadow:0 12px 28px rgba(15,39,78,.17); background:#fff;
     border:1px solid #cbd9ed; border-radius:10px; padding:5px;
     overscroll-behavior:contain;
 }
-#incidentReportModal .inc-bus-search-shell > .inc-bus-lookup-results[hidden] { display:none!important; }
-#incidentReportModal .inc-bus-lookup:before { z-index:1; }
+#incidentReportModal .inc-bus-search-shell > .inc-bus-lookup-results[hidden],
+.inc-report-layout .inc-bus-search-shell > .inc-bus-lookup-results[hidden] { display:none!important; }
+#incidentReportModal .inc-bus-lookup:before,
+.inc-report-layout .inc-bus-lookup:before { z-index:1; }

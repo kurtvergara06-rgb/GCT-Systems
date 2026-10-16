@@ -36,7 +36,7 @@ class MaintenanceJobOrderCompletionTest extends TestCase
 
         $mechanic = MechanicAttendance::create([
             'mechanic_name' => 'Juan Dela Cruz',
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'On Duty',
         ]);
 
@@ -181,7 +181,7 @@ class MaintenanceJobOrderCompletionTest extends TestCase
 
         $mechanic = MechanicAttendance::create([
             'mechanic_name' => 'Pedro Penduko',
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'On Duty',
         ]);
 

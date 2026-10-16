@@ -90,7 +90,7 @@
         <main class="main inc-page">
             <x-layout.topbar
                 title="Incident Details"
-                subtitle="{{ $incident->incident_no }} &mdash; {{ $incident->incident_type }}"
+                subtitle="{{ $incident->incident_no }} — {{ $incident->incident_type }}"
             />
 
             @if (session('success') && !request()->boolean('embedded'))

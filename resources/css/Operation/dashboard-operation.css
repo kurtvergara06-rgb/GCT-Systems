@@ -1734,8 +1734,9 @@
 .operation-dashboard-page .operation-dashboard-main { min-width:0; }
 .operation-dashboard-page .dashboard-card { border-radius:12px; padding:15px; box-shadow:0 3px 12px rgba(18,52,92,.045); }
 .operation-dashboard-page .operation-top-stats { gap:12px; margin-bottom:14px; }
-.operation-dashboard-page .operation-dashboard-grid { grid-template-columns:minmax(0,1.65fr) minmax(345px,1fr); gap:13px; }
-.operation-dashboard-page .operation-bottom-grid { gap:13px; }
+.operation-dashboard-page .operation-readiness-grid { grid-template-columns:minmax(0,1.65fr) minmax(345px,1fr); gap:14px; }
+.operation-dashboard-page .operation-bottom-grid { gap:16px; }
+.operation-dashboard-page .operation-activity-grid { gap:16px; }
 .operation-dashboard-page .dashboard-card-header { margin-bottom:12px; }
 .operation-dashboard-page .dashboard-card-header h2 { font-size:15px; }
 .operation-dashboard-page .dashboard-card-header p { font-size:11px; }
@@ -1835,8 +1836,7 @@
   font-size: 22px;
 }
 
-.operation-dashboard-page .operation-dashboard-grid,
-.operation-dashboard-page .operation-bottom-grid {
+.operation-dashboard-page .operation-readiness-grid {
   align-items: start;
 }
 
@@ -1929,14 +1929,42 @@
 }
 
 .operation-dashboard-page .operation-bottom-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(300px, 0.92fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+
+.operation-dashboard-page .operation-bottom-grid .dashboard-card,
+.operation-dashboard-page .operation-activity-grid .dashboard-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.operation-dashboard-page .operation-bottom-grid .dashboard-card-header,
+.operation-dashboard-page .operation-activity-grid .dashboard-card-header {
+  min-height: 50px;
+}
+
+.operation-dashboard-page .operation-attendance-card {
+  display: flex;
+  flex-direction: column;
 }
 
 .operation-dashboard-page .operation-attendance-matrix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  flex: 1;
 }
 
 .operation-dashboard-page .attendance-stat-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
   min-height: 86px;
   padding: 11px 12px;
   border-radius: 10px;
@@ -1947,11 +1975,23 @@
   font-size: 21px;
 }
 
+.operation-dashboard-page .operation-workspace-card {
+  display: flex;
+  flex-direction: column;
+}
+
 .operation-dashboard-page .operation-workspace-links {
+  display: flex;
+  flex-direction: column;
   gap: 7px;
+  flex: 1;
 }
 
 .operation-dashboard-page .workspace-link-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
   min-height: 54px;
   padding: 8px 11px;
 }
@@ -1962,16 +2002,18 @@
 }
 
 .operation-dashboard-page .operation-activity-grid {
-  grid-template-columns: minmax(0, 1.72fr) minmax(355px, 0.9fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
   margin-bottom: 0;
 }
 
-.operation-dashboard-page .operation-activity-grid .dashboard-card {
-  align-self: start;
-}
-
 .operation-dashboard-page .operation-activity-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   gap: 8px;
+  flex: 1;
 }
 
 .operation-dashboard-page .operation-activity-row {
@@ -1983,6 +2025,24 @@
 .operation-dashboard-page .activity-description {
   margin-bottom: 4px;
   -webkit-line-clamp: 1;
+}
+
+.operation-dashboard-page .activity-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.operation-dashboard-page .activity-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.operation-dashboard-page .activity-meta span:first-child {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @media (max-width: 1250px) {
