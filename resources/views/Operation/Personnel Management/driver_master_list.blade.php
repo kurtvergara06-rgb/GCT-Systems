@@ -199,7 +199,7 @@
                 <div class="driver-bus-chips" data-driver-bus-chips aria-live="polite"></div>
                 <small class="driver-bus-help">Multiple selections allowed</small>
             </div>
-            <label class="driver-input-field">
+            <label class="driver-input-field driver-contact-field">
                 <span>Contact Number</span>
                 <span class="driver-input-shell">
                     <i class="fa-solid fa-phone" aria-hidden="true"></i>
