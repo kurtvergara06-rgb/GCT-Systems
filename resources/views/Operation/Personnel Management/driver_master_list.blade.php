@@ -22,6 +22,7 @@
             <x-ui.summary-card label="Total Drivers" value="{{ $stats['total'] }}" small="All driver profiles" icon="fa-users" color="blue" />
             <x-ui.summary-card label="Active" value="{{ $stats['active'] }}" small="Available for attendance" icon="fa-user-check" color="green" />
             <x-ui.summary-card label="Inactive" value="{{ $stats['inactive'] }}" small="Deactivated profiles" icon="fa-user-slash" color="red" />
+            <x-ui.summary-card label="Authorized Drivers" value="{{ $stats['authorized'] }}" small="Active drivers with assigned buses" icon="fa-bus" color="yellow" />
         </section>
 
         <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel">
@@ -45,8 +46,15 @@
                     <a class="personnel-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.drivers', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Active Drivers</a>
                     <a class="personnel-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.drivers', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
                 </nav>
-                <x-ui.table-toolbar action="{{ route('operation.personnel.drivers', [], false) }}" search-label="Search Drivers" search-placeholder="Search ID, name, or contact..."  :filter-count="0" filter-title="Filter Drivers" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'employment_status' => 'Status']" default-sort="driver_name">
+                <x-ui.table-toolbar action="{{ route('operation.personnel.drivers', [], false) }}" search-label="Search Drivers" search-placeholder="Search ID, name, or contact..."  :filter-count="(int) request()->filled('bus_authorization')" filter-title="Filter Drivers" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'employment_status' => 'Status']" default-sort="driver_name">
                     <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Authorized Buses" name="bus_authorization">
+                            <option value="">All Drivers</option>
+                            <option value="assigned" @selected(request('bus_authorization') === 'assigned')>With Authorized Buses</option>
+                            <option value="unassigned" @selected(request('bus_authorization') === 'unassigned')>Without Authorized Buses</option>
+                        </x-ui.table-toolbar-field>
+                    </x-slot:filters>
 
                 </x-ui.table-toolbar>
             </div>
