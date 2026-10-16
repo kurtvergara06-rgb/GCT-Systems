@@ -419,3 +419,28 @@
   .batch-attendance-driver .batch-summary-grid { width: 100%; }
   .batch-attendance-driver .batch-footer-actions { justify-content: flex-end; }
 }
+
+/* Unrecorded drivers remain neutral until explicitly marked. */
+.batch-attendance-driver .batch-status-btn.unmarked.is-active {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+  color: #334155;
+}
+.batch-attendance-driver .batch-availability-badge.unmarked {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.batch-attendance-driver .batch-summary-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+@media (max-width: 950px) {
+  .batch-attendance-driver .batch-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .batch-attendance-driver .batch-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
