@@ -165,7 +165,7 @@
                                             <div class="bus-icon-badge {{ $displayStatus === 'Active' ? 'is-active' : 'is-muted' }}" aria-hidden="true">
                                                 <i class="fa-solid fa-bus"></i>
                                             </div>
-                                            <span class="bus-id-text">{{ $bus->bus_no }}</span>
+                                            <span class="bus-id-text" title="{{ $bus->bus_no }}">{{ $bus->bus_no }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -173,15 +173,15 @@
                                     </td>
 
                                     <td>
-                                        <span class="bus-model-text">{{ $bus->bus_model ?: '—' }}</span>
+                                        <span class="bus-model-text" title="{{ $bus->bus_model ?: 'Not specified' }}">{{ $bus->bus_model ?: '—' }}</span>
                                     </td>
 
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
-                                    <td><span class="bus-allocation-type">{{ $bus->client_allocation_type ?: 'Not allocated' }}</span>
+                                    <td class="bus-allocation-cell"><span class="bus-allocation-type {{ $bus->client_allocation_type ? 'is-'.strtolower($bus->client_allocation_type) : 'is-unallocated' }}">{{ $bus->client_allocation_type ?: 'Not allocated' }}</span>
                                         @if($bus->operationClients->isNotEmpty())
-                                            <div class="bus-table-disclosure"><span>{{ $bus->operationClients->first()->name }}</span>
+                                            <div class="bus-table-disclosure"><span class="bus-disclosure-primary" title="{{ $bus->operationClients->first()->name }}">{{ $bus->operationClients->first()->name }}</span>
                                             @if($bus->operationClients->count() > 1)
                                                 <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
                                                 <div class="bus-more-source" hidden>@foreach($bus->operationClients->skip(1) as $company)<div class="bus-more-entry"><i class="fa-solid fa-building"></i><span>{{ $company->name }}</span></div>@endforeach</div>
@@ -189,11 +189,11 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="bus-drivers-cell">
                                         @if($bus->authorizedDrivers->isEmpty())
                                             <span class="bus-no-drivers">None assigned</span>
                                         @else
-                                            <div class="bus-table-disclosure"><span>{{ $bus->authorizedDrivers->first()->driver_name }}</span>
+                                            <div class="bus-table-disclosure"><span class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</span>
                                             @if($bus->authorizedDrivers->count() > 1)
                                                 <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
                                                 <div class="bus-more-source" hidden>@foreach($bus->authorizedDrivers->skip(1) as $driver)<div class="bus-more-entry"><i class="fa-solid fa-user"></i><span>{{ $driver->driver_name }}</span></div>@endforeach</div>
@@ -201,7 +201,7 @@
                                         @endif
                                     </td>
 
-                                    <td>
+                                    <td class="bus-actions-cell">
                                         <div class="actions">
                                             <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
