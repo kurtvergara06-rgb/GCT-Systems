@@ -394,6 +394,16 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (headerIcon) headerIcon.className = 'fa-solid fa-pen-to-square';
             form.action = button.dataset.updateUrl;
             methodField.value = 'PUT';
+            // Preserve identifiers referenced by historical attendance and trips.
+            if (entity === 'Driver' && record.identity_locked) {
+                for (const name of ['driver_id', 'driver_name']) {
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        input.readOnly = true;
+                        input.title = 'Locked to preserve historical attendance and trip records';
+                    }
+                }
+            }
             if (editingPersonnelId) {
                 editingPersonnelId.value = button.dataset.recordId || '';
             }
