@@ -165,12 +165,40 @@ class PersonnelController extends Controller
         );
     }
 
+    /**
+     * Serialize ownership changes by locking bus rows before checking who owns
+     * them. A bus may be authorized for only one active driver.
+     */
+    private function assertExclusiveActiveBusOwnership(array $busIds, ?int $exceptDriverId = null): void
+    {
+        if ($busIds === []) {
+            return;
+        }
+
+        Bus::query()->whereIn('id', $busIds)->orderBy('id')->lockForUpdate()->get();
+
+        $conflicting = Driver::query()
+            ->where('employment_status', 'Active')
+            ->when($exceptDriverId !== null, fn ($query) => $query->whereKeyNot($exceptDriverId))
+            ->whereHas('authorizedBuses', fn ($query) => $query->whereIn('buses.id', $busIds))
+            ->first();
+
+        if ($conflicting) {
+            throw ValidationException::withMessages([
+                'bus_ids' => "A selected bus is already assigned to active driver {$conflicting->driver_name}. Deactivate or release the existing ownership first.",
+            ]);
+        }
+    }
+
     public function storeDriver(Request $request): RedirectResponse
     {
         $validated = $this->validateDriver($request);
         $busIds = $validated['bus_ids'] ?? [];
         unset($validated['bus_ids']);
         $driver = DB::transaction(function () use ($validated, $busIds): Driver {
+            if ($validated['employment_status'] === 'Active') {
+                $this->assertExclusiveActiveBusOwnership($busIds);
+            }
             $driver = Driver::create($validated);
             $driver->authorizedBuses()->sync($busIds);
             return $driver;
@@ -233,8 +261,19 @@ class PersonnelController extends Controller
                 }
             }
 
+            if ($validated['employment_status'] === 'Active') {
+                $this->assertExclusiveActiveBusOwnership(
+                    $busIds ?? $lockedDriver->authorizedBuses()->pluck('buses.id')->all(),
+                    $lockedDriver->id
+                );
+            }
+
             $lockedDriver->update($validated);
-            if ($busIds !== null) $lockedDriver->authorizedBuses()->sync($busIds);
+            if ($validated['employment_status'] === 'Inactive') {
+                $lockedDriver->authorizedBuses()->detach();
+            } elseif ($busIds !== null) {
+                $lockedDriver->authorizedBuses()->sync($busIds);
+            }
 
             return $lockedDriver;
         });
@@ -260,6 +299,7 @@ class PersonnelController extends Controller
 
             $this->assertDriverCanBeDeactivated($lockedDriver);
             $lockedDriver->update(['employment_status' => 'Inactive']);
+            $lockedDriver->authorizedBuses()->detach();
 
             return $lockedDriver;
         });
