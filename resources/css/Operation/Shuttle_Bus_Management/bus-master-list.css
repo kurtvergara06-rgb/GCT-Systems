@@ -2556,3 +2556,77 @@
 .bus-more-entry { display: flex; align-items: center; gap: 9px; padding: 8px 5px; font-size: 11px; border-bottom: 1px solid #e8eef8; color: #28436c; }
 .bus-more-entry:last-child { border-bottom: 0; }
 .bus-more-entry i { color: #2563eb; }
+
+/* Bus Master List visual refinement — page-scoped and non-destructive. */
+.bus-master-list-page .stats-grid { gap: 14px; margin-bottom: 16px; }
+.bus-master-list-page .stats-grid .stat-card,
+.bus-master-list-page .stats-grid .stat-card-link {
+  min-height: 104px; border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 2px 9px rgba(21, 47, 82, .035);
+}
+.bus-master-list-page .stats-grid .stat-card:hover,
+.bus-master-list-page .stats-grid .stat-card-link:hover { transform: none; box-shadow: 0 3px 12px rgba(21,47,82,.08); }
+.bus-master-list-page .table-card { border-radius: 14px; padding: 16px; box-shadow: 0 2px 10px rgba(21,47,82,.035); }
+.bus-master-list-page .section-header { align-items: center; gap: 16px; }
+.bus-master-list-page .section-header p { line-height: 1.55; }
+.bus-master-list-page .bus-record-controls { gap: 12px; }
+.bus-master-list-page .bus-fleet-tabs { max-width: 100%; }
+.bus-master-list-page .table-wrap { border-radius: 11px; border: 1px solid #d9e4f3; }
+.bus-master-list-page .bus-table {
+    width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0;
+}
+.bus-master-list-page .bus-table th,
+.bus-master-list-page .bus-table td { box-sizing: border-box; }
+.bus-master-list-page .bus-table thead th {
+    height: 41px; padding: 10px 12px; background: #f3f7fc;
+    color: #435672; letter-spacing: .035em;
+    font-size: 10px; font-weight: 750; vertical-align: middle; white-space: nowrap;
+    border-bottom: 1px solid #dae4f2;
+}
+.bus-master-list-page .bus-table tbody td {
+    padding: 11px 12px; height: 58px; vertical-align: middle;
+    background: #fff; border-bottom: 1px solid #e9eff8;
+}
+.bus-master-list-page .bus-table tbody tr:hover td { background: #f8fbff; }
+.bus-master-list-page .bus-table tbody tr:last-child td { border-bottom: 0; }
+.bus-master-list-page .bus-table th:nth-child(1) { width: 22%; }
+.bus-master-list-page .bus-table th:nth-child(2) { width: 12%; }
+.bus-master-list-page .bus-table th:nth-child(3) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(4) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(5) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(6) { width: 15%; }
+.bus-master-list-page .bus-table th:nth-child(7) { width: 9%; text-align: center; }
+.bus-master-list-page .bus-id-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bus-master-list-page .bus-id-text {
+    display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-weight: 750; font-size: 12px; color: #152c4c;
+}
+.bus-master-list-page .bus-plate-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334865; font-size: 11px; font-weight: 600; }
+.bus-master-list-page .bus-model-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #43536e; font-size: 11px; }
+.bus-master-list-page .bus-allocation-cell,
+.bus-master-list-page .bus-drivers-cell { overflow: visible; }
+.bus-master-list-page .bus-allocation-type {
+    display: inline-flex; width: fit-content; max-width: 100%;
+    padding: 3px 7px; margin-bottom: 5px; border-radius: 6px;
+    font-size: 10px; font-weight: 750; line-height: 1.3;
+    background: #f2f5fa; color: #63728a;
+}
+.bus-master-list-page .bus-allocation-type.is-exclusive { color: #855b10; background: #fff4d9; }
+.bus-master-list-page .bus-allocation-type.is-shared { color: #2252a3; background: #e9f1ff; }
+.bus-master-list-page .bus-allocation-type.is-unallocated { background: #f5f7fa; color: #738198; }
+.bus-master-list-page .bus-table .bus-table-disclosure { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; max-width: 100%; }
+.bus-master-list-page .bus-disclosure-primary { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 11px; }
+.bus-master-list-page .bus-more-trigger { flex-shrink: 0; }
+.bus-master-list-page .bus-actions-cell .actions { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 5px; }
+.bus-master-list-page .bus-actions-cell .actions form { display: contents; }
+.bus-master-list-page .bus-actions-cell .action-btn { width: 29px; height: 29px; min-width: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.bus-master-list-page .bus-actions-cell .action-btn:disabled { opacity: .65; cursor: not-allowed; }
+@media (max-width: 1250px) {
+  .bus-master-list-page .bus-table { min-width: 1040px; }
+  .bus-master-list-page .table-wrap { overflow-x: auto; }
+}
+@media (max-width: 760px) {
+  .bus-master-list-page .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .bus-master-list-page .bus-record-controls { flex-wrap: wrap; }
+  .bus-master-list-page .bus-fleet-tabs { overflow-x: auto; }
+}
