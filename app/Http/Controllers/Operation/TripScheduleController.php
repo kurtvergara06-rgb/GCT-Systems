@@ -338,7 +338,9 @@ class TripScheduleController extends Controller
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
-                        'client_name' => $validated['client_name'],
+                        'client_name' => filled($validated['client_name'] ?? null)
+                            ? $validated['client_name']
+                            : $lockedTrip->client_name,
                         'direction' => $validated['direction'] ?? $lockedTrip->direction,
                         'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
