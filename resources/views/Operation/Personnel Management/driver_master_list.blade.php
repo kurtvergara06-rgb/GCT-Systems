@@ -59,7 +59,7 @@
 
             <div class="table-wrap personnel-master-table-wrap">
                 <table class="attendance-table personnel-master-table">
-                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Contact</th><th>Assigned Buses</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($drivers as $driver)
                         @php
@@ -69,12 +69,14 @@
                                 'shift' => $driver->shift,
                                 'contact_number' => $driver->contact_number,
                                 'employment_status' => $driver->employment_status,
+                                'bus_ids' => $driver->authorizedBuses->pluck('id')->all(),
                             ], JSON_THROW_ON_ERROR));
                         @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar"><i class="fa-solid fa-user"></i></span><div><strong>{{ $driver->driver_name }}</strong><small>Driver profile</small></div></div></td>
                             <td>{{ $driver->contact_number ?: '—' }}</td>
+                            <td class="driver-buses-cell" title="{{ $driver->authorizedBuses->pluck('bus_no')->join(', ') }}">{{ $driver->authorizedBuses->isEmpty() ? 'Not assigned' : $driver->authorizedBuses->pluck('bus_no')->join(', ') }}</td>
                             <td><x-ui.status-badge :status="$driver->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}" /></td>
                             <td><div class="actions">
                                 <button type="button" class="action-btn view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-eye"></i></button>
@@ -88,7 +90,7 @@
                         </tr>
                     @empty
                         <x-ui.empty-row
-                            colspan="5"
+                            colspan="6"
                             icon="fa-id-card"
                             message="No Driver Records Found"
                             description="No driver profiles match your search or filter criteria. Try adjusting your filters."
@@ -173,6 +175,16 @@
                 </span>
             </label>
 
+            <label class="driver-input-field full-width">
+                <span>Assigned Buses (select multiple)</span>
+                <input type="hidden" name="bus_ids_present" value="1">
+                <select name="bus_ids[]" multiple size="5" data-driver-buses aria-label="Assigned Buses">
+                    @foreach($availableBuses as $busOption)
+                        <option value="{{ $busOption->id }}" @selected(in_array($busOption->id, old('bus_ids', [])))>{{ $busOption->bus_no }}{{ $busOption->plate_no ? ' — '.$busOption->plate_no : '' }}</option>
+                    @endforeach
+                </select>
+                <small>Hold Ctrl to select multiple buses. Only these buses will be considered authorized for this driver in the next scheduling phase.</small>
+            </label>
             <div class="driver-modal-group-heading">
                 <div>
                     <strong>Employment information</strong>
