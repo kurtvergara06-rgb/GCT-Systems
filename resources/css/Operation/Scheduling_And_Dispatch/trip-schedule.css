@@ -2750,12 +2750,15 @@
 .trip-schedule-page .service-table td:nth-child(5),
 .trip-schedule-page .service-table th:nth-child(5){text-align:center}
 .trip-schedule-page .service-table td:nth-child(6) .service-progress{width:100%;max-width:120px}
-.trip-schedule-page .service-row-actions{display:flex;align-items:center;justify-content:flex-start;gap:5px;min-width:0}
-.trip-schedule-page .service-row-actions .trip-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.trip-schedule-page .service-table th:last-child,
+.trip-schedule-page .service-table td:last-child{text-align:center;vertical-align:middle}
+.trip-schedule-page .service-row-actions{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.trip-schedule-page .service-row-actions .trip-actions{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;flex-shrink:0}
+.trip-schedule-page .service-row-actions .trip-actions form{display:inline-flex;align-items:center;margin:0}
 .trip-schedule-page .service-row-actions .action-btn.gct-record-action{
     display:inline-flex;align-items:center;justify-content:center;
-    width:30px;height:30px;min-width:30px;min-height:30px;
-    box-sizing:border-box;border-radius:7px;margin:0;padding:0;
+    width:32px;height:32px;min-width:32px;min-height:32px;
+    box-sizing:border-box;border-radius:8px;margin:0;padding:0;
 }
 .trip-schedule-page .service-row-actions .service-assign-btn{
     display:inline-flex;align-items:center;justify-content:center;gap:6px;
