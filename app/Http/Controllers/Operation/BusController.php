@@ -519,7 +519,7 @@ class BusController extends Controller
                 // comparing the submitted company against the saved allocation.
                 // This is comparison-only: stored names are not rewritten.
                 $normalizeClientName = static fn (string $name): string => mb_strtolower(
-                    trim((string) preg_replace('/\\s+/u', ' ', $name))
+                    trim((string) preg_replace('/\s+/u', ' ', $name))
                 );
                 $oldNames = $lockedBus->operationClients->pluck('name')
                     ->map(fn ($name) => $normalizeClientName((string) $name))
