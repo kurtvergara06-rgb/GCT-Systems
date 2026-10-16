@@ -175,8 +175,8 @@
                 </span>
             </label>
 
-            <label class="driver-input-field full-width">
-                <span>Assigned Buses (select multiple)</span>
+            <div class="driver-input-field full-width driver-bus-field">
+                <span>Assigned Buses</span>
                 <input type="hidden" name="bus_ids_present" value="1">
                 <div class="driver-bus-picker" data-driver-bus-picker>
                     <button type="button" class="driver-bus-picker-trigger" data-driver-bus-trigger aria-expanded="false" aria-controls="driverBusChoices">
@@ -188,16 +188,17 @@
                         <div class="driver-bus-picker-options">
                             @foreach($availableBuses as $busOption)
                                 <label class="driver-bus-picker-option" data-driver-bus-option>
-                                    <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox @checked(in_array($busOption->id, old('bus_ids', [])))>
-                                    <span>{{ $busOption->bus_no }}{{ $busOption->plate_no ? ' — '.$busOption->plate_no : '' }}</span>
+                                    <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox data-bus-number="{{ $busOption->bus_no }}" @checked(in_array($busOption->id, old('bus_ids', [])))>
+                                    <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $busOption->plate_no ?: 'No plate number' }}</small></span>
                                 </label>
                             @endforeach
                         </div>
                         <span class="driver-bus-picker-empty" data-driver-bus-empty hidden>No matching buses</span>
                     </div>
                 </div>
-                <small>Choose one or more authorized buses. The selection is saved to the driver profile.</small>
-            </label>
+                <div class="driver-bus-chips" data-driver-bus-chips aria-live="polite"></div>
+                <small class="driver-bus-help">Select buses authorized for this driver. You can choose more than one.</small>
+            </div>
             <div class="driver-modal-group-heading">
                 <div>
                     <strong>Employment information</strong>
