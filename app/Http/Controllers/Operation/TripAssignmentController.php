@@ -166,6 +166,7 @@ class TripAssignmentController extends Controller
             ->count();
 
         $availableDrivers = DriverAttendance::query()
+            ->with('driver.authorizedBuses')
             ->whereDate('attendance_date', $selectedTripDate)
             ->whereIn('status', ['Present', 'Late'])
             ->whereHas('driver', fn ($query) => $query
