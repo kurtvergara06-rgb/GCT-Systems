@@ -3688,7 +3688,10 @@ function updateMlStatus(conflicts) {
             const index = Number(reserveInfo.dataset.gctReviewReserve);
             const item = schedulingConflicts[index];
             const busId = Number(reserveInfo.dataset.gctReserveId);
-            if (!item || !Number.isInteger(busId) || busId <= 0) return;
+            if (!item) {
+                window.alert('The conflict changed. Please regenerate Auto Scheduling and try again.');
+                return;
+            }
             editing = { kind: 'conflict', index, item };
             editDialog.querySelector('.auto-preview-edit-context').textContent =
                 (item.base_trip_code || item.trip_code || 'Trip') + ' — ' + reserveInfo.dataset.gctReserveLabel;
@@ -3709,10 +3712,16 @@ function updateMlStatus(conflicts) {
                         select.replaceChildren(new Option('Select ' + field, ''));
                         for (const option of choices) select.add(new Option(option.name, String(option.id)));
                     }
-                    editDialog.querySelector('[name="bus"]').value = String(busId);
-                    if (!editDialog.querySelector('[name="bus"]').value) {
+                    const reserveNo = String(reserveInfo.dataset.gctReserveLabel || '')
+                        .replace(/\s*\(Reserve\).*$/i, '').trim().toLowerCase();
+                    const matchingBus = data.buses?.find(bus =>
+                        Number(bus.id) === busId
+                        || String(bus.name || '').replace(/\s*\(Reserve.*$/i, '').trim().toLowerCase() === reserveNo
+                    );
+                    if (!matchingBus || matchingBus.purpose !== 'Reserve') {
                         throw new Error('This Reserve Bus is no longer available. Regenerate the schedule.');
                     }
+                    editDialog.querySelector('[name="bus"]').value = String(matchingBus.id);
                     if (!data.drivers?.length) {
                         throw new Error('No driver has eligible attendance for this trip. Record attendance first, then retry.');
                     }
