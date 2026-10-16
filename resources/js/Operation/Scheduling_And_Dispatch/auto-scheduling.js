@@ -3139,10 +3139,11 @@ function updateMlStatus(conflicts) {
                     ${activeTab === 'alternative' && reserveInformation.length ? `
                         <div class="gct-report-reserve-alternatives">
                             ${reserveInformation.map(bus => `
-                                <div class="gct-option-card gct-report-option" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;">
+                                <button type="button" class="gct-option-card gct-report-option" data-gct-review-reserve="${index}" data-gct-reserve-label="${escapeHtml(bus.label)}" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;cursor:pointer;">
                                     <strong><i class="fa-solid fa-bus"></i> ${escapeHtml(bus.label)}</strong>
                                     <small style="display:block;margin-top:5px;">${escapeHtml(bus.reason || 'Review-only standby bus. Requires an eligible driver and OIC approval.')}</small>
-                                </div>
+                                    <small style="display:block;margin-top:7px;color:#2563eb;">Review deployment requirements <i class="fa-solid fa-arrow-right"></i></small>
+                                </button>
                             `).join('')}
                         </div>
                     ` : ''}
@@ -3748,6 +3749,17 @@ function updateMlStatus(conflicts) {
                     decision: deferSlot.dataset.gctDeferSlot,
                 },
             }));
+            return;
+        }
+
+        const reserveInfo = event.target.closest('[data-gct-review-reserve]');
+        if (reserveInfo) {
+            event.preventDefault();
+            window.alert(
+                reserveInfo.dataset.gctReserveLabel + ' is an available standby alternative, not an approved assignment. ' +
+                'Record an eligible driver for the trip, then regenerate Auto Scheduling. ' +
+                'An OIC approval is required before a Reserve bus can be confirmed.'
+            );
             return;
         }
 
