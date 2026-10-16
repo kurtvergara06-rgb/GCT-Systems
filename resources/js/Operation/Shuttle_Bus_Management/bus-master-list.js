@@ -280,6 +280,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             status: button.dataset.status,
             fleetPurpose: button.dataset.fleetPurpose,
             routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
+            clientAllocation: button.dataset.clientAllocationType
+                ? button.dataset.clientAllocationType + ' — ' + (button.dataset.clientNames || '')
+                : 'Not allocated',
         };
         for (const [key, value] of Object.entries(fields)) {
             const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
@@ -368,6 +371,11 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 | Fill Form
                 |--------------------------------------------------------------------------
                 */
+
+                const allocationType = document.getElementById('edit_client_allocation_type');
+                const companyNames = document.getElementById('edit_client_names');
+                if (allocationType) allocationType.value = button.dataset.clientAllocationType || 'Exclusive';
+                if (companyNames) companyNames.value = button.dataset.clientNames || '';
 
                 if (editBusNo) {
                     editBusNo.value = button.dataset.busNo || '';
