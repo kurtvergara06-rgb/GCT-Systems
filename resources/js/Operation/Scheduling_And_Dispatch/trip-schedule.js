@@ -408,6 +408,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 badge: 'status',
             },
             {
+                label: 'Client / Company',
+                value: trip.clientName || 'Legacy trip — not recorded',
+                icon: 'fa-building',
+            },
+            {
                 label: 'Origin',
                 value: trip.origin,
                 icon: 'fa-location-dot',
