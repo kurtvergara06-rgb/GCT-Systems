@@ -625,7 +625,7 @@ class BusController extends Controller
      */
     private function validateClientAllocation(Request $request): ?array
     {
-        if (! $request->exists('client_allocation_type')) return null;
+        if (! $request->filled('client_allocation_type')) return null;
 
         $data = $request->validate([
             'client_allocation_type' => ['required', 'in:Exclusive,Shared'],
