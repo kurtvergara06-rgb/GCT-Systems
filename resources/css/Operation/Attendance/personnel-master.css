@@ -2161,3 +2161,31 @@
 }
 .personnel-modal-driver .driver-bus-chip-remove:focus-visible { outline: 2px solid #2563eb; border-radius: 50%; }
 .personnel-modal-driver .driver-bus-help { display: block; margin-top: 6px; }
+
+/* Compact assigned-bus summary with disclosure for remaining buses. */
+.personnel-master-page .driver-bus-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.personnel-master-page .driver-bus-primary { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 700; color: #223b61; }
+.personnel-master-page .driver-bus-primary i { color: #2563eb; }
+.personnel-master-page .driver-bus-none { color: #78869a; font-size: 12px; }
+.personnel-master-page .driver-bus-more { position: relative; }
+.personnel-master-page .driver-bus-more summary {
+    display: inline-flex; align-items: center; gap: 7px; list-style: none;
+    cursor: pointer; padding: 5px 9px; border: 1px solid #d4e3fb;
+    border-radius: 7px; background: #eef5ff; color: #2357a5; font: inherit;
+    font-size: 11px; font-weight: 650; white-space: nowrap;
+}
+.personnel-master-page .driver-bus-more summary::-webkit-details-marker { display: none; }
+.personnel-master-page .driver-bus-more summary:hover { background: #e0edff; }
+.personnel-master-page .driver-bus-more summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.personnel-master-page .driver-bus-more[open] summary i { transform: rotate(180deg); }
+.personnel-master-page .driver-bus-more-panel {
+    margin-top: 6px; padding: 10px; min-width: 195px; max-width: 245px;
+    background: #fff; border: 1px solid #d7e4f6; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(20, 45, 88, .10);
+}
+.personnel-master-page .driver-bus-more-panel > strong { display: block; padding: 3px 5px 8px; font-size: 11px; color: #526c90; }
+.personnel-master-page .driver-bus-more-row { display: flex; align-items: center; gap: 9px; padding: 7px 5px; border-top: 1px solid #edf2f9; color: #253c5d; }
+.personnel-master-page .driver-bus-more-row i { color: #2563eb; }
+.personnel-master-page .driver-bus-more-row span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.personnel-master-page .driver-bus-more-row b { font-size: 11px; }
+.personnel-master-page .driver-bus-more-row small { font-size: 10px; color: #71819b; }
