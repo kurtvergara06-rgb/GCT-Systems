@@ -405,29 +405,14 @@
             </select></div>
         </div></div>
         </div>
-        <div class="bus-client-editor" data-client-editor>
-    <label for="create_client_allocation_type">Client Allocation</label>
-    <select name="client_allocation_type" id="create_client_allocation_type" required>
-        <option value="Exclusive">Exclusive — one company</option>
-        <option value="Shared">Shared — authorized companies</option>
-    </select>
-    <input type="hidden" name="client_names"  value="{{ old("client_names") }}" data-client-names>
-    <div class="bus-client-picker">
-        <button type="button" class="bus-client-trigger" data-client-trigger aria-expanded="false"><span data-client-summary>Choose companies</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-        <div class="bus-client-options-panel" data-client-panel hidden>
-            <input type="search" data-client-search placeholder="Find or add a company..." aria-label="Search companies">
-            <div class="bus-client-options" data-client-options>
-                @foreach($companyOptions as $companyName)
-                    <label class="bus-client-option"><input type="checkbox" value="{{ $companyName }}" data-client-checkbox><span>{{ $companyName }}</span></label>
-                @endforeach
-            </div>
-            <button type="button" class="bus-client-add" data-client-add hidden>Add company</button>
-        </div>
-    </div>
-    <div class="bus-client-chips" data-client-chips></div>
-    <small>Exclusive: select one company. Shared: choose two or more. Type to add a new company.</small>
+        <div class="bus-client-editor bus-client-editor--simple">
+    <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
+    <label for="create_client_name">Client / Company Name</label>
+    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="create_client_name" maxlength="100" placeholder="Enter client or company name" value="{{ old('client_name') }}" autocomplete="organization"></div>
+    <small>Enter the company this bus is dedicated to. Leave blank if the client is not yet known.</small>
+    
 </div>
-        <div class="bus-modal-lower">
+<div class="bus-modal-lower">
             <section class="bus-modal-panel">
                 <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
                 <div class="form-group">
@@ -562,29 +547,14 @@
                         </div>
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
                     </div>
-                    <div class="bus-client-editor" data-client-editor>
-    <label for="edit_client_allocation_type">Client Allocation</label>
-    <select name="client_allocation_type" id="edit_client_allocation_type">
-        <option value="">Not allocated (legacy)</option><option value="Exclusive">Exclusive — one company</option>
-        <option value="Shared">Shared — authorized companies</option>
-    </select>
-    <input type="hidden" name="client_names" id="edit_client_names" value="" data-client-names>
-    <div class="bus-client-picker">
-        <button type="button" class="bus-client-trigger" data-client-trigger aria-expanded="false"><span data-client-summary>Choose companies</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-        <div class="bus-client-options-panel" data-client-panel hidden>
-            <input type="search" data-client-search placeholder="Find or add a company..." aria-label="Search companies">
-            <div class="bus-client-options" data-client-options>
-                @foreach($companyOptions as $companyName)
-                    <label class="bus-client-option"><input type="checkbox" value="{{ $companyName }}" data-client-checkbox><span>{{ $companyName }}</span></label>
-                @endforeach
-            </div>
-            <button type="button" class="bus-client-add" data-client-add hidden>Add company</button>
-        </div>
-    </div>
-    <div class="bus-client-chips" data-client-chips></div>
-    <small>Exclusive: select one company. Shared: choose two or more. Type to add a new company.</small>
+                    <div class="bus-client-editor bus-client-editor--simple">
+    <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
+    <label for="edit_client_name">Client / Company Name</label>
+    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="100" placeholder="Enter client or company name" value="" autocomplete="organization"></div>
+    <small>Leave blank to retain existing allocation. Entering a new company updates the allocation if the bus has no active or future assignments.</small>
+    <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing shared-company allocation will be preserved unless you enter a new company.</p>
 </div>
-                    <div class="bus-modal-lower">
+<div class="bus-modal-lower">
                         <section class="bus-modal-panel">
                             <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
                             <div class="form-group">
