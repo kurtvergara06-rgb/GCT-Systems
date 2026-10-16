@@ -5,6 +5,61 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     if (!page || !modal || !form) return;
 
+    // Portal the table disclosure into the document overlay layer so it never
+    // changes the table row height or gets clipped by the scrollable table.
+    let openBusDisclosure = null;
+    const closeBusDisclosure = () => {
+        if (!openBusDisclosure) return;
+        const { details, panel } = openBusDisclosure;
+        panel.removeAttribute('style');
+        details.appendChild(panel);
+        details.open = false;
+        openBusDisclosure = null;
+    };
+    page.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.driver-bus-more > summary');
+        if (!trigger || !page.contains(trigger)) return;
+        event.preventDefault();
+        const details = trigger.parentElement;
+        if (openBusDisclosure?.details === details) {
+            closeBusDisclosure();
+            return;
+        }
+        closeBusDisclosure();
+        const panel = details.querySelector('.driver-bus-more-panel');
+        if (!panel) return;
+        details.open = true;
+        document.body.appendChild(panel);
+        const rect = trigger.getBoundingClientRect();
+        const width = 225;
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+        panel.style.position = 'fixed';
+        panel.style.width = width + 'px';
+        panel.style.maxHeight = 'min(260px, 55vh)';
+        panel.style.overflowY = 'auto';
+        panel.style.left = left + 'px';
+        panel.style.top = '0px';
+        panel.style.margin = '0';
+        panel.style.zIndex = '10050';
+        const height = panel.getBoundingClientRect().height;
+        const below = window.innerHeight - rect.bottom - 8;
+        const top = below >= height || below >= rect.top
+            ? Math.min(rect.bottom + 5, window.innerHeight - height - 8)
+            : Math.max(8, rect.top - height - 5);
+        panel.style.top = Math.max(8, top) + 'px';
+        openBusDisclosure = { details, panel };
+    });
+    document.addEventListener('click', (event) => {
+        if (openBusDisclosure && !openBusDisclosure.details.contains(event.target)
+            && !openBusDisclosure.panel.contains(event.target)) closeBusDisclosure();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && openBusDisclosure) closeBusDisclosure();
+    });
+    const onBusDisclosureScroll = () => closeBusDisclosure();
+    document.addEventListener('scroll', onBusDisclosureScroll, true);
+    window.addEventListener('resize', onBusDisclosureScroll);
+
     const title = modal.querySelector('[data-modal-title]');
     const subtitle = modal.querySelector('[data-modal-subtitle]');
     const headerIcon = modal.querySelector('[data-personnel-modal-icon]');
