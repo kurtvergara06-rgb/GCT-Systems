@@ -285,7 +285,7 @@
 ========================================================= */
 
 .inc-new-btn {
-    height: 40px;
+    height: 42px;
 
     padding: 0 16px;
 
@@ -303,7 +303,7 @@
         );
 
     border: 1px solid #f5a800;
-    border-radius: 9px;
+    border-radius: 10px;
 
     color: var(--inc-navy);
 
@@ -336,7 +336,7 @@
 .inc-secondary-btn,
 .inc-primary-btn,
 .inc-danger-btn {
-    height: 40px;
+    height: 42px;
 
     padding: 0 16px;
 
@@ -346,7 +346,7 @@
 
     gap: 7px;
 
-    border-radius: 9px;
+    border-radius: 10px;
 
     font-size: 13px;
     font-weight: 700;
@@ -377,6 +377,18 @@
     border: 1px solid var(--inc-blue);
 
     color: #ffffff;
+}
+
+.inc-report-layout .inc-primary-btn {
+    background: linear-gradient(135deg, #ffc400, #f5a800);
+    border: 1px solid #e5a000;
+    color: #10233f;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(245, 168, 0, 0.22);
+}
+
+.inc-report-layout .inc-primary-btn:hover {
+    background: linear-gradient(135deg, #ffca1a, #eea000);
 }
 
 
@@ -1218,6 +1230,12 @@
     padding: 12px 14px;
 }
 
+.inc-detail-item > .status-badge,
+.inc-detail-item > .system-id-badge {
+    align-self: flex-start;
+    width: fit-content;
+}
+
 
 .inc-detail-item.full {
     grid-column: 1 / -1;
@@ -1255,9 +1273,25 @@
     grid-template-columns:
         minmax(0, 1fr) minmax(0, 1fr);
 
-    align-items: start;
+    align-items: stretch;
 
     gap: 20px;
+}
+
+.inc-show-layout > .inc-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+
+.inc-show-layout > .inc-card .inc-timeline,
+.inc-show-layout > .inc-card .inc-no-match {
+    flex: 1;
+}
+
+.inc-show-layout > .inc-card > .inc-form-note {
+    margin-top: auto !important;
 }
 
 
@@ -2017,67 +2051,93 @@
     border-radius: 16px;
     box-shadow: 0 24px 60px rgba(6, 31, 61, .20);
 }
-#incidentReportModal .inc-modal-form-grid {
+#incidentReportModal .inc-modal-form-grid,
+.inc-report-layout .inc-form-grid {
     column-gap: 14px;
     row-gap: 15px;
 }
 #incidentReportModal .inc-modal-form-grid .inc-form-group,
-#incidentReportModal .inc-modal-form-grid .ui-form-group {
+#incidentReportModal .inc-modal-form-grid .ui-form-group,
+.inc-report-layout .inc-form-grid .inc-form-group,
+.inc-report-layout .inc-form-grid .ui-form-group,
+.inc-page .inc-status-form .inc-form-group {
     min-width: 0;
     gap: 7px;
 }
 #incidentReportModal .inc-modal-form-grid .inc-form-group > label,
-#incidentReportModal .inc-modal-form-grid .ui-form-group > label {
+#incidentReportModal .inc-modal-form-grid .ui-form-group > label,
+.inc-report-layout .inc-form-grid .inc-form-group > label,
+.inc-report-layout .inc-form-grid .ui-form-group > label,
+.inc-page .inc-status-form .inc-form-group > label {
     color: #263d5c;
     font-size: 12px;
     line-height: 1.35;
     font-weight: 700;
 }
 #incidentReportModal .inc-modal-form-grid .inc-form-group > select,
-#incidentReportModal .inc-modal-form-grid .inc-form-group > input:not([type="hidden"]),
-#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input {
-    height: 42px;
+#incidentReportModal .inc-modal-form-grid .inc-form-group > input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input,
+.inc-report-layout .inc-form-grid .inc-form-group > select,
+.inc-report-layout .inc-form-grid .inc-form-group > input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.inc-report-layout .inc-form-grid .ui-form-group .ui-input-wrap input,
+.inc-page .inc-status-form .inc-form-group > select,
+.inc-page .inc-status-form .inc-form-group > input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
     border: 1px solid #dce5f2;
-    border-radius: 9px;
+    border-radius: 10px;
     background-color: #fff;
     color: #172b4d;
-    font-size: 12px;
+    font-size: 13px;
     transition: border-color .18s ease, box-shadow .18s ease;
 }
-#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap.has-icon input {
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap.has-icon input,
+.inc-report-layout .inc-form-grid .ui-form-group .ui-input-wrap.has-icon input {
     padding-left: 43px;
 }
-#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input:focus {
+#incidentReportModal .inc-modal-form-grid .ui-form-group .ui-input-wrap input:focus,
+.inc-report-layout .inc-form-grid .ui-form-group .ui-input-wrap input:focus,
+.inc-report-layout .inc-form-grid .inc-form-group > select:focus,
+.inc-page .inc-status-form .inc-form-group > select:focus {
+    outline: none;
     border-color: #3767bb;
     box-shadow: 0 0 0 3px rgba(55,103,187,.12);
 }
-#incidentReportModal .inc-modal-form-grid .inc-form-group textarea {
+#incidentReportModal .inc-modal-form-grid .inc-form-group textarea,
+.inc-report-layout .inc-form-grid .inc-form-group textarea,
+.inc-page .inc-status-form .inc-form-group textarea {
     box-sizing: border-box;
     width: 100%;
-    min-height: 92px;
+    min-height: 96px;
     padding: 11px 12px;
     border: 1px solid #dce5f2;
-    border-radius: 9px;
+    border-radius: 10px;
     color: #172b4d;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
     resize: vertical;
 }
-#incidentReportModal .inc-modal-form-grid .inc-form-group textarea:focus {
+#incidentReportModal .inc-modal-form-grid .inc-form-group textarea:focus,
+.inc-report-layout .inc-form-grid .inc-form-group textarea:focus,
+.inc-page .inc-status-form .inc-form-group textarea:focus {
     border-color: #3767bb;
     box-shadow: 0 0 0 3px rgba(55,103,187,.12);
 }
 #incidentReportModal .inc-modal-form-grid input::placeholder,
-#incidentReportModal .inc-modal-form-grid textarea::placeholder {
+#incidentReportModal .inc-modal-form-grid textarea::placeholder,
+.inc-report-layout .inc-form-grid input::placeholder,
+.inc-report-layout .inc-form-grid textarea::placeholder {
     color: #8a98ac;
     opacity: 1;
 }
 
 /* Bus-first incident lookup: matches only real scheduled assignments. */
 .inc-form-group.inc-bus-lookup > input[data-incident-bus-search] {
-    width:100%; box-sizing:border-box; height:42px; padding:0 12px;
-    border:1px solid #dce5f2; border-radius:9px; background:#fff;
-    color:#172b4d; font-size:12px; outline:0;
+    width:100%; box-sizing:border-box; height:44px; padding:0 12px;
+    border:1px solid #dce5f2; border-radius:10px; background:#fff;
+    color:#172b4d; font-size:13px; outline:0;
 }
 .inc-form-group.inc-bus-lookup > input:focus {
     border-color:#3767bb; box-shadow:0 0 0 3px rgba(55,103,187,.12);
@@ -2107,11 +2167,16 @@
 @media(max-width:600px) { .inc-bus-trip-context { grid-template-columns:1fr; } }
 
 /* Approved incident modal: bus-first lookup followed by a read-only trip card. */
-#incidentReportModal .inc-autofill-internals { display:none !important; }
-#incidentReportModal .inc-modal-form-grid { gap:15px 16px; }
-#incidentReportModal .inc-bus-lookup { position:relative; }
-#incidentReportModal .inc-bus-lookup > label { font-size:12px; font-weight:750; }
-#incidentReportModal .inc-bus-lookup > input[data-incident-bus-search] {
+#incidentReportModal .inc-autofill-internals,
+.inc-report-layout .inc-autofill-internals { display:none !important; }
+#incidentReportModal .inc-modal-form-grid,
+.inc-report-layout .inc-form-grid { gap:15px 16px; }
+#incidentReportModal .inc-bus-lookup,
+.inc-report-layout .inc-bus-lookup { position:relative; }
+#incidentReportModal .inc-bus-lookup > label,
+.inc-report-layout .inc-bus-lookup > label { font-size:12px; font-weight:750; }
+#incidentReportModal .inc-bus-lookup > input[data-incident-bus-search],
+.inc-report-layout .inc-bus-lookup > input[data-incident-bus-search] {
     height:45px; padding-left:42px; border-radius:10px;
     background-image:none; background-color:#fff;
 }
@@ -2247,9 +2312,10 @@
 .inc-page .inc-record-actions { min-width: 128px; justify-content:center; gap:6px; }
 .inc-page .inc-record-actions .inc-action,
 .inc-page .inc-record-actions .inc-action.view,
-.inc-page .inc-record-actions .inc-edit-action {
+.inc-page .inc-record-actions .inc-edit-action,
+.inc-page .inc-record-actions .inc-delete-action {
     display:inline-flex; align-items:center; justify-content:center;
-    flex:0 0 30px; width:30px; height:30px; padding:0;
+    flex:0 0 32px; width:32px; min-width:32px; height:32px; min-height:32px; padding:0;
     border:1px solid #bfdbfe; border-radius:8px;
     background:#eff6ff; color:#2563eb; box-shadow:none;
 }

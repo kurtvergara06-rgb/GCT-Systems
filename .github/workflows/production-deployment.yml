@@ -57,7 +57,7 @@ jobs:
       - name: Prepare Laravel environment
         run: |
           cp .env.example .env
-          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+          mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
           chmod -R 775 storage bootstrap/cache
           php artisan key:generate
 

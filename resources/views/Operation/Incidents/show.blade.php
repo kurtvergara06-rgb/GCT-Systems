@@ -236,6 +236,11 @@
                             <span class="inc-detail-value">{{ $incident->location ?: '—' }}</span>
                         </div>
 
+                        <div class="inc-detail-item">
+                            <span class="inc-detail-label">Reported By</span>
+                            <span class="inc-detail-value">{{ $incident->reporter?->name ?: '—' }}</span>
+                        </div>
+
                         <div class="inc-detail-item full">
                             <span class="inc-detail-label">Description</span>
                             <span class="inc-detail-value" style="font-weight: 500; line-height: 1.55; white-space: pre-line;">
@@ -263,13 +268,6 @@
                             <div class="inc-detail-item">
                                 <span class="inc-detail-label">Resolved By</span>
                                 <span class="inc-detail-value">{{ $incident->resolver?->name ?: '—' }}</span>
-                            </div>
-                        @endif
-
-                        @if($incident->reporter)
-                            <div class="inc-detail-item">
-                                <span class="inc-detail-label">Reported By</span>
-                                <span class="inc-detail-value">{{ $incident->reporter->name }}</span>
                             </div>
                         @endif
                     </div>
@@ -338,6 +336,43 @@
                     </div>
                 </section>
             </div>
+
+            <!-- Related Operational Records -->
+            <section class="inc-card">
+                <div class="inc-card-header">
+                    <div>
+                        <h2>Related Operational Records</h2>
+                        <p>Connections to the trip schedule, affected vehicle, reserve bus deployment, and Maintenance referral.</p>
+                    </div>
+                </div>
+
+                <div class="inc-wf-related-grid inc-wf-records-grid">
+                    <article>
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Trip Schedule</span>
+                        <strong>{{ $incident->tripSchedule?->trip_code ?: 'Not linked' }}</strong>
+                        <small>{{ $incident->tripSchedule ? 'Linked schedule' : 'No trip schedule associated with this report' }}</small>
+                    </article>
+                    <article>
+                        <i class="fa-solid fa-bus"></i>
+                        <span>Affected Bus</span>
+                        <strong>{{ $incident->bus?->bus_no ?: 'Not linked' }}</strong>
+                        <small>{{ $incident->bus?->plate_no ?: 'Bus plate not recorded' }}</small>
+                    </article>
+                    <article>
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <span>Replacement Bus</span>
+                        <strong>{{ $incident->replacement?->replacementBus?->bus_no ?: 'Not recorded' }}</strong>
+                        <small>{{ $incident->replacement ? 'Replacement deployment recorded' : 'No replacement deployment recorded' }}</small>
+                    </article>
+                    <article>
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        <span>Maintenance Referral</span>
+                        <strong>{{ $hasReferral ? 'Recorded' : 'Not recorded' }}</strong>
+                        <small>{{ $hasReferral ? 'Referral linked to this incident' : 'No maintenance referral linked' }}</small>
+                    </article>
+                </div>
+            </section>
 
             @if($incident->replacement)
                 <section class="inc-card">

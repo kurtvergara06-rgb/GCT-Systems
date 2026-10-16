@@ -226,6 +226,16 @@ function initIncidentBusLookup() {
             if (driverSelect) { driverSelect.disabled = false; driverSelect.value = ''; }
             showDetails(null);
         };
+        const formatIncidentTime = (rawTime) => {
+            if (!rawTime) return '';
+            const match = String(rawTime).trim().match(/^(\d{1,2}):(\d{2})/);
+            if (!match) return String(rawTime);
+            const hours24 = parseInt(match[1], 10);
+            const minutes = match[2];
+            const period = hours24 >= 12 ? 'PM' : 'AM';
+            const hours12 = hours24 % 12 || 12;
+            return `${hours12}:${minutes} ${period}`;
+        };
         const matchingTrips = (busId) => trips.filter(option => option.dataset.busId === String(busId));
         const showDetails = (option) => {
             const bus = buses.find(item => item.dataset.busId === (option?.dataset.busId || confirmedBus));
@@ -236,7 +246,7 @@ function initIncidentBusLookup() {
                 driver: option?.dataset.driverName || 'Not available',
             };
             const metas = {
-                trip: option?.value ? [option.dataset.departure, option.dataset.arrival].filter(Boolean).join(' → ') : '—',
+                trip: option?.value ? [formatIncidentTime(option.dataset.departure), formatIncidentTime(option.dataset.arrival)].filter(Boolean).join(' → ') : '—',
                 route: option?.dataset.origin && option?.dataset.destination
                     ? option.dataset.origin + ' → ' + option.dataset.destination : '—',
                 bus: bus?.dataset.plateNo || '—',
@@ -262,6 +272,33 @@ function initIncidentBusLookup() {
             if (status) {
                 status.textContent = option?.value ? (option.dataset.tripStatus || 'Scheduled') : (bus ? 'No Trip Match' : 'Awaiting Bus ID');
                 status.classList.toggle('is-pending', !option?.value);
+            }
+            const contextPanelBody = form.closest('.inc-report-layout')?.querySelector('.inc-context-panel-body');
+            if (contextPanelBody) {
+                if (option?.value) {
+                    contextPanelBody.innerHTML = '';
+                    const items = [
+                        { title: `Trip ${details.trip}`, sub: metas.trip, icon: 'fa-circle-check', color: 'var(--inc-green)' },
+                        { title: details.bus, sub: metas.bus, icon: 'fa-bus' },
+                        { title: details.driver, sub: metas.driver, icon: 'fa-user' },
+                        { title: details.route, sub: metas.route, icon: 'fa-route' },
+                    ];
+                    items.forEach((item) => {
+                        const row = document.createElement('div');
+                        row.className = 'inc-context-item';
+                        const info = document.createElement('div');
+                        const strong = document.createElement('strong');
+                        strong.textContent = item.title;
+                        const small = document.createElement('small');
+                        small.textContent = item.sub;
+                        info.append(strong, small);
+                        const icon = document.createElement('i');
+                        icon.className = `fa-solid ${item.icon}`;
+                        if (item.color) icon.style.color = item.color;
+                        row.append(info, icon);
+                        contextPanelBody.appendChild(row);
+                    });
+                }
             }
         };
         const chooseTrip = (option) => {
