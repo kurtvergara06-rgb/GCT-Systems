@@ -1086,6 +1086,7 @@ class AutoSchedulingController extends Controller
 
                 if ($bus && $activeDriver) {
                     $this->assertAuthorizedBusPair($activeDriver->driver_id, (int) $bus->id, $field);
+                    $this->assertBusMatchesTripClient($trip, $bus, $field);
                 }
 
                 if ($bus && JobOrder::query()
@@ -2285,6 +2286,32 @@ class AutoSchedulingController extends Controller
      *
      * @return array{0: ?DriverAttendance, 1: ?Bus}
      */
+    /**
+     * A dedicated client trip uses only that client's buses. A general
+     * service uses only unallocated buses; borrowing needs explicit review.
+     */
+    private function busMatchesTripClient(TripSchedule $trip, Bus $bus): bool
+    {
+        $client = trim((string) ($trip->client_name ?? ''));
+        $allocated = $bus->operationClients()->pluck('name')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+        if ($client === '') {
+            return $allocated->isEmpty();
+        }
+
+        return $allocated->contains(mb_strtolower($client));
+    }
+
+    private function assertBusMatchesTripClient(TripSchedule $trip, Bus $bus, string $field): void
+    {
+        if (! $this->busMatchesTripClient($trip, $bus)) {
+            throw ValidationException::withMessages([
+                $field => 'This bus is not allocated to the trip client. Choose a client-compatible bus and regenerate the schedule.',
+            ]);
+        }
+    }
+
     private function findAvailableAuthorizedPair(
         TripSchedule $trip,
         Collection $drivers,
@@ -2302,6 +2329,9 @@ class AutoSchedulingController extends Controller
         ));
 
         foreach ($orderedBuses as $bus) {
+            if (! $this->busMatchesTripClient($trip, $bus)) {
+                continue;
+            }
             if ($this->busHasConflict($trip, (int) $bus->id, $existingAssignments, $generatedRecommendations)) {
                 continue;
             }
@@ -2325,7 +2355,9 @@ class AutoSchedulingController extends Controller
         }
 
         return [null, $this->findAvailableBus(
-            $trip, $buses, $existingAssignments, $generatedRecommendations, $busWorkloads
+            $trip,
+            $buses->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus)),
+            $existingAssignments, $generatedRecommendations, $busWorkloads
         )];
     }
 
