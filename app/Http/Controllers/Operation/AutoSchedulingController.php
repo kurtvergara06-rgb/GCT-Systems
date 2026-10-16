@@ -1131,7 +1131,8 @@ class AutoSchedulingController extends Controller
                     if ($regularCandidates->contains(function (Bus $candidate) use (
                         $trip, $trips, $recommendations, $index, $existingAssignments
                     ): bool {
-                        if ($this->busHasConflict($trip, $candidate->id, $existingAssignments, collect())) {
+                        if (! $this->busMatchesTripClient($trip, $candidate)
+                            || $this->busHasConflict($trip, $candidate->id, $existingAssignments, collect())) {
                             return false;
                         }
 
@@ -2383,6 +2384,11 @@ class AutoSchedulingController extends Controller
 
     private function assertAuthorizedBusPair(string $driverId, int $busId, string $field): void
     {
+        // Reserve units have no permanent driver. Explicitly reviewed reserve
+        // selections require OIC approval at confirmation instead.
+        if (Bus::query()->whereKey($busId)->where('fleet_purpose', 'Reserve')->exists()) {
+            return;
+        }
         if (! Driver::query()
             ->where('driver_id', $driverId)
             ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($busId))
