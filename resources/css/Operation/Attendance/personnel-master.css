@@ -2088,7 +2088,7 @@
 .driver-bus-picker-trigger:disabled { cursor: default; background: #f4f7fb; }
 .driver-bus-picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .driver-bus-picker-panel {
-    position: absolute; inset-inline: 0; top: calc(100% + 4px); z-index: 45;
+    position: relative; width: 100%; margin-top: 5px; z-index: 1;
     padding: 8px; background: white; border: 1px solid #d6e1f0;
     border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 35, 75, .16);
 }
