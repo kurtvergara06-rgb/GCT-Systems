@@ -61,6 +61,10 @@ class BatchAttendanceController extends Controller
             ->get()
             ->keyBy($idColumn);
 
+        // Only personnel without an attendance record on this date belong in
+        // Record Daily Attendance; recorded personnel remain in attendance history.
+        $people = $people->reject(fn ($person) => $dateRecords->has((string) $person->{$idColumn}));
+
         $rows = $people->map(function ($person) use (
             $dateRecords,
             $date,
@@ -175,6 +179,14 @@ class BatchAttendanceController extends Controller
                         ->whereDate('attendance_date', $date)
                         ->lockForUpdate()->first();
 
+                    // A batch is create-only: never silently replace an existing
+                    // daily record, including one linked to a trip or job order.
+                    if ($existing) {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'Attendance is already recorded for this person on the selected date. Refresh the roster.',
+                        ]);
+                    }
+
                     // Match the individual attendance controllers: linked records
                     // cannot be rewritten through the batch endpoint.
                     if ($type === 'driver' && $existing?->tripAssignments()->exists()) {
@@ -222,14 +234,10 @@ class BatchAttendanceController extends Controller
                         $values['assigned_job'] = trim((string) ($row['assigned_job'] ?? ''));
                     }
 
-                    if ($existing) {
-                        $existing->update($values);
-                    } else {
-                        $attendanceModel::query()->create(array_merge([
-                            $idColumn => $personId,
-                            'attendance_date' => $date,
-                        ], $values));
-                    }
+                    $attendanceModel::query()->create(array_merge([
+                        $idColumn => $personId,
+                        'attendance_date' => $date,
+                    ], $values));
 
                     $saved++;
                 }
