@@ -11,7 +11,6 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/js/app.js',
-                'resources/js/Main-js/partial-navigation.js',
 
                 // ======================================================
                 // SHARED LAYOUT ASSETS

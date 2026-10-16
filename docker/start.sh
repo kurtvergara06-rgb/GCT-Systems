@@ -12,7 +12,7 @@ echo "Preparing Laravel application..."
 
 mkdir -p \
     storage/app/public \
-    storage/framework/cache \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \

@@ -7,7 +7,7 @@ cd /var/www/html
 echo "Preparing Laravel Reverb..."
 
 mkdir -p \
-    storage/framework/cache \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
