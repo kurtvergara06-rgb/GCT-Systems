@@ -371,6 +371,9 @@ class PersonnelController extends Controller
         $request->merge([
             'driver_id' => trim((string) $request->input('driver_id')),
             'driver_name' => trim((string) $request->input('driver_name')),
+            // Preserve the existing shift on edit; use legacy Morning default only
+            // for newly created drivers until the scheduling/attendance phase is migrated.
+            'shift' => $driver?->shift ?? 'Morning',
         ]);
 
         if ($request->boolean('bus_ids_present')) $request->merge(['bus_ids' => $request->input('bus_ids', [])]);
