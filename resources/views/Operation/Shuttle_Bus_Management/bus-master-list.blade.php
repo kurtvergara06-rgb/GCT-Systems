@@ -193,7 +193,7 @@
                                         @if($bus->authorizedDrivers->isEmpty())
                                             <span class="bus-no-drivers">None assigned</span>
                                         @else
-                                            <div class="bus-table-disclosure"><span class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</span>
+                                            <div class="bus-table-disclosure bus-driver-summary"><span class="bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="bus-driver-details"><strong class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</strong><small>Driver profile</small></span>
                                             @if($bus->authorizedDrivers->count() > 1)
                                                 <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
                                                 <div class="bus-more-source" hidden>@foreach($bus->authorizedDrivers->skip(1) as $driver)<div class="bus-more-entry"><i class="fa-solid fa-user"></i><span>{{ $driver->driver_name }}</span></div>@endforeach</div>
