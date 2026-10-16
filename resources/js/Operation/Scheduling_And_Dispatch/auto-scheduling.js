@@ -2998,7 +2998,7 @@ function updateMlStatus(conflicts) {
         const drivers = missingBus && !missingDriver ? [] : getAlternatives(conflict, 'alternative_drivers');
         // Display reserve units for planning even when a driver is missing.
         // These are informational only, not selectable/confirmable assignments.
-        const reserveInformation = Array.isArray(ai.alternative_buses)
+        const reserveInformation = missingDriver && Array.isArray(ai.alternative_buses)
             ? ai.alternative_buses.filter(item => String(item?.label || '').includes('(Reserve)'))
             : [];
         const buses = missingDriver && !missingBus ? [] : getAlternatives(conflict, 'alternative_buses');
