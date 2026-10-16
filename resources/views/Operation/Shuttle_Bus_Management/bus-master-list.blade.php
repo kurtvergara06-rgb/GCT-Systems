@@ -335,7 +335,7 @@
                     <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
                     <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
                     <div><dt>Bus Purpose</dt><dd data-bus-detail="fleetPurpose">—</dd></div>
-                    <div><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div><dt>Authorized Drivers</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
+                    <div data-bus-regular-detail><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div data-bus-regular-detail><dt>Authorized Drivers</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
                 </dl>
                 <div class="bus-details-section bus-details-route-heading">
                     <i class="fa-solid fa-route" aria-hidden="true"></i>
@@ -441,7 +441,7 @@
                     <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Regular buses join standard scheduling. Reserve buses are kept for breakdown replacements.</p>
                 </div>
             </section>
-            <section class="bus-modal-panel bus-modal-client-panel">
+            <section class="bus-modal-panel bus-modal-client-panel" data-bus-client-panel>
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="create_client_name">Client / Company Name</label>
@@ -574,7 +574,7 @@
                     <p id="editFleetPurposeLockHint" class="bus-no-lock-hint" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus Purpose is locked while this bus has an ongoing or future trip assignment.</p>
                 </div>
             </section>
-                        <section class="bus-modal-panel bus-modal-client-panel">
+                        <section class="bus-modal-panel bus-modal-client-panel" data-bus-client-panel>
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="edit_client_name">Client / Company Name</label>
