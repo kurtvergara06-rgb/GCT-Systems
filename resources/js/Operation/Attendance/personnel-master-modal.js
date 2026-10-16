@@ -23,13 +23,35 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const busOptions = [...(busPicker?.querySelectorAll('[data-driver-bus-option]') || [])];
     const busChecks = [...(busPicker?.querySelectorAll('[data-driver-bus-checkbox]') || [])];
     const busEmpty = busPicker?.querySelector('[data-driver-bus-empty]');
+    const busChips = busPicker?.querySelector('[data-driver-bus-chips]');
     const updateBusPicker = () => {
         if (!busLabel) return;
         const selected = busChecks.filter((check) => check.checked);
         busLabel.textContent = selected.length
-            ? selected.length === 1 ? selected[0].closest('label')?.querySelector('span')?.textContent?.trim() || '1 bus selected'
-                : `${selected.length} buses selected`
+            ? `${selected.length} bus${selected.length === 1 ? '' : 'es'} selected`
             : 'Select authorized buses';
+        if (!busChips) return;
+        busChips.replaceChildren();
+        selected.forEach((check) => {
+            const chip = document.createElement('span');
+            chip.className = 'driver-bus-chip';
+            const label = document.createElement('span');
+            label.textContent = check.dataset.busNumber || check.value;
+            chip.append(label);
+            if (modal.dataset.mode !== 'view') {
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'driver-bus-chip-remove';
+                remove.setAttribute('aria-label', `Remove ${label.textContent}`);
+                remove.textContent = '×';
+                remove.addEventListener('click', () => {
+                    check.checked = false;
+                    updateBusPicker();
+                });
+                chip.append(remove);
+            }
+            busChips.append(chip);
+        });
     };
     const closeBusPicker = () => {
         if (busPanel) busPanel.hidden = true;
@@ -256,6 +278,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         }
 
         modal.dataset.mode = 'edit';
+        updateBusPicker();
         if (viewNotice) viewNotice.hidden = true;
         setSpecializationReadOnly(false);
         setSpecializations('');
@@ -338,6 +361,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (busTrigger) busTrigger.disabled = true;
             busChecks.forEach((check) => { check.disabled = true; });
             closeBusPicker();
+            updateBusPicker();
 
             submitButton.hidden = true;
             submitButton.style.display = 'none';
@@ -363,6 +387,11 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     });
 
     document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && busPanel && !busPanel.hidden) {
+            closeBusPicker();
+            busTrigger?.focus();
+            return;
+        }
         if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
     });
 
