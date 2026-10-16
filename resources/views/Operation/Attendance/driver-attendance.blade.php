@@ -16,7 +16,7 @@
 
     <x-layout.sidebar department="Operation" />
 
-    <main class="main driver-attendance-page">
+    <main class="main driver-attendance-page" data-attendance-business-date="{{ now(config('app.business_timezone', 'Asia/Manila'))->toDateString() }}" data-attendance-auto-today="{{ request()->filled('attendance_date') ? '0' : '1' }}">
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="Manage and track driver attendance and availability"
