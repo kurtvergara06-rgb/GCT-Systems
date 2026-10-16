@@ -10,6 +10,8 @@
 >
 @php
     $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    $canAssignReserve = $canEditOperation && strtolower(trim((string) auth()->user()?->role)) === 'head'
+        && in_array(strtolower(trim((string) auth()->user()?->department)), ['operation', 'admin'], true);
 @endphp
 
 <div class="app">
@@ -18,6 +20,7 @@
     <main
         class="main auto-scheduling-page"
         data-operation-edit="{{ $canEditOperation ? 'true' : 'false' }}"
+        data-reserve-head="{{ $canAssignReserve ? 'true' : 'false' }}"
     >
         <x-layout.topbar
             title="Auto Scheduling"
