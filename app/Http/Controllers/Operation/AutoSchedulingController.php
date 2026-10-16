@@ -1362,6 +1362,19 @@ class AutoSchedulingController extends Controller
                     : null,
 
             'eligible_drivers' => $drivers
+                // Driver suitability is trip-specific: only drivers whose
+                // permanent Regular bus serves this client belong in the AI
+                // recommendation pool. Reserve units are review-only.
+                ->filter(function (DriverAttendance $candidate) use ($trip, $buses): bool {
+                    return $buses->contains(function (Bus $bus) use ($candidate, $trip): bool {
+                        return $bus->fleet_purpose === 'Regular'
+                            && $this->busMatchesTripClient($trip, $bus)
+                            && Driver::query()->where('driver_id', $candidate->driver_id)
+                                ->where('employment_status', 'Active')
+                                ->whereHas('authorizedBuses', fn ($q) => $q->whereKey($bus->id))
+                                ->exists();
+                    });
+                })
                 ->map(
                     fn (
                         DriverAttendance $driver
