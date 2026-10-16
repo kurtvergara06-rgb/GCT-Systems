@@ -438,6 +438,16 @@ class AutoSchedulingController extends Controller
                         $reasons[] = "No active bus is available{$slotSuffix}.";
                     }
 
+                    $reserveAlternatives = $buses
+                        ->filter(fn (Bus $candidate) => $candidate->fleet_purpose === 'Reserve'
+                            && ! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations))
+                        ->map(fn (Bus $candidate) => [
+                            'label' => $candidate->bus_no.' (Reserve)',
+                            'score' => null,
+                            'reason' => 'Standby unit only. Requires Operations/OIC approval and an eligible replacement driver before deployment.',
+                        ])
+                        ->values()->all();
+
                     $aiPayload = $this->buildAiPayload(
                         trip: $trip,
                         selectedDriver: $driver,
@@ -488,7 +498,7 @@ class AutoSchedulingController extends Controller
                             'conflict_explanation' => data_get($aiResponse, 'analysis.conflict_explanation'),
                             'warnings' => data_get($aiResponse, 'analysis.warnings', []),
                             'alternative_drivers' => data_get($aiResponse, 'analysis.alternative_drivers', []),
-                            'alternative_buses' => data_get($aiResponse, 'analysis.alternative_buses', []),
+                            'alternative_buses' => $reserveAlternatives,
                             'ml' => [
                                 'bus_ready' => (bool) data_get($aiResponse, 'analysis.ml_bus_ready', false),
                                 'driver_ready' => (bool) data_get($aiResponse, 'analysis.ml_driver_ready', false),
@@ -2296,6 +2306,12 @@ class AutoSchedulingController extends Controller
      */
     private function busMatchesTripClient(TripSchedule $trip, Bus $bus): bool
     {
+        // Reserve units are unallocated shared emergency assets. They may be
+        // proposed for any client, but never automatically marked Ready.
+        if ($bus->fleet_purpose === 'Reserve') {
+            return true;
+        }
+
         $client = trim((string) ($trip->client_name ?? ''));
         $allocated = $bus->operationClients()->pluck('name')
             ->map(fn ($name) => mb_strtolower(trim((string) $name)));
