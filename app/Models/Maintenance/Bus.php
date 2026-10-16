@@ -6,6 +6,9 @@ use App\Models\Operation\TripAssignment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Operation\Driver;
+use App\Models\Operation\OperationClient;
 
 class Bus extends Model
 {
@@ -13,6 +16,7 @@ class Bus extends Model
 
     protected $fillable = [
         'bus_no',
+        'client_allocation_type',
         'fleet_purpose',
         'plate_no',
         'bus_model',
@@ -36,6 +40,16 @@ class Bus extends Model
         'pms_interval_km' => 'decimal:2',
         'next_pms_km' => 'decimal:2',
     ];
+
+    public function authorizedDrivers(): BelongsToMany
+    {
+        return $this->belongsToMany(Driver::class, 'driver_authorized_buses')->withTimestamps();
+    }
+
+    public function operationClients(): BelongsToMany
+    {
+        return $this->belongsToMany(OperationClient::class, 'bus_operation_clients')->withTimestamps();
+    }
 
     public function tripAssignments(): HasMany
     {
