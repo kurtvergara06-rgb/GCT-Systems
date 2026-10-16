@@ -407,6 +407,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             clientAllocation: button.dataset.clientAllocationType
                 ? button.dataset.clientAllocationType + ' — ' + (button.dataset.clientNames || '')
                 : 'Not allocated',
+            authorizedDrivers: button.dataset.authorizedDrivers || 'No authorized drivers',
         };
         for (const [key, value] of Object.entries(fields)) {
             const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
