@@ -66,12 +66,11 @@
 
         <div class="table-wrap" style="margin-top: 16px;">
           <table class="attendance-table">
-            <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
+            <colgroup><col style="width: 13%"><col style="width: 16%"><col style="width: 25%"><col style="width: 12%"><col style="width: 12%"><col style="width: 10%"><col style="width: 12%"></colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Driver</th>
-                <th>Shift</th>
                 <th>Current Assignment</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
@@ -186,7 +185,7 @@
                         <button
                           type="button"
                           class="action-btn delete open-delete-driver-attendance-modal"
-                          title="Delete"
+                          @if($attendance->tripAssignments->isNotEmpty()) disabled aria-disabled="true" title="Locked: linked trip assignment" @else title="Delete" @endif
                           data-id="{{ $attendance->id }}"
                           data-driver-id="{{ $attendance->driver_id }}"
                           data-driver-name="{{ $attendance->driver_name }}"
@@ -199,7 +198,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
+                  colspan="7"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
                   description="No driver attendance records match your selected filters."
