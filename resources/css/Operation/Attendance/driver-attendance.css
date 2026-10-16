@@ -1188,7 +1188,7 @@
 .driver-attendance-page .attendance-table td:nth-child(n+3) {
   text-align: center;
 }
-.driver-attendance-page .attendance-table td:nth-child(3),
+.driver-attendance-page .attendance-table td:nth-child(4),
 .driver-attendance-page .attendance-table td:nth-child(5),
 .driver-attendance-page .attendance-table td:nth-child(6),
 .driver-attendance-page .attendance-table td:nth-child(7) {
@@ -1230,3 +1230,14 @@
 #viewDriverAttendanceModal .attendance-detail-card label { font-size: 10px; letter-spacing: .06em; }
 #viewDriverAttendanceModal .attendance-detail-value { color: #10213e; }
 #viewDriverAttendanceModal .ui-form-actions { border-top: 1px solid #e8eef5; padding-top: 17px; }
+
+/* Linked attendance cannot be edited or deleted: visibly disabled, not hidden. */
+.driver-attendance-page .attendance-table .action-btn:is(.edit, .delete):disabled {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
