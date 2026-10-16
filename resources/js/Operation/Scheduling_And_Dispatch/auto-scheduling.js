@@ -3067,7 +3067,7 @@ function updateMlStatus(conflicts) {
                             ${reserveInformation.map(bus => `
                                 <button type="button" class="gct-option-card gct-report-option" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;cursor:pointer;">
                                     <strong><i class="fa-solid fa-bus"></i> ${escapeHtml(bus.label)}</strong>
-                                    <small style="display:block;margin-top:5px;">${escapeHtml(bus.reason || 'Standby bus. Only Operations Head may select; an eligible driver is required.')}</small>
+                                    <small style="display:block;margin-top:5px;">Operations Head may assign this standby bus with a qualified driver. No OIC approval required.</small>
                                     <small style="display:block;margin-top:7px;color:#2563eb;">Select Reserve Bus <i class="fa-solid fa-arrow-right"></i></small>
                                 </button>
                             `).join('')}
