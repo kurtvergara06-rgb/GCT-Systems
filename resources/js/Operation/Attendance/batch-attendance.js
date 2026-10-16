@@ -254,6 +254,7 @@ function initBatchAttendancePage() {
                     </td>
                     <td>
                         <div class="batch-status-group" role="group" aria-label="Attendance status">
+                            ${type === 'driver' ? renderStatusButton('Unmarked', normalizedStatus) : ''}
                             ${renderStatusButton('Present', normalizedStatus)}
                             ${type === 'mechanic' ? renderStatusButton('Late', normalizedStatus) : ''}
                             ${renderStatusButton('Absent', normalizedStatus)}
@@ -285,6 +286,7 @@ function initBatchAttendancePage() {
         statusButtons.forEach((statusButton) => {
             statusButton.addEventListener('click', () => {
                 setSelectedStatus(row, statusButton.dataset.statusValue);
+                if (type === 'driver') row.querySelector('[data-row-select]').checked = statusButton.dataset.statusValue !== 'Unmarked';
                 applyStatusRules(row);
                 detectLate(row);
                 updateAvailability(row);
@@ -314,6 +316,7 @@ function initBatchAttendancePage() {
     function markAllPresent() {
         document.querySelectorAll('#batchAttendanceModal [data-batch-row]').forEach((row) => {
             setSelectedStatus(row, 'Present');
+            if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
             detectLate(row);
             updateAvailability(row);
@@ -326,7 +329,7 @@ function initBatchAttendancePage() {
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
-            setSelectedStatus(row, 'Present');
+            setSelectedStatus(row, type === 'driver' ? 'Unmarked' : 'Present');
             applyStatusRules(row, false);
             updateAvailability(row);
         });
@@ -457,7 +460,9 @@ function initBatchAttendancePage() {
         const saveButton = modal?.querySelector('#batchSaveAttendance');
         if (!modal || !saveButton) return;
 
-        const rows = [...modal.querySelectorAll('[data-batch-row]')].map((row) => ({
+        const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
+            .filter((row) => type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked));
+        const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
             shift: row.dataset.shift,
@@ -521,7 +526,7 @@ function initBatchAttendancePage() {
     }
 
     function selectedStatus(row) {
-        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || 'Present';
+        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function setSelectedStatus(row, status) {
@@ -531,11 +536,12 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
+        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : [])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function statusThemeClass(value) {
         return {
+            Unmarked: 'unmarked',
             Present: 'present',
             Late: 'late',
             Absent: 'absent',
@@ -556,6 +562,7 @@ function initBatchAttendancePage() {
 
         const rows = [...modal.querySelectorAll('[data-batch-row]')];
         const counts = {
+            Unmarked: 0,
             Present: 0,
             Late: 0,
             Absent: 0,
@@ -567,12 +574,13 @@ function initBatchAttendancePage() {
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
-            if (!['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+            if (status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
                 counts.Incomplete += 1;
             }
         });
 
         summary.innerHTML = [
+            ...(type === 'driver' ? [['Unmarked', 'unmarked', '#94a3b8']] : []),
             ['Present', 'present', '#2fb45e'],
             ['Late', 'late', '#ff9518'],
             ['Absent', 'absent', '#ef3d3d'],
