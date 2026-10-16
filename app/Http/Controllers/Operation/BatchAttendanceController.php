@@ -214,7 +214,7 @@ class BatchAttendanceController extends Controller
                         $nameColumn => (string) $person->{$nameColumn},
                         'shift' => $type === 'driver' ? 'Morning' : $row['shift'],
                         'time_in' => $timeIn ? $timeIn . ':00' : null,
-                        'time_out' => $timeOut ? $timeOut . ':00' : null,
+                        'time_out' => $type === 'driver' ? null : ($timeOut ? $timeOut . ':00' : null),
                         'status' => $status,
                     ];
 
