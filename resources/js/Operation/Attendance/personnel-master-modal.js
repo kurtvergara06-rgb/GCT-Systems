@@ -221,7 +221,14 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     const fillForm = (record) => {
         fields.forEach((field) => {
-            field.value = record[field.name] ?? '';
+            if (field.multiple) {
+                const selected = new Set((record.bus_ids || []).map(String));
+                [...field.options].forEach((option) => {
+                    option.selected = selected.has(option.value);
+                });
+            } else {
+                field.value = record[field.name] ?? '';
+            }
         });
 
         setSpecializations(record.specialization ?? '');
