@@ -2586,7 +2586,7 @@ function updateMlStatus(conflicts) {
 
     const getSelection = (index) => {
         const conflict = conflicts[index];
-        const drivers = getAlternatives(conflict, 'alternative_drivers');
+        const drivers = conflict?.missing_driver ? [] : getAlternatives(conflict, 'alternative_drivers');
         const buses = getAlternatives(conflict, 'alternative_buses');
         const existing = selections.get(index) || {};
 
@@ -2995,7 +2995,7 @@ function updateMlStatus(conflicts) {
         const missingDriver = conflict?.missing_driver === true;
         const missingBus = conflict?.missing_bus === true;
         // A missing bus is not fixed by swapping drivers, and vice versa.
-        const drivers = missingBus && !missingDriver ? [] : getAlternatives(conflict, 'alternative_drivers');
+        const drivers = missingDriver || missingBus ? [] : getAlternatives(conflict, 'alternative_drivers');
         // Display reserve units for planning even when a driver is missing.
         // These are informational only, not selectable/confirmable assignments.
         const reserveInformation = missingDriver && Array.isArray(ai.alternative_buses)
