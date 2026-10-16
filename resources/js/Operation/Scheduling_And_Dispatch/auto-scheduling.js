@@ -3691,9 +3691,16 @@ function updateMlStatus(conflicts) {
             if (!item || !Number.isInteger(busId) || busId <= 0) return;
             editing = { kind: 'conflict', index, item };
             editDialog.querySelector('.auto-preview-edit-context').textContent =
-                (item.base_trip_code || item.trip_code || 'Trip') + ' — Reserve ' + reserveInfo.dataset.gctReserveLabel;
+                (item.base_trip_code || item.trip_code || 'Trip') + ' — ' + reserveInfo.dataset.gctReserveLabel;
             const errorEl = editDialog.querySelector('.auto-preview-edit-error');
-            errorEl.hidden = true;
+            errorEl.hidden = false;
+            errorEl.textContent = 'Loading eligible drivers and verifying the Reserve bus…';
+            const submit = editDialog.querySelector('[type="submit"]');
+            submit.disabled = true;
+            for (const field of ['driver', 'bus']) {
+                editDialog.querySelector('[name="' + field + '"]').replaceChildren(new Option('Loading…', ''));
+            }
+            editDialog.showModal();
             void (async () => {
                 try {
                     const data = await previewEditRequest({ trip_schedule_id: item.trip_schedule_id });
@@ -3706,10 +3713,15 @@ function updateMlStatus(conflicts) {
                     if (!editDialog.querySelector('[name="bus"]').value) {
                         throw new Error('This Reserve Bus is no longer available. Regenerate the schedule.');
                     }
-                    editDialog.showModal();
+                    if (!data.drivers?.length) {
+                        throw new Error('No driver has eligible attendance for this trip. Record attendance first, then retry.');
+                    }
+                    errorEl.hidden = true;
+                    submit.disabled = false;
                 } catch (error) {
-                    editing = null;
-                    window.showSystemToast?.(error.message, 'error', 'Reserve selection unavailable');
+                    errorEl.textContent = error.message || 'Reserve selection could not be loaded.';
+                    errorEl.hidden = false;
+                    submit.disabled = true;
                 }
             })();
             return;
