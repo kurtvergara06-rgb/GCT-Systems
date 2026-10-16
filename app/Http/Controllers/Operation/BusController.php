@@ -628,30 +628,16 @@ class BusController extends Controller
      */
     private function validateClientAllocation(Request $request): ?array
     {
-        if (! $request->filled('client_allocation_type')) return null;
-
+        // A blank client field means "keep the existing allocation" on edit.
+        // New buses can remain unallocated until their client is known.
         $data = $request->validate([
-            'client_allocation_type' => ['required', 'in:Exclusive,Shared'],
-            'client_names' => ['required', 'string', 'max:2000'],
+            'client_name' => ['nullable', 'string', 'max:100', 'not_regex:/,/'],
         ]);
 
-        $names = collect(explode(',', $data['client_names']))
-            ->map(fn ($name) => trim($name))
-            ->filter()
-            ->unique(fn ($name) => mb_strtolower($name))
-            ->values()->all();
+        $name = trim((string) ($data['client_name'] ?? ''));
+        if ($name === '') return null;
 
-        foreach ($names as $name) {
-            if (mb_strlen($name) > 100) {
-                throw ValidationException::withMessages(['client_names' => 'Company names must not exceed 100 characters.']);
-            }
-        }
-        if (count($names) < ($data['client_allocation_type'] === 'Shared' ? 2 : 1)
-            || ($data['client_allocation_type'] === 'Exclusive' && count($names) !== 1)) {
-            throw ValidationException::withMessages(['client_names' => 'Exclusive requires exactly one company; Shared requires at least two companies.']);
-        }
-
-        return ['type' => $data['client_allocation_type'], 'names' => $names];
+        return ['type' => 'Exclusive', 'names' => [$name]];
     }
 
     private function syncClientAllocation(Bus $bus, array $allocation): void
