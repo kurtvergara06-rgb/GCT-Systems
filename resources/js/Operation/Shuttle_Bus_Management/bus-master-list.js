@@ -374,7 +374,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
                 const allocationType = document.getElementById('edit_client_allocation_type');
                 const companyNames = document.getElementById('edit_client_names');
-                if (allocationType) allocationType.value = button.dataset.clientAllocationType || 'Exclusive';
+                if (allocationType) allocationType.value = button.dataset.clientAllocationType || '';
                 if (companyNames) companyNames.value = button.dataset.clientNames || '';
 
                 if (editBusNo) {
