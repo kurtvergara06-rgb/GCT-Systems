@@ -2741,3 +2741,18 @@
   margin: 0;
   text-align: left;
 }
+
+/* Empty labels line up with the name after each 32px avatar + 9px gap. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty,
+.bus-master-list-page .bus-table tbody td.bus-drivers-cell > .bus-identity-empty {
+  display: block;
+  box-sizing: border-box;
+  padding-left: 41px;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
