@@ -148,6 +148,7 @@
                                         <i class="fa-solid fa-up-down sort-icon" aria-hidden="true"></i>
                                     </div>
                                 </th>
+                                <th>Client Allocation</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -177,6 +178,7 @@
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
+                                    <td title="{{ $bus->operationClients->pluck('name')->join(', ') }}">{{ $bus->client_allocation_type ? $bus->client_allocation_type.' — '.$bus->operationClients->pluck('name')->join(', ') : 'Not allocated' }}</td>
 
                                     <td>
                                         <div class="actions">
@@ -186,7 +188,9 @@
                                                 data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
                                                 data-capacity="{{ $bus->capacity }}" data-status="{{ $displayStatus }}" data-fleet-purpose="{{ $bus->fleet_purpose }}"
                                                 data-route-grouping="{{ $bus->route_grouping }}"
-                                                data-display-route="{{ $bus->display_route_name }}">
+                                                data-display-route="{{ $bus->display_route_name }}"
+                                                data-client-allocation-type="{{ $bus->client_allocation_type }}"
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}">
                                                 <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                             @if($canEditOperation)
@@ -204,6 +208,8 @@
                                                 data-status="{{ $bus->status }}"
                                                 data-fleet-purpose="{{ $bus->fleet_purpose }}"
                                                 data-fleet-purpose-locked="{{ $bus->fleet_purpose_locked ? '1' : '0' }}"
+                                                data-client-allocation-type="{{ $bus->client_allocation_type }}"
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}"
                                                 data-update-url="/bus-master-list/{{ $bus->id }}"
                                             ><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
 
@@ -244,7 +250,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="5"
+                                    colspan="6"
                                     icon="fa-bus"
                                     message="No Bus Records Found"
                                     description="There are no buses matching the selected fleet and filters."
@@ -284,6 +290,7 @@
                     <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
                     <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
                     <div><dt>Bus Purpose</dt><dd data-bus-detail="fleetPurpose">—</dd></div>
+                    <div><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div>
                 </dl>
                 <div class="bus-details-section bus-details-route-heading">
                     <i class="fa-solid fa-route" aria-hidden="true"></i>
@@ -376,6 +383,13 @@
                 </option>
             </select></div>
         </div></div>
+        </div>
+        <div class="form-group full-width" style="padding: 12px 16px">
+            <label>Client Allocation Type</label>
+            <select name="client_allocation_type" required><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
+            <label>Authorized Company Names (comma-separated for Shared)</label>
+            <input name="client_names" value="{{ old('client_names') }}" placeholder="Company A, Company B" maxlength="2000" required>
+            <small>Exclusive: one company. Shared: at least two companies. Existing assignments stay protected.</small>
         </div>
         <div class="bus-modal-lower">
             <section class="bus-modal-panel">
@@ -511,6 +525,13 @@
                 </div>
                         </div>
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
+                    </div>
+                    <div class="form-group full-width" style="padding: 12px 16px">
+                        <label>Client Allocation Type</label>
+                        <select name="client_allocation_type" id="edit_client_allocation_type" required><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
+                        <label>Authorized Company Names (comma-separated for Shared)</label>
+                        <input name="client_names" id="edit_client_names" maxlength="2000" required>
+                        <small>Cannot modify allocations with ongoing or future assignments.</small>
                     </div>
                     <div class="bus-modal-lower">
                         <section class="bus-modal-panel">
