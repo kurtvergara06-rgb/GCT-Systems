@@ -141,6 +141,7 @@ class DriverAttendanceController extends Controller
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
+        $validated['time_out'] = null; // Drivers do not clock out.
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -208,6 +209,7 @@ class DriverAttendanceController extends Controller
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
         $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
+        $validated['time_out'] = null; // Drivers do not clock out.
 
         if ($driverAttendance->tripAssignments()->exists()
             && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
@@ -355,7 +357,7 @@ class DriverAttendanceController extends Controller
                             'driver_name' => $driver->driver_name,
                             'shift' => 'Morning', // Legacy required column, not a driver assignment.
                             'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
-                            'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
+                            'time_out' => null, // Drivers do not clock out.
                             'status' => $status,
                         ]
                     );
