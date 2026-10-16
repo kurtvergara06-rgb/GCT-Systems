@@ -100,13 +100,6 @@ class AutoSchedulingController extends Controller
                 )
                 ->whereIn('status', ['Present', 'Late']);
 
-        if ($selectedShift !== 'all') {
-            $availableDriverQuery->where(
-                'shift',
-                $selectedShift
-            );
-        }
-
         $availableDrivers =
             $availableDriverQuery->count();
 
@@ -277,17 +270,6 @@ class AutoSchedulingController extends Controller
                 $scheduleDate
             )
             ->whereIn('status', ['Present', 'Late'])
-            ->when(
-                $selectedShift !== 'all',
-                function ($query) use (
-                    $selectedShift
-                ) {
-                    $query->where(
-                        'shift',
-                        $selectedShift
-                    );
-                }
-            )
 
             ->orderBy('driver_name')
             ->get();
