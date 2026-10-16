@@ -2,6 +2,130 @@ import '../../echo';
 
 window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
+    // Manage exclusive/shared company lists without comma-separated typing.
+    const companyEditors = [...document.querySelectorAll('[data-client-editor]')];
+    companyEditors.forEach((editor) => {
+        const type = editor.querySelector('[name="client_allocation_type"]');
+        const hidden = editor.querySelector('[data-client-names]');
+        const trigger = editor.querySelector('[data-client-trigger]');
+        const summary = editor.querySelector('[data-client-summary]');
+        const panel = editor.querySelector('[data-client-panel]');
+        const search = editor.querySelector('[data-client-search]');
+        const options = editor.querySelector('[data-client-options]');
+        const add = editor.querySelector('[data-client-add]');
+        const chips = editor.querySelector('[data-client-chips]');
+        let selected = [];
+        const display = () => {
+            if (!hidden) return;
+            hidden.value = selected.join(', ');
+            summary.textContent = selected.length ? selected.length + ' compan' + (selected.length === 1 ? 'y selected' : 'ies selected') : 'Choose companies';
+            chips.replaceChildren();
+            selected.forEach((name) => {
+                const chip = document.createElement('span');
+                chip.className = 'bus-client-chip';
+                chip.append(document.createTextNode(name));
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = '×';
+                remove.setAttribute('aria-label', 'Remove ' + name);
+                remove.addEventListener('click', () => { selected = selected.filter((item) => item !== name); display(); });
+                chip.append(remove);
+                chips.append(chip);
+            });
+            options.querySelectorAll('[data-client-checkbox]').forEach((box) => { box.checked = selected.includes(box.value); });
+        };
+        const reset = (names) => {
+            selected = [...new Set(String(names || '').split(',').map((n) => n.trim()).filter(Boolean))];
+            display();
+        };
+        const close = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
+        editor._setCompanies = reset;
+        reset(hidden.value);
+        trigger.addEventListener('click', () => {
+            panel.hidden = !panel.hidden;
+            trigger.setAttribute('aria-expanded', String(!panel.hidden));
+            if (!panel.hidden) search.focus();
+        });
+        type.addEventListener('change', () => {
+            if (type.value === 'Exclusive' && selected.length > 1) { selected = selected.slice(0, 1); display(); }
+            if (!type.value) { selected = []; display(); close(); }
+        });
+        options.addEventListener('change', (event) => {
+            const box = event.target.closest('[data-client-checkbox]');
+            if (!box) return;
+            if (box.checked) {
+                selected = type.value === 'Exclusive' ? [box.value] : [...new Set([...selected, box.value])];
+            } else selected = selected.filter((v) => v !== box.value);
+            display();
+        });
+        search.addEventListener('input', () => {
+            const q = search.value.trim().toLowerCase();
+            let matched = false;
+            options.querySelectorAll('.bus-client-option').forEach((item) => {
+                const visible = item.textContent.toLowerCase().includes(q);
+                item.hidden = !visible;
+                if (visible) matched = true;
+            });
+            add.hidden = !q || selected.some((v) => v.toLowerCase() === q)
+                || [...options.querySelectorAll('[data-client-checkbox]')].some((box) => box.value.toLowerCase() === q);
+            add.textContent = 'Add "' + search.value.trim() + '"';
+        });
+        add.addEventListener('click', () => {
+            const name = search.value.trim();
+            if (!name || name.includes(',') || name.length > 100) return;
+            selected = type.value === 'Exclusive' ? [name] : [...new Set([...selected, name])];
+            search.value = '';
+            search.dispatchEvent(new Event('input'));
+            display();
+        });
+        document.addEventListener('click', (event) => { if (!editor.contains(event.target)) close(); });
+        editor.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !panel.hidden) { event.stopPropagation(); close(); trigger.focus(); } });
+    });
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.open-edit-bus')) return;
+        // Existing Edit Bus handler populates the source field during bubbling.
+        queueMicrotask(() => {
+            const editor = document.querySelector('#editBusForm [data-client-editor]');
+            if (editor) editor._setCompanies?.(editor.querySelector('[data-client-names]').value);
+        });
+    });
+
+    // A single floating disclosure avoids increasing table row height.
+    let busPopover = null;
+    const dismissBusPopover = () => {
+        if (!busPopover) return;
+        busPopover.node.remove();
+        busPopover.button.setAttribute('aria-expanded', 'false');
+        busPopover = null;
+    };
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-bus-more]');
+        if (!button) {
+            if (busPopover && !event.target.closest('.bus-floating-popover')) dismissBusPopover();
+            return;
+        }
+        if (busPopover?.button === button) { dismissBusPopover(); return; }
+        dismissBusPopover();
+        const source = button.parentElement.querySelector('.bus-more-source');
+        if (!source) return;
+        const node = document.createElement('div');
+        node.className = 'bus-floating-popover';
+        node.innerHTML = source.innerHTML;
+        document.body.append(node);
+        const rect = button.getBoundingClientRect();
+        const width = Math.min(260, window.innerWidth - 16);
+        node.style.width = width + 'px';
+        node.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+        node.style.top = '0px';
+        const height = node.getBoundingClientRect().height;
+        node.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - height - 8)) + 'px';
+        button.setAttribute('aria-expanded', 'true');
+        busPopover = { button, node };
+    });
+    document.addEventListener('scroll', dismissBusPopover, true);
+    window.addEventListener('resize', dismissBusPopover);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismissBusPopover(); });
+
     // Popovers live in the AJAX-swapped records region: bind per initializer run.
     const compactFilters = document.getElementById('busListFilters');
     if (compactFilters) {
