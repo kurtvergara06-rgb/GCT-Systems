@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Operation\OperationClient;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\TripAssignment;
 use App\Services\Maintenance\PmsScheduleSynchronizer;
@@ -70,6 +71,7 @@ class BusController extends Controller
         $direction = $request->query('sort_direction', $request->query('direction')) === 'desc' ? 'desc' : 'asc';
 
         $buses = $query
+            ->with('operationClients')
             ->orderBy($sort, $direction)
             ->when($sort !== 'bus_no', fn ($builder) => $builder->orderBy('bus_no'))
             ->paginate(10)
@@ -149,6 +151,7 @@ class BusController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $allocation = $this->validateClientAllocation($request);
         $validated = $request->validate([
             'bus_no' => [
                 'required',
@@ -188,7 +191,7 @@ class BusController extends Controller
             'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
-        $bus = DB::transaction(function () use ($validated): Bus {
+        $bus = DB::transaction(function () use ($validated, $allocation): Bus {
             $createdBus = Bus::create([
                 'bus_no' => strtoupper(trim($validated['bus_no'])),
                 'plate_no' => $validated['plate_no'] ?? null,
@@ -200,6 +203,7 @@ class BusController extends Controller
                 'fleet_purpose' => $validated['fleet_purpose'] ?? 'Regular',
             ]);
 
+            if ($allocation !== null) $this->syncClientAllocation($createdBus, $allocation);
             $this->pmsScheduleSynchronizer->ensureDefaultsFor($createdBus);
 
             return $createdBus;
@@ -393,6 +397,7 @@ class BusController extends Controller
 
     public function update(Request $request, Bus $bus): RedirectResponse
     {
+        $allocation = $this->validateClientAllocation($request);
         $validated = $request->validate([
             'bus_no' => [
                 'required',
@@ -427,7 +432,7 @@ class BusController extends Controller
             'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
-        $bus = DB::transaction(function () use ($bus, $validated): Bus {
+        $bus = DB::transaction(function () use ($bus, $validated, $allocation): Bus {
             $lockedBus = Bus::query()
                 ->whereKey($bus->id)
                 ->lockForUpdate()
@@ -504,6 +509,18 @@ class BusController extends Controller
                 'status' => $validated['status'],
                 'fleet_purpose' => $newFleetPurpose,
             ]);
+
+            if ($allocation !== null) {
+                $lockedBus->load('operationClients');
+                $oldNames = $lockedBus->operationClients->pluck('name')->map(fn ($name) => mb_strtolower($name))->sort()->values()->all();
+                $newNames = array_map(fn ($name) => mb_strtolower($name), $allocation['names']);
+                sort($newNames);
+                if (($oldNames !== $newNames || $lockedBus->client_allocation_type !== $allocation['type'])
+                    && $this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
+                    throw ValidationException::withMessages(['client_names' => 'Company allocations are locked while this bus has an ongoing or future assignment. Reassign affected trips first.']);
+                }
+                $this->syncClientAllocation($lockedBus, $allocation);
+            }
 
             $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $lockedBus);
 
@@ -600,6 +617,49 @@ class BusController extends Controller
         );
 
         return redirect()->back(fallback: '/bus-master-list');
+    }
+
+    /**
+     * Missing fields keep existing allocations unchanged (legacy imports).
+     * A supplied allocation must explicitly identify the permitted companies.
+     */
+    private function validateClientAllocation(Request $request): ?array
+    {
+        if (! $request->exists('client_allocation_type')) return null;
+
+        $data = $request->validate([
+            'client_allocation_type' => ['required', 'in:Exclusive,Shared'],
+            'client_names' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $names = collect(explode(',', $data['client_names']))
+            ->map(fn ($name) => trim($name))
+            ->filter()
+            ->unique(fn ($name) => mb_strtolower($name))
+            ->values()->all();
+
+        foreach ($names as $name) {
+            if (mb_strlen($name) > 100) {
+                throw ValidationException::withMessages(['client_names' => 'Company names must not exceed 100 characters.']);
+            }
+        }
+        if (count($names) < ($data['client_allocation_type'] === 'Shared' ? 2 : 1)
+            || ($data['client_allocation_type'] === 'Exclusive' && count($names) !== 1)) {
+            throw ValidationException::withMessages(['client_names' => 'Exclusive requires exactly one company; Shared requires at least two companies.']);
+        }
+
+        return ['type' => $data['client_allocation_type'], 'names' => $names];
+    }
+
+    private function syncClientAllocation(Bus $bus, array $allocation): void
+    {
+        $ids = [];
+        foreach ($allocation['names'] as $name) {
+            $ids[] = OperationClient::firstOrCreate(['name' => $name])->id;
+        }
+
+        $bus->update(['client_allocation_type' => $allocation['type']]);
+        $bus->operationClients()->sync($ids);
     }
 
     public function destroy(Bus $bus): RedirectResponse
