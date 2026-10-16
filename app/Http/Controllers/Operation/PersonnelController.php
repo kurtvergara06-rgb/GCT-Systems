@@ -87,7 +87,7 @@ class PersonnelController extends Controller
             $driver->deactivation_locked = $lockedDriverIds->contains($driver->driver_id);
         });
 
-        $availableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no', 'plate_no']);
+        $availableBuses = Bus::query()->where('fleet_purpose', 'Regular')->orderBy('bus_no')->get(['id', 'bus_no', 'plate_no']);
         $activeBusOwners = Driver::query()
             ->where('employment_status', 'Active')
             ->with('authorizedBuses:id')
@@ -439,7 +439,7 @@ class PersonnelController extends Controller
             'contact_number' => ['nullable', 'string', 'max:50'],
             'employment_status' => ['required', Rule::in(['Active', 'Inactive'])],
             'bus_ids' => ['sometimes', 'array'],
-            'bus_ids.*' => ['integer', 'distinct', Rule::exists('buses', 'id')],
+            'bus_ids.*' => ['integer', 'distinct', Rule::exists('buses', 'id')->where('fleet_purpose', 'Regular')],
         ]);
 
         $duplicateName = Driver::query()
