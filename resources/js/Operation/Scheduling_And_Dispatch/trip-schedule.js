@@ -227,7 +227,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
-        if (tripClientName) tripClientName.required = true;
+        if (tripClientName) tripClientName.required = false;
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
