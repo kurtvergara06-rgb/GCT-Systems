@@ -49,7 +49,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const submitText = document.getElementById('driverAttendanceSubmitText');
   const driverId = document.getElementById('driverAttendanceDriverId');
   const driverName = document.getElementById('driverAttendanceDriverName');
-  const shift = document.getElementById('driverAttendanceShift');
+  const shift = null;
   const attendanceDate = document.getElementById('driverAttendanceDate');
   const timeIn = document.getElementById('driverAttendanceTimeIn');
   const timeOut = document.getElementById('driverAttendanceTimeOut');
