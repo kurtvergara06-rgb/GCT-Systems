@@ -179,28 +179,48 @@
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
-                                    <td class="bus-allocation-cell"><span class="bus-allocation-type {{ $bus->client_allocation_type ? 'is-'.strtolower($bus->client_allocation_type) : 'is-unallocated' }}">{{ $bus->client_allocation_type ?: 'Not allocated' }}</span>
-                                        @if($bus->operationClients->isNotEmpty())
-                                            <div class="bus-table-disclosure"><span class="bus-disclosure-primary" title="{{ $bus->operationClients->first()->name }}">{{ $bus->operationClients->first()->name }}</span>
-                                            @if($bus->operationClients->count() > 1)
-                                                <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
-                                                <div class="bus-more-source" hidden>@foreach($bus->operationClients->skip(1) as $company)<div class="bus-more-entry"><i class="fa-solid fa-building"></i><span>{{ $company->name }}</span></div>@endforeach</div>
-                                            @endif
+                                    <td class="bus-allocation-cell">
+                                        @if($bus->operationClients->isEmpty())
+                                            <span class="bus-identity-empty">Not allocated</span>
+                                        @else
+                                            <div class="bus-table-disclosure bus-identity-summary">
+                                                <span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                                                <span class="bus-identity-details">
+                                                    <strong class="bus-disclosure-primary" title="{{ $bus->operationClients->first()->name }}">{{ $bus->operationClients->first()->name }}</strong>
+                                                    <small>Client / Company</small>
+                                                </span>
+                                                @if($bus->operationClients->count() > 1)
+                                                    <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->operationClients->count() - 1 }} more companies for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                                    <div class="bus-more-source" hidden>
+                                                        @foreach($bus->operationClients->skip(1) as $company)
+                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="bus-identity-details"><strong title="{{ $company->name }}">{{ $company->name }}</strong><small>Client / Company</small></span></div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endif
                                     </td>
                                     <td class="bus-drivers-cell">
                                         @if($bus->authorizedDrivers->isEmpty())
-                                            <span class="bus-no-drivers">None assigned</span>
+                                            <span class="bus-identity-empty">Not assigned</span>
                                         @else
-                                            <div class="bus-table-disclosure bus-driver-summary"><span class="bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="bus-driver-details"><strong class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</strong><small>Driver profile</small></span>
-                                            @if($bus->authorizedDrivers->count() > 1)
-                                                <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
-                                                <div class="bus-more-source" hidden>@foreach($bus->authorizedDrivers->skip(1) as $driver)<div class="bus-more-entry"><i class="fa-solid fa-user"></i><span>{{ $driver->driver_name }}</span></div>@endforeach</div>
-                                            @endif</div>
+                                            <div class="bus-table-disclosure bus-identity-summary bus-driver-summary">
+                                                <span class="bus-identity-avatar bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                <span class="bus-identity-details bus-driver-details">
+                                                    <strong class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</strong>
+                                                    <small>Driver profile</small>
+                                                </span>
+                                                @if($bus->authorizedDrivers->count() > 1)
+                                                    <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->authorizedDrivers->count() - 1 }} more drivers for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                                    <div class="bus-more-source" hidden>
+                                                        @foreach($bus->authorizedDrivers->skip(1) as $driver)
+                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="bus-identity-details"><strong title="{{ $driver->driver_name }}">{{ $driver->driver_name }}</strong><small>Driver profile</small></span></div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
                                         @endif
                                     </td>
-
                                     <td class="bus-actions-cell">
                                         <div class="actions">
                                             <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
