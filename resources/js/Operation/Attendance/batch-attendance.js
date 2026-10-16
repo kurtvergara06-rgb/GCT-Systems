@@ -31,7 +31,7 @@ function initBatchAttendancePage() {
 
         const overlay = document.createElement('div');
         overlay.id = 'batchAttendanceModal';
-        overlay.className = 'modal-overlay batch-attendance-overlay active';
+        overlay.className = `modal-overlay batch-attendance-overlay active batch-attendance-${type}`;
         overlay.innerHTML = `
             <div class="batch-attendance-modal" role="dialog" aria-modal="true" aria-label="Record Daily Attendance">
                 <div class="batch-attendance-header">
