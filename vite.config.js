@@ -11,7 +11,6 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/js/app.js',
-                'resources/js/Main-js/partial-navigation.js',
 
                 // ======================================================
                 // SHARED LAYOUT ASSETS
@@ -25,6 +24,8 @@ export default defineConfig({
                 'resources/css/Main-styles/admin-records.css',
                 'resources/css/Main-styles/table-toolbar.css',
                 'resources/css/Main-styles/form-components.css',
+                'resources/css/Main-styles/record-action-buttons.css',
+                'resources/css/Main-styles/gct-scrollbar.css',
                 'resources/css/Account/account.css',
 
                 'resources/js/Main-js/partial-navigation.js',
@@ -148,6 +149,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/dashboard-operation.css',
+                'resources/css/Operation/operation-action-buttons.css',
 
                 // ======================================================
                 // OPERATION — ATTENDANCE
