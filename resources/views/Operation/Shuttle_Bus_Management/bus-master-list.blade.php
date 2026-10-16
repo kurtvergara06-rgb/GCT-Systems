@@ -149,6 +149,7 @@
                                     </div>
                                 </th>
                                 <th>Client Allocation</th>
+                                <th>Authorized Drivers</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -178,7 +179,27 @@
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
-                                    <td title="{{ $bus->operationClients->pluck('name')->join(', ') }}">{{ $bus->client_allocation_type ? $bus->client_allocation_type.' — '.$bus->operationClients->pluck('name')->join(', ') : 'Not allocated' }}</td>
+                                    <td><span class="bus-allocation-type">{{ $bus->client_allocation_type ?: 'Not allocated' }}</span>
+                                        @if($bus->operationClients->isNotEmpty())
+                                            <div class="bus-table-disclosure"><span>{{ $bus->operationClients->first()->name }}</span>
+                                            @if($bus->operationClients->count() > 1)
+                                                <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
+                                                <div class="bus-more-source" hidden>@foreach($bus->operationClients->skip(1) as $company)<div class="bus-more-entry"><i class="fa-solid fa-building"></i><span>{{ $company->name }}</span></div>@endforeach</div>
+                                            @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($bus->authorizedDrivers->isEmpty())
+                                            <span class="bus-no-drivers">None assigned</span>
+                                        @else
+                                            <div class="bus-table-disclosure"><span>{{ $bus->authorizedDrivers->first()->driver_name }}</span>
+                                            @if($bus->authorizedDrivers->count() > 1)
+                                                <button type="button" class="bus-more-trigger" data-bus-more aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down"></i></button>
+                                                <div class="bus-more-source" hidden>@foreach($bus->authorizedDrivers->skip(1) as $driver)<div class="bus-more-entry"><i class="fa-solid fa-user"></i><span>{{ $driver->driver_name }}</span></div>@endforeach</div>
+                                            @endif</div>
+                                        @endif
+                                    </td>
 
                                     <td>
                                         <div class="actions">
@@ -190,7 +211,7 @@
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-display-route="{{ $bus->display_route_name }}"
                                                 data-client-allocation-type="{{ $bus->client_allocation_type }}"
-                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}">
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}">
                                                 <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                             @if($canEditOperation)
@@ -250,7 +271,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="6"
+                                    colspan="7"
                                     icon="fa-bus"
                                     message="No Bus Records Found"
                                     description="There are no buses matching the selected fleet and filters."
@@ -290,7 +311,7 @@
                     <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
                     <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
                     <div><dt>Bus Purpose</dt><dd data-bus-detail="fleetPurpose">—</dd></div>
-                    <div><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div>
+                    <div><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div><dt>Authorized Drivers</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
                 </dl>
                 <div class="bus-details-section bus-details-route-heading">
                     <i class="fa-solid fa-route" aria-hidden="true"></i>
@@ -384,13 +405,28 @@
             </select></div>
         </div></div>
         </div>
-        <div class="form-group full-width" style="padding: 12px 16px">
-            <label>Client Allocation Type</label>
-            <select name="client_allocation_type" required><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
-            <label>Authorized Company Names (comma-separated for Shared)</label>
-            <input name="client_names" value="{{ old('client_names') }}" placeholder="Company A, Company B" maxlength="2000" required>
-            <small>Exclusive: one company. Shared: at least two companies. Existing assignments stay protected.</small>
+        <div class="bus-client-editor" data-client-editor>
+    <label for="create_client_allocation_type">Client Allocation</label>
+    <select name="client_allocation_type" id="create_client_allocation_type" required>
+        <option value="Exclusive">Exclusive — one company</option>
+        <option value="Shared">Shared — authorized companies</option>
+    </select>
+    <input type="hidden" name="client_names"  value="{{ old("client_names") }}" data-client-names>
+    <div class="bus-client-picker">
+        <button type="button" class="bus-client-trigger" data-client-trigger aria-expanded="false"><span data-client-summary>Choose companies</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+        <div class="bus-client-options-panel" data-client-panel hidden>
+            <input type="search" data-client-search placeholder="Find or add a company..." aria-label="Search companies">
+            <div class="bus-client-options" data-client-options>
+                @foreach($companyOptions as $companyName)
+                    <label class="bus-client-option"><input type="checkbox" value="{{ $companyName }}" data-client-checkbox><span>{{ $companyName }}</span></label>
+                @endforeach
+            </div>
+            <button type="button" class="bus-client-add" data-client-add hidden>Add company</button>
         </div>
+    </div>
+    <div class="bus-client-chips" data-client-chips></div>
+    <small>Exclusive: select one company. Shared: choose two or more. Type to add a new company.</small>
+</div>
         <div class="bus-modal-lower">
             <section class="bus-modal-panel">
                 <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
@@ -526,13 +562,28 @@
                         </div>
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
                     </div>
-                    <div class="form-group full-width" style="padding: 12px 16px">
-                        <label>Client Allocation Type</label>
-                        <select name="client_allocation_type" id="edit_client_allocation_type"><option value="">Not allocated (legacy)</option><option value="Exclusive">Exclusive — one company</option><option value="Shared">Shared — authorized companies only</option></select>
-                        <label>Authorized Company Names (comma-separated for Shared)</label>
-                        <input name="client_names" id="edit_client_names" maxlength="2000" placeholder="Company A, Company B">
-                        <small>Cannot modify allocations with ongoing or future assignments.</small>
-                    </div>
+                    <div class="bus-client-editor" data-client-editor>
+    <label for="edit_client_allocation_type">Client Allocation</label>
+    <select name="client_allocation_type" id="edit_client_allocation_type">
+        <option value="">Not allocated (legacy)</option><option value="Exclusive">Exclusive — one company</option>
+        <option value="Shared">Shared — authorized companies</option>
+    </select>
+    <input type="hidden" name="client_names" id="edit_client_names" value="" data-client-names>
+    <div class="bus-client-picker">
+        <button type="button" class="bus-client-trigger" data-client-trigger aria-expanded="false"><span data-client-summary>Choose companies</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+        <div class="bus-client-options-panel" data-client-panel hidden>
+            <input type="search" data-client-search placeholder="Find or add a company..." aria-label="Search companies">
+            <div class="bus-client-options" data-client-options>
+                @foreach($companyOptions as $companyName)
+                    <label class="bus-client-option"><input type="checkbox" value="{{ $companyName }}" data-client-checkbox><span>{{ $companyName }}</span></label>
+                @endforeach
+            </div>
+            <button type="button" class="bus-client-add" data-client-add hidden>Add company</button>
+        </div>
+    </div>
+    <div class="bus-client-chips" data-client-chips></div>
+    <small>Exclusive: select one company. Shared: choose two or more. Type to add a new company.</small>
+</div>
                     <div class="bus-modal-lower">
                         <section class="bus-modal-panel">
                             <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
