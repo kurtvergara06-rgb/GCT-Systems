@@ -2,94 +2,6 @@ import '../../echo';
 
 window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
-    // Manage exclusive/shared company lists without comma-separated typing.
-    const companyEditors = [...document.querySelectorAll('[data-client-editor]')];
-    companyEditors.forEach((editor) => {
-        const type = editor.querySelector('[name="client_allocation_type"]');
-        const hidden = editor.querySelector('[data-client-names]');
-        const trigger = editor.querySelector('[data-client-trigger]');
-        const summary = editor.querySelector('[data-client-summary]');
-        const panel = editor.querySelector('[data-client-panel]');
-        const search = editor.querySelector('[data-client-search]');
-        const options = editor.querySelector('[data-client-options]');
-        const add = editor.querySelector('[data-client-add]');
-        const chips = editor.querySelector('[data-client-chips]');
-        let selected = [];
-        const display = () => {
-            if (!hidden) return;
-            hidden.value = selected.join(', ');
-            summary.textContent = selected.length ? selected.length + ' compan' + (selected.length === 1 ? 'y selected' : 'ies selected') : 'Choose companies';
-            chips.replaceChildren();
-            selected.forEach((name) => {
-                const chip = document.createElement('span');
-                chip.className = 'bus-client-chip';
-                chip.append(document.createTextNode(name));
-                const remove = document.createElement('button');
-                remove.type = 'button';
-                remove.textContent = '×';
-                remove.setAttribute('aria-label', 'Remove ' + name);
-                remove.addEventListener('click', () => { selected = selected.filter((item) => item !== name); display(); });
-                chip.append(remove);
-                chips.append(chip);
-            });
-            options.querySelectorAll('[data-client-checkbox]').forEach((box) => { box.checked = selected.includes(box.value); });
-        };
-        const reset = (names) => {
-            selected = [...new Set(String(names || '').split(',').map((n) => n.trim()).filter(Boolean))];
-            display();
-        };
-        const close = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
-        editor._setCompanies = reset;
-        reset(hidden.value);
-        trigger.addEventListener('click', () => {
-            panel.hidden = !panel.hidden;
-            trigger.setAttribute('aria-expanded', String(!panel.hidden));
-            if (!panel.hidden) search.focus();
-        });
-        type.addEventListener('change', () => {
-            if (type.value === 'Exclusive' && selected.length > 1) { selected = selected.slice(0, 1); display(); }
-            if (!type.value) { selected = []; display(); close(); }
-        });
-        options.addEventListener('change', (event) => {
-            const box = event.target.closest('[data-client-checkbox]');
-            if (!box) return;
-            if (box.checked) {
-                selected = type.value === 'Exclusive' ? [box.value] : [...new Set([...selected, box.value])];
-            } else selected = selected.filter((v) => v !== box.value);
-            display();
-        });
-        search.addEventListener('input', () => {
-            const q = search.value.trim().toLowerCase();
-            let matched = false;
-            options.querySelectorAll('.bus-client-option').forEach((item) => {
-                const visible = item.textContent.toLowerCase().includes(q);
-                item.hidden = !visible;
-                if (visible) matched = true;
-            });
-            add.hidden = !q || selected.some((v) => v.toLowerCase() === q)
-                || [...options.querySelectorAll('[data-client-checkbox]')].some((box) => box.value.toLowerCase() === q);
-            add.textContent = 'Add "' + search.value.trim() + '"';
-        });
-        add.addEventListener('click', () => {
-            const name = search.value.trim();
-            if (!name || name.includes(',') || name.length > 100) return;
-            selected = type.value === 'Exclusive' ? [name] : [...new Set([...selected, name])];
-            search.value = '';
-            search.dispatchEvent(new Event('input'));
-            display();
-        });
-        document.addEventListener('click', (event) => { if (!editor.contains(event.target)) close(); });
-        editor.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !panel.hidden) { event.stopPropagation(); close(); trigger.focus(); } });
-    });
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('.open-edit-bus')) return;
-        // Existing Edit Bus handler populates the source field during bubbling.
-        queueMicrotask(() => {
-            const editor = document.querySelector('#editBusForm [data-client-editor]');
-            if (editor) editor._setCompanies?.(editor.querySelector('[data-client-names]').value);
-        });
-    });
-
     // A single floating disclosure avoids increasing table row height.
     let busPopover = null;
     const dismissBusPopover = () => {
@@ -497,10 +409,11 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 |--------------------------------------------------------------------------
                 */
 
-                const allocationType = document.getElementById('edit_client_allocation_type');
-                const companyNames = document.getElementById('edit_client_names');
-                if (allocationType) allocationType.value = button.dataset.clientAllocationType || '';
-                if (companyNames) companyNames.value = button.dataset.clientNames || '';
+                const clientInput = document.getElementById('edit_client_name');
+                const clientNotice = document.getElementById('existingSharedClientNotice');
+                const isShared = button.dataset.clientAllocationType === 'Shared';
+                if (clientInput) clientInput.value = isShared ? '' : (button.dataset.clientNames || '');
+                if (clientNotice) clientNotice.hidden = !isShared;
 
                 if (editBusNo) {
                     editBusNo.value = button.dataset.busNo || '';
