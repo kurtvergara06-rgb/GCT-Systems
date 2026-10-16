@@ -14,7 +14,7 @@ function initBatchAttendancePage() {
     const label = type === 'driver' ? 'Driver' : 'Mechanic';
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
     const modalDescription = type === 'driver'
-        ? 'Active drivers from the Driver Master List load automatically for the selected date and shift.'
+        ? 'All active drivers from the Driver Master List load automatically for the selected date.'
         : 'Active mechanics from the Mechanic Master List load automatically for the selected date and shift.';
 
     let shiftStarts = {};
@@ -54,7 +54,7 @@ function initBatchAttendancePage() {
                             <input type="date" id="batchAttendanceDate" value="${today()}" />
                         </div>
                     </label>
-                    <label>
+                    <label style="${type === 'driver' ? 'display:none' : ''}">
                         <span>Shift</span>
                         <div class="batch-input-wrap">
                             <select id="batchAttendanceShift">
@@ -92,8 +92,8 @@ function initBatchAttendancePage() {
                                 <tr>
                                     <th class="select-col"><input type="checkbox" id="batchSelectAll" aria-label="Select all rows"></th>
                                     <th>${label}</th>
-                                    <th>Shift</th>
-                                    <th>Scheduled Time</th>
+                                    <th>${type === 'driver' ? 'Duty' : 'Shift'}</th>
+                                    <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
                                     <th>Time In</th>
                                     <th>Time Out</th>
                                     <th>Attendance Status</th>
@@ -195,7 +195,7 @@ function initBatchAttendancePage() {
 
         if (!rows.length) {
             body.innerHTML = type === 'driver'
-                ? '<tr><td colspan="8" class="batch-empty">No active drivers were found in the Driver Master List for the selected shift.</td></tr>'
+                ? '<tr><td colspan="8" class="batch-empty">No active drivers were found in the Driver Master List.</td></tr>'
                 : '<tr><td colspan="8" class="batch-empty">No active mechanics were found in the Mechanic Master List for the selected shift.</td></tr>';
             updateSummary();
             return;
@@ -224,12 +224,12 @@ function initBatchAttendancePage() {
                     </td>
                     <td>
                         <div class="batch-shift-meta">
-                            <strong>${escapeHtml(row.shift)}</strong>
-                            <small>${escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
+                            <strong>${type === 'driver' ? 'Daily Attendance' : escapeHtml(row.shift)}</strong>
+                            <small>${type === 'driver' ? 'No shift assignment' : escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
                         </div>
                     </td>
                     <td>
-                        <span class="batch-scheduled-time">${escapeHtml(formatTime(shiftStarts[row.shift]) || '--:--')}</span>
+                        <span class="batch-scheduled-time">${type === 'driver' ? 'Flexible' : escapeHtml(formatTime(shiftStarts[row.shift]) || '--:--')}</span>
                     </td>
                     <td>
                         <div class="batch-time-cell">
