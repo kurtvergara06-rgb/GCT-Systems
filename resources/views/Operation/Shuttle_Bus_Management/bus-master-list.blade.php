@@ -426,6 +426,17 @@
         </div></div>
         </div>
         <div class="bus-modal-lower">
+<section class="bus-modal-panel">
+                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
+                <div class="form-group">
+                    <label>Bus Purpose</label>
+                    <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" required>
+                        <option value="Regular" @selected(old('fleet_purpose', request('fleet_purpose', 'Regular')) !== 'Reserve')>Regular</option>
+                        <option value="Reserve" @selected(old('fleet_purpose', request('fleet_purpose')) === 'Reserve')>Reserve</option>
+                    </select></div>
+                    <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Regular buses join standard scheduling. Reserve buses are kept for breakdown replacements.</p>
+                </div>
+            </section>
             <section class="bus-modal-panel bus-modal-client-panel">
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
@@ -547,6 +558,18 @@
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
                     </div>
                     <div class="bus-modal-lower">
+<section class="bus-modal-panel">
+                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
+                <div class="form-group">
+                    <label>Bus Purpose</label>
+                    <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" id="edit_fleet_purpose" required>
+                        <option value="Regular">Regular</option>
+                        <option value="Reserve">Reserve</option>
+                    </select></div>
+                    <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reserve buses are excluded from ordinary scheduling.</p>
+                    <p id="editFleetPurposeLockHint" class="bus-no-lock-hint" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus Purpose is locked while this bus has an ongoing or future trip assignment.</p>
+                </div>
+            </section>
                         <section class="bus-modal-panel bus-modal-client-panel">
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
