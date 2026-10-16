@@ -11,6 +11,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripDate = document.getElementById('tripDate');
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
+    const tripClientName = document.getElementById('tripClientName');
     const tripRequiredBuses = document.getElementById('tripRequiredBuses');
     const departureTime = document.getElementById('departureTime');
     const arrivalTime = document.getElementById('arrivalTime');
@@ -225,6 +226,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         setStatusCreateMode();
+        if (tripDirection) tripDirection.required = true;
+        if (tripClientName) tripClientName.required = true;
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
@@ -302,7 +305,14 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             if (tripRoute) {
                 tripRoute.value = button.dataset.routeId || '';
             }
-            if (tripDirection) tripDirection.value = button.dataset.direction || '';
+            if (tripDirection) {
+                tripDirection.value = button.dataset.direction || '';
+                tripDirection.required = false; // Historical legacy trips may lack a direction.
+            }
+            if (tripClientName) {
+                tripClientName.value = button.dataset.clientName || '';
+                tripClientName.required = false; // Allow editing pre-migration trips.
+            }
             if (tripRequiredBuses) tripRequiredBuses.value = button.dataset.requiredBuses || '1';
 
             if (departureTime) {
