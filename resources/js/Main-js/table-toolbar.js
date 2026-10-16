@@ -59,7 +59,7 @@ document.addEventListener('click', (event) => {
             field.value = field.dataset.default ?? '';
             field.dispatchEvent(new Event('input', { bubbles: true }));
         });
-        form?.requestSubmit();
+        // Clear drafts only; user chooses when to apply.
         return;
     }
 
@@ -69,11 +69,11 @@ document.addEventListener('click', (event) => {
         form?.querySelectorAll('[name="sort"],[name="sort_direction"]').forEach((field) => {
             field.value = field.dataset.default ?? '';
         });
-        form?.requestSubmit();
+        // Reset choices without submitting until Apply Sort is clicked.
         return;
     }
 
-    if (!event.target.closest('[data-table-tool]') && !event.target.closest('.gct-picker-popover')) closeAllTableToolbars();
+    if (!event.target.closest('[data-table-tool]') && !event.target.closest('.gct-picker-popover') && !event.target.closest('[role="listbox"]') && !event.target.closest('.flatpickr-calendar')) closeAllTableToolbars();
 });
 
 document.addEventListener('keydown', (event) => {
