@@ -2260,3 +2260,16 @@
     grid-column: 1;
   }
 }
+
+/* Attendance-backed driver master records are view-only. */
+.personnel-master-page .personnel-master-table .action-btn.edit:disabled,
+.personnel-master-page .personnel-master-table .action-btn.edit:disabled:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #8792a2;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
