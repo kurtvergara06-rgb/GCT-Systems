@@ -2525,3 +2525,34 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+
+/* Phase 1: client selection and compact reverse driver allocation display. */
+.bus-client-editor { padding: 12px 16px; min-width: 0; display: grid; gap: 8px; }
+.bus-client-editor > label { font-weight: 650; font-size: 12px; color: #273f64; }
+.bus-client-editor > select, .bus-client-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 41px; border: 1px solid #d8e2f1; background: white; border-radius: 9px; padding: 9px 12px; color: #243b60; font: inherit; font-size: 12px; }
+.bus-client-trigger { text-align: left; cursor: pointer; gap: 12px; }
+.bus-client-trigger:hover { border-color: #98b9eb; }
+.bus-client-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.bus-client-picker { position: relative; min-width: 0; }
+.bus-client-options-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 400; padding: 8px; border: 1px solid #d8e2f1; border-radius: 9px; background: white; box-shadow: 0 10px 24px #18335624; }
+.bus-client-options-panel[hidden], .bus-client-option[hidden], .bus-client-add[hidden] { display: none !important; }
+.bus-client-options-panel input[type="search"] { display: block; width: 100%; min-height: 36px; padding: 8px; border: 1px solid #d8e2f1; border-radius: 7px; font: inherit; }
+.bus-client-options { max-height: 165px; overflow-y: auto; margin-top: 6px; }
+.bus-client-option { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; gap: 10px; min-height: 34px; margin: 0; padding: 6px 8px; cursor: pointer; font-size: 12px; }
+.bus-client-option:hover { background: #eef5ff; border-radius: 7px; }
+.bus-client-option input[type="checkbox"] { display: block !important; width: 16px !important; height: 16px !important; min-height: 0 !important; flex: 0 0 16px; padding: 0 !important; margin: 0 !important; accent-color: #2563eb; }
+.bus-client-add { padding: 8px; border: 0; border-radius: 6px; background: #eef5ff; color: #2253a5; cursor: pointer; text-align: left; width: 100%; }
+.bus-client-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bus-client-chips:empty { display: none; }
+.bus-client-chip { display: inline-flex; gap: 8px; align-items: center; border-radius: 999px; padding: 4px 8px; border: 1px solid #cedef5; background: #eef5ff; color: #234c89; font-size: 11px; }
+.bus-client-chip button { border: 0; background: transparent; cursor: pointer; font-size: 15px; color: inherit; }
+.bus-client-editor > small { font-size: 10px; color: #73839b; }
+.bus-table .bus-allocation-type { display: block; font-size: 10px; color: #586f90; }
+.bus-table .bus-table-disclosure { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; min-width: 0; }
+.bus-table .bus-more-trigger { padding: 4px 7px; border: 1px solid #d0e1fa; border-radius: 6px; background: #eff5ff; color: #2453a0; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.bus-table .bus-no-drivers { color: #75849b; font-size: 11px; }
+.bus-more-source[hidden] { display: none !important; }
+.bus-floating-popover { position: fixed; z-index: 10050; padding: 8px; max-height: min(260px, 55vh); overflow-y: auto; background: white; border: 1px solid #d7e3f5; border-radius: 10px; box-shadow: 0 12px 28px #162e562a; }
+.bus-more-entry { display: flex; align-items: center; gap: 9px; padding: 8px 5px; font-size: 11px; border-bottom: 1px solid #e8eef8; color: #28436c; }
+.bus-more-entry:last-child { border-bottom: 0; }
+.bus-more-entry i { color: #2563eb; }
