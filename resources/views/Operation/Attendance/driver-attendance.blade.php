@@ -57,7 +57,7 @@
 
         </div>
 
-        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, bus, or shift..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'shift' => 'Shift', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="driver_name">
+        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="driver_name">
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
             <x-ui.table-toolbar-field label="Attendance Date" name="attendance_date" type="date" :value="$summaryDate" />
@@ -117,7 +117,6 @@
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
                   <td><strong>{{ $attendance->driver_name }}</strong></td>
-                  <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
@@ -203,7 +202,7 @@
                   colspan="8"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
-                  description="No driver attendance records match your selected date or shift filter."
+                  description="No driver attendance records match your selected filters."
                 />
               @endforelse
             </tbody>
@@ -243,15 +242,7 @@
     <div class="ui-form-grid driver-attendance-form-grid">
       <x-ui.form-field label="Driver ID" name="driver_id_display" id="driverAttendanceDriverId" :value="$nextDriverId" icon="fa-hashtag" :readonly="true" />
       <x-ui.form-field label="Driver Name" name="driver_name" id="driverAttendanceDriverName" :value="old('driver_name')" placeholder="Example: Rowell Amano" icon="fa-user" :required="true" />
-      <x-ui.form-select
-        label="Shift"
-        name="shift"
-        id="driverAttendanceShift"
-        :options="['Morning' => 'Morning', 'Afternoon' => 'Afternoon']"
-        :selected="old('shift', 'Morning')"
-        icon="fa-business-time"
-        :required="true"
-      />
+      <input type="hidden" name="shift" value="Morning">
       <x-ui.form-field label="Date" name="attendance_date" id="driverAttendanceDate" type="date" :value="old('attendance_date', now()->format('Y-m-d'))" icon="fa-calendar-day" :required="true" />
       <x-ui.form-field label="Time-in" name="time_in" id="driverAttendanceTimeIn" type="time" :value="old('time_in')" icon="fa-clock" />
       <x-ui.form-field label="Time-out" name="time_out" id="driverAttendanceTimeOut" type="time" :value="old('time_out')" icon="fa-clock-rotate-left" />
