@@ -251,6 +251,7 @@
                                                                 data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
                                                                 data-route-id="{{ $trip->shuttle_route_id }}"
                                                                 data-direction="{{ $trip->direction }}"
+                                                                data-client-name="{{ $trip->client_name }}"
                                                                 data-required-buses="{{ $trip->required_buses ?? 1 }}"
                                                                 data-departure-time="{{ $departureDateTime->format('H:i') }}"
                                                                 data-arrival-time="{{ $arrivalDateTime->format('H:i') }}"
