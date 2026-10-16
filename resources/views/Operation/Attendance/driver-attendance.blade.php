@@ -44,7 +44,7 @@
         <div class="section-header">
           <div>
             <h2>Driver Attendance List</h2>
-            <p>Track driver attendance, bus assignment, time-in, time-out, and attendance status</p>
+            <p>Track daily driver attendance, bus assignment, time-in, and attendance status</p>
           </div>
 <button
             type="button"
@@ -66,14 +66,13 @@
 
         <div class="table-wrap" style="margin-top: 16px;">
           <table class="attendance-table">
-            <colgroup><col style="width: 13%"><col style="width: 16%"><col style="width: 25%"><col style="width: 12%"><col style="width: 12%"><col style="width: 10%"><col style="width: 12%"></colgroup>
+            <colgroup><col style="width: 14%"><col style="width: 18%"><col style="width: 28%"><col style="width: 12%"><col style="width: 12%"><col style="width: 16%"></colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Driver</th>
                 <th>Current Assignment</th>
                 <th>Time-in</th>
-                <th>Time-out</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -138,7 +137,6 @@
                     @endif
                   </td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
-                  <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
                   <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
                   <td>
                     <div class="actions">
@@ -198,7 +196,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="7"
+                  colspan="6"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
                   description="No driver attendance records match your selected filters."
@@ -244,7 +242,6 @@
       <input type="hidden" name="shift" value="Morning">
       <x-ui.form-field label="Date" name="attendance_date" id="driverAttendanceDate" type="date" :value="old('attendance_date', now()->format('Y-m-d'))" icon="fa-calendar-day" :required="true" />
       <x-ui.form-field label="Time-in" name="time_in" id="driverAttendanceTimeIn" type="time" :value="old('time_in')" icon="fa-clock" />
-      <x-ui.form-field label="Time-out" name="time_out" id="driverAttendanceTimeOut" type="time" :value="old('time_out')" icon="fa-clock-rotate-left" />
       <x-ui.form-select
         label="Status"
         name="status"
