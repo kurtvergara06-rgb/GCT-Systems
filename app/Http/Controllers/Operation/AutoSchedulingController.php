@@ -841,10 +841,6 @@ class AutoSchedulingController extends Controller
             'draft_filters.schedule_date' => ['required_with:draft_filters', 'date_format:Y-m-d'],
             'draft_filters.shift' => ['sometimes', 'string', 'max:30'],
             'draft_filters.shuttle_route_id' => ['sometimes', 'string', 'max:50'],
-            'recommendations.*.oic_approval' => ['sometimes', 'array'],
-            'recommendations.*.oic_approval.method' => ['required_with:recommendations.*.oic_approval', 'in:Phone,Radio,In Person'],
-            'recommendations.*.oic_approval.approved_at' => ['required_with:recommendations.*.oic_approval', 'date', 'before_or_equal:now'],
-            'recommendations.*.oic_approval.remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
         if (! empty($validated['conflicts'])) {
@@ -2408,7 +2404,7 @@ class AutoSchedulingController extends Controller
     private function assertAuthorizedBusPair(string $driverId, int $busId, string $field): void
     {
         // Reserve units have no permanent driver. Explicitly reviewed reserve
-        // selections require OIC approval at confirmation instead.
+        // selections require direct Operations Head authorization at confirmation.
         if (Bus::query()->whereKey($busId)->where('fleet_purpose', 'Reserve')->exists()) {
             return;
         }
