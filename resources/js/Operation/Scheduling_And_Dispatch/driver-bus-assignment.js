@@ -323,10 +323,13 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignmentDriverOptionsContainer) {
             assignmentDriverOptionsContainer.innerHTML = drivers.length
                 ? drivers.map((driver) => {
-                    const label = `${driver.name} — ${driver.shift} Shift`;
-                    const search = `${driver.driver_id} ${driver.name} ${driver.shift} ${driver.status}`.toLowerCase();
+                    const label = driver.name;
+                    const search = `${driver.driver_id} ${driver.name} ${driver.status}`.toLowerCase();
+                    const authorizedBuses = Array.isArray(driver.authorized_bus_ids)
+                        ? driver.authorized_bus_ids.join(',')
+                        : '';
 
-                    return `<button type="button" class="assignment-combobox-option assignment-driver-option" data-value="${escapeHtml(driver.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(driver.name)}</strong><small>${escapeHtml(driver.driver_id)} — ${escapeHtml(driver.shift)} Shift — ${escapeHtml(driver.status)}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-driver-option" data-value="${escapeHtml(driver.id)}" data-label="${escapeHtml(label)}" data-authorized-buses="${escapeHtml(authorizedBuses)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(driver.name)}</strong><small>${escapeHtml(driver.driver_id)} — ${escapeHtml(driver.status)}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No eligible drivers are available for this trip.</p>';
         }
@@ -572,6 +575,13 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             }
         );
 
+        const allowed = assignmentDriverOptions.find(
+            (option) => String(option.dataset.value) === String(value)
+        )?.dataset.authorizedBuses?.split(',').filter(Boolean) || [];
+        if (assignmentBus?.value && !allowed.includes(String(assignmentBus.value))) {
+            resetBusSelection();
+        }
+        filterBusOptions(assignmentBusSearch?.value || '');
         closeDriverDropdown();
     }
 
@@ -666,7 +676,15 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                         normalizedSearch
                     );
 
-                option.hidden = !shouldShow;
+                const selectedDriver = assignmentDriverOptions.find(
+                    (driverOption) => String(driverOption.dataset.value) === String(assignmentDriver?.value || '')
+                );
+                const allowed = selectedDriver
+                    ? (selectedDriver.dataset.authorizedBuses || '').split(',').filter(Boolean)
+                    : null;
+                const busAuthorized = !allowed || allowed.includes(String(option.dataset.value));
+
+                option.hidden = !shouldShow || !busAuthorized;
             }
         );
     }
