@@ -575,7 +575,7 @@
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="edit_client_name">Client / Company Name</label>
     <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="100" placeholder="Enter client or company name" value="" autocomplete="organization"></div>
-    <small>Leave blank to retain existing allocation. Entering a new company updates the allocation if the bus has no active or future assignments.</small>
+    <small>Leave blank to retain the existing allocation. Company changes are allowed when the bus is not operating an unfinished dispatched trip.</small>
     <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing shared-company allocation will be preserved unless you enter a new company.</p>
 </div>
 </section>
