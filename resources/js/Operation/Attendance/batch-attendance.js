@@ -70,6 +70,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
+                    ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
 
                 <div class="batch-shared-time-layer" id="batchSharedTimeLayer" hidden>
@@ -129,6 +130,12 @@ function initBatchAttendancePage() {
         });
         overlay.querySelector('#batchAttendanceDate').addEventListener('change', loadRoster);
         overlay.querySelector('#batchAttendanceShift').addEventListener('change', loadRoster);
+        overlay.querySelector('#batchDriverSearch')?.addEventListener('input', (event) => {
+            const query = event.target.value.trim().toLowerCase();
+            overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
+                row.hidden = !String(row.dataset.name || '').toLowerCase().includes(query);
+            });
+        });
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
