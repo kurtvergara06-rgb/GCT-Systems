@@ -86,7 +86,7 @@ class BatchAttendanceController extends Controller
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
-                'status' => $status ?: 'Present',
+                'status' => $status ?: ($type === 'driver' ? 'Unmarked' : 'Present'),
                 'availability' => $this->availabilityLabel($type, $record, $personId),
                 'assigned_job' => $type === 'mechanic'
                     ? (string) ($record?->assigned_job ?? '')
