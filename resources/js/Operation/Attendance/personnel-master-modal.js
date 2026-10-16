@@ -15,6 +15,47 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const modalActions = form.querySelector('.personnel-modal-actions');
     const fields = [...form.querySelectorAll('input[name]:not([name="_token"]):not([name="_method"]):not([name="editing_personnel_id"]), select[name]')];
     const entity = form.querySelector('[name="driver_id"]') ? 'Driver' : 'Mechanic';
+    const busPicker = form.querySelector('[data-driver-bus-picker]');
+    const busTrigger = busPicker?.querySelector('[data-driver-bus-trigger]');
+    const busPanel = busPicker?.querySelector('[data-driver-bus-panel]');
+    const busLabel = busPicker?.querySelector('[data-driver-bus-label]');
+    const busSearch = busPicker?.querySelector('[data-driver-bus-search]');
+    const busOptions = [...(busPicker?.querySelectorAll('[data-driver-bus-option]') || [])];
+    const busChecks = [...(busPicker?.querySelectorAll('[data-driver-bus-checkbox]') || [])];
+    const busEmpty = busPicker?.querySelector('[data-driver-bus-empty]');
+    const updateBusPicker = () => {
+        if (!busLabel) return;
+        const selected = busChecks.filter((check) => check.checked);
+        busLabel.textContent = selected.length
+            ? selected.length === 1 ? selected[0].closest('label')?.querySelector('span')?.textContent?.trim() || '1 bus selected'
+                : `${selected.length} buses selected`
+            : 'Select authorized buses';
+    };
+    const closeBusPicker = () => {
+        if (busPanel) busPanel.hidden = true;
+        busTrigger?.setAttribute('aria-expanded', 'false');
+    };
+    busTrigger?.addEventListener('click', () => {
+        if (busTrigger.disabled || modal.dataset.mode === 'view') return;
+        if (busPanel) busPanel.hidden = !busPanel.hidden;
+        busTrigger.setAttribute('aria-expanded', String(!busPanel?.hidden));
+        if (!busPanel?.hidden) busSearch?.focus();
+    });
+    busChecks.forEach((check) => check.addEventListener('change', updateBusPicker));
+    busSearch?.addEventListener('input', () => {
+        const query = busSearch.value.trim().toLowerCase();
+        let count = 0;
+        busOptions.forEach((option) => {
+            const match = option.textContent.toLowerCase().includes(query);
+            option.hidden = !match;
+            if (match) count++;
+        });
+        if (busEmpty) busEmpty.hidden = count > 0;
+    });
+    document.addEventListener('click', (event) => {
+        if (busPicker && !busPicker.contains(event.target)) closeBusPicker();
+    });
+
 
     const specializationValue = form.querySelector('[data-specialization-value]');
     const specializationPicker = form.querySelector('[data-specialization-picker]');
@@ -191,6 +232,13 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     const resetForm = () => {
         form.reset();
+        busChecks.forEach((check) => { check.checked = false; check.disabled = false; });
+        if (busTrigger) busTrigger.disabled = false;
+        if (busSearch) busSearch.value = '';
+        busOptions.forEach((option) => { option.hidden = false; });
+        if (busEmpty) busEmpty.hidden = true;
+        closeBusPicker();
+        updateBusPicker();
         form.action = form.dataset.storeUrl;
         methodField.value = 'POST';
         if (editingPersonnelId) editingPersonnelId.value = '';
@@ -231,6 +279,11 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             }
         });
 
+        if (busChecks.length) {
+            const selectedIds = new Set((record.bus_ids || []).map(String));
+            busChecks.forEach((check) => { check.checked = selectedIds.has(check.value); });
+            updateBusPicker();
+        }
         setSpecializations(record.specialization ?? '');
     };
 
@@ -282,6 +335,9 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             });
 
             setSpecializationReadOnly(true);
+            if (busTrigger) busTrigger.disabled = true;
+            busChecks.forEach((check) => { check.disabled = true; });
+            closeBusPicker();
 
             submitButton.hidden = true;
             submitButton.style.display = 'none';
