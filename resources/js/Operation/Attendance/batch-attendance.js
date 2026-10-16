@@ -446,6 +446,7 @@ function initBatchAttendancePage() {
     }
 
     function computeAvailability(status, assignedJob) {
+        if (status === 'Unmarked') return 'Not recorded';
         if (['Absent', 'On Leave'].includes(status)) {
             return 'Unavailable';
         }
@@ -552,6 +553,7 @@ function initBatchAttendancePage() {
     function availabilityClass(value) {
         if (value === busyLabel) return 'busy';
         if (value === 'Unavailable') return 'unavailable';
+        if (value === 'Not recorded') return 'unmarked';
         return 'available';
     }
 
