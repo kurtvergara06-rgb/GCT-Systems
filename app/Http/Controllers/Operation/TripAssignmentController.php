@@ -430,6 +430,7 @@ class TripAssignmentController extends Controller
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
                 $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
+                $this->assertBusAllocatedToTripClient($trip, $bus);
 
                 if ($trip->assignments()->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -535,6 +536,7 @@ class TripAssignmentController extends Controller
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
                 $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
+                $this->assertBusAllocatedToTripClient($trip, $bus);
 
                 if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -733,6 +735,23 @@ class TripAssignmentController extends Controller
         throw ValidationException::withMessages([
             'trip_schedule_id' => 'This trip uses an inactive route. Reactivate the route or move the trip to an active route before assigning a driver and bus.',
         ]);
+    }
+
+    private function assertBusAllocatedToTripClient(TripSchedule $trip, Bus $bus): void
+    {
+        $client = trim((string) ($trip->client_name ?? ''));
+        $allocations = $bus->operationClients()->pluck('name')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+        $compatible = $client === ''
+            ? $allocations->isEmpty()
+            : $allocations->contains(mb_strtolower($client));
+
+        if (! $compatible) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'The bus allocation does not match this trip client. Select a compatible bus.',
+            ]);
+        }
     }
 
     private function assertDriverAuthorizedForBus(string $driverId, int $busId): void
