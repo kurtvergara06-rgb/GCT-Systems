@@ -2105,3 +2105,59 @@
 .driver-bus-picker-option:hover { background: #eff5ff; }
 .driver-bus-picker-option input[type="checkbox"] { flex: none; width: 16px; height: 16px; accent-color: #2563eb; }
 .driver-bus-picker-empty { display: block; padding: 12px; color: #64748b; font-size: 12px; }
+
+/* Phase 1: ensure each bus option remains one compact horizontal row. */
+.personnel-modal-driver .driver-bus-field { display: block; }
+.personnel-modal-driver .driver-bus-picker-option {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: 100%;
+    min-height: 46px;
+    padding: 7px 10px;
+    margin: 0;
+    box-sizing: border-box;
+}
+.personnel-modal-driver .driver-bus-picker-option input[type="checkbox"] {
+    flex: 0 0 16px !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 16px !important;
+    width: 16px !important;
+    min-height: 0 !important;
+    border-radius: 4px;
+}
+.personnel-modal-driver .driver-bus-option-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 2px;
+    line-height: 1.25;
+}
+.personnel-modal-driver .driver-bus-option-text strong { font-size: 12px; font-weight: 700; }
+.personnel-modal-driver .driver-bus-option-text small { color: #64748b; font-size: 11px; }
+.personnel-modal-driver .driver-bus-picker-options { max-height: 208px; }
+.personnel-modal-driver .driver-bus-chips {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px; margin-top: 8px;
+}
+.personnel-modal-driver .driver-bus-chips:empty { display: none; }
+.personnel-modal-driver .driver-bus-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 8px; border: 1px solid #cfddf1;
+    border-radius: 999px; background: #f0f5ff;
+    color: #234e92; font-size: 11px; font-weight: 650;
+}
+.personnel-modal-driver .driver-bus-chip-remove {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; padding: 0;
+    width: 16px; height: 16px; color: #45648d;
+    font-size: 16px; line-height: 1; cursor: pointer;
+}
+.personnel-modal-driver .driver-bus-chip-remove:focus-visible { outline: 2px solid #2563eb; border-radius: 50%; }
+.personnel-modal-driver .driver-bus-help { display: block; margin-top: 6px; }
