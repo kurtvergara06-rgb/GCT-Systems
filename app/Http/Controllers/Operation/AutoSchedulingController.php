@@ -464,6 +464,18 @@ class AutoSchedulingController extends Controller
 
                     $aiResponse = $this->operationAi->recommend($aiPayload);
 
+                    // The Python scorer ranks candidates; it must not grant
+                    // eligibility. Never display a driver who cannot be paired
+                    // with a Regular bus for this trip. When the scheduler
+                    // found no driver, recommendations are not actionable.
+                    $allowedDriverAttendanceIds = collect($aiPayload['eligible_drivers'] ?? [])
+                        ->pluck('id')->map(fn ($id) => (int) $id)->all();
+                    $aiDriverAlternatives = ! $driver
+                        ? []
+                        : collect(data_get($aiResponse, 'analysis.alternative_drivers', []))
+                            ->filter(fn ($option) => in_array((int) data_get($option, 'id'), $allowedDriverAttendanceIds, true))
+                            ->values()->all();
+
                     $conflicts->push([
                         'trip_schedule_id' => $trip->id,
                         'trip_code' => $trip->trip_code.($requiredBuses > 1 ? " (Bus {$slotNumber}/{$requiredBuses})" : ''),
@@ -497,7 +509,7 @@ class AutoSchedulingController extends Controller
                             'bus_explanation' => data_get($aiResponse, 'analysis.bus_explanation'),
                             'conflict_explanation' => data_get($aiResponse, 'analysis.conflict_explanation'),
                             'warnings' => data_get($aiResponse, 'analysis.warnings', []),
-                            'alternative_drivers' => data_get($aiResponse, 'analysis.alternative_drivers', []),
+                            'alternative_drivers' => $aiDriverAlternatives,
                             'alternative_buses' => $reserveAlternatives,
                             'ml' => [
                                 'bus_ready' => (bool) data_get($aiResponse, 'analysis.ml_bus_ready', false),
