@@ -425,37 +425,16 @@
             </select></div>
         </div></div>
         </div>
-        <div class="bus-client-editor bus-client-editor--simple">
+        <div class="bus-modal-lower">
+            <section class="bus-modal-panel bus-modal-client-panel">
+<div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="create_client_name">Client / Company Name</label>
     <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="create_client_name" maxlength="100" placeholder="Enter client or company name" value="{{ old('client_name') }}" autocomplete="organization"></div>
     <small>Enter the company this bus is dedicated to. Leave blank if the client is not yet known.</small>
     
 </div>
-<div class="bus-modal-lower">
-            <section class="bus-modal-panel">
-                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
-                <div class="form-group">
-            <label>Bus Purpose</label>
-            <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" required>
-                <option value="Regular" @selected(old('fleet_purpose', request('fleet_purpose', 'Regular')) !== 'Reserve')>Regular</option>
-                <option value="Reserve" @selected(old('fleet_purpose', request('fleet_purpose')) === 'Reserve')>Reserve</option>
-            </select></div>
-            <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Regular buses join standard scheduling. Reserve buses are kept for breakdown replacements.</p>
-        </div>
-            </section>
-            <section class="bus-modal-panel">
-                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Assign the bus to a route or group for easier management.</p></div></div>
-                <div class="form-group full-width">
-            <label>Route / Grouping</label>
-
-            <div class="bus-icon-input"><i class="fa-solid fa-route" aria-hidden="true"></i><input
-                type="text"
-                name="route_grouping"
-                placeholder="Example: Batangas City - Malvar"
-            ></div>
-        </div>
-            </section>
+</section>
         </div>
     </x-ui.form-modal>
 
@@ -567,41 +546,16 @@
                         </div>
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
                     </div>
-                    <div class="bus-client-editor bus-client-editor--simple">
+                    <div class="bus-modal-lower">
+                        <section class="bus-modal-panel bus-modal-client-panel">
+<div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="edit_client_name">Client / Company Name</label>
     <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="100" placeholder="Enter client or company name" value="" autocomplete="organization"></div>
     <small>Leave blank to retain existing allocation. Entering a new company updates the allocation if the bus has no active or future assignments.</small>
     <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing shared-company allocation will be preserved unless you enter a new company.</p>
 </div>
-<div class="bus-modal-lower">
-                        <section class="bus-modal-panel">
-                            <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
-                            <div class="form-group">
-                    <label>Bus Purpose</label>
-                    <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" id="edit_fleet_purpose" required>
-                        <option value="Regular">Regular</option>
-                        <option value="Reserve">Reserve</option>
-                    </select></div>
-                    <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reserve buses are excluded from ordinary scheduling.</p>
-                    <p id="editFleetPurposeLockHint" class="bus-no-lock-hint" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus Purpose is locked while this bus has an ongoing or future trip assignment.</p>
-                </div>
-                        </section>
-                        <section class="bus-modal-panel">
-                            <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Route assignments and grouping information.</p></div></div>
-                            <div class="form-group full-width">
-                    <label>Route / Grouping</label>
-
-                    <div class="bus-icon-input"><i class="fa-solid fa-route" aria-hidden="true"></i><input
-                        type="text"
-                        name="route_grouping"
-                        id="edit_route_grouping"
-                        readonly
-                        aria-readonly="true"
-                        title="Route / Grouping is view-only in Edit Bus"
-                    ></div>
-                </div>
-                        </section>
+</section>
                     </div>
                     <p id="editBusMaintenanceNotice" class="bus-maintenance-lock-notice full-width" role="status" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> This bus is Under Maintenance. Master-list editing is disabled until Maintenance releases it.</p>
                 </div>
