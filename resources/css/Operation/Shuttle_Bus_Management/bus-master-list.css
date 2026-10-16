@@ -2763,3 +2763,18 @@
   box-sizing: border-box;
   padding-left: 35px;
 }
+
+/* Client / Company now occupies the second lower modal panel. */
+.bus-modal-lower .bus-modal-client-panel { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.bus-modal-lower .bus-modal-client-panel .bus-client-section-heading { margin-bottom: 4px; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-input-shell { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple > small {
+  line-height: 1.45;
+}
