@@ -2996,6 +2996,11 @@ function updateMlStatus(conflicts) {
         const missingBus = conflict?.missing_bus === true;
         // A missing bus is not fixed by swapping drivers, and vice versa.
         const drivers = missingBus && !missingDriver ? [] : getAlternatives(conflict, 'alternative_drivers');
+        // Display reserve units for planning even when a driver is missing.
+        // These are informational only, not selectable/confirmable assignments.
+        const reserveInformation = Array.isArray(ai.alternative_buses)
+            ? ai.alternative_buses.filter(item => String(item?.label || '').includes('(Reserve)'))
+            : [];
         const buses = missingDriver && !missingBus ? [] : getAlternatives(conflict, 'alternative_buses');
         const action = getTimeAction(conflict);
         const selection = getSelection(index);
@@ -3116,7 +3121,7 @@ function updateMlStatus(conflicts) {
                         data-gct-option-tab="alternative"
                         data-gct-conflict-index="${index}"
                         class="${activeTab === 'alternative' ? 'active' : ''}"
-                    >Alternative Options (${Math.max(0, drivers.length - 1) + Math.max(0, buses.length - 1) + (isReserveReview ? 1 : 0)})</button>
+                    >Alternative Options (${Math.max(0, drivers.length - 1) + Math.max(0, buses.length - 1) + (isReserveReview ? 1 : 0) + reserveInformation.length})</button>
                 </div>
 
                 <div class="gct-report-recommendations">
@@ -3130,6 +3135,16 @@ function updateMlStatus(conflicts) {
                                 <small>Active and eligible at generation time · Operations approval required · Revalidated before confirmation</small>
                             </span>
                         </button>
+                    ` : ''}
+                    ${activeTab === 'alternative' && reserveInformation.length ? `
+                        <div class="gct-report-reserve-alternatives">
+                            ${reserveInformation.map(bus => `
+                                <div class="gct-option-card gct-report-option" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;">
+                                    <strong><i class="fa-solid fa-bus"></i> ${escapeHtml(bus.label)}</strong>
+                                    <small style="display:block;margin-top:5px;">${escapeHtml(bus.reason || 'Review-only standby bus. Requires an eligible driver and OIC approval.')}</small>
+                                </div>
+                            `).join('')}
+                        </div>
                     ` : ''}
                     ${isReserveReview && activeTab === 'recommended' ? '<div class="gct-report-empty">Open Alternative Options to select the proposed Reserve Bus.</div>' : ''}
                     ${!isReserveReview && missingBus && !missingDriver ? '<div class="gct-report-empty">An eligible bus is required; a different driver alone cannot resolve this conflict.</div>' : renderRecommendationGroup(drivers, 'driver', selection.driverId, index, activeTab === 'alternative')}
