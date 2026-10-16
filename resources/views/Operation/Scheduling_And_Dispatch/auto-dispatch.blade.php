@@ -10,7 +10,7 @@
 >
 @php
     $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
-    $canAssignReserve = $canEditOperation && strtolower(trim((string) auth()->user()?->role)) === 'head'
+    $canAssignReserve = strtolower(trim((string) auth()->user()?->role)) === 'head'
         && in_array(strtolower(trim((string) auth()->user()?->department)), ['operation', 'admin'], true);
 @endphp
 
