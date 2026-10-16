@@ -187,7 +187,7 @@
                                                 'departure' => $departureDateTime->format('g:i A'), 'arrival' => $arrivalDisplay,
                                                 'shift' => $trip->shift, 'assignment' => $displayAssignmentStatus,
                                                 'status' => $trip->status, 'notes' => $trip->notes,
-                                                'direction' => $trip->direction, 'requiredBuses' => $requiredCount,
+                                                'direction' => $trip->direction, 'clientName' => $trip->client_name, 'requiredBuses' => $requiredCount,
                                             ];
                                         @endphp
                                         <tr>
@@ -388,7 +388,7 @@
                 </div>
                 <div>
                     <strong>Schedule Information</strong>
-                    <span>Choose the active route, trip date, and departure time. Arrival and shift are calculated automatically.</span>
+                    <span>Choose the client, route, trip date, and departure time. Arrival is calculated automatically.</span>
                 </div>
             </div>
 
@@ -421,11 +421,19 @@
                     @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
 
+                <div class="ui-form-group ui-form-full">
+                    <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
+                    <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
+                        <input type="text" id="tripClientName" name="client_name" maxlength="255" value="{{ old('client_name') }}" placeholder="e.g. EPSON or SM" required autocomplete="organization">
+                    </div>
+                    @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
+                </div>
                 <div class="trip-service-planning-fields">
                     <div class="ui-form-group">
-                        <label for="tripDirection">Service Direction</label>
-                        <select name="direction" id="tripDirection">
-                            <option value="">Not specified (legacy)</option>
+                        <label for="tripDirection">Service Direction <span class="ui-required">*</span></label>
+                        <select name="direction" id="tripDirection" required>
+                            <option value="" disabled @selected(!old('direction'))>Select service direction</option>
                             <option value="Incoming" @selected(old('direction') === 'Incoming')>Incoming — Employees going to work</option>
                             <option value="Outgoing" @selected(old('direction') === 'Outgoing')>Outgoing — Employees going home</option>
                         </select>
@@ -442,16 +450,8 @@
                     </div>
                 </div>
                 <x-ui.form-field label="Estimated Arrival (Auto)" name="estimated_arrival_time_display" id="arrivalTime" type="time" :value="old('estimated_arrival_time_display')" icon="fa-clock-rotate-left" :readonly="true" />
-                <x-ui.form-field label="Shift" name="shift_display" id="tripShift" value="Automatic" icon="fa-business-time" :readonly="true" />
-                <x-ui.form-select
-                    label="Status"
-                    name="status"
-                    id="tripStatus"
-                    :options="['Scheduled' => 'Scheduled', 'Cancelled' => 'Cancelled']"
-                    :selected="old('status', 'Scheduled')"
-                    icon="fa-circle-check"
-                    :required="true"
-                />
+                {{-- Status and legacy shift are managed by scheduling; not user inputs. --}}
+                <input type="hidden" name="status" id="tripStatus" value="{{ old('status', 'Scheduled') }}">
 
                 <div class="ui-form-group ui-form-full trip-notes-group">
                     <label for="tripNotes">Notes</label>
