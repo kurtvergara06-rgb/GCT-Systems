@@ -622,7 +622,8 @@ class AutoSchedulingController extends Controller
             ->get(['id', 'driver_id', 'driver_name', 'status']);
         $buses = Bus::query()->whereIn('fleet_purpose', ['Regular', 'Reserve'])->where('status', 'Active')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
-            ->orderBy('bus_no')->get(['id', 'bus_no', 'fleet_purpose']);
+            ->orderBy('bus_no')->get(['id', 'bus_no', 'fleet_purpose'])
+            ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))->values();
         // First request without both selections supplies allowed choices.
         if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
             return response()->json([
@@ -636,6 +637,7 @@ class AutoSchedulingController extends Controller
             throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
         }
         $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
+        $this->assertBusMatchesTripClient($trip, $bus, 'assignment');
         $others = collect($validated['recommendations'] ?? []);
         $tripIds = $others->pluck('trip_schedule_id')->push($trip->id)->unique();
         $otherTrips = TripSchedule::query()->whereIn('id', $tripIds)->get()->keyBy('id');
@@ -2090,6 +2092,7 @@ class AutoSchedulingController extends Controller
 
                 if ($driver && $bus) {
                     $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'resolution');
+                    $this->assertBusMatchesTripClient($trip, $bus, 'resolution');
                 }
 
                 if (! $driver || ! $bus) {
