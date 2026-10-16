@@ -153,7 +153,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
           ['Current Assignment', button.dataset.busAssignment || 'Unassigned'],
           ['Date', button.dataset.attendanceDate],
           ['Time-in', button.dataset.timeIn],
-          ['Time-out', button.dataset.timeOut],
+          
         ];
 
         if (viewAttendanceContent) {
