@@ -175,32 +175,12 @@
                     <input name="driver_name" value="{{ old('driver_name') }}" placeholder="Full driver name" required>
                 </span>
             </label>
-            <label class="driver-input-field">
-                <span>Default Shift <span class="personnel-required">*</span></span>
-                <span class="driver-input-shell">
-                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                    <select name="shift" required>
-                        <option value="">Select shift</option>
-                        @foreach(['Morning','Afternoon'] as $shift)
-                            <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
-                        @endforeach
-                    </select>
-                </span>
-            </label>
-            <label class="driver-input-field">
-                <span>Contact Number</span>
-                <span class="driver-input-shell">
-                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
-                    <input name="contact_number" value="{{ old('contact_number') }}" placeholder="Contact number" inputmode="tel">
-                </span>
-            </label>
-
-            <div class="driver-input-field full-width driver-bus-field">
-                <span>Assigned Buses</span>
+            <div class="driver-input-field driver-bus-field">
+                <span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Assigned Buses</span>
                 <input type="hidden" name="bus_ids_present" value="1">
                 <div class="driver-bus-picker" data-driver-bus-picker>
                     <button type="button" class="driver-bus-picker-trigger" data-driver-bus-trigger aria-expanded="false" aria-controls="driverBusChoices">
-                        <span data-driver-bus-label>Select authorized buses</span>
+                        <span data-driver-bus-label>Choose buses</span>
                         <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                     </button>
                     <div class="driver-bus-picker-panel" id="driverBusChoices" data-driver-bus-panel hidden>
@@ -217,8 +197,16 @@
                     </div>
                 </div>
                 <div class="driver-bus-chips" data-driver-bus-chips aria-live="polite"></div>
-                <small class="driver-bus-help">Select buses authorized for this driver. You can choose more than one.</small>
+                <small class="driver-bus-help">Multiple selections allowed</small>
             </div>
+            <label class="driver-input-field">
+                <span>Contact Number</span>
+                <span class="driver-input-shell">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <input name="contact_number" value="{{ old('contact_number') }}" placeholder="Contact number" inputmode="tel">
+                </span>
+            </label>
+
             <div class="driver-modal-group-heading">
                 <div>
                     <strong>Employment information</strong>
