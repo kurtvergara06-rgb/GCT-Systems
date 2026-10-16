@@ -1585,7 +1585,7 @@ class AutoSchedulingController extends Controller
 
             'status' => (string) $driver->status,
 
-            'shift' => $driver->shift,
+            'shift' => $trip->shift, // AI compatibility: drivers have no permanent shift.
 
             'assigned_trips' => (int) $workloads->get(
                 $driver->driver_id,
