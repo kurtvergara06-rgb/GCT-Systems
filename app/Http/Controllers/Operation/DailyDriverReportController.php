@@ -132,24 +132,6 @@ class DailyDriverReportController extends Controller
         );
     }
 
-    public function create(): View
-    {
-        $drivers = Driver::query()
-            ->orderBy('driver_name')
-            ->get(['driver_id', 'driver_name', 'shift', 'employment_status']);
-
-        [$activeBuses, $tripTicketSuggestions] = $this->encodeLookups();
-
-        return view(
-            'Operation.Daily_Driver_Reports.create',
-            compact(
-                'drivers',
-                'activeBuses',
-                'tripTicketSuggestions'
-            )
-        );
-    }
-
     private function encodeLookups(): array
     {
         // DDR is a historical record. Do not hide buses that became inactive
@@ -385,15 +367,6 @@ class DailyDriverReportController extends Controller
                 'report' => 'This DDR is linked to operational history and cannot be modified.',
             ]);
         }
-    }
-
-    public function edit(DailyDriverReport $dailyDriverReport): View
-    {
-        $this->assertDdrEditable($dailyDriverReport);
-
-        return view('Operation.Daily_Driver_Reports.edit', [
-            'report' => $dailyDriverReport->load('additionalTrips'),
-        ]);
     }
 
     public function update(Request $request, DailyDriverReport $dailyDriverReport): RedirectResponse

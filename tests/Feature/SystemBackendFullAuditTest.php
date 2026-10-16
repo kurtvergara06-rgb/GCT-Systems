@@ -269,7 +269,7 @@ class SystemBackendFullAuditTest extends TestCase
         // 3.2 Trip Schedule
         $this->get(route('trip-schedule'))->assertOk();
         $tripResponse = $this->post(route('trip-schedule.store'), [
-            'trip_date' => now()->addDay()->toDateString(),
+            'trip_date' => now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString(),
             'shuttle_route_id' => $shuttleRoute->id,
             'departure_time' => '07:30',
             'estimated_arrival_time' => '08:30',
@@ -310,7 +310,7 @@ class SystemBackendFullAuditTest extends TestCase
         $attendance = DriverAttendance::create([
             'driver_name' => $driver->driver_name,
             'shift' => 'Morning',
-            'attendance_date' => now()->addDay()->toDateString(),
+            'attendance_date' => $tripSchedule->trip_date->toDateString(),
             'status' => 'Present',
         ]);
         $this->get(route('driver-attendance'))->assertOk();
@@ -666,7 +666,7 @@ class SystemBackendFullAuditTest extends TestCase
         MechanicAttendance::create([
             'mechanic_id' => $mechanic->mechanic_id,
             'mechanic_name' => $mechanic->mechanic_name,
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'Present',
         ]);
 

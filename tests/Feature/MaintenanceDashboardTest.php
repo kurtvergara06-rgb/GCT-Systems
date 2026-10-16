@@ -408,14 +408,14 @@ class MaintenanceDashboardTest extends TestCase
         MechanicAttendance::create([
             'mechanic_id' => $mechanic1->mechanic_id,
             'mechanic_name' => $mechanic1->mechanic_name,
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'Present',
         ]);
 
         MechanicAttendance::create([
             'mechanic_id' => $mechanic2->mechanic_id,
             'mechanic_name' => $mechanic2->mechanic_name,
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'Present',
         ]);
 

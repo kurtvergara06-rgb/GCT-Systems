@@ -26,6 +26,12 @@
         <article class="trip-summary-card"><div class="trip-summary-icon purple"><i class="fa-solid fa-calendar-xmark"></i></div><div><p>Missed</p><h2>{{ $pageMissed }}</h2><small>On this page · no bus assigned</small></div></article>
     </x-slot:kpis>
 
+    <x-slot:headerAction>
+        <a class="trip-export-btn trip-export-header" href="{{ route('trip-records.export', request()->except('view', 'page')) }}">
+            <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
+        </a>
+    </x-slot:headerAction>
+
     <x-slot:toolbar>
         <x-ui.table-toolbar
             action="{{ route('trip-records', ['view' => 'assignments'], false) }}"

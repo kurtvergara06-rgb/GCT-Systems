@@ -32,7 +32,7 @@ class OperationDashboardTest extends TestCase
             'onboarding_completed' => true,
         ]);
 
-        $today = Carbon::today()->toDateString();
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
         // Create buses
         Bus::create(['bus_no' => 'GCT-101', 'plate_no' => 'ABC-101', 'capacity' => 40, 'status' => 'Active']);

@@ -4,66 +4,110 @@
  */
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .action-btn.deactivate, .action-btn.activate,
   .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
-  .inc-record-actions .inc-delete-action
+  .inc-record-actions .inc-delete-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action, .ddr-action.ddr-delete-trigger,
+  .assignment-action.view, .assignment-action.edit, .assignment-action.remove,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
 ) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0;
-  border-radius: 8px;
-  box-shadow: none;
-  font-size: 13px;
-  line-height: 1;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
   transition: background-color .15s, border-color .15s, color .15s;
 }
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit,
-  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action
-):not(:disabled):not(.inc-action-disabled):not(.gct-action-unavailable) {
-  color: #1260df;
-  background: #eef5ff;
-  border: 1px solid #bfd7ff;
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action,
+  .assignment-action.view, .assignment-action.edit,
+  .route-action.view, .route-action.edit,
+  .trip-action.view, .trip-action.edit
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+  color: #1260df !important;
+  background: #eef5ff !important;
+  border: 1px solid #bfd7ff !important;
   opacity: 1;
 }
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
-  .action-btn.delete, .inc-record-actions .inc-delete-action
-):not(:disabled):not(.inc-action-disabled):not(.gct-action-unavailable) {
-  color: #d92d36;
-  background: #fff0f0;
-  border: 1px solid #ffbfc3;
+  .action-btn.delete, .inc-record-actions .inc-delete-action,
+  .ddr-action.ddr-delete-trigger, .assignment-action.remove,
+  .route-action.delete, .trip-action.delete
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+  color: #d92d36 !important;
+  background: #fff0f0 !important;
+  border: 1px solid #ffbfc3 !important;
+  opacity: 1;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.deactivate
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+  color: #a16207 !important;
+  background: #fff3cd !important;
+  border: 1px solid #f3cb5f !important;
+  opacity: 1;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.activate
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+  color: #15803d !important;
+  background: #ddf8e7 !important;
+  border: 1px solid #9fdfb7 !important;
   opacity: 1;
 }
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit,
-  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action
-):not(:disabled):not(.inc-action-disabled):hover {
-  color: #1559c6;
-  background: #dceaff;
-  border-color: #a2c6ff;
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action,
+  .assignment-action.view, .assignment-action.edit,
+  .route-action.view, .route-action.edit,
+  .trip-action.view, .trip-action.edit
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]):hover {
+  color: #fff !important;
+  background: #2357a8 !important;
+  border-color: #2357a8 !important;
 }
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
-  .action-btn.delete, .inc-record-actions .inc-delete-action
-):not(:disabled):not(.inc-action-disabled):hover {
-  color: #b91c1c;
-  background: #ffe4e6;
-  border-color: #fda4af;
+  .action-btn.delete, .inc-record-actions .inc-delete-action,
+  .ddr-action.ddr-delete-trigger, .assignment-action.remove,
+  .route-action.delete, .trip-action.delete
+):not(:disabled):not(.disabled):not(.inc-action-disabled):not(.assignment-action-disabled):not(.gct-action-unavailable):not([aria-disabled="true"]):hover {
+  color: #fff !important;
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
 }
 /* Protected controls: fully gray, never faded red/blue. */
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .action-btn.deactivate, .action-btn.activate,
   .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
-  .inc-record-actions .inc-delete-action
-):is(:disabled, .inc-action-disabled, .gct-action-unavailable),
+  .inc-record-actions .inc-delete-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action, .ddr-action.ddr-delete-trigger,
+  .assignment-action.view, .assignment-action.edit, .assignment-action.remove,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
+):is(:disabled, .disabled, .inc-action-disabled, .assignment-action-disabled, .gct-action-unavailable, [aria-disabled="true"]),
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .action-btn.deactivate, .action-btn.activate,
   .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
-  .inc-record-actions .inc-delete-action
-):is(:disabled, .inc-action-disabled, .gct-action-unavailable):hover {
+  .inc-record-actions .inc-delete-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action, .ddr-action.ddr-delete-trigger,
+  .assignment-action.view, .assignment-action.edit, .assignment-action.remove,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
+):is(:disabled, .disabled, .inc-action-disabled, .assignment-action-disabled, .gct-action-unavailable, [aria-disabled="true"]):hover {
   color: #737373 !important;
   background: #e5e7eb !important;
   border: 1px solid #d1d5db !important;
@@ -74,10 +118,213 @@
 }
 .app:has(.sidebar[data-gct-shell="operation"]) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .action-btn.deactivate, .action-btn.activate,
   .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
-  .inc-record-actions .inc-delete-action
+  .inc-record-actions .inc-delete-action,
+  .ddr-action.view, .ddr-action.ddr-edit-action, .ddr-action.ddr-delete-trigger,
+  .assignment-action.view, .assignment-action.edit, .assignment-action.remove,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
 ) > i {
   color: inherit !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+/* =========================================================
+   OPERATION KPI SUMMARY CARD PARITY
+   Standardize 4-card top KPI rows to uniform height & radius.
+========================================================= */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .bus-summary-card,
+  .personnel-summary-card,
+  .route-summary-card,
+  .attendance-summary-card,
+  .availability-summary-card,
+  .trip-schedule-page .stat-card,
+  .assignment-summary-card,
+  .auto-summary-card,
+  .trip-summary-card,
+  .ddr-summary-card,
+  .inc-summary-card,
+  .stats-grid .stat-card
+) {
+  box-sizing: border-box;
+  min-height: 108px;
+  height: 100%;
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+
+/* =========================================================
+   PRIMARY SECTION HEADER CTA BUTTON PARITY
+   Standardize header primary action buttons to 42px height.
+========================================================= */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #openBusModal,
+  .personnel-add-btn,
+  #openRouteModal,
+  .batch-attendance-open,
+  #openTripModal,
+  .new-assignment-btn,
+  .trip-export-btn,
+  #openEncodeReportModal,
+  #openIncidentReportModal
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
   font-size: 13px;
+  font-weight: 700;
   line-height: 1;
+}
+
+/* =========================================================
+   TABLE HEADER TYPOGRAPHY & COLUMN ALIGNMENT PARITY
+========================================================= */
+.app:has(.sidebar[data-gct-shell="operation"]) table thead th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .trip-schedule-page .schedule-table th:last-child,
+  .trip-schedule-page .schedule-table td:last-child,
+  .trip-records-page .trip-table:not([aria-label]) th:last-child,
+  .trip-records-page .trip-table:not([aria-label]) td:last-child,
+  .personnel-master-page .personnel-master-table th:nth-child(4),
+  .personnel-master-page .personnel-master-table td:nth-child(4)
+) {
+  text-align: center;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .trip-schedule-page .schedule-table td:last-child .schedule-actions,
+  .trip-records-page .trip-table td:last-child .trip-actions
+) {
+  justify-content: center;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .driver-attendance-page .attendance-table th:nth-child(4),
+  .assignment-page .assignment-table th:nth-child(5)
+) {
+  text-align: left;
+}
+
+/* =========================================================
+   FORM CONTROL HEIGHT PARITY WITH CUSTOM PICKER TRIGGERS
+========================================================= */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #tripModal .form-group > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  #tripModal .form-group > select,
+  #tripModal .form-group > .gct-picker-trigger,
+  .auto-schedule-grid .auto-field > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  .auto-schedule-grid .auto-field > select,
+  .auto-schedule-grid .auto-field > .gct-picker-trigger,
+  #ddrEncodeModal .ddr-field > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  #ddrEncodeModal .ddr-field > select,
+  #ddrEncodeModal .ddr-field > .gct-picker-trigger,
+  .ddr-record-dialog .ddr-field > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  .ddr-record-dialog .ddr-field > select,
+  .ddr-record-dialog .ddr-field > .gct-picker-trigger
+) {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   MODAL TOOLBAR & FOOTER BUTTON PARITY
+========================================================= */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .personnel-modal .modal-actions .secondary-btn,
+  .personnel-modal .modal-actions .primary-btn,
+  #batchAttendanceModal .modal-actions button
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #batchAttendanceModal .batch-controls-left input,
+  #batchAttendanceModal .batch-controls-left select,
+  #batchAttendanceModal .batch-controls-left .gct-picker-trigger,
+  #batchAttendanceModal .batch-control-btn
+) {
+  box-sizing: border-box;
+  height: 42px;
+  min-height: 42px;
+  border-radius: 10px;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #batchAttendanceModal .close-modal,
+  .ddr-record-dialog .ddr-record-head .ddr-record-close
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #routeModal .route-form-map-toolbar select,
+  #routeModal .route-form-map-toolbar button
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-height: 40px;
+  border-radius: 10px;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  #routeModal .route-stop-row .route-stop-number,
+  #routeModal .route-stop-row input,
+  #routeModal .route-stop-row .remove-route-stop
+) {
+  box-sizing: border-box;
+  height: 42px;
+  min-height: 42px;
+}
+
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .ddr-record-dialog .ddr-record-foot .ddr-record-close,
+  .ddr-record-dialog .ddr-record-foot button
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
 }
