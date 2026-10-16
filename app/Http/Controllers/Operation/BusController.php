@@ -531,12 +531,12 @@ class BusController extends Controller
                 // Trip schedules currently have no client/company link, so we
                 // cannot infer a genuine conflict from a trip assignment alone.
                 if ($oldNames !== $newNames) {
-                    // A first allocation does not displace an existing company.
-                    // Once allocated, protect any reassignment until active and
-                    // future trip obligations have been resolved.
-                    if ($oldNames !== [] && $this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
+                    // Historical and future scheduled trips are not company locks.
+                    // Only prevent reassignment while this bus is actually on a
+                    // dispatched trip that has not arrived yet.
+                    if ($oldNames !== [] && $this->hasOngoingDispatchedTrip($lockedBus)) {
                         throw ValidationException::withMessages([
-                            'client_name' => 'This bus has ongoing or future trip assignments. Reassign affected trips before changing its existing company.',
+                            'client_name' => 'This bus is currently operating a dispatched trip. Complete the trip before changing its company.',
                         ]);
                     }
 
@@ -728,6 +728,20 @@ class BusController extends Controller
             || DB::table('purchase_requests')->where('bus_no', $busNo)->exists()
             || DB::table('gps_trip_records')->where('bus_no', $busNo)->exists()
             || DB::table('batch_uploads')->where('bus_no', $busNo)->exists();
+    }
+
+    private function hasOngoingDispatchedTrip(Bus $bus): bool
+    {
+        // Completed/history and future scheduled or Ready trips must not
+        // prevent company changes. A Dispatched trip remains protected until
+        // actual arrival is recorded.
+        return TripAssignment::query()
+            ->where('bus_id', $bus->id)
+            ->whereHas('tripSchedule', function ($query): void {
+                $query->where('status', 'Dispatched')
+                    ->whereNull('actual_arrival_time');
+            })
+            ->exists();
     }
 
     private function hasUnresolvedCurrentOrFutureAssignment(Bus $bus): bool
