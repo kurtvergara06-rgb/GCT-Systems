@@ -2,6 +2,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const pageRoot = document.querySelector('.auto-scheduling-page');
     const canEditOperation =
         pageRoot?.dataset.operationEdit === 'true';
+    const canAssignReserve = pageRoot?.dataset.reserveHead === 'true';
 
     const form =
         document.getElementById('autoSchedulingForm');
@@ -160,67 +161,6 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     let recommendations = [];
     let schedulingConflicts = [];
     let deferredSlots = [];
-    const oicApprovalDialog = document.createElement('dialog');
-    oicApprovalDialog.className = 'auto-oic-approval-dialog';
-    oicApprovalDialog.setAttribute('aria-label', 'Record OIC Approval');
-    oicApprovalDialog.innerHTML = `
-        <form method="dialog" class="auto-oic-approval-form">
-            <header><h2><i class="fa-solid fa-shield-halved"></i> Record OIC Approval</h2>
-            <button type="button" data-close-oic-approval aria-label="Close approval form"><i class="fa-solid fa-xmark"></i></button></header>
-            <p class="auto-oic-approval-context"></p>
-            <label>Approval Method <select name="method" required>
-                <option value="">Select approval method</option><option value="Phone">Phone</option>
-                <option value="Radio">Radio</option><option value="In Person">In Person</option>
-            </select></label>
-            <label>OIC Confirmation Time <input name="approved_at" type="datetime-local" required></label>
-            <label>Remarks <textarea name="remarks" maxlength="2000" rows="3"
-                placeholder="Record what the OIC confirmed."></textarea></label>
-            <p class="auto-oic-approval-disclaimer">Operations records approval received from OIC externally.
-                This does not confirm or dispatch the schedule.</p>
-            <footer><button type="button" data-close-oic-approval>Cancel</button>
-                <button type="submit" class="auto-oic-save">Save Approval</button></footer>
-        </form>`;
-    pageRoot.appendChild(oicApprovalDialog);
-    let oicApprovalIndex = null;
-    function openOicApproval(index) {
-        if (!canEditOperation || !recommendations[index]) return;
-        const item = recommendations[index];
-        if (item.bus_purpose !== 'Reserve' && !item.reserve_approval_required) return;
-        oicApprovalIndex = index;
-        const approval = item.oic_approval || {};
-        const approvalForm = oicApprovalDialog.querySelector('form');
-        approvalForm.elements.method.value = approval.method || '';
-        approvalForm.elements.approved_at.value = approval.approved_at || '';
-        approvalForm.elements.remarks.value = approval.remarks || '';
-        oicApprovalDialog.querySelector('.auto-oic-approval-context').textContent =
-            (item.base_trip_code || item.trip_code || 'Trip') + ' · ' + (item.bus_no || 'Reserve Bus');
-        oicApprovalDialog.showModal();
-    }
-    oicApprovalDialog.querySelectorAll('[data-close-oic-approval]').forEach(button => {
-        button.addEventListener('click', () => oicApprovalDialog.close());
-    });
-    oicApprovalDialog.querySelector('form').addEventListener('submit', event => {
-        event.preventDefault();
-        const entry = recommendations[oicApprovalIndex];
-        const approvalForm = event.currentTarget;
-        if (!entry || !approvalForm.reportValidity()) return;
-        const value = approvalForm.elements.approved_at.value;
-        if (new Date(value).getTime() > Date.now()) {
-            window.showSystemToast?.('The approval time cannot be in the future.', 'warning', 'Invalid Time');
-            return;
-        }
-        entry.oic_approval = {
-            method: approvalForm.elements.method.value,
-            approved_at: value,
-            remarks: approvalForm.elements.remarks.value.trim(),
-        };
-        oicApprovalDialog.close();
-        renderRecommendations(recommendations, schedulingConflicts);
-        queueDraftSave();
-        window.showSystemToast?.('OIC approval recorded in the draft. Confirm Schedule to save the assignment.', 'success', 'Approval Recorded');
-    });
-
-
     // Drafts persist preview decisions, but never reserve a vehicle.
     const draftSaveStatus = document.getElementById('autoDraftSaveStatus');
     const setDraftSaveStatus = (message, state = 'idle') => {
@@ -1189,11 +1129,10 @@ function updateMlStatus(conflicts) {
         const reserveRecommendations = recommendations.filter(
             (item) => item.bus_purpose === 'Reserve' || item.reserve_approval_required
         );
-        const missingApproval = reserveRecommendations.find(item => !item.oic_approval?.method || !item.oic_approval?.approved_at);
-        if (missingApproval) {
+        if (reserveRecommendations.length && !canAssignReserve) {
             window.showSystemToast?.(
-                'Record OIC approval for ' + (missingApproval.bus_no || 'the Reserve Bus') + ' before confirming.',
-                'warning', 'Approval Required'
+                'Only the Operations Head may confirm Reserve Bus assignments.',
+                'warning', 'Head Access Required'
             );
             return;
         }
@@ -1232,8 +1171,7 @@ function updateMlStatus(conflicts) {
                         driver_attendance_id: item.driver_attendance_id,
                         bus_id: item.bus_id,
                         slot: item.slot,
-                        ...((item.bus_purpose === 'Reserve' || item.reserve_approval_required)
-                            ? { oic_approval: item.oic_approval } : {}),
+
                     })),
                 }),
             });
@@ -1487,9 +1425,7 @@ function updateMlStatus(conflicts) {
                 : `<tr><td colspan="8"><div class="auto-empty-state"><i class="fa-solid fa-calendar-xmark"></i><strong>No recommendations</strong><span>No recommendations were generated.</span></div></td></tr>`;
         }
 
-        document.querySelectorAll('[data-oic-approve-index]').forEach((button) => {
-            button.addEventListener('click', () => openOicApproval(Number(button.dataset.oicApproveIndex)));
-        });
+
 
         document.querySelectorAll('[data-remove-index]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -1757,9 +1693,7 @@ function updateMlStatus(conflicts) {
             <span class="auto-bus-preview">
                 <span class="bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(item.bus_no)}</span>
                 ${item.bus_purpose === 'Reserve' || item.reserve_approval_required
-                    ? (item.oic_approval
-                        ? '<span class="auto-reserve-note auto-reserve-approved"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Reserve · OIC Approved</span>'
-                        : '<span class="auto-reserve-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Reserve · Approval required</span>')
+                    ? '<span class="auto-reserve-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Reserve · Head assignment</span>'
                     : ''}
             </span>
         `;
@@ -1791,13 +1725,11 @@ function updateMlStatus(conflicts) {
                 </span>
             `;
         }
-        if ((item.bus_purpose === 'Reserve' || item.reserve_approval_required) && !item.oic_approval) {
-            return `<span class="schedule-status conflict"><i class="fa-solid fa-shield-halved"></i> Approval Required</span>`;
-        }
+
         return `
             <span class="schedule-status ready">
                 <i class="fa-solid fa-circle-check"></i>
-                ${item.oic_approval ? 'OIC Approved' : 'Ready'}
+                Ready
             </span>
         `;
     }
@@ -1816,12 +1748,6 @@ function updateMlStatus(conflicts) {
             && (item.bus_purpose === 'Reserve' || item.reserve_approval_required)) {
             return `
                 <div class="auto-reserve-actions">
-                    <button type="button" class="schedule-action-btn auto-oic-approval-button"
-                        data-oic-approve-index="${item.originalIndex}"
-                        title="Record externally confirmed OIC approval">
-                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                        <span>${item.oic_approval ? 'Edit Approval' : 'Record OIC Approval'}</span>
-                    </button>
                     <button type="button" class="schedule-action-btn remove"
                         data-remove-index="${item.originalIndex}"
                         title="Remove from preview">
@@ -3758,7 +3684,7 @@ function updateMlStatus(conflicts) {
             window.alert(
                 reserveInfo.dataset.gctReserveLabel + ' is an available standby alternative, not an approved assignment. ' +
                 'Record an eligible driver for the trip, then regenerate Auto Scheduling. ' +
-                'An OIC approval is required before a Reserve bus can be confirmed.'
+                'Only Operations Head can assign a Reserve bus after an eligible driver and safety checks are verified.'
             );
             return;
         }
