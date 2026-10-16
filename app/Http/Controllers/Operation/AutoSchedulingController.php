@@ -1106,7 +1106,6 @@ class AutoSchedulingController extends Controller
                     ! $driver
                     || ! in_array($driver->status, ['Present', 'Late'], true)
                     || ! $driver->attendance_date?->isSameDay($trip->trip_date)
-                    || $driver->shift !== $trip->shift
                     || ! $activeDriver
                 ) {
                     throw ValidationException::withMessages([
@@ -2276,14 +2275,6 @@ class AutoSchedulingController extends Controller
         Collection $workloads
     ): ?DriverAttendance {
         return $drivers
-            ->filter(
-                function (
-                    DriverAttendance $driver
-                ) use ($trip): bool {
-                    return $driver->shift
-                        === $trip->shift;
-                }
-            )
             ->sortBy(
                 function (
                     DriverAttendance $driver
