@@ -2225,3 +2225,38 @@
 }
 .personnel-modal-driver .driver-bus-picker:has(.driver-bus-picker-panel:not([hidden])) { z-index: 201; }
 .personnel-modal-driver .driver-bus-picker-option { flex-direction: row !important; }
+
+/* Driver modal: keep the contact control aligned with the bus selector,
+   without stretching it to match the selected-chip stack. */
+.personnel-modal-driver .personnel-driver-form .driver-contact-field {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 8px;
+}
+.personnel-modal-driver .personnel-driver-form .driver-contact-field .driver-input-shell {
+  flex: 0 0 auto;
+  height: 44px;
+  min-height: 44px;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-field {
+  align-self: start;
+  min-width: 0;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-chips {
+  display: flex;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-chip {
+  max-width: 100%;
+}
+@media (max-width: 680px) {
+  .personnel-modal-driver .personnel-driver-form .driver-contact-field,
+  .personnel-modal-driver .personnel-driver-form .driver-bus-field {
+    grid-column: 1;
+  }
+}
