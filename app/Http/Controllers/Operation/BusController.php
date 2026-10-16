@@ -518,11 +518,22 @@ class BusController extends Controller
                 $oldNames = $lockedBus->operationClients->pluck('name')->map(fn ($name) => mb_strtolower($name))->sort()->values()->all();
                 $newNames = array_map(fn ($name) => mb_strtolower($name), $allocation['names']);
                 sort($newNames);
-                if (($oldNames !== $newNames || $lockedBus->client_allocation_type !== $allocation['type'])
-                    && $this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
-                    throw ValidationException::withMessages(['client_names' => 'Company allocations are locked while this bus has an ongoing or future assignment. Reassign affected trips first.']);
+                // Keep the existing allocation type (including legacy Shared)
+                // when the submitted company name has not actually changed.
+                // Trip schedules currently have no client/company link, so we
+                // cannot infer a genuine conflict from a trip assignment alone.
+                if ($oldNames !== $newNames) {
+                    // A first allocation does not displace an existing company.
+                    // Once allocated, protect any reassignment until active and
+                    // future trip obligations have been resolved.
+                    if ($oldNames !== [] && $this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
+                        throw ValidationException::withMessages([
+                            'client_name' => 'This bus has ongoing or future trip assignments. Reassign affected trips before changing its existing company.',
+                        ]);
+                    }
+
+                    $this->syncClientAllocation($lockedBus, $allocation);
                 }
-                $this->syncClientAllocation($lockedBus, $allocation);
             }
 
             $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $lockedBus);
