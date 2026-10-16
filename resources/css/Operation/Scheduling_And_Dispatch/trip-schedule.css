@@ -2992,3 +2992,39 @@
     border-color: #64748b;
     box-shadow: 0 0 0 2px rgba(100, 116, 139, .12);
 }
+
+
+/* Trip details: lighter read-only cards, clear hierarchy, comfortable spacing. */
+#viewTripModal .trip-details-grid { gap: 12px; padding-bottom: 8px; }
+#viewTripModal .trip-detail-card {
+  min-height: 72px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #dce6f3;
+  border-radius: 12px;
+}
+#viewTripModal .trip-detail-card:hover { background: #f8fbff; }
+#viewTripModal .trip-details-hero {
+  padding: 15px 16px;
+  background: #f3f7fe;
+  border: 1px solid #dce7fa;
+  margin-bottom: 14px;
+}
+#viewTripModal .trip-detail-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #edf4ff;
+  color: #225fc0;
+}
+#viewTripModal .trip-detail-copy label { font-size: 11px; letter-spacing: .035em; }
+#viewTripModal .trip-detail-value { font-size: 13px; line-height: 1.5; }
+#viewTripModal .trip-detail-load-error {
+  grid-column: 1 / -1;
+  padding: 18px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  font-size: 13px;
+}
