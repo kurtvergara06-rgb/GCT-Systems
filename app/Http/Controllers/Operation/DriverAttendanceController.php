@@ -108,7 +108,7 @@ class DriverAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
-            'shift' => 'required|string|in:Morning,Afternoon',
+            'shift' => 'sometimes|nullable|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -140,7 +140,7 @@ class DriverAttendanceController extends Controller
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -180,7 +180,7 @@ class DriverAttendanceController extends Controller
         }
 
         $validated = $request->validate([
-            'shift' => 'required|string|in:Morning,Afternoon',
+            'shift' => 'sometimes|nullable|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -207,7 +207,7 @@ class DriverAttendanceController extends Controller
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
 
         if ($driverAttendance->tripAssignments()->exists()
             && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
