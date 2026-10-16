@@ -66,7 +66,7 @@
 
         <div class="table-wrap" style="margin-top: 16px;">
           <table class="attendance-table">
-            <colgroup><col style="width: 14%"><col style="width: 18%"><col style="width: 28%"><col style="width: 12%"><col style="width: 12%"><col style="width: 16%"></colgroup>
+            <colgroup><col style="width: 16%"><col style="width: 20%"><col style="width: 23%"><col style="width: 13%"><col style="width: 13%"><col style="width: 15%"></colgroup>
             <thead>
               <tr>
                 <th>Driver ID</th>
