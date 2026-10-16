@@ -307,6 +307,7 @@ class TripAssignmentController extends Controller
             ->all();
 
         $drivers = DriverAttendance::query()
+            ->with('driver.authorizedBuses')
             ->whereDate('attendance_date', $tripSchedule->trip_date)
             ->whereIn('status', ['Present', 'Late'])
             ->whereHas('driver', fn ($query) => $query
@@ -327,8 +328,8 @@ class TripAssignmentController extends Controller
                 'id' => $attendance->id,
                 'driver_id' => $attendance->driver_id,
                 'name' => $attendance->driver_name,
-                'shift' => $attendance->shift,
                 'status' => $attendance->status,
+                'authorized_bus_ids' => $attendance->driver?->authorizedBuses?->pluck('id')->all() ?? [],
             ]);
 
         $buses = Bus::query()
