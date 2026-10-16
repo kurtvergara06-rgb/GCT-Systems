@@ -2273,3 +2273,16 @@
   transform: none;
   pointer-events: none;
 }
+
+/* Locked deactivation remains visible and neutral, not actionable. */
+.personnel-master-page .personnel-master-table .action-btn.delete:disabled,
+.personnel-master-page .personnel-master-table .action-btn.delete:disabled:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #8792a2;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
