@@ -239,7 +239,7 @@
                                                             type="view"
                                                             class="trip-action view-trip"
                                                             title="View Details"
-                                                            data-trip='@json($viewTripData)'
+                                                            data-trip="{{ json_encode($viewTripData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                         />
                                                                                                                     <x-ui.action-button
                                                                 type="edit"
