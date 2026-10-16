@@ -353,7 +353,7 @@ class DriverAttendanceController extends Controller
                         ],
                         [
                             'driver_name' => $driver->driver_name,
-                            'shift' => $driver->shift ?: trim($data['shift'] ?? 'Morning'),
+                            'shift' => 'Morning', // Legacy required column, not a driver assignment.
                             'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
                             'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
                             'status' => $status,
