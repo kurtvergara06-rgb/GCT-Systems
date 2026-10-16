@@ -374,20 +374,9 @@ class AutoSchedulingController extends Controller
             }
 
             foreach ($slotNumbers as $slotNumber) {
-                $driver = $this->findAvailableDriver(
-                    trip: $trip,
-                    drivers: $drivers,
-                    existingAssignments: $existingAssignments,
-                    generatedRecommendations: $recommendations,
-                    workloads: $driverWorkloads
-                );
-
-                $bus = $this->findAvailableBus(
-                    trip: $trip,
-                    buses: $buses,
-                    existingAssignments: $existingAssignments,
-                    generatedRecommendations: $recommendations,
-                    workloads: $busWorkloads
+                [$driver, $bus] = $this->findAvailableAuthorizedPair(
+                    $trip, $drivers, $buses, $existingAssignments,
+                    $recommendations, $driverWorkloads, $busWorkloads
                 );
 
                 $slotLabel = $requiredBuses > 1 ? "Bus {$slotNumber}/{$requiredBuses}" : null;
@@ -627,7 +616,6 @@ class AutoSchedulingController extends Controller
         $date = $trip->trip_date->toDateString();
         $drivers = DriverAttendance::query()
             ->whereDate('attendance_date', $date)
-            ->where('shift', $trip->shift)
             ->whereIn('status', ['Present', 'Late'])
             ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
             ->orderBy('driver_name')
@@ -647,6 +635,7 @@ class AutoSchedulingController extends Controller
         if (! $driver || ! $bus) {
             throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
         }
+        $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
         $others = collect($validated['recommendations'] ?? []);
         $tripIds = $others->pluck('trip_schedule_id')->push($trip->id)->unique();
         $otherTrips = TripSchedule::query()->whereIn('id', $tripIds)->get()->keyBy('id');
@@ -1093,6 +1082,10 @@ class AutoSchedulingController extends Controller
                     throw ValidationException::withMessages([
                         $field => 'A selected driver is no longer eligible for this trip. Generate the schedule again.',
                     ]);
+                }
+
+                if ($bus && $activeDriver) {
+                    $this->assertAuthorizedBusPair($activeDriver->driver_id, (int) $bus->id, $field);
                 }
 
                 if ($bus && JobOrder::query()
@@ -2080,23 +2073,10 @@ class AutoSchedulingController extends Controller
                 $generatedRecommendations =
                     collect();
 
-                $driver =
-                    $this->findAvailableDriver(
-                        trip: $trip,
-                        drivers: $drivers,
-                        existingAssignments: $existingAssignments,
-                        generatedRecommendations: $generatedRecommendations,
-                        workloads: $driverWorkloads
-                    );
-
-                $bus =
-                    $this->findAvailableBus(
-                        trip: $trip,
-                        buses: $buses,
-                        existingAssignments: $existingAssignments,
-                        generatedRecommendations: $generatedRecommendations,
-                        workloads: $busWorkloads
-                    );
+                [$driver, $bus] = $this->findAvailableAuthorizedPair(
+                    $trip, $drivers, $buses, $existingAssignments,
+                    $generatedRecommendations, $driverWorkloads, $busWorkloads
+                );
 
                 if ($driver && ! Driver::query()
                     ->where('driver_id', $driver->driver_id)
@@ -2105,6 +2085,10 @@ class AutoSchedulingController extends Controller
                     ->first()
                 ) {
                     $driver = null;
+                }
+
+                if ($driver && $bus) {
+                    $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'resolution');
                 }
 
                 if (! $driver || ! $bus) {
@@ -2293,6 +2277,68 @@ class AutoSchedulingController extends Controller
                         );
                 }
             );
+    }
+
+    /**
+     * Choose a compatible bus and an authorized, conflict-free driver together.
+     * Regular buses are preferred before Reserve buses.
+     *
+     * @return array{0: ?DriverAttendance, 1: ?Bus}
+     */
+    private function findAvailableAuthorizedPair(
+        TripSchedule $trip,
+        Collection $drivers,
+        Collection $buses,
+        Collection $existingAssignments,
+        Collection $generatedRecommendations,
+        Collection $driverWorkloads,
+        Collection $busWorkloads
+    ): array {
+        $orderedBuses = $buses->sortBy(fn (Bus $bus): string => sprintf(
+            '%01d-%08d-%s',
+            $bus->fleet_purpose === 'Reserve' ? 1 : 0,
+            (int) $busWorkloads->get($bus->id, 0),
+            strtolower($bus->bus_no)
+        ));
+
+        foreach ($orderedBuses as $bus) {
+            if ($this->busHasConflict($trip, (int) $bus->id, $existingAssignments, $generatedRecommendations)) {
+                continue;
+            }
+
+            $authorizedIds = Driver::query()
+                ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($bus->id))
+                ->pluck('driver_id')
+                ->all();
+
+            $driver = $this->findAvailableDriver(
+                $trip,
+                $drivers->whereIn('driver_id', $authorizedIds),
+                $existingAssignments,
+                $generatedRecommendations,
+                $driverWorkloads
+            );
+
+            if ($driver) {
+                return [$driver, $bus];
+            }
+        }
+
+        return [null, $this->findAvailableBus(
+            $trip, $buses, $existingAssignments, $generatedRecommendations, $busWorkloads
+        )];
+    }
+
+    private function assertAuthorizedBusPair(string $driverId, int $busId, string $field): void
+    {
+        if (! Driver::query()
+            ->where('driver_id', $driverId)
+            ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($busId))
+            ->exists()) {
+            throw ValidationException::withMessages([
+                $field => 'The driver is not authorized for this bus. Update Authorized Buses in Driver Master List and regenerate the schedule.',
+            ]);
+        }
     }
 
     /**
