@@ -3065,10 +3065,10 @@ function updateMlStatus(conflicts) {
                     ${activeTab === 'alternative' && reserveInformation.length ? `
                         <div class="gct-report-reserve-alternatives">
                             ${reserveInformation.map(bus => `
-                                <button type="button" class="gct-option-card gct-report-option" data-gct-review-reserve="${index}" data-gct-reserve-label="${escapeHtml(bus.label)}" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;cursor:pointer;">
+                                <button type="button" class="gct-option-card gct-report-option" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" style="width:100%;padding:12px;text-align:left;margin-bottom:8px;cursor:pointer;">
                                     <strong><i class="fa-solid fa-bus"></i> ${escapeHtml(bus.label)}</strong>
-                                    <small style="display:block;margin-top:5px;">${escapeHtml(bus.reason || 'Review-only standby bus. Requires an eligible driver and OIC approval.')}</small>
-                                    <small style="display:block;margin-top:7px;color:#2563eb;">Review deployment requirements <i class="fa-solid fa-arrow-right"></i></small>
+                                    <small style="display:block;margin-top:5px;">${escapeHtml(bus.reason || 'Standby bus. Only Operations Head may select; an eligible driver is required.')}</small>
+                                    <small style="display:block;margin-top:7px;color:#2563eb;">Select Reserve Bus <i class="fa-solid fa-arrow-right"></i></small>
                                 </button>
                             `).join('')}
                         </div>
@@ -3681,11 +3681,37 @@ function updateMlStatus(conflicts) {
         const reserveInfo = event.target.closest('[data-gct-review-reserve]');
         if (reserveInfo) {
             event.preventDefault();
-            window.alert(
-                reserveInfo.dataset.gctReserveLabel + ' is an available standby alternative, not an approved assignment. ' +
-                'Record an eligible driver for the trip, then regenerate Auto Scheduling. ' +
-                'Only Operations Head can assign a Reserve bus after an eligible driver and safety checks are verified.'
-            );
+            if (!canAssignReserve) {
+                window.showSystemToast?.('Only Operations Head may select a Reserve Bus.', 'warning', 'Head Access Required');
+                return;
+            }
+            const index = Number(reserveInfo.dataset.gctReviewReserve);
+            const item = schedulingConflicts[index];
+            const busId = Number(reserveInfo.dataset.gctReserveId);
+            if (!item || !Number.isInteger(busId) || busId <= 0) return;
+            editing = { kind: 'conflict', index, item };
+            editDialog.querySelector('.auto-preview-edit-context').textContent =
+                (item.base_trip_code || item.trip_code || 'Trip') + ' — Reserve ' + reserveInfo.dataset.gctReserveLabel;
+            const errorEl = editDialog.querySelector('.auto-preview-edit-error');
+            errorEl.hidden = true;
+            void (async () => {
+                try {
+                    const data = await previewEditRequest({ trip_schedule_id: item.trip_schedule_id });
+                    for (const [field, choices] of [['driver', data.drivers], ['bus', data.buses]]) {
+                        const select = editDialog.querySelector('[name="' + field + '"]');
+                        select.replaceChildren(new Option('Select ' + field, ''));
+                        for (const option of choices) select.add(new Option(option.name, String(option.id)));
+                    }
+                    editDialog.querySelector('[name="bus"]').value = String(busId);
+                    if (!editDialog.querySelector('[name="bus"]').value) {
+                        throw new Error('This Reserve Bus is no longer available. Regenerate the schedule.');
+                    }
+                    editDialog.showModal();
+                } catch (error) {
+                    editing = null;
+                    window.showSystemToast?.(error.message, 'error', 'Reserve selection unavailable');
+                }
+            })();
             return;
         }
 
