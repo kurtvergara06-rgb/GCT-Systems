@@ -553,12 +553,11 @@
                     </div>
 
                     <div class="resource-filter-bar" data-resource-filter="drivers">
-                        <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search driver name, ID, or shift..." aria-label="Search visible unallocated drivers"></label>
-                        <select aria-label="Filter visible drivers by shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon', 'Night'] as $shift)<option value="{{ $shift }}">{{ $shift }} Shift</option>@endforeach</select>
+                        <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search driver name or ID..." aria-label="Search visible available drivers"></label>
                     </div>
-                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Attendance</span></div>
+                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Authorized Buses</span><span>Attendance</span></div>
                     @forelse($availableDrivers as $driver)
-                        <div class="resource-record" data-resource-row="drivers" data-resource-text="{{ strtolower($driver->driver_name.' '.$driver->shift.' '.$driver->driver_id) }}" data-resource-category="{{ strtolower($driver->shift) }}">
+                        <div class="resource-record" data-resource-row="drivers" data-resource-text="{{ strtolower($driver->driver_name.' '.$driver->driver_id) }}">
                             <div class="driver-avatar">
                                 {{ collect(explode(' ', $driver->driver_name))
                                     ->filter()
@@ -569,9 +568,9 @@
 
                             <div class="resource-record-info">
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <span class="resource-mobile-detail">{{ $driver->shift }} Shift</span>
+                                <span class="resource-mobile-detail">{{ $driver->driver?->authorizedBuses?->count() ?? 0 }} authorized bus(es)</span>
                             </div>
-                            <span class="resource-row-detail">{{ $driver->shift }} Shift</span>
+                            <span class="resource-row-detail">{{ $driver->driver?->authorizedBuses?->count() ?? 0 }} bus(es)</span>
 
                             <x-ui.status-badge :status="$driver->status" class="availability available" />
                         </div>
