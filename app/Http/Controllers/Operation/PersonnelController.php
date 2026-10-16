@@ -52,9 +52,9 @@ class PersonnelController extends Controller
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('employment_status', 'Active')->count(),
             'inactive' => (clone $query)->where('employment_status', 'Inactive')->count(),
-            'morning' => (clone $query)
+            'authorized' => (clone $query)
                 ->where('employment_status', 'Active')
-                ->where('shift', 'Morning')
+                ->whereHas('authorizedBuses')
                 ->count(),
         ];
 
@@ -69,7 +69,8 @@ class PersonnelController extends Controller
                 });
             })
             ->where('employment_status', $request->query('tab') === 'history' ? 'Inactive' : 'Active')
-            ->when(in_array($request->query('shift'), ['Morning', 'Afternoon', 'Night'], true), fn ($query) => $query->where('shift', $request->query('shift')));
+            ->when($request->query('bus_authorization') === 'assigned', fn ($query) => $query->whereHas('authorizedBuses'))
+            ->when($request->query('bus_authorization') === 'unassigned', fn ($query) => $query->whereDoesntHave('authorizedBuses'));
         TableSort::apply($driversQuery, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'driver_name');
         $drivers = $driversQuery
             ->with('authorizedBuses')
