@@ -19,6 +19,7 @@ class TripSchedule extends Model
         'trip_code',
         'trip_date',
         'shuttle_route_id',
+        'client_name',
         'direction',
         'required_buses',
         'route_code_snapshot',
