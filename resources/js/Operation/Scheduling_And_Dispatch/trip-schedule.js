@@ -377,6 +377,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             .filter(Boolean)
             .join(' - ');
 
+        if (!trip.tripCode || !trip.date) {
+            console.error('Trip Details did not receive the trip data payload.', trip);
+            viewTripContent.innerHTML = '<p class="trip-detail-load-error" role="alert">Trip details could not be loaded. Please refresh the schedule and try again.</p>';
+            return;
+        }
+
         if (viewTripHeroTitle) {
             viewTripHeroTitle.textContent =
                 trip.tripCode
@@ -409,7 +415,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             },
             {
                 label: 'Client / Company',
-                value: trip.clientName || 'Legacy trip — not recorded',
+                value: trip.clientName || 'No client assigned',
                 icon: 'fa-building',
             },
             {
@@ -431,11 +437,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 label: 'Estimated Arrival',
                 value: trip.arrival,
                 icon: 'fa-clock-rotate-left',
-            },
-            {
-                label: 'Shift',
-                value: trip.shift,
-                icon: 'fa-business-time',
             },
             {
                 label: 'Assignment',
