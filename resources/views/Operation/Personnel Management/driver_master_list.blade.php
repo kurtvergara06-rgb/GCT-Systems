@@ -76,7 +76,27 @@
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar"><i class="fa-solid fa-user"></i></span><div><strong>{{ $driver->driver_name }}</strong><small>Driver profile</small></div></div></td>
                             <td>{{ $driver->contact_number ?: '—' }}</td>
-                            <td class="driver-buses-cell" title="{{ $driver->authorizedBuses->pluck('bus_no')->join(', ') }}">{{ $driver->authorizedBuses->isEmpty() ? 'Not assigned' : $driver->authorizedBuses->pluck('bus_no')->join(', ') }}</td>
+                            <td class="driver-buses-cell">
+                                @php $assignedBuses = $driver->authorizedBuses->sortBy('bus_no')->values(); @endphp
+                                @if($assignedBuses->isEmpty())
+                                    <span class="driver-bus-none">Not assigned</span>
+                                @else
+                                    <div class="driver-bus-summary">
+                                        <span class="driver-bus-primary"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $assignedBuses->first()->bus_no }}</span>
+                                        @if($assignedBuses->count() > 1)
+                                            <details class="driver-bus-more">
+                                                <summary aria-label="Show {{ $assignedBuses->count() - 1 }} other authorized buses for {{ $driver->driver_name }}">+{{ $assignedBuses->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                                <div class="driver-bus-more-panel">
+                                                    <strong>Other authorized buses</strong>
+                                                    @foreach($assignedBuses->skip(1) as $assignedBus)
+                                                        <div class="driver-bus-more-row"><i class="fa-solid fa-bus" aria-hidden="true"></i><span><b>{{ $assignedBus->bus_no }}</b><small>{{ $assignedBus->plate_no ?: 'No plate number' }}</small></span></div>
+                                                    @endforeach
+                                                </div>
+                                            </details>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
                             <td><x-ui.status-badge :status="$driver->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}" /></td>
                             <td><div class="actions">
                                 <button type="button" class="action-btn view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-eye"></i></button>
