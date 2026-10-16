@@ -442,6 +442,7 @@ class AutoSchedulingController extends Controller
                         ->filter(fn (Bus $candidate) => $candidate->fleet_purpose === 'Reserve'
                             && ! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations))
                         ->map(fn (Bus $candidate) => [
+                            'id' => $candidate->id,
                             'label' => $candidate->bus_no.' (Reserve)',
                             'score' => null,
                             'reason' => 'Standby option. Operations Head may assign directly once an eligible driver and all safety checks are satisfied.',
