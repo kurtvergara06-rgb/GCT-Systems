@@ -2778,3 +2778,11 @@
 .bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple > small {
   line-height: 1.45;
 }
+
+/* Reserve units are a shared standby pool, not permanently owned. */
+.bus-master-list-page .bus-table--reserve thead th:nth-child(1) { width: 28%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(2) { width: 20%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(3) { width: 24%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(4) { width: 18%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(5) { width: 10%; text-align: center; }
+.bus-master-list-page .bus-table--reserve tbody td:nth-child(5) { text-align: center; }
