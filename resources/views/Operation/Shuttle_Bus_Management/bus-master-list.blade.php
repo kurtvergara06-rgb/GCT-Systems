@@ -121,7 +121,7 @@
                 </div>
 
                 <div class="table-wrap">
-                    <table class="bus-table">
+                    <table class="bus-table {{ request('fleet_purpose') === 'Reserve' ? 'bus-table--reserve' : '' }}">
                         <thead>
                             <tr>
                                 <th>
@@ -148,8 +148,10 @@
                                         <i class="fa-solid fa-up-down sort-icon" aria-hidden="true"></i>
                                     </div>
                                 </th>
+                                @unless(request('fleet_purpose') === 'Reserve')
                                 <th>Client Allocation</th>
                                 <th>Authorized Drivers</th>
+                                @endunless
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -179,6 +181,7 @@
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
+                                    @unless(request('fleet_purpose') === 'Reserve')
                                     <td class="bus-allocation-cell">
                                         @if($bus->operationClients->isEmpty())
                                             <span class="bus-identity-empty">Not allocated</span>
@@ -221,6 +224,7 @@
                                             </div>
                                         @endif
                                     </td>
+                                    @endunless
                                     <td class="bus-actions-cell">
                                         <div class="actions">
                                             <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
@@ -291,7 +295,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="7"
+                                    colspan="{{ request('fleet_purpose') === 'Reserve' ? 5 : 7 }}"
                                     icon="fa-bus"
                                     message="No Bus Records Found"
                                     description="There are no buses matching the selected fleet and filters."
