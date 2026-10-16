@@ -1340,7 +1340,7 @@ class AutoSchedulingController extends Controller
                     )
                     : null,
 
-            'selected_bus' => $selectedBus
+            'selected_bus' => ($selectedBus && $this->busMatchesTripClient($trip, $selectedBus))
                     ? $this->formatBusForAi(
                         bus: $selectedBus,
                         trip: $trip,
@@ -1366,6 +1366,7 @@ class AutoSchedulingController extends Controller
                 ->all(),
 
             'eligible_buses' => $buses
+                ->filter(fn (Bus $candidate) => $this->busMatchesTripClient($trip, $candidate))
                 ->map(
                     fn (Bus $bus): array => $this->formatBusForAi(
                         bus: $bus,
