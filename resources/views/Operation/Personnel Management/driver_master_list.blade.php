@@ -178,12 +178,25 @@
             <label class="driver-input-field full-width">
                 <span>Assigned Buses (select multiple)</span>
                 <input type="hidden" name="bus_ids_present" value="1">
-                <select name="bus_ids[]" multiple size="5" data-driver-buses aria-label="Assigned Buses">
-                    @foreach($availableBuses as $busOption)
-                        <option value="{{ $busOption->id }}" @selected(in_array($busOption->id, old('bus_ids', [])))>{{ $busOption->bus_no }}{{ $busOption->plate_no ? ' — '.$busOption->plate_no : '' }}</option>
-                    @endforeach
-                </select>
-                <small>Hold Ctrl to select multiple buses. Only these buses will be considered authorized for this driver in the next scheduling phase.</small>
+                <div class="driver-bus-picker" data-driver-bus-picker>
+                    <button type="button" class="driver-bus-picker-trigger" data-driver-bus-trigger aria-expanded="false" aria-controls="driverBusChoices">
+                        <span data-driver-bus-label>Select authorized buses</span>
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="driver-bus-picker-panel" id="driverBusChoices" data-driver-bus-panel hidden>
+                        <input type="search" class="driver-bus-picker-search" data-driver-bus-search placeholder="Search bus number or plate..." aria-label="Search available buses">
+                        <div class="driver-bus-picker-options">
+                            @foreach($availableBuses as $busOption)
+                                <label class="driver-bus-picker-option" data-driver-bus-option>
+                                    <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox @checked(in_array($busOption->id, old('bus_ids', [])))>
+                                    <span>{{ $busOption->bus_no }}{{ $busOption->plate_no ? ' — '.$busOption->plate_no : '' }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <span class="driver-bus-picker-empty" data-driver-bus-empty hidden>No matching buses</span>
+                    </div>
+                </div>
+                <small>Choose one or more authorized buses. The selection is saved to the driver profile.</small>
             </label>
             <div class="driver-modal-group-heading">
                 <div>
