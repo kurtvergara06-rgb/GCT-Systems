@@ -57,7 +57,6 @@ class BatchAttendanceController extends Controller
 
         $dateRecords = $attendanceModel::query()
             ->whereDate('attendance_date', $date)
-            ->when($type === 'mechanic' && $shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->get()
             ->keyBy($idColumn);
 
