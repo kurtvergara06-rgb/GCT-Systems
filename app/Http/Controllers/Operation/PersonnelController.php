@@ -73,6 +73,7 @@ class PersonnelController extends Controller
         TableSort::apply($driversQuery, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'driver_name');
         $drivers = $driversQuery
             ->with('authorizedBuses')
+            ->withExists('attendances')
             ->paginate(12)
             ->withQueryString();
 
@@ -187,6 +188,14 @@ class PersonnelController extends Controller
 
     public function updateDriver(Request $request, Driver $driver): RedirectResponse
     {
+        // Attendance history permanently locks the master-record editor.
+        // Check before validation and again under the row lock below.
+        if ($driver->attendances()->exists()) {
+            throw ValidationException::withMessages([
+                'driver' => 'This driver already has attendance records. Master-list editing is locked to preserve attendance history.',
+            ]);
+        }
+
         $validated = $this->validateDriver($request, $driver);
         $busIds = $validated['bus_ids'] ?? null;
         unset($validated['bus_ids']);
@@ -197,12 +206,9 @@ class PersonnelController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (
-                $validated['driver_id'] !== $lockedDriver->driver_id
-                && $lockedDriver->attendances()->exists()
-            ) {
+            if ($lockedDriver->attendances()->exists()) {
                 throw ValidationException::withMessages([
-                    'driver_id' => 'Driver ID cannot be changed after attendance history exists.',
+                    'driver' => 'This driver already has attendance records. Master-list editing is locked to preserve attendance history.',
                 ]);
             }
 
