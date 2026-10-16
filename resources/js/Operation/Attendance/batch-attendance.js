@@ -202,8 +202,8 @@ function initBatchAttendancePage() {
 
         if (!rows.length) {
             body.innerHTML = type === 'driver'
-                ? '<tr><td colspan="8" class="batch-empty">No active drivers were found in the Driver Master List.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">No active mechanics were found in the Mechanic Master List for the selected shift.</td></tr>';
+                ? '<tr><td colspan="8" class="batch-empty">All active drivers already have attendance for this date, or there are no eligible unrecorded drivers.</td></tr>'
+                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics for this shift.</td></tr>';
             updateSummary();
             return;
         }
