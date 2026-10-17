@@ -5043,3 +5043,78 @@ body.ai-modal-open {
     flex: 1; padding: 2mm 0 0; border-top: 1px solid #64748b; text-align: center;
   }
 }
+
+
+/* Print refinement: readable text columns and consistent seven-column width. */
+@media print {
+  body:has(.auto-scheduling-page) .auto-schedule-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(1) { width: 11% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(2) { width: 12% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(3) { width: 21% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(4) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(5) { width: 17% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(6) { width: 16% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(7) { width: 10% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(8) { display: none !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 11% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 12% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 21% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 17% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 16% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 10% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table td,
+  body:has(.auto-scheduling-page) .auto-schedule-table th {
+    box-sizing: border-box !important;
+    overflow-wrap: anywhere !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell,
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell.unassigned {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-avatar {
+    display: none !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell > div:last-child {
+    display: block !important; min-width: 0 !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell strong,
+  body:has(.auto-scheduling-page) .auto-schedule-table .bus-chip,
+  body:has(.auto-scheduling-page) .auto-schedule-table .unassigned-text {
+    display: block !important; width: auto !important; max-width: 100% !important;
+    margin: 0 !important; padding: 0 !important;
+    background: transparent !important; border: 0 !important;
+    border-radius: 0 !important; box-shadow: none !important;
+    color: #243247 !important; font: bold 9px/1.4 Arial, sans-serif !important;
+    white-space: normal !important; overflow-wrap: anywhere !important;
+    text-align: left !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell span,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-reserve-note {
+    display: block !important; margin-top: 1mm !important;
+    color: #52637b !important; font: 8px/1.35 Arial, sans-serif !important;
+    white-space: normal !important; overflow-wrap: anywhere !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-bus-preview {
+    display: block !important; width: 100% !important; min-width: 0 !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .schedule-status {
+    display: block !important; white-space: normal !important;
+    font: 9px/1.4 Arial, sans-serif !important; text-align: left !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-trip-main-id,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-trip-continuation-label {
+    border: 0 !important; background: transparent !important;
+    color: #243247 !important; padding: 0 !important;
+    font: bold 9px/1.4 Arial, sans-serif !important;
+  }
+}
