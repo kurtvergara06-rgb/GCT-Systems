@@ -3111,9 +3111,11 @@ function updateMlStatus(conflicts) {
             </button>`;
         }).join('');
         const activeTab = recommendationTabs.get(index) || 'recommended';
-        const issueTitle = aiConflict.title
-            || conflict.reason
-            || 'Scheduling conflict detected';
+        const hasReservePair = validPairs.some(pair => String(pair.bus_label || '').includes('(Reserve)'));
+        const reserveOnlyOptions = validPairs.length > 0 && validPairs.every(pair => String(pair.bus_label || '').includes('(Reserve)'));
+        const issueTitle = reserveOnlyOptions
+            ? 'No automatic Regular Bus assignment available.'
+            : (aiConflict.title || conflict.reason || 'Scheduling conflict detected');
         // Previously saved drafts may contain explanations from the retired Shift policy.
         const explanation = String(aiConflict.explanation
             || ai.conflict_explanation
@@ -3136,7 +3138,9 @@ function updateMlStatus(conflicts) {
             && drivers.length
             && buses.length
         );
-        const issueDetail = missingDriver && missingBus
+        const issueDetail = reserveOnlyOptions
+            ? 'Eligible driver–Reserve Bus pairs are available for Operations Head review. Select a pair to preview; final Laravel validation still applies.'
+            : missingDriver && missingBus
             ? 'An eligible driver and bus are required before this slot can be assigned.'
             : missingDriver
                 ? 'A driver with valid attendance and no overlapping trip is required.'
