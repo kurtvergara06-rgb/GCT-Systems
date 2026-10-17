@@ -3187,6 +3187,25 @@ function updateMlStatus(conflicts) {
                     </div>
                 </section>
 
+                <div class="gct-report-tabs" role="tablist" aria-label="Conflict recommendation options">
+                    <button type="button" role="tab" data-gct-option-tab="recommended"
+                        data-gct-conflict-index="${index}" class="${activeTab === 'recommended' ? 'active' : ''}">
+                        Recommended Assignments (${validPairs.length ? 1 : 0})
+                    </button>
+                    <button type="button" role="tab" data-gct-option-tab="alternative"
+                        data-gct-conflict-index="${index}" class="${activeTab === 'alternative' ? 'active' : ''}">
+                        Alternative Options (${Math.max(0, validPairs.length - 1)})
+                    </button>
+                </div>
+                <section class="gct-compact-pair-selector">
+                    ${activeTab === 'recommended'
+                        ? (validPairs.length
+                            ? `<header><strong>Top eligible driver–bus pair</strong></header><div class="gct-compact-pair-list">${pairCards.split('</button>')[0]}</button></div>`
+                            : '<div class="gct-report-empty">No eligible complete pair. Review availability or defer this slot.</div>')
+                        : (validPairs.length > 1
+                            ? `<header><strong>Other eligible driver–bus pairs</strong><span>${validPairs.length - 1} choices</span></header><div class="gct-compact-pair-list">${pairCards.split('</button>').slice(1).filter(Boolean).map(card => card + '</button>').join('')}</div>`
+                            : '<div class="gct-report-empty">No additional eligible pair is available.</div>')}
+                </section>
                 <details class="gct-compact-details">
                     <summary>Detailed explanation and AI findings</summary>
                     <div class="gct-compact-details-content">
@@ -3199,19 +3218,6 @@ function updateMlStatus(conflicts) {
                     </div>
                 </details>
 
-                <section class="gct-compact-pair-selector">
-                    <header><strong>Recommended Driver–Bus Pairs</strong><span>${validPairs.length} eligible</span></header>
-                    ${validPairs.length ? `
-                        <div class="gct-compact-pair-list">
-                            ${pairCards.split('</button>').slice(0, 3).filter(Boolean).map(card => card + '</button>').join('')}
-                        </div>
-                        ${validPairs.length > 3 ? `
-                            <details class="gct-more-pairs">
-                                <summary>Show ${validPairs.length - 3} other eligible pairs</summary>
-                                <div class="gct-compact-pair-list">${pairCards.split('</button>').slice(3).filter(Boolean).map(card => card + '</button>').join('')}</div>
-                            </details>` : ''}
-                    ` : '<div class="gct-report-empty">No eligible driver–bus pair for this slot. Handle manually later or regenerate after resources become available.</div>'}
-                </section>
                 <footer class="gct-conflict-actions gct-report-actions">
                     ${canEditOperation() ? `
                         <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
