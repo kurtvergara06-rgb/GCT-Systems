@@ -333,7 +333,24 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     draftButton?.addEventListener('click', () => {
         saveScheduleDraft().catch(error => window.showSystemToast?.(error.message, 'error', 'Draft Not Saved'));
     });
-    draftPrintButton?.addEventListener('click', () => window.print());
+    const updateAutoPrintMetadata = () => {
+        const date = document.querySelector('#gctAutoPrintDate');
+        const generated = document.querySelector('#gctAutoPrintGenerated');
+        if (date) {
+            const raw = String(new FormData(form).get('schedule_date') || '');
+            date.textContent = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? raw : 'Not selected';
+        }
+        if (generated) {
+            generated.textContent = new Intl.DateTimeFormat('en-PH', {
+                timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short',
+            }).format(new Date());
+        }
+    };
+    window.addEventListener('beforeprint', updateAutoPrintMetadata);
+    draftPrintButton?.addEventListener('click', () => {
+        updateAutoPrintMetadata();
+        window.print();
+    });
     for (const control of filterControls) control.addEventListener('change', restoreScheduleDraft);
     void restoreScheduleDraft();
 
