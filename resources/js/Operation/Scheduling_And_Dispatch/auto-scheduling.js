@@ -1726,6 +1726,7 @@ function updateMlStatus(conflicts) {
                         ${escapeHtml(slotLabel)}
                     </span>
                     ${!isContinuation ? `<small class="auto-bus-assignment-progress">${escapeHtml(assignmentProgress)}</small>` : ''}
+                    <small class="gct-auto-print-slot-status">${escapeHtml(item.result === 'Conflict' ? 'Needs Review' : (item.result || 'Needs Review'))}</small>
                 </td>
 
                 <td>
