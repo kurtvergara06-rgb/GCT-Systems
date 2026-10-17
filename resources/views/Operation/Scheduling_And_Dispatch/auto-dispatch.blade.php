@@ -298,6 +298,16 @@
 
                     <div class="auto-table-wrap" role="region" aria-label="Incoming trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
+                            <colgroup>
+                                <col style="width:9%">
+                                <col style="width:11%">
+                                <col style="width:18%">
+                                <col style="width:12%">
+                                <col style="width:14%">
+                                <col style="width:14%">
+                                <col style="width:10%">
+                                <col style="width:12%">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Trip ID</th>
@@ -363,6 +373,16 @@
 
                     <div class="auto-table-wrap" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
+                            <colgroup>
+                                <col style="width:9%">
+                                <col style="width:11%">
+                                <col style="width:18%">
+                                <col style="width:12%">
+                                <col style="width:14%">
+                                <col style="width:14%">
+                                <col style="width:10%">
+                                <col style="width:12%">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Trip ID</th>
