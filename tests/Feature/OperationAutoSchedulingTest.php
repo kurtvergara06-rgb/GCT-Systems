@@ -881,22 +881,13 @@ class OperationAutoSchedulingTest extends TestCase
             ->assertOk();
         $this->assertSame([], $reserveResponse->json('recommendations'));
         $reserveSuggestion = collect($reserveResponse->json('conflicts'))
-            ->first(fn (array $conflict): bool => collect(data_get($conflict, 'ai.alternative_buses', []))
-                ->contains(fn (array $bus): bool => (int) $bus['id'] === $reserve->id));
+            ->first(fn (array $conflict): bool => $conflict['issue_type'] === 'reserve_approval_required');
         $this->assertNotNull($reserveSuggestion);
-        $this->assertTrue($reserveSuggestion['missing_driver']);
-        $this->assertSame(
-            $reserve->id,
-            (int) collect($reserveSuggestion['ai']['alternative_buses'])->first()['id']
-        );
-        $this->assertSame(
-            $driver->id,
-            (int) collect($reserveSuggestion['ai']['alternative_drivers'])->first()['id']
-        );
-        $validPair = collect($reserveSuggestion['ai']['valid_pairs'])->first();
-        $this->assertSame($driver->id, (int) $validPair['driver_attendance_id']);
-        $this->assertSame($reserve->id, (int) $validPair['bus_id']);
-        $this->assertSame('laravel_rules', $validPair['eligibility_source']);
+        $this->assertFalse($reserveSuggestion['missing_driver']);
+        $this->assertFalse($reserveSuggestion['missing_bus']);
+        $this->assertSame($driver->id, (int) $reserveSuggestion['suggested_driver_attendance_id']);
+        $this->assertSame($reserve->id, (int) $reserveSuggestion['suggested_bus_id']);
+        $this->assertSame('Conflict', $reserveSuggestion['result']);
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 
