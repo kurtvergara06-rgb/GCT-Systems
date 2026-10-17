@@ -5163,3 +5163,20 @@ body.ai-modal-open {
     font: bold 9px/1.4 Arial, sans-serif !important;
   }
 }
+
+
+/* Compact conflict resolution: review a complete validated pair first. */
+.auto-scheduling-page .gct-compact-pair-selector { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+.auto-scheduling-page .gct-compact-pair-selector > header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:9px; font-size:12px; }
+.auto-scheduling-page .gct-compact-pair-selector > header span { color:#64748b; font-size:11px; }
+.auto-scheduling-page .gct-compact-pair-list { display:grid; gap:7px; max-height:215px; overflow-y:auto; overscroll-behavior:contain; }
+.auto-scheduling-page .gct-compact-pair { width:100%; padding:10px 12px; text-align:left; border:1px solid #d9e4f2; border-radius:9px; background:#f8fafc; cursor:pointer; }
+.auto-scheduling-page .gct-compact-pair strong { display:block; color:#1e3a5f; font-size:12px; }
+.auto-scheduling-page .gct-compact-pair small { display:block; margin-top:4px; color:#52677f; font-size:10px; }
+.auto-scheduling-page .gct-compact-pair.is-selected { border-color:#2563eb; background:#eaf2ff; box-shadow:inset 0 0 0 1px #2563eb; }
+.auto-scheduling-page .gct-compact-pair:disabled { opacity:.5; cursor:not-allowed; }
+.auto-scheduling-page .gct-compact-details { margin:9px 12px; padding:9px 11px; border:1px solid #dce6f2; border-radius:9px; background:#f8fafc; }
+.auto-scheduling-page .gct-compact-details summary { cursor:pointer; font-weight:700; font-size:11px; color:#334155; }
+.auto-scheduling-page .gct-compact-details-content { margin-top:9px; color:#475569; font-size:11px; line-height:1.6; }
+.auto-scheduling-page .gct-conflict-report-body { display:flex; flex-direction:column; }
+.auto-scheduling-page .gct-report-actions { position:sticky; bottom:0; z-index:3; background:#fff; border-top:1px solid #e2e8f0; }
