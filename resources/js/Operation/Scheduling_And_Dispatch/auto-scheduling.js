@@ -3388,7 +3388,7 @@ function updateMlStatus(conflicts) {
         // Rebuilding the report must not move the page or reset its independent scroll.
         const previousPageScroll = window.scrollY;
         const previousReportScroll = container.querySelector('.gct-conflict-report-body')?.scrollTop ?? 0;
-        const previousTableScroll = container.querySelector('.gct-conflict-table-wrap')?.scrollTop ?? 0;
+        const previousTableScroll = container.querySelector('.gct-conflict-table-scroll')?.scrollTop ?? 0;
         container.innerHTML = `
             <div class="gct-conflict-workspace ${conflicts.length === 1 ? 'is-single-conflict' : ''} ${conflictReportClosed ? 'is-report-closed' : ''}">
                 <div class="gct-conflict-list">
@@ -3427,7 +3427,7 @@ function updateMlStatus(conflicts) {
             </div>`;
         const reportScroll = container.querySelector('.gct-conflict-report-body');
         if (reportScroll) reportScroll.scrollTop = previousReportScroll;
-        const tableScroll = container.querySelector('.gct-conflict-table-wrap');
+        const tableScroll = container.querySelector('.gct-conflict-table-scroll');
         if (tableScroll) tableScroll.scrollTop = previousTableScroll;
         if (Math.abs(window.scrollY - previousPageScroll) > 1) {
             window.scrollTo({ top: previousPageScroll, behavior: 'instant' });
@@ -3475,8 +3475,7 @@ function updateMlStatus(conflicts) {
             conflictReportClosed = false;
             document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
             redesignConflicts();
-            const reportBody = document.querySelector('#autoSchedulingConflictContent .gct-conflict-report-body');
-            if (reportBody) reportBody.scrollTop = 0;
+            // Keep the report scroll position when switching conflict rows.
         }
     });
     document.getElementById('autoSchedulingConflictContent')?.addEventListener('keydown', (event) => {
