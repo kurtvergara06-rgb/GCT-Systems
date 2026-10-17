@@ -206,7 +206,7 @@
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
                 <div class="system-admin-module-list">
-                    @foreach($visibleModules as $moduleKey => $module)
+                    @foreach($visibleModules->except(['administration']) as $moduleKey => $module)
                         @php
                             $isHomeModule = $moduleKey === $roleModuleKey;
                             $capabilities = $module['capabilities'];
