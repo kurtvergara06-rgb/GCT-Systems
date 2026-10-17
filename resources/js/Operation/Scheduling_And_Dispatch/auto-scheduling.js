@@ -3080,8 +3080,10 @@ function updateMlStatus(conflicts) {
         const inlineChoice = inlineSelectionsByConflict.get(conflictKey) || {};
         const selectedDriverId = Number(inlineChoice.driverId || 0);
         const selectedBusId = Number(selectedReserve?.id || inlineChoice.busId || 0);
-        const selectedBusIsReserve = Boolean(selectedReserve);
-        const pairAllowed = validPairs.some((pair) => Number(pair.driver_attendance_id) === selectedDriverId && Number(pair.bus_id) === selectedBusId);
+        const selectedPair = validPairs.find((pair) => Number(pair.driver_attendance_id) === selectedDriverId && Number(pair.bus_id) === selectedBusId);
+        const selectedBusIsReserve = Boolean(selectedReserve)
+            || String(selectedPair?.bus_label || '').includes('(Reserve)');
+        const pairAllowed = Boolean(selectedPair);
         const inlineCanApply = Boolean(canEditOperation() && pairAllowed && (!selectedBusIsReserve || canAssignReserve()));
         const severity = getConflictSeverity(conflict);
         const hardConflict = missingDriver || missingBus || ai.status === 'conflict';
