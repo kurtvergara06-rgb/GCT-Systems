@@ -4705,3 +4705,37 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option:focus-visible {
   background: #f2f7ff; border-color: #3273dc; outline: 2px solid transparent;
 }
+
+/* Compact exclusive Reserve selection, shared with AI Conflict Report. */
+.gct-report-reserve-alternatives .gct-reserve-choice {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center !important;
+  min-height: 46px !important;
+  padding: 10px 13px !important;
+  gap: 12px !important;
+  border: 1px solid #d8e2ef;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  display: inline-flex; align-items: center; gap: 9px; min-width: 0;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity strong {
+  font-size: 12px; font-weight: 700; line-height: 1.4;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-indicator {
+  width: 17px; height: 17px; flex: 0 0 17px;
+  border-radius: 50%; background: #d1d5db;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: transparent; font-size: 9px;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice.is-selected {
+  border-color: #2563eb; background: #f2f7ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice.is-selected .gct-reserve-choice-indicator {
+  color: #fff; background: #2563eb;
+}
