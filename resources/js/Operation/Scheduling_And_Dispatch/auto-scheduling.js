@@ -1629,7 +1629,13 @@ function updateMlStatus(conflicts) {
             return;
         }
 
-        tbody.innerHTML = rows.map((item) => renderRowHtml(item)).join('');
+        let previousTrip = '';
+        tbody.innerHTML = rows.map((item) => {
+            const tripKey = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
+            const continuation = previousTrip === tripKey;
+            previousTrip = tripKey;
+            return renderRowHtml(item, continuation);
+        }).join('');
     }
 
     function sortScheduleRows(rows) {
@@ -1648,7 +1654,7 @@ function updateMlStatus(conflicts) {
         });
     }
 
-    function renderRowHtml(item) {
+    function renderRowHtml(item, isContinuation = false) {
         const cleanTripCode = escapeHtml(item.base_trip_code || String(item.trip_code || '').split(' ')[0]);
         const required = Math.max(1, Number(item.required_buses || 1));
         const slotNumber = Math.max(1, Number(item.slot || 1));
@@ -1661,9 +1667,9 @@ function updateMlStatus(conflicts) {
         const isConflict = item.result === 'Conflict';
 
         return `
-            <tr class="${isConflict ? 'conflict-row' : ''}">
+            <tr class="auto-preview-trip-row ${isContinuation ? 'auto-trip-continuation' : 'auto-trip-first'} ${isConflict ? 'conflict-row' : ''}">
                 <td>
-                    <strong>${cleanTripCode}</strong>
+                    ${isContinuation ? `<span class="auto-trip-continuation-label" aria-label="Additional slot for trip ${cleanTripCode}"><i class="fa-solid fa-turn-down" aria-hidden="true"></i> Same trip</span>` : `<strong class="auto-trip-main-id">${cleanTripCode}</strong>`}
                 </td>
 
                 <td>
@@ -1702,7 +1708,7 @@ function updateMlStatus(conflicts) {
                         <i class="fa-solid fa-bus"></i>
                         ${escapeHtml(slotLabel)}
                     </span>
-                    <small class="auto-bus-assignment-progress">${escapeHtml(assignmentProgress)}</small>
+                    ${!isContinuation ? `<small class="auto-bus-assignment-progress">${escapeHtml(assignmentProgress)}</small>` : ''}
                 </td>
 
                 <td>
