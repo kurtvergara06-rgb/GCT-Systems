@@ -538,9 +538,23 @@ class AutoSchedulingController extends Controller
                             ]);
                         });
 
+                    // Individually scored alternatives are not automatically valid
+                    // combinations. Recheck both resources against confirmed
+                    // assignments and all current generated preview slots.
                     $validPairs = $driverAlternatives
-                        ->flatMap(fn (array $driverOption) => $busAlternatives->map(
-                            fn (array $busOption): array => [
+                        ->flatMap(fn (array $driverOption) => $busAlternatives
+                            ->filter(fn (array $busOption): bool =>
+                                $drivers->contains(fn (DriverAttendance $candidate): bool =>
+                                    (int) $candidate->id === (int) $driverOption['id']
+                                    && ! $this->driverHasConflict($trip, $candidate->driver_id, $existingAssignments, $recommendations)
+                                )
+                                && $buses->contains(fn (Bus $candidate): bool =>
+                                    (int) $candidate->id === (int) $busOption['id']
+                                    && $this->busMatchesTripClient($trip, $candidate)
+                                    && ! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations)
+                                )
+                            )
+                            ->map(fn (array $busOption): array => [
                                 'driver_attendance_id' => (int) $driverOption['id'],
                                 'driver_label' => (string) $driverOption['label'],
                                 'driver_score' => $driverOption['score'],
@@ -551,8 +565,8 @@ class AutoSchedulingController extends Controller
                                 'bus_score_source' => $busOption['score_source'],
                                 'eligibility_source' => 'laravel_rules',
                                 'reason' => 'Valid at generation time under attendance, active-resource, maintenance, client, and overlap rules. Final server revalidation still applies.',
-                            ]
-                        ))
+                            ])
+                        )
                         ->take(6)
                         ->values();
 
