@@ -1545,7 +1545,7 @@ function updateMlStatus(conflicts) {
                     driver_name: null,
                     bus_id: null,
                     bus_no: null,
-                    reason: 'The AI recommendation was removed. Choose Manual Later, External Bus, or select another eligible assignment.',
+                    reason: 'The AI recommendation was removed. Choose Manual Later or select another eligible assignment.',
                 });
 
                 renderRecommendations(
@@ -1884,11 +1884,6 @@ function updateMlStatus(conflicts) {
                         data-defer-decision="manual_later" data-conflict-index="${item.conflictIndex}"
                         title="Keep this slot for manual assignment later">
                         <i class="fa-solid fa-user-gear" aria-hidden="true"></i><span>Manual Later</span>
-                    </button>
-                    <button type="button" class="schedule-action-btn remove"
-                        data-defer-decision="external_bus" data-conflict-index="${item.conflictIndex}"
-                        title="Record an external bus arrangement as pending">
-                        <i class="fa-solid fa-building" aria-hidden="true"></i><span>External Bus</span>
                     </button>
                 </div>
             `;
@@ -2977,10 +2972,6 @@ function updateMlStatus(conflicts) {
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
                         </button>
-                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="external_bus" data-gct-conflict-index="${index}">
-                            <i class="fa-solid fa-building"></i>
-                            External Bus Pending
-                        </button>
                         <button
                             type="button"
                             class="ai-resolution-btn primary"
@@ -3274,10 +3265,6 @@ function updateMlStatus(conflicts) {
                         <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
-                        </button>
-                        <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="external_bus" data-gct-conflict-index="${index}">
-                            <i class="fa-solid fa-building"></i>
-                            External Bus Pending
                         </button>
                         ${activeTab === 'alternative' ? `
                             <button type="button" class="ai-resolution-btn primary" data-gct-apply-inline="${escapeHtml(conflictKey)}" data-gct-apply-inline-index="${index}" ${inlineCanApply ? '' : 'disabled'}>
