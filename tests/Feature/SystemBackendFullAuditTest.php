@@ -271,6 +271,7 @@ class SystemBackendFullAuditTest extends TestCase
         $tripResponse = $this->post(route('trip-schedule.store'), [
             'trip_date' => now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString(),
             'shuttle_route_id' => $shuttleRoute->id,
+            'direction' => 'Incoming',
             'departure_time' => '07:30',
             'estimated_arrival_time' => '08:30',
             'shift' => 'Morning',
@@ -308,6 +309,7 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 3.4 Attendance
         $attendance = DriverAttendance::create([
+            'driver_id' => $driver->driver_id,
             'driver_name' => $driver->driver_name,
             'shift' => 'Morning',
             'attendance_date' => $tripSchedule->trip_date->toDateString(),
@@ -325,6 +327,7 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
         $busResponse->assertRedirect();
         $bus = Bus::where('bus_no', 'BUS-AUDIT-101')->firstOrFail();
+        $driver->authorizedBuses()->sync([$bus->id]);
         $this->get(route('bus-master-list'))->assertOk();
 
         // 3.6 Driver & Bus Assignment

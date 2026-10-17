@@ -69,6 +69,8 @@ class IncidentReplacement extends Model
             // Preserve the existing trip, route, and driver. Only the effective bus changes.
             $assignment->bus_id = $replacement->replacement_bus_id;
             $assignment->save();
+
+            $assignment->tripSchedule?->syncAssignmentStatus();
         });
     }
 

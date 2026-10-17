@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
+use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\IncidentResponse;
@@ -133,11 +134,25 @@ class IncidentController extends Controller
         $tripSchedule = null;
         $tripAssignmentId = $request->input('trip_assignment_id');
 
+        $activeTripScope = function ($tripQuery) use ($today): void {
+            $tripQuery
+                ->whereDate('trip_date', $today)
+                ->where(function ($statusQuery): void {
+                    $statusQuery
+                        ->whereIn('status', ['Ready', 'Dispatched'])
+                        ->orWhere(function ($assignedScheduled): void {
+                            $assignedScheduled
+                                ->where('status', 'Scheduled')
+                                ->where('assignment_status', 'Assigned');
+                        });
+                });
+        };
+
         if ($tripAssignmentId) {
             $activeTripAssignment = TripAssignment::query()
                 ->with(['tripSchedule.shuttleRoute', 'bus'])
                 ->where('id', $tripAssignmentId)
-                ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $today)->where('status', 'Ready'))
+                ->whereHas('tripSchedule', $activeTripScope)
                 ->whereHas('bus', fn ($query) => $query->where('status', 'Active'))
                 ->first();
 
@@ -148,11 +163,7 @@ class IncidentController extends Controller
 
         $myAssignments = TripAssignment::query()
             ->with(['tripSchedule.shuttleRoute', 'bus'])
-            ->whereHas('tripSchedule', function ($tripQuery) use ($today) {
-                $tripQuery
-                    ->whereDate('trip_date', $today)
-                    ->where('status', 'Ready');
-            })
+            ->whereHas('tripSchedule', $activeTripScope)
             ->whereHas('bus', fn ($query) => $query->where('status', 'Active'))
             ->orderByDesc('id')
             ->get();
@@ -248,12 +259,26 @@ class IncidentController extends Controller
             }
         }
 
-        // Restrict newly submitted incident reports to exact Ready-trip assignments.
+        // Restrict newly submitted incident reports to active Ready/Dispatched trip assignments.
         $reportDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $reportTripScope = function ($tripQuery) use ($reportDate): void {
+            $tripQuery
+                ->whereDate('trip_date', $reportDate)
+                ->where(function ($statusQuery): void {
+                    $statusQuery
+                        ->whereIn('status', ['Ready', 'Dispatched'])
+                        ->orWhere(function ($assignedScheduled): void {
+                            $assignedScheduled
+                                ->where('status', 'Scheduled')
+                                ->where('assignment_status', 'Assigned');
+                        });
+                });
+        };
+
         $eligibleAssignment = TripAssignment::query()
             ->where('bus_id', $validated['bus_id'] ?? 0)
             ->whereHas('bus', fn ($query) => $query->where('status', 'Active'))
-            ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $reportDate)->where('status', 'Ready'));
+            ->whereHas('tripSchedule', $reportTripScope);
         if (! $eligibleAssignment->exists()) {
             throw ValidationException::withMessages([
                 'bus_id' => 'Choose a bus assigned to a Ready trip today.',
@@ -279,7 +304,7 @@ class IncidentController extends Controller
                     ->whereKey($validated['trip_assignment_id'])
                     ->where('bus_id', $bus->id)
                     ->where('trip_schedule_id', $validated['trip_schedule_id'] ?? 0)
-                    ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $reportDate)->where('status', 'Ready'))
+                    ->whereHas('tripSchedule', $reportTripScope)
                     ->first();
                 if (! $assignment) {
                     throw ValidationException::withMessages([
@@ -294,7 +319,7 @@ class IncidentController extends Controller
                 ->with(['tripSchedule', 'bus'])
                 ->where('id', $validated['trip_assignment_id'])
                 ->where('bus_id', $validated['bus_id'] ?? 0)
-                ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $reportDate)->where('status', 'Ready'))
+                ->whereHas('tripSchedule', $reportTripScope)
                 ->first();
 
             if (! $tripAssignment) {
@@ -314,7 +339,7 @@ class IncidentController extends Controller
                     ->with(['tripSchedule', 'bus'])
                     ->where('trip_schedule_id', $validated['trip_schedule_id'])
                     ->where('bus_id', $validated['bus_id'])
-                    ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $reportDate)->where('status', 'Ready'))
+                    ->whereHas('tripSchedule', $reportTripScope)
                     ->first();
             }
 
@@ -440,6 +465,7 @@ class IncidentController extends Controller
     {
         $incident->load([
             'tripSchedule.shuttleRoute',
+            'tripAssignment.driverAttendance',
             'bus',
             'replacement.originalBus',
             'replacement.replacementBus',
@@ -449,16 +475,84 @@ class IncidentController extends Controller
             'responses.responder',
         ]);
 
+        $busyBusIds = [];
+        $busyDriverIds = [];
+        $eligibleReplacementDrivers = collect();
+
+        if ($incident->trip_schedule_id && $incident->tripSchedule) {
+            $tripStart = $incident->tripSchedule->departureDateTime();
+            $tripEnd = $incident->tripSchedule->estimatedArrivalDateTime();
+            $affectedAssignmentId = $incident->trip_assignment_id;
+
+            $overlappingAssignments = TripAssignment::query()
+                ->with('tripSchedule')
+                ->whereHas('tripSchedule', function ($tripQuery) use ($tripStart, $tripEnd): void {
+                    $tripQuery
+                        ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
+                        ->whereBetween('trip_date', [
+                            $tripStart->copy()->subDay()->toDateString(),
+                            $tripEnd->toDateString(),
+                        ]);
+                })
+                ->get()
+                ->filter(function (TripAssignment $assignment) use ($incident, $tripStart, $tripEnd): bool {
+                    $otherTrip = $assignment->tripSchedule;
+                    if (! $otherTrip) {
+                        return false;
+                    }
+                    if ((int) $otherTrip->id === (int) $incident->trip_schedule_id) {
+                        return true;
+                    }
+
+                    return $tripStart->lt($otherTrip->estimatedArrivalDateTime())
+                        && $tripEnd->gt($otherTrip->departureDateTime());
+                });
+
+            $busyBusIds = $overlappingAssignments
+                ->pluck('bus_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $busyDriverIds = $overlappingAssignments
+                ->when($affectedAssignmentId, fn ($collection) => $collection->where('id', '!=', $affectedAssignmentId))
+                ->pluck('driver_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $tripDate = $incident->tripSchedule->trip_date?->toDateString()
+                ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+
+            $eligibleReplacementDrivers = DriverAttendance::query()
+                ->with('driver')
+                ->whereDate('attendance_date', $tripDate)
+                ->whereIn('status', ['Present', 'Late'])
+                ->whereHas('driver', fn ($query) => $query
+                    ->where('employment_status', 'Active')
+                    ->where(function ($licenseQuery) use ($tripDate): void {
+                        $licenseQuery
+                            ->whereNull('license_expiration')
+                            ->orWhereDate('license_expiration', '>=', $tripDate);
+                    }))
+                ->when($busyDriverIds !== [], fn ($query) => $query->whereNotIn('driver_id', $busyDriverIds))
+                ->orderBy('driver_name')
+                ->get();
+        }
+
         $activeBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Reserve')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->when($busyBusIds !== [], fn ($query) => $query->whereNotIn('id', $busyBusIds))
             ->orderBy('bus_no')
             ->get();
 
         return view(
             'Operation.Incidents.show',
-            compact('incident', 'activeBuses')
+            compact('incident', 'activeBuses', 'eligibleReplacementDrivers')
         );
     }
 
@@ -609,6 +703,10 @@ class IncidentController extends Controller
                 'integer',
                 Rule::exists('buses', 'id'),
             ],
+            'replacement_driver_attendance_id' => [
+                'nullable',
+                'integer',
+            ],
             'oic_authorized' => ['required', 'accepted'],
         ]);
 
@@ -656,15 +754,29 @@ class IncidentController extends Controller
             }
 
             // Never switch a different slot in a multi-bus trip.
+            $affectedAssignment = null;
             if ($locked->trip_schedule_id) {
-                $affectedAssignment = TripAssignment::query()
-                    ->whereKey($locked->trip_assignment_id)
-                    ->where('trip_schedule_id', $locked->trip_schedule_id)
-                    ->lockForUpdate()->first();
+                $assignmentQuery = TripAssignment::query()
+                    ->where('trip_schedule_id', $locked->trip_schedule_id);
+                if ($locked->trip_assignment_id) {
+                    $assignmentQuery->whereKey($locked->trip_assignment_id);
+                } elseif ($locked->bus_id) {
+                    $assignmentQuery->where('bus_id', $locked->bus_id);
+                }
+                $affectedAssignment = $assignmentQuery->lockForUpdate()->first();
                 if (! $affectedAssignment || (int) $affectedAssignment->bus_id !== (int) $locked->bus_id) {
                     return ['error' => 'The original bus assignment is missing or has changed. Review the incident before dispatching.'];
                 }
+                if (! $locked->trip_assignment_id) {
+                    $locked->trip_assignment_id = $affectedAssignment->id;
+                    $locked->saveQuietly();
+                }
             }
+
+            $replacementDriverAttendance = null;
+            $replacementDriverAttendanceId = isset($validated['replacement_driver_attendance_id']) && $validated['replacement_driver_attendance_id'] !== ''
+                ? (int) $validated['replacement_driver_attendance_id']
+                : null;
 
             if ($locked->trip_schedule_id && $locked->tripSchedule) {
                 $alreadyOnThisTrip = TripAssignment::query()
@@ -703,6 +815,102 @@ class IncidentController extends Controller
                 if ($conflict) {
                     return ['error' => 'The selected bus has an overlapping trip assignment at this time.'];
                 }
+
+                if ($affectedAssignment) {
+                    $tripDate = $locked->tripSchedule->trip_date?->toDateString()
+                        ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+
+                    $isDriverChange = $replacementDriverAttendanceId !== null
+                        && $replacementDriverAttendanceId !== (int) ($affectedAssignment->driver_attendance_id ?? 0);
+
+                    if ($isDriverChange) {
+                        $replacementDriverAttendance = DriverAttendance::query()
+                            ->with('driver')
+                            ->whereKey($replacementDriverAttendanceId)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if (! $replacementDriverAttendance
+                            || $replacementDriverAttendance->attendance_date?->toDateString() !== $tripDate
+                            || ! in_array($replacementDriverAttendance->status, ['Present', 'Late'], true)
+                            || ! $replacementDriverAttendance->driver
+                            || $replacementDriverAttendance->driver->employment_status !== 'Active'
+                            || ($replacementDriverAttendance->driver->license_expiration
+                                && $replacementDriverAttendance->driver->license_expiration->lt($tripDate))) {
+                            return ['error' => 'The selected replacement driver is not eligible or does not have valid attendance for this trip date.'];
+                        }
+
+                        $targetDriverId = $replacementDriverAttendance->driver_id;
+                        $targetDriverName = $replacementDriverAttendance->driver_name;
+                    } else {
+                        $continuingAttendance = $affectedAssignment->driver_attendance_id
+                            ? DriverAttendance::query()->with('driver')->whereKey($affectedAssignment->driver_attendance_id)->lockForUpdate()->first()
+                            : null;
+                        $continuingDriver = $continuingAttendance?->driver
+                            ?: ($affectedAssignment->driver_id
+                                ? Driver::query()->where('driver_id', $affectedAssignment->driver_id)->first()
+                                : null);
+
+                        if (empty($affectedAssignment->driver_id) && empty($affectedAssignment->driver_name)) {
+                            return ['error' => 'No compatible driver is assigned to continue this trip. Select an eligible replacement driver.'];
+                        }
+
+                        if ($continuingDriver && (
+                            $continuingDriver->employment_status !== 'Active'
+                            || ($continuingDriver->license_expiration && $continuingDriver->license_expiration->lt($tripDate))
+                        )) {
+                            return ['error' => 'The original driver is no longer active or eligible. Select an eligible replacement driver before deploying the Reserve Bus.'];
+                        }
+
+                        if ($continuingAttendance && ! in_array($continuingAttendance->status, ['Present', 'Late'], true)) {
+                            return ['error' => 'The original driver is no longer marked Present or Late for this trip date. Select an eligible replacement driver.'];
+                        }
+
+                        $targetDriverId = $affectedAssignment->driver_id;
+                        $targetDriverName = $affectedAssignment->driver_name;
+                    }
+
+                    $driverConflict = TripAssignment::query()
+                        ->with('tripSchedule')
+                        ->where('id', '!=', $affectedAssignment->id)
+                        ->where(function ($driverQuery) use ($targetDriverId, $targetDriverName): void {
+                            if ($targetDriverId) {
+                                $driverQuery->where('driver_id', $targetDriverId);
+                            } else {
+                                $driverQuery->where('driver_name', $targetDriverName);
+                            }
+                        })
+                        ->whereHas('tripSchedule', function ($tripQuery) use ($tripStart, $tripEnd): void {
+                            $tripQuery
+                                ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
+                                ->whereBetween('trip_date', [
+                                    $tripStart->copy()->subDay()->toDateString(),
+                                    $tripEnd->toDateString(),
+                                ]);
+                        })
+                        ->lockForUpdate()
+                        ->get()
+                        ->contains(function (TripAssignment $otherAssignment) use ($locked, $tripStart, $tripEnd): bool {
+                            $otherTrip = $otherAssignment->tripSchedule;
+                            if (! $otherTrip) {
+                                return false;
+                            }
+                            if ((int) $otherTrip->id === (int) $locked->trip_schedule_id) {
+                                return true;
+                            }
+
+                            return $tripStart->lt($otherTrip->estimatedArrivalDateTime())
+                                && $tripEnd->gt($otherTrip->departureDateTime());
+                        });
+
+                    if ($driverConflict) {
+                        return [
+                            'error' => $isDriverChange
+                                ? 'The selected replacement driver has an overlapping trip assignment at this time.'
+                                : 'The continuing driver has an overlapping trip assignment at this time. Select an eligible replacement driver.',
+                        ];
+                    }
+                }
             }
 
             IncidentReplacement::create([
@@ -713,15 +921,27 @@ class IncidentController extends Controller
                 'dispatched_by' => auth()->id(),
             ]);
 
+            if ($replacementDriverAttendance && $affectedAssignment) {
+                $affectedAssignment->refresh();
+                $affectedAssignment->driver_attendance_id = $replacementDriverAttendance->id;
+                $affectedAssignment->driver_id = $replacementDriverAttendance->driver_id;
+                $affectedAssignment->driver_name = $replacementDriverAttendance->driver_name;
+                $affectedAssignment->save();
+            }
+
             $locked->update([
                 'status' => 'Replacement Bus Dispatched',
             ]);
 
             if (Schema::hasTable('incident_responses')) {
+                $driverReplacementNote = $replacementDriverAttendance
+                    ? " Replacement driver {$replacementDriverAttendance->driver_name} ({$replacementDriverAttendance->driver_id}) assigned to continue the trip."
+                    : '';
+
                 IncidentResponse::create([
                     'incident_id' => $locked->id,
                     'status' => 'Replacement Bus Dispatched',
-                    'notes' => "OIC authorization confirmed by Operations for reserve bus {$replacementBus->bus_no}. Replacement bus dispatched.",
+                    'notes' => "OIC authorization confirmed by Operations for reserve bus {$replacementBus->bus_no}. Replacement bus dispatched.{$driverReplacementNote}",
                     'responded_by' => auth()->id(),
                     'created_at' => now(),
                 ]);

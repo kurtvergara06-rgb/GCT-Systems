@@ -381,6 +381,7 @@
                                                                 ->first(fn ($incident) =>
                                                                     ($incident->trip_assignment_id && (int) $incident->trip_assignment_id === (int) $assignment->id)
                                                                     || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
+                                                                    || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
                                                                 );
                                                         @endphp
                                                         @if($slotBreakdown)
@@ -394,6 +395,10 @@
                                                         @if($bus?->fleet_purpose === 'Reserve')
                                                             @if($assignment->reserveApproval)
                                                                 <span class="assignment-oic-approved" title="OIC approval recorded through {{ $assignment->reserveApproval->approval_method }} on {{ $assignment->reserveApproval->approved_at?->format('M d, Y g:i A') }}">
+                                                                    <i class="fa-solid fa-shield-halved"></i> OIC Approved
+                                                                </span>
+                                                            @elseif($slotBreakdown?->replacement)
+                                                                <span class="assignment-oic-approved" title="OIC-authorized breakdown replacement recorded for Incident {{ $slotBreakdown->incident_no }} on {{ $slotBreakdown->replacement->dispatched_at?->format('M d, Y g:i A') }}">
                                                                     <i class="fa-solid fa-shield-halved"></i> OIC Approved
                                                                 </span>
                                                             @else

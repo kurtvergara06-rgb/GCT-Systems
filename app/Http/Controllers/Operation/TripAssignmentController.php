@@ -231,7 +231,7 @@ class TripAssignmentController extends Controller
 
         $selectedTripDate = $validated['trip_date'];
         $assignments = TripAssignment::query()
-            ->with(['bus', 'reserveApproval', 'tripSchedule.shuttleRoute'])
+            ->with(['bus', 'reserveApproval', 'incidents.replacement', 'tripSchedule.shuttleRoute'])
             ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $selectedTripDate))
             ->orderBy('trip_schedule_id')
             ->orderBy('id')
