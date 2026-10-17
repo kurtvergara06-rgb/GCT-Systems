@@ -300,6 +300,71 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
+    // Edit client allocations as chips while submitting the existing comma-separated
+    // client_name field to the established pivot-table validation.
+    const clientEditors = new Map();
+    document.querySelectorAll('[data-bus-multi-client]').forEach((editor) => {
+        const hidden = editor.querySelector('input[name="client_name"]');
+        const entry = editor.querySelector('.bus-multi-client-entry input');
+        const tags = editor.querySelector('[data-client-tags]');
+        const addButton = editor.querySelector('[data-add-client]');
+        if (!hidden || !entry || !tags || !addButton) return;
+        let clients = [];
+        const render = () => {
+            hidden.value = clients.join(', ');
+            tags.replaceChildren();
+            clients.forEach((name, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'bus-client-tag';
+                const label = document.createElement('span');
+                label.textContent = name;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.setAttribute('aria-label', 'Remove ' + name);
+                remove.textContent = '×';
+                remove.addEventListener('click', () => {
+                    clients.splice(index, 1);
+                    render();
+                    entry.focus();
+                });
+                chip.append(label, remove);
+                tags.append(chip);
+            });
+        };
+        const setClients = (value) => {
+            clients = [];
+            String(value || '').split(',').forEach((item) => {
+                const name = item.trim().replace(/\\s+/g, ' ');
+                if (name && !clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
+            });
+            entry.value = '';
+            render();
+        };
+        const addClient = () => {
+            const name = entry.value.trim().replace(/\\s+/g, ' ');
+            if (!name) return;
+            if (clients.length >= 20) { entry.setCustomValidity('Maximum of 20 clients.'); entry.reportValidity(); return; }
+            entry.setCustomValidity('');
+            if (!clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
+            entry.value = '';
+            render();
+            entry.focus();
+        };
+        entry.addEventListener('input', () => entry.setCustomValidity(''));
+        entry.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                addClient();
+            }
+        });
+        addButton.addEventListener('click', addClient);
+        editor.closest('form')?.addEventListener('submit', () => {
+            if (entry.value.trim()) addClient();
+        });
+        setClients(hidden.value);
+        clientEditors.set(hidden.id, setClients);
+    });
+
     // Reserve is a shared standby asset: client details belong only to Regular buses.
     const syncBusPurposeSections = (form) => {
         if (!form) return;
@@ -437,7 +502,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 const isShared = button.dataset.clientAllocationType === 'Shared';
                 // Show all saved clients so editing can add/remove individual names
                 // instead of silently replacing an existing shared allocation.
-                if (clientInput) clientInput.value = button.dataset.clientNames || '';
+                if (clientInput) clientEditors.get('edit_client_name')?.(button.dataset.clientNames || '');
                 if (clientNotice) clientNotice.hidden = !isShared;
 
                 if (editBusNo) {
