@@ -78,3 +78,21 @@ it('provides responsive styles for the conflict queue and report', function (): 
         ->toContain('align-items: start')
         ->toContain('@media (max-width: 720px)');
 });
+
+it('shows compact validated driver bus pairs first with collapsible details and retained server-side actions', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+
+    expect($script)
+        ->toContain('Choose a valid driver–bus pair')
+        ->toContain('gct-compact-pair-list')
+        ->toContain('gct-compact-details')
+        ->toContain('data-gct-inline-pair')
+        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-inline-alternative'")
+        ->toContain('canAssignReserve()')
+        ->toContain('Final Laravel validation applies');
+    expect($styles)
+        ->toContain('.gct-compact-pair-list')
+        ->toContain('.gct-compact-details')
+        ->toContain('.gct-report-actions { position:sticky');
+});
