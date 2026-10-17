@@ -303,7 +303,6 @@
                                     <span><strong id="incomingReviewCount">0</strong> Slots to Review</span>
                                 </span>
                                 <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="incomingManualCount">0</strong> Manual</span></span>
-                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="incomingExternalCount">0</strong> External</span></span>
                             </div>
                         </div>
                     </header>
@@ -378,7 +377,6 @@
                                     <span><strong id="outgoingReviewCount">0</strong> Slots to Review</span>
                                 </span>
                                 <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="outgoingManualCount">0</strong> Manual</span></span>
-                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="outgoingExternalCount">0</strong> External</span></span>
                             </div>
                         </div>
                     </header>
