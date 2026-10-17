@@ -2568,10 +2568,12 @@ function updateMlStatus(conflicts) {
    CONSOLIDATED: resources/js/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js
 ========================================================= */
 (() => {
-    const canAssignReserve =
+    // Read current permissions on every interaction. This script is loaded
+    // once, while partial navigation replaces the page and its data attributes.
+    const canAssignReserve = () =>
         document.querySelector('.auto-scheduling-page')
             ?.dataset.reserveHead === 'true';
-    const canEditOperation =
+    const canEditOperation = () =>
         document.querySelector('.auto-scheduling-page')
             ?.dataset.operationEdit === 'true';
 
@@ -2967,7 +2969,7 @@ function updateMlStatus(conflicts) {
                 </div>
 
                 <footer class="gct-conflict-actions">
-                    ${canEditOperation ? `
+                    ${canEditOperation() ? `
                         <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
@@ -3080,7 +3082,7 @@ function updateMlStatus(conflicts) {
         const selectedBusId = Number(selectedReserve?.id || inlineChoice.busId || 0);
         const selectedBusIsReserve = Boolean(selectedReserve);
         const pairAllowed = validPairs.some((pair) => Number(pair.driver_attendance_id) === selectedDriverId && Number(pair.bus_id) === selectedBusId);
-        const inlineCanApply = Boolean(canEditOperation && pairAllowed && (!selectedBusIsReserve || canAssignReserve));
+        const inlineCanApply = Boolean(canEditOperation() && pairAllowed && (!selectedBusIsReserve || canAssignReserve()));
         const severity = getConflictSeverity(conflict);
         const hardConflict = missingDriver || missingBus || ai.status === 'conflict';
         const ml = ai.ml || {};
@@ -3228,7 +3230,7 @@ function updateMlStatus(conflicts) {
                             ${reserveInformation.length ? `
                                 <div class="gct-report-reserve-alternatives">
                                     ${reserveInformation.map(bus => `
-                                        <button type="button" class="gct-option-card gct-report-option gct-reserve-choice ${selectedReserve === bus ? 'is-selected' : ''}" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" aria-pressed="${selectedReserve === bus ? 'true' : 'false'}" aria-disabled="${canAssignReserve ? 'false' : 'true'}">
+                                        <button type="button" class="gct-option-card gct-report-option gct-reserve-choice ${selectedReserve === bus ? 'is-selected' : ''}" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" aria-pressed="${selectedReserve === bus ? 'true' : 'false'}" aria-disabled="${canAssignReserve() ? 'false' : 'true'}">
                                             <span class="gct-reserve-choice-identity"><i class="fa-solid fa-bus" aria-hidden="true"></i><strong>${escapeHtml(bus.label)}</strong><small>${bus.score !== null && bus.score !== undefined ? `Suitability ${Number(bus.score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(bus.score_source || ml.bus_source))}</small></span>
                                             <span class="gct-reserve-choice-indicator" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
                                         </button>
@@ -3261,7 +3263,7 @@ function updateMlStatus(conflicts) {
                 </div>
 
                 <footer class="gct-conflict-actions gct-report-actions">
-                    ${canEditOperation ? `
+                    ${canEditOperation() ? `
                         <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
@@ -3490,7 +3492,7 @@ function updateMlStatus(conflicts) {
     };
 
     const openReviewModal = (index) => {
-        if (!canEditOperation) {
+        if (!canEditOperation()) {
             window.showSystemToast?.(
                 'Your role cannot apply scheduling resolutions.',
                 'warning',
@@ -3689,7 +3691,7 @@ function updateMlStatus(conflicts) {
     };
 
     const applyResolution = async (index, action) => {
-        if (!canEditOperation) {
+        if (!canEditOperation()) {
             window.showSystemToast?.(
                 'Your role cannot apply scheduling resolutions.',
                 'warning',
@@ -3858,7 +3860,7 @@ function updateMlStatus(conflicts) {
         const reserveInfo = event.target.closest('[data-gct-review-reserve]');
         if (reserveInfo) {
             event.preventDefault();
-            if (!canAssignReserve) {
+            if (!canAssignReserve()) {
                 window.showSystemToast?.('Only Operations Head may assign a Reserve Bus.', 'warning', 'Reserve assignment restricted');
                 return;
             }
