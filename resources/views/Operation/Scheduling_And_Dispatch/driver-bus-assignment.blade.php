@@ -109,7 +109,30 @@
                 </x-ui.table-toolbar>
                 </div>
 
-                <div class="assignment-table-wrap" style="margin-top: 16px;">
+                @php
+                    $visibleAssignmentTrips = collect($trips->items());
+                    $directionGroups = [
+                        ['key' => 'incoming', 'title' => 'Incoming Trips', 'description' => 'Buses transporting employees to work', 'icon' => 'fa-arrow-down', 'style' => 'incoming'],
+                        ['key' => 'outgoing', 'title' => 'Outgoing Trips', 'description' => 'Buses transporting employees home', 'icon' => 'fa-arrow-up', 'style' => 'outgoing'],
+                    ];
+                    $otherDirectionTrips = $visibleAssignmentTrips->filter(fn ($trip) => !in_array(strtolower(trim((string) ($trip->direction ?? ''))), ['incoming', 'outgoing'], true));
+                    if ($otherDirectionTrips->isNotEmpty()) {
+                        $directionGroups[] = ['key' => 'other', 'title' => 'Direction Not Set', 'description' => 'Trips awaiting service-direction classification', 'icon' => 'fa-circle-question', 'style' => 'other'];
+                    }
+                @endphp
+                @foreach($directionGroups as $directionGroup)
+                @php
+                    $directionTrips = $directionGroup['key'] === 'other'
+                        ? $otherDirectionTrips
+                        : $visibleAssignmentTrips->filter(fn ($trip) => strtolower(trim((string) ($trip->direction ?? ''))) === $directionGroup['key']);
+                @endphp
+                <div class="assignment-direction-section assignment-direction-{{ $directionGroup['style'] }}">
+                    <div class="assignment-direction-heading">
+                        <span class="assignment-direction-icon"><i class="fa-solid {{ $directionGroup['icon'] }}" aria-hidden="true"></i></span>
+                        <div class="assignment-direction-title"><h3>{{ $directionGroup['title'] }}</h3><p>{{ $directionGroup['description'] }}</p></div>
+                        <span class="assignment-direction-count">{{ $directionTrips->count() }} {{ \Illuminate\Support\Str::plural('trip', $directionTrips->count()) }}</span>
+                    </div>
+                <div class="assignment-table-wrap">
                     <table class="assignment-table">
                         <thead>
                             <tr>
@@ -124,7 +147,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse($trips as $trip)
+                            @forelse($directionTrips as $trip)
                                 @php
                                     $route = $trip->shuttleRoute;
                                     $departureDateTime = $trip->departureDateTime();
@@ -538,6 +561,8 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
+                @endforeach
 
                 <x-ui.table-footer :items="$trips" />
             </section>
