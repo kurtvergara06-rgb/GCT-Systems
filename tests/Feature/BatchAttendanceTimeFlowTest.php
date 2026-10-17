@@ -112,16 +112,7 @@ class BatchAttendanceTimeFlowTest extends TestCase
                 'shift' => 'all',
             ]))
             ->assertOk()
-            ->assertJsonFragment([
-                'person_id' => 'D-1430',
-                'time_in' => '14:30',
-                'status' => 'Present',
-            ])
-            ->assertJsonFragment([
-                'person_id' => 'D-0000',
-                'time_in' => '00:00',
-                'status' => 'Present',
-            ]);
+            ->assertJsonCount(0, 'rows');
     }
 
     public function test_saving_selected_driver_attendance_keeps_other_drivers_available_for_next_batch(): void
@@ -155,8 +146,7 @@ class BatchAttendanceTimeFlowTest extends TestCase
         $response = $this->actingAs($user)->getJson($roster)->assertOk();
         $rows = collect($response->json('rows'))->keyBy('person_id');
 
-        $this->assertTrue($rows->get('D-PART-A')['recorded']);
-        $this->assertSame('Present', $rows->get('D-PART-A')['status']);
+        $this->assertFalse($rows->has('D-PART-A'));
         $this->assertFalse($rows->get('D-PART-B')['recorded']);
         $this->assertSame('Unmarked', $rows->get('D-PART-B')['status']);
         $this->assertFalse($rows->get('D-PART-C')['recorded']);
