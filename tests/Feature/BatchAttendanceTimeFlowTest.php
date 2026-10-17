@@ -172,6 +172,49 @@ class BatchAttendanceTimeFlowTest extends TestCase
         ])->assertUnprocessable();
     }
 
+    public function test_existing_unmarked_driver_can_be_recorded_but_present_driver_stays_hidden(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation', 'role' => 'head', 'status' => 'Active',
+        ]);
+        Driver::create(['driver_id' => 'D-UNMARKED', 'driver_name' => 'Unmarked QA Driver', 'shift' => 'Morning', 'employment_status' => 'Active']);
+        Driver::create(['driver_id' => 'D-RECORDED', 'driver_name' => 'Recorded QA Driver', 'shift' => 'Morning', 'employment_status' => 'Active']);
+
+        $unmarked = DriverAttendance::create([
+            'driver_id' => 'D-UNMARKED', 'driver_name' => 'Unmarked QA Driver',
+            'shift' => 'Morning', 'attendance_date' => '2026-10-20', 'status' => 'Unmarked',
+        ]);
+        DriverAttendance::create([
+            'driver_id' => 'D-RECORDED', 'driver_name' => 'Recorded QA Driver',
+            'shift' => 'Morning', 'attendance_date' => '2026-10-20',
+            'status' => 'Present', 'time_in' => '06:00:00',
+        ]);
+
+        $roster = $this->actingAs($user)->getJson(route('operation.attendance.batch.roster', [
+            'type' => 'driver', 'date' => '2026-10-20', 'shift' => 'all',
+        ]))->assertOk();
+        $rows = collect($roster->json('rows'))->keyBy('person_id');
+        $this->assertTrue($rows->has('D-UNMARKED'));
+        $this->assertFalse($rows->get('D-UNMARKED')['recorded']);
+        $this->assertSame('Unmarked', $rows->get('D-UNMARKED')['status']);
+        $this->assertFalse($rows->has('D-RECORDED'));
+
+        $this->actingAs($user)->postJson(route('operation.attendance.batch.store', ['type' => 'driver']), [
+            'attendance_date' => '2026-10-20',
+            'rows' => [[
+                'person_id' => 'D-UNMARKED', 'name' => 'Unmarked QA Driver',
+                'shift' => 'Morning', 'status' => 'Present', 'time_in' => '07:00',
+            ]],
+        ])->assertOk()->assertJsonPath('saved', 1);
+
+        $this->assertSame($unmarked->id, DriverAttendance::where('driver_id', 'D-UNMARKED')->firstOrFail()->id);
+        $this->assertSame('Present', $unmarked->fresh()->status);
+        $this->assertSame(1, DriverAttendance::where('driver_id', 'D-UNMARKED')->count());
+        $this->actingAs($user)->getJson(route('operation.attendance.batch.roster', [
+            'type' => 'driver', 'date' => '2026-10-20', 'shift' => 'all',
+        ]))->assertOk()->assertJsonCount(0, 'rows');
+    }
+
     public function test_batch_attendance_rejects_unsupported_night_shift_rows(): void
     {
         $user = User::factory()->create([
