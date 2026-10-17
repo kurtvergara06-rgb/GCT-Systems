@@ -58,6 +58,10 @@
             <i class="fa-solid fa-clipboard-check"></i>
             Record Daily Attendance
           </button>
+          @else
+          <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+            <button type="button" class="primary-btn batch-attendance-open" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-clipboard-check"></i> Record Daily Attendance</button>
+          </span>
           @endif
 
         </div>
