@@ -265,6 +265,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 renderRecommendations(recommendations, schedulingConflicts);
                 renderConflicts(schedulingConflicts);
                 updateMlStatus(schedulingConflicts);
+                updateReadyBadgeOnly();
             } finally {
                 draftRestoreInProgress = false;
             }

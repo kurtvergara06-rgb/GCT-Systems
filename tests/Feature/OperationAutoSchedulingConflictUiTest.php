@@ -25,7 +25,7 @@ it('renders conflicts as a severity queue with an actionable report panel', func
         ->toContain('Trained ML model')
         ->toContain('Data-derived fallback')
         ->toContain('Rule-based fallback')
-        ->toContain('Apply Recommendation');
+        ->toContain('Apply to Preview');
 });
 
 it('keeps conflict recommendations connected to safe existing resolution paths', function (): void {
@@ -111,4 +111,15 @@ it('explains Reserve-only recommendations without claiming no driver exists', fu
         ->toContain('No automatic Regular Bus assignment available.')
         ->toContain('Eligible driver–Reserve Bus pairs are available for Operations Head review.')
         ->toContain('final Laravel validation still applies.');
+});
+
+it('refreshes the ready slot badge from restored draft recommendations', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    $restoreStart = strpos($script, 'async function restoreScheduleDraft()');
+    $restoreEnd = strpos($script, 'const savedDraftsButton', $restoreStart);
+    $restoreScript = substr($script, $restoreStart, $restoreEnd - $restoreStart);
+
+    expect($restoreScript)
+        ->toContain('renderRecommendations(recommendations, schedulingConflicts);')
+        ->toContain('updateReadyBadgeOnly();');
 });

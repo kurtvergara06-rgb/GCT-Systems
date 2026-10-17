@@ -418,9 +418,34 @@ class AutoSchedulingController extends Controller
                             'analysis_status' => 'rule_based_reserve_fallback',
                             'driver_explanation' => 'Eligible Present driver available.',
                             'bus_explanation' => 'Eligible Reserve Bus suggested after Regular Bus availability checks.',
-                            'alternative_drivers' => [],
-                            'alternative_buses' => [],
-                            'valid_pairs' => [],
+                            'alternative_drivers' => [[
+                                'id' => (int) $driver->id,
+                                'label' => (string) $driver->driver_name,
+                                'score' => null,
+                                'reason' => 'Present, active, and free of overlapping assignments.',
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => 'rule_fallback',
+                            ]],
+                            'alternative_buses' => [[
+                                'id' => (int) $bus->id,
+                                'label' => (string) $bus->bus_no.' (Reserve)',
+                                'score' => null,
+                                'reason' => 'Active Reserve Bus available for explicit Operations Head review.',
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => 'rule_fallback',
+                            ]],
+                            'valid_pairs' => [[
+                                'driver_attendance_id' => (int) $driver->id,
+                                'driver_label' => (string) $driver->driver_name,
+                                'driver_score' => null,
+                                'driver_score_source' => 'rule_fallback',
+                                'bus_id' => (int) $bus->id,
+                                'bus_label' => (string) $bus->bus_no.' (Reserve)',
+                                'bus_score' => null,
+                                'bus_score_source' => 'rule_fallback',
+                                'eligibility_source' => 'laravel_rules',
+                                'reason' => 'Valid at generation time under attendance, active-resource, maintenance, client, and overlap rules. Final server revalidation still applies.',
+                            ]],
                             'ml' => ['bus_source' => 'rule_fallback', 'driver_source' => 'rule_fallback'],
                         ],
                     ]);
@@ -1246,7 +1271,7 @@ class AutoSchedulingController extends Controller
                         ->get();
 
                     if ($regularCandidates->contains(function (Bus $candidate) use (
-                        $trip, $trips, $recommendations, $index, $existingAssignments
+                        $trip, $trips, $drivers, $recommendations, $index, $existingAssignments
                     ): bool {
                         if (! $this->busMatchesTripClient($trip, $candidate)
                             || $this->busHasConflict($trip, $candidate->id, $existingAssignments, collect())) {
@@ -1255,7 +1280,7 @@ class AutoSchedulingController extends Controller
 
                         // A Regular Bus already reserved for another overlapping
                         // recommendation in this same confirmation is not available.
-                        return ! $recommendations->contains(function (array $planned, int $plannedIndex) use (
+                        $busIsPlanned = $recommendations->contains(function (array $planned, int $plannedIndex) use (
                             $candidate, $trip, $trips, $index
                         ): bool {
                             if ($plannedIndex === $index || (int) $planned['bus_id'] !== (int) $candidate->id) {
@@ -1265,6 +1290,53 @@ class AutoSchedulingController extends Controller
                             $plannedTrip = $trips->get((int) $planned['trip_schedule_id']);
 
                             return $plannedTrip !== null && $this->tripSchedulesOverlap($trip, $plannedTrip);
+                        });
+
+                        if ($busIsPlanned) {
+                            return false;
+                        }
+
+                        // Reserve use is blocked only when a complete Regular
+                        // driver-bus pair is currently eligible. A free bus by
+                        // itself is not assignable without a Present, active,
+                        // authorized, conflict-free driver.
+                        $eligibleAttendances = DriverAttendance::query()
+                            ->whereDate('attendance_date', $trip->trip_date)
+                            ->where('status', 'Present')
+                            ->whereHas('driver', fn ($query) => $query
+                                ->where('employment_status', 'Active')
+                                ->whereHas('authorizedBuses', fn ($busQuery) => $busQuery->whereKey($candidate->id)))
+                            ->orderBy('id')
+                            ->lockForUpdate()
+                            ->get();
+
+                        return $eligibleAttendances->contains(function (DriverAttendance $attendance) use (
+                            $trip, $trips, $drivers, $recommendations, $index, $existingAssignments
+                        ): bool {
+                            if ($this->driverHasConflict(
+                                $trip,
+                                $attendance->driver_id,
+                                $existingAssignments,
+                                collect()
+                            )) {
+                                return false;
+                            }
+
+                            return ! $recommendations->contains(function (array $planned, int $plannedIndex) use (
+                                $attendance, $trip, $trips, $drivers, $index
+                            ): bool {
+                                if ($plannedIndex === $index) {
+                                    return false;
+                                }
+
+                                $plannedAttendance = $drivers->get((int) $planned['driver_attendance_id']);
+                                $plannedTrip = $trips->get((int) $planned['trip_schedule_id']);
+
+                                return $plannedAttendance !== null
+                                    && $plannedTrip !== null
+                                    && $plannedAttendance->driver_id === $attendance->driver_id
+                                    && $this->tripSchedulesOverlap($trip, $plannedTrip);
+                            });
                         });
                     })) {
                         throw ValidationException::withMessages([

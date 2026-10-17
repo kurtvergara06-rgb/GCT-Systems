@@ -888,6 +888,10 @@ class OperationAutoSchedulingTest extends TestCase
         $this->assertSame($driver->id, (int) $reserveSuggestion['suggested_driver_attendance_id']);
         $this->assertSame($reserve->id, (int) $reserveSuggestion['suggested_bus_id']);
         $this->assertSame('Conflict', $reserveSuggestion['result']);
+        $this->assertSame($driver->id, (int) $reserveSuggestion['ai']['valid_pairs'][0]['driver_attendance_id']);
+        $this->assertSame($reserve->id, (int) $reserveSuggestion['ai']['valid_pairs'][0]['bus_id']);
+        $this->assertSame('rule_fallback', $reserveSuggestion['ai']['valid_pairs'][0]['driver_score_source']);
+        $this->assertSame('rule_fallback', $reserveSuggestion['ai']['valid_pairs'][0]['bus_score_source']);
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 
@@ -937,6 +941,40 @@ class OperationAutoSchedulingTest extends TestCase
             'recorded_by' => $user->id,
             'approved_by' => 'Operations Head (direct assignment)',
             'approval_method' => 'Direct',
+        ]);
+    }
+
+    public function test_operations_head_can_confirm_reserve_when_active_regular_bus_has_no_eligible_authorized_driver(): void
+    {
+        $head = User::factory()->create();
+        [$trip, $attendance, $regular] = $this->makeScheduleResources();
+        $reserve = Bus::create([
+            'bus_no' => 'BUS-RES-NO-PAIR',
+            'plate_no' => 'RES-NP-01',
+            'bus_model' => 'Reserve No Pair Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+            'fleet_purpose' => 'Reserve',
+        ]);
+
+        Driver::query()
+            ->where('driver_id', $attendance->driver_id)
+            ->firstOrFail()
+            ->authorizedBuses()
+            ->detach($regular->id);
+
+        $this->actingAs($head)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [[
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $attendance->id,
+                'bus_id' => $reserve->id,
+            ]],
+        ])->assertOk()->assertJsonPath('saved', 1);
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $reserve->id,
         ]);
     }
 
