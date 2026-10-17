@@ -82,7 +82,7 @@ it('shows compact validated driver bus pairs first with collapsible details and 
     $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
 
     expect($script)
-        ->toContain('Top eligible driver–bus pair')
+        ->toContain('Best eligible Regular Bus assignment')
         ->toContain('gct-compact-pair-list')
         ->toContain('gct-compact-details')
         ->toContain('data-gct-inline-pair')
