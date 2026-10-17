@@ -665,16 +665,37 @@ class BusController extends Controller
      */
     private function validateClientAllocation(Request $request): ?array
     {
-        // A blank client field means "keep the existing allocation" on edit.
-        // New buses can remain unallocated until their client is known.
+        // Blank on edit preserves existing clients. Multiple comma-separated
+        // names use the existing bus <-> operation_clients pivot relationship.
         $data = $request->validate([
-            'client_name' => ['nullable', 'string', 'max:100', 'not_regex:/,/'],
+            'client_name' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $name = trim((string) ($data['client_name'] ?? ''));
-        if ($name === '') return null;
+        $raw = trim((string) ($data['client_name'] ?? ''));
+        if ($raw === '') return null;
 
-        return ['type' => 'Exclusive', 'names' => [$name]];
+        $names = [];
+        foreach (explode(',', $raw) as $value) {
+            $name = trim(preg_replace('/\\s+/u', ' ', $value));
+            if ($name === '' || mb_strlen($name) > 100) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Enter valid client names, each up to 100 characters, separated by commas.',
+                ]);
+            }
+            $key = mb_strtolower($name);
+            $names[$key] ??= $name;
+        }
+
+        if (count($names) > 20) {
+            throw ValidationException::withMessages([
+                'client_name' => 'A bus may have up to 20 client names.',
+            ]);
+        }
+
+        return [
+            'type' => count($names) > 1 ? 'Shared' : 'Exclusive',
+            'names' => array_values($names),
+        ];
     }
 
     private function syncClientAllocation(Bus $bus, array $allocation): void
