@@ -202,7 +202,7 @@ function initBatchAttendancePage() {
 
         if (!rows.length) {
             body.innerHTML = type === 'driver'
-                ? '<tr><td colspan="8" class="batch-empty">All active drivers already have attendance for this date, or there are no eligible unrecorded drivers.</td></tr>'
+                ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
                 : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics for this shift.</td></tr>';
             updateSummary();
             return;
@@ -210,22 +210,24 @@ function initBatchAttendancePage() {
 
         body.innerHTML = rows.map((row) => {
             const normalizedStatus = normalizeStatus(row.status);
+            const isRecorded = row.recorded === true;
             const initialAvailability = computeAvailability(normalizedStatus, row.assigned_job || '');
             return `
                 <tr
                     data-batch-row
+                    data-recorded="${isRecorded ? 'true' : 'false'}"
                     data-person-id="${escapeHtml(row.person_id)}"
                     data-name="${escapeHtml(row.name)}"
                     data-shift="${escapeHtml(row.shift)}"
                     data-assigned-job="${escapeHtml(row.assigned_job || '')}"
                 >
-                    <td class="select-col"><input type="checkbox" data-row-select ${['Present', 'Late'].includes(normalizedStatus) ? 'checked' : ''}></td>
+                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
                     <td>
                         <div class="batch-person-cell">
                             <span class="batch-avatar">${escapeHtml(initials(row.name))}</span>
                             <div class="batch-person-meta">
                                 <strong>${escapeHtml(row.name)}</strong>
-                                <small>${label}</small>
+                                <small>${isRecorded ? 'Recorded · View in attendance list to edit' : label}</small>
                             </div>
                         </div>
                     </td>
@@ -267,7 +269,12 @@ function initBatchAttendancePage() {
                 </tr>`;
         }).join('');
 
-        body.querySelectorAll('[data-batch-row]').forEach((row) => initializeRow(row));
+        body.querySelectorAll('[data-batch-row]').forEach((row) => {
+            initializeRow(row);
+            if (row.dataset.recorded === 'true') {
+                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+            }
+        });
         updateSummary();
     }
 
@@ -314,7 +321,7 @@ function initBatchAttendancePage() {
     }
 
     function markAllPresent() {
-        document.querySelectorAll('#batchAttendanceModal [data-batch-row]').forEach((row) => {
+        document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
             setSelectedStatus(row, 'Present');
             if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
@@ -325,7 +332,7 @@ function initBatchAttendancePage() {
     }
 
     function clearAllRows() {
-        document.querySelectorAll('#batchAttendanceModal [data-batch-row]').forEach((row) => {
+        document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
@@ -349,7 +356,7 @@ function initBatchAttendancePage() {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
+            .filter((row) => row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
             toast('Select at least one available personnel row.', 'warning');
             return;
@@ -462,7 +469,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked));
+             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
@@ -573,6 +580,7 @@ function initBatchAttendancePage() {
         };
 
         rows.forEach((row) => {
+            if (row.dataset.recorded === 'true') return;
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
