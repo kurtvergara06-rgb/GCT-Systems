@@ -1746,7 +1746,7 @@ function updateMlStatus(conflicts) {
                         <i class="fa-solid fa-bus"></i>
                         ${escapeHtml(slotLabel)}
                     </span>
-                    <small class="gct-auto-print-slot-status">${escapeHtml(item.result === 'Conflict' ? 'Needs Review' : (item.result || 'Needs Review'))}</small>
+                    <small class="gct-auto-print-slot-status">${escapeHtml(item.result === 'Ready' ? 'Proposed — Ready' : (item.result === 'Conflict' ? 'Needs Review' : (item.result || 'Needs Review')))}</small>
                 </td>
 
                 <td>
@@ -1851,7 +1851,7 @@ function updateMlStatus(conflicts) {
         return `
             <span class="schedule-status ready">
                 <i class="fa-solid fa-circle-check"></i>
-                Ready
+                Proposed — Ready
             </span>
         `;
     }
