@@ -11,6 +11,7 @@ use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -482,6 +483,48 @@ class OperationMasterListHardeningTest extends TestCase
                 && $stats['active'] === 2
                 && $stats['inactive'] === 1
             );
+    }
+
+    public function test_multiple_active_drivers_can_be_authorized_for_the_same_bus(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+        $first = $this->driver();
+        $first->authorizedBuses()->sync([$bus->id]);
+
+        $this->actingAs($user)->post(
+            route('operation.personnel.drivers.store'),
+            array_merge(
+                $this->driverPayload('D-002', 'Driver Two'),
+                ['bus_ids_present' => 1, 'bus_ids' => [$bus->id]]
+            )
+        )->assertSessionHasNoErrors();
+
+        $second = Driver::query()->where('driver_id', 'D-002')->firstOrFail();
+        $this->assertEqualsCanonicalizing(
+            [$first->id, $second->id],
+            $bus->fresh()->authorizedDrivers()->pluck('drivers.id')->all()
+        );
+    }
+
+    public function test_regular_bus_allocation_can_be_cleared_back_to_unallocated(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus(['client_allocation_type' => 'Exclusive']);
+        $client = OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        $bus->operationClients()->sync([$client->id]);
+
+        $this->actingAs($user)->put(
+            route('bus-master-list.update', $bus),
+            array_merge($this->busPayload($bus->bus_no), [
+                'fleet_purpose' => 'Regular',
+                'client_name' => '',
+                'client_allocation_submitted' => 1,
+            ])
+        )->assertSessionHasNoErrors();
+
+        $this->assertNull($bus->fresh()->client_allocation_type);
+        $this->assertCount(0, $bus->fresh()->operationClients);
     }
 
     public function test_edit_validation_preserves_personnel_record_identity_and_update_action(): void

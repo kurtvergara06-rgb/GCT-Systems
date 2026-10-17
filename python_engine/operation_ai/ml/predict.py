@@ -264,16 +264,13 @@ def data_derived_driver_score(
     Used when the driver ML model is not ready (insufficient training data).
     The value comes from the driver's actual attendance history:
       reliability = attendance_rate (share of Present records),
-    lightly combined with current status. This is grounded in real attendance
-    data, not arbitrary penalties.
+    This is grounded only in real historical attendance data. Scheduling's
+    assumed presence is an eligibility policy, not attendance evidence.
     """
     hist = history or {}
     attendance_rate = float(hist.get("attendance_rate", 0.0))
 
-    # Current-day status modifier, grounded in the active attendance workflow.
-    status_bonus = 1.0 if driver.status == "Present" else 0.0
-
-    score = 0.7 * attendance_rate + 0.3 * status_bonus
+    score = attendance_rate
     return max(0.0, min(1.0, score))
 
 

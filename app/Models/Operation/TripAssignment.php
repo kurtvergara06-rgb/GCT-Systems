@@ -18,6 +18,7 @@ class TripAssignment extends Model
         'trip_schedule_id',
         'slot_number',
         'driver_attendance_id',
+        'driver_master_id',
         'driver_id',
         'driver_name',
         'bus_id',
@@ -43,6 +44,11 @@ class TripAssignment extends Model
             DriverAttendance::class,
             'driver_attendance_id'
         );
+    }
+
+    public function driverMaster(): BelongsTo
+    {
+        return $this->belongsTo(Driver::class, 'driver_master_id');
     }
 
     public function bus(): BelongsTo

@@ -87,16 +87,15 @@ class PersonnelController extends Controller
             $driver->deactivation_locked = $lockedDriverIds->contains($driver->driver_id);
         });
 
-        $availableBuses = Bus::query()->where('fleet_purpose', 'Regular')->orderBy('bus_no')->get(['id', 'bus_no', 'plate_no']);
-        $activeBusOwners = Driver::query()
-            ->where('employment_status', 'Active')
-            ->with('authorizedBuses:id')
-            ->get()
-            ->flatMap(fn (Driver $driver) => $driver->authorizedBuses->map(
-                fn ($bus) => ['bus_id' => $bus->id, 'owner_id' => $driver->id, 'owner_name' => $driver->driver_name]
-            ))
-            ->keyBy('bus_id');
-        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats', 'availableBuses', 'activeBusOwners'));
+        $availableBuses = Bus::query()
+            ->where('fleet_purpose', 'Regular')
+            ->with(['authorizedDrivers' => fn ($query) => $query
+                ->where('employment_status', 'Active')
+                ->orderBy('driver_name')])
+            ->orderBy('bus_no')
+            ->get(['id', 'bus_no', 'plate_no']);
+
+        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats', 'availableBuses'));
     }
 
     public function mechanics(Request $request): View
@@ -173,40 +172,12 @@ class PersonnelController extends Controller
         );
     }
 
-    /**
-     * Serialize ownership changes by locking bus rows before checking who owns
-     * them. A bus may be authorized for only one active driver.
-     */
-    private function assertExclusiveActiveBusOwnership(array $busIds, ?int $exceptDriverId = null): void
-    {
-        if ($busIds === []) {
-            return;
-        }
-
-        Bus::query()->whereIn('id', $busIds)->orderBy('id')->lockForUpdate()->get();
-
-        $conflicting = Driver::query()
-            ->where('employment_status', 'Active')
-            ->when($exceptDriverId !== null, fn ($query) => $query->whereKeyNot($exceptDriverId))
-            ->whereHas('authorizedBuses', fn ($query) => $query->whereIn('buses.id', $busIds))
-            ->first();
-
-        if ($conflicting) {
-            throw ValidationException::withMessages([
-                'bus_ids' => "A selected bus is already assigned to active driver {$conflicting->driver_name}. Deactivate or release the existing ownership first.",
-            ]);
-        }
-    }
-
     public function storeDriver(Request $request): RedirectResponse
     {
         $validated = $this->validateDriver($request);
         $busIds = $validated['bus_ids'] ?? [];
         unset($validated['bus_ids']);
         $driver = DB::transaction(function () use ($validated, $busIds): Driver {
-            if ($validated['employment_status'] === 'Active') {
-                $this->assertExclusiveActiveBusOwnership($busIds);
-            }
             $driver = Driver::create($validated);
             $driver->authorizedBuses()->sync($busIds);
             return $driver;
@@ -267,13 +238,6 @@ class PersonnelController extends Controller
                     ->exists()) {
                     throw ValidationException::withMessages(['bus_ids' => 'Cannot remove a bus linked to an ongoing or future trip assignment. Reassign that trip first.']);
                 }
-            }
-
-            if ($validated['employment_status'] === 'Active') {
-                $this->assertExclusiveActiveBusOwnership(
-                    $busIds ?? $lockedDriver->authorizedBuses()->pluck('buses.id')->all(),
-                    $lockedDriver->id
-                );
             }
 
             $lockedDriver->update($validated);

@@ -124,6 +124,15 @@ it('refreshes the ready slot badge from restored draft recommendations', functio
         ->toContain('updateReadyBadgeOnly();');
 });
 
+it('does not restore stale driver and bus availability counts from an older draft', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('Draft resource counts are only a historical snapshot.')
+        ->toContain("drivers: Number(summaryDrivers?.textContent || draft.summary?.drivers || 0)")
+        ->toContain("buses: Number(summaryBuses?.textContent || draft.summary?.buses || 0)");
+});
+
 it('removes pairs that overlap assignments already applied to the preview', function (): void {
     $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
 

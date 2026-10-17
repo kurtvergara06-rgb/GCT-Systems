@@ -10,7 +10,7 @@ from typing import Optional
 
 from .schemas import BusData, DriverData
 
-ELIGIBLE_DRIVER_STATUSES = {"Present"}
+ELIGIBLE_DRIVER_STATUSES = {"Present", "Assumed Present"}
 
 
 def remaining_pms_mileage(bus: BusData) -> Optional[float]:

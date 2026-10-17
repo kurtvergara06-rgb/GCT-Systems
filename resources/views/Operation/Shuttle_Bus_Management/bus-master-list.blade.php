@@ -447,6 +447,7 @@
     <label for="create_client_name">Client / Company Name</label>
     <div class="bus-multi-client" data-bus-multi-client>
         <input type="hidden" name="client_name" id="create_client_name" value="{{ old('client_name') }}">
+        <input type="hidden" name="client_allocation_submitted" value="1">
         <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
         <div class="bus-multi-client-entry">
             <input type="text" id="create_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
@@ -587,6 +588,7 @@
     <label for="edit_client_name">Client / Company Name</label>
     <div class="bus-multi-client" data-bus-multi-client>
         <input type="hidden" name="client_name" id="edit_client_name" value="">
+        <input type="hidden" name="client_allocation_submitted" value="1">
         <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
         <div class="bus-multi-client-entry">
             <input type="text" id="edit_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">

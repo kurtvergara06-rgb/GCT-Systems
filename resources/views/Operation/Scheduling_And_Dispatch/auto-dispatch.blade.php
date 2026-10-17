@@ -44,7 +44,7 @@
                 <div>
                     <p>Available Drivers</p>
                     <h2 id="summaryDrivers">{{ $availableDrivers }}</h2>
-                    <small>Present</small>
+                    <small>Active · assumed present</small>
                 </div>
             </article>
 
@@ -75,7 +75,7 @@
                         <h2>Generate Dispatch Schedule</h2>
                         <p>Select the date, shift, and route to prepare driver and bus recommendations.</p>
                     </div>
-                    <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks attendance, bus availability, and schedule conflicts before confirming assignments.</span></div>
+                    <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks active drivers, authorization, bus availability, and schedule conflicts before confirming assignments. No attendance record is created.</span></div>
                 </div>
 
                 <form id="autoSchedulingForm" class="auto-scheduling-form">
@@ -176,7 +176,7 @@
                     <div class="resource-item">
                         <div class="resource-info">
                             <div class="resource-icon green"><i class="fa-solid fa-user-check"></i></div>
-                            <div><strong>Available Drivers</strong><span>Present</span></div>
+                            <div><strong>Available Drivers</strong><span>Active · assumed present</span></div>
                         </div>
                         <strong class="resource-count" id="resourceAvailableDrivers">{{ $availableDrivers }}</strong>
                     </div>
@@ -192,7 +192,7 @@
                     <div class="resource-item">
                         <div class="resource-info">
                             <div class="resource-icon red"><i class="fa-solid fa-user-xmark"></i></div>
-                            <div><strong>Unavailable Drivers</strong><span>Absent, on leave, or on duty</span></div>
+                            <div><strong>Unavailable Drivers</strong><span>Inactive Driver Master records</span></div>
                         </div>
                         <strong class="resource-count">{{ $unavailableDrivers }}</strong>
                     </div>
@@ -223,7 +223,7 @@
 
             <div class="rules-grid" id="autoSchedulingRulesGrid" hidden>
                 @foreach([
-                    ['Driver must be present', 'Only Present drivers can be assigned.'],
+                    ['Driver must be active', 'Active drivers are assumed present for planning; no attendance row is created.'],
                     ['Driver must be available', 'Prevent overlapping driver assignments.'],
                     ['Bus must be operational', 'Only Active buses are eligible.'],
                     ['Exclude maintenance buses', 'Buses under maintenance cannot be assigned.'],

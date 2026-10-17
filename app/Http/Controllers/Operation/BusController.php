@@ -206,7 +206,7 @@ class BusController extends Controller
                 'fleet_purpose' => $validated['fleet_purpose'] ?? 'Regular',
             ]);
 
-            if ($createdBus->fleet_purpose === 'Reserve' && $allocation !== null) {
+            if ($createdBus->fleet_purpose === 'Reserve' && ! empty($allocation['names'])) {
                 throw ValidationException::withMessages([
                     'client_name' => 'Reserve buses are standby units and cannot have permanent client allocations.',
                 ]);
@@ -508,7 +508,7 @@ class BusController extends Controller
                 ]);
             }
 
-            if ($newFleetPurpose === 'Reserve' && $allocation !== null) {
+            if ($newFleetPurpose === 'Reserve' && ! empty($allocation['names'])) {
                 throw ValidationException::withMessages([
                     'client_name' => 'Reserve buses must remain unallocated to clients.',
                 ]);
@@ -669,10 +669,15 @@ class BusController extends Controller
         // names use the existing bus <-> operation_clients pivot relationship.
         $data = $request->validate([
             'client_name' => ['nullable', 'string', 'max:1000'],
+            'client_allocation_submitted' => ['sometimes', 'boolean'],
         ]);
 
         $raw = trim((string) ($data['client_name'] ?? ''));
-        if ($raw === '') return null;
+        if ($raw === '') {
+            return $request->boolean('client_allocation_submitted')
+                ? ['type' => null, 'names' => []]
+                : null;
+        }
 
         $names = [];
         foreach (explode(',', $raw) as $value) {

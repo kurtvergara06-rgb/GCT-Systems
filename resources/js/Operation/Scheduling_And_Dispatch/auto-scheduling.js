@@ -260,7 +260,14 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 ? draft.conflicts.filter(conflict => !conflict.dismissed_from_preview)
                 : [];
             deferredSlots = Array.isArray(draft.decisions) ? draft.decisions : [];
-            lastSummary = draft.summary || {};
+            // Draft resource counts are only a historical snapshot. Preserve
+            // the current server-rendered active driver/bus totals so restoring
+            // an older attendance-era draft cannot flash stale availability.
+            lastSummary = {
+                ...(draft.summary || {}),
+                drivers: Number(summaryDrivers?.textContent || draft.summary?.drivers || 0),
+                buses: Number(summaryBuses?.textContent || draft.summary?.buses || 0),
+            };
             draftRestoreInProgress = true;
             try {
                 updateSummary(lastSummary);
@@ -382,8 +389,8 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const csrfTokenForPreview = () => form?.querySelector('input[name="_token"]')?.value || '';
     const otherPreviewAssignments = () => recommendations
         .filter((_, index) => !(editing?.kind === 'ready' && index === editing.index))
-        .map(({ trip_schedule_id, driver_attendance_id, bus_id }) => ({
-            trip_schedule_id, driver_attendance_id, bus_id,
+        .map(({ trip_schedule_id, driver_attendance_id, driver_reference_type, bus_id }) => ({
+            trip_schedule_id, driver_attendance_id, driver_reference_type, bus_id,
         }));
     async function previewEditRequest(payload) {
         const response = await fetch(previewEditUrl, {
@@ -447,6 +454,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
             const replacement = {
                 ...item,
                 driver_attendance_id: data.driver.id,
+                driver_reference_type: data.driver.reference_type || 'driver_master',
                 driver_id: data.driver.driver_id,
                 driver_name: data.driver.name,
                 driver_status: data.driver.status,
@@ -485,13 +493,14 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 trip_schedule_id: item.trip_schedule_id,
                 driver_attendance_id: driverId,
                 bus_id: busId,
-                recommendations: recommendations.map(({ trip_schedule_id, driver_attendance_id, bus_id }) => ({
-                    trip_schedule_id, driver_attendance_id, bus_id,
+                recommendations: recommendations.map(({ trip_schedule_id, driver_attendance_id, driver_reference_type, bus_id }) => ({
+                    trip_schedule_id, driver_attendance_id, driver_reference_type, bus_id,
                 })),
             });
             const replacement = {
                 ...item,
                 driver_attendance_id: data.driver.id,
+                driver_reference_type: data.driver.reference_type || 'driver_master',
                 driver_id: data.driver.driver_id,
                 driver_name: data.driver.name,
                 driver_status: data.driver.status,
@@ -578,6 +587,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
             const replacement = {
                 ...editing.item,
                 driver_attendance_id: data.driver.id,
+                driver_reference_type: data.driver.reference_type || 'driver_master',
                 driver_id: data.driver.driver_id,
                 driver_name: data.driver.name,
                 driver_status: data.driver.status,
@@ -1267,6 +1277,7 @@ function updateMlStatus(conflicts) {
                     recommendations: recommendations.map((item) => ({
                         trip_schedule_id: item.trip_schedule_id,
                         driver_attendance_id: item.driver_attendance_id,
+                        driver_reference_type: item.driver_reference_type || 'legacy_attendance',
                         bus_id: item.bus_id,
                         slot: item.slot,
 
@@ -2253,7 +2264,7 @@ function updateMlStatus(conflicts) {
                 <div class="ai-resolution-note">
                     <i class="fa-solid fa-shield-halved"></i>
                     <p>
-                        Laravel will check the driver, bus, attendance,
+                        Laravel will check the active driver, authorization, bus,
                         shift, PMS status, and overlapping trips again
                         before saving. Nothing will be changed when the
                         proposed time is no longer valid.
@@ -2844,7 +2855,7 @@ function updateMlStatus(conflicts) {
                 ? 'Review advised'
                 : 'Needs review';
         const actionTitle = missingDriver
-            ? 'Driver attendance required'
+            ? 'Eligible active driver required'
             : missingBus
                 ? 'Eligible bus required'
                 : action?.suggested_time
@@ -2852,7 +2863,7 @@ function updateMlStatus(conflicts) {
                     : 'Manual review required';
         const actionDescription = String(
             missingDriver
-                ? 'Record valid attendance for the trip date and shift before generating an assignment. Available buses alone cannot resolve this trip.'
+                ? 'An active, authorized, conflict-free driver is required. Scheduling does not create or require an attendance row.'
                 : missingBus
                     ? 'An eligible bus is required before this trip can be assigned.'
                     : action?.explanation
@@ -2951,7 +2962,7 @@ function updateMlStatus(conflicts) {
                                     Context
                                 </h4>
                                 <div class="gct-ai-context">
-                                    <p>The AI reviewed current attendance, workloads, trip overlaps, bus status, and PMS information. Every selected option is checked again by the system before saving.</p>
+                                    <p>The AI reviewed verified history, workloads, trip overlaps, bus status, and PMS information. Active drivers are assumed present for planning only. Every selected option is checked again before saving.</p>
                                     <i class="fa-solid fa-brain"></i>
                                 </div>
                             </section>
@@ -2977,7 +2988,7 @@ function updateMlStatus(conflicts) {
                                     </div>
 
                                     <div class="gct-validation-list">
-                                        <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver attendance and availability will be verified</span>
+                                        <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver active status, authorization, and availability will be verified</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver and bus overlaps will be checked</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Bus operational and PMS status will be validated</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Original trip duration will be preserved</span>
@@ -2996,7 +3007,7 @@ function updateMlStatus(conflicts) {
                                     </div>
                                 ` : ''}
 
-                                ${missingDriver ? '<p class="gct-availability-note">Bus availability is informational until a valid driver attendance record exists.</p>' : ''}
+                                ${missingDriver ? '<p class="gct-availability-note">Bus availability is informational until an active, authorized driver is available.</p>' : ''}
                                 <div class="gct-selected-combination" ${missingDriver || missingBus ? 'hidden' : ''}>
                                     <span class="gct-selected-chip">
                                         <i class="fa-solid fa-user-check"></i>
@@ -3194,7 +3205,7 @@ function updateMlStatus(conflicts) {
             : missingDriver && missingBus
             ? 'An eligible driver and bus are required before this slot can be assigned.'
             : missingDriver
-                ? 'A driver with valid attendance and no overlapping trip is required.'
+                ? 'An active, authorized driver with no overlapping trip is required.'
                 : missingBus
                     ? 'A bus that is active, clear of maintenance, and free during this trip window is required.'
                     : 'The selected resources or departure time conflict with another operational requirement.';
@@ -3529,7 +3540,7 @@ function updateMlStatus(conflicts) {
 
         const conflict = conflicts[index];
         if (conflict?.missing_driver || conflict?.missing_bus) {
-            window.showSystemToast?.('Eligible driver attendance and a bus are required before a resolution can be reviewed.', 'warning', 'Resources unavailable');
+            window.showSystemToast?.('An eligible active driver and bus are required before a resolution can be reviewed.', 'warning', 'Resources unavailable');
             return;
         }
         const action = getTimeAction(conflict);
@@ -3587,7 +3598,7 @@ function updateMlStatus(conflicts) {
 
                 <div class="ai-resolution-note">
                     <i class="fa-solid fa-shield-halved"></i>
-                    <p>The system will verify the selected resources, attendance, PMS status, trip duration, and overlapping assignments before saving. Invalid selections will never be forced.</p>
+                    <p>The system will verify active status, driver-bus authorization, PMS status, trip duration, and overlapping assignments before saving. No attendance row is created.</p>
                 </div>
 
                 <p class="ai-resolution-description">${escapeHtml(
@@ -3681,7 +3692,7 @@ function updateMlStatus(conflicts) {
                 </div>
 
                 <div class="gct-result-checks">
-                    <span><i class="fa-solid fa-circle-check"></i> Driver attendance and availability verified</span>
+                    <span><i class="fa-solid fa-circle-check"></i> Driver active status, authorization, and availability verified</span>
                     <span><i class="fa-solid fa-circle-check"></i> Driver and bus overlap checks passed</span>
                     <span><i class="fa-solid fa-circle-check"></i> Bus operational status validated</span>
                     <span><i class="fa-solid fa-circle-check"></i> Trip duration preserved and schedule saved</span>
