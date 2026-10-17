@@ -374,7 +374,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             section.hidden = reserve;
             section.style.display = reserve ? 'none' : '';
             section.querySelectorAll('input[name="client_name"]').forEach((input) => {
-                if (reserve) input.value = '';
+                if (reserve) clientEditors.get(input.id)?.('');
                 input.disabled = reserve;
             });
         });
