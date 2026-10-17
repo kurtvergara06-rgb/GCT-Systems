@@ -3144,7 +3144,7 @@ function updateMlStatus(conflicts) {
             : Number.isFinite(score) && ai.score !== null && ai.score !== undefined
                 ? `Assignment suitability: ${score}/100`
                 : 'Assignment suitability unavailable';
-        const pairCards = validPairs.map(pair => {
+        const renderPairCard = (pair) => {
             const selected = selectedDriverId === Number(pair.driver_attendance_id)
                 && selectedBusId === Number(pair.bus_id);
             const isReserve = String(pair.bus_label || '').includes('(Reserve)');
@@ -3155,8 +3155,11 @@ function updateMlStatus(conflicts) {
                 <strong>${escapeHtml(pair.driver_label)} <i class="fa-solid fa-arrow-right"></i> ${escapeHtml(pair.bus_label)}</strong>
                 <small>${isReserve ? 'Reserve · Operations Head review required' : 'Eligible Regular Bus'} · Final Laravel validation applies</small>
             </button>`;
-        }).join('');
-        const activeTab = recommendationTabs.get(index) || 'recommended';
+        };
+        const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'));
+        const recommendedPair = regularPairs[0] || null;
+        const alternativePairs = validPairs.filter(pair => pair !== recommendedPair);
+        const activeTab = recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative');
         const hasReservePair = validPairs.some(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const reserveOnlyOptions = validPairs.length > 0 && validPairs.every(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const issueTitle = reserveOnlyOptions
@@ -3240,23 +3243,23 @@ function updateMlStatus(conflicts) {
                 <div class="gct-report-tabs" role="tablist" aria-label="Conflict recommendation options">
                     <button type="button" role="tab" data-gct-option-tab="recommended"
                         data-gct-conflict-index="${index}" class="${activeTab === 'recommended' ? 'active' : ''}">
-                        Recommended Assignments (${validPairs.length ? 1 : 0})
+                        Recommended Assignments (${recommendedPair ? 1 : 0})
                     </button>
                     <button type="button" role="tab" data-gct-option-tab="alternative"
                         data-gct-conflict-index="${index}" class="${activeTab === 'alternative' ? 'active' : ''}">
-                        Alternative Options (${Math.max(0, validPairs.length - 1)})
+                        Alternative Options (${alternativePairs.length})
                     </button>
                 </div>
                 <section class="gct-compact-pair-selector">
                     ${activeTab === 'recommended'
-                        ? (validPairs.length
-                            ? `<header><strong>Top eligible driver–bus pair</strong></header><div class="gct-compact-pair-list">${pairCards.split('</button>')[0]}</button></div>`
-                            : '<div class="gct-report-empty">No eligible complete pair. Review availability or defer this slot.</div>')
-                        : (validPairs.length > 1
-                            ? `<header><strong>Other eligible driver–bus pairs</strong><span>${validPairs.length - 1} choices</span></header><div class="gct-compact-pair-list">${pairCards.split('</button>').slice(1).filter(Boolean).map(card => card + '</button>').join('')}</div>`
+                        ? (recommendedPair
+                            ? `<header><strong>Best eligible Regular Bus assignment</strong></header><div class="gct-compact-pair-list">${renderPairCard(recommendedPair)}</div>`
+                            : '<div class="gct-report-empty">No eligible Regular Bus pair. Review alternatives for Head-approved Reserve options or defer this slot.</div>')
+                        : (alternativePairs.length
+                            ? `<header><strong>Other eligible pairs · Reserve requires Head review</strong><span>${alternativePairs.length} choices</span></header><div class="gct-compact-pair-list">${alternativePairs.map(renderPairCard).join('')}</div>`
                             : '<div class="gct-report-empty">No additional eligible pair is available.</div>')}
                 </section>
-                <details class="gct-compact-details">
+                                <details class="gct-compact-details">
                     <summary>Detailed explanation and AI findings</summary>
                     <div class="gct-compact-details-content">
                         <p>${escapeHtml(stripSlotSuffix(explanation))}</p>
