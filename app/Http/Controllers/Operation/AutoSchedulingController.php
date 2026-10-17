@@ -400,6 +400,7 @@ class AutoSchedulingController extends Controller
                         'shift' => $trip->shift,
                         'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                         'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                         'terminal' => ($trip->direction ?? 'Incoming') === 'Outgoing'
                             ? ($trip->shuttleRoute?->destination ?? 'Not specified')
                             : ($trip->shuttleRoute?->origin ?? 'Not specified'),
@@ -571,6 +572,7 @@ class AutoSchedulingController extends Controller
                         'shift' => $trip->shift,
                         'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                         'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                         'terminal' => ($trip->direction ?? 'Incoming') === 'Outgoing'
                             ? ($trip->shuttleRoute?->destination ?? 'Not specified')
                             : ($trip->shuttleRoute?->origin ?? 'Not specified'),
@@ -621,6 +623,7 @@ class AutoSchedulingController extends Controller
                     'shift' => $trip->shift,
                     'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                     'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                     'driver_attendance_id' => $driver->id,
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
@@ -1424,6 +1427,7 @@ class AutoSchedulingController extends Controller
 
                 'route_name' => $trip->shuttleRoute
                     ?->route_name,
+                    'client_name' => $trip->client_name,
 
                 'departure_time' => $this->databaseTime(
                     $trip->departure_time
