@@ -1676,10 +1676,7 @@ function updateMlStatus(conflicts) {
         const required = Math.max(1, Number(item.required_buses || 1));
         const slotNumber = Math.max(1, Number(item.slot || 1));
         const assigned = Math.min(required, Math.max(0, Number(item.tripAssignedCount || 0)));
-        const slotLabel = required > 1
-            ? `Slot ${slotNumber} of ${required}`
-            : 'Single bus slot';
-        const assignmentProgress = `${assigned}/${required} buses ready`;
+        const slotLabel = `Bus Slot ${slotNumber}`;
 
         const isConflict = item.result === 'Conflict';
 
@@ -1725,7 +1722,6 @@ function updateMlStatus(conflicts) {
                         <i class="fa-solid fa-bus"></i>
                         ${escapeHtml(slotLabel)}
                     </span>
-                    ${!isContinuation ? `<small class="auto-bus-assignment-progress">${escapeHtml(assignmentProgress)}</small>` : ''}
                     <small class="gct-auto-print-slot-status">${escapeHtml(item.result === 'Conflict' ? 'Needs Review' : (item.result || 'Needs Review'))}</small>
                 </td>
 
@@ -3359,11 +3355,11 @@ function updateMlStatus(conflicts) {
             const ready = Math.min(required, Math.max(0,
                 Number(readyCountsByTrip.get(tripKey) ?? item.ready_buses ?? 0)));
             const slot = Math.min(required, Math.max(1, Number(item.slot || 1)));
-            const slotLabel = required === 1 ? 'Single bus slot' : `Slot ${slot} of ${required}`;
+            const slotLabel = `Bus Slot ${slot}`;
             return `<tr class="${index === selectedConflictIndex ? 'is-selected' : ''}" data-gct-report-index="${index}" tabindex="0" role="button" aria-selected="${index === selectedConflictIndex}" aria-label="View AI conflict report for ${escapeHtml(trip)}, ${escapeHtml(item.slot_label || '')}">
                 <td><span class="gct-conflict-trip-cell">
                     <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${direction === 'Incoming' ? 'IN' : 'OUT'}</span>
-                    <span class="gct-conflict-trip-meta"><strong>${escapeHtml(trip)}</strong><span class="gct-conflict-slot-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(slotLabel)}</span><small>${ready}/${required} buses ready</small></span>
+                    <span class="gct-conflict-trip-meta"><strong>${escapeHtml(trip)}</strong><span class="gct-conflict-slot-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(slotLabel)}</span></span>
                 </span></td>
                 <td><strong>${escapeHtml(item.route_code || '—')}</strong><small>${escapeHtml(item.route_name || '')}</small></td>
                 <td>${escapeHtml(item.departure_display || displayTime(item.departure_time))}</td>
