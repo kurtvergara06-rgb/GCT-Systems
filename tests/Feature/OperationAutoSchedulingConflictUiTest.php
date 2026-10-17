@@ -123,3 +123,15 @@ it('refreshes the ready slot badge from restored draft recommendations', functio
         ->toContain('renderRecommendations(recommendations, schedulingConflicts);')
         ->toContain('updateReadyBadgeOnly();');
 });
+
+it('removes pairs that overlap assignments already applied to the preview', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('function previewTimesOverlap(')
+        ->toContain('function conflictWithCurrentPreviewEligibility(item)')
+        ->toContain('Number(pair.driver_attendance_id) === Number(recommendation.driver_attendance_id)')
+        ->toContain('Number(pair.bus_id) === Number(recommendation.bus_id)')
+        ->toContain('const reportItems = items.map(conflictWithCurrentPreviewEligibility);')
+        ->toContain('conflicts: reportItems.slice()');
+});

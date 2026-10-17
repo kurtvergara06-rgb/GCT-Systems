@@ -131,6 +131,38 @@ class OperationAutoSchedulingTest extends TestCase
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 
+    public function test_preview_editor_rejects_resources_used_by_an_overlapping_preview_assignment(): void
+    {
+        $user = User::factory()->create();
+        [$firstTrip, $driver, $bus, $route] = $this->makeScheduleResources();
+        $overlappingTrip = TripSchedule::create([
+            'trip_code' => 'T-PREVIEW-OVERLAP',
+            'trip_date' => $firstTrip->trip_date->toDateString(),
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '09:30:00',
+            'estimated_arrival_time' => '10:30:00',
+            'estimated_arrival_date' => $firstTrip->trip_date->toDateString(),
+            'shift' => 'Morning',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), [
+            'trip_schedule_id' => $overlappingTrip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'recommendations' => [[
+                'trip_schedule_id' => $firstTrip->id,
+                'driver_attendance_id' => $driver->id,
+                'bus_id' => $bus->id,
+            ]],
+        ])->assertUnprocessable()->assertJsonValidationErrors('assignment');
+
+        $this->assertDatabaseMissing('trip_assignments', [
+            'trip_schedule_id' => $overlappingTrip->id,
+        ]);
+    }
+
     public function test_confirm_saves_a_valid_recommendation(): void
     {
         $user = User::factory()->create();

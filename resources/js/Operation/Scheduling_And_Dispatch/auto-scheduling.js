@@ -1906,6 +1906,50 @@ function updateMlStatus(conflicts) {
     }
 
 
+    function previewTimesOverlap(firstStart, firstEnd, secondStart, secondEnd) {
+        const secondsFromMidnight = (value) => {
+            const match = String(value || '').match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            return (Number(match[1]) * 3600) + (Number(match[2]) * 60) + Number(match[3] || 0);
+        };
+        const firstStartSeconds = secondsFromMidnight(firstStart);
+        let firstEndSeconds = secondsFromMidnight(firstEnd);
+        const secondStartSeconds = secondsFromMidnight(secondStart);
+        let secondEndSeconds = secondsFromMidnight(secondEnd);
+
+        if ([firstStartSeconds, firstEndSeconds, secondStartSeconds, secondEndSeconds]
+            .some(value => value === null)) {
+            // A pair whose overlap cannot be verified must not be advertised
+            // as valid. Final server validation remains authoritative.
+            return true;
+        }
+        if (firstEndSeconds <= firstStartSeconds) firstEndSeconds += 86400;
+        if (secondEndSeconds <= secondStartSeconds) secondEndSeconds += 86400;
+
+        return [-86400, 0, 86400].some(shift => (
+            firstStartSeconds < secondEndSeconds + shift
+            && firstEndSeconds > secondStartSeconds + shift
+        ));
+    }
+
+    function conflictWithCurrentPreviewEligibility(item) {
+        const ai = item?.ai || {};
+        const pairs = Array.isArray(ai.valid_pairs) ? ai.valid_pairs : [];
+        const validPairs = pairs.filter(pair => !recommendations.some(recommendation => {
+            const resourceReused = Number(pair.driver_attendance_id) === Number(recommendation.driver_attendance_id)
+                || Number(pair.bus_id) === Number(recommendation.bus_id);
+
+            return resourceReused && previewTimesOverlap(
+                item.departure_time,
+                item.estimated_arrival_time,
+                recommendation.departure_time,
+                recommendation.estimated_arrival_time
+            );
+        }));
+
+        return { ...item, ai: { ...ai, valid_pairs: validPairs } };
+    }
+
     function renderConflicts(items) {
         if (!conflictSection || !conflictContent) {
             return;
@@ -1921,8 +1965,9 @@ function updateMlStatus(conflicts) {
         }
 
         conflictSection.hidden = false;
+        const reportItems = items.map(conflictWithCurrentPreviewEligibility);
 
-        conflictContent.innerHTML = items
+        conflictContent.innerHTML = reportItems
             .map((item) => {
                 const ai = item.ai || {};
                 const aiConflict = ai.conflict || {};
@@ -2041,7 +2086,7 @@ function updateMlStatus(conflicts) {
                                 `
                         }
 
-                        ${renderConflictButtons(item, items.indexOf(item))}
+                        ${renderConflictButtons(item, reportItems.indexOf(item))}
                     </div>
                 `;
             })
@@ -2051,7 +2096,7 @@ function updateMlStatus(conflicts) {
         // and edits, not only with fresh /generate network responses.
         document.dispatchEvent(new CustomEvent('gct:auto-conflicts-updated', {
             detail: {
-                conflicts: items.slice(),
+                conflicts: reportItems.slice(),
                 readyCounts: Array.from(recommendations.filter(item => item.result === 'Ready').reduce((counts, item) => {
                     const key = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
                     counts.set(key, (counts.get(key) || 0) + 1);
