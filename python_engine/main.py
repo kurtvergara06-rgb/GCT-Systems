@@ -6,25 +6,8 @@ import uuid
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
-from NLP.anomaly_detector import anomaly_details
-from NLP.entity_extractor import (
-    extract_entities,
-    infer_records_from_table_rows,
-)
-from NLP.ingestion import stage_record
-from NLP.ner_extractor import extract_entities as extract_ner_entities
-from NLP.pdf_extractor import (
-    extract_pdf_rows,
-    extract_pdf_text,
-)
 from NLP.readiness import assert_required_modules, required_module_status
 from NLP.router import router as nlp_router
-from NLP.severity_ner_predictor import (
-    build_text as render_record_text,
-    predict_record as predict_ner_severity,
-)
-from NLP.severity_predictor import predict_record as predict_severity
-from NLP.text_cleaner import clean_text
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
 from eta.router import router as eta_router
@@ -47,6 +30,16 @@ def annotate_records(records: list[dict]) -> list[dict]:
     their real source and never claim trained-model readiness when it does not
     exist.
     """
+    # Delay classifier imports until PDF processing. Required-module readiness
+    # remains validated during startup by assert_required_modules().
+    from NLP.anomaly_detector import anomaly_details
+    from NLP.ner_extractor import extract_entities as extract_ner_entities
+    from NLP.severity_ner_predictor import (
+        build_text as render_record_text,
+        predict_record as predict_ner_severity,
+    )
+    from NLP.severity_predictor import predict_record as predict_severity
+
     annotated = []
 
     for record in records:
@@ -97,6 +90,8 @@ def _stage_and_annotate(records: list[dict], source_format: str) -> list[dict]:
     is retained in the upload response with an explicit staging error instead
     of silently pretending it entered the review pipeline.
     """
+    from NLP.ingestion import stage_record
+
     annotated = annotate_records(records)
 
     for record in annotated:
@@ -231,6 +226,10 @@ def health_check() -> dict:
 def extract_pdf_data(
     pdf_file: UploadFile = File(...),
 ) -> dict:
+    from NLP.entity_extractor import extract_entities, infer_records_from_table_rows
+    from NLP.pdf_extractor import extract_pdf_rows, extract_pdf_text
+    from NLP.text_cleaner import clean_text
+
     if not pdf_file.filename:
         raise HTTPException(
             status_code=400,
