@@ -2880,7 +2880,7 @@ function updateMlStatus(conflicts) {
                                     </div>
 
                                     <div class="gct-validation-list">
-                                        <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver attendance and shift will be verified</span>
+                                        <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver attendance and availability will be verified</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Driver and bus overlaps will be checked</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Bus operational and PMS status will be validated</span>
                                         <span class="gct-validation-item"><i class="fa-regular fa-circle-check"></i> Original trip duration will be preserved</span>
@@ -3055,10 +3055,13 @@ function updateMlStatus(conflicts) {
         const issueTitle = aiConflict.title
             || conflict.reason
             || 'Scheduling conflict detected';
-        const explanation = aiConflict.explanation
+        // Previously saved drafts may contain explanations from the retired Shift policy.
+        const explanation = String(aiConflict.explanation
             || ai.conflict_explanation
             || conflict.reason
-            || 'The trip could not be assigned using the resources available for its departure window.';
+            || 'The trip could not be assigned using the resources available for its departure window.')
+            .replace(/attendance,?\s+shift,?\s+and\s+availability/gi, 'attendance and availability')
+            .replace(/attendance\s+and\s+shift/gi, 'attendance and availability');
         const requiredBuses = Math.max(1, Number(conflict.required_buses || 1));
         const assignedBuses = Math.min(requiredBuses, Math.max(0, Number(conflict.already_assigned_count || 0)));
         const assignmentProgress = `${assignedBuses}/${requiredBuses}`;
@@ -3608,7 +3611,7 @@ function updateMlStatus(conflicts) {
                 </div>
 
                 <div class="gct-result-checks">
-                    <span><i class="fa-solid fa-circle-check"></i> Driver attendance and shift verified</span>
+                    <span><i class="fa-solid fa-circle-check"></i> Driver attendance and availability verified</span>
                     <span><i class="fa-solid fa-circle-check"></i> Driver and bus overlap checks passed</span>
                     <span><i class="fa-solid fa-circle-check"></i> Bus operational status validated</span>
                     <span><i class="fa-solid fa-circle-check"></i> Trip duration preserved and schedule saved</span>
