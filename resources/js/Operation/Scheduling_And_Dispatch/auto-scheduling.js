@@ -469,7 +469,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     }, { signal: reserveAbortController.signal });
     // Report-side selection is a preview action, not an Edit Assignment modal.
     document.addEventListener('gct:apply-reserve-selection', async (event) => {
-        if (!canEditOperation) return;
+        if (!canEditOperation || !canAssignReserve) return;
         const index = Number(event.detail?.index);
         const item = schedulingConflicts[index];
         if (!item || item.issue_type !== 'reserve_approval_required') return;
@@ -508,7 +508,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         } catch (error) {
             window.showSystemToast?.(error.message, 'error', 'Reserve Bus not eligible');
         }
-    });
+    }, { signal: reserveAbortController.signal });
 
     document.addEventListener('gct:defer-conflict-slot', (event) => {
         if (!canEditOperation) return;
@@ -523,7 +523,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         renderConflicts(schedulingConflicts);
         updateMlStatus(schedulingConflicts);
         updateReadyBadgeOnly();
-    });
+    }, { signal: reserveAbortController.signal });
 
     previewSection?.addEventListener('click', async (event) => {
         const btn = event.target.closest('[data-edit-kind][data-edit-index]');
@@ -666,7 +666,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         ) {
             closeResolutionModal();
         }
-    });
+    }, { signal: reserveAbortController.signal });
 
     function renderAiConflictAnalysis({
     ai,
@@ -3220,7 +3220,7 @@ function updateMlStatus(conflicts) {
                             <header><strong><i class="fa-solid fa-bus"></i> Bus Alternatives</strong><span>${buses.length + reserveInformation.length + (isReserveReview ? 1 : 0)} eligible</span></header>
                             ${isReserveReview ? `
                                 <button type="button" class="gct-option-card gct-report-option ${reserveSelected ? 'is-selected' : ''}"
-                                    data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}"
+                                    data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}" aria-disabled="${canAssignReserve() ? 'false' : 'true'}"
                                     style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px;">
                                     <span class="gct-option-radio" aria-hidden="true"></span>
                                     <span class="gct-report-option-copy"><strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong><small>Laravel eligibility passed · Operations Head direct assignment · Revalidated before confirmation</small></span>
@@ -3268,7 +3268,11 @@ function updateMlStatus(conflicts) {
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
                         </button>
-                        ${activeTab === 'alternative' ? `
+                        ${isReserveReview ? `
+                            <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}" ${(activeTab === 'alternative' && reserveSelected && canAssignReserve()) ? '' : 'disabled'}>
+                                <i class="fa-solid fa-bus"></i> Apply to Preview
+                            </button>
+                        ` : activeTab === 'alternative' ? `
                             <button type="button" class="ai-resolution-btn primary" data-gct-apply-inline="${escapeHtml(conflictKey)}" data-gct-apply-inline-index="${index}" ${inlineCanApply ? '' : 'disabled'}>
                                 <i class="fa-solid fa-check-circle"></i> Apply to Preview
                             </button>
@@ -3937,6 +3941,10 @@ function updateMlStatus(conflicts) {
         const selectReserve = event.target.closest('[data-gct-select-reserve]');
         if (selectReserve) {
             event.preventDefault();
+            if (!canAssignReserve()) {
+                window.showSystemToast?.('Only Operations Head may assign a Reserve Bus.', 'warning', 'Permission required');
+                return;
+            }
             const index = Number(selectReserve.dataset.gctSelectReserve);
             const conflict = conflicts[index];
             if (!conflict || conflict.issue_type !== 'reserve_approval_required') return;
@@ -3949,6 +3957,7 @@ function updateMlStatus(conflicts) {
         const applyReserve = event.target.closest('[data-apply-selected-reserve]');
         if (applyReserve && !applyReserve.disabled) {
             event.preventDefault();
+            if (!canAssignReserve()) return;
             const index = Number(applyReserve.dataset.applySelectedReserve);
             const conflict = conflicts[index];
             if (!conflict || selections.get(index)?.busId !== Number(conflict.suggested_bus_id)) return;

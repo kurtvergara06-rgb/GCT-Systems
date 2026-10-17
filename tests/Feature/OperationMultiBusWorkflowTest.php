@@ -49,12 +49,19 @@ class OperationMultiBusWorkflowTest extends TestCase
 
     private function createDriver(string $suffix, string $status = 'Active'): Driver
     {
-        return Driver::create([
+        $driver = Driver::create([
             'driver_id' => 'DRV-' . $suffix,
             'driver_name' => 'Driver ' . $suffix,
             'shift' => 'Morning',
             'employment_status' => $status,
         ]);
+
+        $busIds = Bus::query()->pluck('id')->all();
+        if ($busIds !== []) {
+            $driver->authorizedBuses()->syncWithoutDetaching($busIds);
+        }
+
+        return $driver;
     }
 
     private function createAttendance(Driver $driver, string $date, string $status = 'Present'): DriverAttendance
@@ -70,7 +77,7 @@ class OperationMultiBusWorkflowTest extends TestCase
 
     private function createBus(string $suffix, string $status = 'Active', string $fleetPurpose = 'Regular'): Bus
     {
-        return Bus::create([
+        $bus = Bus::create([
             'bus_no' => 'BUS-' . $suffix,
             'plate_no' => 'PLT-' . $suffix,
             'bus_model' => 'Hino Multi',
@@ -78,6 +85,10 @@ class OperationMultiBusWorkflowTest extends TestCase
             'status' => $status,
             'fleet_purpose' => $fleetPurpose,
         ]);
+
+        Driver::query()->each(fn (Driver $driver) => $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]));
+
+        return $bus;
     }
 
     private function createTripSchedule(int $requiredBuses = 1, array $overrides = []): TripSchedule

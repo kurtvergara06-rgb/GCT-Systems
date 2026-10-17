@@ -100,6 +100,9 @@ class OperationTripScheduleHardeningTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $busIds = Bus::query()->pluck('id')->all();
+        Driver::query()->each(fn (Driver $d) => $d->authorizedBuses()->syncWithoutDetaching($busIds));
+
         return [$driver, $attendance, $bus];
     }
 
@@ -114,6 +117,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $tripDate,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '23:50',
+                'direction' => 'Incoming',
                 'status' => 'Cancelled',
             ])
             ->assertRedirect('/operation/trip-schedule');
@@ -239,6 +243,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => now()->subDay()->toDateString(),
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('trip_date')
             ->assertSessionHas('trip_validation_mode', 'create');
@@ -266,6 +271,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'trip_date' => $createdDate,
             'shuttle_route_id' => $route->id,
             'departure_time' => '08:00',
+            'direction' => 'Incoming',
         ])
             ->assertRedirect('/operation/trip-schedule')
             ->assertSessionHas('operation.selected_trip_date', $createdDate);
@@ -288,6 +294,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect('/operation/trip-schedule');
 
@@ -319,6 +326,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('departure_time')
             ->assertSessionHas('trip_validation_mode', 'create');
@@ -368,6 +376,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:14',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('departure_time');
 
@@ -376,6 +385,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:15',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect('/operation/trip-schedule')
             ->assertSessionHasNoErrors();
@@ -562,6 +572,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '07:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect();
 
@@ -589,6 +600,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect();
 
@@ -1489,6 +1501,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'bus_no' => 'BUS-CONFLICT', 'plate_no' => 'CNF-1001',
             'bus_model' => 'Conflict Bus', 'capacity' => 40, 'status' => 'Active',
         ]);
+        $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]);
         TripAssignment::create([
             'trip_schedule_id' => $existingTrip->id,
             'driver_attendance_id' => $attendance->id,
@@ -1538,6 +1551,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-08',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '23:59',
+                    'direction' => 'Incoming',
                 ])
                 ->assertSessionHasErrors('trip_date');
 
@@ -1547,6 +1561,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-09',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '00:15',
+                    'direction' => 'Incoming',
                 ])
                 ->assertSessionHasErrors('departure_time');
 
@@ -1555,6 +1570,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-09',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '00:45',
+                    'direction' => 'Incoming',
                 ])
                 ->assertRedirect('/operation/trip-schedule')
                 ->assertSessionHasNoErrors();

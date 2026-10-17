@@ -54,12 +54,12 @@ it('bridges reserve selection to the assignment editor by stable trip slot ident
 
     expect($script)
         ->toContain('const conflictIdentity = (conflict) => [')
-        ->toContain("document.addEventListener('gct:apply-information-reserve'")
-        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-information-reserve'")
-        ->toContain('const item = conflicts[index]')
+        ->toContain("document.addEventListener('gct:apply-inline-alternative'")
+        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-inline-alternative'")
+        ->toContain("document.addEventListener('gct:apply-reserve-selection'")
+        ->toContain('data-apply-selected-reserve')
         ->toContain('selectedReserveByConflict.get(conflictKey)')
         ->toContain("document.addEventListener('gct:auto-reserve-selections-reset'")
-        ->toContain("kind: 'conflict'")
         ->not->toContain('const item = schedulingConflicts[index];\n            const selection = selectedReserveByConflict.get(index)');
 });
 

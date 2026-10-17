@@ -2107,6 +2107,7 @@ class AutoSchedulingController extends Controller
                     $trip->trip_date->format('Y-m-d');
 
                 $drivers = DriverAttendance::query()
+                    ->with('driver.authorizedBuses:id')
                     ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
                     ->whereDate(
                         'attendance_date',
@@ -2119,11 +2120,13 @@ class AutoSchedulingController extends Controller
                     ->get();
 
                 $buses = Bus::query()
+                    ->with('operationClients:id,name')
                     ->where('fleet_purpose', 'Regular')
                     ->where(
                         'status',
                         'Active'
                     )
+                    ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
                     ->orderBy('bus_no')
                     ->lockForUpdate()
                     ->get();

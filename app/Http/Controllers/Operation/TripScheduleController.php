@@ -217,7 +217,9 @@ class TripScheduleController extends Controller
                 $this->assertMinimumRouteDepartureInterval(
                     $validated['trip_date'],
                     $route,
-                    $departure
+                    $departure,
+                    null,
+                    $validated['client_name'] ?? null
                 );
 
                 $estimatedArrival = $this->resolveArrivalDateTime(
@@ -312,12 +314,17 @@ class TripScheduleController extends Controller
                         $validated['departure_time']
                     );
 
+                    $effectiveClientName = filled($validated['client_name'] ?? null)
+                        ? $validated['client_name']
+                        : $lockedTrip->client_name;
+
                     if ($validated['status'] !== 'Cancelled') {
                         $this->assertMinimumRouteDepartureInterval(
                             $validated['trip_date'],
                             $route,
                             $departure,
-                            $lockedTrip->id
+                            $lockedTrip->id,
+                            $effectiveClientName
                         );
                     }
 
@@ -546,13 +553,15 @@ class TripScheduleController extends Controller
         string $tripDate,
         ShuttleRoute $route,
         Carbon $departure,
-        ?int $ignoreTripId = null
+        ?int $ignoreTripId = null,
+        ?string $clientName = null
     ): void {
         $conflictingTrip = $this->findRouteDepartureConflict(
             $tripDate,
             $route,
             $departure,
-            $ignoreTripId
+            $ignoreTripId,
+            $clientName
         );
 
         if ($conflictingTrip === null) {
@@ -593,7 +602,8 @@ class TripScheduleController extends Controller
         string $tripDate,
         ShuttleRoute $route,
         Carbon $departure,
-        ?int $ignoreTripId = null
+        ?int $ignoreTripId = null,
+        ?string $clientName = null
     ): ?TripSchedule {
         $query = TripSchedule::query()
             ->whereDate('trip_date', $tripDate)
@@ -608,14 +618,21 @@ class TripScheduleController extends Controller
         $departureMinutes = $this->minutesFromMidnight(
             $departure
         );
+        $normalizedClient = mb_strtolower(trim((string) ($clientName ?? '')));
 
         return $query
             ->get([
                 'id',
                 'departure_time',
+                'client_name',
             ])
             ->first(
-                function (TripSchedule $trip) use ($departureMinutes): bool {
+                function (TripSchedule $trip) use ($departureMinutes, $normalizedClient): bool {
+                    $existingClient = mb_strtolower(trim((string) ($trip->client_name ?? '')));
+                    if ($existingClient !== $normalizedClient) {
+                        return false;
+                    }
+
                     $existingDeparture = Carbon::parse(
                         $trip->departure_time
                     );

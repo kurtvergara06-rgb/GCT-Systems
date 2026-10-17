@@ -333,7 +333,10 @@ class TripAssignmentController extends Controller
                 'authorized_bus_ids' => $attendance->driver?->authorizedBuses?->pluck('id')?->all() ?? [],
             ]);
 
+        $tripClient = mb_strtolower(trim((string) ($tripSchedule->client_name ?? '')));
+
         $buses = Bus::query()
+            ->with('operationClients:id,name')
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
@@ -343,6 +346,15 @@ class TripAssignmentController extends Controller
             )
             ->orderBy('bus_no')
             ->get()
+            ->filter(function (Bus $bus) use ($tripClient): bool {
+                $allocations = $bus->operationClients
+                    ->pluck('name')
+                    ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+                return $tripClient === ''
+                    ? $allocations->isEmpty()
+                    : $allocations->contains($tripClient);
+            })
             ->values()
             ->map(fn (Bus $bus) => [
                 'id' => $bus->id,
