@@ -445,8 +445,8 @@
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="create_client_name">Client / Company Name</label>
-    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="create_client_name" maxlength="100" placeholder="Enter client or company name" value="{{ old('client_name') }}" autocomplete="organization"></div>
-    <small>Enter the company this bus is dedicated to. Leave blank if the client is not yet known.</small>
+    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="create_client_name" maxlength="1000" placeholder="Example: EPSON, SM, Murata" value="{{ old('client_name') }}" autocomplete="organization"></div>
+    <small>Separate multiple authorized client names with commas. Leave blank if not yet known.</small>
     
 </div>
 </section>
@@ -578,9 +578,9 @@
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="edit_client_name">Client / Company Name</label>
-    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="100" placeholder="Enter client or company name" value="" autocomplete="organization"></div>
-    <small>Leave blank to retain the existing allocation. Company changes are allowed when the bus is not operating an unfinished dispatched trip.</small>
-    <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing shared-company allocation will be preserved unless you enter a new company.</p>
+    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="1000" placeholder="Example: EPSON, SM, Murata" value="" autocomplete="organization"></div>
+    <small>Separate multiple clients with commas. Company changes are blocked during an unfinished dispatched trip.</small>
+    <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing client allocations are shown above. Edit the list to change them.</p>
 </div>
 </section>
                     </div>
