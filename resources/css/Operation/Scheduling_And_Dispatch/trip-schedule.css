@@ -3028,3 +3028,37 @@
   border-radius: 10px;
   font-size: 13px;
 }
+
+
+/* Client / Route sections keep separate trip records and assignment rows. */
+.trip-schedule-page .service-table .service-client-route-heading th,
+.service-table .service-client-route-heading th {
+    padding: 11px 15px !important;
+    border-top: 2px solid #cbd9ec !important;
+    border-bottom: 1px solid #cbd9ec !important;
+    background: #eaf1fb !important;
+    text-align: left !important;
+    color: #203957 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+.service-table .service-client-route-heading th span {
+    display: inline-block;
+    margin-right: 17px;
+    color: #536a86;
+    font-size: 11px;
+    font-weight: 600;
+}
+.service-table .service-client-route-heading th strong {
+    color: #183960;
+    font-size: 12px;
+    font-weight: 800;
+}
+@media (max-width: 700px) {
+    .service-table .service-client-route-heading th span,
+    .service-table .service-client-route-heading th strong {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 3px;
+    }
+}
