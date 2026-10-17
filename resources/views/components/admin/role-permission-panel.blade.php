@@ -218,13 +218,12 @@
                                 ]);
                             }
                         @endphp
-                        <article class="system-admin-module-row {{ $isHomeModule ? 'is-home-module' : 'is-preview-module' }}">
+                        <article class="system-admin-module-row">
                             <div class="module-access-info">
                                 <div class="module-access-icon {{ $moduleKey }}"><i class="fa-solid {{ $module['icon'] }}"></i></div>
                                 <div>
                                     <strong>{{ $module['label'] }}</strong>
                                     <span>{{ $module['description'] }}</span>
-                                    <small class="matrix-module-note">{{ $isHomeModule ? 'Department permissions' : 'Cross-module access — pending implementation' }}</small>
                                 </div>
                             </div>
                             <div class="system-admin-capabilities">
@@ -236,16 +235,16 @@
                                         $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
                                     @endphp
                                     @if($editable)
-                                        <label class="matrix-permission-choice permission-option {{ $isAllowed ? 'allowed' : 'restricted' }}" data-permission-option>
+                                        <label class="protected-capability permission-option matrix-native-toggle {{ $isAllowed ? 'allowed' : 'restricted' }}" data-permission-option>
                                             <input type="hidden" name="{{ $fieldName }}" value="0">
                                             <input type="checkbox" name="{{ $fieldName }}" value="1" @checked($isAllowed) disabled data-permission-input>
-                                            <span class="matrix-permission-label"><i class="fa-solid {{ $capability['icon'] }}"></i> {{ $capability['label'] }}</span>
-                                            <span class="permission-status-text">{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
+                                            <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-circle-xmark' }} option-state"></i>
+                                            <span>{{ $capability['label'] }}</span>
+                                            <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
                                         </label>
                                     @else
-                                        <span class="matrix-permission-choice is-locked" title="{{ $supported ? 'Cross-module permissions will be enabled after backend authorization is implemented.' : 'Warehouse approval permission has not been implemented yet.' }}">
-                                            <span class="matrix-permission-label"><i class="fa-solid fa-lock"></i> {{ $capability['label'] }}</span>
-                                            <span>Not available</span>
+                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'Cross-module permissions will be enabled after backend authorization is implemented.' : 'Warehouse approval permission has not been implemented yet.' }}">
+                                            <i class="fa-solid fa-lock"></i> {{ $capability['label'] }}
                                         </span>
                                     @endif
                                 @endforeach
