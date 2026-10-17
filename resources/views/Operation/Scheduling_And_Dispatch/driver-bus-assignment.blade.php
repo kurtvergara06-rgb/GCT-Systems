@@ -147,8 +147,23 @@
                         </thead>
 
                         <tbody>
-                            @forelse($directionTrips as $trip)
+                            @php
+                                $lastClientRouteKey = null;
+                                $sortedDirectionTrips = $directionTrips->sortBy(fn ($trip) => implode('|', [
+                                    strtolower(trim((string) ($trip->client_name ?: 'No Client Allocation'))),
+                                    strtolower((string) ($trip->shuttleRoute?->route_code ?? $trip->route_code_snapshot ?? '')),
+                                    (string) $trip->departure_time,
+                                    (string) $trip->id,
+                                ]));
+                            @endphp
+                            @forelse($sortedDirectionTrips as $trip)
                                 @php
+                                    $clientLabel = trim((string) ($trip->client_name ?? '')) ?: 'No Client Allocation';
+                                    $routeLabel = $trip->shuttleRoute?->route_code ?? $trip->route_code_snapshot ?? '—';
+                                    $routeNameLabel = $trip->shuttleRoute?->route_name ?? $trip->route_name_snapshot ?? 'Unknown route';
+                                    $clientRouteKey = strtolower($clientLabel) . '|' . strtolower((string) $routeLabel);
+                                    $showClientRouteHeading = $lastClientRouteKey !== $clientRouteKey;
+                                    $lastClientRouteKey = $clientRouteKey;
                                     $route = $trip->shuttleRoute;
                                     $departureDateTime = $trip->departureDateTime();
                                     $arrivalDateTime = $trip->estimatedArrivalDateTime();
@@ -197,6 +212,15 @@
                                         default => $trip->status,
                                     };
                                 @endphp
+
+                                @if($showClientRouteHeading)
+                                    <tr class="assignment-client-route-group">
+                                        <th colspan="7" scope="rowgroup">
+                                            <span>Client: {{ $clientLabel }}</span>
+                                            <strong>Route {{ $routeLabel }} · {{ $routeNameLabel }}</strong>
+                                        </th>
+                                    </tr>
+                                @endif
 
                                 @if($tripAssignments->isEmpty() && $assignedRentals->isEmpty())
                                     <tr class="unassigned-row">
