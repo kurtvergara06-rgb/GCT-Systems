@@ -598,7 +598,7 @@ class AutoSchedulingController extends Controller
                             (is_numeric($pair['driver_score']) ? (float) $pair['driver_score'] : 0.0)
                             + (is_numeric($pair['bus_score']) ? (float) $pair['bus_score'] : 0.0)
                         )
-                        ->take(6)
+                        ->take(50)
                         ->values();
 
                     $conflicts->push([
