@@ -10,9 +10,7 @@
         ? null
         : strtolower(trim((string) $selectedRolePermission->department));
 
-    $visibleModules = $isProtectedRole
-        ? collect($permissionModules)
-        : collect($permissionModules)->only([$roleModuleKey]);
+    $visibleModules = collect($permissionModules);
 
     $enabledCapabilities = $visibleModules
         ->flatMap(function ($module, $moduleKey) use ($selectedPermissions) {
@@ -136,7 +134,7 @@
 
                 <div class="permission-edit-banner-copy">
                     <strong>EDIT MODE ACTIVE</strong>
-                    <span>Changes apply only to the {{ $selectedRolePermission->department }} module.</span>
+                    <span>Only {{ $selectedRolePermission->department }} permissions can be saved currently. Other modules are shown for review until cross-module authorization is enabled.</span>
                 </div>
 
                 <span class="permission-edit-unsaved">
@@ -197,87 +195,69 @@
                     </div>
                 </div>
             </section>
-        @elseif($roleModule)
-            <section class="module-access-section isolated-module-access">
+        @else
+            <section class="module-access-section system-wide-access department-module-matrix">
                 <div class="module-access-heading">
                     <div>
                         <span class="section-kicker">Module Permissions</span>
-                        <h2>{{ $roleModule['label'] }} Module Access</h2>
-                        <p>Manage what this role can do inside the {{ $roleModule['label'] }} module.</p>
+                        <h2>System-Wide Module Access</h2>
+                        <p>Review all GCT modules. Only the home department is editable in this first UI phase; cross-module access is not enabled yet.</p>
                     </div>
-
-                    <span class="access-count-badge">
-                        <i class="fa-solid fa-circle-check"></i>
-                        {{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed
-                    </span>
+                    <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
-
-                <div class="isolated-permission-list">
-                    @foreach($roleModule['capabilities'] as $capabilityKey => $capability)
+                <div class="system-admin-module-list">
+                    @foreach($visibleModules as $moduleKey => $module)
                         @php
-                            $isAllowed = (bool) data_get(
-                                $selectedPermissions,
-                                $roleModuleKey.'.'.$capabilityKey,
-                                false
-                            );
-                            $fieldName = "permissions[{$roleModuleKey}][{$capabilityKey}]";
-                            $descriptions = [
-                                'view' => 'View records, reports, and information available inside this department module.',
-                                'edit' => 'Create and edit records and operational information inside this department module.',
-                                'approve' => 'Approve requests, transactions, and workflow actions assigned to this department role.',
-                            ];
+                            $isHomeModule = $moduleKey === $roleModuleKey;
+                            $capabilities = $module['capabilities'];
+                            // Warehouse approval is shown for design consistency, but it has no
+                            // backend capability yet and must not be submitted as a permission.
+                            if ($moduleKey === 'warehouse') {
+                                $capabilities = array_merge($capabilities, [
+                                    'approve' => ['label' => 'Approve', 'icon' => 'fa-check-double'],
+                                ]);
+                            }
                         @endphp
-
-                        <label
-                            class="isolated-permission-row permission-option {{ $isAllowed ? 'allowed' : 'restricted' }}"
-                            data-permission-option
-                        >
-                            <input type="hidden" name="{{ $fieldName }}" value="0">
-
-                            <input
-                                type="checkbox"
-                                name="{{ $fieldName }}"
-                                value="1"
-                                @checked($isAllowed)
-                                disabled
-                                hidden
-                                data-permission-input
-                            >
-
-                            <div class="permission-row-icon">
-                                <i class="fa-solid {{ $capability['icon'] }}"></i>
+                        <article class="system-admin-module-row {{ $isHomeModule ? 'is-home-module' : 'is-preview-module' }}">
+                            <div class="module-access-info">
+                                <div class="module-access-icon {{ $moduleKey }}"><i class="fa-solid {{ $module['icon'] }}"></i></div>
+                                <div>
+                                    <strong>{{ $module['label'] }}</strong>
+                                    <span>{{ $module['description'] }}</span>
+                                    <small class="matrix-module-note">{{ $isHomeModule ? 'Department permissions' : 'Cross-module access — pending implementation' }}</small>
+                                </div>
                             </div>
-
-                            <div class="permission-row-copy">
-                                <strong>{{ $capability['label'] }}</strong>
-                                <span>{{ $descriptions[$capabilityKey] ?? ('Use ' . strtolower($capability['label']) . ' capabilities within this module.') }}</span>
+                            <div class="system-admin-capabilities">
+                                @foreach($capabilities as $capabilityKey => $capability)
+                                    @php
+                                        $supported = array_key_exists($capabilityKey, $module['capabilities']);
+                                        $editable = $isHomeModule && $supported;
+                                        $isAllowed = $editable && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
+                                        $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
+                                    @endphp
+                                    @if($editable)
+                                        <label class="matrix-permission-choice permission-option {{ $isAllowed ? 'allowed' : 'restricted' }}" data-permission-option>
+                                            <input type="hidden" name="{{ $fieldName }}" value="0">
+                                            <input type="checkbox" name="{{ $fieldName }}" value="1" @checked($isAllowed) disabled data-permission-input>
+                                            <span class="matrix-permission-label"><i class="fa-solid {{ $capability['icon'] }}"></i> {{ $capability['label'] }}</span>
+                                            <span class="permission-status-text">{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
+                                        </label>
+                                    @else
+                                        <span class="matrix-permission-choice is-locked" title="{{ $supported ? 'Cross-module permissions will be enabled after backend authorization is implemented.' : 'Warehouse approval permission has not been implemented yet.' }}">
+                                            <span class="matrix-permission-label"><i class="fa-solid fa-lock"></i> {{ $capability['label'] }}</span>
+                                            <span>Not available</span>
+                                        </span>
+                                    @endif
+                                @endforeach
                             </div>
-
-                            <span class="permission-toggle" aria-hidden="true">
-                                <span></span>
-                            </span>
-
-                            <span class="permission-status">
-                                <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-circle-xmark' }} option-state"></i>
-                                <span class="permission-status-text">{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
-                            </span>
-                        </label>
+                        </article>
                     @endforeach
                 </div>
-
                 <div class="module-restriction-note">
-                    <div class="restriction-note-icon">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </div>
-
+                    <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
-                        <strong>Module Access Restriction</strong>
-                        <p>
-                            The {{ $selectedRolePermission->label }} role can only access the
-                            <strong>{{ $roleModule['label'] }}</strong> module.
-                            This role does not have access to
-                            <strong>{{ $restrictedModuleLabels->join(', ', ', or ') }}</strong>.
-                        </p>
+                        <strong>UI preview — no cross-module access granted</strong>
+                        <p>System Admin can review every module here. Only {{ $selectedRolePermission->department }} permissions are currently saved; cross-module access and Warehouse approval require separate backend implementation.</p>
                     </div>
                 </div>
             </section>
