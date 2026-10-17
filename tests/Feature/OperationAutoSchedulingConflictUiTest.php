@@ -135,3 +135,18 @@ it('removes pairs that overlap assignments already applied to the preview', func
         ->toContain('const reportItems = items.map(conflictWithCurrentPreviewEligibility);')
         ->toContain('conflicts: reportItems.slice()');
 });
+
+it('separates regular recommendations from Head-reviewed Reserve alternatives', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain("const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'))")
+        ->toContain('const recommendedPair = regularPairs[0] || null')
+        ->toContain('const alternativePairs = validPairs.filter(pair => pair !== recommendedPair)')
+        ->toContain("recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative')")
+        ->toContain('Recommended Assignments (${recommendedPair ? 1 : 0})')
+        ->toContain('Alternative Options (${alternativePairs.length})')
+        ->toContain('Reserve requires Head review')
+        ->toContain('data-gct-inline-pair')
+        ->toContain('canAssignReserve()');
+});
