@@ -4820,3 +4820,21 @@ body.ai-modal-open {
   flex-basis: 100%;
   padding-left: 23px;
 }
+
+/* Inline alternatives: pair cards can be selected without a second modal. */
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 10px;
+}
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair[aria-pressed="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
