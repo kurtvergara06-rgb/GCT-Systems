@@ -47,6 +47,37 @@ class OperationAutoSchedulingTest extends TestCase
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 
+    public function test_preview_editor_accepts_any_of_multiple_bus_clients_and_rejects_other_clients(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $sm = \App\Models\Operation\OperationClient::create(['name' => 'SM']);
+        $epson = \App\Models\Operation\OperationClient::create(['name' => 'EPSON']);
+        $bus->update(['client_allocation_type' => 'Shared']);
+        $bus->operationClients()->sync([$sm->id, $epson->id]);
+
+        $payload = [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'recommendations' => [],
+        ];
+
+        $trip->update(['client_name' => 'EPSON']);
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), $payload)
+            ->assertOk()->assertJsonPath('success', true);
+
+        $trip->update(['client_name' => 'SM']);
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), $payload)
+            ->assertOk()->assertJsonPath('success', true);
+
+        $trip->update(['client_name' => 'Murata']);
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), $payload)
+            ->assertUnprocessable()->assertJsonValidationErrors('bus_id');
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
+
     public function test_preview_editor_rejects_ineligible_driver_without_saving(): void
     {
         $user = User::factory()->create();
