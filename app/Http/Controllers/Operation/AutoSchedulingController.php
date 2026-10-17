@@ -2459,14 +2459,19 @@ class AutoSchedulingController extends Controller
                 continue;
             }
 
-            $authorizedIds = Driver::query()
-                ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($bus->id))
-                ->pluck('driver_id')
-                ->all();
+            // Reserve buses have no permanent driver authorization. They are
+            // review-only proposals that Operations Head must explicitly approve.
+            // Regular buses must still use their authorized driver list.
+            $eligibleDrivers = $bus->fleet_purpose === 'Reserve'
+                ? $drivers
+                : $drivers->whereIn('driver_id', Driver::query()
+                    ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($bus->id))
+                    ->pluck('driver_id')
+                    ->all());
 
             $driver = $this->findAvailableDriver(
                 $trip,
-                $drivers->whereIn('driver_id', $authorizedIds),
+                $eligibleDrivers,
                 $existingAssignments,
                 $generatedRecommendations,
                 $driverWorkloads
