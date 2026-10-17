@@ -96,3 +96,11 @@ it('shows compact validated driver bus pairs first with collapsible details and 
         ->toContain('.gct-compact-details')
         ->toContain('.gct-report-actions { position:sticky');
 });
+
+it('rechecks driver and bus overlap before advertising valid AI pairs', function (): void {
+    $controller = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+    expect($controller)
+        ->toContain('Individually scored alternatives are not automatically valid')
+        ->toContain('! $this->driverHasConflict($trip, $candidate->driver_id, $existingAssignments, $recommendations)')
+        ->toContain('! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations)');
+});
