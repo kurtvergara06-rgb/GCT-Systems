@@ -1127,3 +1127,109 @@
         flex-direction: column;
     }
 }
+
+
+/* Compact department matrix — visually consistent with System Admin rows. */
+.department-module-matrix .system-admin-module-list {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #dce6f2;
+    border-radius: 12px;
+    background: #fff;
+}
+.department-module-matrix .system-admin-module-row,
+.department-module-matrix .system-admin-module-row.is-home-module {
+    min-height: 56px;
+    padding: 10px 13px;
+    display: grid;
+    grid-template-columns: minmax(240px, .95fr) minmax(0, 1.05fr);
+    gap: 14px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid #e8eef6;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    transition: background-color .15s ease;
+}
+.department-module-matrix .system-admin-module-row:last-child {
+    border-bottom: 0;
+}
+.department-module-matrix .system-admin-module-row:hover {
+    background: #f8fbff;
+    border-color: #e8eef6;
+    box-shadow: none;
+}
+.department-module-matrix .system-admin-module-row.is-home-module {
+    background: #f7faff;
+    box-shadow: inset 3px 0 0 #2b6ded;
+}
+.department-module-matrix .module-access-info {
+    gap: 10px;
+}
+.department-module-matrix .module-access-info strong {
+    font-size: 12px;
+}
+.department-module-matrix .matrix-module-note {
+    display: none;
+}
+.department-module-matrix .system-admin-capabilities {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    gap: 8px;
+}
+.department-module-matrix .matrix-permission-choice,
+.department-module-matrix .matrix-permission-choice.is-locked {
+    min-height: 31px;
+    padding: 6px 9px;
+    border-radius: 7px;
+    gap: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 10.5px;
+    line-height: 1.25;
+}
+.department-module-matrix .matrix-permission-choice .matrix-permission-label {
+    font-size: 10.5px;
+    line-height: 1.25;
+}
+.department-module-matrix .matrix-permission-choice > .permission-status-text,
+.department-module-matrix .matrix-permission-choice.is-locked > span:last-child {
+    display: none;
+}
+.department-module-matrix .matrix-permission-choice.is-locked {
+    background: #f3f6fa;
+    border-color: #e6ebf2;
+    color: #8b98aa;
+}
+.department-module-matrix .matrix-permission-choice.allowed {
+    background: #effaf3;
+    border-color: #bbf0ca;
+}
+.department-module-matrix .matrix-permission-choice.restricted {
+    background: #fff5f5;
+    border-color: #f3d2d2;
+}
+@media (max-width: 1180px) {
+    .department-module-matrix .system-admin-module-row,
+    .department-module-matrix .system-admin-module-row.is-home-module {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+}
+@media (max-width: 640px) {
+    .department-module-matrix .system-admin-capabilities {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+    }
+    .department-module-matrix .system-admin-module-row {
+        padding: 10px;
+    }
+    .department-module-matrix .matrix-permission-choice,
+    .department-module-matrix .matrix-permission-choice.is-locked {
+        padding: 6px;
+    }
+}
