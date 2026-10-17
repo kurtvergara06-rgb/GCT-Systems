@@ -967,3 +967,163 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Roles & Permissions: clearer hierarchy and polished department-wide matrix */
+.permissions-page .role-access-panel {
+    border: 1px solid #dee7f2;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 35, 73, .055);
+}
+.permissions-page .selected-role-header {
+    padding-bottom: 17px;
+    margin-bottom: 17px;
+    border-bottom: 1px solid #e7edf5;
+}
+.permissions-page .role-capability-strip {
+    gap: 11px;
+    margin-bottom: 22px;
+}
+.permissions-page .capability-item {
+    min-width: 0;
+    border-radius: 13px;
+    border-color: #dce6f2;
+    background: linear-gradient(180deg, #fff, #f8fbff);
+}
+.permissions-page .capability-item strong {
+    font-weight: 800;
+}
+.department-module-matrix .module-access-heading {
+    margin-bottom: 17px;
+    gap: 12px;
+}
+.department-module-matrix .module-access-heading h2 {
+    letter-spacing: -.025em;
+    line-height: 1.25;
+}
+.department-module-matrix .module-access-heading p {
+    max-width: 760px;
+    line-height: 1.55;
+}
+.department-module-matrix .system-admin-module-list {
+    padding: 8px;
+    border: 1px solid #e1e9f4;
+    border-radius: 15px;
+    background: #f6f9fd;
+    display: grid;
+    gap: 8px;
+}
+.department-module-matrix .system-admin-module-row {
+    min-height: 91px;
+    padding: 15px 16px;
+    border: 1px solid #e6ecf5;
+    border-radius: 12px;
+    background: #fff;
+    grid-template-columns: minmax(235px, .9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    box-shadow: 0 2px 8px rgba(24, 45, 84, .025);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+.department-module-matrix .system-admin-module-row:last-child {
+    border-bottom: 1px solid #e6ecf5;
+}
+.department-module-matrix .system-admin-module-row:hover {
+    border-color: #bed2ef;
+    box-shadow: 0 4px 14px rgba(32, 67, 120, .065);
+}
+.department-module-matrix .system-admin-module-row.is-home-module {
+    border-color: #a8c8ff;
+    background: linear-gradient(110deg, #f5f9ff, #fff 55%);
+    box-shadow: inset 3px 0 #2563eb, 0 4px 14px rgba(37, 99, 235, .05);
+}
+.department-module-matrix .module-access-info {
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+}
+.department-module-matrix .module-access-info > div:last-child {
+    min-width: 0;
+}
+.department-module-matrix .module-access-info strong {
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+.department-module-matrix .module-access-info span {
+    line-height: 1.5;
+}
+.department-module-matrix .matrix-module-note {
+    margin-top: 7px;
+    line-height: 1.35;
+    color: #7a8ca6;
+}
+.department-module-matrix .is-home-module .matrix-module-note {
+    color: #1556b6;
+}
+.department-module-matrix .system-admin-capabilities {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    align-items: stretch;
+}
+.department-module-matrix .matrix-permission-choice {
+    min-width: 0;
+    min-height: 51px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    gap: 5px;
+    font-size: 10.5px;
+    line-height: 1.3;
+    transition: background-color .18s ease, border-color .18s ease;
+}
+.department-module-matrix .matrix-permission-choice .matrix-permission-label {
+    gap: 7px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: normal;
+}
+.department-module-matrix .matrix-permission-choice.is-locked {
+    background: #f8fafc;
+    border-color: #edf1f7;
+    color: #8898ae;
+}
+.department-module-matrix .matrix-permission-choice.is-locked > span:last-child {
+    color: #9ba8b9;
+    font-size: 10px;
+    font-weight: 600;
+}
+.department-module-matrix .matrix-permission-choice.allowed {
+    background: #f0fbf5;
+    border-color: #b9ead0;
+}
+.department-module-matrix .matrix-permission-choice.restricted {
+    background: #fff8f8;
+    border-color: #f7d8d8;
+}
+.department-module-matrix .module-restriction-note {
+    margin-top: 13px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f2f7ff;
+}
+.permissions-page .permission-edit-actions {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e6edf6;
+}
+@media (max-width: 1340px) {
+    .department-module-matrix .system-admin-module-row {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+}
+@media (max-width: 700px) {
+    .department-module-matrix .system-admin-capabilities {
+        grid-template-columns: 1fr;
+    }
+    .department-module-matrix .system-admin-module-row {
+        padding: 13px;
+    }
+    .department-module-matrix .module-access-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
