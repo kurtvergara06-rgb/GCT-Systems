@@ -2016,7 +2016,14 @@ function updateMlStatus(conflicts) {
         // Keep the detailed AI Conflict Report synchronized with saved drafts
         // and edits, not only with fresh /generate network responses.
         document.dispatchEvent(new CustomEvent('gct:auto-conflicts-updated', {
-            detail: { conflicts: items.slice() },
+            detail: {
+                conflicts: items.slice(),
+                readyCounts: Array.from(recommendations.filter(item => item.result === 'Ready').reduce((counts, item) => {
+                    const key = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
+                    counts.set(key, (counts.get(key) || 0) + 1);
+                    return counts;
+                }, new Map()).entries()),
+            },
         }));
     }
 
@@ -2540,6 +2547,7 @@ function updateMlStatus(conflicts) {
     const assignmentPath = '/operation/driver-bus-assignment';
 
     let conflicts = [];
+    let readyCountsByTrip = new Map();
     const selections = new Map();
     let redesignQueued = false;
 
@@ -3069,7 +3077,9 @@ function updateMlStatus(conflicts) {
             .replace(/attendance,?\s+shift,?\s+and\s+availability/gi, 'attendance and availability')
             .replace(/attendance\s+and\s+shift/gi, 'attendance and availability');
         const requiredBuses = Math.max(1, Number(conflict.required_buses || 1));
-        const assignedBuses = Math.min(requiredBuses, Math.max(0, Number(conflict.already_assigned_count || 0)));
+        const tripKey = String(conflict.trip_schedule_id || conflict.base_trip_code || conflict.trip_code || '');
+        const assignedBuses = Math.min(requiredBuses, Math.max(0,
+            Number(readyCountsByTrip.get(tripKey) ?? conflict.already_assigned_count ?? 0)));
         const assignmentProgress = `${assignedBuses}/${requiredBuses}`;
         const requiredLabel = `${assignmentProgress} assigned`;
         const reportTripCode = conflict.base_trip_code || String(conflict.trip_code || 'Trip').replace(/\s*\(Bus \d+\/\d+\)$/, '');
@@ -3327,9 +3337,10 @@ function updateMlStatus(conflicts) {
             const trip = item.base_trip_code || item.trip_code || 'Trip';
             const severity = getConflictSeverity(item);
             const required = Math.max(1, Number(item.required_buses || 1));
-            const assigned = Math.max(0, Number(item.already_assigned_count || 0));
-            const ready = Math.max(0, Math.min(required, Number(item.ready_buses || 0)));
-            const slot = Math.min(required, assigned + Math.max(1, Number(item.slot || 1)));
+            const tripKey = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
+            const ready = Math.min(required, Math.max(0,
+                Number(readyCountsByTrip.get(tripKey) ?? item.ready_buses ?? 0)));
+            const slot = Math.min(required, Math.max(1, Number(item.slot || 1)));
             const slotLabel = required === 1 ? 'Single bus slot' : `Slot ${slot} of ${required}`;
             return `<tr class="${index === selectedConflictIndex ? 'is-selected' : ''}" data-gct-report-index="${index}" tabindex="0" role="button" aria-selected="${index === selectedConflictIndex}" aria-label="View AI conflict report for ${escapeHtml(trip)}, ${escapeHtml(item.slot_label || '')}">
                 <td><span class="gct-conflict-trip-cell">
@@ -3344,7 +3355,7 @@ function updateMlStatus(conflicts) {
             </tr>`;
         }).join('');
         container.innerHTML = `
-            <div class="gct-conflict-workspace ${conflictReportClosed ? 'is-report-closed' : ''}">
+            <div class="gct-conflict-workspace ${conflicts.length === 1 ? 'is-single-conflict' : ''} ${conflictReportClosed ? 'is-report-closed' : ''}">
                 <div class="gct-conflict-list">
                     <div class="gct-conflict-toolbar">
                         <div class="gct-conflict-tabs">
@@ -3756,6 +3767,7 @@ function updateMlStatus(conflicts) {
     document.addEventListener('gct:auto-conflicts-updated', (event) => {
         if (!document.querySelector('.auto-scheduling-page')) return;
         conflicts = Array.isArray(event.detail?.conflicts) ? event.detail.conflicts.slice() : [];
+        readyCountsByTrip = new Map(Array.isArray(event.detail?.readyCounts) ? event.detail.readyCounts : []);
         const container = document.getElementById('autoSchedulingConflictContent');
         if (container) delete container.dataset.gctWorkspaceSignature;
         if (!conflicts.length) {
