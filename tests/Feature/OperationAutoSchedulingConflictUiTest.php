@@ -102,3 +102,13 @@ it('rechecks driver and bus overlap before advertising valid AI pairs', function
         ->toContain('! $this->driverHasConflict($trip, $candidate->driver_id, $existingAssignments, $recommendations)')
         ->toContain('! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations)');
 });
+
+it('explains Reserve-only recommendations without claiming no driver exists', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('const reserveOnlyOptions = validPairs.length > 0')
+        ->toContain('No automatic Regular Bus assignment available.')
+        ->toContain('Eligible driver–Reserve Bus pairs are available for Operations Head review.')
+        ->toContain('final Laravel validation still applies.');
+});
