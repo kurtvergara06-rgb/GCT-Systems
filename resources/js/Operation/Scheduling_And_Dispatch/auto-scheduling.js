@@ -338,7 +338,7 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         const generated = document.querySelector('#gctAutoPrintGenerated');
         if (date) {
             const raw = String(new FormData(form).get('schedule_date') || '');
-            date.textContent = /^\\d{4}-\\d{2}-\\d{2}$/.test(raw) ? raw : 'Not selected';
+            date.textContent = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : 'Not selected';
         }
         if (generated) {
             generated.textContent = new Intl.DateTimeFormat('en-PH', {
