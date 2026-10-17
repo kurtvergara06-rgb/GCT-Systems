@@ -2889,3 +2889,40 @@
 @media (max-width: 520px) {
   .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button { padding: 0 9px; }
 }
+
+
+/* Keep selected client chips OUTSIDE the client-name fill-up field. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 8px;
+  min-height: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border: 0;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  box-sizing: border-box;
+  min-height: 43px;
+  padding: 5px;
+  gap: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 8px;
+  background: #fff;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  height: 32px;
+}
