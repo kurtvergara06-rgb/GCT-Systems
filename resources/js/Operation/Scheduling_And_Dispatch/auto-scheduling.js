@@ -3096,6 +3096,18 @@ function updateMlStatus(conflicts) {
             : Number.isFinite(score) && ai.score !== null && ai.score !== undefined
                 ? `Assignment suitability: ${score}/100`
                 : 'Assignment suitability unavailable';
+        const pairCards = validPairs.map(pair => {
+            const selected = selectedDriverId === Number(pair.driver_attendance_id)
+                && selectedBusId === Number(pair.bus_id);
+            const isReserve = String(pair.bus_label || '').includes('(Reserve)');
+            return `<button type="button" class="gct-valid-pair gct-compact-pair ${selected ? 'is-selected' : ''}"
+                data-gct-inline-pair="${index}" data-gct-inline-driver="${Number(pair.driver_attendance_id)}"
+                data-gct-inline-bus="${Number(pair.bus_id)}" aria-pressed="${selected ? 'true' : 'false'}"
+                ${isReserve && !canAssignReserve() ? 'disabled' : ''}>
+                <strong>${escapeHtml(pair.driver_label)} <i class="fa-solid fa-arrow-right"></i> ${escapeHtml(pair.bus_label)}</strong>
+                <small>${isReserve ? 'Reserve · Operations Head review required' : 'Eligible Regular Bus'} · Final Laravel validation applies</small>
+            </button>`;
+        }).join('');
         const activeTab = recommendationTabs.get(index) || 'recommended';
         const issueTitle = aiConflict.title
             || conflict.reason
@@ -3173,22 +3185,24 @@ function updateMlStatus(conflicts) {
                     </div>
                 </section>
 
-                <section class="gct-report-explanation">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <div>
-                        <strong>Detailed Explanation</strong>
+                <details class="gct-compact-details">
+                    <summary>Detailed explanation and AI findings</summary>
+                    <div class="gct-compact-details-content">
                         <p>${escapeHtml(stripSlotSuffix(explanation))}</p>
                         <p><strong>${escapeHtml(suitabilityText)}</strong></p>
-                        <p>Bus scoring: ${escapeHtml(sourceLabel(ml.bus_source))} · Driver scoring: ${escapeHtml(sourceLabel(ml.driver_source))}</p>
-                        ${Array.isArray(aiConflict.findings) && aiConflict.findings.length ? `
-                            <div class="gct-report-findings">
-                                <strong>Findings</strong>
-                                <ul>${aiConflict.findings.map(finding => `<li>${escapeHtml(typeof finding === 'string' ? finding : finding?.message || finding?.description || finding?.title || 'Scheduling restriction identified')}</li>`).join('')}</ul>
-                            </div>
-                        ` : ''}
+                        <p>Bus: ${escapeHtml(sourceLabel(ml.bus_source))} · Driver: ${escapeHtml(sourceLabel(ml.driver_source))}</p>
+                        ${Array.isArray(aiConflict.findings) && aiConflict.findings.length
+                            ? `<ul>${aiConflict.findings.map(f => `<li>${escapeHtml(typeof f === 'string' ? f : f?.message || f?.description || 'Scheduling restriction identified')}</li>`).join('')}</ul>`
+                            : ''}
                     </div>
-                </section>
+                </details>
 
+                <section class="gct-compact-pair-selector">
+                    <header><strong>Choose a valid driver–bus pair</strong><span>${validPairs.length} eligible pairs</span></header>
+                    ${validPairs.length
+                        ? `<div class="gct-compact-pair-list">${pairCards}</div>`
+                        : '<div class="gct-report-empty">No complete eligible pair. Review alternatives or defer this slot.</div>'}
+                </section>
                 <div class="gct-report-tabs" role="tablist" aria-label="Conflict recommendation options">
                     <button
                         type="button"
@@ -3269,10 +3283,10 @@ function updateMlStatus(conflicts) {
                             Handle Manually Later
                         </button>
                         ${isReserveReview ? `
-                            <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}" ${(activeTab === 'alternative' && reserveSelected && canAssignReserve()) ? '' : 'disabled'}>
+                            <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}" ${(reserveSelected && canAssignReserve()) ? '' : 'disabled'}>
                                 <i class="fa-solid fa-bus"></i> Apply to Preview
                             </button>
-                        ` : activeTab === 'alternative' ? `
+                        ` : (activeTab === 'alternative' || pairAllowed) ? `
                             <button type="button" class="ai-resolution-btn primary" data-gct-apply-inline="${escapeHtml(conflictKey)}" data-gct-apply-inline-index="${index}" ${inlineCanApply ? '' : 'disabled'}>
                                 <i class="fa-solid fa-check-circle"></i> Apply to Preview
                             </button>
