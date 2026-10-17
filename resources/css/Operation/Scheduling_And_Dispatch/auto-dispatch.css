@@ -5118,3 +5118,20 @@ body.ai-modal-open {
     font: bold 9px/1.4 Arial, sans-serif !important;
   }
 }
+
+/* Final draft print polish: display per-slot state, not repeated trip totals. */
+.gct-auto-print-slot-status { display: none; }
+@media print {
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-bus-assignment-progress {
+    display: none !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .gct-auto-print-slot-status {
+    display: block !important;
+    margin-top: 1mm !important;
+    color: #52637b !important;
+    font: 8px/1.35 Arial, sans-serif !important;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-signatures {
+    margin-top: 9mm !important;
+  }
+}
