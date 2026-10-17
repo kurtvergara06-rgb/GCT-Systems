@@ -312,6 +312,7 @@ const syncPageOwnedElements = (nextDocument) => {
                 element.hasAttribute('data-page-owned')
                 || element.dataset.pageOwned === 'true'
                 || (element.matches?.(PAGE_OVERLAY_SELECTOR) && !element.matches?.(PERSISTENT_OVERLAY_SELECTOR))
+                || element.matches?.('[data-ajax-region="assignment-modal"]')
             )
         ) {
             element.remove();
@@ -338,7 +339,8 @@ const syncPageOwnedElements = (nextDocument) => {
             || element.id === 'appSidebar'
             || element.tagName === 'SCRIPT'
             || element.matches(PERSISTENT_OVERLAY_SELECTOR)
-            || !element.matches(PAGE_OVERLAY_SELECTOR)
+            || !(element.matches(PAGE_OVERLAY_SELECTOR)
+                || element.matches('[data-ajax-region="assignment-modal"]'))
         ) return;
         document.body.appendChild(markPageOwned(document.importNode(element, true)));
     });
