@@ -9,6 +9,9 @@
         'resources/js/Operation/Daily_Driver_Reports/daily-driver-reports.js',
     ]"
 >
+    @php
+        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    @endphp
     <div class="app">
         <x-layout.sidebar department="Operation" />
 
@@ -73,10 +76,12 @@
                         <p>Actual shuttle trip execution encoded from physical daily driver reports.</p>
                     </div>
 
+                    @if($canEditOperation)
                     <button type="button" id="openEncodeReportModal" class="ddr-new-btn">
                         <i class="fa-solid fa-plus"></i>
                         Encode New Report
                     </button>
+                    @endif
                 </div>
 
                 <!-- Filter & Search Toolbar -->
@@ -325,6 +330,7 @@
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
 
 
+    @if($canEditOperation)
     <x-ui.form-modal
         id="ddrEncodeModal"
         title="Encode New Report"
@@ -568,6 +574,7 @@
             </div>
         </details>
     </x-ui.form-modal>
+    @endif
 
         </main>
     </div>

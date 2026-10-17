@@ -2,6 +2,8 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const pageRoot = document.querySelector('.auto-scheduling-page');
     const canEditOperation =
         pageRoot?.dataset.operationEdit === 'true';
+    const canApproveOperation =
+        pageRoot?.dataset.operationApprove === 'true';
     const canAssignReserve = pageRoot?.dataset.reserveHead === 'true';
 
     const form =
@@ -1202,11 +1204,11 @@ function updateMlStatus(conflicts) {
 
 
     async function confirmSchedule() {
-        if (!canEditOperation) {
+        if (!canEditOperation || !canApproveOperation) {
             window.showSystemToast?.(
-                'Your role has view-only access to Operation scheduling.',
+                'Your role cannot approve and confirm Operation schedules.',
                 'warning',
-                'View-only access'
+                'Approval access required'
             );
             return;
         }

@@ -11,6 +11,9 @@
     'resources/js/Operation/Attendance/batch-attendance.js'
   ]"
 >
+  @php
+    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+  @endphp
 
   <div class="app">
 
@@ -46,7 +49,8 @@
             <h2>Driver Attendance List</h2>
             <p>Track daily driver attendance, bus assignment, time-in, and attendance status</p>
           </div>
-<button
+          @if($canEditOperation)
+          <button
             type="button"
             class="primary-btn batch-attendance-open"
             data-batch-attendance-open
@@ -54,6 +58,7 @@
             <i class="fa-solid fa-clipboard-check"></i>
             Record Daily Attendance
           </button>
+          @endif
 
         </div>
 
@@ -140,6 +145,7 @@
                   <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
                   <td>
                     <div class="actions">
+                      @if($canEditOperation)
                       <button
                         type="button"
                         class="action-btn view open-view-driver-attendance-modal"
@@ -191,6 +197,7 @@
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       </form>
+                      @endif
                     </div>
                   </td>
                 </tr>
@@ -212,6 +219,7 @@
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
 
 
+  @if($canEditOperation)
   <x-ui.form-modal
     id="driverAttendanceModal"
     title="Driver Attendance Details"
@@ -261,6 +269,7 @@
       </div>
     </div>
   </x-ui.form-modal>
+  @endif
 
   <x-ui.form-modal
     id="viewDriverAttendanceModal"
@@ -283,6 +292,7 @@
     </div>
   </x-ui.form-modal>
 
+  @if($canEditOperation)
   <x-ui.action-buttom-modal
     mode="delete"
     id="deleteDriverAttendanceModal"
@@ -292,6 +302,7 @@
     cancel-id="cancelDeleteDriverAttendance"
     confirm-id="confirmDeleteDriverAttendance"
   />
+  @endif
 
     </main>
   </div>

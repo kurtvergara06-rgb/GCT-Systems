@@ -206,4 +206,23 @@ class IsolatedRolePermissionsTest extends TestCase
             ->assertSee('Full System Access')
             ->assertSee('Protected Role');
     }
+
+    public function test_roles_permissions_controls_reinitialize_after_partial_navigation(): void
+    {
+        $admin = $this->systemAdmin();
+
+        $this->actingAs($admin)
+            ->get(route('admin.roles-permissions', ['role' => 'operation_head']))
+            ->assertOk()
+            ->assertSee('permissions[operation][view]', false)
+            ->assertSee('permissions[operation][edit]', false)
+            ->assertSee('permissions[operation][approve]', false);
+
+        $source = file_get_contents(resource_path('js/Admin/User_Management/permissions.js'));
+        $view = file_get_contents(resource_path('views/Admin/User_Management/permissions.blade.php'));
+        $this->assertStringContainsString('resources/js/Admin/User_Management/permissions.js', $view);
+        $this->assertStringContainsString("registerInitializer(\n    'admin-role-permissions'", $source);
+        $this->assertStringContainsString("'.permissions-page'", $source);
+        $this->assertStringNotContainsString('DOMContentLoaded', $source);
+    }
 }

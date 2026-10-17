@@ -130,7 +130,10 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
                 ->middleware('system.permission:operation,edit')
                 ->name('auto-scheduling.edit-preview');
             Route::post('/confirm', 'confirm')
-                ->middleware('system.permission:operation,edit')
+                ->middleware([
+                    'system.permission:operation,edit',
+                    'system.permission:operation,approve',
+                ])
                 ->name('auto-scheduling.confirm');
             Route::post('/resolve', 'resolve')
                 ->middleware('system.permission:operation,edit')

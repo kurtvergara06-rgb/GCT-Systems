@@ -10,6 +10,9 @@
     'resources/js/Operation/Attendance/batch-attendance.js'
   ]"
 >
+  @php
+    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+  @endphp
 
   <style>
     .badge.leave {
@@ -96,7 +99,8 @@
             <h2>Mechanic Attendance List</h2>
             <p>Track time-in, time-out, assigned job, and attendance status</p>
           </div>
-<button
+          @if($canEditOperation)
+          <button
             type="button"
             class="primary-btn batch-attendance-open"
             data-batch-attendance-open
@@ -104,6 +108,7 @@
             <i class="fa-solid fa-clipboard-check"></i>
             Record Daily Attendance
           </button>
+          @endif
 
         </div>
 
@@ -165,6 +170,7 @@
                         data-status="{{ $attendance->status }}">
                         <i class="fa-solid fa-eye"></i>
                       </button>
+                      @if($canEditOperation)
                       <button type="button" class="action-btn edit open-edit-attendance-modal"
                         @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
@@ -199,6 +205,7 @@
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       </form>
+                      @endif
                     </div>
                   </td>
                 </tr>
@@ -236,6 +243,7 @@
     </div>
   </div>
 
+  @if($canEditOperation)
   <div id="editMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal">
       <div class="modal-header">
@@ -315,5 +323,6 @@
     cancel-id="cancelDeleteAttendance"
     confirm-id="confirmDeleteAttendance"
   />
+  @endif
 
 </x-layout.app>

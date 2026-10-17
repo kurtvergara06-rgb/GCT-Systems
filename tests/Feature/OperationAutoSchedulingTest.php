@@ -959,7 +959,7 @@ class OperationAutoSchedulingTest extends TestCase
 
         $regular->update(['status' => 'Inactive']);
         $this->actingAs($staff)->postJson(route('auto-scheduling.confirm'), $payload)
-            ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
+            ->assertForbidden();
 
         $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $payload)
             ->assertOk()->assertJsonPath('saved', 1);

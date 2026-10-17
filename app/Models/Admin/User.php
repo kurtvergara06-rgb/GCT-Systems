@@ -82,6 +82,7 @@ class User extends Authenticatable
         $role = strtolower(trim((string) $this->role));
 
         return $this->hasSystemPermission('operation', 'edit')
+            && $this->hasSystemPermission('operation', 'approve')
             && $role === 'head'
             && in_array($department, ['operation', 'admin'], true);
     }

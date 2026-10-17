@@ -10,6 +10,7 @@
 >
 @php
     $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
     $canAssignReserve = auth()->user()?->canAssignReserveBus() ?? false;
 @endphp
 
@@ -19,6 +20,7 @@
     <main
         class="main auto-scheduling-page"
         data-operation-edit="{{ $canEditOperation ? 'true' : 'false' }}"
+        data-operation-approve="{{ $canApproveOperation ? 'true' : 'false' }}"
         data-reserve-head="{{ $canAssignReserve ? 'true' : 'false' }}"
     >
         <x-layout.topbar
@@ -443,7 +445,7 @@
                         Regenerate
                     </button>
 
-                    @if($canEditOperation)
+                    @if($canEditOperation && $canApproveOperation)
                         <button type="button" class="schedule-primary-btn" id="confirmScheduleButton" disabled>
                             <i class="fa-solid fa-circle-check"></i>
                             Confirm Schedule

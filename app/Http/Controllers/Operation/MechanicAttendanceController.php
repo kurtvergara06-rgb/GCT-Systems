@@ -22,6 +22,18 @@ class MechanicAttendanceController extends Controller
 
     public function index(Request $request)
     {
+        $user = $request->user();
+        $department = strtolower(trim((string) $user?->department));
+        $module = in_array($department, ['operation', 'operations'], true)
+            ? 'operation'
+            : 'maintenance';
+
+        abort_unless(
+            $user?->hasSystemPermission($module, 'view'),
+            403,
+            "Your role does not have permission to view {$module} records."
+        );
+
         $query = MechanicAttendance::query();
 
         if ($request->filled('search')) {

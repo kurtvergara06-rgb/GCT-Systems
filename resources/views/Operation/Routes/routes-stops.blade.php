@@ -13,19 +13,7 @@
     @php
         $routeUser = auth()->user();
 
-        $isOperationHead =
-            $routeUser
-            && strtolower(trim((string) $routeUser->department)) === 'operation'
-            && strtolower(trim((string) $routeUser->role)) === 'head';
-
-        $canManageRoutes =
-            $isOperationHead
-            || (
-                $routeUser?->hasSystemPermission(
-                    'operation',
-                    'edit'
-                ) ?? false
-            );
+        $canManageRoutes = $routeUser?->hasSystemPermission('operation', 'edit') ?? false;
     @endphp
 
     {{-- Validation errors are shown by the shared system toast and inline field feedback. --}}

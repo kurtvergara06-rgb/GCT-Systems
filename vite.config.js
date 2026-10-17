@@ -55,6 +55,7 @@ export default defineConfig({
                 'resources/css/Admin/User_Management/permissions.css',
 
                 'resources/js/Admin/User_Management/users.js',
+                'resources/js/Admin/User_Management/permissions.js',
 
                 // ======================================================
                 // ADMIN — DATA MANAGEMENT
