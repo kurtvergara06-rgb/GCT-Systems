@@ -60,9 +60,15 @@ class BatchAttendanceController extends Controller
             ->get()
             ->keyBy($idColumn);
 
-        // Keep the complete active roster visible. Existing records are
-        // returned as read-only rows so staff can distinguish recorded
-        // attendance from unmarked personnel without creating duplicates.
+        // For drivers, show only personnel who still need attendance for
+        // this date. A saved Present, Absent or On Leave record must not
+        // reappear in the new-entry modal.
+        if ($type === 'driver') {
+            $people = $people->reject(
+                fn ($person) => $dateRecords->has((string) $person->{$idColumn})
+            );
+        }
+
         $rows = $people->map(function ($person) use (
             $dateRecords,
             $date,
