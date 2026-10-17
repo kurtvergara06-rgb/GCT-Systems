@@ -143,7 +143,8 @@ async def operation_ai_lifespan(app: FastAPI):
     # an unusable ingestion store should fail startup rather than be disguised
     # as a complete AI deployment.
     assert_required_modules()
-    _warm_operation_ai_models()
+    # Load large ML artifacts only when a prediction or status endpoint needs them.
+    # Preloading here pushed the Render Free instance close to its 512 MB limit.
     yield
 
 
