@@ -237,6 +237,18 @@
         </section>
 
         <section class="auto-card generated-schedule-card" id="generatedScheduleSection">
+            <div class="gct-auto-print-header" aria-hidden="true">
+                <div>
+                    <h1>GCT-Systems</h1>
+                    <h2>Auto Scheduling — Draft Assignment Sheet</h2>
+                    <p>Proposed assignments for Operations review. Not authorized for dispatch.</p>
+                </div>
+                <div class="gct-auto-print-meta">
+                    <strong>DRAFT — NOT CONFIRMED</strong>
+                    <span>Schedule date: <span id="gctAutoPrintDate">—</span></span>
+                    <span>Printed: <span id="gctAutoPrintGenerated">—</span></span>
+                </div>
+            </div>
             <div class="auto-card-header schedule-result-header">
                 <div>
                     <span class="section-eyebrow">Auto-Generated Result</span>
@@ -445,6 +457,10 @@
                         </span>
                     @endif
                 </div>
+            </div>
+            <div class="gct-auto-print-signatures" aria-hidden="true">
+                <div>Prepared by / Operations Staff</div>
+                <div>Reviewed by / Operations Head</div>
             </div>
         </section>
 
