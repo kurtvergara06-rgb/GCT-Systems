@@ -435,7 +435,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 const clientInput = document.getElementById('edit_client_name');
                 const clientNotice = document.getElementById('existingSharedClientNotice');
                 const isShared = button.dataset.clientAllocationType === 'Shared';
-                if (clientInput) clientInput.value = isShared ? '' : (button.dataset.clientNames || '');
+                // Show all saved clients so editing can add/remove individual names
+                // instead of silently replacing an existing shared allocation.
+                if (clientInput) clientInput.value = button.dataset.clientNames || '';
                 if (clientNotice) clientNotice.hidden = !isShared;
 
                 if (editBusNo) {
