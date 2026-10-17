@@ -290,10 +290,18 @@ const syncPageOwnedElements = (nextDocument) => {
     }
 
     if (currentApp) {
+        // A full page load can leave unmarked modal wrappers as siblings of <main>.
+        // Remove all page-specific siblings when switching pages, not only nodes
+        // previously added by partial navigation. Otherwise duplicate modal IDs
+        // leave event handlers pointing at detached or stale assignment dialogs.
         Array.from(currentApp.children).forEach((element) => {
-            if (element.hasAttribute('data-page-owned') || element.dataset.pageOwned === 'true') {
-                element.remove();
-            }
+            if (
+                element === currentMain
+                || element.id === 'appSidebar'
+                || element.tagName === 'SCRIPT'
+                || element.matches(PERSISTENT_OVERLAY_SELECTOR)
+            ) return;
+            element.remove();
         });
     }
 
