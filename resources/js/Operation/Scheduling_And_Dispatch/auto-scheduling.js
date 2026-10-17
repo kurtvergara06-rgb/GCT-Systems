@@ -3200,101 +3200,35 @@ function updateMlStatus(conflicts) {
                 </details>
 
                 <section class="gct-compact-pair-selector">
-                    <header><strong>Choose a valid driver–bus pair</strong><span>${validPairs.length} eligible pairs</span></header>
-                    ${validPairs.length
-                        ? `<div class="gct-compact-pair-list">${pairCards}</div>`
-                        : '<div class="gct-report-empty">No complete eligible pair. Review alternatives or defer this slot.</div>'}
-                </section>
-                <div class="gct-report-tabs" role="tablist" aria-label="Conflict recommendation options">
-                    <button
-                        type="button"
-                        role="tab"
-                        data-gct-option-tab="recommended"
-                        data-gct-conflict-index="${index}"
-                        class="${activeTab === 'recommended' ? 'active' : ''}"
-                    >
-                        Recommended Assignments (${Math.max(drivers.length ? 1 : 0, buses.length ? 1 : 0)})
-                    </button>
-                    <button
-                        type="button"
-                        role="tab"
-                        data-gct-option-tab="alternative"
-                        data-gct-conflict-index="${index}"
-                        class="${activeTab === 'alternative' ? 'active' : ''}"
-                    >Alternative Options (${drivers.length + buses.length + reserveInformation.length + validPairs.length + (isReserveReview ? 1 : 0)})</button>
-                </div>
-
-                <div class="gct-report-recommendations">
-                    ${activeTab === 'alternative' ? `
-                        <section class="gct-alternative-section" data-gct-alternative-section="drivers">
-                            <header><strong><i class="fa-solid fa-id-card"></i> Driver Alternatives</strong><span>${drivers.length} eligible</span></header>
-                            ${drivers.length
-                                ? `<div class="gct-report-options" data-resource-type="driver">${renderReportOptionCards(drivers.slice(0, 5), 'driver', selectedDriverId, index)}</div>`
-                                : '<div class="gct-report-empty">No Laravel-eligible driver alternative is available.</div>'}
-                        </section>
-                        <section class="gct-alternative-section" data-gct-alternative-section="buses">
-                            <header><strong><i class="fa-solid fa-bus"></i> Bus Alternatives</strong><span>${buses.length + reserveInformation.length + (isReserveReview ? 1 : 0)} eligible</span></header>
-                            ${isReserveReview ? `
-                                <button type="button" class="gct-option-card gct-report-option ${reserveSelected ? 'is-selected' : ''}"
-                                    data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}" aria-disabled="${canAssignReserve() ? 'false' : 'true'}"
-                                    style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px;">
-                                    <span class="gct-option-radio" aria-hidden="true"></span>
-                                    <span class="gct-report-option-copy"><strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong><small>Laravel eligibility passed · Operations Head direct assignment · Revalidated before confirmation</small></span>
-                                </button>
-                            ` : ''}
-                            ${buses.length ? `<div class="gct-report-options" data-resource-type="bus">${renderReportOptionCards(buses.slice(0, 5), 'bus', selectedBusId, index)}</div>` : ''}
-                            ${reserveInformation.length ? `
-                                <div class="gct-report-reserve-alternatives">
-                                    ${reserveInformation.map(bus => `
-                                        <button type="button" class="gct-option-card gct-report-option gct-reserve-choice ${selectedReserve === bus ? 'is-selected' : ''}" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" aria-pressed="${selectedReserve === bus ? 'true' : 'false'}" aria-disabled="${canAssignReserve() ? 'false' : 'true'}">
-                                            <span class="gct-reserve-choice-identity"><i class="fa-solid fa-bus" aria-hidden="true"></i><strong>${escapeHtml(bus.label)}</strong><small>${bus.score !== null && bus.score !== undefined ? `Suitability ${Number(bus.score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(bus.score_source || ml.bus_source))}</small></span>
-                                            <span class="gct-reserve-choice-indicator" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            ` : (!isReserveReview && !buses.length ? '<div class="gct-report-empty">No Laravel-eligible bus alternative is available.</div>' : '')}
-                        </section>
-                        <section class="gct-alternative-section" data-gct-alternative-section="pairs">
-                            <header><strong><i class="fa-solid fa-link"></i> Valid Driver&ndash;Bus Pairs</strong><span>${validPairs.length} valid</span></header>
-                            ${validPairs.length ? `<div class="gct-valid-pair-list">${validPairs.map(pair => `
-                                <button type="button" class="gct-valid-pair" data-gct-inline-pair="${index}" data-gct-inline-driver="${Number(pair.driver_attendance_id)}" data-gct-inline-bus="${Number(pair.bus_id)}" aria-pressed="${selectedDriverId === Number(pair.driver_attendance_id) && selectedBusId === Number(pair.bus_id) ? 'true' : 'false'}">
-                                    <strong>${escapeHtml(pair.driver_label)} <i class="fa-solid fa-arrow-right"></i> ${escapeHtml(pair.bus_label)}</strong>
-                                    <small>Driver: ${pair.driver_score !== null && pair.driver_score !== undefined ? `${Number(pair.driver_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.driver_score_source))}</small>
-                                    <small>Bus: ${pair.bus_score !== null && pair.bus_score !== undefined ? `${Number(pair.bus_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.bus_score_source))}</small>
-                                    <span>${escapeHtml(pair.reason || 'Laravel eligibility passed; final server validation still applies.')}</span>
-                                </button>
-                            `).join('')}</div>` : '<div class="gct-report-empty">No complete driver&ndash;bus pair currently passes deterministic eligibility.</div>'}
-                        </section>
-                    ` : ''}
-                    ${isReserveReview && activeTab === 'recommended' ? '<div class="gct-report-empty">Open Alternative Options to select the proposed Reserve Bus.</div>' : ''}
-                    ${activeTab === 'recommended' && !isReserveReview ? (missingDriver || missingBus
-                        ? '<div class="gct-report-empty">No complete assignment is currently recommended. Review the separated alternatives and valid pairs.</div>'
-                        : `${renderRecommendationGroup(drivers, 'driver', selection.driverId, index)}${renderRecommendationGroup(buses, 'bus', selection.busId, index)}`) : ''}
-                    ${activeTab === 'recommended' && action?.suggested_time ? `
-                        <div class="gct-report-time-option">
-                            <i class="fa-regular fa-clock"></i>
-                            <span>Proposed departure<strong>${escapeHtml(displayTime(action.suggested_time))}</strong><small>${escapeHtml(action.explanation || 'This time is a suggestion, not a validated solution. Driver, bus, maintenance and overlap rules must be rechecked.')}</small></span>
+                    <header><strong>Recommended Driver–Bus Pairs</strong><span>${validPairs.length} eligible</span></header>
+                    ${validPairs.length ? `
+                        <div class="gct-compact-pair-list">
+                            ${pairCards.split('</button>').slice(0, 3).filter(Boolean).map(card => card + '</button>').join('')}
                         </div>
-                    ` : ''}
-                </div>
-
+                        ${validPairs.length > 3 ? `
+                            <details class="gct-more-pairs">
+                                <summary>Show ${validPairs.length - 3} other eligible pairs</summary>
+                                <div class="gct-compact-pair-list">${pairCards.split('</button>').slice(3).filter(Boolean).map(card => card + '</button>').join('')}</div>
+                            </details>` : ''}
+                    ` : '<div class="gct-report-empty">No eligible driver–bus pair for this slot. Handle manually later or regenerate after resources become available.</div>'}
+                </section>
                 <footer class="gct-conflict-actions gct-report-actions">
                     ${canEditOperation() ? `
                         <button type="button" class="ai-resolution-btn manual" data-gct-defer-slot="manual_later" data-gct-conflict-index="${index}">
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
                         </button>
-                        ${isReserveReview && !pairAllowed ? `
+                        ${isReserveReview && !pairAllowed && reserveSelected ? `
                             <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}" ${(reserveSelected && canAssignReserve()) ? '' : 'disabled'}>
                                 <i class="fa-solid fa-bus"></i> Apply to Preview
                             </button>
-                        ` : (activeTab === 'alternative' || pairAllowed) ? `
+                        ` : pairAllowed ? `
                             <button type="button" class="ai-resolution-btn primary" data-gct-apply-inline="${escapeHtml(conflictKey)}" data-gct-apply-inline-index="${index}" ${inlineCanApply ? '' : 'disabled'}>
                                 <i class="fa-solid fa-check-circle"></i> Apply to Preview
                             </button>
                         ` : `
-                            <button type="button" class="ai-resolution-btn primary" data-review-ai-resolution="${index}" ${canApply ? '' : 'disabled'}>
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> Apply Recommendation
+                            <button type="button" class="ai-resolution-btn primary" disabled>
+                                <i class="fa-solid fa-check-circle"></i> Select a Pair
                             </button>
                         `}
                     ` : `
