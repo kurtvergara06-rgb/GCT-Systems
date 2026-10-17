@@ -567,6 +567,12 @@ class AutoSchedulingController extends Controller
                                 'reason' => 'Valid at generation time under attendance, active-resource, maintenance, client, and overlap rules. Final server revalidation still applies.',
                             ])
                         )
+                        // Show the highest-scoring eligible pair first.
+                        // Missing ML scores are treated as unscored, not fabricated.
+                        ->sortByDesc(fn (array $pair): float =>
+                            (is_numeric($pair['driver_score']) ? (float) $pair['driver_score'] : 0.0)
+                            + (is_numeric($pair['bus_score']) ? (float) $pair['bus_score'] : 0.0)
+                        )
                         ->take(6)
                         ->values();
 
