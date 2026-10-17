@@ -4894,3 +4894,34 @@ body.ai-modal-open {
     min-width: 0;
   }
 }
+
+/* Shared Incoming/Outgoing preview column geometry; never size from row content. */
+@media screen {
+  .auto-scheduling-page .auto-schedule-table {
+    width: 100%;
+    min-width: 1120px;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .auto-scheduling-page .auto-schedule-table th,
+  .auto-scheduling-page .auto-schedule-table td {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+  .auto-scheduling-page .auto-schedule-table th:last-child,
+  .auto-scheduling-page .auto-schedule-table td:last-child {
+    text-align: center;
+  }
+  .auto-scheduling-page .auto-schedule-table .auto-conflict-decision-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .auto-scheduling-page .auto-schedule-table .auto-conflict-decision-actions .schedule-action-btn {
+    white-space: nowrap;
+  }
+}
