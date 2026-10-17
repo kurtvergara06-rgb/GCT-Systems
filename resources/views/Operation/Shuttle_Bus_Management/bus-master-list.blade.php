@@ -445,8 +445,15 @@
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="create_client_name">Client / Company Name</label>
-    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="create_client_name" maxlength="1000" placeholder="Example: EPSON, SM, Murata" value="{{ old('client_name') }}" autocomplete="organization"></div>
-    <small>Separate multiple authorized client names with commas. Leave blank if not yet known.</small>
+    <div class="bus-multi-client" data-bus-multi-client>
+        <input type="hidden" name="client_name" id="create_client_name" value="{{ old('client_name') }}">
+        <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
+        <div class="bus-multi-client-entry">
+            <input type="text" id="create_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
+        </div>
+    </div>
+    <small>Type one client and press Enter or Add. You can add multiple clients.</small>
     
 </div>
 </section>
@@ -578,8 +585,15 @@
 <div class="bus-client-editor bus-client-editor--simple">
     <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
     <label for="edit_client_name">Client / Company Name</label>
-    <div class="bus-client-input-shell"><i class="fa-regular fa-building" aria-hidden="true"></i><input type="text" name="client_name" id="edit_client_name" maxlength="1000" placeholder="Example: EPSON, SM, Murata" value="" autocomplete="organization"></div>
-    <small>Separate multiple clients with commas. Company changes are blocked during an unfinished dispatched trip.</small>
+    <div class="bus-multi-client" data-bus-multi-client>
+        <input type="hidden" name="client_name" id="edit_client_name" value="">
+        <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
+        <div class="bus-multi-client-entry">
+            <input type="text" id="edit_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
+        </div>
+    </div>
+    <small>Add or remove client chips individually. Changes are blocked during an unfinished dispatched trip.</small>
     <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing client allocations are shown above. Edit the list to change them.</p>
 </div>
 </section>
