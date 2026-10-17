@@ -73,7 +73,7 @@ class OperationAutoSchedulingTest extends TestCase
 
         $trip->update(['client_name' => 'Murata']);
         $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), $payload)
-            ->assertUnprocessable()->assertJsonValidationErrors('bus_id');
+            ->assertUnprocessable()->assertJsonValidationErrors('assignment');
 
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
