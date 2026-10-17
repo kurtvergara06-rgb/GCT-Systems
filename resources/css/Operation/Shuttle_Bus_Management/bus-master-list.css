@@ -2786,3 +2786,18 @@
 .bus-master-list-page .bus-table--reserve thead th:nth-child(4) { width: 18%; }
 .bus-master-list-page .bus-table--reserve thead th:nth-child(5) { width: 10%; text-align: center; }
 .bus-master-list-page .bus-table--reserve tbody td:nth-child(5) { text-align: center; }
+
+
+/* Multi-client chip editor in Add/Edit Bus modals. */
+.bus-multi-client { min-width: 0; }
+.bus-multi-client-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.bus-multi-client-tags:empty { display: none; }
+.bus-client-tag { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 100%; padding: 5px 7px 5px 10px; border: 1px solid #c9daf8; border-radius: 7px; background: #edf4ff; color: #183963; font-size: 12px; font-weight: 600; }
+.bus-client-tag > span { overflow-wrap: anywhere; }
+.bus-client-tag > button { border: 0; border-radius: 5px; background: transparent; color: #485f82; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 3px; }
+.bus-client-tag > button:hover { background: #dae6fa; color: #a52525; }
+.bus-multi-client-entry { display: flex; gap: 7px; min-width: 0; }
+.bus-multi-client-entry input { flex: 1; min-width: 0; width: 100%; padding: 10px 11px; border: 1px solid #d3e0f4; border-radius: 7px; background: white; font: inherit; }
+.bus-multi-client-entry input:focus { outline: 2px solid #86b4ff; outline-offset: 0; }
+.bus-multi-client-entry button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 0 12px; border: 1px solid #b9d1fb; border-radius: 7px; background: #eaf2ff; color: #174785; font: inherit; font-weight: 700; cursor: pointer; }
+.bus-multi-client-entry button:hover { background: #dce9fe; }
