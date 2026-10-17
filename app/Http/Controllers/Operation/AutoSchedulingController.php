@@ -661,8 +661,7 @@ class AutoSchedulingController extends Controller
         }
         if ($bus->fleet_purpose === 'Reserve') {
             $actor = auth()->user();
-            if (! $actor || strtolower(trim((string) $actor->role)) !== 'head'
-                || ! in_array(strtolower(trim((string) $actor->department)), ['operation', 'admin'], true)) {
+            if (! $actor?->canAssignReserveBus()) {
                 throw ValidationException::withMessages([
                     'bus_id' => 'Only Operations Head may select a Reserve Bus.',
                 ]);
@@ -1130,8 +1129,7 @@ class AutoSchedulingController extends Controller
 
                 if ($bus && $bus->fleet_purpose === 'Reserve') {
                     $actor = auth()->user();
-                    if (! $actor || strtolower(trim((string) $actor->role)) !== 'head'
-                        || ! in_array(strtolower(trim((string) $actor->department)), ['operation', 'admin'], true)) {
+                    if (! $actor?->canAssignReserveBus()) {
                         throw ValidationException::withMessages([
                             $field => 'Only the Operations Head may assign a Reserve Bus.',
                         ]);

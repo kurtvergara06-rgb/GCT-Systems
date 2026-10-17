@@ -76,6 +76,16 @@ class User extends Authenticatable
         );
     }
 
+    public function canAssignReserveBus(): bool
+    {
+        $department = strtolower(trim((string) $this->department));
+        $role = strtolower(trim((string) $this->role));
+
+        return $this->hasSystemPermission('operation', 'edit')
+            && $role === 'head'
+            && in_array($department, ['operation', 'admin'], true);
+    }
+
     public function profilePhotoUrl(): ?string
     {
         if (! $this->avatar_path) {

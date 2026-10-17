@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\Driver;
@@ -57,6 +58,42 @@ class OperationAutoSchedulingTest extends TestCase
             'driver_attendance_id' => $driver->id,
             'bus_id' => $bus->id,
         ])->assertUnprocessable()->assertJsonValidationErrors('assignment');
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
+
+    public function test_preview_editor_authorizes_reserve_bus_selection_server_side(): void
+    {
+        $head = User::factory()->create();
+        $staff = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+        ]);
+        [$trip, $driver, $regular] = $this->makeScheduleResources();
+        $regular->update(['status' => 'Inactive']);
+        $reserve = Bus::create([
+            'bus_no' => 'BUS-RES-PREVIEW',
+            'plate_no' => 'RES-PREV',
+            'bus_model' => 'Reserve Preview Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+            'fleet_purpose' => 'Reserve',
+        ]);
+        $payload = [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $reserve->id,
+            'recommendations' => [],
+        ];
+
+        $this->actingAs($staff)->postJson(route('auto-scheduling.edit-preview'), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('bus_id');
+
+        $this->actingAs($head)->postJson(route('auto-scheduling.edit-preview'), $payload)
+            ->assertOk()
+            ->assertJsonPath('bus.id', $reserve->id)
+            ->assertJsonPath('bus.purpose', 'Reserve');
 
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
@@ -530,7 +567,8 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
 
-        $this->createDriverMaster();
+        $driverMaster = $this->createDriverMaster();
+        $driverMaster->authorizedBuses()->syncWithoutDetaching([$bus->id]);
 
         $driver = DriverAttendance::create([
             'driver_name' => 'Test Driver',
@@ -707,6 +745,9 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Present',
         ]);
 
+        $driver1Master->authorizedBuses()->syncWithoutDetaching([$bus1->id]);
+        $driver2Master->authorizedBuses()->syncWithoutDetaching([$bus2->id]);
+
         $incomingTrip = TripSchedule::create([
             'trip_code' => 'T-INC-CONFIRM',
             'trip_date' => $scheduleDate,
@@ -807,14 +848,18 @@ class OperationAutoSchedulingTest extends TestCase
             ->assertOk();
         $this->assertSame([], $reserveResponse->json('recommendations'));
         $reserveSuggestion = collect($reserveResponse->json('conflicts'))
-            ->firstWhere('issue_type', 'reserve_approval_required');
+            ->first(fn (array $conflict): bool => collect(data_get($conflict, 'ai.alternative_buses', []))
+                ->contains(fn (array $bus): bool => (int) $bus['id'] === $reserve->id));
         $this->assertNotNull($reserveSuggestion);
-        $this->assertSame($reserve->id, $reserveSuggestion['suggested_bus_id']);
-        $this->assertSame($driver->id, $reserveSuggestion['suggested_driver_attendance_id']);
+        $this->assertTrue($reserveSuggestion['missing_driver']);
+        $this->assertSame(
+            $reserve->id,
+            (int) collect($reserveSuggestion['ai']['alternative_buses'])->first()['id']
+        );
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 
-    public function test_reserve_assignment_requires_approval_and_regular_shortage(): void
+    public function test_reserve_assignment_requires_operations_head_and_regular_shortage(): void
     {
         $user = User::factory()->create();
         [$trip, $driver, $regular] = $this->makeScheduleResources();
@@ -835,22 +880,20 @@ class OperationAutoSchedulingTest extends TestCase
         $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $payload)
             ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
 
-        $approvedPayload = ['recommendations' => [[
-            'trip_schedule_id' => $trip->id,
-            'driver_attendance_id' => $driver->id,
-            'bus_id' => $reserve->id,
-            'oic_approval' => [
-                'method' => 'Phone',
-                'approved_at' => now()->subMinute()->toDateTimeString(),
-                'remarks' => 'OIC approved the Reserve Bus by phone.',
-            ],
-        ]]];
-
-        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $approvedPayload)
-            ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
+        $staff = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+        ]);
+        $staffPermission = RolePermission::where('role_key', 'operation_staff')->firstOrFail();
+        $staffPermissions = $staffPermission->permissions;
+        data_set($staffPermissions, 'operation.edit', true);
+        $staffPermission->update(['permissions' => $staffPermissions]);
 
         $regular->update(['status' => 'Inactive']);
-        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $approvedPayload)
+        $this->actingAs($staff)->postJson(route('auto-scheduling.confirm'), $payload)
+            ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $payload)
             ->assertOk()->assertJsonPath('saved', 1);
 
         $this->assertDatabaseHas('trip_assignments', [
@@ -860,8 +903,8 @@ class OperationAutoSchedulingTest extends TestCase
 
         $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
             'recorded_by' => $user->id,
-            'approved_by' => 'OIC (externally confirmed)',
-            'approval_method' => 'Phone',
+            'approved_by' => 'Operations Head (direct assignment)',
+            'approval_method' => 'Direct',
         ]);
     }
 
@@ -997,6 +1040,7 @@ class OperationAutoSchedulingTest extends TestCase
             'capacity' => 40,
             'status' => 'Active',
         ]);
+        $secondDriver->authorizedBuses()->syncWithoutDetaching([$secondBus->id]);
 
         $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
             'trip_schedule_id' => $trip->id,
@@ -1088,6 +1132,7 @@ class OperationAutoSchedulingTest extends TestCase
             'capacity' => 40,
             'status' => 'Active',
         ]);
+        $secondDriver->authorizedBuses()->syncWithoutDetaching([$secondBus->id]);
 
         $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
             'trip_schedule_id' => $trip->id,

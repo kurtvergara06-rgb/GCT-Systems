@@ -41,6 +41,22 @@ it('keeps conflict recommendations connected to safe existing resolution paths',
         ->toContain('&& !missingBus');
 });
 
+it('bridges reserve selection to the assignment editor by stable trip slot identity', function (): void {
+    $script = file_get_contents(resource_path(
+        'js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'
+    ));
+
+    expect($script)
+        ->toContain('const conflictIdentity = (conflict) => [')
+        ->toContain("document.addEventListener('gct:apply-information-reserve'")
+        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-information-reserve'")
+        ->toContain('const item = conflicts[index]')
+        ->toContain('selectedReserveByConflict.get(conflictKey)')
+        ->toContain("document.addEventListener('gct:auto-reserve-selections-reset'")
+        ->toContain("kind: 'conflict'")
+        ->not->toContain('const item = schedulingConflicts[index];\n            const selection = selectedReserveByConflict.get(index)');
+});
+
 it('provides responsive styles for the conflict queue and report', function (): void {
     $styles = file_get_contents(resource_path(
         'css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'
