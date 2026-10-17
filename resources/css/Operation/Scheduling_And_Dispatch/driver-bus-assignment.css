@@ -2203,3 +2203,22 @@
     .assignment-direction-heading { padding: 12px; gap: 8px; }
     .assignment-direction-title h3 { font-size: 13px; }
 }
+
+
+/* Show the assigned client and route above each distinct trip group. */
+.assignment-page .assignment-table .assignment-client-route-group th {
+  padding: 12px 15px;
+  text-align: left;
+  background: #edf4fc;
+  border-top: 2px solid #ccdaed;
+  color: #173557;
+  font-size: 12px;
+}
+.assignment-page .assignment-client-route-group span {
+  margin-right: 20px;
+  color: #52637b;
+  font-weight: 600;
+}
+.assignment-page .assignment-client-route-group strong {
+  font-weight: 800;
+}
