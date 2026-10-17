@@ -390,84 +390,65 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
     const reserveAbortController = new AbortController();
     window.__gctAutoScheduleReserveAbortController = reserveAbortController;
 
-    document.addEventListener('gct:apply-information-reserve', (event) => {
-        if (!canAssignReserve) {
-            window.showSystemToast?.(
-                'Only Operations Head may assign a Reserve Bus.',
-                'warning',
-                'Reserve assignment restricted'
-            );
-            return;
-        }
-
+    // Inline alternative selection: reuse backend preview validation without opening a modal.
+    document.addEventListener('gct:apply-inline-alternative', async (event) => {
+        if (!canEditOperation) return;
         const detail = event.detail || {};
-        const conflictIndex = schedulingConflicts.findIndex(
-            (conflict) => conflictIdentity(conflict) === detail.conflictKey
+        const index = schedulingConflicts.findIndex(
+            (item) => conflictIdentity(item) === detail.conflictKey
         );
-        const item = schedulingConflicts[conflictIndex];
-        const selectedBusId = Number(detail.busId);
-
+        const item = schedulingConflicts[index];
         if (!item || Number(item.trip_schedule_id) !== Number(detail.tripScheduleId)) {
-            window.showSystemToast?.(
-                'This conflict changed. Regenerate the schedule before applying a Reserve Bus.',
-                'warning',
-                'Conflict no longer available'
-            );
+            window.showSystemToast?.('This trip slot changed. Regenerate the schedule.', 'warning');
             return;
         }
-
-        editing = {
-            kind: 'conflict',
-            index: conflictIndex,
-            conflictKey: detail.conflictKey,
-            item,
-        };
-        editDialog.querySelector('.auto-preview-edit-context').textContent =
-            (item.base_trip_code || item.trip_code || 'Trip') + ' — ' + detail.busLabel;
-        const errorEl = editDialog.querySelector('.auto-preview-edit-error');
-        errorEl.hidden = false;
-        errorEl.textContent = 'Loading eligible drivers and verifying the Reserve Bus…';
-        const submit = editDialog.querySelector('[type="submit"]');
-        submit.disabled = true;
-        for (const field of ['driver', 'bus']) {
-            editDialog.querySelector('[name="' + field + '"]').replaceChildren(new Option('Loading…', ''));
+        const driverId = Number(detail.driverId);
+        const busId = Number(detail.busId);
+        if (!driverId || !busId) {
+            window.showSystemToast?.('Select a valid driver and bus pair first.', 'warning');
+            return;
         }
-        editDialog.showModal();
-
-        void (async () => {
-            try {
-                const data = await previewEditRequest({ trip_schedule_id: item.trip_schedule_id });
-                for (const [field, choices] of [['driver', data.drivers], ['bus', data.buses]]) {
-                    const select = editDialog.querySelector('[name="' + field + '"]');
-                    select.replaceChildren(new Option('Select ' + field, ''));
-                    for (const option of choices) select.add(new Option(option.name, String(option.id)));
-                }
-                const busNo = String(detail.busLabel || '')
-                    .replace(/\s*\(Reserve\).*$/i, '')
-                    .trim()
-                    .toLowerCase();
-                const matchingBus = data.buses?.find((bus) => (
-                    (selectedBusId > 0 && Number(bus.id) === selectedBusId)
-                    || String(bus.name || '')
-                        .replace(/\s*\(Reserve.*$/i, '')
-                        .trim()
-                        .toLowerCase() === busNo
-                ));
-                if (!matchingBus || matchingBus.purpose !== 'Reserve') {
-                    throw new Error('Selected Reserve Bus is no longer available. Regenerate the schedule.');
-                }
-                editDialog.querySelector('[name="bus"]').value = String(matchingBus.id);
-                if (!data.drivers?.length) {
-                    throw new Error('No eligible driver attendance is available for this trip. Record attendance first.');
-                }
-                errorEl.hidden = true;
-                submit.disabled = false;
-            } catch (error) {
-                errorEl.textContent = error.message || 'Unable to load this Reserve assignment.';
-                errorEl.hidden = false;
-                submit.disabled = true;
+        if (detail.reserve && !canAssignReserve) {
+            window.showSystemToast?.('Only Operations Head can assign a Reserve Bus.', 'warning');
+            return;
+        }
+        const applyButton = document.querySelector('[data-gct-apply-inline="' + CSS.escape(detail.conflictKey) + '"]');
+        if (applyButton) applyButton.disabled = true;
+        try {
+            const data = await previewEditRequest({
+                trip_schedule_id: item.trip_schedule_id,
+                driver_attendance_id: driverId,
+                bus_id: busId,
+                recommendations: otherPreviewAssignments(),
+            });
+            if (detail.reserve && data.bus.purpose !== 'Reserve') {
+                throw new Error('The selected Reserve Bus changed. Regenerate the schedule.');
             }
-        })();
+            const replacement = {
+                ...item,
+                driver_attendance_id: data.driver.id,
+                driver_id: data.driver.driver_id,
+                driver_name: data.driver.name,
+                driver_status: data.driver.status,
+                bus_id: data.bus.id,
+                bus_no: data.bus.name,
+                bus_purpose: data.bus.purpose || 'Regular',
+                reserve_approval_required: data.bus.purpose === 'Reserve',
+                result: 'Ready',
+            };
+            schedulingConflicts.splice(index, 1);
+            recommendations.push(replacement);
+            renderRecommendations(recommendations, schedulingConflicts);
+            renderConflicts(schedulingConflicts);
+            updateReadyBadgeOnly();
+            document.dispatchEvent(new CustomEvent('gct:inline-preview-applied', {
+                detail: { conflictKey: detail.conflictKey },
+            }));
+            window.showSystemToast?.('Assignment applied to preview. Confirm Schedule is still required.', 'success');
+        } catch (error) {
+            window.showSystemToast?.(error.message || 'Assignment validation failed.', 'error', 'Cannot apply alternative');
+            if (applyButton) applyButton.disabled = false;
+        }
     }, { signal: reserveAbortController.signal });
     // Report-side selection is a preview action, not an Edit Assignment modal.
     document.addEventListener('gct:apply-reserve-selection', async (event) => {
@@ -2970,9 +2951,11 @@ function updateMlStatus(conflicts) {
 
     const recommendationTabs = new Map();
     const selectedReserveByConflict = new Map();
+    const inlineSelectionsByConflict = new Map();
 
     document.addEventListener('gct:auto-reserve-selections-reset', () => {
         selectedReserveByConflict.clear();
+        inlineSelectionsByConflict.clear();
     });
 
     const renderReportOptionCards = (items, type, selectedId, index) => items
@@ -3049,6 +3032,12 @@ function updateMlStatus(conflicts) {
         )) || null;
         const action = getTimeAction(conflict);
         const selection = getSelection(index);
+        const inlineChoice = inlineSelectionsByConflict.get(conflictKey) || {};
+        const selectedDriverId = Number(inlineChoice.driverId || 0);
+        const selectedBusId = Number(selectedReserve?.id || inlineChoice.busId || 0);
+        const selectedBusIsReserve = Boolean(selectedReserve);
+        const pairAllowed = validPairs.some((pair) => Number(pair.driver_attendance_id) === selectedDriverId && Number(pair.bus_id) === selectedBusId);
+        const inlineCanApply = Boolean(canEditOperation && pairAllowed && (!selectedBusIsReserve || canAssignReserve));
         const severity = getConflictSeverity(conflict);
         const hardConflict = missingDriver || missingBus || ai.status === 'conflict';
         const ml = ai.ml || {};
@@ -3174,7 +3163,7 @@ function updateMlStatus(conflicts) {
                         <section class="gct-alternative-section" data-gct-alternative-section="drivers">
                             <header><strong><i class="fa-solid fa-id-card"></i> Driver Alternatives</strong><span>${drivers.length} eligible</span></header>
                             ${drivers.length
-                                ? `<div class="gct-report-options" data-resource-type="driver">${renderReportOptionCards(drivers.slice(0, 5), 'driver', selection.driverId, index)}</div>`
+                                ? `<div class="gct-report-options" data-resource-type="driver">${renderReportOptionCards(drivers.slice(0, 5), 'driver', selectedDriverId, index)}</div>`
                                 : '<div class="gct-report-empty">No Laravel-eligible driver alternative is available.</div>'}
                         </section>
                         <section class="gct-alternative-section" data-gct-alternative-section="buses">
@@ -3187,7 +3176,7 @@ function updateMlStatus(conflicts) {
                                     <span class="gct-report-option-copy"><strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong><small>Laravel eligibility passed · Operations Head direct assignment · Revalidated before confirmation</small></span>
                                 </button>
                             ` : ''}
-                            ${buses.length ? `<div class="gct-report-options" data-resource-type="bus">${renderReportOptionCards(buses.slice(0, 5), 'bus', selection.busId, index)}</div>` : ''}
+                            ${buses.length ? `<div class="gct-report-options" data-resource-type="bus">${renderReportOptionCards(buses.slice(0, 5), 'bus', selectedBusId, index)}</div>` : ''}
                             ${reserveInformation.length ? `
                                 <div class="gct-report-reserve-alternatives">
                                     ${reserveInformation.map(bus => `
@@ -3202,12 +3191,12 @@ function updateMlStatus(conflicts) {
                         <section class="gct-alternative-section" data-gct-alternative-section="pairs">
                             <header><strong><i class="fa-solid fa-link"></i> Valid Driver&ndash;Bus Pairs</strong><span>${validPairs.length} valid</span></header>
                             ${validPairs.length ? `<div class="gct-valid-pair-list">${validPairs.map(pair => `
-                                <div class="gct-valid-pair">
+                                <button type="button" class="gct-valid-pair" data-gct-inline-pair="${index}" data-gct-inline-driver="${Number(pair.driver_attendance_id)}" data-gct-inline-bus="${Number(pair.bus_id)}" aria-pressed="${selectedDriverId === Number(pair.driver_attendance_id) && selectedBusId === Number(pair.bus_id) ? 'true' : 'false'}">
                                     <strong>${escapeHtml(pair.driver_label)} <i class="fa-solid fa-arrow-right"></i> ${escapeHtml(pair.bus_label)}</strong>
                                     <small>Driver: ${pair.driver_score !== null && pair.driver_score !== undefined ? `${Number(pair.driver_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.driver_score_source))}</small>
                                     <small>Bus: ${pair.bus_score !== null && pair.bus_score !== undefined ? `${Number(pair.bus_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.bus_score_source))}</small>
                                     <span>${escapeHtml(pair.reason || 'Laravel eligibility passed; final server validation still applies.')}</span>
-                                </div>
+                                </button>
                             `).join('')}</div>` : '<div class="gct-report-empty">No complete driver&ndash;bus pair currently passes deterministic eligibility.</div>'}
                         </section>
                     ` : ''}
@@ -3233,25 +3222,14 @@ function updateMlStatus(conflicts) {
                             <i class="fa-solid fa-building"></i>
                             External Bus Pending
                         </button>
-                        ${activeTab === 'alternative' && reserveInformation.length ? `
-                            <button type="button" class="ai-resolution-btn primary" data-gct-apply-info-reserve="${index}" ${!canAssignReserve || !selectedReserve ? 'disabled' : ''}>
-                                <i class="fa-solid fa-check-circle"></i> Apply Selected Reserve
-                            </button>
-                        ` : conflict.issue_type === 'reserve_approval_required' ? `
-                            <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}"
-                                ${activeTab !== 'alternative' || !reserveSelected ? 'disabled' : ''}>
-                                <i class="fa-solid fa-shield-halved"></i> Apply Selected Reserve to Preview
+                        ${activeTab === 'alternative' ? `
+                            <button type="button" class="ai-resolution-btn primary" data-gct-apply-inline="${escapeHtml(conflictKey)}" data-gct-apply-inline-index="${index}" ${inlineCanApply ? '' : 'disabled'}>
+                                <i class="fa-solid fa-check-circle"></i> Apply to Preview
                             </button>
                         ` : `
-                        <button
-                            type="button"
-                            class="ai-resolution-btn primary"
-                            data-review-ai-resolution="${index}"
-                            ${canApply ? '' : 'disabled'}
-                        >
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            Apply Recommendation
-                        </button>
+                            <button type="button" class="ai-resolution-btn primary" data-review-ai-resolution="${index}" ${canApply ? '' : 'disabled'}>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Apply Recommendation
+                            </button>
                         `}
                     ` : `
                         <span class="ai-resolution-btn manual" aria-disabled="true">
@@ -3778,6 +3756,15 @@ function updateMlStatus(conflicts) {
         queueRedesign();
     });
 
+    document.addEventListener('gct:inline-preview-applied', (event) => {
+        const index = conflicts.findIndex((item) => conflictIdentity(item) === event.detail?.conflictKey);
+        if (index >= 0) conflicts.splice(index, 1);
+        inlineSelectionsByConflict.delete(event.detail?.conflictKey);
+        selectedReserveByConflict.delete(event.detail?.conflictKey);
+        document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+        queueRedesign();
+    });
+
     document.addEventListener('gct:reserve-preview-applied', (event) => {
         const index = Number(event.detail?.index);
         conflicts.splice(index, 1);
@@ -3850,29 +3837,51 @@ function updateMlStatus(conflicts) {
             return;
         }
 
-        const applyInfoReserve = event.target.closest('[data-gct-apply-info-reserve]');
-        if (applyInfoReserve) {
+        const pairButton = event.target.closest('[data-gct-inline-pair]');
+        if (pairButton) {
             event.preventDefault();
-            if (!canAssignReserve) {
-                window.showSystemToast?.('Only Operations Head may assign a Reserve Bus.', 'warning', 'Reserve assignment restricted');
+            const index = Number(pairButton.dataset.gctInlinePair);
+            const conflict = conflicts[index];
+            if (!conflict) return;
+            const key = conflictIdentity(conflict);
+            const driverId = Number(pairButton.dataset.gctInlineDriver);
+            const busId = Number(pairButton.dataset.gctInlineBus);
+            const pair = (conflict.ai?.valid_pairs || []).find((item) =>
+                Number(item.driver_attendance_id) === driverId && Number(item.bus_id) === busId
+            );
+            if (!pair) return;
+            inlineSelectionsByConflict.set(key, { driverId, busId });
+            const matchingBus = getAlternatives(conflict, 'alternative_buses').find((bus) => Number(bus.id) === busId);
+            if (matchingBus && String(matchingBus.label).includes('(Reserve)')) {
+                selectedReserveByConflict.set(key, { id: busId, label: matchingBus.label });
+            } else {
+                selectedReserveByConflict.delete(key);
+            }
+            document.getElementById('autoSchedulingConflictContent')?.removeAttribute('data-gct-workspace-signature');
+            queueRedesign();
+            return;
+        }
+
+        const inlineApply = event.target.closest('[data-gct-apply-inline-index]');
+        if (inlineApply) {
+            event.preventDefault();
+            const index = Number(inlineApply.dataset.gctApplyInlineIndex);
+            const conflict = conflicts[index];
+            if (!conflict) return;
+            const key = conflictIdentity(conflict);
+            const choice = inlineSelectionsByConflict.get(key) || {};
+            const reserve = selectedReserveByConflict.get(key);
+            const driverId = Number(choice.driverId);
+            const busId = Number(reserve?.id || choice.busId);
+            const pair = (conflict.ai?.valid_pairs || []).some((item) =>
+                Number(item.driver_attendance_id) === driverId && Number(item.bus_id) === busId
+            );
+            if (!pair) {
+                window.showSystemToast?.('Select a valid driver–bus pair first.', 'warning');
                 return;
             }
-            const index = Number(applyInfoReserve.dataset.gctApplyInfoReserve);
-            const item = conflicts[index];
-            const conflictKey = item ? conflictIdentity(item) : '';
-            const selection = selectedReserveByConflict.get(conflictKey);
-            if (!item || !selection) {
-                window.showSystemToast?.('Select an available Reserve Bus first.', 'warning', 'No Reserve Bus selected');
-                return;
-            }
-            document.dispatchEvent(new CustomEvent('gct:apply-information-reserve', {
-                detail: {
-                    conflictKey,
-                    tripScheduleId: Number(item.trip_schedule_id),
-                    slot: Number(item.slot ?? item.slot_number ?? 1),
-                    busId: Number(selection.id),
-                    busLabel: selection.label,
-                },
+            document.dispatchEvent(new CustomEvent('gct:apply-inline-alternative', {
+                detail: { conflictKey: key, tripScheduleId: Number(conflict.trip_schedule_id), driverId, busId, reserve: Boolean(reserve) },
             }));
             return;
         }
@@ -3916,6 +3925,12 @@ function updateMlStatus(conflicts) {
             }
 
             selections.set(index, selection);
+            const key = conflictIdentity(conflicts[index]);
+            const saved = inlineSelectionsByConflict.get(key) || {};
+            inlineSelectionsByConflict.set(key, type === 'driver'
+                ? { ...saved, driverId: id }
+                : { ...saved, busId: id });
+            if (type === 'bus') selectedReserveByConflict.delete(key);
             const container = document.getElementById('autoSchedulingConflictContent');
             if (container) {
                 delete container.dataset.gctWorkspaceSignature;
