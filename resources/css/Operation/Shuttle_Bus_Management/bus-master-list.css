@@ -2801,3 +2801,91 @@
 .bus-multi-client-entry input:focus { outline: 2px solid #86b4ff; outline-offset: 0; }
 .bus-multi-client-entry button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 0 12px; border: 1px solid #b9d1fb; border-radius: 7px; background: #eaf2ff; color: #174785; font: inherit; font-weight: 700; cursor: pointer; }
 .bus-multi-client-entry button:hover { background: #dce9fe; }
+
+
+/* Unified multi-client field: chips and input share one clean control. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  min-height: 46px;
+  padding: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags:empty {
+  display: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag {
+  min-height: 27px;
+  padding: 3px 6px 3px 9px;
+  gap: 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag > button {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 0;
+  height: 33px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button {
+  min-height: 33px;
+  padding: 0 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > label {
+  display: block;
+  margin: 12px 0 6px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > small {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+@media (max-width: 520px) {
+  .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button { padding: 0 9px; }
+}
