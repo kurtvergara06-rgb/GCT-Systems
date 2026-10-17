@@ -124,6 +124,64 @@ class BatchAttendanceTimeFlowTest extends TestCase
             ]);
     }
 
+    public function test_saving_selected_driver_attendance_keeps_other_drivers_available_for_next_batch(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+
+        foreach (['D-PART-A' => 'Partial Driver A', 'D-PART-B' => 'Partial Driver B', 'D-PART-C' => 'Partial Driver C'] as $id => $name) {
+            Driver::create([
+                'driver_id' => $id,
+                'driver_name' => $name,
+                'shift' => 'Morning',
+                'employment_status' => 'Active',
+            ]);
+        }
+
+        $url = route('operation.attendance.batch.store', ['type' => 'driver']);
+        $roster = route('operation.attendance.batch.roster', ['type' => 'driver', 'date' => '2026-10-20', 'shift' => 'all']);
+
+        $this->actingAs($user)->postJson($url, [
+            'attendance_date' => '2026-10-20',
+            'rows' => [[
+                'person_id' => 'D-PART-A', 'name' => 'Partial Driver A', 'shift' => 'Morning',
+                'time_in' => '06:00', 'status' => 'Present',
+            ]],
+        ])->assertOk()->assertJsonPath('saved', 1);
+
+        $response = $this->actingAs($user)->getJson($roster)->assertOk();
+        $rows = collect($response->json('rows'))->keyBy('person_id');
+
+        $this->assertTrue($rows->get('D-PART-A')['recorded']);
+        $this->assertSame('Present', $rows->get('D-PART-A')['status']);
+        $this->assertFalse($rows->get('D-PART-B')['recorded']);
+        $this->assertSame('Unmarked', $rows->get('D-PART-B')['status']);
+        $this->assertFalse($rows->get('D-PART-C')['recorded']);
+
+        $this->actingAs($user)->postJson($url, [
+            'attendance_date' => '2026-10-20',
+            'rows' => [[
+                'person_id' => 'D-PART-B', 'name' => 'Partial Driver B', 'shift' => 'Morning',
+                'time_in' => '07:00', 'status' => 'Present',
+            ]],
+        ])->assertOk()->assertJsonPath('saved', 1);
+
+        $this->assertSame(1, DriverAttendance::where('driver_id', 'D-PART-A')->whereDate('attendance_date', '2026-10-20')->count());
+        $this->assertSame(1, DriverAttendance::where('driver_id', 'D-PART-B')->whereDate('attendance_date', '2026-10-20')->count());
+        $this->assertSame(0, DriverAttendance::where('driver_id', 'D-PART-C')->whereDate('attendance_date', '2026-10-20')->count());
+
+        $this->actingAs($user)->postJson($url, [
+            'attendance_date' => '2026-10-20',
+            'rows' => [[
+                'person_id' => 'D-PART-A', 'name' => 'Partial Driver A', 'shift' => 'Morning',
+                'time_in' => '08:00', 'status' => 'Present',
+            ]],
+        ])->assertUnprocessable();
+    }
+
     public function test_batch_attendance_rejects_unsupported_night_shift_rows(): void
     {
         $user = User::factory()->create([
