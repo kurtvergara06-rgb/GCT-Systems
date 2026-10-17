@@ -4838,3 +4838,59 @@ body.ai-modal-open {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+/* Preview: visually keep multi-bus slots together without changing assignment data. */
+@media screen {
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row td {
+    vertical-align: middle;
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-first td {
+    border-top: 2px solid #d9e5f3;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-continuation td {
+    border-top: 1px dashed #e0e9f4;
+    background-color: #fafcff;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-first td:first-child {
+    border-left: 3px solid #3478d4;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-continuation td:first-child {
+    border-left: 3px solid #a8c6ea;
+  }
+  .auto-scheduling-page .auto-trip-main-id {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #173a6e;
+  }
+  .auto-scheduling-page .auto-trip-continuation-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #607895;
+    white-space: nowrap;
+  }
+  .auto-scheduling-page .auto-bus-preview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .auto-scheduling-page .auto-reserve-note {
+    font-size: 10px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+  .auto-scheduling-page .auto-schedule-table .driver-cell {
+    min-width: 0;
+    align-items: center;
+  }
+  .auto-scheduling-page .auto-schedule-table .route-cell,
+  .auto-scheduling-page .auto-schedule-table .auto-time-cell {
+    min-width: 0;
+  }
+}
