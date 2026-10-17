@@ -97,7 +97,15 @@
                 <div class="service-panels-surface">
                 @foreach(['Incoming', 'Outgoing'] as $serviceDirection)
                     @php
-                        $directionTrips = $trips->filter(fn ($item) => $item->direction === $serviceDirection);
+                        $directionTrips = $trips->filter(fn ($item) => $item->direction === $serviceDirection)
+                            ->sortBy(fn ($item) => implode('|', [
+                                mb_strtolower(trim((string) ($item->client_name ?: 'No Client Allocation'))),
+                                mb_strtolower((string) ($item->shuttleRoute?->route_code ?? $item->route_code_snapshot ?? '')),
+                                $item->trip_date?->format('Y-m-d') ?? '',
+                                (string) $item->departure_time,
+                                sprintf('%012d', $item->id),
+                            ]));
+                        $previousClientRoute = null;
                     @endphp
                     <div class="service-direction-panel {{ strtolower($serviceDirection) }}">
                         <header class="service-direction-header">
@@ -189,7 +197,21 @@
                                                 'status' => $trip->status, 'notes' => $trip->notes,
                                                 'direction' => $trip->direction, 'clientName' => $trip->client_name, 'requiredBuses' => $requiredCount,
                                             ];
+                                            $clientGroupLabel = trim((string) ($trip->client_name ?? '')) ?: 'No Client Allocation';
+                                            $routeGroupCode = $route?->route_code ?? $trip->route_code_snapshot ?? '—';
+                                            $routeGroupName = $route?->route_name ?? $trip->route_name_snapshot ?? 'Unknown route';
+                                            $clientRouteKey = mb_strtolower($clientGroupLabel) . '|' . mb_strtolower((string) $routeGroupCode);
+                                            $startsNewGroup = $clientRouteKey !== $previousClientRoute;
+                                            $previousClientRoute = $clientRouteKey;
                                         @endphp
+                                        @if($startsNewGroup)
+                                            <tr class="service-client-route-heading">
+                                                <th colspan="8" scope="rowgroup">
+                                                    <span>Client: {{ $clientGroupLabel }}</span>
+                                                    <strong>Route {{ $routeGroupCode }} · {{ $routeGroupName }}</strong>
+                                                </th>
+                                            </tr>
+                                        @endif
                                         <tr>
                                             <td>
                                                 <button type="button" class="service-expand-button" aria-label="Expand {{ $trip->trip_code }}" aria-expanded="false">
