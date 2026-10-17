@@ -1646,12 +1646,36 @@ function updateMlStatus(conflicts) {
             return;
         }
 
+        // Group only the display: client -> route -> trip -> numbered bus slots.
+        // Keep trip/slot identifiers unchanged for all assignment actions.
+        const groupName = (value) => String(value || '').trim() || 'No Client Allocation';
+        const groupedRows = rows.slice().sort((a, b) => {
+            const aClient = groupName(a.client_name);
+            const bClient = groupName(b.client_name);
+            const clientOrder = aClient.localeCompare(bClient);
+            if (clientOrder) return clientOrder;
+            const routeOrder = String(a.route_code || '').localeCompare(String(b.route_code || ''));
+            if (routeOrder) return routeOrder;
+            return String(a.departure_time || '').localeCompare(String(b.departure_time || ''))
+                || String(a.base_trip_code || a.trip_code || '').localeCompare(String(b.base_trip_code || b.trip_code || ''))
+                || Number(a.slot || 1) - Number(b.slot || 1);
+        });
+        let previousGroup = '';
         let previousTrip = '';
-        tbody.innerHTML = rows.map((item) => {
+        tbody.innerHTML = groupedRows.map((item) => {
+            const client = groupName(item.client_name);
+            const route = String(item.route_code || '—');
+            const groupKey = JSON.stringify([client.toLowerCase(), route.toLowerCase()]);
+            const isNewGroup = groupKey !== previousGroup;
+            if (isNewGroup) previousTrip = '';
+            previousGroup = groupKey;
             const tripKey = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
             const continuation = previousTrip === tripKey;
             previousTrip = tripKey;
-            return renderRowHtml(item, continuation);
+            const groupHeader = isNewGroup
+                ? `<tr class="auto-preview-group-row"><th colspan="8" scope="rowgroup"><span class="auto-preview-group-client">Client: ${escapeHtml(client)}</span><span class="auto-preview-group-route">Route ${escapeHtml(route)} · ${escapeHtml(item.route_name || 'Unknown route')}</span></th></tr>`
+                : '';
+            return groupHeader + renderRowHtml(item, continuation);
         }).join('');
     }
 
