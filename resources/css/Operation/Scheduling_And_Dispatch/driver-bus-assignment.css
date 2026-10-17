@@ -2161,3 +2161,45 @@
 .assignment-incident-indicator { display:inline-flex; align-items:center; gap:5px; width:fit-content; margin-top:4px; padding:3px 7px; border:1px solid #f3c982; background:#fff7e6; color:#9d5b06; border-radius:6px; font-size:10px; font-weight:700; text-decoration:none; }
 .assignment-incident-indicator:hover { background:#ffecce; color:#7c4200; }
 .assignment-incident-indicator:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+
+/* Distinct service-direction groups share the same assignment rules and controls. */
+.assignment-direction-section {
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid #dbe5f2;
+    border-radius: 12px;
+    background: #fff;
+}
+.assignment-direction-section + .assignment-direction-section { margin-top: 18px; }
+.assignment-direction-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    border-bottom: 1px solid #e0e8f3;
+    background: #f0f8ff;
+}
+.assignment-direction-outgoing .assignment-direction-heading { background: #fff9ed; }
+.assignment-direction-other .assignment-direction-heading { background: #f7f8fb; }
+.assignment-direction-icon {
+    display: inline-flex;
+    flex: 0 0 36px;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    color: #fff;
+    background: #0284c7;
+}
+.assignment-direction-outgoing .assignment-direction-icon { background: #f59e0b; }
+.assignment-direction-other .assignment-direction-icon { background: #64748b; }
+.assignment-direction-title { min-width: 0; flex: 1; }
+.assignment-direction-title h3 { margin: 0; color: #142c4f; font-size: 14px; font-weight: 800; }
+.assignment-direction-title p { margin: 3px 0 0; color: #64748b; font-size: 11px; }
+.assignment-direction-count { flex-shrink: 0; padding: 5px 9px; border-radius: 8px; background: #fff; border: 1px solid #dce5f2; color: #334b68; font-size: 11px; font-weight: 700; }
+.assignment-direction-section .assignment-table-wrap { margin-top: 0 !important; border: 0; border-radius: 0; }
+@media (max-width: 640px) {
+    .assignment-direction-heading { padding: 12px; gap: 8px; }
+    .assignment-direction-title h3 { font-size: 13px; }
+}
