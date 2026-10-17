@@ -60,6 +60,10 @@
                         <i class="fa-solid fa-plus" aria-hidden="true"></i>
                         Report Incident
                     </button>
+                    @else
+                    <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+                      <button type="button" class="inc-new-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-plus" aria-hidden="true"></i> Report Incident</button>
+                    </span>
                     @endif
                 </div>
 
