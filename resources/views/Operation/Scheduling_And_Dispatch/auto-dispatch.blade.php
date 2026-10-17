@@ -453,9 +453,8 @@
                             Confirm Schedule
                         </button>
                     @else
-                        <span class="schedule-readonly-note">
-                            <i class="fa-solid fa-eye"></i>
-                            View-only access
+                        <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+                          <button type="button" class="schedule-primary-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-circle-check"></i> Confirm Schedule</button>
                         </span>
                     @endif
                 </div>
