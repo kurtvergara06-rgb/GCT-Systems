@@ -65,7 +65,8 @@ class BatchAttendanceController extends Controller
         // reappear in the new-entry modal.
         if ($type === 'driver') {
             $people = $people->reject(
-                fn ($person) => $dateRecords->has((string) $person->{$idColumn})
+                fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
+                    && ! in_array($record->status, ['Unmarked', null, ''], true)
             );
         }
 
@@ -86,7 +87,7 @@ class BatchAttendanceController extends Controller
 
             return [
                 'person_id' => $personId,
-                'recorded' => $record !== null,
+                'recorded' => $record !== null && ! in_array($record->status, ['Unmarked', null, ''], true),
                 'name' => (string) $person->{$nameColumn},
                 'shift' => $type === 'driver' ? 'Morning' : (string) $person->shift,
                 'attendance_date' => $date,
@@ -186,7 +187,7 @@ class BatchAttendanceController extends Controller
 
                     // A batch is create-only: never silently replace an existing
                     // daily record, including one linked to a trip or job order.
-                    if ($existing) {
+                    if ($existing && ! in_array($existing->status, ['Unmarked', null, ''], true)) {
                         throw ValidationException::withMessages([
                             "rows.{$index}.person_id" => 'Attendance is already recorded for this person on the selected date. Refresh the roster.',
                         ]);
@@ -239,10 +240,16 @@ class BatchAttendanceController extends Controller
                         $values['assigned_job'] = trim((string) ($row['assigned_job'] ?? ''));
                     }
 
-                    $attendanceModel::query()->create(array_merge([
-                        $idColumn => $personId,
-                        'attendance_date' => $date,
-                    ], $values));
+                    if ($existing) {
+                        // Finalize a previously created Unmarked placeholder in place.
+                        // Never change an attendance row already linked to a trip.
+                        $existing->update($values);
+                    } else {
+                        $attendanceModel::query()->create(array_merge([
+                            $idColumn => $personId,
+                            'attendance_date' => $date,
+                        ], $values));
+                    }
 
                     $saved++;
                 }
