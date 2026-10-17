@@ -11,14 +11,16 @@ class BatchAttendanceServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Route::middleware(['web', 'auth'])
+        Route::middleware(['web', 'auth', 'role:operation:head,operation:staff,admin:head'])
             ->prefix('operation/attendance/batch')
             ->group(function (): void {
                 Route::get('/{type}', [BatchAttendanceController::class, 'roster'])
+                    ->middleware('system.permission:operation,view')
                     ->whereIn('type', ['driver', 'mechanic'])
                     ->name('operation.attendance.batch.roster');
 
                 Route::post('/{type}', [BatchAttendanceController::class, 'store'])
+                    ->middleware('system.permission:operation,edit')
                     ->whereIn('type', ['driver', 'mechanic'])
                     ->name('operation.attendance.batch.store');
             });
