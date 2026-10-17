@@ -5180,3 +5180,9 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-compact-details-content { margin-top:9px; color:#475569; font-size:11px; line-height:1.6; }
 .auto-scheduling-page .gct-conflict-report-body { display:flex; flex-direction:column; }
 .auto-scheduling-page .gct-report-actions { position:sticky; bottom:0; z-index:3; background:#fff; border-top:1px solid #e2e8f0; }
+
+/* Single-path AI conflict selector: top ranked pairs with optional overflow. */
+.auto-scheduling-page .gct-more-pairs { margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px; }
+.auto-scheduling-page .gct-more-pairs > summary { cursor:pointer; font-size:11px; font-weight:700; color:#2563eb; padding:5px 2px; }
+.auto-scheduling-page .gct-more-pairs > .gct-compact-pair-list { margin-top:9px; max-height:200px; }
+.auto-scheduling-page .gct-compact-pair-selector > .gct-compact-pair-list { max-height:none; overflow:visible; }
