@@ -3282,7 +3282,7 @@ function updateMlStatus(conflicts) {
                             <i class="fa-solid fa-user-gear"></i>
                             Handle Manually Later
                         </button>
-                        ${isReserveReview ? `
+                        ${isReserveReview && !pairAllowed ? `
                             <button type="button" class="ai-resolution-btn primary" data-apply-selected-reserve="${index}" ${(reserveSelected && canAssignReserve()) ? '' : 'disabled'}>
                                 <i class="fa-solid fa-bus"></i> Apply to Preview
                             </button>
