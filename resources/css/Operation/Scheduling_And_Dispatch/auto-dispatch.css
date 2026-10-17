@@ -4925,3 +4925,16 @@ body.ai-modal-open {
     white-space: nowrap;
   }
 }
+
+/* With one conflict, let the detailed report use the available width. */
+@media screen and (min-width: 1101px) {
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 0.95fr) minmax(430px, 1.25fr);
+  }
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-report-panel {
+    width: 100%;
+  }
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-list {
+    align-self: stretch;
+  }
+}
