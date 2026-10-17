@@ -15,7 +15,7 @@ BUS model
 
 DRIVER model
     Each sample = one real driver, labeled by the driver's genuine attendance
-    reliability (share of Present/Late attendance records with time_in). The
+    reliability (share of Present attendance records). The
     features are the driver's attendance history profile. This is the only
     honest driver-behavioural signal available until per-driver trip outcomes
     accumulate.
@@ -169,9 +169,7 @@ def _bus_performance_label(gps: pd.DataFrame) -> pd.Series:
 # ---------------------------------------------------------------------------
 
 DRIVER_FEATURE_COLUMNS = [
-    "shift_encoded",
     "attendance_rate",
-    "late_rate",
     "total_attendance",
     "distinct_dates",
 ]
@@ -188,41 +186,23 @@ def _build_driver_features(attendance: pd.DataFrame) -> pd.DataFrame:
     df = attendance.copy()
     df["status"] = df["status"].astype(str).str.lower()
 
-    # Present/Late counts as "available and reliable"; late is discounted.
-    df["is_reliable"] = df["status"].isin(["present", "late"]).astype(float)
-    df["is_late"] = (df["status"] == "late").astype(float)
+    df["is_reliable"] = (df["status"] == "present").astype(float)
 
     grouped = (
         df.groupby("driver_id")
         .agg(
             attendance_rate=("is_reliable", "mean"),
-            late_rate=("is_late", "mean"),
             total_attendance=("is_reliable", "count"),
             distinct_dates=("attendance_date", "nunique"),
         )
         .reset_index()
     )
 
-    # Shift encoding (modal shift).
-    shift_mode = (
-        df.groupby("driver_id")["shift"]
-        .agg(lambda s: s.mode().iloc[0] if not s.mode().empty else "")
-        .rename("shift_mode")
-        .reset_index()
-    )
-    grouped = grouped.merge(shift_mode, on="driver_id", how="left")
-
-    shift_map = {"morning": 0, "afternoon": 1, "night": 2, "swing": 3}
-    grouped["shift_encoded"] = (
-        grouped["shift_mode"].astype(str).str.lower().map(shift_map).fillna(-1.0)
-    )
-
-    grouped = grouped.drop(columns=["shift_mode"])
     return grouped
 
 
 def _driver_reliability_label(grouped: pd.DataFrame, attendance: pd.DataFrame) -> pd.Series:
-    """Reliability score (0-1) = real Present/Late attendance ratio.
+    """Reliability score (0-1) = real Present attendance ratio.
 
     This is a genuine behavioural signal derived from the actual attendance
     records; it is not a fabricated label.

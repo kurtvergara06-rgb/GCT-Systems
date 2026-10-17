@@ -26,7 +26,7 @@ def remaining_pms_mileage(bus: BusData) -> Optional[float]:
         return bus.next_pms_mileage - bus.mileage
 
 
-def is_driver_eligible(driver: DriverData, trip_shift: Optional[str]) -> bool:
+def is_driver_eligible(driver: DriverData, trip_shift: Optional[str] = None) -> bool:
     """
     Apply hard eligibility rules for drivers.
     """
@@ -34,9 +34,6 @@ def is_driver_eligible(driver: DriverData, trip_shift: Optional[str]) -> bool:
         return False
 
     if driver.has_conflict:
-        return False
-
-    if trip_shift and driver.shift and driver.shift != trip_shift:
         return False
 
     return True
@@ -71,9 +68,6 @@ def driver_score(driver: DriverData, trip_shift: Optional[str]) -> int:
         return 0
 
     score = 100
-
-    if driver.status == "Late":
-        score -= 10
 
     score -= min(driver.assigned_minutes // 30, 35)
 

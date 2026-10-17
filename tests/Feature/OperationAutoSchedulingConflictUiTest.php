@@ -21,6 +21,12 @@ it('renders conflicts as a severity queue with an actionable report panel', func
         ->not->toContain('class="gct-conflict-arrow')
         ->toContain('Recommended Assignments')
         ->toContain('Alternative Options')
+        ->toContain('Driver Alternatives')
+        ->toContain('Bus Alternatives')
+        ->toContain('Valid Driver&ndash;Bus Pairs')
+        ->toContain('Trained ML model')
+        ->toContain('Data-derived fallback')
+        ->toContain('Rule-based fallback')
         ->toContain('Apply Recommendation');
 });
 

@@ -160,7 +160,6 @@ def fetch_driver_attendance(db: DbConnection) -> pd.DataFrame:
         SELECT
             driver_id,
             driver_name,
-            shift,
             attendance_date,
             status
         FROM driver_attendances

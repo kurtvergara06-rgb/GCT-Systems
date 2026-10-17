@@ -98,7 +98,7 @@ class AutoSchedulingController extends Controller
                     'attendance_date',
                     $selectedDate
                 )
-                ->whereIn('status', ['Present', 'Late']);
+                ->where('status', 'Present');
 
         $availableDrivers =
             $availableDriverQuery->count();
@@ -269,7 +269,7 @@ class AutoSchedulingController extends Controller
                 'attendance_date',
                 $scheduleDate
             )
-            ->whereIn('status', ['Present', 'Late'])
+            ->where('status', 'Present')
 
             ->orderBy('driver_name')
             ->get();
@@ -419,6 +419,7 @@ class AutoSchedulingController extends Controller
                             'bus_explanation' => 'Eligible Reserve Bus suggested after Regular Bus availability checks.',
                             'alternative_drivers' => [],
                             'alternative_buses' => [],
+                            'valid_pairs' => [],
                             'ml' => ['bus_source' => 'rule_fallback', 'driver_source' => 'rule_fallback'],
                         ],
                     ]);
@@ -465,17 +466,94 @@ class AutoSchedulingController extends Controller
 
                     $aiResponse = $this->operationAi->recommend($aiPayload);
 
-                    // The Python scorer ranks candidates; it must not grant
-                    // eligibility. Never display a driver who cannot be paired
-                    // with a Regular bus for this trip. When the scheduler
-                    // found no driver, recommendations are not actionable.
+                    // Python only ranks candidates; Laravel owns eligibility.
+                    // Regular-bus alternatives stay limited to authorized
+                    // drivers. Reserve alternatives may use any Present,
+                    // active, conflict-free driver because Operations Head is
+                    // the direct authority and confirmation revalidates all
+                    // safeguards transactionally.
                     $allowedDriverAttendanceIds = collect($aiPayload['eligible_drivers'] ?? [])
                         ->pluck('id')->map(fn ($id) => (int) $id)->all();
-                    $aiDriverAlternatives = ! $driver
-                        ? []
-                        : collect(data_get($aiResponse, 'analysis.alternative_drivers', []))
+                    $driverSource = data_get($aiResponse, 'analysis.ml_driver_source', 'rule_fallback');
+                    $busSource = data_get($aiResponse, 'analysis.ml_bus_source', 'rule_fallback');
+                    $driverSuitability = (array) data_get($aiResponse, 'analysis.driver_suitability', []);
+                    $busSuitability = (array) data_get($aiResponse, 'analysis.bus_suitability', []);
+
+                    $aiDriverAlternatives = collect(data_get($aiResponse, 'analysis.alternative_drivers', []))
                             ->filter(fn ($option) => in_array((int) data_get($option, 'id'), $allowedDriverAttendanceIds, true))
-                            ->values()->all();
+                            ->map(fn ($option) => array_merge($option, [
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => $driverSource,
+                            ]));
+
+                    $reserveDriverAlternatives = empty($reserveAlternatives)
+                        ? collect()
+                        : $drivers
+                            ->reject(fn (DriverAttendance $candidate): bool => $this->driverHasConflict(
+                                trip: $trip,
+                                driverId: $candidate->driver_id,
+                                existingAssignments: $existingAssignments,
+                                generatedRecommendations: $recommendations
+                            ))
+                            ->sortBy(fn (DriverAttendance $candidate): string => sprintf(
+                                '%08d-%s',
+                                (int) $driverWorkloads->get($candidate->driver_id, 0),
+                                strtolower($candidate->driver_name)
+                            ))
+                            ->take(5)
+                            ->map(function (DriverAttendance $candidate) use (
+                                $driverSource,
+                                $driverSuitability,
+                                $driverWorkloads
+                            ): array {
+                                $score = data_get($driverSuitability, (string) $candidate->id);
+
+                                return [
+                                    'id' => (int) $candidate->id,
+                                    'label' => (string) $candidate->driver_name,
+                                    'score' => is_numeric($score) ? (int) $score : null,
+                                    'reason' => sprintf(
+                                        'Present, active, no overlapping assignment, %d scheduled trip(s).',
+                                        (int) $driverWorkloads->get($candidate->driver_id, 0)
+                                    ),
+                                    'eligibility_source' => 'laravel_rules',
+                                    'score_source' => is_numeric($score) ? $driverSource : 'rule_fallback',
+                                ];
+                            });
+
+                    $driverAlternatives = $aiDriverAlternatives
+                        ->concat($reserveDriverAlternatives)
+                        ->unique(fn ($option) => (int) data_get($option, 'id'))
+                        ->values();
+
+                    $busAlternatives = collect($reserveAlternatives)
+                        ->map(function (array $option) use ($busSource, $busSuitability): array {
+                            $score = data_get($busSuitability, (string) $option['id']);
+
+                            return array_merge($option, [
+                                'score' => is_numeric($score) ? (int) $score : null,
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => is_numeric($score) ? $busSource : 'rule_fallback',
+                            ]);
+                        });
+
+                    $validPairs = $driverAlternatives
+                        ->flatMap(fn (array $driverOption) => $busAlternatives->map(
+                            fn (array $busOption): array => [
+                                'driver_attendance_id' => (int) $driverOption['id'],
+                                'driver_label' => (string) $driverOption['label'],
+                                'driver_score' => $driverOption['score'],
+                                'driver_score_source' => $driverOption['score_source'],
+                                'bus_id' => (int) $busOption['id'],
+                                'bus_label' => (string) $busOption['label'],
+                                'bus_score' => $busOption['score'],
+                                'bus_score_source' => $busOption['score_source'],
+                                'eligibility_source' => 'laravel_rules',
+                                'reason' => 'Valid at generation time under attendance, active-resource, maintenance, client, and overlap rules. Final server revalidation still applies.',
+                            ]
+                        ))
+                        ->take(6)
+                        ->values();
 
                     $conflicts->push([
                         'trip_schedule_id' => $trip->id,
@@ -510,8 +588,9 @@ class AutoSchedulingController extends Controller
                             'bus_explanation' => data_get($aiResponse, 'analysis.bus_explanation'),
                             'conflict_explanation' => data_get($aiResponse, 'analysis.conflict_explanation'),
                             'warnings' => data_get($aiResponse, 'analysis.warnings', []),
-                            'alternative_drivers' => $aiDriverAlternatives,
-                            'alternative_buses' => $reserveAlternatives,
+                            'alternative_drivers' => $driverAlternatives->all(),
+                            'alternative_buses' => $busAlternatives->all(),
+                            'valid_pairs' => $validPairs->all(),
                             'ml' => [
                                 'bus_ready' => (bool) data_get($aiResponse, 'analysis.ml_bus_ready', false),
                                 'driver_ready' => (bool) data_get($aiResponse, 'analysis.ml_driver_ready', false),
@@ -639,7 +718,7 @@ class AutoSchedulingController extends Controller
         $date = $trip->trip_date->toDateString();
         $drivers = DriverAttendance::query()
             ->whereDate('attendance_date', $date)
-            ->whereIn('status', ['Present', 'Late'])
+            ->where('status', 'Present')
             ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
             ->orderBy('driver_name')
             ->get(['id', 'driver_id', 'driver_name', 'status']);
@@ -1104,7 +1183,7 @@ class AutoSchedulingController extends Controller
 
                 if (
                     ! $driver
-                    || ! in_array($driver->status, ['Present', 'Late'], true)
+                    || $driver->status !== 'Present'
                     || ! $driver->attendance_date?->isSameDay($trip->trip_date)
                     || ! $activeDriver
                 ) {
@@ -1466,7 +1545,6 @@ class AutoSchedulingController extends Controller
                 if ($total === 0) {
                     $driverHistories[(int) $driver->id] = [
                         'attendance_rate' => 0.0,
-                        'late_rate' => 0.0,
                         'total_attendance' => 0.0,
                         'distinct_dates' => 0.0,
                         'has_history' => 0.0,
@@ -1476,15 +1554,7 @@ class AutoSchedulingController extends Controller
                 }
 
                 $reliable = $rows->filter(
-                    fn ($row): bool => in_array(
-                        strtolower((string) $row->status),
-                        ['present', 'late'],
-                        true
-                    )
-                )->count();
-
-                $late = $rows->filter(
-                    fn ($row): bool => strtolower((string) $row->status) === 'late'
+                    fn ($row): bool => strtolower((string) $row->status) === 'present'
                 )->count();
 
                 $distinctDates = $rows
@@ -1499,7 +1569,6 @@ class AutoSchedulingController extends Controller
 
                 $driverHistories[(int) $driver->id] = [
                     'attendance_rate' => round($reliable / max($total, 1), 6),
-                    'late_rate' => round($late / max($total, 1), 6),
                     'total_attendance' => (float) $total,
                     'distinct_dates' => (float) $distinctDates,
                     'has_history' => 1.0,
@@ -1620,7 +1689,10 @@ class AutoSchedulingController extends Controller
 
             'status' => (string) $driver->status,
 
-            'shift' => $trip->shift, // AI compatibility: drivers have no permanent shift.
+            // Driver Attendance no longer owns a working shift. Trip shift is
+            // deliberately not copied onto the driver candidate because doing
+            // so manufactures a perfect feature that does not exist in data.
+            'shift' => null,
 
             'assigned_trips' => (int) $workloads->get(
                 $driver->driver_id,
@@ -2036,11 +2108,7 @@ class AutoSchedulingController extends Controller
                         'attendance_date',
                         $scheduleDate
                     )
-                    ->whereIn('status', ['Present', 'Late'])
-                    ->where(
-                        'shift',
-                        $trip->shift
-                    )
+                    ->where('status', 'Present')
 
                     ->orderBy('driver_name')
                     ->lockForUpdate()

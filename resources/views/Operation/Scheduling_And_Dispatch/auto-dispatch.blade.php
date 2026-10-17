@@ -42,7 +42,7 @@
                 <div>
                     <p>Available Drivers</p>
                     <h2 id="summaryDrivers">{{ $availableDrivers }}</h2>
-                    <small>Present or late</small>
+                    <small>Present</small>
                 </div>
             </article>
 
@@ -174,7 +174,7 @@
                     <div class="resource-item">
                         <div class="resource-info">
                             <div class="resource-icon green"><i class="fa-solid fa-user-check"></i></div>
-                            <div><strong>Available Drivers</strong><span>Present or late</span></div>
+                            <div><strong>Available Drivers</strong><span>Present</span></div>
                         </div>
                         <strong class="resource-count" id="resourceAvailableDrivers">{{ $availableDrivers }}</strong>
                     </div>
@@ -221,7 +221,7 @@
 
             <div class="rules-grid" id="autoSchedulingRulesGrid" hidden>
                 @foreach([
-                    ['Driver must be present', 'Only Present or Late drivers can be assigned.'],
+                    ['Driver must be present', 'Only Present drivers can be assigned.'],
                     ['Driver must be available', 'Prevent overlapping driver assignments.'],
                     ['Bus must be operational', 'Only Active buses are eligible.'],
                     ['Exclude maintenance buses', 'Buses under maintenance cannot be assigned.'],

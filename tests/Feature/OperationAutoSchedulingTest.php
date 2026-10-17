@@ -856,6 +856,14 @@ class OperationAutoSchedulingTest extends TestCase
             $reserve->id,
             (int) collect($reserveSuggestion['ai']['alternative_buses'])->first()['id']
         );
+        $this->assertSame(
+            $driver->id,
+            (int) collect($reserveSuggestion['ai']['alternative_drivers'])->first()['id']
+        );
+        $validPair = collect($reserveSuggestion['ai']['valid_pairs'])->first();
+        $this->assertSame($driver->id, (int) $validPair['driver_attendance_id']);
+        $this->assertSame($reserve->id, (int) $validPair['bus_id']);
+        $this->assertSame('laravel_rules', $validPair['eligibility_source']);
         $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
     }
 

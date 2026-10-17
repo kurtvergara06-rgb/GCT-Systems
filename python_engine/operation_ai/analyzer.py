@@ -110,26 +110,6 @@ def analyze_recommendation(
                 "the driver has no overlapping assignment"
             )
 
-        if (
-            payload.trip.shift
-            and selected_driver.shift
-            and selected_driver.shift
-            != payload.trip.shift
-        ):
-            score = 0
-
-            hard_conflicts.append(
-                f"The driver belongs to the "
-                f"{selected_driver.shift} shift, "
-                f"but the trip belongs to the "
-                f"{payload.trip.shift} shift."
-            )
-        elif selected_driver.shift:
-            driver_reasons.append(
-                f"the driver belongs to the "
-                f"{selected_driver.shift} shift"
-            )
-
         driver_reasons.append(
             f"the driver currently has "
             f"{selected_driver.assigned_trips} "
@@ -164,13 +144,6 @@ def analyze_recommendation(
             selected_driver.assigned_trips * 3,
             15,
         )
-
-        if selected_driver.status == "Late":
-            score -= 10
-
-            warnings.append(
-                f"{selected_driver.name} is marked Late."
-            )
 
     if selected_bus is None:
         score = 0

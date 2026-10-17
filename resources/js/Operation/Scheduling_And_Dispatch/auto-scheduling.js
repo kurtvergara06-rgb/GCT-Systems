@@ -2697,7 +2697,13 @@ function updateMlStatus(conflicts) {
         `).join('');
     };
 
-    const scoringSourceLabel = (source) => ({ ml: 'Trained ML model', data_fallback: 'Attendance-based estimate', rule_fallback: 'Rule-based estimate' }[source] || 'Source unavailable');
+    const scoringSourceLabel = (source) => ({
+        ml: 'Trained ML model',
+        data: 'Data-derived fallback',
+        data_fallback: 'Data-derived fallback',
+        rule: 'Rule-based fallback',
+        rule_fallback: 'Rule-based fallback'
+    }[source] || 'Source unavailable');
 
     const renderOptionCards = (items, type, selectedId, index) => {
         if (!items.length) {
@@ -2867,7 +2873,7 @@ function updateMlStatus(conflicts) {
                                     Context
                                 </h4>
                                 <div class="gct-ai-context">
-                                    <p>The AI reviewed current attendance, shifts, workloads, trip overlaps, bus status, and PMS information. Every selected option is checked again by the system before saving.</p>
+                                    <p>The AI reviewed current attendance, workloads, trip overlaps, bus status, and PMS information. Every selected option is checked again by the system before saving.</p>
                                     <i class="fa-solid fa-brain"></i>
                                 </div>
                             </section>
@@ -2991,7 +2997,7 @@ function updateMlStatus(conflicts) {
                         ${item.score !== null && item.score !== undefined && Number.isFinite(Number(item.score))
                             ? `Suitability ${Number(item.score)}/100`
                             : 'Suitability unavailable'}
-                        · ${escapeHtml(scoringSourceLabel(conflicts[index]?.ai?.ml?.[type === 'driver' ? 'driver_source' : 'bus_source']))}
+                        · ${escapeHtml(scoringSourceLabel(item.score_source || conflicts[index]?.ai?.ml?.[type === 'driver' ? 'driver_source' : 'bus_source']))}
                     </span>
                 </button>
             `;
@@ -3030,14 +3036,11 @@ function updateMlStatus(conflicts) {
         const aiConflict = ai?.conflict || {};
         const missingDriver = conflict?.missing_driver === true;
         const missingBus = conflict?.missing_bus === true;
-        // A missing bus is not fixed by swapping drivers, and vice versa.
-        const drivers = missingDriver || missingBus ? [] : getAlternatives(conflict, 'alternative_drivers');
-        // Display reserve units for planning even when a driver is missing.
-        // These are informational only, not selectable/confirmable assignments.
-        const reserveInformation = missingDriver && Array.isArray(ai.alternative_buses)
-            ? ai.alternative_buses.filter(item => String(item?.label || '').includes('(Reserve)'))
-            : [];
-        const buses = missingDriver && !missingBus ? [] : getAlternatives(conflict, 'alternative_buses');
+        const drivers = getAlternatives(conflict, 'alternative_drivers');
+        const allBuses = getAlternatives(conflict, 'alternative_buses');
+        const reserveInformation = allBuses.filter(item => String(item?.label || '').includes('(Reserve)'));
+        const buses = allBuses.filter(item => !String(item?.label || '').includes('(Reserve)'));
+        const validPairs = Array.isArray(ai.valid_pairs) ? ai.valid_pairs : [];
         const conflictKey = conflictIdentity(conflict);
         const storedReserve = selectedReserveByConflict.get(conflictKey);
         const selectedReserve = reserveInformation.find((bus) => (
@@ -3083,7 +3086,7 @@ function updateMlStatus(conflicts) {
         const issueDetail = missingDriver && missingBus
             ? 'An eligible driver and bus are required before this slot can be assigned.'
             : missingDriver
-                ? 'A driver with valid attendance, shift eligibility, and no overlapping trip is required.'
+                ? 'A driver with valid attendance and no overlapping trip is required.'
                 : missingBus
                     ? 'A bus that is active, clear of maintenance, and free during this trip window is required.'
                     : 'The selected resources or departure time conflict with another operational requirement.';
@@ -3163,35 +3166,56 @@ function updateMlStatus(conflicts) {
                         data-gct-option-tab="alternative"
                         data-gct-conflict-index="${index}"
                         class="${activeTab === 'alternative' ? 'active' : ''}"
-                    >Alternative Options (${Math.max(0, drivers.length - 1) + Math.max(0, buses.length - 1) + (isReserveReview ? 1 : 0) + reserveInformation.length})</button>
+                    >Alternative Options (${drivers.length + buses.length + reserveInformation.length + validPairs.length + (isReserveReview ? 1 : 0)})</button>
                 </div>
 
                 <div class="gct-report-recommendations">
-                    ${isReserveReview && activeTab === 'alternative' ? `
-                        <button type="button" class="gct-option-card gct-report-option ${reserveSelected ? 'is-selected' : ''}"
-                            data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}"
-                            style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px;">
-                            <span class="gct-option-radio" aria-hidden="true"></span>
-                            <span class="gct-report-option-copy">
-                                <strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong>
-                                <small>Active and eligible at generation time · Operations approval required · Revalidated before confirmation</small>
-                            </span>
-                        </button>
-                    ` : ''}
-                    ${activeTab === 'alternative' && reserveInformation.length ? `
-                        <div class="gct-report-reserve-alternatives">
-                            ${reserveInformation.map(bus => `
-                                <button type="button" class="gct-option-card gct-report-option gct-reserve-choice ${selectedReserve === bus ? 'is-selected' : ''}" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" aria-pressed="${selectedReserve === bus ? 'true' : 'false'}" aria-disabled="${canAssignReserve ? 'false' : 'true'}">
-                                    <span class="gct-reserve-choice-identity"><i class="fa-solid fa-bus" aria-hidden="true"></i><strong>${escapeHtml(bus.label)}</strong></span>
-                                    <span class="gct-reserve-choice-indicator" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                    ${activeTab === 'alternative' ? `
+                        <section class="gct-alternative-section" data-gct-alternative-section="drivers">
+                            <header><strong><i class="fa-solid fa-id-card"></i> Driver Alternatives</strong><span>${drivers.length} eligible</span></header>
+                            ${drivers.length
+                                ? `<div class="gct-report-options" data-resource-type="driver">${renderReportOptionCards(drivers.slice(0, 5), 'driver', selection.driverId, index)}</div>`
+                                : '<div class="gct-report-empty">No Laravel-eligible driver alternative is available.</div>'}
+                        </section>
+                        <section class="gct-alternative-section" data-gct-alternative-section="buses">
+                            <header><strong><i class="fa-solid fa-bus"></i> Bus Alternatives</strong><span>${buses.length + reserveInformation.length + (isReserveReview ? 1 : 0)} eligible</span></header>
+                            ${isReserveReview ? `
+                                <button type="button" class="gct-option-card gct-report-option ${reserveSelected ? 'is-selected' : ''}"
+                                    data-gct-select-reserve="${index}" aria-pressed="${reserveSelected ? 'true' : 'false'}"
+                                    style="width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px;">
+                                    <span class="gct-option-radio" aria-hidden="true"></span>
+                                    <span class="gct-report-option-copy"><strong>Reserve Bus ${escapeHtml(conflict.suggested_bus_no || '')}</strong><small>Laravel eligibility passed · Operations Head direct assignment · Revalidated before confirmation</small></span>
                                 </button>
-                            `).join('')}
-                        </div>
+                            ` : ''}
+                            ${buses.length ? `<div class="gct-report-options" data-resource-type="bus">${renderReportOptionCards(buses.slice(0, 5), 'bus', selection.busId, index)}</div>` : ''}
+                            ${reserveInformation.length ? `
+                                <div class="gct-report-reserve-alternatives">
+                                    ${reserveInformation.map(bus => `
+                                        <button type="button" class="gct-option-card gct-report-option gct-reserve-choice ${selectedReserve === bus ? 'is-selected' : ''}" data-gct-review-reserve="${index}" data-gct-reserve-id="${Number(bus.id)}" data-gct-reserve-label="${escapeHtml(bus.label)}" aria-pressed="${selectedReserve === bus ? 'true' : 'false'}" aria-disabled="${canAssignReserve ? 'false' : 'true'}">
+                                            <span class="gct-reserve-choice-identity"><i class="fa-solid fa-bus" aria-hidden="true"></i><strong>${escapeHtml(bus.label)}</strong><small>${bus.score !== null && bus.score !== undefined ? `Suitability ${Number(bus.score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(bus.score_source || ml.bus_source))}</small></span>
+                                            <span class="gct-reserve-choice-indicator" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            ` : (!isReserveReview && !buses.length ? '<div class="gct-report-empty">No Laravel-eligible bus alternative is available.</div>' : '')}
+                        </section>
+                        <section class="gct-alternative-section" data-gct-alternative-section="pairs">
+                            <header><strong><i class="fa-solid fa-link"></i> Valid Driver&ndash;Bus Pairs</strong><span>${validPairs.length} valid</span></header>
+                            ${validPairs.length ? `<div class="gct-valid-pair-list">${validPairs.map(pair => `
+                                <div class="gct-valid-pair">
+                                    <strong>${escapeHtml(pair.driver_label)} <i class="fa-solid fa-arrow-right"></i> ${escapeHtml(pair.bus_label)}</strong>
+                                    <small>Driver: ${pair.driver_score !== null && pair.driver_score !== undefined ? `${Number(pair.driver_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.driver_score_source))}</small>
+                                    <small>Bus: ${pair.bus_score !== null && pair.bus_score !== undefined ? `${Number(pair.bus_score)}/100 · ` : ''}${escapeHtml(scoringSourceLabel(pair.bus_score_source))}</small>
+                                    <span>${escapeHtml(pair.reason || 'Laravel eligibility passed; final server validation still applies.')}</span>
+                                </div>
+                            `).join('')}</div>` : '<div class="gct-report-empty">No complete driver&ndash;bus pair currently passes deterministic eligibility.</div>'}
+                        </section>
                     ` : ''}
                     ${isReserveReview && activeTab === 'recommended' ? '<div class="gct-report-empty">Open Alternative Options to select the proposed Reserve Bus.</div>' : ''}
-                    ${!isReserveReview && missingBus && !missingDriver ? '<div class="gct-report-empty">An eligible bus is required; a different driver alone cannot resolve this conflict.</div>' : renderRecommendationGroup(drivers, 'driver', selection.driverId, index, activeTab === 'alternative')}
-                    ${missingDriver && !missingBus ? '<div class="gct-report-empty">Eligible driver attendance is required; a different bus alone cannot resolve this conflict.</div>' : renderRecommendationGroup(buses, 'bus', selection.busId, index, activeTab === 'alternative')}
-                    ${action?.suggested_time ? `
+                    ${activeTab === 'recommended' && !isReserveReview ? (missingDriver || missingBus
+                        ? '<div class="gct-report-empty">No complete assignment is currently recommended. Review the separated alternatives and valid pairs.</div>'
+                        : `${renderRecommendationGroup(drivers, 'driver', selection.driverId, index)}${renderRecommendationGroup(buses, 'bus', selection.busId, index)}`) : ''}
+                    ${activeTab === 'recommended' && action?.suggested_time ? `
                         <div class="gct-report-time-option">
                             <i class="fa-regular fa-clock"></i>
                             <span>Proposed departure<strong>${escapeHtml(displayTime(action.suggested_time))}</strong><small>${escapeHtml(action.explanation || 'This time is a suggestion, not a validated solution. Driver, bus, maintenance and overlap rules must be rechecked.')}</small></span>
@@ -3512,7 +3536,7 @@ function updateMlStatus(conflicts) {
 
                 <div class="ai-resolution-note">
                     <i class="fa-solid fa-shield-halved"></i>
-                    <p>The system will verify the selected resources, attendance, shift, PMS status, trip duration, and overlapping assignments before saving. Invalid selections will never be forced.</p>
+                    <p>The system will verify the selected resources, attendance, PMS status, trip duration, and overlapping assignments before saving. Invalid selections will never be forced.</p>
                 </div>
 
                 <p class="ai-resolution-description">${escapeHtml(

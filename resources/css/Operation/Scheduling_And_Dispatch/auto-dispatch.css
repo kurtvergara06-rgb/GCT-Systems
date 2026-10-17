@@ -4760,3 +4760,63 @@ body.ai-modal-open {
 .gct-report-reserve-alternatives .gct-reserve-choice-indicator {
   flex-shrink: 0;
 }
+
+/* Hybrid conflict alternatives: keep eligibility groups explicit. */
+.auto-scheduling-page .gct-alternative-section {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #d9e4f2;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.auto-scheduling-page .gct-alternative-section + .gct-alternative-section {
+  margin-top: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #172d4e;
+  font-size: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.auto-scheduling-page .gct-valid-pair-list {
+  display: grid;
+  gap: 8px;
+}
+.auto-scheduling-page .gct-valid-pair {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid #cde5d5;
+  border-radius: 10px;
+  background: #f4fbf6;
+}
+.auto-scheduling-page .gct-valid-pair strong {
+  color: #174b2d;
+  font-size: 12px;
+}
+.auto-scheduling-page .gct-valid-pair small,
+.auto-scheduling-page .gct-valid-pair span {
+  color: #52677c;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  flex-wrap: wrap;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity small {
+  flex-basis: 100%;
+  padding-left: 23px;
+}
