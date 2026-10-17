@@ -67,7 +67,7 @@ class BatchAttendanceController extends Controller
             $people = $people->reject(
                 fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
                     && ! in_array($record->status, ['Unmarked', null, ''], true)
-            );
+            )->values();
         }
 
         $rows = $people->map(function ($person) use (

@@ -458,7 +458,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertSame('Reserve', $reserveBus->fresh()->fleet_purpose);
     }
 
-    public function test_driver_morning_kpi_counts_only_active_morning_shift_drivers(): void
+    public function test_driver_kpis_count_active_and_inactive_drivers_independent_of_legacy_shift(): void
     {
         $user = $this->operationUser();
         $this->driver(['shift' => 'Morning']);
@@ -478,7 +478,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->actingAs($user)
             ->get(route('operation.personnel.drivers'))
             ->assertOk()
-            ->assertViewHas('stats', fn (array $stats) => $stats['morning'] === 1
+            ->assertViewHas('stats', fn (array $stats) => $stats['total'] === 3
                 && $stats['active'] === 2
                 && $stats['inactive'] === 1
             );
@@ -644,7 +644,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString('!$isLocked', $template);
         $this->assertStringNotContainsString('resource-assign-bus', $template);
         $this->assertStringNotContainsString('resource-assign-driver', $template);
-        $this->assertStringContainsString("'Night'", $template);
+        $this->assertStringNotContainsString("'Night'", $template);
     }
 
     public function test_unresolved_maintenance_job_order_excludes_bus_from_manual_dispatch_options(): void

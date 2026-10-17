@@ -61,7 +61,7 @@ class OperationDriverAttendanceUiTest extends TestCase
             $batchJs
         );
         $this->assertStringContainsString(
-            'Active drivers from the Driver Master List load automatically',
+            'All active drivers from the Driver Master List load automatically',
             $batchJs
         );
     }
