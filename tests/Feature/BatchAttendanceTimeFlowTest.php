@@ -280,6 +280,46 @@ class BatchAttendanceTimeFlowTest extends TestCase
             ->assertJsonPath('rows.0.person_id', 'D-NO-RECORD');
     }
 
+    public function test_batch_attendance_respects_admin_controlled_operation_permissions(): void
+    {
+        $staff = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        $role = \App\Models\Admin\RolePermission::query()
+            ->where('role_key', 'operation_staff')->firstOrFail();
+        $original = $role->permissions;
+        $restricted = $original;
+        data_set($restricted, 'operation.view', false);
+        data_set($restricted, 'operation.edit', false);
+        $role->update(['permissions' => $restricted]);
+
+        $url = route('operation.attendance.batch.roster', [
+            'type' => 'driver', 'date' => '2026-10-20',
+        ]);
+        $store = route('operation.attendance.batch.store', ['type' => 'driver']);
+
+        $this->actingAs($staff)->getJson($url)->assertForbidden();
+        $this->actingAs($staff)->postJson($store, [
+            'attendance_date' => '2026-10-20', 'rows' => [],
+        ])->assertForbidden();
+
+        data_set($restricted, 'operation.view', true);
+        $role->update(['permissions' => $restricted]);
+        $this->actingAs($staff)->getJson($url)->assertOk();
+        $this->actingAs($staff)->postJson($store, [
+            'attendance_date' => '2026-10-20', 'rows' => [],
+        ])->assertForbidden();
+
+        data_set($restricted, 'operation.edit', true);
+        $role->update(['permissions' => $restricted]);
+        $this->actingAs($staff)->postJson($store, [
+            'attendance_date' => '2026-10-20', 'rows' => [],
+        ])->assertUnprocessable();
+    }
+
     public function test_batch_attendance_rejects_unsupported_night_shift_rows(): void
     {
         $user = User::factory()->create([
