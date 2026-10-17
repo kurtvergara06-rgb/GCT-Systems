@@ -949,7 +949,7 @@
     color: #991b1b;
     background: #fff7f7;
 }
-.department-module-matrix #rolePermissionForm.is-editing .matrix-permission-choice:not(.is-locked) {
+#rolePermissionForm.is-editing .department-module-matrix .matrix-permission-choice:not(.is-locked) {
     cursor: pointer;
 }
 .department-module-matrix .matrix-permission-choice:has(input:focus-visible) {
