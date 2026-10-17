@@ -4739,3 +4739,24 @@ body.ai-modal-open {
 .gct-report-reserve-alternatives .gct-reserve-choice.is-selected .gct-reserve-choice-indicator {
   color: #fff; background: #2563eb;
 }
+
+/* Keep full Reserve bus labels visible in the compact, verified picker. */
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  flex: 1 1 auto;
+  width: auto;
+  overflow: visible;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity strong {
+  display: inline;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-indicator {
+  flex-shrink: 0;
+}
