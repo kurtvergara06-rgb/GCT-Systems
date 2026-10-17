@@ -150,3 +150,10 @@ it('separates regular recommendations from Head-reviewed Reserve alternatives', 
         ->toContain('data-gct-inline-pair')
         ->toContain('canAssignReserve()');
 });
+
+it('supports a bounded larger set of validated conflict alternatives', function (): void {
+    $controller = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    expect($controller)->toContain('->take(50)');
+    expect($script)->toContain('alternativePairs.map(renderPairCard).join');
+});
