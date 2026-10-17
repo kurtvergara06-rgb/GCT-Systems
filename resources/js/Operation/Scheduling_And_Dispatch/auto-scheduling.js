@@ -3385,6 +3385,10 @@ function updateMlStatus(conflicts) {
                 <td><span class="gct-conflict-state"><i class="fa-regular fa-clock"></i> Needs Review</span></td>
             </tr>`;
         }).join('');
+        // Rebuilding the report must not move the page or reset its independent scroll.
+        const previousPageScroll = window.scrollY;
+        const previousReportScroll = container.querySelector('.gct-conflict-report-body')?.scrollTop ?? 0;
+        const previousTableScroll = container.querySelector('.gct-conflict-table-wrap')?.scrollTop ?? 0;
         container.innerHTML = `
             <div class="gct-conflict-workspace ${conflicts.length === 1 ? 'is-single-conflict' : ''} ${conflictReportClosed ? 'is-report-closed' : ''}">
                 <div class="gct-conflict-list">
@@ -3421,6 +3425,14 @@ function updateMlStatus(conflicts) {
                     </aside>
                 `}
             </div>`;
+        const reportScroll = container.querySelector('.gct-conflict-report-body');
+        if (reportScroll) reportScroll.scrollTop = previousReportScroll;
+        const tableScroll = container.querySelector('.gct-conflict-table-wrap');
+        if (tableScroll) tableScroll.scrollTop = previousTableScroll;
+        if (Math.abs(window.scrollY - previousPageScroll) > 1) {
+            window.scrollTo({ top: previousPageScroll, behavior: 'instant' });
+        }
+
     };
 
     document.getElementById('autoSchedulingConflictContent')?.addEventListener('click', (event) => {
