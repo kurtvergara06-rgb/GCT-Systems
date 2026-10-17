@@ -60,10 +60,9 @@ class BatchAttendanceController extends Controller
             ->get()
             ->keyBy($idColumn);
 
-        // Only personnel without an attendance record on this date belong in
-        // Record Daily Attendance; recorded personnel remain in attendance history.
-        $people = $people->reject(fn ($person) => $dateRecords->has((string) $person->{$idColumn}));
-
+        // Keep the complete active roster visible. Existing records are
+        // returned as read-only rows so staff can distinguish recorded
+        // attendance from unmarked personnel without creating duplicates.
         $rows = $people->map(function ($person) use (
             $dateRecords,
             $date,
@@ -81,6 +80,7 @@ class BatchAttendanceController extends Controller
 
             return [
                 'person_id' => $personId,
+                'recorded' => $record !== null,
                 'name' => (string) $person->{$nameColumn},
                 'shift' => $type === 'driver' ? 'Morning' : (string) $person->shift,
                 'attendance_date' => $date,
