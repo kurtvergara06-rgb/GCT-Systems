@@ -3,6 +3,7 @@
 use App\Http\Controllers\Operation\AutoSchedulingController;
 use App\Http\Controllers\Operation\BusAvailabilityController;
 use App\Http\Controllers\Operation\BusController;
+use App\Http\Controllers\Operation\ClientTripTimeController;
 use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\IncidentController;
@@ -87,6 +88,30 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
             Route::delete('/{tripSchedule}', 'destroy')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.destroy');
+        });
+
+    Route::controller(ClientTripTimeController::class)
+        ->prefix('operation/client-trip-times')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('client-trip-times');
+            Route::get('/panels/{operationClient}/{category}', 'panel')
+                ->name('client-trip-times.panel');
+            Route::post('/', 'store')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.store');
+            Route::put('/{clientTripTimeConfiguration}', 'update')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.update');
+            Route::post('/{clientTripTimeConfiguration}/slots', 'addSlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.store');
+            Route::put('/slots/{clientTripTimeSlot}', 'updateSlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.update');
+            Route::delete('/slots/{clientTripTimeSlot}', 'destroySlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.destroy');
         });
 
     Route::post('operation/external-bus-rentals', [\App\Http\Controllers\Operation\ExternalBusRentalController::class, 'store'])

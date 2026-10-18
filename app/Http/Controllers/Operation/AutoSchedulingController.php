@@ -14,6 +14,7 @@ use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
 use App\Services\OperationAiService;
+use App\Support\ClientTripTimes;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -2166,6 +2167,16 @@ class AutoSchedulingController extends Controller
                         'proposed_departure_time' => 'The proposed departure must be the current time or a future time.',
                     ]);
                 }
+
+                // A resolution may only move a trip to a time the client's
+                // trip time configuration allows. Unconfigured clients keep
+                // the unrestricted behavior.
+                ClientTripTimes::assertTripDepartureAllowed(
+                    $trip->client_name,
+                    $trip->direction,
+                    $proposedDeparture->format('H:i'),
+                    'proposed_departure_time'
+                );
 
                 $proposedArrival = $proposedDeparture
                     ->copy()

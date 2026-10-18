@@ -5186,3 +5186,8 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-more-pairs > summary { cursor:pointer; font-size:11px; font-weight:700; color:#2563eb; padding:5px 2px; }
 .auto-scheduling-page .gct-more-pairs > .gct-compact-pair-list { margin-top:9px; max-height:200px; }
 .auto-scheduling-page .gct-compact-pair-selector > .gct-compact-pair-list { max-height:none; overflow:visible; }
+
+/* Client Trip Times entry point on the Advanced Scheduling page. */
+.auto-scheduling-page .auto-header-side-actions{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.auto-scheduling-page .auto-header-side-actions .auto-client-trip-times-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;text-decoration:none}
+@media(max-width:660px){.auto-scheduling-page .auto-header-side-actions{max-width:100%;justify-content:flex-start}}

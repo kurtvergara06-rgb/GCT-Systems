@@ -3062,3 +3062,58 @@
         margin-bottom: 3px;
     }
 }
+
+/* =========================================================
+   CLIENT TRIP TIME CONFIGURATION IN THE TRIP EDITOR
+========================================================= */
+
+.trip-schedule-page .service-controls-card .new-trip-btn.trip-client-times-link {
+    text-decoration: none;
+}
+
+#tripModal #departureTimeSlot {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 12px 0 40px;
+    border: 1px solid #dbe5f2;
+    border-radius: 9px;
+    background: #fff;
+    color: #142c4d;
+    font-size: 12px;
+}
+
+#tripModal #departureTimeSlot[hidden] {
+    display: none;
+}
+
+#tripModal .trip-time-config-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 9px 12px;
+    border: 1px solid #bfd7f5;
+    border-radius: 9px;
+    background: #f2f7fe;
+    color: #1c4276;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+#tripModal .trip-time-config-notice.is-warning {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+#tripModal .trip-time-config-notice i {
+    margin-top: 2px;
+}
+
+#tripModal .trip-time-config-notice a {
+    color: inherit;
+    font-weight: 800;
+    white-space: nowrap;
+}

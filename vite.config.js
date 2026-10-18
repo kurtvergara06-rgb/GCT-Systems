@@ -186,10 +186,12 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
+                'resources/css/Operation/Scheduling_And_Dispatch/client-trip-times.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
 
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/client-trip-times.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
 

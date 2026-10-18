@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Operation\IncidentReplacement;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
+use App\Support\ClientTripTimes;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
@@ -144,6 +146,34 @@ class TripScheduleController extends Controller
 
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
+        $operationClients = OperationClient::query()
+            ->with('tripTimeConfigurations.slots')
+            ->orderBy('name')
+            ->get();
+
+        $operationClientNames = $operationClients->pluck('name')->values();
+
+        // Active client trip time configurations power the trip editor's
+        // configured slot selection. Disabled configurations are excluded.
+        $clientTripTimeConfigs = [];
+
+        foreach ($operationClients as $operationClient) {
+            foreach ($operationClient->tripTimeConfigurations as $configuration) {
+                if (! $configuration->is_active) {
+                    continue;
+                }
+
+                $clientTripTimeConfigs[ClientTripTimes::normalizeClientName($operationClient->name)][$configuration->category] = [
+                    'start' => ClientTripTimes::inputTimeFromMinutes($configuration->startMinutes()),
+                    'end' => ClientTripTimes::inputTimeFromMinutes($configuration->endMinutes()),
+                    'slots' => array_map(
+                        ClientTripTimes::inputTimeFromMinutes(...),
+                        $configuration->enabledSlotMinutes()
+                    ),
+                ];
+            }
+        }
+
         $operationalTodayTrips = TripSchedule::query()
             ->whereDate('trip_date', $today)
             ->where('status', '!=', 'Cancelled');
@@ -192,7 +222,9 @@ class TripScheduleController extends Controller
                 'incomingServices',
                 'outgoingServices',
                 'totalBusesRequired',
-                'reserveDeployedByTrip'
+                'reserveDeployedByTrip',
+                'operationClientNames',
+                'clientTripTimeConfigs'
             )
         );
     }
@@ -545,6 +577,19 @@ class TripScheduleController extends Controller
                 'departure_time' => 'Trip departure must be the current time or a future time.',
             ]);
         }
+
+        $effectiveClientName = filled($validated['client_name'] ?? null)
+            ? $validated['client_name']
+            : $tripSchedule?->client_name;
+
+        $effectiveDirection = $validated['direction']
+            ?? $tripSchedule?->direction;
+
+        ClientTripTimes::assertTripDepartureAllowed(
+            $effectiveClientName,
+            $effectiveDirection,
+            $validated['departure_time']
+        );
 
         return $validated;
     }

@@ -66,6 +66,10 @@
                         class="service-schedule-toolbar"
                     >
                         <x-slot:actions>
+                            <a class="new-trip-btn gct-section-new-button trip-client-times-link" href="{{ route('client-trip-times') }}">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>Client Trip Times</span>
+                            </a>
                             @if($canEditOperation && request('tab') !== 'history')
                                 <button type="button" class="new-trip-btn gct-section-new-button" id="openTripModal">
                                     <i class="fa-solid fa-plus"></i>
@@ -391,6 +395,10 @@
     @endif
 
     @if($canEditOperation)
+        <script type="application/json" id="clientTripTimeConfigs">{!! json_encode(
+            $clientTripTimeConfigs,
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        ) !!}</script>
         <x-ui.form-modal
             id="tripModal"
             title="New Trip"
@@ -419,7 +427,7 @@
                 </div>
                 <div>
                     <strong>Schedule Information</strong>
-                    <span>Choose the client, route, trip date, and departure time. Arrival is calculated automatically.</span>
+                    <span>Choose the client, direction, AM/PM period, route, trip date, and departure time. Configured clients only offer their allowed trip times. Arrival is calculated automatically.</span>
                 </div>
             </div>
 
@@ -456,7 +464,12 @@
                     <label for="tripClientName">Client / Company <small>(Optional)</small></label>
                     <div class="ui-input-wrap has-icon">
                         <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                        <input type="text" id="tripClientName" name="client_name" maxlength="255" value="{{ old('client_name') }}" placeholder="Only for client-dedicated trips (e.g. EPSON)" autocomplete="organization">
+                        <input type="text" id="tripClientName" name="client_name" maxlength="255" value="{{ old('client_name') }}" placeholder="Only for client-dedicated trips (e.g. EPSON)" autocomplete="organization" list="tripClientOptions">
+                        <datalist id="tripClientOptions">
+                            @foreach($operationClientNames as $clientName)
+                                <option value="{{ $clientName }}"></option>
+                            @endforeach
+                        </datalist>
                     </div>
                     @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
@@ -470,8 +483,28 @@
                         </select>
                         @error('direction')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
+                    <div class="ui-form-group">
+                        <label for="tripPeriod">Trip Period <span class="ui-required">*</span></label>
+                        <select name="trip_period" id="tripPeriod">
+                            <option value="" selected>Select AM or PM</option>
+                            <option value="AM">AM — Morning trips</option>
+                            <option value="PM">PM — Afternoon trips</option>
+                        </select>
+                        <small>Used to load the client's configured trip times.</small>
+                    </div>
                 </div>
-                <x-ui.form-field label="Departure Time" name="departure_time" id="departureTime" type="time" :value="old('departure_time')" icon="fa-clock" :required="true" />
+                <div class="ui-form-group trip-departure-time-group">
+                    <label for="departureTime">Departure Time <span class="ui-required">*</span></label>
+                    <div class="ui-input-wrap has-icon" id="departureTimeInputWrap">
+                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
+                        <input type="time" name="departure_time" id="departureTime" value="{{ old('departure_time') }}" required>
+                        <select name="departure_time" id="departureTimeSlot" required disabled hidden>
+                            <option value="">Select configured time</option>
+                        </select>
+                    </div>
+                    <div id="tripTimeConfigNotice" class="trip-time-config-notice" hidden></div>
+                    @error('departure_time')<span class="ui-field-error">{{ $message }}</span>@enderror
+                </div>
                 <div class="trip-service-planning-fields trip-required-bus-field">
                     <div class="ui-form-group">
                         <label for="tripRequiredBuses">Required Buses</label>

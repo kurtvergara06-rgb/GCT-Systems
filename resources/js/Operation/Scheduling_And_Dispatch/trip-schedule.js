@@ -14,6 +14,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripClientName = document.getElementById('tripClientName');
     const tripRequiredBuses = document.getElementById('tripRequiredBuses');
     const departureTime = document.getElementById('departureTime');
+    const departureTimeSlot = document.getElementById('departureTimeSlot');
+    const tripPeriod = document.getElementById('tripPeriod');
+    const tripTimeConfigNotice = document.getElementById('tripTimeConfigNotice');
     const arrivalTime = document.getElementById('arrivalTime');
     const tripShift = document.getElementById('tripShift');
     const tripStatus = document.getElementById('tripStatus');
@@ -33,7 +36,187 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const cancelTripModal = document.getElementById('cancelTripModal');
 
     const createAction = '/operation/trip-schedule';
+    const clientTripTimesUrl = '/operation/client-trip-times';
     let selectedDeleteForm = null;
+
+    let clientTripTimeConfigs = {};
+
+    const configScript = document.getElementById('clientTripTimeConfigs');
+
+    if (configScript) {
+        try {
+            clientTripTimeConfigs = JSON.parse(configScript.textContent || '{}');
+        } catch (error) {
+            console.warn('Unable to parse client trip time configurations.', error);
+            clientTripTimeConfigs = {};
+        }
+    }
+
+    function formatSlotTimeLabel(timeValue) {
+        const [hour, minute] = String(timeValue || '').split(':').map(Number);
+
+        if (Number.isNaN(hour) || Number.isNaN(minute)) {
+            return String(timeValue || '');
+        }
+
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+
+        return `${hour12}:${String(minute).padStart(2, '0')} ${period}`;
+    }
+
+    function activeDepartureValue() {
+        if (
+            departureTimeSlot
+            && !departureTimeSlot.disabled
+            && !departureTimeSlot.hidden
+        ) {
+            return departureTimeSlot.value || '';
+        }
+
+        return departureTime?.value || '';
+    }
+
+    function showTripTimeNotice(tone, message) {
+        if (!tripTimeConfigNotice) {
+            return;
+        }
+
+        tripTimeConfigNotice.hidden = false;
+        tripTimeConfigNotice.className = `trip-time-config-notice is-${tone}`;
+        tripTimeConfigNotice.innerHTML = `
+            <i class="fa-solid ${
+                tone === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'
+            }" aria-hidden="true"></i>
+            <span>${escapeHtml(message)} </span>
+            <a href="${clientTripTimesUrl}">Open Client Trip Times</a>
+        `;
+    }
+
+    function hideTripTimeNotice() {
+        if (tripTimeConfigNotice) {
+            tripTimeConfigNotice.hidden = true;
+            tripTimeConfigNotice.innerHTML = '';
+        }
+    }
+
+    function clearDepartureSlotOptions() {
+        if (!departureTimeSlot) {
+            return;
+        }
+
+        departureTimeSlot.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select configured time';
+        departureTimeSlot.appendChild(placeholder);
+    }
+
+    // Switch the departure control between the free time input and the
+    // configured slot select based on the selected client, direction, and
+    // AM/PM category. Never shows another client's slots.
+    function updateTripTimeOptions({ preserveValue = true } = {}) {
+        if (!departureTime || !departureTimeSlot) {
+            return;
+        }
+
+        const currentValue = activeDepartureValue();
+        const clientKey = String(tripClientName?.value || '').trim().toLowerCase();
+        const direction = tripDirection?.value || '';
+        const period = tripPeriod?.value || '';
+        const category = direction && period
+            ? `${direction.toLowerCase()}_${period.toLowerCase()}`
+            : null;
+        const config = clientKey && category
+            ? (clientTripTimeConfigs[clientKey] || {})[category] || null
+            : null;
+
+        if (!config) {
+            departureTime.disabled = false;
+            departureTime.hidden = false;
+            departureTime.required = true;
+            departureTime.setAttribute('name', 'departure_time');
+            departureTimeSlot.disabled = true;
+            departureTimeSlot.hidden = true;
+            departureTimeSlot.removeAttribute('name');
+            departureTimeSlot.required = false;
+            departureTimeSlot.value = '';
+            departureTimeSlot.dataset.selectedValue = '';
+            clearDepartureSlotOptions();
+
+            if (currentValue) {
+                departureTime.value = currentValue;
+            }
+
+            if (clientKey && category) {
+                showTripTimeNotice(
+                    'info',
+                    `No trip times are configured for this client's ${direction} ${period} category. Any valid time can be used until a configuration is created.`
+                );
+            } else {
+                hideTripTimeNotice();
+            }
+
+            calculateArrival();
+            return;
+        }
+
+        departureTime.disabled = true;
+        departureTime.hidden = true;
+        departureTime.required = false;
+        departureTime.removeAttribute('name');
+        departureTimeSlot.disabled = false;
+        departureTimeSlot.hidden = false;
+        departureTimeSlot.required = true;
+        departureTimeSlot.setAttribute('name', 'departure_time');
+
+        clearDepartureSlotOptions();
+
+        const slots = Array.isArray(config.slots) ? config.slots : [];
+
+        slots.forEach((slot) => {
+            const option = document.createElement('option');
+            option.value = slot;
+            option.textContent = formatSlotTimeLabel(slot);
+            departureTimeSlot.appendChild(option);
+        });
+
+        let selected = '';
+
+        if (currentValue) {
+            const normalized = currentValue.length === 5
+                ? currentValue
+                : currentValue.slice(0, 5);
+
+            if (slots.includes(normalized)) {
+                selected = normalized;
+            }
+        }
+
+        departureTimeSlot.value = selected;
+        departureTimeSlot.dataset.selectedValue = selected;
+
+        const rangeText = `${formatSlotTimeLabel(config.start)} – ${formatSlotTimeLabel(config.end)}`;
+
+        if (!slots.length) {
+            showTripTimeNotice(
+                'warning',
+                `${direction} ${period} is configured for this client (${rangeText}) but has no enabled time slots. Add slots before scheduling this category.`
+            );
+        } else if (preserveValue && currentValue && !selected) {
+            showTripTimeNotice(
+                'warning',
+                `${formatSlotTimeLabel(currentValue)} is not an allowed ${direction} ${period} time for this client. Allowed slots: ${slots.map(formatSlotTimeLabel).join(', ')}.`
+            );
+        } else {
+            showTripTimeNotice(
+                'info',
+                `Configured ${direction} ${period} window for this client: ${rangeText}. Only the configured slots can be selected.`
+            );
+        }
+
+        calculateArrival();
+    }
 
     function openModal(modal) {
         if (!modal) {
@@ -120,11 +303,13 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     }
 
     function calculateArrival() {
+        const departureValue = activeDepartureValue();
+
         if (tripShift) {
-            tripShift.value = detectShift(departureTime?.value);
+            tripShift.value = detectShift(departureValue);
         }
 
-        if (!departureTime?.value || !tripRoute?.value) {
+        if (!departureValue || !tripRoute?.value) {
             if (arrivalTime) {
                 arrivalTime.value = '';
             }
@@ -133,7 +318,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
         const selectedOption = tripRoute.options[tripRoute.selectedIndex];
         const durationMinutes = Number(selectedOption?.dataset.duration || 60);
-        const [departureHour, departureMinute] = departureTime.value.split(':').map(Number);
+        const [departureHour, departureMinute] = departureValue.split(':').map(Number);
 
         if (Number.isNaN(departureHour) || Number.isNaN(departureMinute)) {
             return;
@@ -228,6 +413,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
         if (tripClientName) tripClientName.required = false;
+        if (tripPeriod) tripPeriod.value = '';
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
@@ -246,6 +432,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         updateNotesCount();
+        updateTripTimeOptions({ preserveValue });
         calculateArrival();
     }
 
@@ -319,6 +506,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 departureTime.value = button.dataset.departureTime || '';
             }
 
+            if (tripPeriod && button.dataset.departureTime) {
+                const [prefillHour] = button.dataset.departureTime.split(':').map(Number);
+                tripPeriod.value = Number.isNaN(prefillHour) ? '' : (prefillHour >= 12 ? 'PM' : 'AM');
+            }
+
             if (tripStatus) {
                 tripStatus.value = button.dataset.status || 'Scheduled';
             }
@@ -339,6 +531,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         updateNotesCount();
+        updateTripTimeOptions({ preserveValue: true });
         calculateArrival();
     }
 
@@ -353,6 +546,15 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     departureTime?.addEventListener('input', calculateArrival);
     departureTime?.addEventListener('change', calculateArrival);
     tripRoute?.addEventListener('change', calculateArrival);
+
+    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
+    tripClientName?.addEventListener('change', () => updateTripTimeOptions());
+    tripDirection?.addEventListener('change', () => updateTripTimeOptions());
+    tripPeriod?.addEventListener('change', () => updateTripTimeOptions());
+    departureTimeSlot?.addEventListener('change', () => {
+        departureTimeSlot.dataset.selectedValue = departureTimeSlot.value || '';
+        calculateArrival();
+    });
 
     function parseTripData(rawData) {
         if (!rawData) {
@@ -624,6 +826,17 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 preserveValues: true,
             });
         }
+
+        // The trip period select is not part of server-side old() input, so
+        // re-derive AM/PM from the recovered departure time when possible.
+        if (tripPeriod && !tripPeriod.value && departureTime?.value) {
+            const [recoveredHour] = departureTime.value.split(':').map(Number);
+            tripPeriod.value = Number.isNaN(recoveredHour)
+                ? ''
+                : (recoveredHour >= 12 ? 'PM' : 'AM');
+        }
+
+        updateTripTimeOptions({ preserveValue: true });
 
         openModal(tripModal);
 

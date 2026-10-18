@@ -1709,6 +1709,14 @@ function updateMlStatus(conflicts) {
         });
     }
 
+    function tripPeriodLabel(item) {
+        const direction = String(item?.direction || '').trim() || 'Unspecified';
+        const hour = Number(String(item?.departure_time || '').split(':')[0]);
+        const period = Number.isNaN(hour) ? '' : (hour >= 12 ? 'PM' : 'AM');
+
+        return period ? `${direction} · ${period}` : direction;
+    }
+
     function renderRowHtml(item, isContinuation = false) {
         const cleanTripCode = escapeHtml(item.base_trip_code || String(item.trip_code || '').split(' ')[0]);
         const required = Math.max(1, Number(item.required_buses || 1));
@@ -1740,6 +1748,8 @@ function updateMlStatus(conflicts) {
                                 || formatDisplayTime(item.estimated_arrival_time)
                             )}
                         </small>
+
+                        <small class="gct-auto-print-trip-period">${escapeHtml(tripPeriodLabel(item))}</small>
                     </div>
                 </td>
 
