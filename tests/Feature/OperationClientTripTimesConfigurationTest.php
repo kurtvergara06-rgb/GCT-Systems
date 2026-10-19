@@ -46,7 +46,11 @@ class OperationClientTripTimesConfigurationTest extends TestCase
         $this->actingAs($user)
             ->get(route('client-trip-times'))
             ->assertOk()
-            ->assertSee('Client Trip Times');
+            ->assertSee('Client Trip Times')
+            ->assertSee('<details class="ctt-client-card"', false)
+            ->assertSee('0/4', false)
+            ->assertSee('id="cttToggleAllClients"', false)
+            ->assertSee('id="cttSearchEmpty" hidden', false);
     }
 
     public function test_can_create_configuration_with_slots(): void
