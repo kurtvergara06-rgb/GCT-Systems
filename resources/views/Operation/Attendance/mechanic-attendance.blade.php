@@ -11,7 +11,10 @@
   ]"
 >
   @php
-    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    $isMaintenanceUser = strtolower(trim((string) auth()->user()?->department)) === 'maintenance';
+    $attendanceDepartment = strtolower(trim((string) auth()->user()?->department));
+    $attendancePermissionModule = in_array($attendanceDepartment, ['operation', 'operations'], true) ? 'operation' : 'maintenance';
+    $canEditMechanicAttendance = auth()->user()?->hasSystemPermission($attendancePermissionModule, 'edit') ?? false;
   @endphp
 
   <style>
@@ -67,7 +70,7 @@
 
   <div class="app">
 
-  <x-layout.sidebar department="Operation" />
+  <x-layout.sidebar :department="$isMaintenanceUser ? 'Maintenance' : 'Operation'" />
 
     <main class="main mechanic-attendance-page">
       <x-layout.topbar
@@ -99,7 +102,7 @@
             <h2>Mechanic Attendance List</h2>
             <p>Track time-in, time-out, assigned job, and attendance status</p>
           </div>
-          @if($canEditOperation)
+          @if($canEditMechanicAttendance)
           <button
             type="button"
             class="primary-btn batch-attendance-open"
@@ -170,7 +173,7 @@
                         data-status="{{ $attendance->status }}">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                      @if($canEditOperation)
+                      @if($canEditMechanicAttendance)
                       <button type="button" class="action-btn edit open-edit-attendance-modal"
                         @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
@@ -243,7 +246,7 @@
     </div>
   </div>
 
-  @if($canEditOperation)
+  @if($canEditMechanicAttendance)
   <div id="editMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal">
       <div class="modal-header">
