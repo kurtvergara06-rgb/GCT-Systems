@@ -194,7 +194,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     });
 });
 
-Route::middleware(['role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,admin:head,admin:admin,admin:system admin'])
+Route::middleware(['role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
     ->controller(MechanicAttendanceController::class)
     ->prefix('mechanic-attendance')
     ->group(function () {
