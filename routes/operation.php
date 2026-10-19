@@ -194,15 +194,15 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     });
 });
 
-Route::middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,view'])
+Route::middleware(['role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,admin:head,admin:admin,admin:system admin'])
     ->controller(MechanicAttendanceController::class)
     ->prefix('mechanic-attendance')
     ->group(function () {
         Route::get('/', 'index')->name('mechanic-attendance');
-        Route::post('/', 'store')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.store');
-        Route::put('/{mechanicAttendance}', 'update')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.update');
-        Route::delete('/{mechanicAttendance}', 'destroy')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.destroy');
-        Route::post('/import', 'import')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.import');
+        Route::post('/', 'store')->name('mechanic-attendance.store');
+        Route::put('/{mechanicAttendance}', 'update')->name('mechanic-attendance.update');
+        Route::delete('/{mechanicAttendance}', 'destroy')->name('mechanic-attendance.destroy');
+        Route::post('/import', 'import')->name('mechanic-attendance.import');
     });
 
 Route::redirect('/available-mechanics', '/mechanic-attendance')
