@@ -51,21 +51,41 @@
                         aria-label="Search clients"
                     >
                 </div>
-                <span class="ctt-client-count" id="cttClientCount">
-                    {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
-                </span>
+                <div class="ctt-toolbar-actions">
+                    @if($clients->isNotEmpty())
+                        <button type="button" class="ctt-btn ctt-btn-ghost ctt-toggle-all" id="cttToggleAllClients">
+                            <i class="fa-solid fa-angles-down" aria-hidden="true"></i>
+                            <span>Expand all</span>
+                        </button>
+                    @endif
+                    <span class="ctt-client-count" id="cttClientCount">
+                        {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
+                    </span>
+                </div>
             </section>
 
             <section class="ctt-clients" id="cttClients">
                 @forelse($clients as $client)
-                    <article class="ctt-client-card" data-client-name="{{ mb_strtolower($client->name) }}">
-                        <header class="ctt-client-header">
+                    @php
+                        $configuredCategoryCount = $client->tripTimeConfigurations->count();
+                        $totalCategoryCount = count($categoryLabels);
+                    @endphp
+                    <details class="ctt-client-card" data-client-name="{{ mb_strtolower($client->name) }}">
+                        <summary class="ctt-client-header">
                             <span class="ctt-client-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
                             <div class="ctt-client-heading">
                                 <h3>{{ $client->name }}</h3>
                                 <span>Client Master record</span>
                             </div>
-                        </header>
+                            <span class="ctt-client-config-count {{ $configuredCategoryCount === $totalCategoryCount ? 'is-complete' : '' }}">
+                                <strong>{{ $configuredCategoryCount }}/{{ $totalCategoryCount }}</strong>
+                                <span>categories configured</span>
+                            </span>
+                            <span class="ctt-client-expand">
+                                <span>{{ $configuredCategoryCount > 0 ? 'Manage settings' : 'Configure client' }}</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </span>
+                        </summary>
 
                         <div class="ctt-category-grid">
                             @foreach($categoryLabels as $category => $categoryLabel)
@@ -89,7 +109,7 @@
                                 </div>
                             @endforeach
                         </div>
-                    </article>
+                    </details>
                 @empty
                     <div class="ctt-page-empty" id="cttPageEmpty">
                         <i class="fa-solid fa-building-circle-xmark" aria-hidden="true"></i>
