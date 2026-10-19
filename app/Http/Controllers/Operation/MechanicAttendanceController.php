@@ -23,10 +23,7 @@ class MechanicAttendanceController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $department = strtolower(trim((string) $user?->department));
-        $module = in_array($department, ['operation', 'operations'], true)
-            ? 'operation'
-            : 'maintenance';
+        $module = $this->moduleFor($request);
 
         abort_unless(
             $user?->hasSystemPermission($module, 'view'),
@@ -151,6 +148,7 @@ class MechanicAttendanceController extends Controller
 
     public function store(Request $request): JsonResponse|RedirectResponse
     {
+        $this->authorizeModuleAction($request, 'edit');
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
@@ -203,7 +201,7 @@ class MechanicAttendanceController extends Controller
         });
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            $this->moduleName($request),
             'Attendance',
             'created',
             $attendance->id,
@@ -224,6 +222,7 @@ class MechanicAttendanceController extends Controller
 
     public function update(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
+        $this->authorizeModuleAction($request, 'edit');
         $this->normalizeAttendanceTimes($request);
         if (JobOrder::query()->where('assigned_mechanic', $mechanicAttendance->mechanic_name)->where('status', 'On Going')->exists()) {
             throw ValidationException::withMessages([
@@ -280,7 +279,7 @@ class MechanicAttendanceController extends Controller
         });
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            $this->moduleName($request),
             'Attendance',
             'updated',
             $mechanicAttendance->id,
@@ -301,6 +300,7 @@ class MechanicAttendanceController extends Controller
 
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
+        $this->authorizeModuleAction($request, 'edit');
         $deleted = DB::transaction(function () use ($mechanicAttendance): bool {
             // Use the master mechanic lock consistently with attendance updates.
             Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
@@ -326,7 +326,7 @@ class MechanicAttendanceController extends Controller
         }
 
         $this->broadcastSystemDataUpdated(
-            'Operation', 'Attendance', 'deleted', $mechanicAttendance->id,
+            $this->moduleName($request), 'Attendance', 'deleted', $mechanicAttendance->id,
             'A mechanic attendance record was deleted.'
         );
         if ($request->ajax() || $request->expectsJson()) {
@@ -338,6 +338,7 @@ class MechanicAttendanceController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
+        $this->authorizeModuleAction($request, 'edit');
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
         ]);
@@ -431,7 +432,7 @@ class MechanicAttendanceController extends Controller
             }
 
             $this->broadcastSystemDataUpdated(
-                'Operation',
+                $this->moduleName($request),
                 'Attendance',
                 'updated',
                 null,
@@ -449,6 +450,29 @@ class MechanicAttendanceController extends Controller
                 fclose($handle);
             }
         }
+    }
+
+    private function moduleFor(Request $request): string
+    {
+        $department = strtolower(trim((string) $request->user()?->department));
+
+        return in_array($department, ['operation', 'operations'], true) ? 'operation' : 'maintenance';
+    }
+
+    private function moduleName(Request $request): string
+    {
+        return ucfirst($this->moduleFor($request));
+    }
+
+    private function authorizeModuleAction(Request $request, string $action): void
+    {
+        $module = $this->moduleFor($request);
+
+        abort_unless(
+            $request->user()?->hasSystemPermission($module, $action),
+            403,
+            'Your role does not have permission for this action.'
+        );
     }
 
     private function parseCsvDate(?string $date): string
