@@ -92,6 +92,64 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
 
         container.innerHTML = await response.text();
+        updateClientSummary(container.dataset.clientId);
+    }
+
+    function updateClientSummary(clientId) {
+        const card = document.querySelector(`.ctt-client-card[data-client-id="${clientId}"]`);
+        if (!card) return;
+
+        let configuredCount = 0;
+
+        card.querySelectorAll('.ctt-category-panel').forEach((panel) => {
+            const category = panel.dataset.category;
+            const isConfigured = Boolean(panel.querySelector('.ctt-panel-header')) 
+                && !panel.querySelector('.ctt-status-none');
+            const indicator = card.querySelector(`[data-category-chip="${category}"]`);
+
+            if (indicator) {
+                indicator.classList.toggle('is-configured', isConfigured);
+                indicator.title = `${categoryLabels[category] || category}: ${isConfigured ? 'Configured' : 'Not configured'}`;
+
+                const icon = indicator.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-circle-check', isConfigured);
+                    icon.classList.toggle('fa-circle', !isConfigured);
+                }
+            }
+
+            if (isConfigured) configuredCount += 1;
+        });
+
+        const totalCategories = Object.keys(categoryLabels).length;
+        const percentage = totalCategories ? Math.round((configuredCount / totalCategories) * 100) : 0;
+        const count = card.querySelector('[data-configured-count]');
+        const countBadge = card.querySelector('.ctt-client-config-count');
+        const progressFill = card.querySelector('.ctt-progress-fill');
+        const progressTrack = card.querySelector('.ctt-progress-track');
+        const actionLabel = card.querySelector('.ctt-client-expand > span');
+
+        if (count) count.textContent = String(configuredCount);
+        countBadge?.classList.toggle('is-complete', configuredCount === totalCategories);
+        if (progressFill) progressFill.style.width = `${percentage}%`;
+        if (progressTrack) progressTrack.setAttribute('aria-label', `${percentage} percent configured`);
+        if (actionLabel) actionLabel.textContent = configuredCount > 0 ? 'Manage settings' : 'Configure client';
+
+        const cards = Array.from(document.querySelectorAll('.ctt-client-card'));
+        const totalConfigured = cards.reduce((sum, item) => (
+            sum + item.querySelectorAll('.ctt-category-indicator.is-configured').length
+        ), 0);
+        const totalPossible = cards.length * totalCategories;
+        const configuredStat = document.querySelector('[data-stat="configured"]');
+        const pendingStat = document.querySelector('[data-stat="pending"]');
+
+        if (configuredStat) {
+            configuredStat.textContent = String(totalConfigured);
+            const denominator = document.createElement('small');
+            denominator.textContent = ` / ${totalPossible}`;
+            configuredStat.append(denominator);
+        }
+        if (pendingStat) pendingStat.textContent = String(Math.max(0, totalPossible - totalConfigured));
     }
 
     async function refreshPanelByUrl(panelUrl) {
@@ -120,6 +178,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
 
         if (container) {
             container.innerHTML = html;
+            updateClientSummary(clientId);
         }
     }
 
