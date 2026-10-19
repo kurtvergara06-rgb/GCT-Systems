@@ -41,7 +41,7 @@ class OperationClientTripTimesConfigurationTest extends TestCase
     public function test_authorized_user_can_view_client_trip_times_page(): void
     {
         $user = $this->operationUser();
-        OperationClient::create(['name' => 'GCT Test Client']);
+        $client = OperationClient::create(['name' => 'GCT Test Client']);
 
         $this->actingAs($user)
             ->get(route('client-trip-times'))
@@ -51,6 +51,12 @@ class OperationClientTripTimesConfigurationTest extends TestCase
             ->assertSee('0/4', false)
             ->assertSee('id="cttToggleAllClients"', false)
             ->assertSee('id="cttSearchEmpty" hidden', false);
+
+        $this->actingAs($user)
+            ->get(route('client-trip-times.panel', [$client->id, ClientTripTimes::CATEGORY_INCOMING_AM]))
+            ->assertOk()
+            ->assertSee('data-client-id="'.$client->id.'"', false)
+            ->assertSee('data-category="'.ClientTripTimes::CATEGORY_INCOMING_AM.'"', false);
     }
 
     public function test_can_create_configuration_with_slots(): void
