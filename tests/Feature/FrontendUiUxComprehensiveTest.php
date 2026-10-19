@@ -421,6 +421,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Trip Schedule' => route('trip-schedule'),
             'Driver & Bus Assignment' => route('driver-bus-assignment'),
             'Auto Scheduling' => route('auto-scheduling'),
+            'Client Trip Times' => route('client-trip-times'),
             'Driver Master List' => route('operation.personnel.drivers'),
             'Driver Attendance' => route('driver-attendance'),
             'Bus Master List' => route('bus-master-list'),
