@@ -73,9 +73,17 @@
                 ],
             ],
             [
+                'label' => 'Attendance & Availability',
+                'icon' => 'fa-calendar-check',
+                'children' => [
+                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
+                ],
+            ],
+            [
                 'label' => 'Resources',
                 'icon' => 'fa-toolbox',
                 'children' => [
+                    ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
                     ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
                     ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
                 ],
@@ -132,7 +140,6 @@
                 'icon' => 'fa-database',
                 'children' => [
                     ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
-                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
                     ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
                     ['label' => 'Route Management', 'route' => 'operation.routes', 'icon' => 'fa-route'],
                 ],
@@ -142,7 +149,6 @@
                 'icon' => 'fa-calendar-check',
                 'children' => [
                     ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
-                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
                     ['label' => 'Bus Availability', 'route' => 'bus-availability', 'icon' => 'fa-bus-simple'],
                 ],
             ],
