@@ -159,6 +159,7 @@
                     ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
                     ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
                     ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
+                    ['label' => 'Client Trip Times', 'route' => 'client-trip-times', 'icon' => 'fa-clock'],
                 ],
             ],
             [
