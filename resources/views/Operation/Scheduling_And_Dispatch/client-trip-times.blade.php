@@ -72,6 +72,20 @@
                 </article>
             </section>
 
+            <section class="ctt-directory-heading" aria-labelledby="cttDirectoryTitle">
+                <div class="ctt-directory-heading-icon">
+                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h2 id="cttDirectoryTitle">Client configurations</h2>
+                    <p>Manage the allowed departure windows and time slots for each client.</p>
+                </div>
+                <span class="ctt-directory-meta">
+                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                    {{ $categoryCount }} categories per client
+                </span>
+            </section>
+
             <section class="ctt-toolbar">
                 <div class="ctt-search-box">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
