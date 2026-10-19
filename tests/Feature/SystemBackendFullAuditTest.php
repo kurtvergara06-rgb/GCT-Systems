@@ -316,6 +316,7 @@ class SystemBackendFullAuditTest extends TestCase
             'status' => 'Present',
         ]);
         $this->get(route('driver-attendance'))->assertOk();
+        $this->get(route('mechanic-attendance'))->assertOk();
 
         // 3.5 Bus Master List
         $busResponse = $this->post(route('bus-master-list.store'), [
@@ -423,7 +424,7 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 4.4 Mechanic Availability & Fuel Reports
         $this->actingAs($maintStaff)->get(route('job-orders.available-mechanics'))->assertOk();
-        $this->actingAs($maintStaff)->get('/mechanic-attendance')->assertOk();
+        $this->actingAs($maintStaff)->get('/mechanic-attendance')->assertForbidden();
         $this->actingAs($maintStaff)->get(route('fuel-reports'))->assertOk();
 
         // 4.5 Purchase Requests

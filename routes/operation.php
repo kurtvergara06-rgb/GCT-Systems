@@ -194,7 +194,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     });
 });
 
-Route::middleware('role:operation:head,operation:staff,maintenance:head,maintenance:staff,admin:head')
+Route::middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,view'])
     ->controller(MechanicAttendanceController::class)
     ->prefix('mechanic-attendance')
     ->group(function () {
@@ -206,5 +206,5 @@ Route::middleware('role:operation:head,operation:staff,maintenance:head,maintena
     });
 
 Route::redirect('/available-mechanics', '/mechanic-attendance')
-    ->middleware('role:operation:head,operation:staff,maintenance:head,maintenance:staff,admin:head')
+    ->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,view'])
     ->name('available-mechanics');

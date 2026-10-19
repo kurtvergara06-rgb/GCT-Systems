@@ -710,6 +710,58 @@ class OperationMasterListHardeningTest extends TestCase
             ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 1);
     }
 
+    public function test_mechanic_attendance_is_operation_owned_and_requires_operation_view_permission(): void
+    {
+        $operationUser = $this->operationUser();
+        $maintenanceUser = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->actingAs($operationUser)
+            ->get(route('operation.personnel.mechanics'))
+            ->assertOk()
+            ->assertSee('Mechanic Master List')
+            ->assertSee('Mechanic Attendance');
+
+        $this->actingAs($operationUser)
+            ->get(route('mechanic-attendance'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance-dashboard'))
+            ->assertOk()
+            ->assertSee('Mechanic Availability')
+            ->assertDontSee('Mechanic Master List')
+            ->assertDontSee('Mechanic Attendance');
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-list'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('job-orders.available-mechanics'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+
+        $permission = RolePermission::query()
+            ->where('role_key', $operationUser->permissionRoleKey())
+            ->firstOrFail();
+        $permissions = $permission->permissions;
+        data_set($permissions, 'operation.view', false);
+        $permission->update(['permissions' => $permissions]);
+
+        $this->actingAs($operationUser)
+            ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+    }
+
     private function operationUser(string $role = 'head'): User
     {
         return User::factory()->create([
