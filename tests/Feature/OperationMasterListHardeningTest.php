@@ -710,7 +710,7 @@ class OperationMasterListHardeningTest extends TestCase
             ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 1);
     }
 
-    public function test_mechanic_attendance_is_operation_owned_and_requires_operation_view_permission(): void
+    public function test_mechanic_pages_are_listed_in_maintenance_navigation_and_attendance_uses_module_permissions(): void
     {
         $operationUser = $this->operationUser();
         $maintenanceUser = User::factory()->create([
@@ -722,21 +722,27 @@ class OperationMasterListHardeningTest extends TestCase
         ]);
 
         $this->actingAs($operationUser)
-            ->get(route('operation.personnel.mechanics'))
+            ->get(route('dashboard-operation'))
             ->assertOk()
-            ->assertSee('Mechanic Master List')
-            ->assertSee('Mechanic Attendance');
+            ->assertDontSee('Mechanic Attendance')
+            ->assertDontSee('Mechanic Master List');
 
+        // Preserve the legacy Operation master-list URL while the visible navigation is moved.
         $this->actingAs($operationUser)
-            ->get(route('mechanic-attendance'))
+            ->get(route('operation.personnel.mechanics'))
             ->assertOk();
 
         $this->actingAs($maintenanceUser)
             ->get(route('maintenance-dashboard'))
             ->assertOk()
             ->assertSee('Mechanic Availability')
-            ->assertDontSee('Mechanic Master List')
-            ->assertDontSee('Mechanic Attendance');
+            ->assertSee('Mechanic Master List')
+            ->assertSee('Mechanic Attendance');
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance.personnel.mechanics'))
+            ->assertOk()
+            ->assertSee('Mechanic Master List');
 
         $this->actingAs($maintenanceUser)
             ->get(route('mechanic-list'))
@@ -748,17 +754,32 @@ class OperationMasterListHardeningTest extends TestCase
 
         $this->actingAs($maintenanceUser)
             ->get(route('mechanic-attendance'))
-            ->assertForbidden();
+            ->assertOk();
 
-        $permission = RolePermission::query()
+        $operationPermission = RolePermission::query()
             ->where('role_key', $operationUser->permissionRoleKey())
             ->firstOrFail();
-        $permissions = $permission->permissions;
-        data_set($permissions, 'operation.view', false);
-        $permission->update(['permissions' => $permissions]);
+        $operationPermissions = $operationPermission->permissions;
+        data_set($operationPermissions, 'operation.view', false);
+        $operationPermission->update(['permissions' => $operationPermissions]);
 
         $this->actingAs($operationUser)
             ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+
+        $maintenancePermission = RolePermission::query()
+            ->where('role_key', $maintenanceUser->permissionRoleKey())
+            ->firstOrFail();
+        $maintenancePermissions = $maintenancePermission->permissions;
+        data_set($maintenancePermissions, 'maintenance.view', false);
+        $maintenancePermission->update(['permissions' => $maintenancePermissions]);
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance.personnel.mechanics'))
             ->assertForbidden();
     }
 
