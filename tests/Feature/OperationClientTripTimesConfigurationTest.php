@@ -48,7 +48,10 @@ class OperationClientTripTimesConfigurationTest extends TestCase
             ->assertOk()
             ->assertSee('Client Trip Times')
             ->assertSee('<details class="ctt-client-card"', false)
-            ->assertSee('0/4', false)
+            ->assertSee('data-configured-count', false)
+            ->assertSee('data-category-chip="incoming_am"', false)
+            ->assertSee('data-stat="configured"', false)
+            ->assertSee('data-stat="pending"', false)
             ->assertSee('id="cttToggleAllClients"', false)
             ->assertSee('id="cttSearchEmpty" hidden', false);
 
