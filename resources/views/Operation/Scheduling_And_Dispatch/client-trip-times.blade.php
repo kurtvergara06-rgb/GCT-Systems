@@ -26,19 +26,50 @@
                 notification-count="4"
             />
 
-            <section class="ctt-intro-card">
+            @php
+                $categoryCount = count($categoryLabels);
+                $totalClientCount = $clients->count();
+                $totalConfiguredCategories = $clients->sum(fn ($client) => $client->tripTimeConfigurations->count());
+                $totalPossibleCategories = $totalClientCount * $categoryCount;
+                $totalPendingCategories = max(0, $totalPossibleCategories - $totalConfiguredCategories);
+            @endphp
+
+            <section class="ctt-intro-card ctt-intro-card-compact">
+                <span class="ctt-intro-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></span>
                 <div class="ctt-intro-copy">
-                    <span class="ctt-eyebrow"><i class="fa-solid fa-clock" aria-hidden="true"></i> Scheduling Configuration</span>
-                    <h2>Client Trip Times</h2>
-                    <p>
-                        Each client has four independent categories: Incoming AM, Incoming PM, Outgoing AM, and Outgoing PM.
-                        When Operations creates a trip for a configured client and category, only the allowed slots can be selected.
-                        Changes here never modify trips that were already saved.
-                    </p>
+                    <span class="ctt-eyebrow">SCHEDULING RULES</span>
+                    <p>Set allowed departure windows for each client. Saved trips are not changed when these rules are updated.</p>
                 </div>
                 <a class="ctt-btn ctt-btn-ghost" href="{{ route('auto-scheduling') }}">
                     <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Advanced Scheduling
                 </a>
+            </section>
+
+            <section class="ctt-overview" aria-label="Trip time configuration overview">
+                <article class="ctt-overview-card">
+                    <span class="ctt-overview-icon ctt-overview-icon-blue"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                    <div class="ctt-overview-copy">
+                        <span class="ctt-overview-label">Clients</span>
+                        <strong class="ctt-overview-value" data-stat="clients">{{ $totalClientCount }}</strong>
+                        <span class="ctt-overview-note">Client master records</span>
+                    </div>
+                </article>
+                <article class="ctt-overview-card">
+                    <span class="ctt-overview-icon ctt-overview-icon-green"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                    <div class="ctt-overview-copy">
+                        <span class="ctt-overview-label">Categories configured</span>
+                        <strong class="ctt-overview-value" data-stat="configured">{{ $totalConfiguredCategories }}<small> / {{ $totalPossibleCategories }}</small></strong>
+                        <span class="ctt-overview-note">Across all clients</span>
+                    </div>
+                </article>
+                <article class="ctt-overview-card">
+                    <span class="ctt-overview-icon ctt-overview-icon-amber"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+                    <div class="ctt-overview-copy">
+                        <span class="ctt-overview-label">Need configuration</span>
+                        <strong class="ctt-overview-value" data-stat="pending">{{ $totalPendingCategories }}</strong>
+                        <span class="ctt-overview-note">Categories still to set up</span>
+                    </div>
+                </article>
             </section>
 
             <section class="ctt-toolbar">
@@ -67,20 +98,52 @@
             <section class="ctt-clients" id="cttClients">
                 @forelse($clients as $client)
                     @php
-                        $configuredCategoryCount = $client->tripTimeConfigurations->count();
+                        $configuredCategories = $client->tripTimeConfigurations->pluck('category')->all();
+                        $configuredCategoryCount = count($configuredCategories);
                         $totalCategoryCount = count($categoryLabels);
+                        $configurationPercent = $totalCategoryCount > 0 ? (int) round(($configuredCategoryCount / $totalCategoryCount) * 100) : 0;
                     @endphp
-                    <details class="ctt-client-card" data-client-name="{{ mb_strtolower($client->name) }}">
+                    <details class="ctt-client-card" data-client-id="{{ $client->id }}" data-client-name="{{ mb_strtolower($client->name) }}">
                         <summary class="ctt-client-header">
                             <span class="ctt-client-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
                             <div class="ctt-client-heading">
                                 <h3>{{ $client->name }}</h3>
-                                <span>Client Master record</span>
+                                <span>Client master record</span>
                             </div>
-                            <span class="ctt-client-config-count {{ $configuredCategoryCount === $totalCategoryCount ? 'is-complete' : '' }}">
-                                <strong>{{ $configuredCategoryCount }}/{{ $totalCategoryCount }}</strong>
-                                <span>categories configured</span>
+
+                            <span class="ctt-client-category-indicators" aria-label="Category configuration status">
+                                @foreach($categoryLabels as $category => $categoryLabel)
+                                    @php
+                                        $shortCategoryLabel = match ($category) {
+                                            'incoming_am' => 'IN AM',
+                                            'incoming_pm' => 'IN PM',
+                                            'outgoing_am' => 'OUT AM',
+                                            'outgoing_pm' => 'OUT PM',
+                                            default => $categoryLabel,
+                                        };
+                                        $isCategoryConfigured = in_array($category, $configuredCategories, true);
+                                    @endphp
+                                    <span
+                                        class="ctt-category-indicator {{ $isCategoryConfigured ? 'is-configured' : '' }}"
+                                        data-category-chip="{{ $category }}"
+                                        title="{{ $categoryLabel }}: {{ $isCategoryConfigured ? 'Configured' : 'Not configured' }}"
+                                    >
+                                        <i class="fa-solid {{ $isCategoryConfigured ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i>
+                                        <span>{{ $shortCategoryLabel }}</span>
+                                    </span>
+                                @endforeach
                             </span>
+
+                            <span class="ctt-client-coverage">
+                                <span class="ctt-client-config-count {{ $configuredCategoryCount === $totalCategoryCount ? 'is-complete' : '' }}">
+                                    <strong><span data-configured-count>{{ $configuredCategoryCount }}</span><small>/{{ $totalCategoryCount }}</small></strong>
+                                    <span>configured</span>
+                                </span>
+                                <span class="ctt-progress-track" aria-label="{{ $configurationPercent }} percent configured">
+                                    <span class="ctt-progress-fill" style="width: {{ $configurationPercent }}%"></span>
+                                </span>
+                            </span>
+
                             <span class="ctt-client-expand">
                                 <span>{{ $configuredCategoryCount > 0 ? 'Manage settings' : 'Configure client' }}</span>
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
