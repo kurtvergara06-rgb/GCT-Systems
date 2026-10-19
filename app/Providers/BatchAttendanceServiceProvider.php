@@ -58,7 +58,7 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                     ->name('operation.personnel.mechanics.activate');
             });
 
-        Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,admin:head,admin:admin,admin:system admin'])
+        Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
             ->prefix('maintenance/mechanics')
             ->group(function (): void {
                 Route::get('/', [PersonnelController::class, 'mechanics'])
