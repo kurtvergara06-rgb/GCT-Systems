@@ -6,7 +6,7 @@
     $enabledSlotCount = $sortedSlots->filter(fn ($slot) => $slot->is_enabled)->count();
 @endphp
 
-<div class="ctt-panel-header">
+<div class="ctt-panel-header" data-client-id="{{ $client->id }}" data-category="{{ $category }}">
     <span class="ctt-panel-title">
         <i class="fa-solid {{ str_contains($category, 'incoming') ? 'fa-arrow-down' : 'fa-arrow-up' }}" aria-hidden="true"></i>
         {{ $categoryLabel }}
