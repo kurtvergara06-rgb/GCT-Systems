@@ -387,5 +387,36 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
     }
 
+    const toggleAllButton = document.getElementById('cttToggleAllClients');
+    const clientCards = Array.from(document.querySelectorAll('.ctt-client-card'));
+
+    function updateToggleAllButton() {
+        if (!toggleAllButton || clientCards.length === 0) return;
+
+        const allOpen = clientCards.every((card) => card.open);
+        const icon = toggleAllButton.querySelector('i');
+        const label = toggleAllButton.querySelector('span');
+
+        if (label) label.textContent = allOpen ? 'Collapse all' : 'Expand all';
+        if (icon) {
+            icon.classList.toggle('fa-angles-up', allOpen);
+            icon.classList.toggle('fa-angles-down', !allOpen);
+        }
+    }
+
+    toggleAllButton?.addEventListener('click', () => {
+        const shouldExpand = clientCards.some((card) => !card.open);
+        clientCards.forEach((card) => {
+            card.open = shouldExpand;
+        });
+        updateToggleAllButton();
+    });
+
+    clientCards.forEach((card) => {
+        card.addEventListener('toggle', updateToggleAllButton);
+    });
+
     clientSearch?.addEventListener('input', applyClientSearch);
+    applyClientSearch();
+    updateToggleAllButton();
 });
