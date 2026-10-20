@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Maintenance\Bus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
@@ -16,6 +18,26 @@ return new class extends Migration
             ->pluck('bus_id');
 
         if ($conflictingBusIds->isNotEmpty()) {
+            // Read-only diagnostics for production deploy logs. No ownership
+            // is changed: an operator must resolve conflicting authorizations.
+            Bus::query()
+                ->with('authorizedDrivers:id,driver_id,driver_name')
+                ->whereIn('id', $conflictingBusIds)
+                ->orderBy('bus_no')
+                ->get(['id', 'bus_no'])
+                ->each(function (Bus $bus): void {
+                    Log::warning('Conflicting bus authorization', [
+                        'bus_no' => $bus->bus_no,
+                        'authorized_drivers' => $bus->authorizedDrivers
+                            ->map(fn ($driver) => [
+                                'id' => $driver->id,
+                                'driver_id' => $driver->driver_id,
+                                'driver_name' => $driver->driver_name,
+                            ])
+                            ->values()
+                            ->all(),
+                    ]);
+                });
             $busLabels = DB::table('buses')
                 ->whereIn('id', $conflictingBusIds)
                 ->orderBy('bus_no')
