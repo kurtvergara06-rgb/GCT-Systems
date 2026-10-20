@@ -56,9 +56,13 @@ class OperationMultiBusWorkflowTest extends TestCase
             'employment_status' => $status,
         ]);
 
-        $busIds = Bus::query()->pluck('id')->all();
-        if ($busIds !== []) {
-            $driver->authorizedBuses()->syncWithoutDetaching($busIds);
+        $unassignedBus = Bus::query()
+            ->where('fleet_purpose', 'Regular')
+            ->whereDoesntHave('authorizedDrivers')
+            ->latest('id')
+            ->first();
+        if ($unassignedBus) {
+            $driver->authorizedBuses()->syncWithoutDetaching([$unassignedBus->id]);
         }
 
         return $driver;
@@ -86,7 +90,14 @@ class OperationMultiBusWorkflowTest extends TestCase
             'fleet_purpose' => $fleetPurpose,
         ]);
 
-        Driver::query()->each(fn (Driver $driver) => $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]));
+        if ($fleetPurpose === 'Regular') {
+            Driver::query()
+                ->whereDoesntHave('authorizedBuses')
+                ->latest('id')
+                ->first()
+                ?->authorizedBuses()
+                ->syncWithoutDetaching([$bus->id]);
+        }
 
         return $bus;
     }
@@ -338,13 +349,13 @@ class OperationMultiBusWorkflowTest extends TestCase
         ]);
         $response1->assertSessionHasErrors('driver_attendance_id');
 
-        // Attempt duplicate bus with different driver
+        // A different driver cannot use the first driver's authorized bus.
         $response2 = $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
             'trip_schedule_id' => $trip->id,
             'driver_attendance_id' => $a2->id,
             'bus_id' => $b1->id,
         ]);
-        $response2->assertSessionHasErrors('bus_id');
+        $response2->assertSessionHasErrors('driver_attendance_id');
     }
 
     /**

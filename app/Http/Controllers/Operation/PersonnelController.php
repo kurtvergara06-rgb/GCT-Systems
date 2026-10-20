@@ -178,6 +178,7 @@ class PersonnelController extends Controller
         $busIds = $validated['bus_ids'] ?? [];
         unset($validated['bus_ids']);
         $driver = DB::transaction(function () use ($validated, $busIds): Driver {
+            $this->assertBusesAvailableForDriver($busIds);
             $driver = Driver::create($validated);
             $driver->authorizedBuses()->sync($busIds);
             return $driver;
@@ -227,6 +228,7 @@ class PersonnelController extends Controller
             }
 
             if ($busIds !== null) {
+                $this->assertBusesAvailableForDriver($busIds, $lockedDriver->id);
                 $oldIds = $lockedDriver->authorizedBuses()->pluck('buses.id')->all();
                 $removedIds = array_diff($oldIds, $busIds);
                 if ($removedIds && TripAssignment::query()
@@ -465,6 +467,41 @@ class PersonnelController extends Controller
         if ($hasActiveOrUpcomingTrip) {
             throw ValidationException::withMessages([
                 'employment_status' => 'This driver cannot be deactivated while assigned to an active or upcoming trip.',
+            ]);
+        }
+    }
+
+    private function assertBusesAvailableForDriver(array $busIds, ?int $driverId = null): void
+    {
+        $busIds = collect($busIds)
+            ->map(fn ($busId) => (int) $busId)
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($busIds->isEmpty()) {
+            return;
+        }
+
+        // Lock the bus rows in a stable order so concurrent driver updates
+        // cannot claim the same bus before the database constraint is reached.
+        Bus::query()
+            ->whereIn('id', $busIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get(['id']);
+
+        $conflict = DB::table('driver_authorized_buses')
+            ->join('drivers', 'drivers.id', '=', 'driver_authorized_buses.driver_id')
+            ->join('buses', 'buses.id', '=', 'driver_authorized_buses.bus_id')
+            ->whereIn('driver_authorized_buses.bus_id', $busIds)
+            ->when($driverId !== null, fn ($query) => $query->where('driver_authorized_buses.driver_id', '!=', $driverId))
+            ->orderBy('buses.bus_no')
+            ->first(['buses.bus_no', 'drivers.driver_name']);
+
+        if ($conflict) {
+            throw ValidationException::withMessages([
+                'bus_ids' => "Bus {$conflict->bus_no} is already authorized to {$conflict->driver_name}. Each bus can have only one authorized driver.",
             ]);
         }
     }

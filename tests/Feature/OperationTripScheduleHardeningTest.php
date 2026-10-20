@@ -103,8 +103,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'status' => 'Active',
         ]);
 
-        $busIds = Bus::query()->pluck('id')->all();
-        Driver::query()->each(fn (Driver $d) => $d->authorizedBuses()->syncWithoutDetaching($busIds));
+        $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]);
 
         return [$driver, $attendance, $bus];
     }

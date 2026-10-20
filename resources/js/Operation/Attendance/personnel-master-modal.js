@@ -309,12 +309,16 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     const refreshBusAuthorizationOptions = () => {
         if (entity !== 'Driver') return;
+        const currentDriverId = String(editingPersonnelId?.value || '');
         busOptions.forEach((option) => {
             const check = option.querySelector('[data-driver-bus-checkbox]');
             if (!check) return;
-            check.disabled = false;
+            const ownerId = String(check.dataset.authorizedDriverId || '');
+            const assignedToAnotherDriver = ownerId !== '' && ownerId !== currentDriverId;
+            check.disabled = assignedToAnotherDriver;
+            if (assignedToAnotherDriver) check.checked = false;
             option.hidden = false;
-            option.title = '';
+            option.title = assignedToAnotherDriver ? 'Already assigned to another driver' : '';
         });
         updateBusPicker();
     };
@@ -322,7 +326,6 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const resetForm = () => {
         form.reset();
         busChecks.forEach((check) => { check.checked = false; check.disabled = false; });
-        refreshBusAuthorizationOptions();
         if (busTrigger) busTrigger.disabled = false;
         if (busSearch) busSearch.value = '';
         busOptions.forEach((option) => {
@@ -334,6 +337,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         form.action = form.dataset.storeUrl;
         methodField.value = 'POST';
         if (editingPersonnelId) editingPersonnelId.value = '';
+        refreshBusAuthorizationOptions();
 
         fields.forEach((field) => {
             field.disabled = false;
@@ -409,6 +413,9 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (headerIcon) headerIcon.className = 'fa-solid fa-pen-to-square';
             form.action = button.dataset.updateUrl;
             methodField.value = 'PUT';
+            if (editingPersonnelId) {
+                editingPersonnelId.value = button.dataset.recordId || '';
+            }
             refreshBusAuthorizationOptions();
             // Preserve identifiers referenced by historical attendance and trips.
             if (entity === 'Driver' && record.identity_locked) {
@@ -419,9 +426,6 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                         input.title = 'Locked to preserve historical attendance and trip records';
                     }
                 }
-            }
-            if (editingPersonnelId) {
-                editingPersonnelId.value = button.dataset.recordId || '';
             }
             title.textContent = `Edit ${entity}`;
             subtitle.textContent = `Update permanent ${entity.toLowerCase()} information without changing attendance history.`;
@@ -500,6 +504,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             submitButton.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Update ${entity}`;
         }
 
+        refreshBusAuthorizationOptions();
         setSpecializations(specializationValue?.value || '');
         openModal();
     } else {

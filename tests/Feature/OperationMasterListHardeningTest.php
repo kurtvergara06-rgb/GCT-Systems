@@ -485,7 +485,7 @@ class OperationMasterListHardeningTest extends TestCase
             );
     }
 
-    public function test_multiple_active_drivers_can_be_authorized_for_the_same_bus(): void
+    public function test_bus_cannot_be_authorized_to_a_second_active_driver(): void
     {
         $user = $this->operationUser();
         $bus = $this->bus();
@@ -498,13 +498,10 @@ class OperationMasterListHardeningTest extends TestCase
                 $this->driverPayload('D-002', 'Driver Two'),
                 ['bus_ids_present' => 1, 'bus_ids' => [$bus->id]]
             )
-        )->assertSessionHasNoErrors();
+        )->assertSessionHasErrors('bus_ids');
 
-        $second = Driver::query()->where('driver_id', 'D-002')->firstOrFail();
-        $this->assertEqualsCanonicalizing(
-            [$first->id, $second->id],
-            $bus->fresh()->authorizedDrivers()->pluck('drivers.id')->all()
-        );
+        $this->assertFalse(Driver::query()->where('driver_id', 'D-002')->exists());
+        $this->assertSame([$first->id], $bus->fresh()->authorizedDrivers()->pluck('drivers.id')->all());
     }
 
     public function test_regular_bus_allocation_can_be_cleared_back_to_unallocated(): void

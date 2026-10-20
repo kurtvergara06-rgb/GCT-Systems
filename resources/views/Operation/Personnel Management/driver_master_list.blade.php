@@ -198,10 +198,10 @@
                         <input type="search" class="driver-bus-picker-search" data-driver-bus-search placeholder="Search bus number or plate..." aria-label="Search available buses">
                         <div class="driver-bus-picker-options">
                             @foreach($availableBuses as $busOption)
-                                @php $otherDrivers = $busOption->authorizedDrivers->pluck('driver_name')->join(', '); @endphp
+                                @php $authorizedDriver = $busOption->authorizedDrivers->first(); @endphp
                                 <label class="driver-bus-picker-option" data-driver-bus-option>
-                                    <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox data-bus-number="{{ $busOption->bus_no }}" @checked(in_array($busOption->id, old('bus_ids', [])))>
-                                    <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $otherDrivers !== '' ? 'Also authorized: '.$otherDrivers : ($busOption->plate_no ?: 'No plate number') }}</small></span>
+                                    <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox data-bus-number="{{ $busOption->bus_no }}" data-authorized-driver-id="{{ $authorizedDriver?->id }}" @checked(in_array($busOption->id, old('bus_ids', [])))>
+                                    <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $authorizedDriver ? 'Assigned to '.$authorizedDriver->driver_name : ($busOption->plate_no ?: 'No plate number') }}</small></span>
                                 </label>
                             @endforeach
                         </div>
@@ -209,7 +209,7 @@
                     </div>
                 </div>
                 <div class="driver-bus-chips" data-driver-bus-chips aria-live="polite"></div>
-                <small class="driver-bus-help">Multiple selections allowed</small>
+                <small class="driver-bus-help">Multiple selections allowed; each bus can belong to only one driver.</small>
             </div>
             <label class="driver-input-field driver-contact-field">
                 <span>Contact Number</span>
