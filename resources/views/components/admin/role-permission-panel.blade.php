@@ -1,5 +1,6 @@
 @props([
     'selectedRolePermission',
+    'assignedAccounts' => collect(),
     'permissionModules',
 ])
 
@@ -261,6 +262,29 @@
                 </div>
             </section>
         @endif
+
+        <section class="module-access-section assigned-role-accounts">
+            <div class="module-access-heading">
+                <div>
+                    <span class="section-kicker">Registered Accounts</span>
+                    <h2>Assigned Accounts</h2>
+                    <p>These accounts inherit the selected role's permissions.</p>
+                </div>
+                <span class="access-count-badge">{{ $assignedAccounts->count() }} Accounts</span>
+            </div>
+            @forelse($assignedAccounts as $account)
+                <div class="assigned-role-account-row">
+                    <div>
+                        <strong>{{ $account->name }}</strong>
+                        <span>{{ $account->email }}</span>
+                    </div>
+                    <span>{{ $account->status }}</span>
+                </div>
+            @empty
+                <p class="assigned-role-account-empty">No accounts are currently assigned to this role.</p>
+            @endforelse
+            <a class="assigned-role-account-link" href="{{ route('admin.users') }}">Manage accounts</a>
+        </section>
 
         @unless($isProtectedRole)
             <div class="permission-edit-actions">
