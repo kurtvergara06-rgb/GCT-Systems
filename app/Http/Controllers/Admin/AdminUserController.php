@@ -43,7 +43,15 @@ class AdminUserController extends Controller
 
     public function index(Request $request)
     {
+        $applicationsPage = $request->routeIs('admin.applications');
         $query = User::query();
+
+        // Separate pending registrations from active account administration.
+        if ($applicationsPage) {
+            $query->whereIn('status', ['Pending', 'Rejected']);
+        } else {
+            $query->whereNotIn('status', ['Pending', 'Rejected']);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -87,7 +95,9 @@ class AdminUserController extends Controller
         $roles = $this->roles;
         $statuses = $this->statuses;
 
-        return view('Admin.User_Management.users', compact(
+        return view($applicationsPage
+            ? 'Admin.User_Management.applications'
+            : 'Admin.User_Management.users', compact(
             'users', 'totalUsers', 'activeUsers', 'inactiveUsers', 'pendingUsers',
             'departments', 'departmentOptions', 'roles', 'statuses'
         ));
