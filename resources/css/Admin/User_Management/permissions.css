@@ -1327,3 +1327,16 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Live role membership; accounts inherit the selected role's permissions. */
+.assigned-role-accounts { margin-top: 16px; }
+.assigned-role-account-row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 12px; border:1px solid #e1e8f1;
+  border-radius:9px; margin-top:7px; background:#fff;
+}
+.assigned-role-account-row > div { display:grid; gap:2px; min-width:0; }
+.assigned-role-account-row strong { font-size:12px; color:#102a4c; }
+.assigned-role-account-row span { font-size:11px; color:#64748b; overflow-wrap:anywhere; }
+.assigned-role-account-empty { font-size:12px; color:#64748b; }
+.assigned-role-account-link { display:inline-block; margin-top:12px; font-size:12px; font-weight:700; }
