@@ -135,7 +135,7 @@
 
                 <div class="permission-edit-banner-copy">
                     <strong>EDIT MODE ACTIVE</strong>
-                    <span>Only {{ $selectedRolePermission->department }} permissions can be saved currently. Other modules are shown for review until cross-module authorization is enabled.</span>
+                    <span>Edit supported permissions for this role. Administration remains protected. Cross-department page access requires matching route authorization.</span>
                 </div>
 
                 <span class="permission-edit-unsaved">
@@ -202,7 +202,7 @@
                     <div>
                         <span class="section-kicker">Module Permissions</span>
                         <h2>System-Wide Module Access</h2>
-                        <p>Review all GCT modules. Only the home department is editable in this first UI phase; cross-module access is not enabled yet.</p>
+                        <p>Configure supported module permissions for this role. Administration access remains protected.</p>
                     </div>
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
@@ -231,8 +231,8 @@
                                 @foreach($capabilities as $capabilityKey => $capability)
                                     @php
                                         $supported = array_key_exists($capabilityKey, $module['capabilities']);
-                                        $editable = $isHomeModule && $supported;
-                                        $isAllowed = $editable && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
+                                        $editable = $supported;
+                                        $isAllowed = $supported && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
                                         $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
                                     @endphp
                                     @if($editable)
@@ -244,7 +244,7 @@
                                             <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
                                         </label>
                                     @else
-                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'Cross-module permissions will be enabled after backend authorization is implemented.' : 'Warehouse approval permission has not been implemented yet.' }}">
+                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'Warehouse approval permission has not been implemented yet.' }}">
                                             <i class="fa-solid fa-lock"></i> {{ $capability['label'] }}
                                         </span>
                                     @endif
@@ -256,8 +256,8 @@
                 <div class="module-restriction-note">
                     <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
-                        <strong>UI preview — no cross-module access granted</strong>
-                        <p>System Admin can review every module here. Only {{ $selectedRolePermission->department }} permissions are currently saved; cross-module access and Warehouse approval require separate backend implementation.</p>
+                        <strong>Cross-module permissions require route enforcement</strong>
+                        <p>Changes to supported role capabilities are saved here. Effective access to other departments still depends on route and controller authorization. Warehouse approval is not implemented.</p>
                     </div>
                 </div>
             </section>
