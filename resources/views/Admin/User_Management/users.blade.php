@@ -1,5 +1,5 @@
 <x-layout.app
-    title="FROMS - Account Management"
+    title="{{ !empty($applicationsPage) ? 'FROMS - Applications' : 'FROMS - Accounts' }}"
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
@@ -46,8 +46,8 @@
 
         <main class="main users-main records-page">
             <x-layout.topbar
-                title="Account Management"
-                subtitle="Manage system accounts, department assignments, roles, and access"
+                title="{{ !empty($applicationsPage) ? 'Applications' : 'Account Management' }}"
+                subtitle="{{ !empty($applicationsPage) ? 'Review employee registrations, verify details, and approve or reject applications' : 'Manage registered accounts, departments, roles, and access' }}"
                 notification-count="6"
             />
 
@@ -87,30 +87,27 @@
 
             <x-ui.ajax-region name="records" class="records-card users-card users-table-card">
                 <x-ui.section-header
-                    title="System Accounts"
-                    subtitle="Create accounts and manage department, role, status, and access assignments."
+                    title="{{ !empty($applicationsPage) ? 'Employee Applications' : 'System Accounts' }}"
+                    subtitle="{{ !empty($applicationsPage) ? 'Review registrations awaiting a decision and view rejected applications.' : 'Manage existing user accounts, roles, and access assignments.' }}"
                     class="users-section-header"
                 >
-                    <x-slot:actions>
-                        <button type="button" id="openAddUserModal" class="primary-btn users-add-account-btn">
-                            <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Add Account
-                        </button>
-                    </x-slot:actions>
                 </x-ui.section-header>
 
                 <div class="users-record-controls">
-                <nav class="application-status-tabs" aria-label="Filter accounts by status">
-                    @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending'] as $label => $statusValue)
-                        <a href="{{ route('admin.users', $statusValue ? ['status' => $statusValue] : []) }}"
-                           class="application-status-tab {{ request('status') === $statusValue || (!request()->filled('status') && $statusValue === null) ? 'is-active' : '' }}"
-                           @if(request('status') === $statusValue || (!request()->filled('status') && $statusValue === null)) aria-current="page" @endif>
+                @if(!empty($applicationsPage))
+                <nav class="application-status-tabs" aria-label="Filter employee applications">
+                    @foreach(['Pending Applications' => 'Pending', 'Rejected' => 'Rejected'] as $label => $statusValue)
+                        <a href="{{ route('admin.applications', ['status' => $statusValue]) }}"
+                           class="application-status-tab {{ request('status', 'Pending') === $statusValue ? 'is-active' : '' }}"
+                           @if(request('status', 'Pending') === $statusValue) aria-current="page" @endif>
                             {{ $label }}
                             @if($statusValue === 'Pending') <span class="application-status-count">{{ $pendingUsers }}</span> @endif
                         </a>
                     @endforeach
                 </nav>
+                @endif
                 <x-ui.table-toolbar
-                    :action="route('admin.users')"
+                     :action="!empty($applicationsPage) ? route('admin.applications') : route('admin.users')"
                     class="records-toolbar users-toolbar"
                     search-placeholder="Search by name, email, role, or department..."
                     search-label="Search Accounts"
