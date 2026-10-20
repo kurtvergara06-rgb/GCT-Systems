@@ -143,6 +143,7 @@ class RolePermissionService
                 'capabilities' => [
                     'view' => ['label' => 'View', 'icon' => 'fa-eye'],
                     'edit' => ['label' => 'Create / Edit', 'icon' => 'fa-pen'],
+                    'approve' => ['label' => 'Approve', 'icon' => 'fa-check-double'],
                 ],
             ],
             'analytics' => [
