@@ -90,8 +90,15 @@
                     title="System Accounts"
                     subtitle="Create accounts and manage department, role, status, and access assignments."
                     class="users-section-header"
-                />
+                >
+                    <x-slot:actions>
+                        <button type="button" id="openAddUserModal" class="primary-btn users-add-account-btn">
+                            <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Add Account
+                        </button>
+                    </x-slot:actions>
+                </x-ui.section-header>
 
+                <div class="users-record-controls">
                 <nav class="application-status-tabs" aria-label="Filter accounts by status">
                     @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending', 'Active' => 'Active', 'Inactive' => 'Inactive', 'Rejected' => 'Rejected'] as $label => $statusValue)
                         <a href="{{ route('admin.users', $statusValue ? ['status' => $statusValue] : []) }}"
@@ -102,10 +109,6 @@
                         </a>
                     @endforeach
                 </nav>
-                @if(request('status') === 'Pending')
-                    <p class="application-review-notice">Review employee applications here. Email verification, department and role assignment are required before approval.</p>
-                @endif
-
                 <x-ui.table-toolbar
                     :action="route('admin.users')"
                     class="records-toolbar users-toolbar"
@@ -116,9 +119,7 @@
                     :sort-options="['created_at' => 'Created Date', 'name' => 'Account Name', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status']"
                     default-sort="created_at"
                     default-direction="desc"
-                    button-id="openAddUserModal"
-                    button-label="Add Account"
-                    button-icon="fa-user-plus"
+                    :show-button="false"
                 >
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Department" name="department" default="All Departments"><option value="All Departments">All Departments</option>@foreach($departmentOptions as $department)<option value="{{ $department }}" @selected(request('department') === $department)>{{ $department }}</option>@endforeach</x-ui.table-toolbar-field>
@@ -126,6 +127,10 @@
                         <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
+                @if(request('status') === 'Pending')
+                    <p class="application-review-notice">Review employee applications here. Email verification, department and role assignment are required before approval.</p>
+                @endif
 
                 <div class="records-table-wrap users-table-wrap table-wrap">
                     <table class="records-table users-table">
