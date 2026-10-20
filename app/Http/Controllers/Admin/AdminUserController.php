@@ -89,6 +89,9 @@ class AdminUserController extends Controller
         $activeUsers = User::where('status', 'Active')->count();
         $inactiveUsers = User::where('status', 'Inactive')->count();
         $pendingUsers = User::where('status', 'Pending')->count();
+        $rejectedUsers = User::where('status', 'Rejected')->count();
+        $verifiedPendingUsers = User::where('status', 'Pending')->whereNotNull('email_verified_at')->count();
+        $unverifiedPendingUsers = $pendingUsers - $verifiedPendingUsers;
 
         $departments = $this->departments;
         $departmentOptions = $this->departments;
@@ -99,7 +102,8 @@ class AdminUserController extends Controller
             ? 'Admin.User_Management.applications'
             : 'Admin.User_Management.users', compact(
             'users', 'totalUsers', 'activeUsers', 'inactiveUsers', 'pendingUsers',
-            'departments', 'departmentOptions', 'roles', 'statuses'
+            'departments', 'departmentOptions', 'roles', 'statuses',
+            'rejectedUsers', 'verifiedPendingUsers', 'unverifiedPendingUsers'
         ));
     }
 
