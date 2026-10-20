@@ -297,13 +297,13 @@ class AdminUserController extends Controller
                 'status' => 'Active',
             ]);
 
-            return redirect()->route('admin.users', ['status' => 'Pending'])
+            return redirect()->route('admin.applications', ['status' => 'Pending'])
                 ->with('success', 'Employee application approved. Department and role have been assigned.');
         }
 
         $user->update(['status' => 'Rejected']);
 
-        return redirect()->route('admin.users', ['status' => 'Pending'])
+        return redirect()->route('admin.applications', ['status' => 'Pending'])
             ->with('success', 'Employee application rejected. Account access remains blocked.');
     }
 
