@@ -183,7 +183,7 @@
                 'active_routes' => ['admin.dashboard'],
             ],
             [
-                'label' => 'Account Management',
+                'label' => 'User Management',
                 'icon' => 'fa-users-gear',
                 'children' => [
                     [
@@ -191,6 +191,12 @@
                         'route' => 'admin.users',
                         'icon' => 'fa-address-card',
                         'active_routes' => ['admin.users', 'admin.users.*'],
+                    ],
+                    [
+                        'label' => 'Applications',
+                        'route' => 'admin.applications',
+                        'icon' => 'fa-user-clock',
+                        'active_routes' => ['admin.applications', 'admin.applications.*'],
                     ],
                     [
                         'label' => 'Roles & Permissions',
