@@ -211,13 +211,6 @@
                         @php
                             $isHomeModule = $moduleKey === $roleModuleKey;
                             $capabilities = $module['capabilities'];
-                            // Warehouse approval is shown for design consistency, but it has no
-                            // backend capability yet and must not be submitted as a permission.
-                            if ($moduleKey === 'warehouse') {
-                                $capabilities = array_merge($capabilities, [
-                                    'approve' => ['label' => 'Approve', 'icon' => 'fa-check-double'],
-                                ]);
-                            }
                         @endphp
                         <article class="system-admin-module-row">
                             <div class="module-access-info">
@@ -244,7 +237,7 @@
                                             <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Not granted' }}</span>
                                         </label>
                                     @else
-                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'Warehouse approval permission has not been implemented yet.' }}">
+                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'This capability is not supported.' }}">
                                             <i class="fa-solid fa-lock"></i> {{ $capability['label'] }}
                                         </span>
                                     @endif
@@ -257,7 +250,7 @@
                     <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
                         <strong>Cross-module permissions require route enforcement</strong>
-                        <p>Changes to supported role capabilities are saved here. Effective access to other departments still depends on route and controller authorization. Warehouse approval is not implemented.</p>
+                        <p>Changes to supported role capabilities are saved here. Effective access to other departments still depends on route and controller authorization. Warehouse approval workflows require separate backend enforcement.</p>
                     </div>
                 </div>
             </section>
