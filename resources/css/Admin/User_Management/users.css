@@ -603,3 +603,20 @@
   padding: 0 !important;
   min-height: 0;
 }
+
+/* Align Accounts search tools with its title rather than using a tall empty row. */
+@media (min-width: 901px) {
+  .users-main .users-card--accounts .users-section-header {
+    min-height: 44px;
+    padding-right: 270px;
+    margin-bottom: 12px;
+  }
+  .users-main .users-card--accounts .users-record-controls {
+    justify-content: flex-end;
+    min-height: 38px;
+    margin-top: -56px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 3;
+  }
+}
