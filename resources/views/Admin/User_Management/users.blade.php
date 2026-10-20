@@ -85,7 +85,7 @@
                 />
             </x-ui.ajax-region>
 
-            <x-ui.ajax-region name="records" class="records-card users-card users-table-card">
+            <x-ui.ajax-region name="records" class="records-card users-card users-table-card {{ empty($applicationsPage) ? 'users-card--accounts' : 'users-card--applications' }}">
                 <x-ui.section-header
                     title="{{ !empty($applicationsPage) ? 'Employee Applications' : 'System Accounts' }}"
                     subtitle="{{ !empty($applicationsPage) ? 'Review registrations awaiting a decision and view rejected applications.' : 'Manage existing user accounts, roles, and access assignments.' }}"
