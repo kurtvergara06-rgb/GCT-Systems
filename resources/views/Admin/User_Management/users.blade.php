@@ -130,6 +130,14 @@
                     <table class="records-table users-table">
                         <thead>
                             <tr>
+                                @if(!empty($applicationsPage))
+                                    <th>Applicant</th>
+                                    <th>Date Applied</th>
+                                    <th>Email Verification</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                @else
                                 <th>User ID</th>
                                 <th>Account</th>
                                 <th>Role</th>
@@ -137,6 +145,7 @@
                                 <th>Status</th>
                                 <th>Last Login</th>
                                 <th>Actions</th>
+                                @endif
                             </tr>
                         </thead>
 
@@ -179,6 +188,36 @@
                                     $isOwnAccount = auth()->id() === $user->id;
                                 @endphp
 
+                                @if(!empty($applicationsPage))
+                                <tr>
+                                    <td>
+                                        <x-ui.record-identity :title="$user->name" :subtitle="$user->email" :initials="$initials" :tone="$avatarTone" :image-url="$user->profilePhotoUrl()" />
+                                    </td>
+                                    <td>{{ $user->created_at?->format('M d, Y · g:i A') ?? 'Not recorded' }}</td>
+                                    <td>
+                                        <span class="application-verification {{ $user->hasVerifiedEmail() ? 'is-verified' : 'is-unverified' }}">
+                                            {{ $user->hasVerifiedEmail() ? 'Verified' : 'Not Verified' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $user->department ?: 'Not assigned' }}</td>
+                                    <td><x-ui.status-badge :status="$user->status ?? 'Pending'" type="user" /></td>
+                                    <td>
+                                        @if($user->status === 'Pending' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                                            <button type="button" class="application-review-button"
+                                                data-review-application
+                                                data-review-url="{{ route('admin.users.review-application', $user) }}"
+                                                data-name="{{ $user->name }}"
+                                                data-email="{{ $user->email }}"
+                                                data-applied="{{ $user->created_at?->format('M d, Y · g:i A') }}"
+                                                data-verified="{{ $user->hasVerifiedEmail() ? '1' : '0' }}">
+                                                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
+                                            </button>
+                                        @else
+                                            <span class="application-action-note">{{ $user->status === 'Rejected' ? 'Rejected' : 'Review restricted' }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @else
                                 <tr>
                                     <td>
                                         <x-ui.id-badge :value="'USR-' . str_pad($user->id, 3, '0', STR_PAD_LEFT)" />
@@ -350,12 +389,13 @@
                                         </div>
                                     </td>
                                 </tr>
+                                @endif
                             @empty
                                 <x-ui.empty-row
-                                    colspan="7"
+                                    colspan="{{ !empty($applicationsPage) ? 6 : 7 }}"
                                     icon="fa-users"
-                                    message="No User Accounts Found"
-                                    description="No system user accounts match your search or department filter."
+                                    message="{{ !empty($applicationsPage) ? 'No Applications Found' : 'No User Accounts Found' }}"
+                                    description="{{ !empty($applicationsPage) ? 'No applications match the selected status or filters.' : 'No system user accounts match your search or department filter.' }}"
                                 />
                             @endforelse
                         </tbody>
