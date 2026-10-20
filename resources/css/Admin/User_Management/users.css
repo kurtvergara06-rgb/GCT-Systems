@@ -590,3 +590,16 @@
     flex-wrap: wrap;
   }
 }
+
+/* Unbox the Search / Filter / Sort toolbar; retain individual button borders. */
+.users-main .users-record-controls .users-toolbar,
+.users-main .users-record-controls .gct-table-toolbar,
+.users-main .users-record-controls .records-toolbar {
+  border: 0 !important;
+  outline: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0;
+}
