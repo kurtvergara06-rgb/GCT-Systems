@@ -48,7 +48,7 @@ class AdminUserController extends Controller
 
         // Separate pending registrations from active account administration.
         if ($applicationsPage) {
-            $query->whereIn('status', ['Pending', 'Rejected']);
+            $query->where('status', $request->query('status') === 'Rejected' ? 'Rejected' : 'Pending');
         } else {
             $query->whereNotIn('status', ['Pending', 'Rejected']);
         }
@@ -78,7 +78,7 @@ class AdminUserController extends Controller
             $query->where('role', $request->role);
         }
 
-        if ($request->filled('status') && $request->status !== 'All Status') {
+        if (! $applicationsPage && $request->filled('status') && $request->status !== 'All Status') {
             $query->where('status', $request->status);
         }
 
