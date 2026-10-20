@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Admin\RolePermission;
+use App\Models\Admin\User;
 use Illuminate\Support\Facades\Schema;
 
 class RolePermissionService
@@ -77,8 +78,19 @@ class RolePermissionService
         $selected = $roles->firstWhere('role_key', $selectedRoleKey)
             ?? $roles->first();
 
+        // Actual accounts only: users inherit permissions from their role,
+        // never from an independently invented account-level permission set.
+        $roleAccounts = Schema::hasTable('users')
+            ? User::query()
+                ->select(['id', 'name', 'email', 'department', 'role', 'status'])
+                ->orderBy('name')
+                ->get()
+                ->groupBy(fn (User $user) => $user->permissionRoleKey())
+            : collect();
+
         return [
             'rolePermissions' => $roles,
+            'roleAccounts' => $roleAccounts,
             'selectedRolePermission' => $selected,
             'permissionModules' => $this->modules(),
             'permissionsReady' => true,
