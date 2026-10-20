@@ -1410,3 +1410,24 @@
   .permissions-page .department-module-matrix .system-admin-capabilities,
   .permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-capabilities { grid-template-columns: 1fr; }
 }
+
+/* Permission matrix: an ungranted permission is neutral, not an error. */
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted,
+.permissions-page .department-module-matrix .protected-capability.matrix-native-locked {
+  background: #f3f5f8;
+  border-color: #dfe5ed;
+  color: #66758a;
+  box-shadow: none;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted i,
+.permissions-page .department-module-matrix .protected-capability.matrix-native-locked i {
+  color: #8290a2;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted:hover {
+  background: #eef1f5;
+  border-color: #d5dee8;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted:has(input:focus-visible) {
+  outline: 2px solid #64748b;
+  outline-offset: 2px;
+}
