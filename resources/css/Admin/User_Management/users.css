@@ -503,3 +503,58 @@
 .application-approve-button { color:white; background:#0d61b9; border-color:#0d61b9!important; }
 .application-approve-button:disabled { opacity:.5; cursor:not-allowed; }
 #applicationReviewForm select { width:100%; padding:11px; border:1px solid #d5dfed; border-radius:8px; background:#fff; }
+
+/* Compact Account Management controls, matching Operation master lists. */
+.users-main .users-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.users-main .users-section-header .section-header-actions {
+  margin-left: auto;
+}
+.users-main .users-add-account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 15px;
+  white-space: nowrap;
+  border-radius: 10px;
+}
+.users-main .users-record-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+.users-main .users-record-controls .application-status-tabs {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.users-main .users-record-controls .users-toolbar {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 900px) {
+  .users-main .users-record-controls {
+    align-items: flex-start;
+  }
+  .users-main .users-record-controls .users-toolbar {
+    margin-left: 0;
+  }
+}
