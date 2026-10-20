@@ -1,5 +1,6 @@
 @props([
     'rolePermissions',
+    'roleAccounts' => collect(),
     'selectedRolePermission' => null,
 ])
 
@@ -51,7 +52,7 @@
 
                     <div class="directory-role-info">
                         <strong>{{ $rolePermission->label }}</strong>
-                        <span>{{ $rolePermission->department }} Dept</span>
+                        <span>{{ $rolePermission->department }} Dept · {{ ($roleAccounts->get($rolePermission->role_key, collect()))->count() }} accounts</span>
                     </div>
 
                     <span class="directory-role-type {{ $rolePermission->role_type === 'admin' ? 'admin' : $rolePermission->role_type }}">
