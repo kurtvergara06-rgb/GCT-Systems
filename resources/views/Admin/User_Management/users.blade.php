@@ -128,9 +128,6 @@
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
-                @if(request('status') === 'Pending')
-                    <p class="application-review-notice">Review employee applications here. Email verification, department and role assignment are required before approval.</p>
-                @endif
 
                 <div class="records-table-wrap users-table-wrap table-wrap">
                     <table class="records-table users-table">
