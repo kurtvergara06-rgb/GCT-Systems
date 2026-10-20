@@ -100,7 +100,7 @@
 
                 <div class="users-record-controls">
                 <nav class="application-status-tabs" aria-label="Filter accounts by status">
-                    @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending', 'Active' => 'Active', 'Inactive' => 'Inactive', 'Rejected' => 'Rejected'] as $label => $statusValue)
+                    @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending'] as $label => $statusValue)
                         <a href="{{ route('admin.users', $statusValue ? ['status' => $statusValue] : []) }}"
                            class="application-status-tab {{ request('status') === $statusValue || (!request()->filled('status') && $statusValue === null) ? 'is-active' : '' }}"
                            @if(request('status') === $statusValue || (!request()->filled('status') && $statusValue === null)) aria-current="page" @endif>
