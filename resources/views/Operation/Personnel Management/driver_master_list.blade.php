@@ -199,7 +199,7 @@
                         <div class="driver-bus-picker-options">
                             @foreach($availableBuses as $busOption)
                                 @php $authorizedDriver = $busOption->authorizedDrivers->first(); @endphp
-                                <label class="driver-bus-picker-option" data-driver-bus-option>
+                                <label class="driver-bus-picker-option" data-driver-bus-option @if($authorizedDriver) hidden @endif>
                                     <input type="checkbox" name="bus_ids[]" value="{{ $busOption->id }}" data-driver-bus-checkbox data-bus-number="{{ $busOption->bus_no }}" data-authorized-driver-id="{{ $authorizedDriver?->id }}" @checked(in_array($busOption->id, old('bus_ids', [])))>
                                     <span class="driver-bus-option-text"><strong>{{ $busOption->bus_no }}</strong><small>{{ $authorizedDriver ? 'Assigned to '.$authorizedDriver->driver_name : ($busOption->plate_no ?: 'No plate number') }}</small></span>
                                 </label>
