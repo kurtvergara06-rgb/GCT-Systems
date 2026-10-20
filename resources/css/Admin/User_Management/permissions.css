@@ -1340,3 +1340,73 @@
 .assigned-role-account-row span { font-size:11px; color:#64748b; overflow-wrap:anywhere; }
 .assigned-role-account-empty { font-size:12px; color:#64748b; }
 .assigned-role-account-link { display:inline-block; margin-top:12px; font-size:12px; font-weight:700; }
+
+/* Roles & Permissions alignment pass: equal cards, clean grid and accounts table.
+   Presentation only; existing capability names, read-only cells and form logic stay intact. */
+.permissions-page .access-workspace { align-items: start; }
+.permissions-page .role-directory,
+.permissions-page .role-access-panel { min-width: 0; }
+.permissions-page .role-directory-list { display: grid; gap: 6px; }
+.permissions-page .role-select-form { min-width: 0; margin: 0; }
+.permissions-page .directory-role {
+  width: 100%;
+  min-height: 54px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+.permissions-page .directory-role-info { min-width: 0; }
+.permissions-page .directory-role-type { white-space: nowrap; }
+.permissions-page .role-capability-strip { grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; }
+.permissions-page .role-capability-strip .capability-item { min-height: 58px; height: 100%; box-sizing: border-box; }
+.permissions-page .department-module-matrix .system-admin-module-row,
+.permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-module-row {
+  grid-template-columns: minmax(270px, 1.1fr) minmax(0, 1fr);
+  min-height: 58px;
+  align-items: center;
+}
+.permissions-page .department-module-matrix .system-admin-capabilities,
+.permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-capabilities {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.permissions-page .department-module-matrix .protected-capability,
+.permissions-page .system-admin-capabilities .protected-capability {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  box-sizing: border-box;
+  padding: 5px 9px;
+}
+.permissions-page .assigned-role-accounts { margin-top: 16px; }
+.permissions-page .assigned-role-account-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 105px;
+  align-items: center;
+  min-height: 49px;
+  box-sizing: border-box;
+  gap: 14px;
+}
+.permissions-page .assigned-role-account-row > span { text-align: center; }
+@media (max-width: 1280px) {
+  .permissions-page .department-module-matrix .system-admin-module-row,
+  .permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-module-row {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+}
+@media (max-width: 700px) {
+  .permissions-page .role-capability-strip { grid-template-columns: 1fr; }
+  .permissions-page .department-module-matrix .system-admin-capabilities,
+  .permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-capabilities {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+}
+@media (max-width: 440px) {
+  .permissions-page .department-module-matrix .system-admin-capabilities,
+  .permissions-page .system-wide-access:not(.department-module-matrix) .system-admin-capabilities { grid-template-columns: 1fr; }
+}
