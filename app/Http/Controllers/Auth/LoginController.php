@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
+    private const MAX_LOGIN_ATTEMPTS = 5;
+
+    private const LOGIN_COOLDOWN_SECONDS = 300;
+
     /**
      * Show the login page, or return an already-authenticated user to the
      * correct first-login step / department dashboard.
@@ -87,15 +91,21 @@ class LoginController extends Controller
             if ($status !== 'active') {
                 RateLimiter::clear($loginKey);
 
+                if ($status === 'pending') {
+                    return redirect()->route('registration.pending')
+                        ->with('pending_verified', $user->hasVerifiedEmail());
+                }
+
                 return back()
                     ->withInput($request->only('email', 'remember'))
                     ->with('blocked_account_status', ucfirst($status));
             }
         }
 
-        if (RateLimiter::tooManyAttempts($loginKey, 5)) {
+        if (RateLimiter::tooManyAttempts($loginKey, self::MAX_LOGIN_ATTEMPTS)) {
             return back()
                 ->withInput($request->only('email', 'remember'))
+                ->with('login_lockout_seconds', RateLimiter::availableIn($loginKey))
                 ->withErrors([
                     'email' => sprintf(
                         'Too many login attempts. Please try again in %d seconds.',
@@ -105,7 +115,7 @@ class LoginController extends Controller
         }
 
         if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
-            RateLimiter::hit($loginKey, 60);
+            RateLimiter::hit($loginKey, self::LOGIN_COOLDOWN_SECONDS);
 
             return back()
                 ->withInput($request->only('email', 'remember'))

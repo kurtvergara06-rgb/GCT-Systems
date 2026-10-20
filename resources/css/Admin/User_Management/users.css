@@ -487,3 +487,19 @@
     width: 100%;
   }
 }
+
+/* Employee application review — extends existing Account Management UI. */
+.application-status-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 14px; }
+.application-status-tab { display:inline-flex; align-items:center; gap:7px; text-decoration:none; padding:9px 13px; border:1px solid #dce4ef; border-radius:9px; color:#344663; font-size:12px; font-weight:700; background:#fff; }
+.application-status-tab.is-active { color:#0755a6; background:#eaf3ff; border-color:#9dc5f5; }
+.application-status-count { border-radius:20px; padding:2px 7px; background:#f9e3a8; color:#754b00; }
+.application-review-notice { font-size:12px; color:#53657b; margin:0 0 12px; }
+.application-review-button { display:inline-flex; align-items:center; gap:5px; border:1px solid #a8cef4; background:#edf6ff; color:#0755a6; border-radius:7px; padding:6px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.application-review-details { display:flex; flex-direction:column; gap:6px; margin:0 0 18px; padding:12px; background:#f3f7fb; border-radius:9px; overflow-wrap:anywhere; font-size:13px; }
+#applicationReviewVerified { color:#236a44; font-weight:700; }
+.application-review-actions { display:flex; gap:9px; justify-content:flex-end; flex-wrap:wrap; margin-top:17px; }
+.application-review-actions button { border-radius:8px; padding:10px 14px; cursor:pointer; border:1px solid #d6dce6; }
+.application-reject-button { color:white; background:#c62e40; border-color:#c62e40!important; }
+.application-approve-button { color:white; background:#0d61b9; border-color:#0d61b9!important; }
+.application-approve-button:disabled { opacity:.5; cursor:not-allowed; }
+#applicationReviewForm select { width:100%; padding:11px; border:1px solid #d5dfed; border-radius:8px; background:#fff; }
