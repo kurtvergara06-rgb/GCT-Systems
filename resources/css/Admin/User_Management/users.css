@@ -620,3 +620,28 @@
     z-index: 3;
   }
 }
+
+/* Applications table is intentionally distinct from the Accounts directory. */
+.users-main .users-card--applications .users-table th,
+.users-main .users-card--applications .users-table td {
+  width: auto;
+  min-width: 0;
+}
+.users-main .users-card--applications .users-table th:first-child,
+.users-main .users-card--applications .users-table td:first-child { min-width: 220px; width: 30%; }
+.users-main .users-card--applications .users-table th:nth-child(2),
+.users-main .users-card--applications .users-table td:nth-child(2) { min-width: 140px; }
+.users-main .users-card--applications .users-table th:last-child,
+.users-main .users-card--applications .users-table td:last-child { min-width: 130px; text-align: center; }
+.application-verification {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.application-verification.is-verified { color: #137b47; background: #e5f8eb; }
+.application-verification.is-unverified { color: #986514; background: #fff2cf; }
+.application-action-note { color: #64748b; font-size: 12px; }
