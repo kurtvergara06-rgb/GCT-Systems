@@ -28,6 +28,7 @@ class TripScheduleDepartureIntervalBoundaryTest extends TestCase
             'shuttle_route_id' => $route->id,
             'trip_date' => $date,
             'departure_time' => '08:14',
+            'direction' => 'Incoming',
         ])->assertSessionHasErrors('departure_time');
 
         $this->assertSame(1, TripSchedule::query()->count());
@@ -41,6 +42,7 @@ class TripScheduleDepartureIntervalBoundaryTest extends TestCase
             'shuttle_route_id' => $route->id,
             'trip_date' => $date,
             'departure_time' => '08:15',
+            'direction' => 'Incoming',
         ])->assertSessionHasNoErrors();
 
         $this->assertSame(2, TripSchedule::query()->count());
@@ -76,6 +78,7 @@ class TripScheduleDepartureIntervalBoundaryTest extends TestCase
         $date = '2026-10-10';
         TripSchedule::query()->create([
             'trip_code' => 'BOUNDARY-BASE',
+            'direction' => 'Incoming',
             'trip_date' => $date,
             'shuttle_route_id' => $route->id,
             'departure_time' => '08:00:00',

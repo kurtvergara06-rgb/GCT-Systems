@@ -294,6 +294,34 @@ class OperationTripIntegrityTest extends TestCase
         ]);
     }
 
+    public function test_scheduled_trip_lifecycle_advances_by_time_without_manual_confirmation(): void
+    {
+        $this->schedule->update(['status' => 'Ready']);
+
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 04:59:00', 'Asia/Manila'));
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Ready', $this->schedule->fresh()->status);
+
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 05:30:00', 'Asia/Manila'));
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Dispatched', $this->schedule->fresh()->status);
+
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 06:01:00', 'Asia/Manila'));
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Pending DDR', $this->schedule->fresh()->status);
+
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Pending DDR', $this->schedule->fresh()->status);
+    }
+
+    public function test_scheduled_lifecycle_does_not_override_cancelled_trips(): void
+    {
+        $this->schedule->update(['status' => 'Cancelled']);
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-23 07:00:00', 'Asia/Manila'));
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Cancelled', $this->schedule->fresh()->status);
+    }
+
     private function createIncident(): Incident
     {
         return Incident::create([

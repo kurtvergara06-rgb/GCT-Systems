@@ -1188,10 +1188,9 @@
 .driver-attendance-page .attendance-table td:nth-child(n+3) {
   text-align: center;
 }
-.driver-attendance-page .attendance-table td:nth-child(3),
+.driver-attendance-page .attendance-table td:nth-child(4),
 .driver-attendance-page .attendance-table td:nth-child(5),
-.driver-attendance-page .attendance-table td:nth-child(6),
-.driver-attendance-page .attendance-table td:nth-child(7) {
+.driver-attendance-page .attendance-table td:nth-child(6) {
   white-space: nowrap;
 }
 .driver-attendance-page .attendance-table td:last-child .actions {
@@ -1230,3 +1229,151 @@
 #viewDriverAttendanceModal .attendance-detail-card label { font-size: 10px; letter-spacing: .06em; }
 #viewDriverAttendanceModal .attendance-detail-value { color: #10213e; }
 #viewDriverAttendanceModal .ui-form-actions { border-top: 1px solid #e8eef5; padding-top: 17px; }
+
+/* Linked attendance cannot be edited or deleted: visibly disabled, not hidden. */
+.driver-attendance-page .attendance-table .action-btn:is(.edit, .delete):disabled {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Six-column Driver Attendance: align each header with its data consistently. */
+.driver-attendance-page .attendance-table th:nth-child(1),
+.driver-attendance-page .attendance-table td:nth-child(1),
+.driver-attendance-page .attendance-table th:nth-child(2),
+.driver-attendance-page .attendance-table td:nth-child(2) {
+  text-align: left;
+}
+.driver-attendance-page .attendance-table th:nth-child(3),
+.driver-attendance-page .attendance-table td:nth-child(3) {
+  text-align: left;
+}
+.driver-attendance-page .attendance-table td:nth-child(3) .current-assignment-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+}
+.driver-attendance-page .attendance-table th:nth-child(n+4),
+.driver-attendance-page .attendance-table td:nth-child(n+4) {
+  text-align: center;
+}
+.driver-attendance-page .attendance-table td:nth-child(4),
+.driver-attendance-page .attendance-table td:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(6) {
+  white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:nth-child(6) .actions {
+  justify-content: center;
+}
+
+/* Driver Attendance identity cell — match the Driver Master List presentation. */
+.driver-attendance-page .attendance-table td:nth-child(2) .attendance-driver-identity {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  text-align: left;
+}
+.driver-attendance-page .attendance-driver-avatar {
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cfe0ff;
+  border-radius: 10px;
+  background: #e9f1ff;
+  color: #2363d5;
+  font-size: 14px;
+}
+.driver-attendance-page .attendance-driver-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+.driver-attendance-page .attendance-driver-details strong {
+  display: block;
+  max-width: 100%;
+  color: #122a50;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.driver-attendance-page .attendance-driver-details small {
+  color: #657b9b;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+/* Compact six-column rhythm: keep time-in close to the assignment details. */
+.driver-attendance-page .attendance-table th:nth-child(4),
+.driver-attendance-page .attendance-table td:nth-child(4) {
+  text-align: left;
+}
+.driver-attendance-page .attendance-table th:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(5),
+.driver-attendance-page .attendance-table th:nth-child(6),
+.driver-attendance-page .attendance-table td:nth-child(6) {
+  text-align: center;
+}
+
+
+/* Match Operations Master List tabs, with toolbar actions aligned on the same row. */
+.driver-attendance-page .attendance-record-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin: 12px 0;
+}
+.driver-attendance-page .attendance-record-tabs {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px; border: 1px solid #d8e3f3; border-radius: 11px;
+  background: #f0f4fa; flex: 0 0 auto;
+}
+.driver-attendance-page .attendance-record-tab {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 7px; min-height: 31px; padding: 7px 12px;
+  border-radius: 8px; color: #344765; text-decoration: none;
+  white-space: nowrap; font-size: 12px; font-weight: 700; line-height: 1.1;
+}
+.driver-attendance-page .attendance-record-tab:hover { background: #e4edfa; }
+.driver-attendance-page .attendance-record-tab.is-active {
+  background: #fff; color: #122847;
+  box-shadow: 0 1px 5px rgba(20,42,74,.1);
+}
+.driver-attendance-page .attendance-record-tab:focus-visible {
+  outline: 2px solid #2563eb; outline-offset: 2px;
+}
+.driver-attendance-page .attendance-record-controls > .gct-table-toolbar {
+  flex: 0 0 auto; width: auto; margin: 0 0 0 auto;
+}
+.driver-attendance-page .attendance-record-table-wrap { margin-top: 0 !important; }
+@media (max-width: 850px) {
+  .driver-attendance-page .attendance-record-controls { align-items: stretch; }
+  .driver-attendance-page .attendance-record-controls > .gct-table-toolbar { margin-left: auto; }
+}
+
+/* Four compact KPI cards on desktop; readable layouts on smaller screens. */
+.driver-attendance-page .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1200px) {
+  .driver-attendance-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .driver-attendance-page .stats-grid { grid-template-columns: 1fr; }
+}

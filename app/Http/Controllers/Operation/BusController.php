@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Operation\OperationClient;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\TripAssignment;
 use App\Services\Maintenance\PmsScheduleSynchronizer;
@@ -70,6 +71,7 @@ class BusController extends Controller
         $direction = $request->query('sort_direction', $request->query('direction')) === 'desc' ? 'desc' : 'asc';
 
         $buses = $query
+            ->with(['operationClients', 'authorizedDrivers'])
             ->orderBy($sort, $direction)
             ->when($sort !== 'bus_no', fn ($builder) => $builder->orderBy('bus_no'))
             ->paginate(10)
@@ -138,17 +140,21 @@ class BusController extends Controller
             })
             ->count();
 
+        $companyOptions = OperationClient::query()->where('status', 'Active')->orderBy('name')->pluck('name');
+
         return view('Operation.Shuttle_Bus_Management.bus-master-list', compact(
             'buses',
             'totalBuses',
             'activeBuses',
             'underMaintenance',
-            'availableBuses'
+            'availableBuses',
+            'companyOptions'
         ));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $allocation = $this->validateClientAllocation($request);
         $validated = $request->validate([
             'bus_no' => [
                 'required',
@@ -188,7 +194,7 @@ class BusController extends Controller
             'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
-        $bus = DB::transaction(function () use ($validated): Bus {
+        $bus = DB::transaction(function () use ($validated, $allocation): Bus {
             $createdBus = Bus::create([
                 'bus_no' => strtoupper(trim($validated['bus_no'])),
                 'plate_no' => $validated['plate_no'] ?? null,
@@ -200,6 +206,12 @@ class BusController extends Controller
                 'fleet_purpose' => $validated['fleet_purpose'] ?? 'Regular',
             ]);
 
+            if ($createdBus->fleet_purpose === 'Reserve' && ! empty($allocation['names'])) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Reserve buses are standby units and cannot have permanent client allocations.',
+                ]);
+            }
+            if ($allocation !== null) $this->syncClientAllocation($createdBus, $allocation);
             $this->pmsScheduleSynchronizer->ensureDefaultsFor($createdBus);
 
             return $createdBus;
@@ -393,6 +405,7 @@ class BusController extends Controller
 
     public function update(Request $request, Bus $bus): RedirectResponse
     {
+        $allocation = $this->validateClientAllocation($request);
         $validated = $request->validate([
             'bus_no' => [
                 'required',
@@ -427,7 +440,7 @@ class BusController extends Controller
             'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
-        $bus = DB::transaction(function () use ($bus, $validated): Bus {
+        $bus = DB::transaction(function () use ($bus, $validated, $allocation): Bus {
             $lockedBus = Bus::query()
                 ->whereKey($bus->id)
                 ->lockForUpdate()
@@ -495,6 +508,12 @@ class BusController extends Controller
                 ]);
             }
 
+            if ($newFleetPurpose === 'Reserve' && ! empty($allocation['names'])) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Reserve buses must remain unallocated to clients.',
+                ]);
+            }
+
             $lockedBus->update([
                 'bus_no' => $newBusNo,
                 'plate_no' => $validated['plate_no'] ?? null,
@@ -504,6 +523,44 @@ class BusController extends Controller
                 'status' => $validated['status'],
                 'fleet_purpose' => $newFleetPurpose,
             ]);
+
+            if ($newFleetPurpose === 'Reserve') {
+                // Reserve is not a permanent client or driver resource.
+                // The fleet-purpose switch was already checked for unresolved
+                // active or future trips above; preserve historical trip rows.
+                $lockedBus->operationClients()->detach();
+                $lockedBus->authorizedDrivers()->detach();
+                $lockedBus->update(['client_allocation_type' => null]);
+            } elseif ($allocation !== null) {
+                $lockedBus->load('operationClients');
+                // Ignore harmless differences in case and whitespace when
+                // comparing the submitted company against the saved allocation.
+                // This is comparison-only: stored names are not rewritten.
+                $normalizeClientName = static fn (string $name): string => mb_strtolower(
+                    trim((string) preg_replace('/\s+/u', ' ', $name))
+                );
+                $oldNames = $lockedBus->operationClients->pluck('name')
+                    ->map(fn ($name) => $normalizeClientName((string) $name))
+                    ->sort()->values()->all();
+                $newNames = array_map($normalizeClientName, $allocation['names']);
+                sort($newNames);
+                // Keep the existing allocation type (including legacy Shared)
+                // when the submitted company name has not actually changed.
+                // Trip schedules currently have no client/company link, so we
+                // cannot infer a genuine conflict from a trip assignment alone.
+                if ($oldNames !== $newNames) {
+                    // Historical and future scheduled trips are not company locks.
+                    // Only prevent reassignment while this bus is actually on a
+                    // dispatched trip that has not arrived yet.
+                    if ($oldNames !== [] && $this->hasOngoingDispatchedTrip($lockedBus)) {
+                        throw ValidationException::withMessages([
+                            'client_name' => 'This bus is currently operating a dispatched trip. Complete the trip before changing its company.',
+                        ]);
+                    }
+
+                    $this->syncClientAllocation($lockedBus, $allocation);
+                }
+            }
 
             $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $lockedBus);
 
@@ -602,6 +659,67 @@ class BusController extends Controller
         return redirect()->back(fallback: '/bus-master-list');
     }
 
+    /**
+     * Missing fields keep existing allocations unchanged (legacy imports).
+     * A supplied allocation must explicitly identify the permitted companies.
+     */
+    private function validateClientAllocation(Request $request): ?array
+    {
+        // Blank on edit preserves existing clients. Multiple comma-separated
+        // names use the existing bus <-> operation_clients pivot relationship.
+        $data = $request->validate([
+            'client_name' => ['nullable', 'string', 'max:1000'],
+            'client_allocation_submitted' => ['sometimes', 'boolean'],
+        ]);
+
+        $raw = trim((string) ($data['client_name'] ?? ''));
+        if ($raw === '') {
+            return $request->boolean('client_allocation_submitted')
+                ? ['type' => null, 'names' => []]
+                : null;
+        }
+
+        $names = [];
+        foreach (explode(',', $raw) as $value) {
+            $name = trim(preg_replace('/\\s+/u', ' ', $value));
+            if ($name === '' || mb_strlen($name) > 100) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'Enter valid client names, each up to 100 characters, separated by commas.',
+                ]);
+            }
+            $key = mb_strtolower($name);
+            $names[$key] ??= $name;
+        }
+
+        if (count($names) > 20) {
+            throw ValidationException::withMessages([
+                'client_name' => 'A bus may have up to 20 client names.',
+            ]);
+        }
+
+        return [
+            'type' => count($names) > 1 ? 'Shared' : 'Exclusive',
+            'names' => array_values($names),
+        ];
+    }
+
+    private function syncClientAllocation(Bus $bus, array $allocation): void
+    {
+        $ids = [];
+        foreach ($allocation['names'] as $name) {
+            $client = OperationClient::firstOrCreate(['name' => $name]);
+            if (! $client->isActive()) {
+                throw ValidationException::withMessages([
+                    'client_name' => "Client {$client->name} is inactive and cannot receive new bus allocations.",
+                ]);
+            }
+            $ids[] = $client->id;
+        }
+
+        $bus->update(['client_allocation_type' => $allocation['type']]);
+        $bus->operationClients()->sync($ids);
+    }
+
     public function destroy(Bus $bus): RedirectResponse
     {
         $busId = $bus->id;
@@ -660,6 +778,20 @@ class BusController extends Controller
             || DB::table('purchase_requests')->where('bus_no', $busNo)->exists()
             || DB::table('gps_trip_records')->where('bus_no', $busNo)->exists()
             || DB::table('batch_uploads')->where('bus_no', $busNo)->exists();
+    }
+
+    private function hasOngoingDispatchedTrip(Bus $bus): bool
+    {
+        // Completed/history and future scheduled or Ready trips must not
+        // prevent company changes. A Dispatched trip remains protected until
+        // actual arrival is recorded.
+        return TripAssignment::query()
+            ->where('bus_id', $bus->id)
+            ->whereHas('tripSchedule', function ($query): void {
+                $query->where('status', 'Dispatched')
+                    ->whereNull('actual_arrival_time');
+            })
+            ->exists();
     }
 
     private function hasUnresolvedCurrentOrFutureAssignment(Bus $bus): bool

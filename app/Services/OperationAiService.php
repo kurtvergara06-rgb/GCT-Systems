@@ -40,6 +40,67 @@ class OperationAiService
     }
 
     /**
+     * Read the model provenance used by Auto Scheduling rankings.
+     *
+     * This is intentionally independent from recommend/analyze responses so
+     * the page can report readiness before a schedule is generated and when a
+     * generated schedule has no conflicts.
+     */
+    public function trainingStatus(): ?array
+    {
+        $baseUrl = rtrim(
+            (string) config(
+                'services.operation_ai.base_url',
+                'http://127.0.0.1:8000'
+            ),
+            '/'
+        );
+        $configuredTimeout = max(
+            1,
+            (int) config('services.operation_ai.timeout', 3)
+        );
+        $startedAt = microtime(true);
+
+        try {
+            $response = Http::acceptJson()
+                ->connectTimeout(1)
+                ->timeout(min($configuredTimeout, 3))
+                ->get($baseUrl.'/operation/auto-scheduling/ai/training/status');
+
+            if (! $response->successful()) {
+                Log::warning('Operation AI training status request failed.', [
+                    'status' => $response->status(),
+                    'duration_ms' => $this->durationMs($startedAt),
+                ]);
+
+                return null;
+            }
+
+            $data = $response->json();
+
+            if (! is_array($data)
+                || ($data['success'] ?? false) !== true
+                || ! array_key_exists('bus_source', $data)
+                || ! array_key_exists('driver_source', $data)) {
+                Log::warning('Operation AI returned an invalid training status response.', [
+                    'duration_ms' => $this->durationMs($startedAt),
+                ]);
+
+                return null;
+            }
+
+            return $data;
+        } catch (\Throwable $exception) {
+            Log::warning('Operation AI training status service is unavailable.', [
+                'duration_ms' => $this->durationMs($startedAt),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
      * Perform a fail-fast request to the Python service.
      *
      * A scheduling request may contain several conflicts. Previously each

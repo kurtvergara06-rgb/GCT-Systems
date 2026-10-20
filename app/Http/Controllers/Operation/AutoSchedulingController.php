@@ -14,6 +14,7 @@ use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
 use App\Services\OperationAiService;
+use App\Support\ClientTripTimes;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -91,27 +92,17 @@ class AutoSchedulingController extends Controller
         $tripsToSchedule = (clone $tripQuery)
             ->count();
 
-        $availableDriverQuery =
-            DriverAttendance::query()
-                ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
-                ->whereDate(
-                    'attendance_date',
-                    $selectedDate
-                )
-                ->whereIn('status', ['Present', 'Late']);
-
-        if ($selectedShift !== 'all') {
-            $availableDriverQuery->where(
-                'shift',
-                $selectedShift
-            );
-        }
+        $availableDriverQuery = Driver::query()
+            ->where('employment_status', 'Active');
 
         $availableDrivers =
             $availableDriverQuery->count();
 
+        // The initial summary counts standard dispatch buses only.
+        // Reserve vehicles are conditional Head-approved alternatives, not
+        // normal scheduling capacity.
         $availableBuses = Bus::query()
-            ->whereIn('fleet_purpose', ['Regular', 'Reserve'])
+            ->where('fleet_purpose', 'Regular')
             ->where(
                 'status',
                 'Active'
@@ -122,20 +113,8 @@ class AutoSchedulingController extends Controller
             ->count();
 
         $unavailableDrivers =
-            DriverAttendance::query()
-                ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
-                ->whereDate(
-                    'attendance_date',
-                    $selectedDate
-                )
-                ->whereIn(
-                    'status',
-                    [
-                        'Absent',
-                        'On Leave',
-                        'On Duty',
-                    ]
-                )
+            Driver::query()
+                ->where('employment_status', '!=', 'Active')
                 ->count();
 
         $unavailableBuses = Bus::query()
@@ -185,6 +164,33 @@ class AutoSchedulingController extends Controller
                 'activeRoutes'
             )
         );
+    }
+
+    /**
+     * Proxy the Python model-readiness report for the Auto Scheduling page.
+     */
+    public function trainingStatus(): JsonResponse
+    {
+        $status = $this->operationAi->trainingStatus();
+
+        if ($status === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Operation AI readiness is unavailable.',
+            ], 503);
+        }
+
+        return response()->json([
+            'success' => true,
+            'bus_model_ready' => ($status['bus_model_ready'] ?? false) === true,
+            'driver_model_ready' => ($status['driver_model_ready'] ?? false) === true,
+            'bus_source' => (string) ($status['bus_source'] ?? 'rule_fallback'),
+            'driver_source' => (string) ($status['driver_source'] ?? 'rule_fallback'),
+            'bus_sample_count' => max(0, (int) ($status['bus_sample_count'] ?? 0)),
+            'driver_sample_count' => max(0, (int) ($status['driver_sample_count'] ?? 0)),
+            'bus_reason' => (string) ($status['bus_reason'] ?? ''),
+            'driver_reason' => (string) ($status['driver_reason'] ?? ''),
+        ]);
     }
 
     /**
@@ -270,27 +276,7 @@ class AutoSchedulingController extends Controller
             ->orderBy('departure_time')
             ->get();
 
-        $drivers = DriverAttendance::query()
-            ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
-            ->whereDate(
-                'attendance_date',
-                $scheduleDate
-            )
-            ->whereIn('status', ['Present', 'Late'])
-            ->when(
-                $selectedShift !== 'all',
-                function ($query) use (
-                    $selectedShift
-                ) {
-                    $query->where(
-                        'shift',
-                        $selectedShift
-                    );
-                }
-            )
-
-            ->orderBy('driver_name')
-            ->get();
+        $drivers = $this->assumedPresentDrivers($scheduleDate);
 
         $buses = Bus::query()
             ->whereIn('fleet_purpose', ['Regular', 'Reserve'])
@@ -392,20 +378,9 @@ class AutoSchedulingController extends Controller
             }
 
             foreach ($slotNumbers as $slotNumber) {
-                $driver = $this->findAvailableDriver(
-                    trip: $trip,
-                    drivers: $drivers,
-                    existingAssignments: $existingAssignments,
-                    generatedRecommendations: $recommendations,
-                    workloads: $driverWorkloads
-                );
-
-                $bus = $this->findAvailableBus(
-                    trip: $trip,
-                    buses: $buses,
-                    existingAssignments: $existingAssignments,
-                    generatedRecommendations: $recommendations,
-                    workloads: $busWorkloads
+                [$driver, $bus] = $this->findAvailableAuthorizedPair(
+                    $trip, $drivers, $buses, $existingAssignments,
+                    $recommendations, $driverWorkloads, $busWorkloads
                 );
 
                 $slotLabel = $requiredBuses > 1 ? "Bus {$slotNumber}/{$requiredBuses}" : null;
@@ -429,6 +404,7 @@ class AutoSchedulingController extends Controller
                         'shift' => $trip->shift,
                         'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                         'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                         'terminal' => ($trip->direction ?? 'Incoming') === 'Outgoing'
                             ? ($trip->shuttleRoute?->destination ?? 'Not specified')
                             : ($trip->shuttleRoute?->origin ?? 'Not specified'),
@@ -444,10 +420,36 @@ class AutoSchedulingController extends Controller
                             'available' => true,
                             'status' => 'review_required',
                             'analysis_status' => 'rule_based_reserve_fallback',
-                            'driver_explanation' => 'Eligible Present driver available.',
+                            'driver_explanation' => 'Eligible active driver available under the planning presence assumption.',
                             'bus_explanation' => 'Eligible Reserve Bus suggested after Regular Bus availability checks.',
-                            'alternative_drivers' => [],
-                            'alternative_buses' => [],
+                            'alternative_drivers' => [[
+                                'id' => (int) $driver->id,
+                                'label' => (string) $driver->driver_name,
+                                'score' => null,
+                                'reason' => 'Active, authorized where required, and free of overlapping assignments.',
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => 'rule_fallback',
+                            ]],
+                            'alternative_buses' => [[
+                                'id' => (int) $bus->id,
+                                'label' => (string) $bus->bus_no.' (Reserve)',
+                                'score' => null,
+                                'reason' => 'Active Reserve Bus available for explicit Operations Head review.',
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => 'rule_fallback',
+                            ]],
+                            'valid_pairs' => [[
+                                'driver_attendance_id' => (int) $driver->id,
+                                'driver_label' => (string) $driver->driver_name,
+                                'driver_score' => null,
+                                'driver_score_source' => 'rule_fallback',
+                                'bus_id' => (int) $bus->id,
+                                'bus_label' => (string) $bus->bus_no.' (Reserve)',
+                                'bus_score' => null,
+                                'bus_score_source' => 'rule_fallback',
+                                'eligibility_source' => 'laravel_rules',
+                                'reason' => 'Valid at generation time under active-resource, authorization, maintenance, client, and overlap rules. Final server revalidation still applies.',
+                            ]],
                             'ml' => ['bus_source' => 'rule_fallback', 'driver_source' => 'rule_fallback'],
                         ],
                     ]);
@@ -467,6 +469,17 @@ class AutoSchedulingController extends Controller
                         $reasons[] = "No active bus is available{$slotSuffix}.";
                     }
 
+                    $reserveAlternatives = $buses
+                        ->filter(fn (Bus $candidate) => $candidate->fleet_purpose === 'Reserve'
+                            && ! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations))
+                        ->map(fn (Bus $candidate) => [
+                            'id' => $candidate->id,
+                            'label' => $candidate->bus_no.' (Reserve)',
+                            'score' => null,
+                            'reason' => 'Standby option. Operations Head may assign directly once an eligible driver and all safety checks are satisfied.',
+                        ])
+                        ->values()->all();
+
                     $aiPayload = $this->buildAiPayload(
                         trip: $trip,
                         selectedDriver: $driver,
@@ -482,6 +495,115 @@ class AutoSchedulingController extends Controller
                     );
 
                     $aiResponse = $this->operationAi->recommend($aiPayload);
+
+                    // Python only ranks candidates; Laravel owns eligibility.
+                    // Regular-bus alternatives stay limited to authorized
+                    // drivers. Reserve alternatives may use any active,
+                    // active, conflict-free driver because Operations Head is
+                    // the direct authority and confirmation revalidates all
+                    // safeguards transactionally.
+                    $allowedDriverAttendanceIds = collect($aiPayload['eligible_drivers'] ?? [])
+                        ->pluck('id')->map(fn ($id) => (int) $id)->all();
+                    $driverSource = data_get($aiResponse, 'analysis.ml_driver_source', 'rule_fallback');
+                    $busSource = data_get($aiResponse, 'analysis.ml_bus_source', 'rule_fallback');
+                    $driverSuitability = (array) data_get($aiResponse, 'analysis.driver_suitability', []);
+                    $busSuitability = (array) data_get($aiResponse, 'analysis.bus_suitability', []);
+
+                    $aiDriverAlternatives = collect(data_get($aiResponse, 'analysis.alternative_drivers', []))
+                            ->filter(fn ($option) => in_array((int) data_get($option, 'id'), $allowedDriverAttendanceIds, true))
+                            ->map(fn ($option) => array_merge($option, [
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => $driverSource,
+                            ]));
+
+                    $reserveDriverAlternatives = empty($reserveAlternatives)
+                        ? collect()
+                        : $drivers
+                            ->reject(fn (DriverAttendance $candidate): bool => $this->driverHasConflict(
+                                trip: $trip,
+                                driverId: $candidate->driver_id,
+                                existingAssignments: $existingAssignments,
+                                generatedRecommendations: $recommendations
+                            ))
+                            ->sortBy(fn (DriverAttendance $candidate): string => sprintf(
+                                '%08d-%s',
+                                (int) $driverWorkloads->get($candidate->driver_id, 0),
+                                strtolower($candidate->driver_name)
+                            ))
+                            ->take(5)
+                            ->map(function (DriverAttendance $candidate) use (
+                                $driverSource,
+                                $driverSuitability,
+                                $driverWorkloads
+                            ): array {
+                                $score = data_get($driverSuitability, (string) $candidate->id);
+
+                                return [
+                                    'id' => (int) $candidate->id,
+                                    'label' => (string) $candidate->driver_name,
+                                    'score' => is_numeric($score) ? (int) $score : null,
+                                    'reason' => sprintf(
+                                        'Active, assumed present for planning, no overlapping assignment, %d scheduled trip(s).',
+                                        (int) $driverWorkloads->get($candidate->driver_id, 0)
+                                    ),
+                                    'eligibility_source' => 'laravel_rules',
+                                    'score_source' => is_numeric($score) ? $driverSource : 'rule_fallback',
+                                ];
+                            });
+
+                    $driverAlternatives = $aiDriverAlternatives
+                        ->concat($reserveDriverAlternatives)
+                        ->unique(fn ($option) => (int) data_get($option, 'id'))
+                        ->values();
+
+                    $busAlternatives = collect($reserveAlternatives)
+                        ->map(function (array $option) use ($busSource, $busSuitability): array {
+                            $score = data_get($busSuitability, (string) $option['id']);
+
+                            return array_merge($option, [
+                                'score' => is_numeric($score) ? (int) $score : null,
+                                'eligibility_source' => 'laravel_rules',
+                                'score_source' => is_numeric($score) ? $busSource : 'rule_fallback',
+                            ]);
+                        });
+
+                    // Individually scored alternatives are not automatically valid
+                    // combinations. Recheck both resources against confirmed
+                    // assignments and all current generated preview slots.
+                    $validPairs = $driverAlternatives
+                        ->flatMap(fn (array $driverOption) => $busAlternatives
+                            ->filter(fn (array $busOption): bool =>
+                                $drivers->contains(fn (DriverAttendance $candidate): bool =>
+                                    (int) $candidate->id === (int) $driverOption['id']
+                                    && ! $this->driverHasConflict($trip, $candidate->driver_id, $existingAssignments, $recommendations)
+                                )
+                                && $buses->contains(fn (Bus $candidate): bool =>
+                                    (int) $candidate->id === (int) $busOption['id']
+                                    && $this->busMatchesTripClient($trip, $candidate)
+                                    && ! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations)
+                                )
+                            )
+                            ->map(fn (array $busOption): array => [
+                                'driver_attendance_id' => (int) $driverOption['id'],
+                                'driver_label' => (string) $driverOption['label'],
+                                'driver_score' => $driverOption['score'],
+                                'driver_score_source' => $driverOption['score_source'],
+                                'bus_id' => (int) $busOption['id'],
+                                'bus_label' => (string) $busOption['label'],
+                                'bus_score' => $busOption['score'],
+                                'bus_score_source' => $busOption['score_source'],
+                                'eligibility_source' => 'laravel_rules',
+                                'reason' => 'Valid at generation time under active-resource, authorization, maintenance, client, and overlap rules. Final server revalidation still applies.',
+                            ])
+                        )
+                        // Show the highest-scoring eligible pair first.
+                        // Missing ML scores are treated as unscored, not fabricated.
+                        ->sortByDesc(fn (array $pair): float =>
+                            (is_numeric($pair['driver_score']) ? (float) $pair['driver_score'] : 0.0)
+                            + (is_numeric($pair['bus_score']) ? (float) $pair['bus_score'] : 0.0)
+                        )
+                        ->take(50)
+                        ->values();
 
                     $conflicts->push([
                         'trip_schedule_id' => $trip->id,
@@ -499,6 +621,7 @@ class AutoSchedulingController extends Controller
                         'shift' => $trip->shift,
                         'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                         'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                         'terminal' => ($trip->direction ?? 'Incoming') === 'Outgoing'
                             ? ($trip->shuttleRoute?->destination ?? 'Not specified')
                             : ($trip->shuttleRoute?->origin ?? 'Not specified'),
@@ -516,8 +639,9 @@ class AutoSchedulingController extends Controller
                             'bus_explanation' => data_get($aiResponse, 'analysis.bus_explanation'),
                             'conflict_explanation' => data_get($aiResponse, 'analysis.conflict_explanation'),
                             'warnings' => data_get($aiResponse, 'analysis.warnings', []),
-                            'alternative_drivers' => data_get($aiResponse, 'analysis.alternative_drivers', []),
-                            'alternative_buses' => data_get($aiResponse, 'analysis.alternative_buses', []),
+                            'alternative_drivers' => $driverAlternatives->all(),
+                            'alternative_buses' => $busAlternatives->all(),
+                            'valid_pairs' => $validPairs->all(),
                             'ml' => [
                                 'bus_ready' => (bool) data_get($aiResponse, 'analysis.ml_bus_ready', false),
                                 'driver_ready' => (bool) data_get($aiResponse, 'analysis.ml_driver_ready', false),
@@ -548,7 +672,9 @@ class AutoSchedulingController extends Controller
                     'shift' => $trip->shift,
                     'route_code' => $trip->shuttleRoute?->route_code ?? '—',
                     'route_name' => $trip->shuttleRoute?->route_name ?? 'Unknown route',
+                    'client_name' => $trip->client_name,
                     'driver_attendance_id' => $driver->id,
+                    'driver_reference_type' => 'driver_master',
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
                     'driver_status' => $driver->status,
@@ -586,7 +712,7 @@ class AutoSchedulingController extends Controller
 
                 'drivers' => $drivers->count(),
 
-                'buses' => $buses->count(),
+                'buses' => $buses->where('fleet_purpose', 'Regular')->count(),
 
                 'ready' => $recommendations->count(),
 
@@ -630,11 +756,14 @@ class AutoSchedulingController extends Controller
     {
         $validated = $request->validate([
             'trip_schedule_id' => ['required', 'integer', 'exists:trip_schedules,id'],
-            'driver_attendance_id' => ['nullable', 'integer', 'exists:driver_attendances,id'],
+            // The legacy field name is retained for draft/API compatibility;
+            // generated previews now carry a Driver master id, not attendance.
+            'driver_attendance_id' => ['nullable', 'integer', 'exists:drivers,id'],
             'bus_id' => ['nullable', 'integer', 'exists:buses,id'],
             'recommendations' => ['sometimes', 'array', 'max:200'],
             'recommendations.*.trip_schedule_id' => ['required', 'integer'],
             'recommendations.*.driver_attendance_id' => ['required', 'integer'],
+            'recommendations.*.driver_reference_type' => ['sometimes', 'in:driver_master,legacy_attendance'],
             'recommendations.*.bus_id' => ['required', 'integer'],
         ]);
         $trip = TripSchedule::query()->with('shuttleRoute')->findOrFail($validated['trip_schedule_id']);
@@ -643,21 +772,16 @@ class AutoSchedulingController extends Controller
             throw ValidationException::withMessages(['trip_schedule_id' => 'This trip is no longer available. Regenerate the preview.']);
         }
         $date = $trip->trip_date->toDateString();
-        $drivers = DriverAttendance::query()
-            ->whereDate('attendance_date', $date)
-            ->where('shift', $trip->shift)
-            ->whereIn('status', ['Present', 'Late'])
-            ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
-            ->orderBy('driver_name')
-            ->get(['id', 'driver_id', 'driver_name', 'status']);
+        $drivers = $this->assumedPresentDrivers($date);
         $buses = Bus::query()->whereIn('fleet_purpose', ['Regular', 'Reserve'])->where('status', 'Active')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
-            ->orderBy('bus_no')->get(['id', 'bus_no', 'fleet_purpose']);
+            ->orderBy('bus_no')->get(['id', 'bus_no', 'fleet_purpose'])
+            ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))->values();
         // First request without both selections supplies allowed choices.
         if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
             return response()->json([
                 'drivers' => $drivers->map(fn ($d) => ['id' => $d->id, 'name' => $d->driver_name, 'status' => $d->status])->values(),
-                'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — approval required)' : ''), 'purpose' => $b->fleet_purpose])->values(),
+                'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — Head assignment only)' : ''), 'purpose' => $b->fleet_purpose])->values(),
             ]);
         }
         $driver = $drivers->firstWhere('id', (int) $validated['driver_attendance_id']);
@@ -665,6 +789,16 @@ class AutoSchedulingController extends Controller
         if (! $driver || ! $bus) {
             throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
         }
+        if ($bus->fleet_purpose === 'Reserve') {
+            $actor = auth()->user();
+            if (! $actor?->canAssignReserveBus()) {
+                throw ValidationException::withMessages([
+                    'bus_id' => 'Only Operations Head may select a Reserve Bus.',
+                ]);
+            }
+        }
+        $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
+        $this->assertBusMatchesTripClient($trip, $bus, 'assignment');
         $others = collect($validated['recommendations'] ?? []);
         $tripIds = $others->pluck('trip_schedule_id')->push($trip->id)->unique();
         $otherTrips = TripSchedule::query()->whereIn('id', $tripIds)->get()->keyBy('id');
@@ -675,7 +809,12 @@ class AutoSchedulingController extends Controller
                 ->whereNotIn('status', ['Cancelled', 'Completed']))->get();
         $generated = $others->map(function ($item) use ($otherTrips): array {
             $otherTrip = $otherTrips->get((int) $item['trip_schedule_id']);
-            $attendance = DriverAttendance::query()->find((int) $item['driver_attendance_id']);
+            $usesDriverMaster = ($item['driver_reference_type'] ?? 'legacy_attendance') === 'driver_master';
+            $attendance = $usesDriverMaster
+                ? $this->assumedPresentDrivers(
+                    $otherTrip?->trip_date?->toDateString() ?? now()->toDateString()
+                )->firstWhere('id', (int) $item['driver_attendance_id'])
+                : DriverAttendance::query()->find((int) $item['driver_attendance_id']);
 
             return [
                 'driver_id' => $attendance?->driver_id,
@@ -698,7 +837,8 @@ class AutoSchedulingController extends Controller
         return response()->json([
             'success' => true,
             'driver' => ['id' => $driver->id, 'driver_id' => $driver->driver_id,
-                'name' => $driver->driver_name, 'status' => $driver->status],
+                'name' => $driver->driver_name, 'status' => $driver->status,
+                'reference_type' => 'driver_master'],
             'bus' => ['id' => $bus->id, 'name' => $bus->bus_no, 'purpose' => $bus->fleet_purpose],
         ]);
     }
@@ -707,7 +847,7 @@ class AutoSchedulingController extends Controller
      * Persist reviewed auto-scheduling recommendations.
      *
      * Only record identifiers are accepted from the browser. Every trip,
-     * driver, bus, attendance status, and overlap is checked again while the
+     * driver, bus, active status, authorization, and overlap is checked again while the
      * affected rows are locked so stale previews cannot create conflicts.
      */
     /**
@@ -788,7 +928,7 @@ class AutoSchedulingController extends Controller
             'decisions' => ['sometimes', 'array', 'max:200'],
             'decisions.*.trip_schedule_id' => ['required', 'integer', 'exists:trip_schedules,id'],
             'decisions.*.slot' => ['required', 'integer', 'min:1', 'max:30'],
-            'decisions.*.decision' => ['required', 'in:manual_later,external_bus'],
+            'decisions.*.decision' => ['required', 'in:manual_later'],
             'decisions.*.notes' => ['nullable', 'string', 'max:1000'],
             'summary' => ['sometimes', 'array'],
         ]);
@@ -828,8 +968,8 @@ class AutoSchedulingController extends Controller
             'recommendations.*.driver_attendance_id' => [
                 'required',
                 'integer',
-                'exists:driver_attendances,id',
             ],
+            'recommendations.*.driver_reference_type' => ['sometimes', 'in:driver_master,legacy_attendance'],
             'recommendations.*.bus_id' => [
                 'required',
                 'integer',
@@ -839,17 +979,13 @@ class AutoSchedulingController extends Controller
             'decisions' => ['sometimes', 'array', 'max:200'],
             'decisions.*.trip_schedule_id' => ['required', 'integer', 'exists:trip_schedules,id'],
             'decisions.*.slot' => ['required', 'integer', 'min:1', 'max:30'],
-            'decisions.*.decision' => ['required', 'in:manual_later,external_bus'],
+            'decisions.*.decision' => ['required', 'in:manual_later'],
             'decisions.*.notes' => ['nullable', 'string', 'max:1000'],
             'conflicts' => ['sometimes', 'array', 'max:200'],
             'draft_filters' => ['sometimes', 'array'],
             'draft_filters.schedule_date' => ['required_with:draft_filters', 'date_format:Y-m-d'],
             'draft_filters.shift' => ['sometimes', 'string', 'max:30'],
             'draft_filters.shuttle_route_id' => ['sometimes', 'string', 'max:50'],
-            'recommendations.*.oic_approval' => ['sometimes', 'array'],
-            'recommendations.*.oic_approval.method' => ['required_with:recommendations.*.oic_approval', 'in:Phone,Radio,In Person'],
-            'recommendations.*.oic_approval.approved_at' => ['required_with:recommendations.*.oic_approval', 'date', 'before_or_equal:now'],
-            'recommendations.*.oic_approval.remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
         if (! empty($validated['conflicts'])) {
@@ -946,11 +1082,22 @@ class AutoSchedulingController extends Controller
                 ->get()
                 ->keyBy('id');
 
-            $drivers = DriverAttendance::query()
-                ->whereIn(
-                    'id',
-                    $recommendations->pluck('driver_attendance_id')
-                )
+            $candidateDate = $trips->first()?->trip_date?->toDateString()
+                ?? now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+            $masterDriverIds = $recommendations
+                ->filter(fn (array $item): bool => ($item['driver_reference_type'] ?? 'legacy_attendance') === 'driver_master')
+                ->pluck('driver_attendance_id')
+                ->map(fn ($id): int => (int) $id);
+            $legacyAttendanceIds = $recommendations
+                ->reject(fn (array $item): bool => ($item['driver_reference_type'] ?? 'legacy_attendance') === 'driver_master')
+                ->pluck('driver_attendance_id')
+                ->map(fn ($id): int => (int) $id);
+            $drivers = $this->assumedPresentDrivers($candidateDate, lockForUpdate: true)
+                ->whereIn('id', $masterDriverIds)
+                ->keyBy('id');
+            $legacyAttendances = DriverAttendance::query()
+                ->with('driver')
+                ->whereIn('id', $legacyAttendanceIds)
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get()
@@ -1054,7 +1201,8 @@ class AutoSchedulingController extends Controller
                     (int) $recommendation['trip_schedule_id']
                 );
 
-                $driver = $drivers->get(
+                $usesDriverMaster = ($recommendation['driver_reference_type'] ?? 'legacy_attendance') === 'driver_master';
+                $driver = ($usesDriverMaster ? $drivers : $legacyAttendances)->get(
                     (int) $recommendation['driver_attendance_id']
                 );
 
@@ -1104,14 +1252,19 @@ class AutoSchedulingController extends Controller
 
                 if (
                     ! $driver
-                    || ! in_array($driver->status, ['Present', 'Late'], true)
-                    || ! $driver->attendance_date?->isSameDay($trip->trip_date)
-                    || $driver->shift !== $trip->shift
+                    || ($usesDriverMaster
+                        ? $driver->status !== 'Assumed Present'
+                        : ($driver->status !== 'Present' || ! $driver->attendance_date?->isSameDay($trip->trip_date)))
                     || ! $activeDriver
                 ) {
                     throw ValidationException::withMessages([
                         $field => 'A selected driver is no longer eligible for this trip. Generate the schedule again.',
                     ]);
+                }
+
+                if ($bus && $activeDriver) {
+                    $this->assertAuthorizedBusPair($activeDriver->driver_id, (int) $bus->id, $field);
+                    $this->assertBusMatchesTripClient($trip, $bus, $field);
                 }
 
                 if ($bus && JobOrder::query()
@@ -1124,12 +1277,10 @@ class AutoSchedulingController extends Controller
                 }
 
                 if ($bus && $bus->fleet_purpose === 'Reserve') {
-                    $approval = $recommendation['oic_approval'] ?? null;
-                    if (! is_array($approval)
-                        || empty($approval['method'])
-                        || empty($approval['approved_at'])) {
+                    $actor = auth()->user();
+                    if (! $actor?->canAssignReserveBus()) {
                         throw ValidationException::withMessages([
-                            $field => 'Record the OIC approval method and time before confirming a Reserve Bus.',
+                            $field => 'Only the Operations Head may assign a Reserve Bus.',
                         ]);
                     }
 
@@ -1142,15 +1293,16 @@ class AutoSchedulingController extends Controller
                         ->get();
 
                     if ($regularCandidates->contains(function (Bus $candidate) use (
-                        $trip, $trips, $recommendations, $index, $existingAssignments
+                        $trip, $trips, $drivers, $legacyAttendances, $recommendations, $index, $existingAssignments
                     ): bool {
-                        if ($this->busHasConflict($trip, $candidate->id, $existingAssignments, collect())) {
+                        if (! $this->busMatchesTripClient($trip, $candidate)
+                            || $this->busHasConflict($trip, $candidate->id, $existingAssignments, collect())) {
                             return false;
                         }
 
                         // A Regular Bus already reserved for another overlapping
                         // recommendation in this same confirmation is not available.
-                        return ! $recommendations->contains(function (array $planned, int $plannedIndex) use (
+                        $busIsPlanned = $recommendations->contains(function (array $planned, int $plannedIndex) use (
                             $candidate, $trip, $trips, $index
                         ): bool {
                             if ($plannedIndex === $index || (int) $planned['bus_id'] !== (int) $candidate->id) {
@@ -1160,6 +1312,52 @@ class AutoSchedulingController extends Controller
                             $plannedTrip = $trips->get((int) $planned['trip_schedule_id']);
 
                             return $plannedTrip !== null && $this->tripSchedulesOverlap($trip, $plannedTrip);
+                        });
+
+                        if ($busIsPlanned) {
+                            return false;
+                        }
+
+                        // Reserve use is blocked only when a complete Regular
+                        // driver-bus pair is currently eligible. A free bus by
+                        // itself is not assignable without an active,
+                        // authorized, conflict-free driver.
+                        $eligibleDrivers = Driver::query()
+                            ->where('employment_status', 'Active')
+                            ->whereHas('authorizedBuses', fn ($busQuery) => $busQuery->whereKey($candidate->id))
+                            ->orderBy('id')
+                            ->lockForUpdate()
+                            ->get();
+
+                        return $eligibleDrivers->contains(function (Driver $eligibleDriver) use (
+                            $trip, $trips, $drivers, $legacyAttendances, $recommendations, $index, $existingAssignments
+                        ): bool {
+                            if ($this->driverHasConflict(
+                                $trip,
+                                $eligibleDriver->driver_id,
+                                $existingAssignments,
+                                collect()
+                            )) {
+                                return false;
+                            }
+
+                            return ! $recommendations->contains(function (array $planned, int $plannedIndex) use (
+                                $eligibleDriver, $trip, $trips, $drivers, $legacyAttendances, $index
+                            ): bool {
+                                if ($plannedIndex === $index) {
+                                    return false;
+                                }
+
+                                $plannedUsesMaster = ($planned['driver_reference_type'] ?? 'legacy_attendance') === 'driver_master';
+                                $plannedAttendance = ($plannedUsesMaster ? $drivers : $legacyAttendances)
+                                    ->get((int) $planned['driver_attendance_id']);
+                                $plannedTrip = $trips->get((int) $planned['trip_schedule_id']);
+
+                                return $plannedAttendance !== null
+                                    && $plannedTrip !== null
+                                    && $plannedAttendance->driver_id === $eligibleDriver->driver_id
+                                    && $this->tripSchedulesOverlap($trip, $plannedTrip);
+                            });
                         });
                     })) {
                         throw ValidationException::withMessages([
@@ -1196,7 +1394,8 @@ class AutoSchedulingController extends Controller
                 $assignment = TripAssignment::create([
                     'trip_schedule_id' => $trip->id,
                     'slot_number' => $slotNumber,
-                    'driver_attendance_id' => $driver->id,
+                    'driver_attendance_id' => $usesDriverMaster ? null : $driver->id,
+                    'driver_master_id' => $activeDriver->id,
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
                     'bus_id' => $bus->id,
@@ -1214,7 +1413,6 @@ class AutoSchedulingController extends Controller
                     ]);
 
                 if ($bus->fleet_purpose === 'Reserve') {
-                    $approval = $recommendation['oic_approval'];
                     DB::table('auto_schedule_reserve_approvals')->insert([
                         'trip_assignment_id' => $assignment->id,
                         'trip_schedule_id' => $trip->id,
@@ -1222,10 +1420,10 @@ class AutoSchedulingController extends Controller
                         'trip_code' => $trip->trip_code,
                         'bus_no' => $bus->bus_no,
                         'recorded_by' => auth()->id(),
-                        'approved_by' => 'OIC (externally confirmed)',
-                        'approval_method' => $approval['method'],
-                        'approved_at' => Carbon::parse($approval['approved_at'])->toDateTimeString(),
-                        'remarks' => $approval['remarks'] ?? null,
+                        'approved_by' => 'Operations Head (direct assignment)',
+                        'approval_method' => 'Direct',
+                        'approved_at' => now(),
+                        'remarks' => 'Direct Reserve assignment by authorized Head.',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -1343,6 +1541,7 @@ class AutoSchedulingController extends Controller
 
                 'route_name' => $trip->shuttleRoute
                     ?->route_name,
+                    'client_name' => $trip->client_name,
 
                 'departure_time' => $this->databaseTime(
                     $trip->departure_time
@@ -1363,7 +1562,7 @@ class AutoSchedulingController extends Controller
                     )
                     : null,
 
-            'selected_bus' => $selectedBus
+            'selected_bus' => ($selectedBus && $this->busMatchesTripClient($trip, $selectedBus))
                     ? $this->formatBusForAi(
                         bus: $selectedBus,
                         trip: $trip,
@@ -1374,6 +1573,19 @@ class AutoSchedulingController extends Controller
                     : null,
 
             'eligible_drivers' => $drivers
+                // Driver suitability is trip-specific: only drivers whose
+                // permanent Regular bus serves this client belong in the AI
+                // recommendation pool. Reserve units are review-only.
+                ->filter(function (DriverAttendance $candidate) use ($trip, $buses): bool {
+                    return $buses->contains(function (Bus $bus) use ($candidate, $trip): bool {
+                        return $bus->fleet_purpose === 'Regular'
+                            && $this->busMatchesTripClient($trip, $bus)
+                            && Driver::query()->where('driver_id', $candidate->driver_id)
+                                ->where('employment_status', 'Active')
+                                ->whereHas('authorizedBuses', fn ($q) => $q->whereKey($bus->id))
+                                ->exists();
+                    });
+                })
                 ->map(
                     fn (
                         DriverAttendance $driver
@@ -1389,6 +1601,7 @@ class AutoSchedulingController extends Controller
                 ->all(),
 
             'eligible_buses' => $buses
+                ->filter(fn (Bus $candidate) => $this->busMatchesTripClient($trip, $candidate))
                 ->map(
                     fn (Bus $bus): array => $this->formatBusForAi(
                         bus: $bus,
@@ -1450,7 +1663,6 @@ class AutoSchedulingController extends Controller
                 if ($total === 0) {
                     $driverHistories[(int) $driver->id] = [
                         'attendance_rate' => 0.0,
-                        'late_rate' => 0.0,
                         'total_attendance' => 0.0,
                         'distinct_dates' => 0.0,
                         'has_history' => 0.0,
@@ -1460,15 +1672,7 @@ class AutoSchedulingController extends Controller
                 }
 
                 $reliable = $rows->filter(
-                    fn ($row): bool => in_array(
-                        strtolower((string) $row->status),
-                        ['present', 'late'],
-                        true
-                    )
-                )->count();
-
-                $late = $rows->filter(
-                    fn ($row): bool => strtolower((string) $row->status) === 'late'
+                    fn ($row): bool => strtolower((string) $row->status) === 'present'
                 )->count();
 
                 $distinctDates = $rows
@@ -1483,7 +1687,6 @@ class AutoSchedulingController extends Controller
 
                 $driverHistories[(int) $driver->id] = [
                     'attendance_rate' => round($reliable / max($total, 1), 6),
-                    'late_rate' => round($late / max($total, 1), 6),
                     'total_attendance' => (float) $total,
                     'distinct_dates' => (float) $distinctDates,
                     'has_history' => 1.0,
@@ -1604,7 +1807,10 @@ class AutoSchedulingController extends Controller
 
             'status' => (string) $driver->status,
 
-            'shift' => $driver->shift,
+            // Driver Attendance no longer owns a working shift. Trip shift is
+            // deliberately not copied onto the driver candidate because doing
+            // so manufactures a perfect feature that does not exist in data.
+            'shift' => null,
 
             'assigned_trips' => (int) $workloads->get(
                 $driver->driver_id,
@@ -1992,6 +2198,16 @@ class AutoSchedulingController extends Controller
                     ]);
                 }
 
+                // A resolution may only move a trip to a time the client's
+                // trip time configuration allows. Unconfigured clients keep
+                // the unrestricted behavior.
+                ClientTripTimes::assertTripDepartureAllowed(
+                    $trip->client_name,
+                    $trip->direction,
+                    $proposedDeparture->format('H:i'),
+                    'proposed_departure_time'
+                );
+
                 $proposedArrival = $proposedDeparture
                     ->copy()
                     ->addSeconds($durationSeconds);
@@ -2014,28 +2230,16 @@ class AutoSchedulingController extends Controller
                 $scheduleDate =
                     $trip->trip_date->format('Y-m-d');
 
-                $drivers = DriverAttendance::query()
-                    ->whereHas('driver', fn ($query) => $query->where('employment_status', 'Active'))
-                    ->whereDate(
-                        'attendance_date',
-                        $scheduleDate
-                    )
-                    ->whereIn('status', ['Present', 'Late'])
-                    ->where(
-                        'shift',
-                        $trip->shift
-                    )
-
-                    ->orderBy('driver_name')
-                    ->lockForUpdate()
-                    ->get();
+                $drivers = $this->assumedPresentDrivers($scheduleDate, lockForUpdate: true);
 
                 $buses = Bus::query()
+                    ->with('operationClients:id,name')
                     ->where('fleet_purpose', 'Regular')
                     ->where(
                         'status',
                         'Active'
                     )
+                    ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
                     ->orderBy('bus_no')
                     ->lockForUpdate()
                     ->get();
@@ -2099,23 +2303,10 @@ class AutoSchedulingController extends Controller
                 $generatedRecommendations =
                     collect();
 
-                $driver =
-                    $this->findAvailableDriver(
-                        trip: $trip,
-                        drivers: $drivers,
-                        existingAssignments: $existingAssignments,
-                        generatedRecommendations: $generatedRecommendations,
-                        workloads: $driverWorkloads
-                    );
-
-                $bus =
-                    $this->findAvailableBus(
-                        trip: $trip,
-                        buses: $buses,
-                        existingAssignments: $existingAssignments,
-                        generatedRecommendations: $generatedRecommendations,
-                        workloads: $busWorkloads
-                    );
+                [$driver, $bus] = $this->findAvailableAuthorizedPair(
+                    $trip, $drivers, $buses, $existingAssignments,
+                    $generatedRecommendations, $driverWorkloads, $busWorkloads
+                );
 
                 if ($driver && ! Driver::query()
                     ->where('driver_id', $driver->driver_id)
@@ -2124,6 +2315,11 @@ class AutoSchedulingController extends Controller
                     ->first()
                 ) {
                     $driver = null;
+                }
+
+                if ($driver && $bus) {
+                    $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'resolution');
+                    $this->assertBusMatchesTripClient($trip, $bus, 'resolution');
                 }
 
                 if (! $driver || ! $bus) {
@@ -2192,7 +2388,9 @@ class AutoSchedulingController extends Controller
 
                         'slot_number' => $slotNumber,
 
-                        'driver_attendance_id' => $driver->id,
+                        'driver_attendance_id' => null,
+
+                        'driver_master_id' => $driver->id,
 
                         'driver_id' => $driver->driver_id,
 
@@ -2276,14 +2474,6 @@ class AutoSchedulingController extends Controller
         Collection $workloads
     ): ?DriverAttendance {
         return $drivers
-            ->filter(
-                function (
-                    DriverAttendance $driver
-                ) use ($trip): bool {
-                    return $driver->shift
-                        === $trip->shift;
-                }
-            )
             ->sortBy(
                 function (
                     DriverAttendance $driver
@@ -2323,6 +2513,120 @@ class AutoSchedulingController extends Controller
     }
 
     /**
+     * A dedicated client trip uses only that client's buses. A general
+     * service uses only unallocated buses; borrowing needs explicit review.
+     */
+    private function busMatchesTripClient(TripSchedule $trip, Bus $bus): bool
+    {
+        // Reserve units are unallocated shared emergency assets. They may be
+        // proposed for any client, but never automatically marked Ready.
+        if ($bus->fleet_purpose === 'Reserve') {
+            return true;
+        }
+
+        $client = trim((string) ($trip->client_name ?? ''));
+        $allocated = $bus->operationClients->pluck('name')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+        if ($client === '') {
+            return $allocated->isEmpty();
+        }
+
+        return $allocated->contains(mb_strtolower($client));
+    }
+
+    private function assertBusMatchesTripClient(TripSchedule $trip, Bus $bus, string $field): void
+    {
+        if (! $this->busMatchesTripClient($trip, $bus)) {
+            throw ValidationException::withMessages([
+                $field => 'This bus is not allocated to the trip client. Choose a client-compatible bus and regenerate the schedule.',
+            ]);
+        }
+    }
+
+    /**
+     * Choose a compatible bus and an authorized, conflict-free driver together.
+     * Regular buses are preferred before Reserve buses.
+     *
+     * @return array{0: ?DriverAttendance, 1: ?Bus}
+     */
+    private function findAvailableAuthorizedPair(
+        TripSchedule $trip,
+        Collection $drivers,
+        Collection $buses,
+        Collection $existingAssignments,
+        Collection $generatedRecommendations,
+        Collection $driverWorkloads,
+        Collection $busWorkloads
+    ): array {
+        // Fixed daily rotation: lowest bus number first, skipping resources
+        // excluded by client compatibility, maintenance, or overlaps below.
+        // Reserve units remain a last-resort, review-only proposal.
+        $orderedBuses = $buses->sort(function (Bus $first, Bus $second): int {
+            $purpose = ($first->fleet_purpose === 'Reserve' ? 1 : 0)
+                <=> ($second->fleet_purpose === 'Reserve' ? 1 : 0);
+
+            return $purpose !== 0
+                ? $purpose
+                : strnatcasecmp((string) $first->bus_no, (string) $second->bus_no);
+        });
+
+        foreach ($orderedBuses as $bus) {
+            if (! $this->busMatchesTripClient($trip, $bus)) {
+                continue;
+            }
+            if ($this->busHasConflict($trip, (int) $bus->id, $existingAssignments, $generatedRecommendations)) {
+                continue;
+            }
+
+            // Reserve buses have no permanent driver authorization. They are
+            // review-only proposals that Operations Head must explicitly approve.
+            // Regular buses must still use their authorized driver list.
+            $eligibleDrivers = $bus->fleet_purpose === 'Reserve'
+                ? $drivers
+                : $drivers->whereIn('driver_id', Driver::query()
+                    ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($bus->id))
+                    ->pluck('driver_id')
+                    ->all());
+
+            $driver = $this->findAvailableDriver(
+                $trip,
+                $eligibleDrivers,
+                $existingAssignments,
+                $generatedRecommendations,
+                $driverWorkloads
+            );
+
+            if ($driver) {
+                return [$driver, $bus];
+            }
+        }
+
+        return [null, $this->findAvailableBus(
+            $trip,
+            $buses->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus)),
+            $existingAssignments, $generatedRecommendations, $busWorkloads
+        )];
+    }
+
+    private function assertAuthorizedBusPair(string $driverId, int $busId, string $field): void
+    {
+        // Reserve units have no permanent driver. Explicitly reviewed reserve
+        // selections require direct Operations Head authorization at confirmation.
+        if (Bus::query()->whereKey($busId)->where('fleet_purpose', 'Reserve')->exists()) {
+            return;
+        }
+        if (! Driver::query()
+            ->where('driver_id', $driverId)
+            ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($busId))
+            ->exists()) {
+            throw ValidationException::withMessages([
+                $field => 'The driver is not authorized for this bus. Update Authorized Buses in Driver Master List and regenerate the schedule.',
+            ]);
+        }
+    }
+
+    /**
      * Find the best available bus.
      */
     private function findAvailableBus(
@@ -2333,26 +2637,14 @@ class AutoSchedulingController extends Controller
         Collection $workloads
     ): ?Bus {
         return $buses
-            ->sortBy(
-                function (
-                    Bus $bus
-                ) use ($workloads): string {
-                    $workload =
-                        $workloads->get(
-                            $bus->id,
-                            0
-                        );
+            ->sort(function (Bus $first, Bus $second): int {
+                $purpose = ($first->fleet_purpose === 'Reserve' ? 1 : 0)
+                    <=> ($second->fleet_purpose === 'Reserve' ? 1 : 0);
 
-                    return sprintf(
-                        '%01d-%08d-%s',
-                        $bus->fleet_purpose === 'Reserve' ? 1 : 0,
-                        $workload,
-                        strtolower(
-                            $bus->bus_no
-                        )
-                    );
-                }
-            )
+                return $purpose !== 0
+                    ? $purpose
+                    : strnatcasecmp((string) $first->bus_no, (string) $second->bus_no);
+            })
             ->first(
                 function (
                     Bus $bus
@@ -2605,6 +2897,41 @@ class AutoSchedulingController extends Controller
         ) + (
             ((int) date('i', $timestamp)) * 60
         ) + (int) date('s', $timestamp);
+    }
+
+    /**
+     * Build non-persistent scheduling candidates from the Driver master.
+     *
+     * DriverAttendance remains historical DDR evidence. These transient
+     * objects preserve the existing preview/ML contract without inserting or
+     * altering an attendance row. Their id is the Driver master primary key.
+     */
+    private function assumedPresentDrivers(
+        string $scheduleDate,
+        bool $lockForUpdate = false
+    ): Collection {
+        $query = Driver::query()
+            ->with('authorizedBuses:id')
+            ->where('employment_status', 'Active')
+            ->orderBy('driver_name');
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->get()->map(function (Driver $driver) use ($scheduleDate): DriverAttendance {
+            $candidate = new DriverAttendance([
+                'driver_id' => $driver->driver_id,
+                'driver_name' => $driver->driver_name,
+                'attendance_date' => $scheduleDate,
+                'status' => 'Assumed Present',
+            ]);
+            $candidate->setAttribute('id', $driver->id);
+            $candidate->exists = false;
+            $candidate->setRelation('driver', $driver);
+
+            return $candidate;
+        })->values();
     }
 
     /**

@@ -9,6 +9,9 @@
         'resources/js/Operation/Daily_Driver_Reports/daily-driver-reports.js',
     ]"
 >
+    @php
+        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    @endphp
     <div class="app">
         <x-layout.sidebar department="Operation" />
 
@@ -73,10 +76,16 @@
                         <p>Actual shuttle trip execution encoded from physical daily driver reports.</p>
                     </div>
 
+                    @if($canEditOperation)
                     <button type="button" id="openEncodeReportModal" class="ddr-new-btn">
                         <i class="fa-solid fa-plus"></i>
                         Encode New Report
                     </button>
+                    @else
+                    <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+                      <button type="button" class="ddr-new-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-plus"></i> Encode New Report</button>
+                    </span>
+                    @endif
                 </div>
 
                 <!-- Filter & Search Toolbar -->
@@ -239,7 +248,10 @@
                             <div><span class="ddr-info-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Trip Passengers</small><strong>{{ $report->passengers }}</strong></span></div>
                             <div><span class="ddr-info-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span><span class="ddr-info-copy"><small>First Trip KM</small><strong>{{ $report->km !== null ? (string) (float) $report->km : '—' }}</strong></span></div>
                         </div>
-                        <h3>Trip Entries ({{ 1 + $report->additionalTrips->count() }})</h3>
+                        @if($report->unscheduled_reason)
+                        <p class="ddr-record-note"><strong>Unscheduled trip reason:</strong> {{ $report->unscheduled_reason }}</p>
+                    @endif
+                    <h3>Trip Entries ({{ 1 + $report->additionalTrips->count() }})</h3>
                         <div class="ddr-record-table-wrap"><table class="ddr-record-table">
                             <thead><tr><th>#</th><th>Ticket</th><th>From → To</th><th>Departure</th><th>Arrival</th><th>Passengers</th><th>KM</th></tr></thead>
                             <tbody>
@@ -325,10 +337,11 @@
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
 
 
+    @if($canEditOperation)
     <x-ui.form-modal
         id="ddrEncodeModal"
         title="Encode New Report"
-        description="Values are transcribed from the physical DDR; nothing is generated or estimated."
+        description="Based on the GCT physical Daily Drivers Report"
         icon="fa-file-lines"
         size="wide"
         form-id="ddrEncodeForm"
@@ -351,6 +364,26 @@
             </div>
         @endif
 
+        <input type="hidden" name="selected_trip_schedule_id" id="ddrSelectedTripId" value="{{ old('selected_trip_schedule_id') }}">
+        <section class="ddr-exception-switch" aria-label="Unscheduled trip exception">
+            <label class="ddr-exception-choice" for="ddrUnscheduledMode">
+                <input type="checkbox" name="unscheduled_mode" id="ddrUnscheduledMode" value="1" @checked(old('unscheduled_mode'))>
+                <span class="ddr-exception-choice-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                <span class="ddr-exception-choice-copy">
+                    <strong>Record Unscheduled Trip</strong>
+                    <small>For emergency or unplanned services without an assigned schedule</small>
+                </span>
+                <span class="ddr-exception-choice-tag">Exception</span>
+            </label>
+            <div id="ddrUnscheduledReasonWrap" class="ddr-exception-reason" hidden>
+                <label for="ddrUnscheduledReason">Reason for Unscheduled Trip <span class="ui-required">*</span></label>
+                <textarea id="ddrUnscheduledReason" name="unscheduled_reason" rows="3" maxlength="500" placeholder="Describe the actual reason this trip was not scheduled...">{{ old('unscheduled_reason') }}</textarea>
+                <small>Required for audit history. At least 10 characters.</small>
+                @error('unscheduled_reason') <span class="ui-field-error">{{ $message }}</span> @enderror
+            </div>
+            @error('selected_trip_schedule_id') <span class="ui-field-error">{{ $message }}</span> @enderror
+        </section>
+        <div class="ddr-report-heading"><strong>Report Information</strong><small>One physical DDR · shared report date, driver and bus</small></div>
         <div class="ddr-form-grid ddr-modal-form-grid">
             <x-ui.form-field
                 label="Report Date"
@@ -481,6 +514,7 @@
                 unit=""
             />
 
+
             <x-ui.form-field
                 label="Departure Time"
                 name="departure_time"
@@ -515,15 +549,30 @@
 
         <section class="ddr-multi-trips" data-ddr-multi-trips>
             <div class="ddr-multi-header">
-                <div><strong>Additional Trip Entries</strong><p>One physical DDR can contain several trips. The fields above are Trip 1.</p></div>
-                <button type="button" class="ddr-add-trip" data-ddr-add-trip><i class="fa-solid fa-plus"></i> Add Another Trip</button>
+                <div><strong>Trip Entries</strong><p>Enter the actual details from each trip recorded on this DDR.</p></div>
+                <span class="ddr-trip-count" data-ddr-trip-count>1 trip</span>
             </div>
             <div data-ddr-trip-rows></div>
+            <button type="button" class="ddr-add-trip" data-ddr-add-trip>
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span>Add Another Trip</span>
+                <i class="fa-solid fa-chevron-down ddr-add-trip-chevron" aria-hidden="true"></i>
+            </button>
             <script type="application/json" data-ddr-old-trips>@json(array_values(old("additional_trips", [])))</script>
             <template data-ddr-trip-template>
-                <div class="ddr-extra-trip">
-                    <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash" aria-hidden="true"></i><span>Remove</span></button></div>
-                    <div class="ddr-extra-trip-grid">
+                <details class="ddr-extra-trip">
+                    <summary class="ddr-extra-trip-heading">
+                        <strong data-trip-title>Additional Trip</strong>
+                        <span class="ddr-extra-trip-tag">Assigned trip</span>
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="ddr-extra-trip-body">
+                        <div class="ddr-extra-trip-actions">
+                            <p>Enter the actual journey details recorded on the physical DDR.</p>
+                            <button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash" aria-hidden="true"></i><span>Remove</span></button>
+                        </div>
+                        <div class="ddr-extra-trip-grid">
+                        <div class="ui-form-group ddr-extra-assignment-group"><label>Assigned Trip <span class="ui-required">*</span></label><small class="ddr-extra-trip-hint">Choose the correct scheduled trip for this entry.</small><select class="ddr-extra-assignment" data-trip-field="selected_trip_schedule_id"><option value="">Select an assigned trip...</option></select></div>
                         <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
                         <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
                         <x-ui.form-field label="To Location" name="ddr_trip_template_to" required placeholder="Destination terminal / stop" maxlength="150" data-trip-field="to_location" />
@@ -531,8 +580,9 @@
                         <x-ui.form-field label="Arrival Time" name="ddr_trip_template_arrival" type="time" required data-trip-field="arrival_time" />
                         <x-ui.form-field label="Passengers" name="ddr_trip_template_passengers" type="number" min="0" step="1" required placeholder="0" data-trip-field="passengers" />
                         <x-ui.form-field label="KM Traveled" name="ddr_trip_template_km" type="number" min="0" max="99999999.99" step="0.01" placeholder="KM from the DDR" data-trip-field="km" />
+                        </div>
                     </div>
-                </div>
+                </details>
             </template>
         </section>
 
@@ -544,36 +594,24 @@
             </div>
         </div>
 
-        <details class="ddr-sched-panel ddr-modal-sched-panel">
-            <summary class="ddr-sched-panel-head">
-                <i class="fa-solid fa-calendar-check"></i>
-                <div>
-                    <h3>Scheduled Trip Match</h3>
-                    <p>Reference panel &mdash; for comparison only, never stored.</p>
-                </div>
-            </summary>
-
-            <div class="ddr-sched-panel-body">
-                <div id="sfcStatus" class="ddr-sched-status idle">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Select a date, driver, and bus to check matching scheduled trips.</span>
-                </div>
-
-                <div id="sfcList" class="ddr-sched-list"></div>
+        <div class="ddr-sched-panel ddr-modal-sched-panel ddr-sched-panel-compact">
+            <label for="sfcList">Assigned Trip <span class="ui-required">*</span></label>
+            <p class="ddr-assigned-trip-hint">Select the assigned trip to link its bus. Enter actual locations and times manually.</p>
+            <div id="sfcList" class="ddr-sched-list" aria-live="polite"></div>
+            <div id="sfcStatus" class="ddr-sched-status idle">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Select a report date and driver to find eligible trips.</span>
             </div>
-
-            <div class="ddr-sched-panel-foot">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>A match only exists when a real trip is scheduled for this driver and bus on the selected date. Otherwise the comparison shows &ldquo;Schedule match unavailable&rdquo;.</span>
-            </div>
-        </details>
+        </div>
     </x-ui.form-modal>
+    @endif
 
         </main>
     </div>
     @push('scripts')
         <script>
             window.ddrScheduleLookupUrl = "{{ route('daily-driver-reports.schedule-lookup', [], false) }}";
+            window.ddrAssignedDriversUrl = "{{ route('daily-driver-reports.assigned-drivers', [], false) }}";
         </script>
     @endpush
 </x-layout.app>

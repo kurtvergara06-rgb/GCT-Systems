@@ -2084,3 +2084,386 @@ button.ddr-new-btn {
 @media(max-width:430px) { .ddr-record-total > div { gap:7px; }.ddr-record-total strong { font-size:17px; } }
 
 /* Match the shared Driver Attendance centered deletion confirmation pattern. */
+
+
+/* Scheduled DDR suggestions are selectable, not passive comparison rows. */
+.ddr-sched-select {
+    display: block;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+.ddr-sched-select:hover,
+.ddr-sched-select:focus-visible {
+    border-color: #2563eb;
+    outline: 2px solid rgba(37, 99, 235, .16);
+    outline-offset: 1px;
+}
+.ddr-sched-select.is-selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+
+/* Compact driver-first DDR assignment selection. */
+.ddr-modal-form-grid .ddr-sched-panel-compact {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 11px;
+    border: 1px solid #dce6f2;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+.ddr-sched-panel-compact > label { font-weight: 700; font-size: 12px; }
+.ddr-sched-panel-compact .ddr-assigned-trip-hint { margin: 0; font-size: 11px; color: #64748b; }
+.ddr-sched-panel-compact .ddr-sched-list { width: 100%; }
+.ddr-sched-panel-compact .ddr-assigned-trip-select {
+    display: block;
+    width: 100%;
+    height: 35px;
+    min-height: 35px;
+    padding: 5px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+}
+.ddr-sched-panel-compact .ddr-sched-status {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 11px;
+}
+.ddr-sched-panel-compact[hidden] { display: none !important; }
+
+
+/* DDR exception choice: compact, clear, and consistent with the form. */
+#ddrEncodeModal .ddr-exception-switch { margin: 0 0 12px; }
+#ddrEncodeModal .ddr-exception-choice {
+    display: flex; align-items: center; gap: 11px; cursor: pointer;
+    border: 1px solid #dce6f2; border-radius: 11px;
+    padding: 10px 12px; background: #f8fafc;
+}
+#ddrEncodeModal .ddr-exception-choice:has(input:checked) {
+    background: #fff7ed; border-color: #fdba74;
+}
+#ddrEncodeModal .ddr-exception-choice input { flex: none; accent-color: #d97706; }
+#ddrEncodeModal .ddr-exception-choice-icon {
+    width: 30px; height: 30px; display: grid; place-items: center;
+    background: #fff0d8; border-radius: 8px; color: #b45309; flex: none;
+}
+#ddrEncodeModal .ddr-exception-choice-copy { display: grid; gap: 3px; min-width: 0; flex: 1; }
+#ddrEncodeModal .ddr-exception-choice-copy strong { font-size: 12px; }
+#ddrEncodeModal .ddr-exception-choice-copy small { font-size: 11px; color: #64748b; }
+#ddrEncodeModal .ddr-exception-choice-tag {
+    font-size: 10px; color: #9a3412; background: #ffedd5;
+    border-radius: 99px; padding: 4px 8px; white-space: nowrap;
+}
+#ddrEncodeModal .ddr-exception-reason { display: grid; gap: 7px; padding: 12px 3px 0; }
+#ddrEncodeModal .ddr-exception-reason[hidden] { display: none !important; }
+#ddrEncodeModal .ddr-exception-reason label { font-size: 12px; font-weight: 700; }
+#ddrEncodeModal .ddr-exception-reason textarea {
+    box-sizing: border-box; width: 100%; min-height: 80px; resize: vertical;
+    padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 9px;
+    font: inherit; background: #fff; color: inherit;
+}
+#ddrEncodeModal .ddr-exception-reason small { color: #64748b; font-size: 11px; }
+
+
+
+
+
+/* Scheduled DDR values are derived from the selected assignment. */
+#ddrEncodeModal input[name="from_location"][readonly],
+#ddrEncodeModal input[name="to_location"][readonly],
+#ddrEncodeModal [data-combo][data-field="bus"] [data-combo-input][readonly] {
+    background: #f3f6fb;
+    color: #334155;
+    cursor: default;
+}
+
+
+/* Physical paper DDR: shared report header, then separately matched trip entries. */
+#ddrEncodeModal .ddr-report-heading,
+#ddrEncodeModal .ddr-trip-one-heading {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding: 4px 1px 7px;
+}
+#ddrEncodeModal .ddr-report-heading strong,
+#ddrEncodeModal .ddr-trip-one-heading strong { color: #142b4d; font-size: 12px; }
+#ddrEncodeModal .ddr-report-heading small,
+#ddrEncodeModal .ddr-trip-one-heading small { font-size: 10px; color: #64748b; }
+#ddrEncodeModal .ddr-report-meta-grid {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px;
+    padding: 11px; margin: 0 0 14px; border: 1px solid #dce6f2;
+    border-radius: 11px; background: #f8fafc;
+}
+#ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
+#ddrEncodeModal .ddr-report-meta-grid > :nth-child(3) { grid-column: 1 / -1; }
+#ddrEncodeModal .ddr-trip-one-heading { margin-top: 4px; }
+#ddrEncodeModal .ddr-route-note { grid-column: 1 / -1; }
+#ddrEncodeModal .ddr-extra-assignment-group { grid-column: 1 / -1; }
+#ddrEncodeModal .ddr-extra-assignment {
+    box-sizing: border-box; width: 100%; min-height: 36px; padding: 6px 10px;
+    border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1e293b;
+}
+#ddrEncodeModal .ddr-form-grid input[name="from_location"],
+#ddrEncodeModal .ddr-form-grid input[name="to_location"] {
+    background: #fff; cursor: text;
+}
+
+/* Encode New Report: paper-DDR hierarchy with shared report data and trip cards. */
+#ddrEncodeModal .ui-form-modal-scrollable {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+#ddrEncodeModal .ddr-report-heading { order: 1; padding: 2px 1px 8px; }
+#ddrEncodeModal .ddr-report-heading small { display: none; }
+#ddrEncodeModal .ddr-report-meta-grid {
+    order: 2;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 12px;
+    border-color: #dbe4f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+#ddrEncodeModal .ddr-report-meta-grid > :nth-child(3) { grid-column: auto; }
+#ddrEncodeModal .ddr-number-preview {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+}
+#ddrEncodeModal .ddr-number-preview > label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+#ddrEncodeModal .ddr-number-preview > span {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d3dfec;
+    border-radius: 9px;
+    background: #f3f6fb;
+    color: #52647c;
+    font-size: 13px;
+    font-weight: 650;
+}
+#ddrEncodeModal .ddr-number-preview i { color: #6b7e98; }
+
+#ddrEncodeModal .ddr-multi-header {
+    order: 3;
+    margin: 0 0 9px;
+    padding: 0 1px;
+    flex-wrap: nowrap;
+}
+#ddrEncodeModal .ddr-multi-header p { display: none; }
+#ddrEncodeModal .ddr-trip-count {
+    flex: none;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #edf2f8;
+    color: #4d6078;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+#ddrEncodeModal .ddr-primary-trip {
+    order: 4;
+    overflow: visible;
+    padding: 12px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #fff;
+}
+#ddrEncodeModal .ddr-trip-one-heading {
+    align-items: center;
+    margin: 0 0 10px;
+    padding: 0 1px;
+}
+#ddrEncodeModal .ddr-trip-assigned-tag,
+#ddrEncodeModal .ddr-extra-trip-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eaf8ef;
+    color: #18723e;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+#ddrEncodeModal .ddr-modal-form-grid { gap: 10px; }
+#ddrEncodeModal .ddr-modal-form-grid .ddr-sched-panel-compact { order: 0; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="trip_ticket"]) { order: 1; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="from_location"]) { order: 2; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="to_location"]) { order: 3; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="departure_time"]) { order: 4; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="arrival_time"]) { order: 5; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="passengers"]) { order: 6; }
+#ddrEncodeModal .ddr-modal-form-grid > :has([name="km"]) { order: 7; }
+#ddrEncodeModal .ddr-modal-form-grid > .ddr-route-note { order: 8; }
+#ddrEncodeModal .ddr-route-note input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d3dfec;
+    border-radius: 9px;
+    background: #fff;
+    color: #172b4d;
+    font: inherit;
+}
+
+#ddrEncodeModal .ddr-multi-trips {
+    order: 5;
+    margin: 10px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+#ddrEncodeModal [data-ddr-trip-rows]:empty { display: none; }
+#ddrEncodeModal .ddr-extra-trip {
+    overflow: hidden;
+    margin: 0 0 8px;
+    padding: 0;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #fff;
+}
+#ddrEncodeModal .ddr-extra-trip-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    padding: 12px;
+    list-style: none;
+    cursor: pointer;
+}
+#ddrEncodeModal .ddr-extra-trip-heading::-webkit-details-marker { display: none; }
+#ddrEncodeModal .ddr-extra-trip-heading > strong { margin-right: auto; }
+#ddrEncodeModal .ddr-extra-trip-heading > i {
+    color: #718198;
+    font-size: 10px;
+    transition: transform .18s ease;
+}
+#ddrEncodeModal .ddr-extra-trip[open] .ddr-extra-trip-heading > i { transform: rotate(180deg); }
+#ddrEncodeModal .ddr-extra-trip-tag { background: #edf2f8; color: #53657c; }
+#ddrEncodeModal .ddr-extra-trip-body {
+    padding: 0 12px 12px;
+    border-top: 1px solid #e8eef5;
+}
+#ddrEncodeModal .ddr-extra-trip-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+}
+#ddrEncodeModal .ddr-extra-trip-actions p {
+    margin: 0;
+    color: #64748b;
+    font-size: 10px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid > :has([data-trip-field="route_deviation_reason"]) {
+    order: 20;
+    grid-column: 1 / -1;
+}
+#ddrEncodeModal .ddr-add-trip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+    padding: 9px 14px;
+    border: 1px solid #d5dfeb;
+    border-radius: 11px;
+    background: #fff;
+    color: #263a55;
+    font-size: 12px;
+    font-weight: 750;
+}
+#ddrEncodeModal .ddr-add-trip:hover { border-color: #a9bfdc; background: #f8fbff; }
+#ddrEncodeModal .ddr-add-trip-chevron {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #d5dfeb;
+    border-radius: 50%;
+    color: #52647c;
+    font-size: 9px;
+}
+
+#ddrEncodeModal .ddr-exception-switch { order: 6; margin: 12px 0 0; }
+#ddrEncodeModal .ddr-form-note { order: 7; }
+
+@media (max-width: 700px) {
+    #ddrEncodeModal .ddr-report-meta-grid { grid-template-columns: minmax(0, 1fr); }
+    #ddrEncodeModal .ddr-primary-trip { padding: 11px; }
+    #ddrEncodeModal .ddr-multi-header { align-items: center; }
+}
+
+
+/* Keep every physical DDR entry visually consistent with Trip 1. */
+#ddrEncodeModal .ddr-extra-trip[open] { overflow: visible; }
+#ddrEncodeModal .ddr-extra-trip-heading { padding: 11px 12px; }
+#ddrEncodeModal .ddr-extra-trip-body { padding: 10px 12px 12px; }
+#ddrEncodeModal .ddr-extra-trip-actions { padding: 0 0 9px; }
+#ddrEncodeModal .ddr-extra-trip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 10px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid > * { min-width: 0; }
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    background: #f8fafc;
+    border: 1px solid #dce6f2;
+    border-radius: 10px;
+    margin: 0 0 2px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group > label {
+    margin: 0;
+    font-weight: 750;
+    font-size: 12px;
+    color: #142b4d;
+}
+#ddrEncodeModal .ddr-extra-trip-hint { color: #64748b; font-size: 11px; }
+#ddrEncodeModal .ddr-extra-assignment {
+    height: 35px;
+    min-height: 35px;
+    border-color: #cbd5e1;
+    background: white;
+    font-size: 12px;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group { margin: 0; }
+#ddrEncodeModal .ddr-extra-trip-grid .ui-form-group > label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+    font-weight: 700;
+}
+@media(max-width: 580px) {
+    #ddrEncodeModal .ddr-extra-trip-grid { grid-template-columns: 1fr; }
+}

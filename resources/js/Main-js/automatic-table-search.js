@@ -312,13 +312,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
       return;
     }
 
-    if (
-      toolbar.dataset.serverFilterNavigation === 'true'
-      && window.GCTPartialNavigation?.navigate
-    ) {
-      await window.GCTPartialNavigation.navigate(target.href);
-      return;
-    }
+    // Always refresh the table region for shared server-filter toolbars.
 
     const previousController =
       serverFilterControllers.get(toolbar);
@@ -459,22 +453,15 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
         error
       );
 
-      if (
-        window
-          .GCTPartialNavigation
-          ?.navigate
-      ) {
-        await window
-          .GCTPartialNavigation
-          .navigate(
-            target.href
-          );
-        return;
+      // Never reload the page merely because a background table request failed.
+      // Keep the existing table and user-entered search/filter choices intact.
+      if (typeof window.showSystemToast === 'function') {
+        window.showSystemToast(
+          'Unable to refresh the table. Please retry.',
+          'error',
+          'Table Refresh Failed'
+        );
       }
-
-      window.location.assign(
-        target.href
-      );
     } finally {
       activeServerFilterControllers.delete(controller);
 

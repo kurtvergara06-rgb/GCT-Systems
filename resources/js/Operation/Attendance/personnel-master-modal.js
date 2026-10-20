@@ -5,6 +5,61 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     if (!page || !modal || !form) return;
 
+    // Portal the table disclosure into the document overlay layer so it never
+    // changes the table row height or gets clipped by the scrollable table.
+    let openBusDisclosure = null;
+    const closeBusDisclosure = () => {
+        if (!openBusDisclosure) return;
+        const { details, panel } = openBusDisclosure;
+        panel.removeAttribute('style');
+        details.appendChild(panel);
+        details.open = false;
+        openBusDisclosure = null;
+    };
+    page.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.driver-bus-more > summary');
+        if (!trigger || !page.contains(trigger)) return;
+        event.preventDefault();
+        const details = trigger.parentElement;
+        if (openBusDisclosure?.details === details) {
+            closeBusDisclosure();
+            return;
+        }
+        closeBusDisclosure();
+        const panel = details.querySelector('.driver-bus-more-panel');
+        if (!panel) return;
+        details.open = true;
+        document.body.appendChild(panel);
+        const rect = trigger.getBoundingClientRect();
+        const width = 225;
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+        panel.style.position = 'fixed';
+        panel.style.width = width + 'px';
+        panel.style.maxHeight = 'min(260px, 55vh)';
+        panel.style.overflowY = 'auto';
+        panel.style.left = left + 'px';
+        panel.style.top = '0px';
+        panel.style.margin = '0';
+        panel.style.zIndex = '10050';
+        const height = panel.getBoundingClientRect().height;
+        const below = window.innerHeight - rect.bottom - 8;
+        const top = below >= height || below >= rect.top
+            ? Math.min(rect.bottom + 5, window.innerHeight - height - 8)
+            : Math.max(8, rect.top - height - 5);
+        panel.style.top = Math.max(8, top) + 'px';
+        openBusDisclosure = { details, panel };
+    });
+    document.addEventListener('click', (event) => {
+        if (openBusDisclosure && !openBusDisclosure.details.contains(event.target)
+            && !openBusDisclosure.panel.contains(event.target)) closeBusDisclosure();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && openBusDisclosure) closeBusDisclosure();
+    });
+    const onBusDisclosureScroll = () => closeBusDisclosure();
+    document.addEventListener('scroll', onBusDisclosureScroll, true);
+    window.addEventListener('resize', onBusDisclosureScroll);
+
     const title = modal.querySelector('[data-modal-title]');
     const subtitle = modal.querySelector('[data-modal-subtitle]');
     const headerIcon = modal.querySelector('[data-personnel-modal-icon]');
@@ -15,6 +70,69 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const modalActions = form.querySelector('.personnel-modal-actions');
     const fields = [...form.querySelectorAll('input[name]:not([name="_token"]):not([name="_method"]):not([name="editing_personnel_id"]), select[name]')];
     const entity = form.querySelector('[name="driver_id"]') ? 'Driver' : 'Mechanic';
+    const busPicker = form.querySelector('[data-driver-bus-picker]');
+    const busTrigger = busPicker?.querySelector('[data-driver-bus-trigger]');
+    const busPanel = busPicker?.querySelector('[data-driver-bus-panel]');
+    const busLabel = busPicker?.querySelector('[data-driver-bus-label]');
+    const busSearch = busPicker?.querySelector('[data-driver-bus-search]');
+    const busOptions = [...(busPicker?.querySelectorAll('[data-driver-bus-option]') || [])];
+    const busChecks = [...(busPicker?.querySelectorAll('[data-driver-bus-checkbox]') || [])];
+    const busEmpty = busPicker?.querySelector('[data-driver-bus-empty]');
+    const busChips = form.querySelector('[data-driver-bus-chips]');
+    const updateBusPicker = () => {
+        if (!busLabel) return;
+        const selected = busChecks.filter((check) => check.checked);
+        busLabel.textContent = selected.length
+            ? `${selected.length} bus${selected.length === 1 ? '' : 'es'} selected`
+            : 'Choose buses';
+        if (!busChips) return;
+        busChips.replaceChildren();
+        selected.forEach((check) => {
+            const chip = document.createElement('span');
+            chip.className = 'driver-bus-chip';
+            const label = document.createElement('span');
+            label.textContent = check.dataset.busNumber || check.value;
+            chip.append(label);
+            if (modal.dataset.mode !== 'view') {
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'driver-bus-chip-remove';
+                remove.setAttribute('aria-label', `Remove ${label.textContent}`);
+                remove.textContent = '×';
+                remove.addEventListener('click', () => {
+                    check.checked = false;
+                    updateBusPicker();
+                });
+                chip.append(remove);
+            }
+            busChips.append(chip);
+        });
+    };
+    const closeBusPicker = () => {
+        if (busPanel) busPanel.hidden = true;
+        busTrigger?.setAttribute('aria-expanded', 'false');
+    };
+    busTrigger?.addEventListener('click', () => {
+        if (busTrigger.disabled || modal.dataset.mode === 'view') return;
+        if (busPanel) busPanel.hidden = !busPanel.hidden;
+        busTrigger.setAttribute('aria-expanded', String(!busPanel?.hidden));
+        if (!busPanel?.hidden) busSearch?.focus();
+    });
+    busChecks.forEach((check) => check.addEventListener('change', updateBusPicker));
+    busSearch?.addEventListener('input', () => {
+        const query = busSearch.value.trim().toLowerCase();
+        let count = 0;
+        busOptions.forEach((option) => {
+            const match = option.textContent.toLowerCase().includes(query);
+            option.hidden = !match;
+            if (match) count++;
+        });
+        if (busEmpty) busEmpty.hidden = count > 0;
+    });
+    document.addEventListener('click', (event) => {
+        if (busPicker && !busPicker.contains(event.target)) closeBusPicker();
+    });
+
 
     const specializationValue = form.querySelector('[data-specialization-value]');
     const specializationPicker = form.querySelector('[data-specialization-picker]');
@@ -189,8 +307,30 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         updateSpecializationControls();
     };
 
+    const refreshBusAuthorizationOptions = () => {
+        if (entity !== 'Driver') return;
+        busOptions.forEach((option) => {
+            const check = option.querySelector('[data-driver-bus-checkbox]');
+            if (!check) return;
+            check.disabled = false;
+            option.hidden = false;
+            option.title = '';
+        });
+        updateBusPicker();
+    };
+
     const resetForm = () => {
         form.reset();
+        busChecks.forEach((check) => { check.checked = false; check.disabled = false; });
+        refreshBusAuthorizationOptions();
+        if (busTrigger) busTrigger.disabled = false;
+        if (busSearch) busSearch.value = '';
+        busOptions.forEach((option) => {
+            option.hidden = false;
+        });
+        if (busEmpty) busEmpty.hidden = true;
+        closeBusPicker();
+        updateBusPicker();
         form.action = form.dataset.storeUrl;
         methodField.value = 'POST';
         if (editingPersonnelId) editingPersonnelId.value = '';
@@ -208,6 +348,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         }
 
         modal.dataset.mode = 'edit';
+        updateBusPicker();
         if (viewNotice) viewNotice.hidden = true;
         setSpecializationReadOnly(false);
         setSpecializations('');
@@ -221,9 +362,21 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     const fillForm = (record) => {
         fields.forEach((field) => {
-            field.value = record[field.name] ?? '';
+            if (field.multiple) {
+                const selected = new Set((record.bus_ids || []).map(String));
+                [...field.options].forEach((option) => {
+                    option.selected = selected.has(option.value);
+                });
+            } else {
+                field.value = record[field.name] ?? '';
+            }
         });
 
+        if (busChecks.length) {
+            const selectedIds = new Set((record.bus_ids || []).map(String));
+            busChecks.forEach((check) => { check.checked = selectedIds.has(check.value); });
+            updateBusPicker();
+        }
         setSpecializations(record.specialization ?? '');
     };
 
@@ -256,6 +409,17 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (headerIcon) headerIcon.className = 'fa-solid fa-pen-to-square';
             form.action = button.dataset.updateUrl;
             methodField.value = 'PUT';
+            refreshBusAuthorizationOptions();
+            // Preserve identifiers referenced by historical attendance and trips.
+            if (entity === 'Driver' && record.identity_locked) {
+                for (const name of ['driver_id', 'driver_name']) {
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        input.readOnly = true;
+                        input.title = 'Locked to preserve historical attendance and trip records';
+                    }
+                }
+            }
             if (editingPersonnelId) {
                 editingPersonnelId.value = button.dataset.recordId || '';
             }
@@ -275,6 +439,10 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             });
 
             setSpecializationReadOnly(true);
+            if (busTrigger) busTrigger.disabled = true;
+            busChecks.forEach((check) => { check.disabled = true; });
+            closeBusPicker();
+            updateBusPicker();
 
             submitButton.hidden = true;
             submitButton.style.display = 'none';
@@ -300,6 +468,11 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     });
 
     document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && busPanel && !busPanel.hidden) {
+            closeBusPicker();
+            busTrigger?.focus();
+            return;
+        }
         if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
     });
 

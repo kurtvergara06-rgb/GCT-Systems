@@ -17,6 +17,8 @@ class BusAvailabilityController extends Controller
         $today = today(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $search = trim((string) $request->query('search', ''));
         $status = (string) $request->query('status', '');
+        $tab = in_array($request->query('tab'), ['available', 'unavailable'], true)
+            ? $request->query('tab') : 'all';
         $model = trim((string) $request->query('model', ''));
         $models = Bus::query()->whereNotNull('bus_model')->where('bus_model', '!=', '')->distinct()->orderBy('bus_model')->pluck('bus_model');
 
@@ -50,6 +52,26 @@ class BusAvailabilityController extends Controller
             });
         } elseif ($status === 'Inactive') {
             $query->where('status', 'Inactive');
+        }
+
+        // Tabs classify current effective readiness; an active bus currently on
+        // a dispatched trip is not available to dispatch again.
+        if ($tab !== 'all') {
+            $query->where(function ($builder) use ($tab, $restrictedBusNumbers): void {
+                $onTrip = fn ($busQuery) => $busQuery->whereHas('tripAssignments', fn ($assignment) =>
+                    $assignment->whereHas('tripSchedule', fn ($trip) => $trip->where('status', 'Dispatched'))
+                );
+                if ($tab === 'available') {
+                    $builder->where('status', 'Active')
+                        ->whereNotIn('bus_no', $restrictedBusNumbers)
+                        ->whereDoesntHave('tripAssignments', fn ($assignment) =>
+                            $assignment->whereHas('tripSchedule', fn ($trip) => $trip->where('status', 'Dispatched')));
+                } else {
+                    $builder->where('status', '!=', 'Active')
+                        ->orWhereIn('bus_no', $restrictedBusNumbers)
+                        ->orWhere($onTrip);
+                }
+            });
         }
 
         if ($model !== '' && $models->contains($model)) {

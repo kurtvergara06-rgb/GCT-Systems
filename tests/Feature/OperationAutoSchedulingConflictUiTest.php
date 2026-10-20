@@ -10,7 +10,7 @@ it('renders conflicts as a severity queue with an actionable report panel', func
         ->toContain("renderConflictSortHeader('Severity', 'severity')")
         ->toContain('AI Conflict Report')
         ->toContain('Issue Summary')
-        ->toContain('Detailed Explanation')
+        ->toContain('Detailed explanation and AI findings')
         ->toContain('Terminal')
         ->toContain('formatOrdinal')
         ->toContain('data-gct-conflict-sort')
@@ -19,9 +19,13 @@ it('renders conflicts as a severity queue with an actionable report panel', func
         ->toContain('tabindex="0"')
         ->toContain("event.key !== 'Enter' && event.key !== ' '")
         ->not->toContain('class="gct-conflict-arrow')
-        ->toContain('Recommended Assignments')
-        ->toContain('Alternative Options')
-        ->toContain('Apply Recommendation');
+        ->toContain('Recommended Assignments (')
+        ->toContain('Alternative Options (')
+        ->toContain('data-gct-option-tab="recommended"')
+        ->toContain('Trained ML model')
+        ->toContain('Data-derived fallback')
+        ->toContain('Rule-based fallback')
+        ->toContain('Apply to Preview');
 });
 
 it('keeps conflict recommendations connected to safe existing resolution paths', function (): void {
@@ -41,6 +45,22 @@ it('keeps conflict recommendations connected to safe existing resolution paths',
         ->toContain('&& !missingBus');
 });
 
+it('bridges reserve selection to the assignment editor by stable trip slot identity', function (): void {
+    $script = file_get_contents(resource_path(
+        'js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'
+    ));
+
+    expect($script)
+        ->toContain('const conflictIdentity = (conflict) => [')
+        ->toContain("document.addEventListener('gct:apply-inline-alternative'")
+        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-inline-alternative'")
+        ->toContain("document.addEventListener('gct:apply-reserve-selection'")
+        ->toContain('data-apply-selected-reserve')
+        ->toContain('selectedReserveByConflict.get(conflictKey)')
+        ->toContain("document.addEventListener('gct:auto-reserve-selections-reset'")
+        ->not->toContain('const item = schedulingConflicts[index];\n            const selection = selectedReserveByConflict.get(index)');
+});
+
 it('provides responsive styles for the conflict queue and report', function (): void {
     $styles = file_get_contents(resource_path(
         'css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'
@@ -55,4 +75,94 @@ it('provides responsive styles for the conflict queue and report', function (): 
         ->toContain('border: 1px solid #d9e4f2')
         ->toContain('align-items: start')
         ->toContain('@media (max-width: 720px)');
+});
+
+it('shows compact validated driver bus pairs first with collapsible details and retained server-side actions', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+
+    expect($script)
+        ->toContain('Best eligible Regular Bus assignment')
+        ->toContain('gct-compact-pair-list')
+        ->toContain('gct-compact-details')
+        ->toContain('data-gct-inline-pair')
+        ->toContain("document.dispatchEvent(new CustomEvent('gct:apply-inline-alternative'")
+        ->toContain('canAssignReserve()')
+        ->toContain('Final Laravel validation applies');
+    expect($styles)
+        ->toContain('.gct-compact-pair-list')
+        ->toContain('.gct-compact-details')
+        ->toContain('.gct-report-actions { position:sticky');
+});
+
+it('rechecks driver and bus overlap before advertising valid AI pairs', function (): void {
+    $controller = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+    expect($controller)
+        ->toContain('Individually scored alternatives are not automatically valid')
+        ->toContain('! $this->driverHasConflict($trip, $candidate->driver_id, $existingAssignments, $recommendations)')
+        ->toContain('! $this->busHasConflict($trip, (int) $candidate->id, $existingAssignments, $recommendations)');
+});
+
+it('explains Reserve-only recommendations without claiming no driver exists', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('const reserveOnlyOptions = validPairs.length > 0')
+        ->toContain('No automatic Regular Bus assignment available.')
+        ->toContain('Eligible driver–Reserve Bus pairs are available for Operations Head review.')
+        ->toContain('final Laravel validation still applies.');
+});
+
+it('refreshes the ready slot badge from restored draft recommendations', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    $restoreStart = strpos($script, 'async function restoreScheduleDraft()');
+    $restoreEnd = strpos($script, 'const savedDraftsButton', $restoreStart);
+    $restoreScript = substr($script, $restoreStart, $restoreEnd - $restoreStart);
+
+    expect($restoreScript)
+        ->toContain('renderRecommendations(recommendations, schedulingConflicts);')
+        ->toContain('updateReadyBadgeOnly();');
+});
+
+it('does not restore stale driver and bus availability counts from an older draft', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('Draft resource counts are only a historical snapshot.')
+        ->toContain("drivers: Number(summaryDrivers?.textContent || draft.summary?.drivers || 0)")
+        ->toContain("buses: Number(summaryBuses?.textContent || draft.summary?.buses || 0)");
+});
+
+it('removes pairs that overlap assignments already applied to the preview', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain('function previewTimesOverlap(')
+        ->toContain('function conflictWithCurrentPreviewEligibility(item)')
+        ->toContain('Number(pair.driver_attendance_id) === Number(recommendation.driver_attendance_id)')
+        ->toContain('Number(pair.bus_id) === Number(recommendation.bus_id)')
+        ->toContain('const reportItems = items.map(conflictWithCurrentPreviewEligibility);')
+        ->toContain('conflicts: reportItems.slice()');
+});
+
+it('separates regular recommendations from Head-reviewed Reserve alternatives', function (): void {
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    expect($script)
+        ->toContain("const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'))")
+        ->toContain('const recommendedPair = regularPairs[0] || null')
+        ->toContain('const alternativePairs = validPairs.filter(pair => pair !== recommendedPair)')
+        ->toContain("recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative')")
+        ->toContain('Recommended Assignments (${recommendedPair ? 1 : 0})')
+        ->toContain('Alternative Options (${alternativePairs.length})')
+        ->toContain('Reserve requires Head review')
+        ->toContain('data-gct-inline-pair')
+        ->toContain('canAssignReserve()');
+});
+
+it('supports a bounded larger set of validated conflict alternatives', function (): void {
+    $controller = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+    expect($controller)->toContain('->take(50)');
+    expect($script)->toContain('alternativePairs.map(renderPairCard).join');
 });

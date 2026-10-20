@@ -65,7 +65,6 @@
                 </x-ui.table-toolbar>
     </x-slot:toolbar>
 
-    <x-slot:helper><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Operational records reflect saved trip execution and matched driver-report data.</x-slot:helper>
 
                     <table class="trip-table trip-history-table">
                         <thead>

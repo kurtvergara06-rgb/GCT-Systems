@@ -2992,3 +2992,237 @@
     border-color: #64748b;
     box-shadow: 0 0 0 2px rgba(100, 116, 139, .12);
 }
+
+
+/* Trip details: lighter read-only cards, clear hierarchy, comfortable spacing. */
+#viewTripModal .trip-details-grid { gap: 12px; padding-bottom: 8px; }
+#viewTripModal .trip-detail-card {
+  min-height: 72px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #dce6f3;
+  border-radius: 12px;
+}
+#viewTripModal .trip-detail-card:hover { background: #f8fbff; }
+#viewTripModal .trip-details-hero {
+  padding: 15px 16px;
+  background: #f3f7fe;
+  border: 1px solid #dce7fa;
+  margin-bottom: 14px;
+}
+#viewTripModal .trip-detail-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #edf4ff;
+  color: #225fc0;
+}
+#viewTripModal .trip-detail-copy label { font-size: 11px; letter-spacing: .035em; }
+#viewTripModal .trip-detail-value { font-size: 13px; line-height: 1.5; }
+#viewTripModal .trip-detail-load-error {
+  grid-column: 1 / -1;
+  padding: 18px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+
+/* Client / Route sections keep separate trip records and assignment rows. */
+.trip-schedule-page .service-table .service-client-route-heading th,
+.service-table .service-client-route-heading th {
+    padding: 11px 15px !important;
+    border-top: 2px solid #cbd9ec !important;
+    border-bottom: 1px solid #cbd9ec !important;
+    background: #eaf1fb !important;
+    text-align: left !important;
+    color: #203957 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+.service-table .service-client-route-heading th span {
+    display: inline-block;
+    margin-right: 17px;
+    color: #536a86;
+    font-size: 11px;
+    font-weight: 600;
+}
+.service-table .service-client-route-heading th strong {
+    color: #183960;
+    font-size: 12px;
+    font-weight: 800;
+}
+@media (max-width: 700px) {
+    .service-table .service-client-route-heading th span,
+    .service-table .service-client-route-heading th strong {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 3px;
+    }
+}
+
+/* =========================================================
+   CLIENT TRIP TIME CONFIGURATION IN THE TRIP EDITOR
+========================================================= */
+
+.trip-schedule-page .service-controls-card .new-trip-btn.trip-client-times-link {
+    text-decoration: none;
+}
+
+#tripModal #departureTimeSlot {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 12px 0 40px;
+    border: 1px solid #dbe5f2;
+    border-radius: 9px;
+    background: #fff;
+    color: #142c4d;
+    font-size: 12px;
+}
+
+#tripModal #departureTimeSlot[hidden] {
+    display: none;
+}
+
+#tripModal .trip-time-config-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 9px 12px;
+    border: 1px solid #bfd7f5;
+    border-radius: 9px;
+    background: #f2f7fe;
+    color: #1c4276;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* Honor the HTML hidden state; the flex notice styling must not reveal an empty box. */
+#tripModal .trip-time-config-notice[hidden] {
+    display: none;
+}
+
+#tripModal .trip-time-config-notice.is-warning {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+#tripModal .trip-time-config-notice i {
+    margin-top: 2px;
+}
+
+#tripModal .trip-time-config-notice a {
+    color: inherit;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* Compact New/Edit Trip form: retain the current field names and behavior. */
+#tripModal .ui-form-modal{width:min(690px,calc(100vw - 28px));border-radius:16px}
+#tripModal .ui-form-modal-header{padding:13px 20px}
+#tripModal .ui-form-title-icon{width:42px;height:42px;border-radius:11px}
+#tripModal .ui-form-heading h2{font-size:18px}
+#tripModal .ui-form-modal-body{padding:13px 20px 0}
+#tripModal .ui-form-modal-scrollable{padding-bottom:12px}
+#tripModal .trip-editor-grid{column-gap:13px;row-gap:10px}
+#tripModal .trip-editor-grid .ui-form-group>label,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group label{margin-bottom:5px;font-size:10.5px}
+#tripModal .trip-editor-grid .ui-input-wrap>input,
+#tripModal .trip-editor-grid .ui-input-wrap>select,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group input,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group select{min-height:39px;height:39px;border-radius:9px}
+#tripModal #tripClientName{min-width:0;width:100%;padding-right:26px;color:#173354;background-color:#fff;cursor:pointer}
+#tripModal #tripClientName:focus{outline:2px solid rgba(37,99,235,.16);outline-offset:0;border-color:#4e86ee}
+#tripModal .trip-notes-group{grid-column:1/-1}
+#tripModal .trip-notes-group textarea{min-height:56px;height:56px;resize:vertical}
+#tripModal .trip-form-note{margin-top:10px}
+#tripModal .ui-form-actions{padding:9px 0 11px}
+@media(max-width:580px){#tripModal .trip-editor-grid{grid-template-columns:1fr}#tripModal .trip-notes-group{grid-column:auto}}
+
+/* Compact two-column layout after removing the redundant Trip Period field. */
+@media(min-width:581px){
+    #tripModal .trip-editor-grid > .trip-departure-time-group { grid-column:1; grid-row:auto; }
+    #tripModal .trip-editor-grid > .trip-required-bus-field { grid-column:2; }
+    #tripModal .trip-editor-grid > .trip-notes-group { grid-column:1/-1; }
+}
+
+/* Compact Trip editor: explicit grid placement prevents single-column gaps. */
+#tripModal .ui-form-modal{width:min(640px,calc(100vw - 24px))}
+#tripModal .ui-form-modal-header{padding:11px 18px}
+#tripModal .ui-form-title-icon{width:39px;height:39px;border-radius:10px}
+#tripModal .ui-form-heading h2{font-size:17px}
+#tripModal .ui-form-heading p{font-size:11px;line-height:1.3}
+#tripModal .ui-form-modal-body{padding:10px 18px 0}
+#tripModal .ui-form-modal-scrollable{padding-bottom:9px}
+#tripModal .trip-editor-grid{column-gap:12px;row-gap:9px}
+#tripModal .trip-editor-grid .ui-form-group>label,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group label{margin-bottom:4px}
+#tripModal .trip-editor-grid .ui-input-wrap>input,
+#tripModal .trip-editor-grid .ui-input-wrap>select,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group input,
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group select{height:38px;min-height:38px}
+#tripModal .trip-notes-group textarea{height:60px;min-height:60px}
+#tripModal .trip-form-note{margin-top:8px}
+#tripModal .ui-form-actions{padding:8px 0 10px}
+@media(min-width:581px){
+  #tripModal .trip-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tripModal .trip-editor-grid>.ui-form-full{grid-column:1/-1}
+  #tripModal .trip-editor-grid>:nth-child(1){grid-column:1;grid-row:1}
+  #tripModal .trip-editor-grid>:nth-child(2){grid-column:2;grid-row:1}
+  #tripModal .trip-editor-grid>:nth-child(3){grid-column:1/-1;grid-row:2}
+  #tripModal .trip-editor-grid>:nth-child(4){grid-column:1/-1;grid-row:3}
+  #tripModal .trip-editor-grid>.trip-service-planning-fields{display:contents}
+  #tripModal .trip-editor-grid>:nth-child(5)>.ui-form-group{grid-column:1;grid-row:4}
+  #tripModal .trip-editor-grid>:nth-child(7)>.ui-form-group{grid-column:2;grid-row:4}
+  #tripModal .trip-editor-grid>.trip-departure-time-group{grid-column:1;grid-row:5}
+  #tripModal .trip-editor-grid>:nth-child(8){grid-column:2;grid-row:5}
+  #tripModal .trip-editor-grid>.trip-notes-group{grid-column:1/-1;grid-row:6}
+}
+@media(max-width:580px){
+  #tripModal .trip-editor-grid{grid-template-columns:1fr}
+  #tripModal .trip-editor-grid>.trip-notes-group{grid-column:auto}
+}
+
+/* Trip editor alignment: equal control heights and consistent grid rows. */
+#tripModal .trip-editor-grid > :nth-child(1),
+#tripModal .trip-editor-grid > :nth-child(2){min-width:0;align-self:start}
+#tripModal .trip-editor-grid > :nth-child(1) .ui-input-wrap,
+#tripModal .trip-editor-grid > :nth-child(2) .ui-input-wrap{width:100%;box-sizing:border-box}
+#tripModal .trip-editor-grid > :nth-child(1) input,
+#tripModal .trip-editor-grid > :nth-child(2) input{width:100%;height:38px;min-height:38px;box-sizing:border-box}
+#tripModal #departureTime[hidden],
+#tripModal #departureTimeSlot[hidden]{display:none!important}
+
+/* Render the native time input OR configured slots in the same field, never both. */
+#tripModal #departureTimeInputWrap[data-departure-mode="slots"] #departureTime,
+#tripModal #departureTimeInputWrap[data-departure-mode="slots"] .gct-picker-trigger[data-picker-for="departureTime"],
+#tripModal #departureTimeInputWrap[data-departure-mode="manual"] #departureTimeSlot {
+    display: none !important;
+}
+#tripModal #departureTimeInputWrap[data-departure-mode="slots"] #departureTimeSlot,
+#tripModal #departureTimeInputWrap[data-departure-mode="manual"] #departureTime {
+    width: 100%;
+    min-height: 38px;
+    height: 38px;
+}
+
+
+/* Align schedule tabs and heading divider with other Operations pages. */
+.trip-schedule-page .service-controls-card .section-header.service-schedule-toolbar {
+    padding-bottom: 15px;
+    margin-bottom: 12px;
+    border-bottom: 0;
+}
+.trip-schedule-page .service-controls-card .trip-record-tabs { min-height: 44px; }
+.trip-schedule-page .service-controls-card .trip-record-tab {
+    min-height: 38px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 700;
+}

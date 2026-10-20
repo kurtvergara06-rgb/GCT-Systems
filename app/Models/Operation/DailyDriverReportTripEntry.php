@@ -10,7 +10,7 @@ class DailyDriverReportTripEntry extends Model
 {
     protected $fillable = [
         'sequence', 'trip_schedule_id', 'trip_assignment_id',
-        'trip_ticket', 'from_location', 'to_location',
+        'trip_ticket', 'from_location', 'to_location', 'route_deviation_reason',
         'departure_time', 'arrival_time', 'passengers', 'km',
     ];
 

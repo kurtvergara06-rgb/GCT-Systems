@@ -99,11 +99,18 @@ class TripAssignmentController extends Controller
         $endExpression = $driver === 'sqlite'
             ? "CASE WHEN estimated_arrival_date IS NOT NULL THEN datetime(estimated_arrival_date || ' ' || estimated_arrival_time) ELSE datetime(trip_date || ' ' || estimated_arrival_time, CASE WHEN time(estimated_arrival_time) <= time(departure_time) THEN '+1 day' ELSE '+0 day' END) END"
             : "CASE WHEN estimated_arrival_date IS NOT NULL THEN TIMESTAMP(estimated_arrival_date, estimated_arrival_time) ELSE DATE_ADD(TIMESTAMP(trip_date, estimated_arrival_time), INTERVAL IF(estimated_arrival_time <= departure_time, 1, 0) DAY) END";
-        // Missed filtering must include expired unassigned trips, even after ETA.
-        // All other views remain scoped to future/ongoing assignment windows.
+        // Keep assigned trips visible while awaiting physical DDRs, even after ETA.
+        // ETA is only a planning estimate and must never retire an assignment.
+        // Historical Completed/Cancelled/Missed trips remain in Trip Records.
         if ($request->input('status') !== 'Missed') {
             $query->whereNotIn('status', ['Completed', 'Cancelled', 'Missed'])
-                ->whereRaw("($endExpression) > ?", [$nowTimestamp]);
+                ->where(function ($active) use ($endExpression, $nowTimestamp): void {
+                    $active->whereRaw("($endExpression) > ?", [$nowTimestamp])
+                        ->orWhere(function ($awaitingDdr): void {
+                            $awaitingDdr->whereIn('status', ['Ready', 'Dispatched', 'Pending DDR', 'Delayed'])
+                                ->whereHas('assignments');
+                        });
+                });
         }
 
         if (
@@ -165,16 +172,14 @@ class TripAssignmentController extends Controller
             )
             ->count();
 
-        $availableDrivers = DriverAttendance::query()
-            ->whereDate('attendance_date', $selectedTripDate)
-            ->whereIn('status', ['Present', 'Late'])
-            ->whereHas('driver', fn ($query) => $query
-                ->where('employment_status', 'Active')
-                ->where(function ($licenseQuery) use ($selectedTripDate): void {
-                    $licenseQuery
-                        ->whereNull('license_expiration')
-                        ->orWhereDate('license_expiration', '>=', $selectedTripDate);
-                }))
+        // Attendance is confirmed after DDR submission, not before scheduling.
+        $availableDrivers = Driver::query()
+            ->with('authorizedBuses')
+            ->where('employment_status', 'Active')
+            ->where(function ($licenseQuery) use ($selectedTripDate): void {
+                $licenseQuery->whereNull('license_expiration')
+                    ->orWhereDate('license_expiration', '>=', $selectedTripDate);
+            })
             ->orderBy('driver_name')
             ->paginate(10, ['*'], 'driver_page')
             ->withQueryString();
@@ -230,7 +235,7 @@ class TripAssignmentController extends Controller
 
         $selectedTripDate = $validated['trip_date'];
         $assignments = TripAssignment::query()
-            ->with(['bus', 'reserveApproval', 'tripSchedule.shuttleRoute'])
+            ->with(['bus', 'reserveApproval', 'incidents.replacement', 'tripSchedule.shuttleRoute'])
             ->whereHas('tripSchedule', fn ($query) => $query->whereDate('trip_date', $selectedTripDate))
             ->orderBy('trip_schedule_id')
             ->orderBy('id')
@@ -306,33 +311,29 @@ class TripAssignmentController extends Controller
             ->values()
             ->all();
 
-        $drivers = DriverAttendance::query()
-            ->whereDate('attendance_date', $tripSchedule->trip_date)
-            ->where('shift', $tripSchedule->shift)
-            ->whereIn('status', ['Present', 'Late'])
-            ->whereHas('driver', fn ($query) => $query
-                ->where('employment_status', 'Active')
-                ->where(function ($licenseQuery) use ($tripSchedule): void {
-                    $licenseQuery
-                        ->whereNull('license_expiration')
-                        ->orWhereDate('license_expiration', '>=', $tripSchedule->trip_date);
-                }))
+        $drivers = Driver::query()
+            ->with('authorizedBuses')
+            ->where('employment_status', 'Active')
+            ->where(function ($query) use ($tripSchedule): void {
+                $query->whereNull('license_expiration')
+                    ->orWhereDate('license_expiration', '>=', $tripSchedule->trip_date);
+            })
+            ->when($busyDriverIds !== [], fn ($query) => $query->whereNotIn('driver_id', $busyDriverIds))
             ->orderBy('driver_name')
-            ->when(
-                $busyDriverIds !== [],
-                fn ($query) => $query->whereNotIn('driver_id', $busyDriverIds)
-            )
             ->get()
-            ->values()
-            ->map(fn (DriverAttendance $attendance) => [
-                'id' => $attendance->id,
-                'driver_id' => $attendance->driver_id,
-                'name' => $attendance->driver_name,
-                'shift' => $attendance->shift,
-                'status' => $attendance->status,
-            ]);
+            ->map(fn (Driver $driver) => [
+                'id' => $driver->driver_id,
+                'driver_id' => $driver->driver_id,
+                'name' => $driver->driver_name,
+                'status' => 'Assumed Available',
+                'authorized_bus_ids' => $driver->authorizedBuses->pluck('id')->all(),
+            ])
+            ->values();
+
+        $tripClient = mb_strtolower(trim((string) ($tripSchedule->client_name ?? '')));
 
         $buses = Bus::query()
+            ->with('operationClients:id,name')
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
@@ -342,6 +343,15 @@ class TripAssignmentController extends Controller
             )
             ->orderBy('bus_no')
             ->get()
+            ->filter(function (Bus $bus) use ($tripClient): bool {
+                $allocations = $bus->operationClients
+                    ->pluck('name')
+                    ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+                return $tripClient === ''
+                    ? $allocations->isEmpty()
+                    : $allocations->contains($tripClient);
+            })
             ->values()
             ->map(fn (Bus $bus) => [
                 'id' => $bus->id,
@@ -423,11 +433,14 @@ class TripAssignmentController extends Controller
                 $this->assertRouteIsActive($trip);
 
                 $driver = $this->lockEligibleDriver(
-                    $validated['driver_attendance_id'],
-                    $trip
+                    $validated['driver_attendance_id'] ?? null,
+                    $trip,
+                    $validated['driver_id'] ?? null
                 );
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
+                $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
+                $this->assertBusAllocatedToTripClient($trip, $bus);
 
                 if ($trip->assignments()->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -450,7 +463,7 @@ class TripAssignmentController extends Controller
                 $assignment = TripAssignment::create([
                     'trip_schedule_id' => $trip->id,
                     'slot_number' => $slotNumber,
-                    'driver_attendance_id' => $driver->id,
+                    'driver_attendance_id' => $driver->id ?: null,
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
                     'bus_id' => $bus->id,
@@ -527,11 +540,14 @@ class TripAssignmentController extends Controller
                 $this->assertRouteIsActive($trip);
 
                 $driver = $this->lockEligibleDriver(
-                    $validated['driver_attendance_id'],
-                    $trip
+                    $validated['driver_attendance_id'] ?? null,
+                    $trip,
+                    $validated['driver_id'] ?? null
                 );
 
                 $bus = $this->lockEligibleBus($validated['bus_id']);
+                $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
+                $this->assertBusAllocatedToTripClient($trip, $bus);
 
                 if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
@@ -553,7 +569,7 @@ class TripAssignmentController extends Controller
                 );
 
                 $lockedAssignment->update([
-                    'driver_attendance_id' => $driver->id,
+                    'driver_attendance_id' => $driver->id ?: null,
                     'driver_id' => $driver->driver_id,
                     'driver_name' => $driver->driver_name,
                     'bus_id' => $bus->id,
@@ -676,28 +692,32 @@ class TripAssignmentController extends Controller
     }
 
     private function lockEligibleDriver(
-        int $attendanceId,
-        TripSchedule $trip
+        ?int $attendanceId,
+        TripSchedule $trip,
+        ?string $driverId = null
     ): DriverAttendance {
-        $attendance = DriverAttendance::query()
-            ->whereKey($attendanceId)
-            ->whereDate('attendance_date', $trip->trip_date)
-            ->where('shift', $trip->shift)
-            ->whereIn('status', ['Present', 'Late'])
-            ->lockForUpdate()
-            ->first();
+        $attendance = $attendanceId
+            ? DriverAttendance::query()
+                ->whereKey($attendanceId)
+                ->whereDate('attendance_date', $trip->trip_date)
+                ->lockForUpdate()
+                ->first()
+            : null;
 
-        if (! $attendance) {
+        if ($attendanceId && ! $attendance) {
             throw ValidationException::withMessages([
-                'driver_attendance_id' => 'Select a present driver attendance record for this trip date and shift.',
+                'driver_attendance_id' => 'The selected attendance record does not match this trip date.',
             ]);
         }
 
-        $activeDriver = Driver::query()
-            ->where('driver_id', $attendance->driver_id)
-            ->where('employment_status', 'Active')
-            ->lockForUpdate()
-            ->first();
+        $resolvedDriverId = $driverId ?: $attendance?->driver_id;
+        $activeDriver = $resolvedDriverId
+            ? Driver::query()
+                ->where('driver_id', $resolvedDriverId)
+                ->where('employment_status', 'Active')
+                ->lockForUpdate()
+                ->first()
+            : null;
 
         if (! $activeDriver) {
             throw ValidationException::withMessages([
@@ -715,7 +735,21 @@ class TripAssignmentController extends Controller
             ]);
         }
 
-        return $attendance;
+        if ($attendance) {
+            return $attendance;
+        }
+
+        // Planning does not establish actual attendance. Only a valid DDR
+        // records Present; manual assignment may use the Active Driver master.
+        $candidate = new DriverAttendance([
+            'driver_id' => $activeDriver->driver_id,
+            'driver_name' => $activeDriver->driver_name,
+            'status' => 'Assumed Present',
+            'attendance_date' => $trip->trip_date,
+        ]);
+        $candidate->id = null;
+
+        return $candidate;
     }
 
     private function assertRouteIsActive(
@@ -731,6 +765,37 @@ class TripAssignmentController extends Controller
         throw ValidationException::withMessages([
             'trip_schedule_id' => 'This trip uses an inactive route. Reactivate the route or move the trip to an active route before assigning a driver and bus.',
         ]);
+    }
+
+    private function assertBusAllocatedToTripClient(TripSchedule $trip, Bus $bus): void
+    {
+        $client = trim((string) ($trip->client_name ?? ''));
+        $allocations = $bus->operationClients()->pluck('name')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+        $compatible = $client === ''
+            ? $allocations->isEmpty()
+            : $allocations->contains(mb_strtolower($client));
+
+        if (! $compatible) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'The bus allocation does not match this trip client. Select a compatible bus.',
+            ]);
+        }
+    }
+
+    private function assertDriverAuthorizedForBus(string $driverId, int $busId): void
+    {
+        $authorized = Driver::query()
+            ->where('driver_id', $driverId)
+            ->whereHas('authorizedBuses', fn ($query) => $query->whereKey($busId))
+            ->exists();
+
+        if (! $authorized) {
+            throw ValidationException::withMessages([
+                'driver_attendance_id' => 'This driver is not authorized for the selected bus. Update Authorized Buses in the Driver Master List.',
+            ]);
+        }
     }
 
     private function lockEligibleBus(int $busId): Bus
@@ -772,10 +837,12 @@ class TripAssignmentController extends Controller
                 Rule::exists('trip_schedules', 'id'),
             ],
             'driver_attendance_id' => [
-                'required',
+                'nullable',
+                'required_without:driver_id',
                 'integer',
                 Rule::exists('driver_attendances', 'id'),
             ],
+            'driver_id' => ['nullable', 'required_without:driver_attendance_id', 'string', Rule::exists('drivers', 'driver_id')],
             'bus_id' => [
                 'required',
                 'integer',

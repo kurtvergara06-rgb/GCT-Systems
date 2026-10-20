@@ -14,7 +14,7 @@ function initBatchAttendancePage() {
     const label = type === 'driver' ? 'Driver' : 'Mechanic';
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
     const modalDescription = type === 'driver'
-        ? 'Active drivers from the Driver Master List load automatically for the selected date and shift.'
+        ? 'All active drivers from the Driver Master List load automatically for the selected date.'
         : 'Active mechanics from the Mechanic Master List load automatically for the selected date and shift.';
 
     let shiftStarts = {};
@@ -31,7 +31,7 @@ function initBatchAttendancePage() {
 
         const overlay = document.createElement('div');
         overlay.id = 'batchAttendanceModal';
-        overlay.className = 'modal-overlay batch-attendance-overlay active';
+        overlay.className = `modal-overlay batch-attendance-overlay active batch-attendance-${type}`;
         overlay.innerHTML = `
             <div class="batch-attendance-modal" role="dialog" aria-modal="true" aria-label="Record Daily Attendance">
                 <div class="batch-attendance-header">
@@ -54,7 +54,7 @@ function initBatchAttendancePage() {
                             <input type="date" id="batchAttendanceDate" value="${today()}" />
                         </div>
                     </label>
-                    <label>
+                    <label style="${type === 'driver' ? 'display:none' : ''}">
                         <span>Shift</span>
                         <div class="batch-input-wrap">
                             <select id="batchAttendanceShift">
@@ -70,6 +70,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
+                    ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
 
                 <div class="batch-shared-time-layer" id="batchSharedTimeLayer" hidden>
@@ -92,10 +93,10 @@ function initBatchAttendancePage() {
                                 <tr>
                                     <th class="select-col"><input type="checkbox" id="batchSelectAll" aria-label="Select all rows"></th>
                                     <th>${label}</th>
-                                    <th>Shift</th>
-                                    <th>Scheduled Time</th>
+                                    <th>${type === 'driver' ? 'Duty' : 'Shift'}</th>
+                                    <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
                                     <th>Time In</th>
-                                    <th>Time Out</th>
+                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}</th>
                                     <th>Attendance Status</th>
                                     <th>Availability</th>
                                 </tr>
@@ -129,6 +130,12 @@ function initBatchAttendancePage() {
         });
         overlay.querySelector('#batchAttendanceDate').addEventListener('change', loadRoster);
         overlay.querySelector('#batchAttendanceShift').addEventListener('change', loadRoster);
+        overlay.querySelector('#batchDriverSearch')?.addEventListener('input', (event) => {
+            const query = event.target.value.trim().toLowerCase();
+            overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
+                row.hidden = !String(row.dataset.name || '').toLowerCase().includes(query);
+            });
+        });
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
@@ -195,41 +202,43 @@ function initBatchAttendancePage() {
 
         if (!rows.length) {
             body.innerHTML = type === 'driver'
-                ? '<tr><td colspan="8" class="batch-empty">No active drivers were found in the Driver Master List for the selected shift.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">No active mechanics were found in the Mechanic Master List for the selected shift.</td></tr>';
+                ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
+                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics for this shift.</td></tr>';
             updateSummary();
             return;
         }
 
         body.innerHTML = rows.map((row) => {
             const normalizedStatus = normalizeStatus(row.status);
+            const isRecorded = row.recorded === true;
             const initialAvailability = computeAvailability(normalizedStatus, row.assigned_job || '');
             return `
                 <tr
                     data-batch-row
+                    data-recorded="${isRecorded ? 'true' : 'false'}"
                     data-person-id="${escapeHtml(row.person_id)}"
                     data-name="${escapeHtml(row.name)}"
                     data-shift="${escapeHtml(row.shift)}"
                     data-assigned-job="${escapeHtml(row.assigned_job || '')}"
                 >
-                    <td class="select-col"><input type="checkbox" data-row-select ${['Present', 'Late'].includes(normalizedStatus) ? 'checked' : ''}></td>
+                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
                     <td>
                         <div class="batch-person-cell">
                             <span class="batch-avatar">${escapeHtml(initials(row.name))}</span>
                             <div class="batch-person-meta">
                                 <strong>${escapeHtml(row.name)}</strong>
-                                <small>${label}</small>
+                                <small>${isRecorded ? 'Recorded · View in attendance list to edit' : label}</small>
                             </div>
                         </div>
                     </td>
                     <td>
                         <div class="batch-shift-meta">
-                            <strong>${escapeHtml(row.shift)}</strong>
-                            <small>${escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
+                            <strong>${type === 'driver' ? 'Daily Attendance' : escapeHtml(row.shift)}</strong>
+                            <small>${type === 'driver' ? 'No shift assignment' : escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
                         </div>
                     </td>
                     <td>
-                        <span class="batch-scheduled-time">${escapeHtml(formatTime(shiftStarts[row.shift]) || '--:--')}</span>
+                        <span class="batch-scheduled-time">${type === 'driver' ? 'Flexible' : escapeHtml(formatTime(shiftStarts[row.shift]) || '--:--')}</span>
                     </td>
                     <td>
                         <div class="batch-time-cell">
@@ -240,12 +249,14 @@ function initBatchAttendancePage() {
                         </div>
                     </td>
                     <td>
-                        <div class="batch-time-cell batch-time-out-cell">
+                        <div class="batch-time-cell batch-time-out-cell" style="${type === 'driver' ? 'display:none' : ''}">
                             <input type="time" data-time-out data-native-picker="true" value="${escapeHtml(row.time_out || '')}">
                         </div>
+                        ${type === 'driver' ? '<span class="batch-scheduled-time">Daily</span>' : ''}
                     </td>
                     <td>
                         <div class="batch-status-group" role="group" aria-label="Attendance status">
+                            ${type === 'driver' ? renderStatusButton('Unmarked', normalizedStatus) : ''}
                             ${renderStatusButton('Present', normalizedStatus)}
                             ${type === 'mechanic' ? renderStatusButton('Late', normalizedStatus) : ''}
                             ${renderStatusButton('Absent', normalizedStatus)}
@@ -258,7 +269,12 @@ function initBatchAttendancePage() {
                 </tr>`;
         }).join('');
 
-        body.querySelectorAll('[data-batch-row]').forEach((row) => initializeRow(row));
+        body.querySelectorAll('[data-batch-row]').forEach((row) => {
+            initializeRow(row);
+            if (row.dataset.recorded === 'true') {
+                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+            }
+        });
         updateSummary();
     }
 
@@ -277,6 +293,7 @@ function initBatchAttendancePage() {
         statusButtons.forEach((statusButton) => {
             statusButton.addEventListener('click', () => {
                 setSelectedStatus(row, statusButton.dataset.statusValue);
+                if (type === 'driver') row.querySelector('[data-row-select]').checked = statusButton.dataset.statusValue !== 'Unmarked';
                 applyStatusRules(row);
                 detectLate(row);
                 updateAvailability(row);
@@ -304,8 +321,9 @@ function initBatchAttendancePage() {
     }
 
     function markAllPresent() {
-        document.querySelectorAll('#batchAttendanceModal [data-batch-row]').forEach((row) => {
+        document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
             setSelectedStatus(row, 'Present');
+            if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
             detectLate(row);
             updateAvailability(row);
@@ -314,11 +332,11 @@ function initBatchAttendancePage() {
     }
 
     function clearAllRows() {
-        document.querySelectorAll('#batchAttendanceModal [data-batch-row]').forEach((row) => {
+        document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
-            setSelectedStatus(row, 'Present');
+            setSelectedStatus(row, type === 'driver' ? 'Unmarked' : 'Present');
             applyStatusRules(row, false);
             updateAvailability(row);
         });
@@ -338,7 +356,7 @@ function initBatchAttendancePage() {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
+            .filter((row) => row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
             toast('Select at least one available personnel row.', 'warning');
             return;
@@ -435,6 +453,7 @@ function initBatchAttendancePage() {
     }
 
     function computeAvailability(status, assignedJob) {
+        if (status === 'Unmarked') return 'Not recorded';
         if (['Absent', 'On Leave'].includes(status)) {
             return 'Unavailable';
         }
@@ -449,7 +468,9 @@ function initBatchAttendancePage() {
         const saveButton = modal?.querySelector('#batchSaveAttendance');
         if (!modal || !saveButton) return;
 
-        const rows = [...modal.querySelectorAll('[data-batch-row]')].map((row) => ({
+        const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
+             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
+        const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
             shift: row.dataset.shift,
@@ -513,7 +534,7 @@ function initBatchAttendancePage() {
     }
 
     function selectedStatus(row) {
-        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || 'Present';
+        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function setSelectedStatus(row, status) {
@@ -523,11 +544,12 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Absent', 'On Leave'].includes(status) ? status : 'Present';
+        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : [])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function statusThemeClass(value) {
         return {
+            Unmarked: 'unmarked',
             Present: 'present',
             Late: 'late',
             Absent: 'absent',
@@ -538,6 +560,7 @@ function initBatchAttendancePage() {
     function availabilityClass(value) {
         if (value === busyLabel) return 'busy';
         if (value === 'Unavailable') return 'unavailable';
+        if (value === 'Not recorded') return 'unmarked';
         return 'available';
     }
 
@@ -548,6 +571,7 @@ function initBatchAttendancePage() {
 
         const rows = [...modal.querySelectorAll('[data-batch-row]')];
         const counts = {
+            Unmarked: 0,
             Present: 0,
             Late: 0,
             Absent: 0,
@@ -556,15 +580,17 @@ function initBatchAttendancePage() {
         };
 
         rows.forEach((row) => {
+            if (row.dataset.recorded === 'true') return;
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
-            if (!['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+            if (status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
                 counts.Incomplete += 1;
             }
         });
 
         summary.innerHTML = [
+            ...(type === 'driver' ? [['Unmarked', 'unmarked', '#94a3b8']] : []),
             ['Present', 'present', '#2fb45e'],
             ['Late', 'late', '#ff9518'],
             ['Absent', 'absent', '#ef3d3d'],

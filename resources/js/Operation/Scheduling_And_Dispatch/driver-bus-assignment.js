@@ -323,10 +323,13 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignmentDriverOptionsContainer) {
             assignmentDriverOptionsContainer.innerHTML = drivers.length
                 ? drivers.map((driver) => {
-                    const label = `${driver.name} — ${driver.shift} Shift`;
-                    const search = `${driver.driver_id} ${driver.name} ${driver.shift} ${driver.status}`.toLowerCase();
+                    const label = driver.name;
+                    const search = `${driver.driver_id} ${driver.name} ${driver.status}`.toLowerCase();
+                    const authorizedBuses = Array.isArray(driver.authorized_bus_ids)
+                        ? driver.authorized_bus_ids.join(',')
+                        : '';
 
-                    return `<button type="button" class="assignment-combobox-option assignment-driver-option" data-value="${escapeHtml(driver.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(driver.name)}</strong><small>${escapeHtml(driver.driver_id)} — ${escapeHtml(driver.shift)} Shift — ${escapeHtml(driver.status)}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-driver-option" data-value="${escapeHtml(driver.id)}" data-label="${escapeHtml(label)}" data-authorized-buses="${escapeHtml(authorizedBuses)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(driver.name)}</strong><small>${escapeHtml(driver.driver_id)} — ${escapeHtml(driver.status)}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No eligible drivers are available for this trip.</p>';
         }
@@ -572,6 +575,13 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             }
         );
 
+        const allowed = assignmentDriverOptions.find(
+            (option) => String(option.dataset.value) === String(value)
+        )?.dataset.authorizedBuses?.split(',').filter(Boolean) || [];
+        if (assignmentBus?.value && !allowed.includes(String(assignmentBus.value))) {
+            resetBusSelection();
+        }
+        filterBusOptions(assignmentBusSearch?.value || '');
         closeDriverDropdown();
     }
 
@@ -666,7 +676,15 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                         normalizedSearch
                     );
 
-                option.hidden = !shouldShow;
+                const selectedDriver = assignmentDriverOptions.find(
+                    (driverOption) => String(driverOption.dataset.value) === String(assignmentDriver?.value || '')
+                );
+                const allowed = selectedDriver
+                    ? (selectedDriver.dataset.authorizedBuses || '').split(',').filter(Boolean)
+                    : null;
+                const busAuthorized = !allowed || allowed.includes(String(option.dataset.value));
+
+                option.hidden = !shouldShow || !busAuthorized;
             }
         );
     }
@@ -1312,82 +1330,24 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const applySource = () => {
         const form = document.getElementById('assignmentForm');
         const source = document.getElementById('assignmentSource');
-        const pending = document.getElementById('assignmentPendingSlot');
         const company = document.getElementById('companyAssignmentFields');
-        const rental = document.getElementById('externalRentalFields');
-        if (!form || !source || !pending || !company || !rental) return;
-        const selector = document.getElementById('assignmentSourceSelector');
-        const isRental = Boolean(selector && !selector.hidden && source.value === 'rental');
-        document.querySelectorAll('[data-assignment-source]').forEach((button) => {
-            const selected = button.dataset.assignmentSource === source.value;
-            button.classList.toggle('is-selected', selected);
-            button.setAttribute('aria-pressed', selected ? 'true' : 'false');
-        });
-        company.hidden = isRental;
-        company.style.display = isRental ? 'none' : '';
-        rental.hidden = !isRental;
-        rental.style.display = isRental ? 'block' : 'none';
-        const validation = form.querySelector('.assignment-validation');
-        if (validation) validation.hidden = isRental;
-        for (const field of rental.querySelectorAll('input,textarea,select')) {
-            field.disabled = !isRental;
-        }
-        const confirmed = rental.querySelector('[name="rental_status"]')?.value === 'Confirmed';
-        for (const name of ['company_name', 'plate_number', 'driver_name']) {
-            const field = rental.querySelector('[name="' + name + '"]');
-            if (field) field.required = isRental && (name === 'company_name' || confirmed);
-        }
-        for (const name of ['driver_attendance_id', 'bus_id']) {
+        if (!form || !company) return;
+        if (source) source.value = 'company';
+        company.hidden = false;
+        company.style.display = '';
+        if (form.dataset.companyAction) form.action = form.dataset.companyAction;
+        for (const name of ['driver_id', 'bus_id']) {
             const field = form.elements.namedItem(name);
-            if (field) { field.disabled = isRental; field.required = !isRental; }
+            if (field) { field.disabled = false; field.required = true; }
         }
-        if (isRental) {
-            if (!form.dataset.companyAction) form.dataset.companyAction = form.action;
-            form.action = "/operation/external-bus-rentals";
-            const method = document.getElementById('assignmentFormMethod');
-            if (method) method.disabled = true;
-            const trip = document.getElementById('assignmentLockedTrip');
-            if (trip) trip.disabled = false;
-            const submit = document.getElementById('assignmentSubmitText');
-            if (submit) submit.textContent = 'Save Rental';
-        } else {
-            if (form.dataset.companyAction) form.action = form.dataset.companyAction;
-            const submit = document.getElementById('assignmentSubmitText');
-            if (submit && !pending.disabled) submit.textContent = 'Confirm Assignment';
-        }
+        const submit = document.getElementById('assignmentSubmitText');
+        if (submit) submit.textContent = 'Confirm Assignment';
     };
     document.addEventListener('click', (event) => {
-        const button = event.target.closest('.open-assignment');
-        const selector = document.getElementById('assignmentSourceSelector');
-        const source = document.getElementById('assignmentSource');
+        if (!event.target.closest('.open-assignment, #openAssignmentModal, .edit-assignment')) return;
         const form = document.getElementById('assignmentForm');
-        if (button && selector && source && form) {
-            form.dataset.companyAction = form.action;
-            selector.hidden = false;
-            source.value = 'company';
-            const rental = document.getElementById('externalRentalFields');
-            if (rental) {
-                const values = {
-                    company_name: button.dataset.rentalCompany || '',
-                    contact_details: button.dataset.rentalContact || '',
-                    plate_number: button.dataset.rentalPlate || '',
-                    driver_name: button.dataset.rentalDriver || '',
-                    notes: button.dataset.rentalNotes || '',
-                    rental_status: button.dataset.rentalStatus || 'Pending',
-                };
-                for (const [name,value] of Object.entries(values)) {
-                    const field = rental.querySelector('[name="' + name + '"]');
-                    if (field) field.value = value;
-                }
-            }
-            applySource();
-        }
-        if (event.target.closest('#openAssignmentModal, .edit-assignment')) {
-            if (form) form.dataset.companyAction = form.action;
-            if (selector) selector.hidden = true;
-            if (source) source.value = 'company';
-            applySource();
-        }
+        if (form) form.dataset.companyAction = form.action;
+        applySource();
     });
     // Capture card clicks before generic modal handlers; cards are not form submits.
     assignmentModal?.addEventListener('click', (event) => {
@@ -1401,7 +1361,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         applySource();
     }, true);
     assignmentModal?.addEventListener('change', (event) => {
-        if (event.target?.id === 'assignmentSource' || event.target?.id === 'externalRentalStatus') {
+        if (event.target?.id === 'assignmentSource') {
             applySource();
         }
     });

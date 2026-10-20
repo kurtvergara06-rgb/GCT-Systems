@@ -194,10 +194,10 @@ class IsolatedRolePermissionsTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'warehouse_head']))
             ->assertOk()
-            ->assertSee('Warehouse Module Access')
-            ->assertSee('Module Access Restriction')
-            ->assertSee('2 of 2 Allowed')
-            ->assertDontSee('System-Wide Access');
+            ->assertSee('System-Wide Module Access')
+            ->assertSee('UI preview — no cross-module access granted')
+            ->assertSee('2 of 17 Allowed')
+            ->assertSee('Only Warehouse permissions can be saved currently');
 
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'admin_head']))
@@ -205,5 +205,24 @@ class IsolatedRolePermissionsTest extends TestCase
             ->assertSee('System-Wide Access')
             ->assertSee('Full System Access')
             ->assertSee('Protected Role');
+    }
+
+    public function test_roles_permissions_controls_reinitialize_after_partial_navigation(): void
+    {
+        $admin = $this->systemAdmin();
+
+        $this->actingAs($admin)
+            ->get(route('admin.roles-permissions', ['role' => 'operation_head']))
+            ->assertOk()
+            ->assertSee('permissions[operation][view]', false)
+            ->assertSee('permissions[operation][edit]', false)
+            ->assertSee('permissions[operation][approve]', false);
+
+        $source = file_get_contents(resource_path('js/Admin/User_Management/permissions.js'));
+        $view = file_get_contents(resource_path('views/Admin/User_Management/permissions.blade.php'));
+        $this->assertStringContainsString('resources/js/Admin/User_Management/permissions.js', $view);
+        $this->assertStringContainsString("registerInitializer(\n    'admin-role-permissions'", $source);
+        $this->assertStringContainsString("'.permissions-page'", $source);
+        $this->assertStringNotContainsString('DOMContentLoaded', $source);
     }
 }

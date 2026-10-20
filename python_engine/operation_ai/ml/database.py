@@ -160,7 +160,6 @@ def fetch_driver_attendance(db: DbConnection) -> pd.DataFrame:
         SELECT
             driver_id,
             driver_name,
-            shift,
             attendance_date,
             status
         FROM driver_attendances
@@ -168,6 +167,43 @@ def fetch_driver_attendance(db: DbConnection) -> pd.DataFrame:
     df = db.query_df(sql)
     df["attendance_date"] = pd.to_datetime(df["attendance_date"], errors="coerce")
     return df
+
+
+def fetch_completed_driver_trip_evidence(db: DbConnection) -> pd.DataFrame:
+    """Read genuine, explicitly linked DDR evidence for completed trips.
+
+    Both primary and additional DDR entries are supported. Require an
+    assignment that belongs to the same trip AND names the same driver as
+    the DDR; avoid attributing a bus-only or ambiguous report to a driver.
+    Never treat a scheduled assignment as proof of completion.
+    """
+    sql = """
+        SELECT d.id AS report_id, NULL AS entry_id, d.driver_id,
+               d.report_date, d.trip_schedule_id, d.trip_assignment_id,
+               d.departure_time, d.arrival_time, d.km, d.passengers,
+               t.trip_date, t.direction, t.planned_distance_km,
+               t.planned_duration_minutes
+        FROM daily_driver_reports d
+        JOIN trip_schedules t ON t.id = d.trip_schedule_id
+        JOIN trip_assignments a ON a.id = d.trip_assignment_id
+            AND a.trip_schedule_id = t.id AND a.driver_id = d.driver_id
+        WHERE t.status = 'Completed' AND t.deleted_at IS NULL
+          AND d.driver_id IS NOT NULL AND d.unscheduled_reason IS NULL
+        UNION ALL
+        SELECT d.id AS report_id, e.id AS entry_id, d.driver_id,
+               d.report_date, e.trip_schedule_id, e.trip_assignment_id,
+               e.departure_time, e.arrival_time, e.km, e.passengers,
+               t.trip_date, t.direction, t.planned_distance_km,
+               t.planned_duration_minutes
+        FROM daily_driver_report_trip_entries e
+        JOIN daily_driver_reports d ON d.id = e.daily_driver_report_id
+        JOIN trip_schedules t ON t.id = e.trip_schedule_id
+        JOIN trip_assignments a ON a.id = e.trip_assignment_id
+            AND a.trip_schedule_id = t.id AND a.driver_id = d.driver_id
+        WHERE t.status = 'Completed' AND t.deleted_at IS NULL
+          AND d.driver_id IS NOT NULL AND d.unscheduled_reason IS NULL
+    """
+    return db.query_df(sql)
 
 
 def data_availability(db: DbConnection) -> Dict[str, int]:

@@ -319,3 +319,128 @@
 /* Show the shared time picker immediately, without a second selection dialog. */
 .batch-shared-time-layer.is-picker-only { background: transparent; backdrop-filter: none; pointer-events: none; }
 .batch-shared-time-layer.is-picker-only .batch-shared-time-dialog { visibility: hidden; }
+
+/* Driver-only batch attendance composition: date, actions and search on one row.
+   Scope carefully so Mechanic Attendance retains its original shift controls. */
+.batch-attendance-driver .batch-attendance-modal {
+  width: min(1440px, calc(100vw - 48px));
+  height: min(860px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.batch-attendance-driver .batch-attendance-header {
+  flex: 0 0 auto;
+  padding: 22px 24px 14px;
+}
+.batch-attendance-driver .batch-attendance-header h2 { font-size: 24px; }
+.batch-attendance-driver .batch-attendance-controls {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 8px 24px 16px;
+}
+.batch-attendance-driver .batch-attendance-controls > label:first-child {
+  flex: 0 0 190px;
+  min-width: 170px;
+}
+.batch-attendance-driver .batch-attendance-controls > label:nth-child(2) {
+  display: none !important;
+}
+.batch-attendance-driver .batch-action-row {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+}
+.batch-attendance-driver .batch-control-btn {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 8px 11px;
+  white-space: nowrap;
+}
+.batch-attendance-driver .batch-driver-search {
+  flex: 0 1 205px;
+  min-width: 155px;
+}
+.batch-attendance-driver .batch-driver-search input {
+  width: 100%;
+}
+.batch-attendance-driver .batch-table-shell {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 0 24px 14px;
+}
+.batch-attendance-driver .batch-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+.batch-attendance-driver .batch-attendance-table {
+  min-width: 1040px;
+}
+.batch-attendance-driver .batch-attendance-table tbody tr[hidden] { display: none; }
+.batch-attendance-driver .batch-attendance-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px 20px;
+}
+.batch-attendance-driver .batch-summary-grid { min-width: 0; flex: 1 1 auto; }
+.batch-attendance-driver .batch-footer-actions { flex: 0 0 auto; }
+@media (max-width: 1180px) {
+  .batch-attendance-driver .batch-attendance-controls { gap: 10px; }
+  .batch-attendance-driver .batch-action-row { flex: 1 1 65%; }
+  .batch-attendance-driver .batch-driver-search { flex: 1 1 210px; }
+}
+@media (max-width: 800px) {
+  .batch-attendance-driver.batch-attendance-overlay { padding: 10px; align-items: center; }
+  .batch-attendance-driver .batch-attendance-modal {
+    width: 100%;
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+  .batch-attendance-driver .batch-attendance-header,
+  .batch-attendance-driver .batch-attendance-controls { padding-left: 14px; padding-right: 14px; }
+  .batch-attendance-driver .batch-control-btn { width: auto; }
+  .batch-attendance-driver .batch-table-shell { padding-left: 14px; padding-right: 14px; }
+  .batch-attendance-driver .batch-attendance-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 14px 14px;
+  }
+  .batch-attendance-driver .batch-summary-grid { width: 100%; }
+  .batch-attendance-driver .batch-footer-actions { justify-content: flex-end; }
+}
+
+/* Unrecorded drivers remain neutral until explicitly marked. */
+.batch-attendance-driver .batch-status-btn.unmarked.is-active {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+  color: #334155;
+}
+.batch-attendance-driver .batch-availability-badge.unmarked {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.batch-attendance-driver .batch-summary-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+@media (max-width: 950px) {
+  .batch-attendance-driver .batch-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .batch-attendance-driver .batch-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -97,3 +97,76 @@
 #availabilityBusModal .bus-details-status[data-status="On Trip"]{background:#dbeafe;color:#1d4ed8}
 #availabilityBusModal .bus-details-status[data-status="Out of Service"]{background:#f1f5f9;color:#475569}
 #availabilityBusModal .bus-details-footer .primary-btn:hover{background:#f4ad00}
+
+
+/* Same compact segmented tab treatment as Operations Driver Master List. */
+.bus-availability-page .availability-record-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #d8e3f3;
+  border-radius: 11px;
+  background: #f0f4fa;
+  margin: 12px 0 0;
+}
+.bus-availability-page .availability-record-tabs .personnel-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 31px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  color: #344765;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.bus-availability-page .availability-record-tabs .personnel-record-tab:hover { background: #e4edfa; }
+.bus-availability-page .availability-record-tabs .personnel-record-tab.is-active {
+  color: #122847;
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(20,42,74,.1);
+}
+.bus-availability-page .availability-record-tabs .personnel-record-tab:focus-visible {
+  outline: 2px solid #2563eb; outline-offset: 2px;
+}
+@media (max-width: 580px) {
+  .bus-availability-page .availability-record-tabs { display: flex; width: 100%; }
+  .bus-availability-page .availability-record-tabs .personnel-record-tab { flex: 1; padding: 7px 4px; }
+}
+
+
+/* Match Driver Master List: tabs left, search/filter/sort right, table directly below. */
+.bus-availability-page .availability-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 13px 0 12px;
+}
+.bus-availability-page .availability-record-controls .availability-record-tabs {
+  margin: 0;
+  flex: 0 0 auto;
+}
+.bus-availability-page .availability-record-controls > .gct-table-toolbar {
+  margin: 0 0 0 auto;
+  width: auto;
+  flex: 0 0 auto;
+}
+.bus-availability-page .availability-record-controls .gct-table-toolbar__actions {
+  justify-content: flex-end;
+}
+.bus-availability-page .availability-table-wrap { margin-top: 0 !important; }
+@media (max-width: 800px) {
+  .bus-availability-page .availability-record-controls {
+    align-items: stretch;
+  }
+  .bus-availability-page .availability-record-controls > .gct-table-toolbar {
+    margin-left: auto;
+  }
+}

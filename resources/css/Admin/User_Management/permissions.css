@@ -900,3 +900,430 @@
         gap: 10px;
     }
 }
+
+/* Department role permission matrix — cross-module cells are intentionally read-only
+   until role authorization, sidebar access, and route guards support them. */
+.department-module-matrix .system-admin-module-row.is-home-module {
+    background: #f7fbff;
+}
+.department-module-matrix .matrix-module-note {
+    display: block;
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 650;
+}
+.department-module-matrix .matrix-permission-choice {
+    min-width: 0;
+    min-height: 42px;
+    padding: 7px 9px;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #475569;
+}
+.department-module-matrix .matrix-permission-choice .matrix-permission-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.department-module-matrix .matrix-permission-choice input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+.department-module-matrix .matrix-permission-choice.allowed {
+    border-color: #bbf7d0;
+    color: #166534;
+    background: #f0fdf4;
+}
+.department-module-matrix .matrix-permission-choice.restricted {
+    border-color: #fecaca;
+    color: #991b1b;
+    background: #fff7f7;
+}
+#rolePermissionForm.is-editing .department-module-matrix .matrix-permission-choice:not(.is-locked) {
+    cursor: pointer;
+}
+.department-module-matrix .matrix-permission-choice:has(input:focus-visible) {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.department-module-matrix .matrix-permission-choice.is-locked {
+    color: #94a3b8;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+@media (max-width: 1180px) {
+    .department-module-matrix .system-admin-module-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Roles & Permissions: clearer hierarchy and polished department-wide matrix */
+.permissions-page .role-access-panel {
+    border: 1px solid #dee7f2;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 35, 73, .055);
+}
+.permissions-page .selected-role-header {
+    padding-bottom: 17px;
+    margin-bottom: 17px;
+    border-bottom: 1px solid #e7edf5;
+}
+.permissions-page .role-capability-strip {
+    gap: 11px;
+    margin-bottom: 22px;
+}
+.permissions-page .capability-item {
+    min-width: 0;
+    border-radius: 13px;
+    border-color: #dce6f2;
+    background: linear-gradient(180deg, #fff, #f8fbff);
+}
+.permissions-page .capability-item strong {
+    font-weight: 800;
+}
+.department-module-matrix .module-access-heading {
+    margin-bottom: 17px;
+    gap: 12px;
+}
+.department-module-matrix .module-access-heading h2 {
+    letter-spacing: -.025em;
+    line-height: 1.25;
+}
+.department-module-matrix .module-access-heading p {
+    max-width: 760px;
+    line-height: 1.55;
+}
+.department-module-matrix .system-admin-module-list {
+    padding: 8px;
+    border: 1px solid #e1e9f4;
+    border-radius: 15px;
+    background: #f6f9fd;
+    display: grid;
+    gap: 8px;
+}
+.department-module-matrix .system-admin-module-row {
+    min-height: 91px;
+    padding: 15px 16px;
+    border: 1px solid #e6ecf5;
+    border-radius: 12px;
+    background: #fff;
+    grid-template-columns: minmax(235px, .9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    box-shadow: 0 2px 8px rgba(24, 45, 84, .025);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+.department-module-matrix .system-admin-module-row:last-child {
+    border-bottom: 1px solid #e6ecf5;
+}
+.department-module-matrix .system-admin-module-row:hover {
+    border-color: #bed2ef;
+    box-shadow: 0 4px 14px rgba(32, 67, 120, .065);
+}
+.department-module-matrix .system-admin-module-row.is-home-module {
+    border-color: #a8c8ff;
+    background: linear-gradient(110deg, #f5f9ff, #fff 55%);
+    box-shadow: inset 3px 0 #2563eb, 0 4px 14px rgba(37, 99, 235, .05);
+}
+.department-module-matrix .module-access-info {
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+}
+.department-module-matrix .module-access-info > div:last-child {
+    min-width: 0;
+}
+.department-module-matrix .module-access-info strong {
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+.department-module-matrix .module-access-info span {
+    line-height: 1.5;
+}
+.department-module-matrix .matrix-module-note {
+    margin-top: 7px;
+    line-height: 1.35;
+    color: #7a8ca6;
+}
+.department-module-matrix .is-home-module .matrix-module-note {
+    color: #1556b6;
+}
+.department-module-matrix .system-admin-capabilities {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    align-items: stretch;
+}
+.department-module-matrix .matrix-permission-choice {
+    min-width: 0;
+    min-height: 51px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    gap: 5px;
+    font-size: 10.5px;
+    line-height: 1.3;
+    transition: background-color .18s ease, border-color .18s ease;
+}
+.department-module-matrix .matrix-permission-choice .matrix-permission-label {
+    gap: 7px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: normal;
+}
+.department-module-matrix .matrix-permission-choice.is-locked {
+    background: #f8fafc;
+    border-color: #edf1f7;
+    color: #8898ae;
+}
+.department-module-matrix .matrix-permission-choice.is-locked > span:last-child {
+    color: #9ba8b9;
+    font-size: 10px;
+    font-weight: 600;
+}
+.department-module-matrix .matrix-permission-choice.allowed {
+    background: #f0fbf5;
+    border-color: #b9ead0;
+}
+.department-module-matrix .matrix-permission-choice.restricted {
+    background: #fff8f8;
+    border-color: #f7d8d8;
+}
+.department-module-matrix .module-restriction-note {
+    margin-top: 13px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f2f7ff;
+}
+.permissions-page .permission-edit-actions {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e6edf6;
+}
+@media (max-width: 1340px) {
+    .department-module-matrix .system-admin-module-row {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+}
+@media (max-width: 700px) {
+    .department-module-matrix .system-admin-capabilities {
+        grid-template-columns: 1fr;
+    }
+    .department-module-matrix .system-admin-module-row {
+        padding: 13px;
+    }
+    .department-module-matrix .module-access-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
+/* Compact department matrix — visually consistent with System Admin rows. */
+.department-module-matrix .system-admin-module-list {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #dce6f2;
+    border-radius: 12px;
+    background: #fff;
+}
+.department-module-matrix .system-admin-module-row,
+.department-module-matrix .system-admin-module-row.is-home-module {
+    min-height: 56px;
+    padding: 10px 13px;
+    display: grid;
+    grid-template-columns: minmax(240px, .95fr) minmax(0, 1.05fr);
+    gap: 14px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid #e8eef6;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    transition: background-color .15s ease;
+}
+.department-module-matrix .system-admin-module-row:last-child {
+    border-bottom: 0;
+}
+.department-module-matrix .system-admin-module-row:hover {
+    background: #f8fbff;
+    border-color: #e8eef6;
+    box-shadow: none;
+}
+.department-module-matrix .system-admin-module-row.is-home-module {
+    background: #f7faff;
+    box-shadow: inset 3px 0 0 #2b6ded;
+}
+.department-module-matrix .module-access-info {
+    gap: 10px;
+}
+.department-module-matrix .module-access-info strong {
+    font-size: 12px;
+}
+.department-module-matrix .matrix-module-note {
+    display: none;
+}
+.department-module-matrix .system-admin-capabilities {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    gap: 8px;
+}
+.department-module-matrix .matrix-permission-choice,
+.department-module-matrix .matrix-permission-choice.is-locked {
+    min-height: 31px;
+    padding: 6px 9px;
+    border-radius: 7px;
+    gap: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 10.5px;
+    line-height: 1.25;
+}
+.department-module-matrix .matrix-permission-choice .matrix-permission-label {
+    font-size: 10.5px;
+    line-height: 1.25;
+}
+.department-module-matrix .matrix-permission-choice > .permission-status-text,
+.department-module-matrix .matrix-permission-choice.is-locked > span:last-child {
+    display: none;
+}
+.department-module-matrix .matrix-permission-choice.is-locked {
+    background: #f3f6fa;
+    border-color: #e6ebf2;
+    color: #8b98aa;
+}
+.department-module-matrix .matrix-permission-choice.allowed {
+    background: #effaf3;
+    border-color: #bbf0ca;
+}
+.department-module-matrix .matrix-permission-choice.restricted {
+    background: #fff5f5;
+    border-color: #f3d2d2;
+}
+@media (max-width: 1180px) {
+    .department-module-matrix .system-admin-module-row,
+    .department-module-matrix .system-admin-module-row.is-home-module {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+}
+@media (max-width: 640px) {
+    .department-module-matrix .system-admin-capabilities {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+    }
+    .department-module-matrix .system-admin-module-row {
+        padding: 10px;
+    }
+    .department-module-matrix .matrix-permission-choice,
+    .department-module-matrix .matrix-permission-choice.is-locked {
+        padding: 6px;
+    }
+}
+
+
+/* Exact System Admin matrix presentation, shared by department roles. */
+.permissions-page .department-module-matrix .system-admin-module-list {
+    display: block;
+    padding: 0;
+    border: 1px solid var(--rp-border);
+    border-radius: 12px;
+    background: #fff;
+}
+.permissions-page .department-module-matrix .system-admin-module-row {
+    display: grid;
+    grid-template-columns: minmax(250px, .95fr) minmax(0, 1.05fr);
+    min-height: 56px;
+    padding: 10px 14px;
+    gap: 14px;
+    border: 0;
+    border-bottom: 1px solid #e7edf5;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+}
+.permissions-page .department-module-matrix .system-admin-module-row:hover {
+    background: #fff;
+    box-shadow: none;
+}
+.permissions-page .department-module-matrix .system-admin-module-row:last-child {
+    border-bottom: 0;
+}
+.permissions-page .department-module-matrix .system-admin-capabilities {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.permissions-page .department-module-matrix .protected-capability {
+    min-height: 32px;
+    padding: 0 9px;
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    line-height: 1.3;
+    font-weight: 700;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle {
+    position: relative;
+    cursor: default;
+}
+.permissions-page #rolePermissionForm.is-editing .department-module-matrix .matrix-native-toggle {
+    cursor: pointer;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted {
+    background: #fff6f6;
+    border-color: #f5d4d4;
+    color: #b45353;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-toggle.restricted i {
+    color: #c56a6a;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-locked {
+    background: #f5f7fa;
+    border-color: #e6ebf1;
+    color: #8795a8;
+    cursor: not-allowed;
+}
+.permissions-page .department-module-matrix .protected-capability.matrix-native-locked i {
+    color: #8795a8;
+}
+.permissions-page .department-module-matrix .protected-capability input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+.permissions-page .department-module-matrix .protected-capability:has(input:focus-visible) {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+@media (max-width: 1180px) {
+    .permissions-page .department-module-matrix .system-admin-module-row {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 640px) {
+    .permissions-page .department-module-matrix .system-admin-capabilities {
+        grid-template-columns: 1fr;
+    }
+}

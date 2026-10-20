@@ -13,19 +13,7 @@
     @php
         $routeUser = auth()->user();
 
-        $isOperationHead =
-            $routeUser
-            && strtolower(trim((string) $routeUser->department)) === 'operation'
-            && strtolower(trim((string) $routeUser->role)) === 'head';
-
-        $canManageRoutes =
-            $isOperationHead
-            || (
-                $routeUser?->hasSystemPermission(
-                    'operation',
-                    'edit'
-                ) ?? false
-            );
+        $canManageRoutes = $routeUser?->hasSystemPermission('operation', 'edit') ?? false;
     @endphp
 
     {{-- Validation errors are shown by the shared system toast and inline field feedback. --}}
@@ -118,6 +106,8 @@
 
                         New Route
                     </button>
+                    @else
+                    <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed"><button type="button" class="new-route-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-plus"></i> New Route</button></span>
                     @endif
 
                 </div>

@@ -121,7 +121,7 @@
                 </div>
 
                 <div class="table-wrap">
-                    <table class="bus-table">
+                    <table class="bus-table {{ request('fleet_purpose') === 'Reserve' ? 'bus-table--reserve' : '' }}">
                         <thead>
                             <tr>
                                 <th>
@@ -148,6 +148,10 @@
                                         <i class="fa-solid fa-up-down sort-icon" aria-hidden="true"></i>
                                     </div>
                                 </th>
+                                @unless(request('fleet_purpose') === 'Reserve')
+                                <th>Client Allocation</th>
+                                <th>Authorized Drivers</th>
+                                @endunless
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -163,7 +167,7 @@
                                             <div class="bus-icon-badge {{ $displayStatus === 'Active' ? 'is-active' : 'is-muted' }}" aria-hidden="true">
                                                 <i class="fa-solid fa-bus"></i>
                                             </div>
-                                            <span class="bus-id-text">{{ $bus->bus_no }}</span>
+                                            <span class="bus-id-text" title="{{ $bus->bus_no }}">{{ $bus->bus_no }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -171,14 +175,57 @@
                                     </td>
 
                                     <td>
-                                        <span class="bus-model-text">{{ $bus->bus_model ?: '—' }}</span>
+                                        <span class="bus-model-text" title="{{ $bus->bus_model ?: 'Not specified' }}">{{ $bus->bus_model ?: '—' }}</span>
                                     </td>
 
                                     <td>
                                         <x-ui.status-badge :status="$displayStatus" class="bus-status-pill" />
                                     </td>
-
-                                    <td>
+                                    @unless(request('fleet_purpose') === 'Reserve')
+                                    <td class="bus-allocation-cell">
+                                        @if($bus->operationClients->isEmpty())
+                                            <span class="bus-identity-empty">Not allocated</span>
+                                        @else
+                                            <div class="bus-table-disclosure bus-identity-summary">
+                                                <span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                                                <span class="bus-identity-details">
+                                                    <strong class="bus-disclosure-primary" title="{{ $bus->operationClients->first()->name }} — {{ $bus->operationClients->first()->status }}">{{ $bus->operationClients->first()->name }}</strong>
+                                                    <small>Client / Company</small>
+                                                </span>
+                                                @if($bus->operationClients->count() > 1)
+                                                    <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->operationClients->count() - 1 }} more companies for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                                    <div class="bus-more-source" hidden>
+                                                        @foreach($bus->operationClients->skip(1) as $company)
+                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="bus-identity-details"><strong title="{{ $company->name }} — {{ $company->status }}">{{ $company->name }}</strong><small>Client / Company · {{ $company->status }}</small></span></div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="bus-drivers-cell">
+                                        @if($bus->authorizedDrivers->isEmpty())
+                                            <span class="bus-identity-empty">Not assigned</span>
+                                        @else
+                                            <div class="bus-table-disclosure bus-identity-summary bus-driver-summary">
+                                                <span class="bus-identity-avatar bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                <span class="bus-identity-details bus-driver-details">
+                                                    <strong class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</strong>
+                                                    <small>Driver profile</small>
+                                                </span>
+                                                @if($bus->authorizedDrivers->count() > 1)
+                                                    <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->authorizedDrivers->count() - 1 }} more drivers for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                                    <div class="bus-more-source" hidden>
+                                                        @foreach($bus->authorizedDrivers->skip(1) as $driver)
+                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="bus-identity-details"><strong title="{{ $driver->driver_name }}">{{ $driver->driver_name }}</strong><small>Driver profile</small></span></div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    @endunless
+                                    <td class="bus-actions-cell">
                                         <div class="actions">
                                             <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
@@ -186,7 +233,9 @@
                                                 data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
                                                 data-capacity="{{ $bus->capacity }}" data-status="{{ $displayStatus }}" data-fleet-purpose="{{ $bus->fleet_purpose }}"
                                                 data-route-grouping="{{ $bus->route_grouping }}"
-                                                data-display-route="{{ $bus->display_route_name }}">
+                                                data-display-route="{{ $bus->display_route_name }}"
+                                                data-client-allocation-type="{{ $bus->client_allocation_type }}"
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}">
                                                 <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                             @if($canEditOperation)
@@ -204,6 +253,8 @@
                                                 data-status="{{ $bus->status }}"
                                                 data-fleet-purpose="{{ $bus->fleet_purpose }}"
                                                 data-fleet-purpose-locked="{{ $bus->fleet_purpose_locked ? '1' : '0' }}"
+                                                data-client-allocation-type="{{ $bus->client_allocation_type }}"
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}"
                                                 data-update-url="/bus-master-list/{{ $bus->id }}"
                                             ><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
 
@@ -244,7 +295,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="5"
+                                    colspan="{{ request('fleet_purpose') === 'Reserve' ? 5 : 7 }}"
                                     icon="fa-bus"
                                     message="No Bus Records Found"
                                     description="There are no buses matching the selected fleet and filters."
@@ -284,6 +335,7 @@
                     <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
                     <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
                     <div><dt>Bus Purpose</dt><dd data-bus-detail="fleetPurpose">—</dd></div>
+                    <div data-bus-regular-detail><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div data-bus-regular-detail><dt>Authorized Drivers</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
                 </dl>
                 <div class="bus-details-section bus-details-route-heading">
                     <i class="fa-solid fa-route" aria-hidden="true"></i>
@@ -378,29 +430,34 @@
         </div></div>
         </div>
         <div class="bus-modal-lower">
-            <section class="bus-modal-panel">
+<section class="bus-modal-panel">
                 <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
                 <div class="form-group">
-            <label>Bus Purpose</label>
-            <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" required>
-                <option value="Regular" @selected(old('fleet_purpose', request('fleet_purpose', 'Regular')) !== 'Reserve')>Regular</option>
-                <option value="Reserve" @selected(old('fleet_purpose', request('fleet_purpose')) === 'Reserve')>Reserve</option>
-            </select></div>
-            <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Regular buses join standard scheduling. Reserve buses are kept for breakdown replacements.</p>
-        </div>
+                    <label>Bus Purpose</label>
+                    <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" required>
+                        <option value="Regular" @selected(old('fleet_purpose', request('fleet_purpose', 'Regular')) !== 'Reserve')>Regular</option>
+                        <option value="Reserve" @selected(old('fleet_purpose', request('fleet_purpose')) === 'Reserve')>Reserve</option>
+                    </select></div>
+                    <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Regular buses join standard scheduling. Reserve buses are kept for breakdown replacements.</p>
+                </div>
             </section>
-            <section class="bus-modal-panel">
-                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Assign the bus to a route or group for easier management.</p></div></div>
-                <div class="form-group full-width">
-            <label>Route / Grouping</label>
+            <section class="bus-modal-panel bus-modal-client-panel" data-bus-client-panel>
+<div class="bus-client-editor bus-client-editor--simple">
+    <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
+    <label for="create_client_name">Client / Company Name</label>
+    <div class="bus-multi-client" data-bus-multi-client>
+        <input type="hidden" name="client_name" id="create_client_name" value="{{ old('client_name') }}">
+        <input type="hidden" name="client_allocation_submitted" value="1">
+        <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
+        <div class="bus-multi-client-entry">
+            <input type="text" id="create_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
+        </div>
+    </div>
+    <small>Type one client and press Enter or Add. You can add multiple clients.</small>
 
-            <div class="bus-icon-input"><i class="fa-solid fa-route" aria-hidden="true"></i><input
-                type="text"
-                name="route_grouping"
-                placeholder="Example: Batangas City - Malvar"
-            ></div>
-        </div>
-            </section>
+</div>
+</section>
         </div>
     </x-ui.form-modal>
 
@@ -513,9 +570,9 @@
                         <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
                     </div>
                     <div class="bus-modal-lower">
-                        <section class="bus-modal-panel">
-                            <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
-                            <div class="form-group">
+<section class="bus-modal-panel">
+                <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-regular fa-bookmark"></i></span><div><strong>Bus Purpose</strong><p>Choose between regular and standby fleet.</p></div></div>
+                <div class="form-group">
                     <label>Bus Purpose</label>
                     <div class="bus-icon-input"><i class="fa-solid fa-bus" aria-hidden="true"></i><select name="fleet_purpose" id="edit_fleet_purpose" required>
                         <option value="Regular">Regular</option>
@@ -524,22 +581,24 @@
                     <p class="bus-purpose-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reserve buses are excluded from ordinary scheduling.</p>
                     <p id="editFleetPurposeLockHint" class="bus-no-lock-hint" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus Purpose is locked while this bus has an ongoing or future trip assignment.</p>
                 </div>
-                        </section>
-                        <section class="bus-modal-panel">
-                            <div class="bus-form-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Route assignments and grouping information.</p></div></div>
-                            <div class="form-group full-width">
-                    <label>Route / Grouping</label>
-
-                    <div class="bus-icon-input"><i class="fa-solid fa-route" aria-hidden="true"></i><input
-                        type="text"
-                        name="route_grouping"
-                        id="edit_route_grouping"
-                        readonly
-                        aria-readonly="true"
-                        title="Route / Grouping is view-only in Edit Bus"
-                    ></div>
-                </div>
-                        </section>
+            </section>
+                        <section class="bus-modal-panel bus-modal-client-panel" data-bus-client-panel>
+<div class="bus-client-editor bus-client-editor--simple">
+    <div class="bus-client-section-heading"><span class="bus-client-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span><div><strong>Client / Company</strong><small>Client assigned to this bus</small></div></div>
+    <label for="edit_client_name">Client / Company Name</label>
+    <div class="bus-multi-client" data-bus-multi-client>
+        <input type="hidden" name="client_name" id="edit_client_name" value="">
+        <input type="hidden" name="client_allocation_submitted" value="1">
+        <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
+        <div class="bus-multi-client-entry">
+            <input type="text" id="edit_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
+        </div>
+    </div>
+    <small>Add or remove client chips individually. Changes are blocked during an unfinished dispatched trip.</small>
+    <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing client allocations are shown above. Edit the list to change them.</p>
+</div>
+</section>
                     </div>
                     <p id="editBusMaintenanceNotice" class="bus-maintenance-lock-notice full-width" role="status" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> This bus is Under Maintenance. Master-list editing is disabled until Maintenance releases it.</p>
                 </div>

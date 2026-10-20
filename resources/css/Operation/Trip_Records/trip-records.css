@@ -2415,3 +2415,16 @@
 .trip-resource-popover-row strong { font-size:11px; font-weight:750; }
 .trip-resource-popover-row small { font-size:10px; color:#647b98; }
 @media(max-width:720px) { .trip-resource-primary strong { max-width:105px; } }
+
+
+/* Assignment History distinguishes scheduling fulfillment from DDR completion. */
+.trip-records-page .trip-history-table th:nth-last-child(-n+2),
+.trip-records-page .trip-history-table td:nth-last-child(-n+2) {
+    white-space: nowrap;
+    text-align: center;
+}
+.trip-records-page .trip-history-operational-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

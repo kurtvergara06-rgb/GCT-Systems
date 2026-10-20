@@ -109,7 +109,30 @@
                 </x-ui.table-toolbar>
                 </div>
 
-                <div class="assignment-table-wrap" style="margin-top: 16px;">
+                @php
+                    $visibleAssignmentTrips = collect($trips->items());
+                    $directionGroups = [
+                        ['key' => 'incoming', 'title' => 'Incoming Trips', 'description' => 'Buses transporting employees to work', 'icon' => 'fa-arrow-down', 'style' => 'incoming'],
+                        ['key' => 'outgoing', 'title' => 'Outgoing Trips', 'description' => 'Buses transporting employees home', 'icon' => 'fa-arrow-up', 'style' => 'outgoing'],
+                    ];
+                    $otherDirectionTrips = $visibleAssignmentTrips->filter(fn ($trip) => !in_array(strtolower(trim((string) ($trip->direction ?? ''))), ['incoming', 'outgoing'], true));
+                    if ($otherDirectionTrips->isNotEmpty()) {
+                        $directionGroups[] = ['key' => 'other', 'title' => 'Direction Not Set', 'description' => 'Trips awaiting service-direction classification', 'icon' => 'fa-circle-question', 'style' => 'other'];
+                    }
+                @endphp
+                @foreach($directionGroups as $directionGroup)
+                @php
+                    $directionTrips = $directionGroup['key'] === 'other'
+                        ? $otherDirectionTrips
+                        : $visibleAssignmentTrips->filter(fn ($trip) => strtolower(trim((string) ($trip->direction ?? ''))) === $directionGroup['key']);
+                @endphp
+                <div class="assignment-direction-section assignment-direction-{{ $directionGroup['style'] }}">
+                    <div class="assignment-direction-heading">
+                        <span class="assignment-direction-icon"><i class="fa-solid {{ $directionGroup['icon'] }}" aria-hidden="true"></i></span>
+                        <div class="assignment-direction-title"><h3>{{ $directionGroup['title'] }}</h3><p>{{ $directionGroup['description'] }}</p></div>
+                        <span class="assignment-direction-count">{{ $directionTrips->count() }} {{ \Illuminate\Support\Str::plural('trip', $directionTrips->count()) }}</span>
+                    </div>
+                <div class="assignment-table-wrap">
                     <table class="assignment-table">
                         <thead>
                             <tr>
@@ -124,8 +147,23 @@
                         </thead>
 
                         <tbody>
-                            @forelse($trips as $trip)
+                            @php
+                                $lastClientRouteKey = null;
+                                $sortedDirectionTrips = $directionTrips->sortBy(fn ($trip) => implode('|', [
+                                    strtolower(trim((string) ($trip->client_name ?: 'No Client Allocation'))),
+                                    strtolower((string) ($trip->shuttleRoute?->route_code ?? $trip->route_code_snapshot ?? '')),
+                                    (string) $trip->departure_time,
+                                    (string) $trip->id,
+                                ]));
+                            @endphp
+                            @forelse($sortedDirectionTrips as $trip)
                                 @php
+                                    $clientLabel = trim((string) ($trip->client_name ?? '')) ?: 'No Client Allocation';
+                                    $routeLabel = $trip->shuttleRoute?->route_code ?? $trip->route_code_snapshot ?? '—';
+                                    $routeNameLabel = $trip->shuttleRoute?->route_name ?? $trip->route_name_snapshot ?? 'Unknown route';
+                                    $clientRouteKey = strtolower($clientLabel) . '|' . strtolower((string) $routeLabel);
+                                    $showClientRouteHeading = $lastClientRouteKey !== $clientRouteKey;
+                                    $lastClientRouteKey = $clientRouteKey;
                                     $route = $trip->shuttleRoute;
                                     $departureDateTime = $trip->departureDateTime();
                                     $arrivalDateTime = $trip->estimatedArrivalDateTime();
@@ -166,6 +204,8 @@
                                     $tripDisplayStatus = match (true) {
                                         $trip->status === 'Cancelled' => 'Cancelled',
                                         $trip->status === 'Completed' => 'Completed',
+                                        $trip->status === 'Dispatched' => 'In Progress',
+                                        $trip->status === 'Pending DDR' => 'Pending DDR',
                                         $trip->status === 'Missed' => 'Missed',
                                         $isHistorical && $assignedCount === 0 => 'Missed',
                                         $isHistorical && $assignedCount < $requiredCount => 'Partially Missed',
@@ -174,6 +214,15 @@
                                         default => $trip->status,
                                     };
                                 @endphp
+
+                                @if($showClientRouteHeading)
+                                    <tr class="assignment-client-route-group">
+                                        <th colspan="7" scope="rowgroup">
+                                            <span>Client: {{ $clientLabel }}</span>
+                                            <strong>Route {{ $routeLabel }} · {{ $routeNameLabel }}</strong>
+                                        </th>
+                                    </tr>
+                                @endif
 
                                 @if($tripAssignments->isEmpty() && $assignedRentals->isEmpty())
                                     <tr class="unassigned-row">
@@ -242,12 +291,6 @@
                                                     >
                                                         Assign
                                                     </button>
-                                                    @if($externalRental?->status === 'Confirmed')
-                                                        <form method="POST" action="{{ route('external-bus-rentals.assign', ['rental' => $externalRental->id], false) }}">
-                                                            @csrf
-                                                            <button type="submit" class="assign-now-btn" title="Assign verified rental to this exact slot">Assign Rental</button>
-                                                        </form>
-                                                    @endif
                                                 @else
                                                     <button
                                                         type="button"
@@ -334,6 +377,7 @@
                                                                 ->first(fn ($incident) =>
                                                                     ($incident->trip_assignment_id && (int) $incident->trip_assignment_id === (int) $assignment->id)
                                                                     || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
+                                                                    || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
                                                                 );
                                                         @endphp
                                                         @if($slotBreakdown)
@@ -347,6 +391,10 @@
                                                         @if($bus?->fleet_purpose === 'Reserve')
                                                             @if($assignment->reserveApproval)
                                                                 <span class="assignment-oic-approved" title="OIC approval recorded through {{ $assignment->reserveApproval->approval_method }} on {{ $assignment->reserveApproval->approved_at?->format('M d, Y g:i A') }}">
+                                                                    <i class="fa-solid fa-shield-halved"></i> OIC Approved
+                                                                </span>
+                                                            @elseif($slotBreakdown?->replacement)
+                                                                <span class="assignment-oic-approved" title="OIC-authorized breakdown replacement recorded for Incident {{ $slotBreakdown->incident_no }} on {{ $slotBreakdown->replacement->dispatched_at?->format('M d, Y g:i A') }}">
                                                                     <i class="fa-solid fa-shield-halved"></i> OIC Approved
                                                                 </span>
                                                             @else
@@ -388,7 +436,7 @@
                                                             data-trip-id="{{ $trip->id }}"
                                                             data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
                                                             data-availability-url="{{ route('driver-bus-assignment.availability', $trip, false) }}"
-                                                            data-driver-id="{{ $assignment->driver_attendance_id }}"
+                                                            data-driver-id="{{ $assignment->driver_id }}"
                                                             data-bus-id="{{ $assignment->bus_id }}"
                                                             data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
                                                         >
@@ -516,12 +564,6 @@
                                                     >
                                                         Assign
                                                     </button>
-                                                    @if($externalRental?->status === 'Confirmed')
-                                                        <form method="POST" action="{{ route('external-bus-rentals.assign', ['rental' => $externalRental->id], false) }}">
-                                                            @csrf
-                                                            <button type="submit" class="assign-now-btn" title="Assign verified rental to this exact slot">Assign Rental</button>
-                                                        </form>
-                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -538,6 +580,8 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
+                @endforeach
 
                 <x-ui.table-footer :items="$trips" />
             </section>
@@ -553,12 +597,11 @@
                     </div>
 
                     <div class="resource-filter-bar" data-resource-filter="drivers">
-                        <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search driver name, ID, or shift..." aria-label="Search visible unallocated drivers"></label>
-                        <select aria-label="Filter visible drivers by shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon', 'Night'] as $shift)<option value="{{ $shift }}">{{ $shift }} Shift</option>@endforeach</select>
+                        <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search driver name or ID..." aria-label="Search visible available drivers"></label>
                     </div>
-                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Shift</span><span>Attendance</span></div>
+                    <div class="resource-list-head resource-list-head--drivers" aria-hidden="true"><span>Driver</span><span>Authorized Buses</span><span>Scheduling Status</span></div>
                     @forelse($availableDrivers as $driver)
-                        <div class="resource-record" data-resource-row="drivers" data-resource-text="{{ strtolower($driver->driver_name.' '.$driver->shift.' '.$driver->driver_id) }}" data-resource-category="{{ strtolower($driver->shift) }}">
+                        <div class="resource-record" data-resource-row="drivers" data-resource-text="{{ strtolower($driver->driver_name.' '.$driver->driver_id) }}">
                             <div class="driver-avatar">
                                 {{ collect(explode(' ', $driver->driver_name))
                                     ->filter()
@@ -569,11 +612,11 @@
 
                             <div class="resource-record-info">
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <span class="resource-mobile-detail">{{ $driver->shift }} Shift</span>
+                                <span class="resource-mobile-detail">{{ $driver->authorizedBuses?->count() ?? 0 }} authorized bus(es)</span>
                             </div>
-                            <span class="resource-row-detail">{{ $driver->shift }} Shift</span>
+                            <span class="resource-row-detail">{{ $driver->authorizedBuses?->count() ?? 0 }} bus(es)</span>
 
-                            <x-ui.status-badge :status="$driver->status" class="availability available" />
+                            <span class="gct-pill gct-pill--unassigned">Assumed Available</span>
                         </div>
                     @empty
                         <p class="resource-empty">No eligible drivers for the selected date.</p>
@@ -666,44 +709,11 @@
             hidden
             data-has-errors="{{ $errors->any() ? 'true' : 'false' }}"
             data-trip-id="{{ old('trip_schedule_id') }}"
-            data-driver-id="{{ old('driver_attendance_id') }}"
+            data-driver-id="{{ old('driver_id', old('driver_attendance_id')) }}"
             data-bus-id="{{ old('bus_id') }}"
             data-method="{{ old('_method') }}"
         ></span>
 
-        <section id="assignmentSourceSelector" class="assignment-choice-section" hidden aria-label="Assignment method">
-            <div class="assignment-choice-heading">
-                <strong>How would you like to fill this slot?</strong>
-                <span>Select one assignment method.</span>
-            </div>
-            <select id="assignmentSource" hidden aria-label="Assignment method">
-                <option value="company">Company Bus & Driver</option>
-                <option value="rental">External / Rented Bus</option>
-            </select>
-            <div class="assignment-source-options" role="group" aria-label="Assignment method">
-                <button type="button" class="assignment-source-option is-selected" data-assignment-source="company" aria-pressed="true">
-                    <span class="assignment-source-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
-                    <span><strong>Company Bus & Driver</strong><small>Assign available GCT resources</small></span>
-                    <i class="fa-solid fa-circle-check assignment-source-check" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="assignment-source-option" data-assignment-source="rental" aria-pressed="false">
-                    <span class="assignment-source-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
-                    <span><strong>External / Rented Bus</strong><small>Record a bus hired from another operator</small></span>
-                    <i class="fa-solid fa-circle-check assignment-source-check" aria-hidden="true"></i>
-                </button>
-            </div>
-        </section>
-        <div id="externalRentalFields" class="external-rental-fields" hidden>
-            <div class="assignment-rental-intro"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Record the rental arrangement first. After confirmation, use <strong>Assign Rental</strong> to fulfill this slot.</span></div>
-            <div class="external-rental-form-grid">
-                <label class="ui-form-group">Rental Status<select name="rental_status" id="externalRentalStatus" disabled><option value="Pending">Arrangement Pending</option><option value="Confirmed">Rental Confirmed</option></select></label>
-                <label class="ui-form-group">Rental Company <span class="ui-required">*</span><input name="company_name" disabled maxlength="160" placeholder="Enter rental company"></label>
-                <label class="ui-form-group">Company Contact<input name="contact_details" disabled maxlength="160" placeholder="Contact person or number"></label>
-                <label class="ui-form-group">Vehicle Plate<input name="plate_number" disabled maxlength="40" placeholder="Required when confirmed"></label>
-                <label class="ui-form-group">External Driver<input name="driver_name" disabled maxlength="160" placeholder="Required when confirmed"></label>
-                <label class="ui-form-group ui-form-full">Notes<textarea name="notes" disabled maxlength="2000" rows="2" placeholder="Rental reference or arrangement notes"></textarea></label>
-            </div>
-        </div>
         <div class="assignment-form-grid" id="companyAssignmentFields">
             <div class="ui-form-group ui-form-full">
                 <label for="assignmentTrip">
@@ -755,7 +765,7 @@
     >
         <input
             type="hidden"
-            name="driver_attendance_id"
+            name="driver_id"
             id="assignmentDriver"
             required
         >

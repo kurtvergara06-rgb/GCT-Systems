@@ -11,14 +11,16 @@ class BatchAttendanceServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Route::middleware(['web', 'auth'])
+        Route::middleware(['web', 'auth', 'role:operation:head,operation:staff,admin:head'])
             ->prefix('operation/attendance/batch')
             ->group(function (): void {
                 Route::get('/{type}', [BatchAttendanceController::class, 'roster'])
+                    ->middleware('system.permission:operation,view')
                     ->whereIn('type', ['driver', 'mechanic'])
                     ->name('operation.attendance.batch.roster');
 
                 Route::post('/{type}', [BatchAttendanceController::class, 'store'])
+                    ->middleware('system.permission:operation,edit')
                     ->whereIn('type', ['driver', 'mechanic'])
                     ->name('operation.attendance.batch.store');
             });
@@ -54,6 +56,26 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                 Route::patch('/mechanics/{mechanic}/activate', [PersonnelController::class, 'activateMechanic'])
                     ->middleware('system.permission:operation,edit')
                     ->name('operation.personnel.mechanics.activate');
+            });
+
+        Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
+            ->prefix('maintenance/mechanics')
+            ->group(function (): void {
+                Route::get('/', [PersonnelController::class, 'mechanics'])
+                    ->middleware('system.permission:maintenance,view')
+                    ->name('maintenance.personnel.mechanics');
+                Route::post('/', [PersonnelController::class, 'storeMechanic'])
+                    ->middleware('system.permission:maintenance,edit')
+                    ->name('maintenance.personnel.mechanics.store');
+                Route::put('/{mechanic}', [PersonnelController::class, 'updateMechanic'])
+                    ->middleware('system.permission:maintenance,edit')
+                    ->name('maintenance.personnel.mechanics.update');
+                Route::patch('/{mechanic}/deactivate', [PersonnelController::class, 'deactivateMechanic'])
+                    ->middleware('system.permission:maintenance,edit')
+                    ->name('maintenance.personnel.mechanics.deactivate');
+                Route::patch('/{mechanic}/activate', [PersonnelController::class, 'activateMechanic'])
+                    ->middleware('system.permission:maintenance,edit')
+                    ->name('maintenance.personnel.mechanics.activate');
             });
     }
 }

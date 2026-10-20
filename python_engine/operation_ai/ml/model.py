@@ -147,17 +147,16 @@ def train_bus_model(bus_df: pd.DataFrame) -> ModelResult:
 
 
 def train_driver_model(driver_df: pd.DataFrame) -> ModelResult:
-    if driver_df.empty or len(driver_df) < 5:
-        return ModelResult(
-            kind="driver",
-            trained=False,
-            message=f"Insufficient driver data ({len(driver_df)} samples). Model not trained.",
-            n_samples=int(len(driver_df)),
-        )
-
-    X = driver_df[DRIVER_FEATURE_COLUMNS].copy()
-    y = driver_df[DRIVER_LABEL]
-    return _train_rf(X, y, "driver")
+    return ModelResult(
+        kind="driver",
+        trained=False,
+        message=(
+            "Driver model training is paused: the current database has no "
+            "completed-trip outcome history suitable for temporal validation. "
+            "Use the transparent attendance-derived fallback."
+        ),
+        n_samples=int(len(driver_df)),
+    )
 
 
 def save_model_result(result: ModelResult, paths: Dict[str, Path]) -> None:

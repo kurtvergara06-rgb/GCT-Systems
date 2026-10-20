@@ -55,6 +55,7 @@ export default defineConfig({
                 'resources/css/Admin/User_Management/permissions.css',
 
                 'resources/js/Admin/User_Management/users.js',
+                'resources/js/Admin/User_Management/permissions.js',
 
                 // ======================================================
                 // ADMIN — DATA MANAGEMENT
@@ -150,6 +151,7 @@ export default defineConfig({
 
                 'resources/css/Operation/dashboard-operation.css',
                 'resources/css/Operation/operation-action-buttons.css',
+                'resources/js/Operation/dashboard-operation.js',
 
                 // ======================================================
                 // OPERATION — ATTENDANCE
@@ -185,10 +187,12 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
+                'resources/css/Operation/Scheduling_And_Dispatch/client-trip-times.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
 
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/client-trip-times.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
 

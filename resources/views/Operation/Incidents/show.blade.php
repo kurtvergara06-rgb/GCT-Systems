@@ -26,6 +26,14 @@
         $eligibleReplacementBuses = $activeBuses
             ->reject(fn ($bus) => $incident->bus_id && $bus->id === $incident->bus_id)
             ->reject(fn ($bus) => $incident->replacement && $bus->id === $incident->replacement->replacement_bus_id);
+        $eligibleReplacementDrivers = $eligibleReplacementDrivers ?? collect();
+        $currentUser = auth()->user();
+        $currentDepartment = strtolower(trim((string) ($currentUser?->department ?? '')));
+        $currentRole = strtolower(trim((string) ($currentUser?->role ?? '')));
+        $canEditIncident = (bool) $currentUser?->hasSystemPermission('operation', 'edit');
+        $canReferToMaintenance = (in_array($currentDepartment, ['operation', 'operations'], true)
+                && in_array($currentRole, ['head', 'admin', 'operation head', 'operations head', 'operation admin'], true))
+            || ($currentDepartment === 'admin' && in_array($currentRole, ['head', 'admin', 'system admin'], true));
     @endphp
 
     @if(request()->boolean('embedded'))
@@ -411,6 +419,13 @@
                         </div>
 
                         <div class="inc-detail-item">
+                            <span class="inc-detail-label">Continuing Driver</span>
+                            <span class="inc-detail-value">
+                                {{ $incident->tripAssignment?->driver_name ?: ($incident->driver_name ?: '—') }}
+                            </span>
+                        </div>
+
+                        <div class="inc-detail-item">
                             <span class="inc-detail-label">Dispatch Time</span>
                             <span class="inc-detail-value">
                                 {{ $incident->replacement->dispatched_at?->format('M d, Y g:i A') }}
@@ -432,6 +447,15 @@
                 <div class="inc-detail-grid">
                     <!-- Status update -->
                     <div class="inc-detail-item full">
+                        @if(!$canEditIncident)
+                            <div class="inc-no-match">
+                                <i class="fa-solid fa-lock"></i>
+                                <div>
+                                    <strong>View-only access</strong>
+                                    <span>Your role does not have permission to modify incident operations.</span>
+                                </div>
+                            </div>
+                        @else
                         <form
                             method="POST"
                             action="{{ route('incidents.update', ['incident' => $incident->incident_no]) }}"
@@ -488,6 +512,7 @@
                                 </button>
                             </div>
                         </form>
+                        @endif
                     </div>
 
                     <!-- Breakdown: dispatch replacement bus -->
@@ -515,6 +540,14 @@
                                         <div>
                                             <strong>Incident is {{ $incident->status }}</strong>
                                             <span>A replacement bus cannot be dispatched for this incident anymore.</span>
+                                        </div>
+                                    </div>
+                                @elseif(!$canEditIncident)
+                                    <div class="inc-no-match">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <div>
+                                            <strong>View-only access</strong>
+                                            <span>Only authorized Operations personnel can record Reserve Bus deployment.</span>
                                         </div>
                                     </div>
                                 @else
@@ -545,11 +578,27 @@
                                             </select>
                                         </div>
 
+                                        @if($incident->trip_schedule_id)
+                                            <div class="inc-form-group" style="margin-top: 10px;">
+                                                <label for="replacement_driver_id">Driver for Trip Continuation</label>
+                                                <select name="replacement_driver_id" id="replacement_driver_id">
+                                                    <option value="">Keep original driver ({{ $incident->driver_name ?: 'Assigned Driver' }})</option>
+                                                    @foreach($eligibleReplacementDrivers as $driverOption)
+                                                        @if(!$incident->driver_id || $driverOption->driver_id !== $incident->driver_id)
+                                                            <option value="{{ $driverOption->driver_id }}">
+                                                                Replace with: {{ $driverOption->driver_name }} ({{ $driverOption->driver_id }} · Assumed Available)
+                                                            </option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endif
+
                                         <div class="inc-form-note" style="margin-top: 12px;">
                                             <i class="fa-solid fa-circle-info"></i>
                                             <div>
                                                 <strong>Reserve replacement eligibility</strong>
-                                                <span>Record only the Reserve Bus actually selected by OIC. Only active Reserve buses without an unresolved Maintenance Job Order are offered. Overlapping trip assignments are verified again when dispatch is submitted.</span>
+                                                <span>Record only the Reserve Bus actually selected by OIC. Only active Reserve buses without an unresolved Maintenance Job Order or overlapping trip assignment are offered.</span>
                                             </div>
                                         </div>
 

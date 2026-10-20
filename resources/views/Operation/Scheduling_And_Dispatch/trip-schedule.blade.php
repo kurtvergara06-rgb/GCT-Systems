@@ -66,6 +66,10 @@
                         class="service-schedule-toolbar"
                     >
                         <x-slot:actions>
+                            <a class="new-trip-btn gct-section-new-button trip-client-times-link" href="{{ route('client-trip-times') }}">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>Client Trip Times</span>
+                            </a>
                             @if($canEditOperation && request('tab') !== 'history')
                                 <button type="button" class="new-trip-btn gct-section-new-button" id="openTripModal">
                                     <i class="fa-solid fa-plus"></i>
@@ -97,7 +101,15 @@
                 <div class="service-panels-surface">
                 @foreach(['Incoming', 'Outgoing'] as $serviceDirection)
                     @php
-                        $directionTrips = $trips->filter(fn ($item) => $item->direction === $serviceDirection);
+                        $directionTrips = $trips->filter(fn ($item) => $item->direction === $serviceDirection)
+                            ->sortBy(fn ($item) => implode('|', [
+                                mb_strtolower(trim((string) ($item->client_name ?: 'No Client Allocation'))),
+                                mb_strtolower((string) ($item->shuttleRoute?->route_code ?? $item->route_code_snapshot ?? '')),
+                                $item->trip_date?->format('Y-m-d') ?? '',
+                                (string) $item->departure_time,
+                                sprintf('%012d', $item->id),
+                            ]));
+                        $previousClientRoute = null;
                     @endphp
                     <div class="service-direction-panel {{ strtolower($serviceDirection) }}">
                         <header class="service-direction-header">
@@ -187,9 +199,23 @@
                                                 'departure' => $departureDateTime->format('g:i A'), 'arrival' => $arrivalDisplay,
                                                 'shift' => $trip->shift, 'assignment' => $displayAssignmentStatus,
                                                 'status' => $trip->status, 'notes' => $trip->notes,
-                                                'direction' => $trip->direction, 'requiredBuses' => $requiredCount,
+                                                'direction' => $trip->direction, 'clientName' => $trip->client_name, 'requiredBuses' => $requiredCount,
                                             ];
+                                            $clientGroupLabel = trim((string) ($trip->client_name ?? '')) ?: 'No Client Allocation';
+                                            $routeGroupCode = $route?->route_code ?? $trip->route_code_snapshot ?? '—';
+                                            $routeGroupName = $route?->route_name ?? $trip->route_name_snapshot ?? 'Unknown route';
+                                            $clientRouteKey = mb_strtolower($clientGroupLabel) . '|' . mb_strtolower((string) $routeGroupCode);
+                                            $startsNewGroup = $clientRouteKey !== $previousClientRoute;
+                                            $previousClientRoute = $clientRouteKey;
                                         @endphp
+                                        @if($startsNewGroup)
+                                            <tr class="service-client-route-heading">
+                                                <th colspan="8" scope="rowgroup">
+                                                    <span>Client: {{ $clientGroupLabel }}</span>
+                                                    <strong>Route {{ $routeGroupCode }} · {{ $routeGroupName }}</strong>
+                                                </th>
+                                            </tr>
+                                        @endif
                                         <tr>
                                             <td>
                                                 <button type="button" class="service-expand-button" aria-label="Expand {{ $trip->trip_code }}" aria-expanded="false">
@@ -239,7 +265,7 @@
                                                             type="view"
                                                             class="trip-action view-trip"
                                                             title="View Details"
-                                                            data-trip='@json($viewTripData)'
+                                                            data-trip="{{ json_encode($viewTripData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                         />
                                                                                                                     <x-ui.action-button
                                                                 type="edit"
@@ -251,6 +277,7 @@
                                                                 data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
                                                                 data-route-id="{{ $trip->shuttle_route_id }}"
                                                                 data-direction="{{ $trip->direction }}"
+                                                                data-client-name="{{ $trip->client_name }}"
                                                                 data-required-buses="{{ $trip->required_buses ?? 1 }}"
                                                                 data-departure-time="{{ $departureDateTime->format('H:i') }}"
                                                                 data-arrival-time="{{ $arrivalDateTime->format('H:i') }}"
@@ -293,6 +320,14 @@
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-calendar-day"></i> Schedule:</span>
                                                         <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong> · {{ $trip->shift }} shift
+                                                    </div>
+                                                    <div class="service-detail-item">
+                                                        <span class="detail-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Client / Company:</span>
+                                                        @if(filled($trip->client_name))
+                                                            <strong>{{ $trip->client_name }}</strong>
+                                                        @else
+                                                            <span class="text-muted">No client assigned</span>
+                                                        @endif
                                                     </div>
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> ETA:</span>
@@ -360,6 +395,10 @@
     @endif
 
     @if($canEditOperation)
+        <script type="application/json" id="clientTripTimeConfigs">{!! json_encode(
+            $clientTripTimeConfigs,
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        ) !!}</script>
         <x-ui.form-modal
             id="tripModal"
             title="New Trip"
@@ -381,16 +420,6 @@
             <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
             <input type="hidden" name="return_search" value="{{ request('search') }}">
             <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
-
-            <div class="trip-editor-intro">
-                <div class="trip-editor-intro-icon">
-                    <i class="fa-solid fa-calendar-check"></i>
-                </div>
-                <div>
-                    <strong>Schedule Information</strong>
-                    <span>Choose the active route, trip date, and departure time. Arrival and shift are calculated automatically.</span>
-                </div>
-            </div>
 
             <div class="ui-form-grid trip-ui-form-grid trip-editor-grid">
                 <x-ui.form-field label="Trip ID" name="trip_code_display" id="tripCode" value="Auto-generated" icon="fa-hashtag" :readonly="true" />
@@ -421,37 +450,56 @@
                     @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
 
+                <div class="ui-form-group ui-form-full">
+                    <label for="tripClientName">Client / Company <small>(Optional)</small></label>
+                    <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
+                        <select id="tripClientName" name="client_name">
+                            <option value="">No client — unallocated service</option>
+                            @foreach($operationClientNames as $clientName)
+                                <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
+                            @endforeach
+                            @if(old('client_name') && !$operationClientNames->contains(old('client_name')))
+                                <option value="{{ old('client_name') }}" selected data-legacy-client>{{ old('client_name') }} (existing allocation)</option>
+                            @endif
+                        </select>
+                    </div>
+                    @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
+                </div>
                 <div class="trip-service-planning-fields">
                     <div class="ui-form-group">
-                        <label for="tripDirection">Service Direction</label>
-                        <select name="direction" id="tripDirection">
-                            <option value="">Not specified (legacy)</option>
+                        <label for="tripDirection">Service Direction <span class="ui-required">*</span></label>
+                        <select name="direction" id="tripDirection" required>
+                            <option value="" disabled @selected(!old('direction'))>Select service direction</option>
                             <option value="Incoming" @selected(old('direction') === 'Incoming')>Incoming — Employees going to work</option>
                             <option value="Outgoing" @selected(old('direction') === 'Outgoing')>Outgoing — Employees going home</option>
                         </select>
                         @error('direction')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
-                <x-ui.form-field label="Departure Time" name="departure_time" id="departureTime" type="time" :value="old('departure_time')" icon="fa-clock" :required="true" />
+                <div class="ui-form-group trip-departure-time-group">
+                    <label for="departureTime">Departure Time <span class="ui-required">*</span></label>
+                    <div class="ui-input-wrap has-icon" id="departureTimeInputWrap">
+                        <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
+                        <input type="time" name="departure_time" id="departureTime" value="{{ old('departure_time') }}" required>
+                        <select id="departureTimeSlot" disabled hidden>
+                            <option value="">Select configured time</option>
+                        </select>
+                    </div>
+                    <div id="tripTimeConfigNotice" class="trip-time-config-notice" hidden></div>
+                    @error('departure_time')<span class="ui-field-error">{{ $message }}</span>@enderror
+                </div>
                 <div class="trip-service-planning-fields trip-required-bus-field">
                     <div class="ui-form-group">
                         <label for="tripRequiredBuses">Required Buses</label>
                         <input name="required_buses" id="tripRequiredBuses" type="number" min="1" max="30" step="1" value="{{ old('required_buses', 1) }}" required>
-                        <small>Planning demand only. Additional buses cannot be assigned until grouped scheduling is enabled.</small>
+
                         @error('required_buses')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
                 <x-ui.form-field label="Estimated Arrival (Auto)" name="estimated_arrival_time_display" id="arrivalTime" type="time" :value="old('estimated_arrival_time_display')" icon="fa-clock-rotate-left" :readonly="true" />
-                <x-ui.form-field label="Shift" name="shift_display" id="tripShift" value="Automatic" icon="fa-business-time" :readonly="true" />
-                <x-ui.form-select
-                    label="Status"
-                    name="status"
-                    id="tripStatus"
-                    :options="['Scheduled' => 'Scheduled', 'Cancelled' => 'Cancelled']"
-                    :selected="old('status', 'Scheduled')"
-                    icon="fa-circle-check"
-                    :required="true"
-                />
+                {{-- Status and legacy shift are managed by scheduling; not user inputs. --}}
+                <input type="hidden" name="status" id="tripStatus" value="{{ old('status', 'Scheduled') }}">
 
                 <div class="ui-form-group ui-form-full trip-notes-group">
                     <label for="tripNotes">Notes</label>

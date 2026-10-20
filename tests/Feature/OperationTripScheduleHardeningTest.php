@@ -6,9 +6,12 @@ use App\Events\SystemDataUpdated;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
+use App\Models\Operation\ClientTripTimeConfiguration;
+use App\Models\Operation\ClientTripTimeSlot;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -100,6 +103,9 @@ class OperationTripScheduleHardeningTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $busIds = Bus::query()->pluck('id')->all();
+        Driver::query()->each(fn (Driver $d) => $d->authorizedBuses()->syncWithoutDetaching($busIds));
+
         return [$driver, $attendance, $bus];
     }
 
@@ -114,6 +120,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $tripDate,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '23:50',
+                'direction' => 'Incoming',
                 'status' => 'Cancelled',
             ])
             ->assertRedirect('/operation/trip-schedule');
@@ -135,6 +142,56 @@ class OperationTripScheduleHardeningTest extends TestCase
             now()->addDays(2)->toDateString(),
             $trip->estimated_arrival_date?->toDateString()
         );
+    }
+
+    public function test_configured_client_departure_accepts_only_an_enabled_slot(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $tripDate = now()->addDay()->toDateString();
+        $client = OperationClient::create([
+            'name' => 'Configured Trip Client',
+            'status' => 'Active',
+        ]);
+        $configuration = ClientTripTimeConfiguration::create([
+            'operation_client_id' => $client->id,
+            'category' => 'incoming_am',
+            'start_time' => '06:00:00',
+            'end_time' => '10:00:00',
+            'is_active' => true,
+        ]);
+
+        ClientTripTimeSlot::create([
+            'client_trip_time_configuration_id' => $configuration->id,
+            'slot_time' => '07:00:00',
+            'is_enabled' => true,
+        ]);
+
+        $payload = [
+            'trip_date' => $tripDate,
+            'shuttle_route_id' => $route->id,
+            'client_name' => $client->name,
+            'direction' => 'Incoming',
+            'required_buses' => 1,
+        ];
+
+        $this->actingAs($user)
+            ->from(route('trip-schedule'))
+            ->post(route('trip-schedule.store'), $payload + [
+                'departure_time' => '07:00',
+            ])
+            ->assertRedirect('/operation/trip-schedule')
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->from(route('trip-schedule'))
+            ->post(route('trip-schedule.store'), $payload + [
+                'departure_time' => '08:00',
+            ])
+            ->assertRedirect(route('trip-schedule'))
+            ->assertSessionHasErrors('departure_time');
+
+        $this->assertSame(1, TripSchedule::query()->count());
     }
 
     public function test_trip_schedule_persists_incoming_service_bus_demand_and_filters_direction(): void
@@ -239,6 +296,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => now()->subDay()->toDateString(),
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('trip_date')
             ->assertSessionHas('trip_validation_mode', 'create');
@@ -266,6 +324,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'trip_date' => $createdDate,
             'shuttle_route_id' => $route->id,
             'departure_time' => '08:00',
+            'direction' => 'Incoming',
         ])
             ->assertRedirect('/operation/trip-schedule')
             ->assertSessionHas('operation.selected_trip_date', $createdDate);
@@ -288,6 +347,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect('/operation/trip-schedule');
 
@@ -308,6 +368,7 @@ class OperationTripScheduleHardeningTest extends TestCase
 
         $existing = $this->trip($route, [
             'trip_code' => 'T-EXISTING',
+            'direction' => 'Incoming',
             'trip_date' => $date,
             'departure_time' => '08:00:00',
             'estimated_arrival_time' => '08:30:00',
@@ -319,12 +380,14 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('departure_time')
             ->assertSessionHas('trip_validation_mode', 'create');
 
         $editable = $this->trip($route, [
             'trip_code' => 'T-EDITABLE',
+            'direction' => 'Incoming',
             'trip_date' => $date,
             'departure_time' => '10:00:00',
             'estimated_arrival_time' => '10:30:00',
@@ -357,6 +420,7 @@ class OperationTripScheduleHardeningTest extends TestCase
 
         $this->trip($route, [
             'trip_code' => 'T-INTERVAL-BASE',
+            'direction' => 'Incoming',
             'trip_date' => $date,
             'departure_time' => '08:00:00',
             'estimated_arrival_time' => '08:30:00',
@@ -368,6 +432,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:14',
+                'direction' => 'Incoming',
             ])
             ->assertSessionHasErrors('departure_time');
 
@@ -376,6 +441,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:15',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect('/operation/trip-schedule')
             ->assertSessionHasNoErrors();
@@ -385,6 +451,34 @@ class OperationTripScheduleHardeningTest extends TestCase
             'shuttle_route_id' => $route->id,
             'departure_time' => '08:15:00',
         ]);
+    }
+
+    public function test_opposite_directions_can_depart_together_but_same_direction_cannot(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
+
+        $this->trip($route, [
+            'trip_code' => 'T-INCOMING-BASE',
+            'trip_date' => $date,
+            'direction' => 'Incoming',
+            'departure_time' => '08:00:00',
+        ]);
+
+        $this->actingAs($user)->post(route('trip-schedule.store'), [
+            'trip_date' => $date,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Outgoing',
+            'departure_time' => '08:00',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($user)->post(route('trip-schedule.store'), [
+            'trip_date' => $date,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Incoming',
+            'departure_time' => '08:14',
+        ])->assertSessionHasErrors('departure_time');
     }
 
     public function test_ready_or_assigned_trip_cannot_be_edited_from_trip_schedule(): void
@@ -414,65 +508,34 @@ class OperationTripScheduleHardeningTest extends TestCase
         $this->assertSame('08:00:00', $trip->departure_time);
     }
 
-    public function test_departed_unassigned_trip_without_history_can_be_edited_and_deleted(): void
+    public function test_departed_unassigned_trip_is_read_only_and_cannot_be_deleted(): void
     {
         $user = $this->operationUser();
         $route = $this->route();
-        $pastDeparture = now(config('app.business_timezone', 'Asia/Manila'))->subHour()->startOfMinute();
-        $pastArrival = $pastDeparture->copy()->addMinutes(30);
-
+        $departure = now(config('app.business_timezone', 'Asia/Manila'))->subHour()->startOfMinute();
         $trip = $this->trip($route, [
             'trip_code' => 'T-MISSED',
             'direction' => 'Incoming',
-            'trip_date' => $pastDeparture->toDateString(),
-            'departure_time' => $pastDeparture->format('H:i:s'),
-            'estimated_arrival_time' => $pastArrival->format('H:i:s'),
-            'estimated_arrival_date' => $pastArrival->toDateString(),
+            'trip_date' => $departure->toDateString(),
+            'departure_time' => $departure->format('H:i:s'),
+            'estimated_arrival_time' => $departure->copy()->addMinutes(30)->format('H:i:s'),
         ]);
 
-        $this->actingAs($user)
-            ->get(route('trip-schedule', [
-                'trip_date' => $pastDeparture->toDateString(),
-            ]))
-            ->assertOk()
-            ->assertSee('data-id="'.$trip->id.'"', false)
-            ->assertSee('data-allow-past="true"', false);
-
-        $correctedDeparture = $pastDeparture
-            ->copy()
-            ->addMinutes(10);
-
+        $this->assertFalse($trip->canBeManagedFromSchedule());
         $this->actingAs($user)
             ->put(route('trip-schedule.update', $trip), [
-                'trip_date' => $correctedDeparture->toDateString(),
+                'trip_date' => $departure->toDateString(),
                 'shuttle_route_id' => $route->id,
-                'departure_time' => $correctedDeparture->format('H:i'),
+                'departure_time' => $departure->format('H:i'),
                 'status' => 'Scheduled',
-                'notes' => 'Corrected missed schedule.',
             ])
-            ->assertRedirect('/operation/trip-schedule')
-            ->assertSessionHasNoErrors()
-            ->assertSessionMissing('error');
-
-        $trip->refresh();
-
-        $this->assertSame(
-            $correctedDeparture->format('H:i:s'),
-            $trip->departure_time
-        );
-        $this->assertSame(
-            'Corrected missed schedule.',
-            $trip->notes
-        );
+            ->assertSessionHas('error');
 
         $this->actingAs($user)
             ->delete(route('trip-schedule.destroy', $trip))
-            ->assertRedirect('/operation/trip-schedule')
-            ->assertSessionMissing('error');
+            ->assertSessionHas('error');
 
-        $this->assertSoftDeleted('trip_schedules', [
-            'id' => $trip->id,
-        ]);
+        $this->assertDatabaseHas('trip_schedules', ['id' => $trip->id, 'deleted_at' => null]);
     }
 
     public function test_cancelled_trips_are_excluded_from_trip_schedule_kpis(): void
@@ -562,6 +625,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '07:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect();
 
@@ -589,6 +653,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'departure_time' => '08:00',
+                'direction' => 'Incoming',
             ])
             ->assertRedirect();
 
@@ -877,6 +942,60 @@ class OperationTripScheduleHardeningTest extends TestCase
         );
     }
 
+    public function test_configured_departure_slots_hide_the_enhanced_manual_time_trigger(): void
+    {
+        $pickerJs = file_get_contents(
+            resource_path('js/Main-js/date-time-picker.js')
+        );
+        $pickerCss = file_get_contents(
+            resource_path('css/Main-styles/date-time-picker.css')
+        );
+        $tripCss = file_get_contents(
+            resource_path(
+                'css/Operation/Scheduling_And_Dispatch/trip-schedule.css'
+            )
+        );
+        $tripView = file_get_contents(
+            resource_path(
+                'views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'
+            )
+        );
+        $tripJs = file_get_contents(
+            resource_path(
+                'js/Operation/Scheduling_And_Dispatch/trip-schedule.js'
+            )
+        );
+
+        $this->assertStringContainsString(
+            'trigger.hidden = input.hidden;',
+            $pickerJs
+        );
+        $this->assertStringContainsString(
+            "attributeFilter: ['disabled', 'hidden', 'value']",
+            $pickerJs
+        );
+        $this->assertStringContainsString(
+            '.gct-picker-trigger[hidden]',
+            $pickerCss
+        );
+        $this->assertStringContainsString(
+            '.gct-picker-trigger[data-picker-for="departureTime"]',
+            $tripCss
+        );
+        $this->assertStringContainsString(
+            '<select id="departureTimeSlot" disabled hidden>',
+            $tripView
+        );
+        $this->assertStringNotContainsString(
+            '<select name="departure_time" id="departureTimeSlot"',
+            $tripView
+        );
+        $this->assertStringContainsString(
+            "arrivalTime.dispatchEvent(new Event('input', { bubbles: true }))",
+            $tripJs
+        );
+    }
+
     public function test_assignment_index_uses_selected_date_and_keeps_reusable_resources_visible(): void
     {
         $user = $this->operationUser();
@@ -945,11 +1064,12 @@ class OperationTripScheduleHardeningTest extends TestCase
                 $freeAttendance,
                 $otherAttendance
             ): bool {
-                $ids = $drivers->getCollection()->pluck('id');
+                $ids = $drivers->getCollection()->pluck('driver_id');
 
-                return $ids->contains($busyAttendance->id)
-                    && $ids->contains($freeAttendance->id)
-                    && ! $ids->contains($otherAttendance->id);
+                // Attendance dates do not filter Active drivers for planning.
+                return $ids->contains($busyAttendance->driver_id)
+                    && $ids->contains($freeAttendance->driver_id)
+                    && $ids->contains($otherAttendance->driver_id);
             })
             ->assertViewHas('availableBuses', function ($buses) use (
                 $busyBus,
@@ -1395,7 +1515,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             ->getJson(route('driver-bus-assignment.availability', $target))
             ->assertOk();
 
-        $this->assertSame([$freeAttendance->id], $response->json('drivers.*.id'));
+        $this->assertSame([$freeDriver->driver_id], $response->json('drivers.*.id'));
         $this->assertSame([$freeBus->id], $response->json('buses.*.id'));
     }
 
@@ -1435,7 +1555,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             ->getJson(route('driver-bus-assignment.availability', $laterTrip))
             ->assertOk();
 
-        $this->assertContains($attendance->id, $availability->json('drivers.*.id'));
+        $this->assertContains($attendance->driver_id, $availability->json('drivers.*.id'));
         $this->assertContains($bus->id, $availability->json('buses.*.id'));
 
         $this->actingAs($user)
@@ -1489,6 +1609,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'bus_no' => 'BUS-CONFLICT', 'plate_no' => 'CNF-1001',
             'bus_model' => 'Conflict Bus', 'capacity' => 40, 'status' => 'Active',
         ]);
+        $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]);
         TripAssignment::create([
             'trip_schedule_id' => $existingTrip->id,
             'driver_attendance_id' => $attendance->id,
@@ -1538,6 +1659,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-08',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '23:59',
+                    'direction' => 'Incoming',
                 ])
                 ->assertSessionHasErrors('trip_date');
 
@@ -1547,6 +1669,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-09',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '00:15',
+                    'direction' => 'Incoming',
                 ])
                 ->assertSessionHasErrors('departure_time');
 
@@ -1555,6 +1678,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                     'trip_date' => '2026-10-09',
                     'shuttle_route_id' => $route->id,
                     'departure_time' => '00:45',
+                    'direction' => 'Incoming',
                 ])
                 ->assertRedirect('/operation/trip-schedule')
                 ->assertSessionHasNoErrors();

@@ -200,8 +200,8 @@
   .trip-schedule-page .schedule-table td:last-child,
   .trip-records-page .trip-table:not([aria-label]) th:last-child,
   .trip-records-page .trip-table:not([aria-label]) td:last-child,
-  .personnel-master-page .personnel-master-table th:nth-child(4),
-  .personnel-master-page .personnel-master-table td:nth-child(4)
+  .personnel-master-page .personnel-master-table:not(.driver-master-records-table) th:nth-child(4),
+  .personnel-master-page .personnel-master-table:not(.driver-master-records-table) td:nth-child(4)
 ) {
   text-align: center;
 }
@@ -327,4 +327,25 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
+}
+
+
+/* Standard Active / History navigation across Operation modules. */
+.app:has(.sidebar[data-gct-shell="operation"]) main :is(
+    .personnel-record-tabs, .trip-record-tabs, .trip-history-tabs
+) {
+    min-height: 44px;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) main :is(
+    .personnel-record-tab, .trip-record-tab, .trip-history-tab
+) {
+    min-height: 38px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Operations record headers have no decorative divider lines. Keep table borders. */
+.app:has(.sidebar[data-gct-shell="operation"]) main :is(.table-card, .service-controls-card, .trip-history-card, .personnel-master-panel) > :is(.section-header, .trip-card-header) {
+    border-bottom: 0 !important;
 }

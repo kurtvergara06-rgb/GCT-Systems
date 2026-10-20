@@ -290,10 +290,18 @@ const syncPageOwnedElements = (nextDocument) => {
     }
 
     if (currentApp) {
+        // A full page load can leave unmarked modal wrappers as siblings of <main>.
+        // Remove all page-specific siblings when switching pages, not only nodes
+        // previously added by partial navigation. Otherwise duplicate modal IDs
+        // leave event handlers pointing at detached or stale assignment dialogs.
         Array.from(currentApp.children).forEach((element) => {
-            if (element.hasAttribute('data-page-owned') || element.dataset.pageOwned === 'true') {
-                element.remove();
-            }
+            if (
+                element === currentMain
+                || element.id === 'appSidebar'
+                || element.tagName === 'SCRIPT'
+                || element.matches(PERSISTENT_OVERLAY_SELECTOR)
+            ) return;
+            element.remove();
         });
     }
 
@@ -304,6 +312,7 @@ const syncPageOwnedElements = (nextDocument) => {
                 element.hasAttribute('data-page-owned')
                 || element.dataset.pageOwned === 'true'
                 || (element.matches?.(PAGE_OVERLAY_SELECTOR) && !element.matches?.(PERSISTENT_OVERLAY_SELECTOR))
+                || element.matches?.('[data-ajax-region="assignment-modal"]')
             )
         ) {
             element.remove();
@@ -330,7 +339,8 @@ const syncPageOwnedElements = (nextDocument) => {
             || element.id === 'appSidebar'
             || element.tagName === 'SCRIPT'
             || element.matches(PERSISTENT_OVERLAY_SELECTOR)
-            || !element.matches(PAGE_OVERLAY_SELECTOR)
+            || !(element.matches(PAGE_OVERLAY_SELECTOR)
+                || element.matches('[data-ajax-region="assignment-modal"]'))
         ) return;
         document.body.appendChild(markPageOwned(document.importNode(element, true)));
     });
@@ -674,6 +684,11 @@ const eligibleLink = (link, event) => {
     if (!url) return false;
     const parsed = new URL(url);
     if (parsed.origin !== window.location.origin) return false;
+
+    // Trip Schedule's create/edit modal needs a fresh page initialization.
+    // Keep this route on normal browser navigation until its partial-navigation
+    // lifecycle has been verified end-to-end (including return visits).
+    if (parsed.pathname === '/operation/trip-schedule') return false;
 
     return !(parsed.pathname === window.location.pathname
         && parsed.search === window.location.search
