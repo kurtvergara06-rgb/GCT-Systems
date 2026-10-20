@@ -239,9 +239,9 @@
                                         <label class="protected-capability permission-option matrix-native-toggle {{ $isAllowed ? 'allowed' : 'restricted' }}" data-permission-option>
                                             <input type="hidden" name="{{ $fieldName }}" value="0">
                                             <input type="checkbox" name="{{ $fieldName }}" value="1" @checked($isAllowed) disabled data-permission-input>
-                                            <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-circle-xmark' }} option-state"></i>
+                                            <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-lock' }} option-state"></i>
                                             <span>{{ $capability['label'] }}</span>
-                                            <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
+                                            <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Not granted' }}</span>
                                         </label>
                                     @else
                                         <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'Warehouse approval permission has not been implemented yet.' }}">
