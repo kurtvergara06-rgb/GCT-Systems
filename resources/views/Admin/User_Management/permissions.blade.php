@@ -30,12 +30,14 @@
                 <section class="access-workspace">
                     <x-admin.role-directory
                         :role-permissions="$rolePermissions"
+                        :role-accounts="$roleAccounts ?? collect()"
                         :selected-role-permission="$selectedRolePermission"
                     />
 
                     @if($selectedRolePermission)
                         <x-admin.role-permission-panel
                             :selected-role-permission="$selectedRolePermission"
+                            :assigned-accounts="($roleAccounts ?? collect())->get($selectedRolePermission->role_key, collect())"
                             :permission-modules="$permissionModules"
                         />
                     @endif
