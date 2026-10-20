@@ -41,18 +41,24 @@ class RolePermissionService
             return $normalized;
         }
 
-        $roleModuleKey = $this->roleModuleKey($rolePermission);
-
-        if ($roleModuleKey === null) {
+        // Only supported capabilities may be saved. Administration stays
+        // restricted to protected system administrators.
+        if ($this->roleModuleKey($rolePermission) === null) {
             return $normalized;
         }
 
-        foreach (array_keys($this->modules()[$roleModuleKey]['capabilities']) as $capabilityKey) {
-            $normalized[$roleModuleKey][$capabilityKey] = (bool) data_get(
-                $submittedPermissions,
-                $roleModuleKey.'.'.$capabilityKey,
-                false
-            );
+        foreach ($this->modules() as $moduleKey => $module) {
+            if ($moduleKey === 'administration') {
+                continue;
+            }
+
+            foreach (array_keys($module['capabilities']) as $capabilityKey) {
+                $normalized[$moduleKey][$capabilityKey] = (bool) data_get(
+                    $submittedPermissions,
+                    $moduleKey.'.'.$capabilityKey,
+                    false
+                );
+            }
         }
 
         return $normalized;
