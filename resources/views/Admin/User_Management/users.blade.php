@@ -52,6 +52,12 @@
             />
 
             <x-ui.ajax-region name="summary" class="stats-grid users-stats-grid">
+                @if(!empty($applicationsPage))
+                <x-ui.summary-card label="Pending Applications" value="{{ $pendingUsers ?? 0 }}" small="Awaiting review" icon="fa-user-clock" color="yellow" />
+                <x-ui.summary-card label="Rejected Applications" value="{{ $rejectedUsers ?? 0 }}" small="Not approved" icon="fa-circle-xmark" color="red" />
+                <x-ui.summary-card label="Verified Pending" value="{{ $verifiedPendingUsers ?? 0 }}" small="Email verified; awaiting decision" icon="fa-envelope-circle-check" color="green" />
+                <x-ui.summary-card label="Unverified Pending" value="{{ $unverifiedPendingUsers ?? 0 }}" small="Email verification incomplete" icon="fa-envelope" color="gray" />
+                @else
                 <x-ui.summary-card
                     label="Total Accounts"
                     value="{{ $totalUsers ?? 0 }}"
@@ -83,6 +89,7 @@
                     icon="fa-clock"
                     color="yellow"
                 />
+                @endif
             </x-ui.ajax-region>
 
             <x-ui.ajax-region name="records" class="records-card users-card users-table-card {{ empty($applicationsPage) ? 'users-card--accounts' : 'users-card--applications' }}">
