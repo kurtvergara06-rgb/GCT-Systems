@@ -95,14 +95,14 @@ class InactiveAccountLoginTest extends TestCase
                 'email' => $user->email,
                 'password' => 'Password123!',
             ])
-            ->assertRedirect(route('login'))
-            ->assertSessionHas('blocked_account_status', 'Pending');
+            ->assertRedirect(route('registration.pending'))
+            ->assertSessionHas('pending_verified');
 
         $this->assertGuest();
 
-        $this->get(route('login'))
+        $this->get(route('registration.pending'))
             ->assertOk()
-            ->assertSee('Account Pending Activation');
+            ->assertSee('Account Pending Approval');
     }
 
     public function test_active_account_login_still_works(): void

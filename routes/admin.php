@@ -14,6 +14,8 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
 
     Route::get('/admin/users', [AdminUserController::class, 'index'])
         ->name('admin.users');
+    Route::post('/admin/users/{user}/review-application', [AdminUserController::class, 'reviewApplication'])
+        ->name('admin.users.review-application');
     Route::post('/admin/users', [AdminUserController::class, 'store'])
         ->name('admin.users.store');
     Route::put('/admin/users/{user}', [AdminUserController::class, 'update'])
