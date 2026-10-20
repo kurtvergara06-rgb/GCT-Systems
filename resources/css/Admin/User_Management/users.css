@@ -558,3 +558,35 @@
     margin-left: 0;
   }
 }
+
+/* Account status tabs: a single segmented switch, matching Bus Master List. */
+.users-main .users-record-controls .application-status-tabs {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d8e2f0;
+  border-radius: 12px;
+  background: #f0f4f9;
+}
+.users-main .users-record-controls .application-status-tab {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #344663;
+}
+.users-main .users-record-controls .application-status-tab.is-active {
+  color: #102c53;
+  background: #fff;
+  border-color: #e4ebf5;
+  box-shadow: 0 2px 5px rgba(18, 43, 78, .08);
+}
+@media (max-width: 580px) {
+  .users-main .users-record-controls .application-status-tabs {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
