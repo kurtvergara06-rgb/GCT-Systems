@@ -225,7 +225,13 @@ class AdminUserController extends Controller
             return redirect()->route('admin.users')->with('error', 'Verify the employee email before approving this registration.');
         }
 
-        $newEmail = strtolower(trim($validated['email']));
+        $newEmail = strtolower(trim((string) ($request->input('new_email') ?: $validated['email'])));
+        if (! filter_var($newEmail, FILTER_VALIDATE_EMAIL) || strlen($newEmail) > 255) {
+            return back()->withErrors(['new_email' => 'Enter a valid new email address.']);
+        }
+        if (User::query()->where('email', $newEmail)->whereKeyNot($user->id)->exists()) {
+            return back()->withErrors(['new_email' => 'The new email address is already in use.']);
+        }
         $emailChanged = strcasecmp($user->email, $newEmail) !== 0;
         $accessChanged = $user->department !== $validated['department']
             || $user->role !== $validated['role'];
@@ -288,6 +294,66 @@ class AdminUserController extends Controller
         return redirect()->route('admin.users')->with('success', $emailChanged
             ? 'Account changes saved. The new email is pending verification; the existing email remains active until verified.'
             : 'User account updated successfully.');
+    }
+
+    public function resendEmailChange(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_if($this->isProtectedSystemAdmin($user), 403);
+
+        DB::transaction(function () use ($user) {
+            $pending = DB::table('account_email_changes')->where('user_id', $user->id)->lockForUpdate()->first();
+            if (! $pending) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'There is no pending email change for this account.',
+                ]);
+            }
+            if ($pending->updated_at && now()->diffInSeconds($pending->updated_at, false) > -60) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'Wait at least 60 seconds before resending the verification link.',
+                ]);
+            }
+            $this->sendAccountEmailLink($user, $pending->new_email);
+        });
+
+        return redirect()->route('admin.users')->with('success', 'Verification link resent to the pending email address.');
+    }
+
+    public function cancelEmailChange(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_if($this->isProtectedSystemAdmin($user), 403);
+        DB::table('account_email_changes')->where('user_id', $user->id)->delete();
+        app(ActivityLogService::class)->record(
+            $request->user(), $request, 'Cancelled employee email change',
+            'Security', 'Admin', (string) $user->id,
+            'Pending email change cancelled; verified account email unchanged.'
+        );
+        return redirect()->route('admin.users')->with('success', 'Pending email change cancelled.');
+    }
+
+    private function sendAccountEmailLink(User $user, string $newEmail): void
+    {
+        $token = Str::random(64);
+        $verifyUrl = URL::temporarySignedRoute(
+            'account.email-change.verify',
+            now()->addMinutes(30),
+            ['id' => $user->id, 'token' => $token]
+        );
+        Mail::raw(
+            "An administrator requested an email change for your GCT-Systems account. Verify your new email within 30 minutes: {$verifyUrl}. If you did not request this, ignore this message.",
+            static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
+        );
+        DB::table('account_email_changes')->updateOrInsert(
+            ['user_id' => $user->id],
+            [
+                'new_email' => $newEmail,
+                'token_hash' => hash('sha256', $token),
+                'expires_at' => now()->addMinutes(30),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 
     public function updateStatus(Request $request, User $user)
