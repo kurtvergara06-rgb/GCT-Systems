@@ -329,7 +329,7 @@ class IncidentTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
-            ->assertSee('Available Reserve Buses')
+            ->assertSee('Select an eligible reserve bus')
             ->assertSee('BUS-REPL-001');
 
         $this->actingAs($this->user)->post(route('incidents.response', $incident), [
