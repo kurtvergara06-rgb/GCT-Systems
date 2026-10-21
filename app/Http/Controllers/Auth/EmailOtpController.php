@@ -25,7 +25,7 @@ class EmailOtpController extends Controller
     public function show(Request $request): Response
     {
         $user = $this->applicant($request);
-        return response()->view('Login.email-otp-preview', ['otpEmail' => $user->email])
+        return response()->view('Login.email-otp', ['otpEmail' => $user->email])
             ->header('Cache-Control', 'no-store');
     }
 
