@@ -148,12 +148,18 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
   function openModal(modal) {
     if (!modal) return;
+    // Partial navigation may have hidden the overlay with an inline style.
+    // A .show class alone cannot override display:none on the element.
+    modal.style.removeProperty('display');
+    modal.removeAttribute('inert');
+    modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('show');
   }
 
   function closeModal(modal) {
     if (!modal) return;
     modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   function closeAllModals() {
