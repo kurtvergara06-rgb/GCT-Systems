@@ -11,7 +11,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'show'])->name('login');
 
-Route::get('/registration/pending', fn () => response()->view('Login.pending-approval')->header('Cache-Control', 'no-store'))
+Route::get('/registration/pending', function (\Illuminate\Http\Request $request) {
+    $userId = $request->session()->get('pending_registration_user_id')
+        ?: $request->session()->get('registration_otp_user_id');
+    $applicant = $userId ? \App\Models\Admin\User::query()->find($userId) : null;
+
+    return response()->view('Login.pending-approval', [
+        'emailVerified' => $applicant ? $applicant->hasVerifiedEmail() : (bool) $request->session()->get('pending_verified', false),
+    ])->header('Cache-Control', 'no-store');
+})
     ->name('registration.pending');
 Route::get('/email/otp', [EmailOtpController::class, 'show'])->name('verification.otp');
 Route::post('/email/otp', [EmailOtpController::class, 'verify'])->middleware('throttle:10,1')->name('verification.otp.submit');
