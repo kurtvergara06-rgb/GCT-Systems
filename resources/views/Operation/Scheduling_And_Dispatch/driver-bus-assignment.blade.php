@@ -222,9 +222,17 @@
                                         default => $trip->status,
                                     };
                                     if ($activeBreakdown && in_array($trip->status, ['Ready', 'Scheduled', 'Dispatched'], true)) {
-                                        $tripDisplayStatus = $trip->status === 'Dispatched'
-                                            ? 'In Progress — Breakdown Reported'
-                                            : 'Incident — Awaiting Replacement';
+                                        $oicResponseRecorded = $activeBreakdown->status !== 'Reported'
+                                            || $activeBreakdown->responses()
+                                                ->where('notes', '!=', 'Incident reported by driver.')
+                                                ->exists();
+                                        $tripDisplayStatus = $oicResponseRecorded
+                                            ? ($trip->status === 'Dispatched'
+                                                ? 'In Progress — Awaiting Replacement'
+                                                : 'Incident — Awaiting Replacement')
+                                            : ($trip->status === 'Dispatched'
+                                                ? 'In Progress — Breakdown Reported'
+                                                : 'Breakdown Reported — OIC Review');
                                     } elseif ($deployedReplacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
                                         $tripDisplayStatus = $trip->status === 'Ready'
                                             ? 'Ready — Replacement Assigned'
