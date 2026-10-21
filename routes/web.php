@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Auth\EmailOtpController;
 use App\Http\Controllers\TopbarController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,7 +12,11 @@ Route::get('/', [LoginController::class, 'show'])->name('login');
 
 Route::get('/registration/pending', fn () => response()->view('Login.pending-approval')->header('Cache-Control', 'no-store'))
     ->name('registration.pending');
-// Local-only OTP UI preview. This does not perform account verification.
+Route::get('/email/otp', [EmailOtpController::class, 'show'])->name('verification.otp');
+Route::post('/email/otp', [EmailOtpController::class, 'verify'])->middleware('throttle:10,1')->name('verification.otp.submit');
+Route::post('/email/otp/resend', [EmailOtpController::class, 'resend'])->middleware('throttle:3,1')->name('verification.otp.resend');
+
+// Local-only OTP UI preview.
 if (app()->environment('local')) {
     Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
 }
