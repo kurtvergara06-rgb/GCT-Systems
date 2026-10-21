@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\EmailOtpController;
+use App\Http\Controllers\Auth\AccountEmailChangeController;
 use App\Http\Controllers\TopbarController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::post('/email/otp/resend', [EmailOtpController::class, 'resend'])->middlew
 if (app()->environment('local')) {
     Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
 }
+
+Route::get('/account/email-change/{id}/{token}', [AccountEmailChangeController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])->name('account.email-change.verify');
 
 Route::get('/register', [RegistrationController::class, 'show'])->name('register');
 Route::post('/register', [RegistrationController::class, 'store'])
