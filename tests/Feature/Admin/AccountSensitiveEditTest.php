@@ -6,6 +6,7 @@ use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class AccountSensitiveEditTest extends TestCase
@@ -82,4 +83,29 @@ class AccountSensitiveEditTest extends TestCase
         $this->get('/account/email-change/'.$employee->id.'/invalid-token')->assertForbidden();
         $this->assertDatabaseMissing('account_email_changes', ['user_id' => $employee->id]);
     }
+    public function test_valid_signed_link_confirms_staged_email_without_changing_permissions(): void
+    {
+        $employee = $this->employee();
+        $token = str_repeat('t', 64);
+        DB::table('account_email_changes')->insert([
+            'user_id' => $employee->id,
+            'new_email' => 'verified.new@example.com',
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => now()->addMinutes(30),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $url = URL::temporarySignedRoute('account.email-change.verify', now()->addMinutes(10), [
+            'id' => $employee->id, 'token' => $token,
+        ]);
+        $this->get($url)->assertRedirect(route('login'));
+
+        $this->assertSame('verified.new@example.com', $employee->fresh()->email);
+        $this->assertNotNull($employee->fresh()->email_verified_at);
+        $this->assertSame('Maintenance', $employee->fresh()->department);
+        $this->assertSame('staff', $employee->fresh()->role);
+        $this->assertDatabaseMissing('account_email_changes', ['user_id' => $employee->id]);
+    }
+
 }
