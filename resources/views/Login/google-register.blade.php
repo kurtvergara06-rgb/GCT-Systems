@@ -17,6 +17,7 @@
   .google-register-help{font-size:12px!important;margin:7px 0 0}
   .google-register-error{font-size:12px!important;color:#b42318!important;margin:8px 0 0}
   .google-register-note{display:flex;gap:9px;margin:22px 0;padding:12px 14px;border-radius:9px;background:#eff5fc;color:#315981;font-size:12px;line-height:1.6}
+  .google-register-password-hint{font-size:12px!important;color:#62748d;margin:8px 0 0}
   .google-register-submit{border:0;width:100%;padding:14px 18px;background:#0c4c8a;color:#fff;border-radius:9px;font-weight:750;cursor:pointer}
   .google-register-submit:hover{background:#083968}
   .google-register-back{display:block;margin-top:20px;text-align:center;color:#174e87;font-size:13px;text-decoration:none}
@@ -46,7 +47,7 @@
     <div class="login-card google-register-panel">
       <div class="google-register-card">
         <h2>Complete Your Registration</h2>
-        <p>Enter your official full name to create your GCT-Systems employee application.</p>
+        <p>Enter your official full name and create a GCT-Systems password. You can use Google or your password to sign in after approval.</p>
         <form method="POST" action="{{ route('auth.google.register.submit') }}">
           @csrf
           <label for="googleEmployeeName">Full Name</label>
@@ -55,6 +56,12 @@
           <label for="googleEmployeeEmail">Google Email Address</label>
           <input id="googleEmployeeEmail" type="email" value="{{ $googleEmail }}" readonly aria-readonly="true">
           <p class="google-register-help">This email is provided by Google and cannot be changed here.</p>
+          <label for="googleEmployeePassword">Create GCT-Systems Password</label>
+          <input id="googleEmployeePassword" type="password" name="password" placeholder="Create a secure password" autocomplete="new-password" minlength="8" required>
+          <p class="google-register-password-hint">At least 8 characters. This is separate from your Google password.</p>
+          @error('password')<p class="google-register-error" role="alert">{{ $message }}</p>@enderror
+          <label for="googleEmployeePasswordConfirmation">Confirm Password</label>
+          <input id="googleEmployeePasswordConfirmation" type="password" name="password_confirmation" placeholder="Re-enter your password" autocomplete="new-password" minlength="8" required>
           <div class="google-register-note"><span aria-hidden="true">ⓘ</span><span>After submitting, you'll receive a six-digit email OTP. An administrator will assign your department and role after verification.</span></div>
           <button type="submit" class="google-register-submit">Continue to Email Verification →</button>
         </form>
