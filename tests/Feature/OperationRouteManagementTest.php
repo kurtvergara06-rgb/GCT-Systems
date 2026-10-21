@@ -781,7 +781,7 @@ class OperationRouteManagementTest extends TestCase
         );
 
         Cache::forget(
-            'route-osrm:v4:'
+            'route-osrm:v5:'
             . $cacheHash
         );
 
