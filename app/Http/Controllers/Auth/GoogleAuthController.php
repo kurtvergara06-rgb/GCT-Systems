@@ -126,28 +126,84 @@ class GoogleAuthController extends Controller
             return redirect()->route('auth.google.link');
         }
 
+        // A new Google identity must supply an official full name before an account is created.
+        $request->session()->put('google_registration_pending', [
+            'google_id' => $subject,
+            'email' => strtolower(trim($email)),
+            'name' => trim((string) ($profile['name'] ?? '')),
+            'expires_at' => now()->addMinutes(10)->timestamp,
+        ]);
+        return redirect()->route('auth.google.register');
+    }
+
+    private function pendingGoogleRegistration(Request $request): ?array
+    {
+        $pending = $request->session()->get('google_registration_pending');
+        if (! is_array($pending) || ! isset($pending['google_id'], $pending['email'], $pending['expires_at'])
+            || now()->timestamp >= (int) $pending['expires_at']) {
+            $request->session()->forget('google_registration_pending');
+            return null;
+        }
+        return $pending;
+    }
+
+    public function registrationForm(Request $request): \Illuminate\Http\Response|RedirectResponse
+    {
+        $pending = $this->pendingGoogleRegistration($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google registration session expired. Please try again.');
+        }
+        return response()->view('Login.google-register', [
+            'googleEmail' => $pending['email'],
+            'googleName' => $pending['name'] ?? '',
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    public function completeRegistration(Request $request, EmailOtpService $otp): RedirectResponse
+    {
+        $pending = $this->pendingGoogleRegistration($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google registration session expired. Please try again.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+        $name = trim($validated['name']);
+        if ($name === '') {
+            return back()->withErrors(['name' => 'Please enter your full name.']);
+        }
+
+        // Recheck in case another session registered or linked the same identity.
+        if (User::query()->where('email', $pending['email'])
+            ->orWhere('google_id', $pending['google_id'])->exists()) {
+            $request->session()->forget('google_registration_pending');
+            return redirect()->route('login')
+                ->with('error', 'This account was registered already. Please sign in again.');
+        }
+
         try {
-            $newUser = DB::transaction(function () use ($subject, $email, $profile): User {
-                return User::create([
-                    'name' => Str::limit(trim((string) ($profile['name'] ?? 'Google Employee')), 255, ''),
-                    'email' => strtolower($email),
-                    'google_id' => $subject,
-                    'email_verified_at' => null,
-                    'password' => Str::random(64),
-                    'department' => 'Unassigned',
-                    'role' => 'unassigned',
-                    'status' => 'Pending',
-                    'must_change_password' => false,
-                    'onboarding_completed' => false,
-                ]);
-            });
+            $newUser = User::create([
+                'name' => $name,
+                'email' => $pending['email'],
+                'google_id' => $pending['google_id'],
+                'email_verified_at' => null,
+                'password' => Str::random(64),
+                'department' => 'Unassigned',
+                'role' => 'unassigned',
+                'status' => 'Pending',
+                'must_change_password' => false,
+                'onboarding_completed' => false,
+            ]);
         } catch (\Throwable $exception) {
             Log::warning('Google account registration failed.', ['exception' => $exception->getMessage()]);
             return redirect()->route('login')->with('error', 'Unable to complete Google registration. Please contact the administrator.');
         }
 
+        $request->session()->forget('google_registration_pending');
         return $this->continuePendingRegistration($request, $otp, $newUser);
     }
+
     private function continuePendingRegistration(Request $request, EmailOtpService $otp, User $user): RedirectResponse
     {
         $request->session()->put('pending_registration_user_id', $user->id);
