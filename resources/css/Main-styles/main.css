@@ -2447,3 +2447,98 @@ table .table-action-group .table-action-btn:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+
+/*
+ * Shared top-of-records segmented controls — Admin and Operation.
+ * This visual contract deliberately does not affect sidebar navigation,
+ * workflow steps, filters, or action buttons.
+ */
+.app main :is(
+    .application-status-tabs,
+    .personnel-record-tabs,
+    .trip-record-tabs,
+    .trip-history-tabs,
+    .attendance-record-tabs,
+    .gct-record-tabs.routes-segmented-tabs,
+    .inc-segmented-tabs
+) {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: wrap;
+    gap: 4px !important;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 0 !important;
+    margin-bottom: 14px;
+    padding: 4px !important;
+    background: #f5f8fc !important;
+    border: 1px solid #dce4ef !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+.app main :is(
+    .application-status-tabs .application-status-tab,
+    .personnel-record-tabs .personnel-record-tab,
+    .trip-record-tabs .trip-record-tab,
+    .trip-history-tabs .trip-history-tab,
+    .attendance-record-tabs .attendance-record-tab,
+    .routes-segmented-tabs .gct-record-tab,
+    .inc-segmented-tabs .inc-tab-pill
+) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    min-height: 32px !important;
+    padding: 7px 12px !important;
+    color: #536680 !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.app main :is(
+    .application-status-tabs .application-status-tab.is-active,
+    .personnel-record-tabs .personnel-record-tab.is-active,
+    .trip-record-tabs .trip-record-tab.is-active,
+    .trip-history-tabs .trip-history-tab.is-active,
+    .attendance-record-tabs .attendance-record-tab.is-active,
+    .routes-segmented-tabs .gct-record-tab.is-active,
+    .inc-segmented-tabs .inc-tab-pill.is-active
+) {
+    background: #fff !important;
+    color: #0755a6 !important;
+    border-color: #cbdcf3 !important;
+    box-shadow: 0 1px 3px rgba(6,31,61,.07) !important;
+}
+.app main :is(
+    .application-status-tabs .application-status-tab:hover:not(.is-active),
+    .personnel-record-tabs .personnel-record-tab:hover:not(.is-active),
+    .trip-record-tabs .trip-record-tab:hover:not(.is-active),
+    .trip-history-tabs .trip-history-tab:hover:not(.is-active),
+    .attendance-record-tabs .attendance-record-tab:hover:not(.is-active),
+    .routes-segmented-tabs .gct-record-tab:hover:not(.is-active),
+    .inc-segmented-tabs .inc-tab-pill:hover:not(.is-active)
+) {
+    color: #0755a6 !important;
+    background: #eaf3ff !important;
+}
+.app main :is(
+    .application-status-tab,
+    .personnel-record-tab,
+    .trip-record-tab,
+    .trip-history-tab,
+    .attendance-record-tab,
+    .routes-segmented-tabs .gct-record-tab,
+    .inc-segmented-tabs .inc-tab-pill
+):focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
