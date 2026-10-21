@@ -230,6 +230,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'POST';
     }
 
+    if (accountEditEmailNote) accountEditEmailNote.hidden = true;
     if (accountCreateEmailField) accountCreateEmailField.hidden = false;
     if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
     if (accountNewEmailField) accountNewEmailField.hidden = true;
@@ -294,6 +295,8 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     }
 
     setInput(userNameInput, editButton.dataset.name);
+    // Explicitly set the edit-mode state; hidden inputs do not dispatch change events.
+    if (accountEditEmailNote) accountEditEmailNote.hidden = false;
     setInput(userEmailInput, editButton.dataset.email);
     if (accountCreateEmailField) accountCreateEmailField.hidden = true;
     if (accountCurrentEmailField) accountCurrentEmailField.hidden = false;
