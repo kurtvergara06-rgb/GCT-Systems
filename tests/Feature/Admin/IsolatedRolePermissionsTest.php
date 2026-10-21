@@ -38,7 +38,7 @@ class IsolatedRolePermissionsTest extends TestCase
                         $this->assertTrue((bool) ($capabilities['edit'] ?? false));
 
                         if ($module === 'warehouse') {
-                            $this->assertArrayNotHasKey('approve', $capabilities);
+                            $this->assertSame($roleType === 'head', (bool) ($capabilities['approve'] ?? false));
                         } else {
                             $this->assertSame(
                                 $roleType === 'head',
@@ -102,7 +102,7 @@ class IsolatedRolePermissionsTest extends TestCase
 
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.view'));
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.edit'));
-        $this->assertNull(data_get($role->permissions, 'warehouse.approve'));
+        $this->assertTrue((bool) data_get($role->permissions, 'warehouse.approve'));
 
         foreach (['operation', 'maintenance', 'purchase', 'analytics', 'administration'] as $module) {
             foreach ((array) data_get($role->permissions, $module, []) as $allowed) {
@@ -196,7 +196,7 @@ class IsolatedRolePermissionsTest extends TestCase
             ->assertOk()
             ->assertSee('System-Wide Module Access')
             ->assertSee('UI preview — no cross-module access granted')
-            ->assertSee('2 of 17 Allowed')
+            ->assertSee('3 of 17 Allowed')
             ->assertSee('Only Warehouse permissions can be saved currently');
 
         $this->actingAs($admin)
