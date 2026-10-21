@@ -38,7 +38,8 @@ class IsolatedRolePermissionsTest extends TestCase
                         $this->assertTrue((bool) ($capabilities['edit'] ?? false));
 
                         if ($module === 'warehouse') {
-                            $this->assertSame($roleType === 'head', (bool) ($capabilities['approve'] ?? false));
+                            // Seeded warehouse roles start without approval; the administrator can grant it explicitly.
+                            $this->assertFalse((bool) ($capabilities['approve'] ?? false));
                         } else {
                             $this->assertSame(
                                 $roleType === 'head',
