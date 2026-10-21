@@ -43,6 +43,7 @@ class EmailOtpController extends Controller
             event(new Verified($user));
         }
 
+        $request->session()->put('pending_registration_user_id', $user->id);
         $request->session()->forget('registration_otp_user_id');
         return redirect()->route('registration.pending')->with('pending_verified', true);
     }
