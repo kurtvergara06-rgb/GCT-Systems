@@ -29,7 +29,7 @@ class PendingApplicationsTest extends TestCase
     {
         $user = $this->applicant();
         $this->actingAs($this->admin())
-            ->get(route('admin.users', ['status' => 'Pending']))
+            ->get(route('admin.applications', ['status' => 'Pending']))
             ->assertOk()
             ->assertSee('Pending Applications')
             ->assertSee($user->email)
