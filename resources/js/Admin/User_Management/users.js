@@ -73,7 +73,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     const editing = userFormMethod?.value === 'PUT';
     const proposed = accountNewEmailInput.value.trim();
     const current = (accountCurrentVerifiedEmail?.value || '').trim();
-    const isNewValid = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(proposed);
+    const isNewValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposed);
     const isDifferent = proposed.toLowerCase() !== current.toLowerCase();
     const isPreview = editing && isNewValid && isDifferent;
     const showSaved = editing && !isPreview && Boolean(savedPendingEmail);
