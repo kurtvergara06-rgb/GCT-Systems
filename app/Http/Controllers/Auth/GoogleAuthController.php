@@ -106,7 +106,8 @@ class GoogleAuthController extends Controller
         $sameEmail = User::where('email', $email)->first();
         if ($sameEmail) {
             if (strtolower((string) $sameEmail->status) === 'pending') {
-                return $this->continuePendingRegistration($request, $otp, $sameEmail);
+                // Matching emails do not establish ownership of an unlinked local account.
+                return redirect()->route('login')->with('error', 'An application already exists for this email. Resume verification using your original registration method or contact the administrator.');
             }
             if (strtolower((string) $sameEmail->status) !== 'active') {
                 return redirect()->route('login')->with('error', 'This account is inactive. Contact the administrator.');
