@@ -230,7 +230,14 @@
                                                 <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
                                             </button>
                                         @else
+                                            @if($user->status === 'Rejected' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                                            <form method="POST" action="{{ route('admin.users.reconsider-application', $user) }}" onsubmit="return confirm('Return this rejected application to Pending for administrator review? No account access will be granted.');">
+                                                @csrf
+                                                <button type="submit" class="application-review-button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reconsider</button>
+                                            </form>
+                                        @else
                                             <span class="application-action-note">{{ $user->status === 'Rejected' ? 'Rejected' : 'Review restricted' }}</span>
+                                        @endif
                                         @endif
                                     </td>
                                 </tr>
