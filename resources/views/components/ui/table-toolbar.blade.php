@@ -72,6 +72,9 @@
             <button type="button" class="gct-table-tool-trigger {{ (int) $filterCount > 0 ? 'is-active' : '' }}"
                 data-table-tool-trigger="filter" aria-expanded="false" aria-controls="{{ $toolbarId }}Filter">
                 <i class="fa-solid fa-filter" aria-hidden="true"></i><span>Filter</span>
+                @if($showFilterCount && (int) $filterCount > 0)
+                    <span class="gct-table-filter-count" data-table-filter-count>{{ (int) $filterCount }}</span>
+                @endif
 
             </button>
             <div class="gct-table-tool-popover gct-table-filter-popover" id="{{ $toolbarId }}Filter" hidden>
