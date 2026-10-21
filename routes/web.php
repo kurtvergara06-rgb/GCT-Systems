@@ -44,6 +44,9 @@ Route::get('/email/verify/{id}/{hash}', [RegistrationController::class, 'verify'
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
     ->middleware('throttle:10,1')->name('auth.google');
+Route::get('/auth/google/register', [GoogleAuthController::class, 'registrationForm'])->name('auth.google.register');
+Route::post('/auth/google/register', [GoogleAuthController::class, 'completeRegistration'])
+    ->middleware('throttle:5,1')->name('auth.google.register.submit');
 Route::get('/auth/google/link', [GoogleAuthController::class, 'linkForm'])->name('auth.google.link');
 Route::post('/auth/google/link', [GoogleAuthController::class, 'confirmLink'])
     ->middleware('throttle:5,1')->name('auth.google.link.confirm');
