@@ -22,6 +22,8 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
         ->name('admin.users.store');
     Route::put('/admin/users/{user}', [AdminUserController::class, 'update'])
         ->name('admin.users.update');
+    Route::post('/admin/users/{user}/email-change/resend', [AdminUserController::class, 'resendEmailChange'])->name('admin.users.email-change.resend');
+    Route::delete('/admin/users/{user}/email-change', [AdminUserController::class, 'cancelEmailChange'])->name('admin.users.email-change.cancel');
     Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])
         ->name('admin.users.destroy');
     Route::post('/admin/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])
