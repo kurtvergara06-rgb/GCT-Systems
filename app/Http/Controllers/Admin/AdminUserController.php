@@ -89,6 +89,9 @@ class AdminUserController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'name' => 'name', 'email' => 'email', 'department' => 'department', 'role' => 'role', 'status' => 'status'], 'created_at', 'desc');
         $users = $query->paginate(10)->withQueryString();
+        $pendingEmailChanges = DB::table('account_email_changes')
+            ->whereIn('user_id', $users->getCollection()->pluck('id'))
+            ->get()->keyBy('user_id');
 
         $totalUsers = User::count();
         $activeUsers = User::where('status', 'Active')->count();
@@ -108,7 +111,7 @@ class AdminUserController extends Controller
             : 'Admin.User_Management.users', compact(
             'users', 'totalUsers', 'activeUsers', 'inactiveUsers', 'pendingUsers',
             'departments', 'departmentOptions', 'roles', 'statuses',
-            'rejectedUsers', 'verifiedPendingUsers', 'unverifiedPendingUsers'
+            'rejectedUsers', 'verifiedPendingUsers', 'unverifiedPendingUsers', 'pendingEmailChanges'
         ));
     }
 
