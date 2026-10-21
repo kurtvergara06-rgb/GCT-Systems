@@ -235,8 +235,8 @@
                                                 : 'Breakdown Reported — OIC Review');
                                     } elseif ($deployedReplacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
                                         $tripDisplayStatus = $trip->status === 'Ready'
-                                            ? 'Ready — Replacement Assigned'
-                                            : 'In Progress — Reserve Deployed';
+                                            ? 'Ready · Reserve'
+                                            : 'In Progress · Reserve';
                                     }
                                 @endphp
 
@@ -437,7 +437,7 @@
                                                     :status="$tripDisplayStatus"
                                                 :label="$tripDisplayStatus === 'Partially Assigned' ? 'Partial' : null"
                                                     class="assignment-status {{ \App\Support\StatusBadge::normalize($tripDisplayStatus) }}"
-                                                    :title="$tripDisplayStatus === 'Missed' ? 'Departure time has already passed.' : null"
+                                                    :title="$deployedReplacement ? 'Replacement bus assigned; original bus remains under maintenance.' : ($tripDisplayStatus === 'Missed' ? 'Departure time has already passed.' : null)"
                                                 />
                                             </td>
 
