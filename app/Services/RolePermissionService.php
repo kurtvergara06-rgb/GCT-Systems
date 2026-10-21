@@ -47,18 +47,16 @@ class RolePermissionService
             return $normalized;
         }
 
-        foreach ($this->modules() as $moduleKey => $module) {
-            if ($moduleKey === 'administration') {
-                continue;
-            }
-
-            foreach (array_keys($module['capabilities']) as $capabilityKey) {
-                $normalized[$moduleKey][$capabilityKey] = (bool) data_get(
-                    $submittedPermissions,
-                    $moduleKey.'.'.$capabilityKey,
-                    false
-                );
-            }
+        // Department roles may only be granted capabilities within their own
+        // department. Ignore forged cross-module fields even if submitted by an
+        // administrator; the protected system-admin role is handled above.
+        $roleModuleKey = $this->roleModuleKey($rolePermission);
+        foreach (array_keys($this->modules()[$roleModuleKey]['capabilities']) as $capabilityKey) {
+            $normalized[$roleModuleKey][$capabilityKey] = (bool) data_get(
+                $submittedPermissions,
+                $roleModuleKey.'.'.$capabilityKey,
+                false
+            );
         }
 
         return $normalized;
