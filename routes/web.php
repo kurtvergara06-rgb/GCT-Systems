@@ -11,6 +11,11 @@ Route::get('/', [LoginController::class, 'show'])->name('login');
 
 Route::get('/registration/pending', fn () => response()->view('Login.pending-approval')->header('Cache-Control', 'no-store'))
     ->name('registration.pending');
+// Local-only OTP UI preview. This does not perform account verification.
+if (app()->environment('local')) {
+    Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
+}
+
 Route::get('/register', [RegistrationController::class, 'show'])->name('register');
 Route::post('/register', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,1')->name('register.submit');
