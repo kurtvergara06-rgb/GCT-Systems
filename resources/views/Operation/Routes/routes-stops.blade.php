@@ -476,6 +476,8 @@
         >
 
 
+        <div class="route-editor-columns">
+            <div class="route-editor-left">
         {{-- =====================================================
             ROUTE FIELDS
         ====================================================== --}}
@@ -752,6 +754,8 @@
             </div>
 
         </x-ui.form-section>
+            </div>
+            <div class="route-editor-right">
 
         <x-ui.form-section
             title="Route Map Preview"
@@ -791,7 +795,15 @@
                 <button type="button" id="useCalculatedValuesBtn">Use calculated values</button>
             </div>
 
-            <div class="route-form-gps-map" id="routeFormGpsMap" aria-label="Interactive route map preview"></div>
+            <div class="route-editor-map-frame">
+                <div class="route-form-gps-map" id="routeFormGpsMap" aria-label="Interactive route map preview"></div>
+                <div class="route-editor-map-legend" aria-label="Map marker legend">
+                    <span><i class="route-legend-point route-legend-origin"></i> Origin</span>
+                    <span><i class="route-legend-point route-legend-stop"></i> Stop</span>
+                    <span><i class="route-legend-point route-legend-destination"></i> Destination</span>
+                    <span><i class="route-legend-line"></i> Route Path</span>
+                </div>
+            </div>
 
             <p class="route-form-map-note">
                 Search results use OpenStreetMap data. The road path uses OSRM; travel time is a conservative shuttle ETA and does not include live traffic.
@@ -831,6 +843,9 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
+
 
     </x-ui.form-modal>
 

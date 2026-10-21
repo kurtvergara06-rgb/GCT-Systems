@@ -125,7 +125,7 @@ class AccountController extends Controller
 
         if ($wasTemporary && ! $user->fresh()->onboarding_completed) {
             return redirect()
-                ->route('onboarding.show', ['step' => 2])
+                ->route('onboarding.show', ['step' => 1])
                 ->with('success', 'Password secured. Continue by confirming your profile.');
         }
 

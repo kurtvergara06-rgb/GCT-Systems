@@ -579,19 +579,10 @@
                                         </div>
 
                                         @if($incident->trip_schedule_id)
-                                            <div class="inc-form-group" style="margin-top: 10px;">
-                                                <label for="replacement_driver_id">Driver for Trip Continuation</label>
-                                                <select name="replacement_driver_id" id="replacement_driver_id">
-                                                    <option value="">Keep original driver ({{ $incident->driver_name ?: 'Assigned Driver' }})</option>
-                                                    @foreach($eligibleReplacementDrivers as $driverOption)
-                                                        @if(!$incident->driver_id || $driverOption->driver_id !== $incident->driver_id)
-                                                            <option value="{{ $driverOption->driver_id }}">
-                                                                Replace with: {{ $driverOption->driver_name }} ({{ $driverOption->driver_id }} · Assumed Available)
-                                                            </option>
-                                                        @endif
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                                            <p class="inc-form-note" style="margin-top: 10px;">
+                                                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                                                The assigned driver ({{ $incident->tripAssignment?->driver_name ?: $incident->driver_name ?: 'original driver' }}) automatically continues with the Reserve Bus.
+                                            </p>
                                         @endif
 
                                         <div class="inc-form-note" style="margin-top: 12px;">

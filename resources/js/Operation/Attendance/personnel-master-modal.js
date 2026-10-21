@@ -389,6 +389,9 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                 [...field.options].forEach((option) => {
                     option.selected = selected.has(option.value);
                 });
+            } else if (field.type === 'checkbox' && field.name === 'bus_ids[]') {
+                // Preserve numeric checkbox values; the selection is restored below.
+                return;
             } else {
                 field.value = record[field.name] ?? '';
             }

@@ -29,7 +29,7 @@ class PendingApplicationsTest extends TestCase
     {
         $user = $this->applicant();
         $this->actingAs($this->admin())
-            ->get(route('admin.users', ['status' => 'Pending']))
+            ->get(route('admin.applications', ['status' => 'Pending']))
             ->assertOk()
             ->assertSee('Pending Applications')
             ->assertSee($user->email)
@@ -44,7 +44,7 @@ class PendingApplicationsTest extends TestCase
                 'decision' => 'approve',
                 'department' => 'Operation',
                 'role' => 'staff',
-            ])->assertRedirect(route('admin.users', ['status' => 'Pending']));
+            ])->assertRedirect(route('admin.applications', ['status' => 'Pending']));
         $this->assertSame('Active', $user->fresh()->status);
         $this->assertSame('Operation', $user->fresh()->department);
         $this->assertSame('staff', $user->fresh()->role);

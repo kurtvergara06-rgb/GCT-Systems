@@ -32,10 +32,11 @@ window.GCTPartialNavigation.registerInitializer(
             option?.classList.toggle('allowed', input.checked);
             option?.classList.toggle('restricted', !input.checked);
             stateIcon?.classList.toggle('fa-circle-check', input.checked);
-            stateIcon?.classList.toggle('fa-circle-xmark', !input.checked);
+            stateIcon?.classList.remove('fa-circle-xmark');
+            stateIcon?.classList.toggle('fa-lock', !input.checked);
 
             if (statusText) {
-                statusText.textContent = input.checked ? 'Allowed' : 'Restricted';
+                statusText.textContent = input.checked ? 'Allowed' : 'Not granted';
             }
         };
 

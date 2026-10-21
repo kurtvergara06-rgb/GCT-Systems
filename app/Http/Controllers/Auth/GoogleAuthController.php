@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\EmailOtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class GoogleAuthController extends Controller
 {
@@ -27,6 +30,7 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->with('error', 'Google sign-in is not configured yet.');
         }
 
+        $request->session()->forget('google_link_pending');
         $state = Str::random(64);
         $verifier = Str::random(96);
         $request->session()->put('google_oauth_state', $state);
@@ -44,7 +48,7 @@ class GoogleAuthController extends Controller
         ]));
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request, EmailOtpService $otp): RedirectResponse
     {
         $expected = $request->session()->pull('google_oauth_state');
         $verifier = $request->session()->pull('google_oauth_verifier');
@@ -88,38 +92,198 @@ class GoogleAuthController extends Controller
         $existing = User::where('google_id', $subject)->first();
         if ($existing) {
             if (strtolower((string) $existing->status) !== 'active') {
-                return redirect()->route('login')->with('status', 'Your account is pending approval or inactive. Contact the system administrator.');
+                if (strtolower((string) $existing->status) === 'pending') {
+                    return $this->continuePendingRegistration($request, $otp, $existing);
+                }
+                return redirect()->route('login')->with('error', 'This account is inactive. Contact the system administrator.');
             }
             Auth::login($existing, true);
             $request->session()->regenerate();
             return redirect()->route('login');
         }
 
-        // Never link an existing privileged account using email alone.
-        if (User::where('email', $email)->exists()) {
-            return redirect()->route('login')->with('error', 'An account with this email already exists. Sign in using your current method and contact the administrator about Google linking.');
+        // Require password ownership proof, not just an email match, before linking.
+        $sameEmail = User::where('email', $email)->first();
+        if ($sameEmail) {
+            if (strtolower((string) $sameEmail->status) === 'pending') {
+                // Matching emails do not establish ownership of an unlinked local account.
+                return redirect()->route('login')->with('error', 'An application already exists for this email. Resume verification using your original registration method or contact the administrator.');
+            }
+            if (strtolower((string) $sameEmail->status) !== 'active') {
+                return redirect()->route('login')->with('error', 'This account is inactive. Contact the administrator.');
+            }
+            if ($sameEmail->hasSystemPermission('administration', 'full_control')
+                || strtolower((string) $sameEmail->role) === 'system admin'
+                || strtolower((string) $sameEmail->department) === 'admin') {
+                return redirect()->route('login')->with('error', 'Administrator Google linking requires a separate authorized process.');
+            }
+            if (filled($sameEmail->google_id)) {
+                return redirect()->route('login')->with('error', 'This account is already linked to another Google identity.');
+            }
+            $request->session()->put('google_link_pending', [
+                'user_id' => $sameEmail->id,
+                'google_id' => $subject,
+                'expires_at' => now()->addMinutes(5)->timestamp,
+            ]);
+            return redirect()->route('auth.google.link');
+        }
+
+        // A new Google identity must supply an official full name before an account is created.
+        $request->session()->put('google_registration_pending', [
+            'google_id' => $subject,
+            'email' => strtolower(trim($email)),
+            'name' => trim((string) ($profile['name'] ?? '')),
+            'expires_at' => now()->addMinutes(10)->timestamp,
+        ]);
+        return redirect()->route('auth.google.register');
+    }
+
+    private function pendingGoogleRegistration(Request $request): ?array
+    {
+        $pending = $request->session()->get('google_registration_pending');
+        if (! is_array($pending) || ! isset($pending['google_id'], $pending['email'], $pending['expires_at'])
+            || now()->timestamp >= (int) $pending['expires_at']) {
+            $request->session()->forget('google_registration_pending');
+            return null;
+        }
+        return $pending;
+    }
+
+    public function registrationForm(Request $request): \Illuminate\Http\Response|RedirectResponse
+    {
+        $pending = $this->pendingGoogleRegistration($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google registration session expired. Please try again.');
+        }
+        return response()->view('Login.google-register', [
+            'googleEmail' => $pending['email'],
+            'googleName' => $pending['name'] ?? '',
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    public function completeRegistration(Request $request, EmailOtpService $otp): RedirectResponse
+    {
+        $pending = $this->pendingGoogleRegistration($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google registration session expired. Please try again.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+        $name = trim($validated['name']);
+        if ($name === '') {
+            return back()->withErrors(['name' => 'Please enter your full name.']);
+        }
+
+        // Recheck in case another session registered or linked the same identity.
+        if (User::query()->where('email', $pending['email'])
+            ->orWhere('google_id', $pending['google_id'])->exists()) {
+            $request->session()->forget('google_registration_pending');
+            return redirect()->route('login')
+                ->with('error', 'This account was registered already. Please sign in again.');
         }
 
         try {
-            DB::transaction(function () use ($subject, $email, $profile): void {
-                User::create([
-                    'name' => Str::limit(trim((string) ($profile['name'] ?? 'Google Employee')), 255, ''),
-                    'email' => strtolower($email),
-                    'google_id' => $subject,
-                    'email_verified_at' => now(),
-                    'password' => Str::random(64),
-                    'department' => 'Unassigned',
-                    'role' => 'unassigned',
-                    'status' => 'Pending',
-                    'must_change_password' => false,
-                    'onboarding_completed' => false,
-                ]);
-            });
+            $newUser = User::create([
+                'name' => $name,
+                'email' => $pending['email'],
+                'google_id' => $pending['google_id'],
+                'email_verified_at' => null,
+                'password' => $validated['password'],
+                'department' => 'Unassigned',
+                'role' => 'unassigned',
+                'status' => 'Pending',
+                'must_change_password' => false,
+                'onboarding_completed' => false,
+            ]);
         } catch (\Throwable $exception) {
             Log::warning('Google account registration failed.', ['exception' => $exception->getMessage()]);
             return redirect()->route('login')->with('error', 'Unable to complete Google registration. Please contact the administrator.');
         }
 
-        return redirect()->route('login')->with('status', 'Google email verified. Registration is pending administrator approval.');
+        $request->session()->forget('google_registration_pending');
+        return $this->continuePendingRegistration($request, $otp, $newUser);
     }
+
+    private function continuePendingRegistration(Request $request, EmailOtpService $otp, User $user): RedirectResponse
+    {
+        $request->session()->put('pending_registration_user_id', $user->id);
+        if ($user->hasVerifiedEmail()) {
+            $request->session()->forget('registration_otp_user_id');
+            return redirect()->route('registration.pending')->with('pending_verified', true);
+        }
+
+        $request->session()->put('registration_otp_user_id', $user->id);
+        try {
+            $otp->send($user);
+        } catch (\Throwable $exception) {
+            Log::warning('Google registration OTP could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+            return redirect()->route('verification.otp')
+                ->with('error', 'The verification code could not be sent. Please try Resend Code.');
+        }
+        return redirect()->route('verification.otp')
+            ->with('status', 'A six-digit verification code has been sent to your email.');
+    }
+
+    private function pendingLink(Request $request): ?array
+    {
+        $pending = $request->session()->get('google_link_pending');
+        if (! is_array($pending) || ! isset($pending['user_id'], $pending['google_id'], $pending['expires_at'])
+            || now()->timestamp >= (int) $pending['expires_at']) {
+            $request->session()->forget('google_link_pending');
+            return null;
+        }
+        return $pending;
+    }
+
+    public function linkForm(Request $request): \Illuminate\Http\Response|RedirectResponse
+    {
+        $pending = $this->pendingLink($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google linking session expired. Please try again.');
+        }
+        return response()->view('Login.google-link', [
+            'account' => User::query()->findOrFail($pending['user_id']),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    public function confirmLink(Request $request): RedirectResponse
+    {
+        $pending = $this->pendingLink($request);
+        if (! $pending) {
+            return redirect()->route('login')->with('error', 'Google linking session expired. Please try again.');
+        }
+        $request->validate(['password' => ['required', 'string']]);
+
+        $user = User::query()->find($pending['user_id']);
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+            return back()->withErrors(['password' => 'Incorrect account password.']);
+        }
+        $linked = DB::transaction(function () use ($user, $pending): bool {
+            $fresh = User::query()->whereKey($user->id)->lockForUpdate()->first();
+            if (! $fresh || strtolower((string) $fresh->status) !== 'active'
+                || filled($fresh->google_id)
+                || strtolower((string) $fresh->department) === 'admin'
+                || strtolower((string) $fresh->role) === 'system admin'
+                || $fresh->hasSystemPermission('administration', 'full_control')
+                || User::query()->where('google_id', $pending['google_id'])->exists()) {
+                return false;
+            }
+            $fresh->forceFill(['google_id' => $pending['google_id']])->save();
+            return true;
+        });
+        $request->session()->forget('google_link_pending');
+        if (! $linked) {
+            return redirect()->route('login')->with('error', 'Google account linking was not permitted.');
+        }
+        Auth::login($user);
+        $request->session()->regenerate();
+        return redirect()->route('login');
+    }
+
 }

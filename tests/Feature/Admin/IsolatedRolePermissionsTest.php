@@ -38,7 +38,8 @@ class IsolatedRolePermissionsTest extends TestCase
                         $this->assertTrue((bool) ($capabilities['edit'] ?? false));
 
                         if ($module === 'warehouse') {
-                            $this->assertArrayNotHasKey('approve', $capabilities);
+                            // Seeded warehouse roles start without approval; the administrator can grant it explicitly.
+                            $this->assertFalse((bool) ($capabilities['approve'] ?? false));
                         } else {
                             $this->assertSame(
                                 $roleType === 'head',
@@ -102,7 +103,7 @@ class IsolatedRolePermissionsTest extends TestCase
 
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.view'));
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.edit'));
-        $this->assertNull(data_get($role->permissions, 'warehouse.approve'));
+        $this->assertTrue((bool) data_get($role->permissions, 'warehouse.approve'));
 
         foreach (['operation', 'maintenance', 'purchase', 'analytics', 'administration'] as $module) {
             foreach ((array) data_get($role->permissions, $module, []) as $allowed) {
@@ -195,9 +196,9 @@ class IsolatedRolePermissionsTest extends TestCase
             ->get(route('admin.roles-permissions', ['role' => 'warehouse_head']))
             ->assertOk()
             ->assertSee('System-Wide Module Access')
-            ->assertSee('UI preview — no cross-module access granted')
-            ->assertSee('2 of 17 Allowed')
-            ->assertSee('Only Warehouse permissions can be saved currently');
+            ->assertSee('Cross-module permissions require route enforcement')
+            ->assertSee('2 of 18 Allowed')
+            ->assertSee('Changes to supported role capabilities are saved here');
 
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'admin_head']))

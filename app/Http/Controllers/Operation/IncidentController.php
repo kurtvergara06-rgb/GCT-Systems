@@ -461,8 +461,14 @@ class IncidentController extends Controller
             );
     }
 
-    public function show(Incident $incident): View
+    public function show(Incident $incident): View|RedirectResponse
     {
+        // Full-page incident details are legacy. Open the existing workflow modal
+        // on Incident Management; embedded iframe requests still render the workflow.
+        if (! request()->boolean('embedded')) {
+            return redirect()->route('incidents', ['view_incident' => $incident->incident_no]);
+        }
+
         $incident->load([
             'tripSchedule.shuttleRoute',
             'tripAssignment.driverAttendance',
@@ -698,11 +704,10 @@ class IncidentController extends Controller
                 'integer',
                 Rule::exists('buses', 'id'),
             ],
-            'replacement_driver_attendance_id' => [
-                'nullable',
-                'integer',
-            ],
-            'replacement_driver_id' => ['nullable', 'string', Rule::exists('drivers', 'driver_id')],
+            // Driver continuity is automatic. Reject submitted overrides rather than
+            // silently changing the driver on an incident-linked assignment.
+            'replacement_driver_attendance_id' => ['prohibited'],
+            'replacement_driver_id' => ['prohibited'],
             'oic_authorized' => ['required', 'accepted'],
         ]);
 
@@ -863,14 +868,14 @@ class IncidentController extends Controller
                                 : null);
 
                         if (empty($affectedAssignment->driver_id) && empty($affectedAssignment->driver_name)) {
-                            return ['error' => 'No compatible driver is assigned to continue this trip. Select an eligible replacement driver.'];
+                            return ['error' => 'No compatible driver is assigned to continue this trip. Contact Operations to resolve the driver assignment before deploying the Reserve Bus.'];
                         }
 
                         if ($continuingDriver && (
                             $continuingDriver->employment_status !== 'Active'
                             || ($continuingDriver->license_expiration && $continuingDriver->license_expiration->lt($tripDate))
                         )) {
-                            return ['error' => 'The original driver is no longer active or eligible. Select an eligible replacement driver before deploying the Reserve Bus.'];
+                            return ['error' => 'The original driver is no longer active or eligible. Contact Operations to resolve driver eligibility before deploying the Reserve Bus.'];
                         }
 
                         $targetDriverId = $affectedAssignment->driver_id;
@@ -914,7 +919,7 @@ class IncidentController extends Controller
                         return [
                             'error' => $isDriverChange
                                 ? 'The selected replacement driver has an overlapping trip assignment at this time.'
-                                : 'The continuing driver has an overlapping trip assignment at this time. Select an eligible replacement driver.',
+                                : 'The continuing driver has an overlapping trip assignment at this time. Contact Operations to resolve the driver assignment before deploying the Reserve Bus.',
                         ];
                     }
                 }
