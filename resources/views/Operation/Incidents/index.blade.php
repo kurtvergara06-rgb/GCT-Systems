@@ -198,7 +198,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <x-ui.status-badge :status="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
+                                        <x-ui.status-badge :status="$incident->status" :label="$incident->status === 'Replacement Bus Dispatched' ? 'Reserve Deployed' : null" :title="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
                                     </td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
