@@ -53,6 +53,19 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
   const userNameInput = document.getElementById('userNameInput');
   const userEmailInput = document.getElementById('userEmailInput');
+  const accountCreateEmailField = document.getElementById('accountCreateEmailField');
+  const accountCurrentEmailField = document.getElementById('accountCurrentEmailField');
+  const accountCurrentVerifiedEmail = document.getElementById('accountCurrentVerifiedEmail');
+  const accountNewEmailField = document.getElementById('accountNewEmailField');
+  const accountNewEmailInput = document.getElementById('accountNewEmailInput');
+  const accountPendingEmailPanel = document.getElementById('accountPendingEmailPanel');
+  const accountPendingEmailAddress = document.getElementById('accountPendingEmailAddress');
+  const accountPendingEmailExpiry = document.getElementById('accountPendingEmailExpiry');
+  const accountEmailResendForm = document.getElementById('accountEmailResendForm');
+  const accountEmailCancelForm = document.getElementById('accountEmailCancelForm');
+  accountEmailCancelForm?.addEventListener('submit', event => {
+    if (!window.confirm('Cancel this pending email change?')) event.preventDefault();
+  });
   const accountEditEmailNote = document.getElementById('accountEditEmailNote');
   if (accountEditEmailNote && userFormMethod) {
     const syncNotice = () => {
@@ -217,6 +230,12 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'POST';
     }
 
+    if (accountCreateEmailField) accountCreateEmailField.hidden = false;
+    if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
+    if (accountNewEmailField) accountNewEmailField.hidden = true;
+    if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = true;
+    if (accountNewEmailInput) { accountNewEmailInput.disabled = true; accountNewEmailInput.value = ''; }
+    if (userEmailInput) userEmailInput.disabled = false;
     setInput(userNameInput, '');
     setInput(userEmailInput, '');
     setInput(userDepartmentInput, '');
@@ -276,6 +295,18 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
     setInput(userNameInput, editButton.dataset.name);
     setInput(userEmailInput, editButton.dataset.email);
+    if (accountCreateEmailField) accountCreateEmailField.hidden = true;
+    if (accountCurrentEmailField) accountCurrentEmailField.hidden = false;
+    if (accountNewEmailField) accountNewEmailField.hidden = false;
+    if (accountCurrentVerifiedEmail) accountCurrentVerifiedEmail.value = editButton.dataset.email || '';
+    if (accountNewEmailInput) { accountNewEmailInput.disabled = false; accountNewEmailInput.value = ''; }
+    if (userEmailInput) userEmailInput.disabled = false;
+    const pendingEmail = editButton.dataset.pendingEmail || '';
+    if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = !pendingEmail;
+    if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = pendingEmail;
+    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = editButton.dataset.pendingExpiry ? 'Link expires: ' + editButton.dataset.pendingExpiry : '';
+    if (accountEmailResendForm) accountEmailResendForm.action = editButton.dataset.emailResendUrl || '';
+    if (accountEmailCancelForm) accountEmailCancelForm.action = editButton.dataset.emailCancelUrl || '';
     setInput(userDepartmentInput, editButton.dataset.department);
     setInput(userRoleInput, normalizeRole(editButton.dataset.role));
     setInput(userStatusInput, editButton.dataset.status);
