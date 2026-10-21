@@ -3582,3 +3582,99 @@
     #routeModal .route-editor-left,
     #routeModal .route-editor-right { min-width: 0; width: 100%; }
 }
+
+
+/* Polished route editor: two-column layout, map-first preview and compact stops.
+   Keep the existing Leaflet container and all JS-owned element IDs intact. */
+#routeModal .route-editor-columns { gap: 12px; }
+#routeModal .route-editor-columns .route-editor-section {
+    border-radius: 12px;
+    border-color: #dce6f4;
+    box-shadow: 0 1px 3px rgba(15, 40, 80, .035);
+}
+#routeModal .route-editor-section .ui-form-section-header {
+    background: #f4f8fd;
+}
+#routeModal .route-editor-left { gap: 12px; }
+#routeModal .route-editor-right { gap: 12px; }
+#routeModal .route-editor-map-frame { position: relative; min-width: 0; isolation: isolate; }
+#routeModal .route-form-gps-map {
+    width: 100%;
+    border-radius: 9px;
+    overflow: hidden;
+}
+#routeModal .route-editor-map-legend {
+    position: absolute;
+    z-index: 450;
+    right: 12px;
+    bottom: 12px;
+    display: grid;
+    gap: 7px;
+    padding: 11px 12px;
+    border: 1px solid #dce6f3;
+    border-radius: 9px;
+    background: rgba(255,255,255,.95);
+    color: #324b6b;
+    box-shadow: 0 5px 16px rgba(8,32,64,.12);
+    font-size: 10px;
+    font-weight: 700;
+    pointer-events: none;
+}
+#routeModal .route-editor-map-legend > span { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+#routeModal .route-legend-point { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 9px; background: #2275f6; }
+#routeModal .route-legend-stop { background: #53a3ff; }
+#routeModal .route-legend-destination { background: #f04452; }
+#routeModal .route-legend-line { width: 17px; height: 3px; border-radius: 3px; background: #1660e9; }
+#routeModal .route-form-map-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+#routeModal .route-form-map-tool-btn,
+#routeModal .route-form-fit-map-btn {
+    min-height: 32px;
+    height: auto;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+#routeModal .route-form-map-message { margin-bottom: 7px; }
+#routeModal .route-editor-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #dce6f3;
+    border-radius: 11px;
+    background: #f5f8fc;
+}
+#routeModal .route-editor-summary-item {
+    min-width: 0;
+    padding: 11px 8px;
+}
+#routeModal .route-editor-summary-item + .route-editor-summary-item {
+    border-left: 1px solid #dfe7f2;
+}
+#routeModal .route-editor-summary-item strong { overflow-wrap: anywhere; }
+#routeModal .route-stops-section .route-stop-item {
+    border-radius: 9px;
+    background: #f9fbfe;
+    border: 1px solid #e0e9f4;
+}
+@media (min-width: 1100px) {
+    #routeModal.route-editor-overlay .ui-form-modal.ui-form-modal-xl {
+        width: min(1420px, calc(100vw - 48px));
+        max-width: min(1420px, calc(100vw - 48px));
+    }
+    #routeModal .route-editor-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr); }
+    #routeModal .route-form-gps-map { height: clamp(400px, 51vh, 570px); min-height: 400px; }
+    #routeModal .route-form-map-active-field { flex: 1 1 100%; }
+}
+@media (max-width: 700px) {
+    #routeModal .route-editor-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #routeModal .route-editor-summary-item:nth-child(3) { border-left: 0; border-top: 1px solid #dfe7f2; }
+    #routeModal .route-editor-summary-item:nth-child(4) { border-top: 1px solid #dfe7f2; }
+    #routeModal .route-editor-map-legend { right: 7px; bottom: 7px; padding: 7px; gap: 4px; font-size: 9px; }
+}
