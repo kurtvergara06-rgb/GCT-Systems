@@ -54,6 +54,7 @@
             <div class="otp-email">{{ $otpEmail }}</div>
           </div>
           @if(session('status'))<div class="otp-message" role="status">{{ session('status') }}</div>@endif
+          @if(session('error'))<div class="otp-message" role="alert">{{ session('error') }}</div>@endif
 @if($errors->any())<div class="otp-message" role="alert">{{ $errors->first() }}</div>@endif
 <form id="otpForm" method="POST" action="{{ route('verification.otp.submit') }}" autocomplete="off">
 @csrf
