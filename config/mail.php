@@ -16,6 +16,9 @@ return [
 
     'default' => env('MAIL_MAILER', 'log'),
 
+    // HTTPS logo URL for email clients. Avoid embedding an image attachment.
+    'gct_logo_url' => env('MAIL_GCT_LOGO_URL', 'https://gct-systems.onrender.com/img/gct_logo.png'),
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
