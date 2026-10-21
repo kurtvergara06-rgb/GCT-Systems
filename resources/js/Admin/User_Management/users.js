@@ -66,6 +66,9 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
   const accountPendingDescription = document.getElementById('accountPendingDescription');
   const accountPendingBadge = document.getElementById('accountPendingBadge');
   const accountPendingActions = document.getElementById('accountPendingActions');
+  const accountEmailSendButton = document.getElementById('accountEmailSendButton');
+  const accountEmailResendButton = document.getElementById('accountEmailResendButton');
+  const accountEmailCancelButton = document.querySelector('#accountPendingActions .account-cancel-pending-btn');
   let savedPendingEmail = '';
   let savedPendingRequested = '';
   let savedPendingExpiry = '';
@@ -95,11 +98,20 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       ? 'No verification sent yet'
       : (savedPendingExpiry || 'Not available');
     if (accountPendingActions) {
-      accountPendingActions.hidden = isPreview;
-      accountPendingActions.style.display = isPreview ? 'none' : '';
-      accountPendingActions.querySelectorAll('button').forEach(button => {
-        button.disabled = isPreview;
-      });
+      accountPendingActions.hidden = false;
+      accountPendingActions.style.display = '';
+    }
+    if (accountEmailSendButton) {
+      accountEmailSendButton.hidden = !isPreview;
+      accountEmailSendButton.disabled = !isPreview;
+    }
+    if (accountEmailResendButton) {
+      accountEmailResendButton.hidden = !showSaved;
+      accountEmailResendButton.disabled = !showSaved;
+    }
+    if (accountEmailCancelButton) {
+      accountEmailCancelButton.hidden = !showSaved;
+      accountEmailCancelButton.disabled = !showSaved;
     }
   }
 
