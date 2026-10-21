@@ -264,8 +264,9 @@ class AdminUserController extends Controller
                     ]
                 );
 
-                Mail::raw(
-                    "An administrator requested an email change for your GCT-Systems account. To confirm this address, open the link within 30 minutes: {$verifyUrl}. If you did not expect this, ignore this email.",
+                Mail::send(
+                    'emails.account-email-change',
+                    ['verifyUrl' => $verifyUrl],
                     static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
                 );
             }
@@ -343,10 +344,11 @@ class AdminUserController extends Controller
             now()->addMinutes(30),
             ['id' => $user->id, 'token' => $token]
         );
-        Mail::raw(
-            "An administrator requested an email change for your GCT-Systems account. Verify your new email within 30 minutes: {$verifyUrl}. If you did not request this, ignore this message.",
-            static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
-        );
+        Mail::send(
+                    'emails.account-email-change',
+                    ['verifyUrl' => $verifyUrl],
+                    static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
+                );
         DB::table('account_email_changes')->updateOrInsert(
             ['user_id' => $user->id],
             [
