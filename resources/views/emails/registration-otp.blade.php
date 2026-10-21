@@ -8,7 +8,12 @@
 <body style="margin:0;padding:28px 12px;background:#f2f5f9;font-family:Arial,Helvetica,sans-serif;color:#17304f;">
   <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:540px;margin:auto;background:#ffffff;border:1px solid #e2e9f2;border-radius:14px;">
     <tr><td style="padding:28px 30px 18px;text-align:center;border-bottom:3px solid #ffca05;">
-      <img src="{{ $message->embed(public_path('img/gct_logo.png')) }}" width="72" height="72" alt="GCT Transport Services logo" style="display:block;width:72px;height:72px;object-fit:contain;margin:0 auto 12px;">
+      @php
+        $logoUrl = config('mail.gct_logo_url');
+      @endphp
+      @if(is_string($logoUrl) && str_starts_with($logoUrl, 'https://'))
+        <img src="{{ $logoUrl }}" width="72" height="72" alt="GCT Transport Services logo" style="display:block;width:72px;height:72px;object-fit:contain;margin:0 auto 12px;">
+      @endif
       <strong style="font-size:17px;color:#102f57;">GCT Transport Services, Inc.</strong>
     </td></tr>
     <tr><td style="padding:30px;text-align:center;">
