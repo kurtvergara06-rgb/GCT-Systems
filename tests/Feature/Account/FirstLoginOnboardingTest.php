@@ -26,8 +26,8 @@ class FirstLoginOnboardingTest extends TestCase
             ->get(route('onboarding.show'))
             ->assertOk()
             ->assertSee('Welcome to GCT')
-            ->assertSee('Secure Account')
-            ->assertSee('Secure your account')
+            ->assertSee('Confirm Profile')
+            ->assertDontSee('Secure Account')
             ->assertDontSee('Skip Tutorial');
     }
 
@@ -48,7 +48,7 @@ class FirstLoginOnboardingTest extends TestCase
                 'password' => 'PrivatePassword456!',
                 'password_confirmation' => 'PrivatePassword456!',
             ])
-            ->assertRedirect(route('onboarding.show', ['step' => 2]));
+            ->assertRedirect(route('onboarding.show', ['step' => 1]));
 
         $user->refresh();
         $this->assertFalse($user->must_change_password);
