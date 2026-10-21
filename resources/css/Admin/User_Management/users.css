@@ -945,3 +945,31 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+
+/* Account editing: responsive, scoped email-management workflow. */
+#userFormModal .account-edit-dialog{width:min(960px,calc(100vw - 36px));max-width:960px;max-height:calc(100dvh - 36px);overflow-y:auto;border-radius:17px}
+#userFormModal .account-edit-dialog .admin-modal-header{padding-bottom:18px;border-bottom:1px solid #e9edf4;margin-bottom:20px}
+#userFormModal .account-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 22px}
+#userFormModal .account-edit-grid .form-group{min-width:0;margin:0}
+#userFormModal .account-edit-grid input,#userFormModal .account-edit-grid select{width:100%;min-height:46px;border-radius:9px;font-size:13px}
+#userFormModal .account-edit-grid .form-group[hidden],#userFormModal .account-pending-panel[hidden]{display:none!important}
+#userFormModal .account-current-email{position:relative;display:flex;align-items:center}
+#userFormModal .account-current-email input{padding-right:95px;background:#f3f6fa;color:#425670}
+#userFormModal .account-email-verified{position:absolute;right:10px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#dff5e8;color:#167448;font-size:11px;font-weight:750}
+#userFormModal .account-email-hint{display:block;margin-top:7px;line-height:1.4;color:#687d97;font-size:11px}
+#userFormModal .account-pending-panel{margin:21px 0 0;padding:18px;border:1px solid #f2d48a;background:#fff9ed;border-radius:13px}
+#userFormModal .account-pending-top{display:flex;align-items:start;justify-content:space-between;gap:14px}
+#userFormModal .account-pending-top strong{font-size:15px;color:#1a3558}
+#userFormModal .account-pending-top strong i{margin-right:6px;color:#d18a09}
+#userFormModal .account-pending-top p{margin:7px 0 0;color:#6c7790;font-size:12px}
+#userFormModal .account-pending-badge{white-space:nowrap;padding:6px 10px;border-radius:999px;background:#ffebc2;color:#9a6407;font-size:11px;font-weight:750}
+#userFormModal .account-pending-address{margin-top:15px;padding:11px 13px;border:1px solid #efdba9;border-radius:9px;background:#fff;font-size:13px;color:#264360;overflow-wrap:anywhere;font-weight:700}
+#userFormModal .account-pending-expiry{font-size:12px;color:#867044}
+#userFormModal .account-pending-buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+#userFormModal .account-pending-buttons button{display:inline-flex;align-items:center;gap:7px;justify-content:center;min-height:38px;padding:8px 12px;font-size:12px;font-weight:750;border-radius:8px;cursor:pointer}
+#userFormModal .account-resend-btn{border:1px solid #9ec5f5;background:#eff6ff;color:#1456a6}
+#userFormModal .account-cancel-pending-btn{border:1px solid #f3adb4;background:#fff1f2;color:#b72840}
+#userFormModal .account-edit-email-note{margin:19px 0 0;padding:13px 15px;border-radius:10px;line-height:1.5}
+#userFormModal .account-edit-dialog .admin-modal-footer{margin-top:20px;padding-top:17px;border-top:1px solid #e5ecf5}
+@media(max-width:670px){#userFormModal .account-edit-dialog{width:calc(100vw - 20px)}#userFormModal .account-edit-grid{grid-template-columns:1fr}#userFormModal .account-pending-top{flex-direction:column}}
