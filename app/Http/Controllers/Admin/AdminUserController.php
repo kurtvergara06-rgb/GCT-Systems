@@ -230,6 +230,10 @@ class AdminUserController extends Controller
         $accessChanged = $user->department !== $validated['department']
             || $user->role !== $validated['role'];
 
+        if ($emailChanged || $accessChanged) {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        }
+
         // Leave the existing verified email intact until its replacement proves ownership.
         DB::transaction(function () use ($user, $request, $validated, $newEmail, $emailChanged, $accessChanged) {
             if ($emailChanged) {
