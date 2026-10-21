@@ -3726,3 +3726,27 @@
     .route-view-overlay .route-view-map-card,
     .route-view-overlay .route-view-path-card { width: 100%; min-width: 0; }
 }
+
+
+/* Override legacy #routeDetailsModal 900px rule: genuinely wide View modal. */
+@media (min-width: 1100px) {
+    #routeDetailsModal.route-view-overlay .route-view-modal {
+        width: min(1380px, calc(100vw - 48px));
+        max-width: min(1380px, calc(100vw - 48px));
+        max-height: calc(100dvh - 40px);
+    }
+    #routeDetailsModal .route-view-body {
+        display: grid;
+        grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+        grid-template-areas: "info map" "path map";
+        align-items: start;
+        gap: 14px;
+        padding: 16px 18px 20px;
+        overflow: auto;
+    }
+    #routeDetailsModal .route-view-information { grid-area: info; }
+    #routeDetailsModal .route-view-map-card { grid-area: map; }
+    #routeDetailsModal .route-view-path-card { grid-area: path; }
+    #routeDetailsModal .route-view-card { min-width: 0; margin: 0; }
+    #routeDetailsModal .route-view-map { height: clamp(430px, 53vh, 620px); min-height: 430px; }
+}
