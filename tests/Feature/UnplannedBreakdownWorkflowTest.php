@@ -347,7 +347,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->actingAs($operationHead)
             ->get(route('driver-bus-assignment', ['trip_date' => $today]))
             ->assertOk()
-            ->assertSee('Breakdown Reported — OIC Review');
+            ->assertSee('OIC Review');
 
         // 2. Record OIC response and deploy Reserve Bus
         $this->actingAs($operationHead)
@@ -359,7 +359,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->actingAs($operationHead)
             ->get(route('driver-bus-assignment', ['trip_date' => $today]))
             ->assertOk()
-            ->assertSee('Incident — Awaiting Replacement');
+            ->assertSee('Awaiting Reserve');
 
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
