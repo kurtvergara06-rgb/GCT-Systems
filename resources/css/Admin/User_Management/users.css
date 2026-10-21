@@ -925,3 +925,23 @@
   font-weight: 750;
   white-space: nowrap;
 }
+
+/* Explain sensitive email edits without changing existing modal behavior. */
+#userFormModal .account-edit-email-note {
+  margin: 15px 0 0;
+  padding: 10px 13px;
+  border-radius: 9px;
+  border: 1px solid #d7e4f7;
+  background: #f0f6ff;
+  color: #355678;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#userFormModal .account-edit-email-note[hidden] { display: none !important; }
+#userFormModal .form-grid .form-group label[for] {
+  display: block;
+  margin-bottom: 7px;
+  color: #2c405c;
+  font-size: 12px;
+  font-weight: 700;
+}
