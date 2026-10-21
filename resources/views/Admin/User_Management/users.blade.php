@@ -221,6 +221,10 @@
                                                 data-review-url="{{ route('admin.users.review-application', $user) }}"
                                                 data-name="{{ $user->name }}"
                                                 data-email="{{ $user->email }}"
+                                                data-pending-email="{{ $pendingEmailChanges[$user->id]->new_email ?? '' }}"
+                                                data-pending-expiry="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->expires_at)->format('M d, Y · g:i A') : '' }}"
+                                                data-email-resend-url="{{ route('admin.users.email-change.resend', $user) }}"
+                                                data-email-cancel-url="{{ route('admin.users.email-change.cancel', $user) }}"
                                                 data-applied="{{ $user->created_at?->format('M d, Y · g:i A') }}"
                                                 data-verified="{{ $user->hasVerifiedEmail() ? '1' : '0' }}">
                                                 <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
@@ -489,7 +493,7 @@
 
     {{-- ADD / EDIT ACCOUNT MODAL --}}
     <div class="admin-modal-overlay" id="userFormModal">
-        <div class="admin-user-modal">
+        <div class="admin-user-modal account-edit-dialog">
             <div class="admin-modal-header">
                 <div>
                     <h2 id="userFormModalTitle">Add System Account</h2>
@@ -517,15 +521,19 @@
 
                 <input type="hidden" name="_method" id="userFormMethod" value="POST">
 
-                <div class="form-grid">
+                <div class="form-grid account-edit-grid">
                     <div class="form-group">
                         <label for="userNameInput">Full Name</label>
                         <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" id="accountCreateEmailField">
                         <label for="userEmailInput">Email Address</label>
                         <input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required>
+                    </div>
+                    <div class="form-group" id="accountCurrentEmailField" hidden>
+                        <label for="accountCurrentVerifiedEmail">Current Verified Email</label>
+                        <div class="account-current-email"><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
                     </div>
 
                     <div class="form-group">
@@ -561,7 +569,24 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="form-group" id="accountNewEmailField" hidden>
+                        <label for="accountNewEmailInput">New Email Address</label>
+                        <input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email">
+                        <small class="account-email-hint">Leave blank to keep the current verified email.</small>
+                    </div>
                 </div>
+                <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
+                    <div class="account-pending-top">
+                        <div><strong><i class="fa-regular fa-clock"></i> Pending Email Change</strong><p>A new email address is awaiting confirmation.</p></div>
+                        <span class="account-pending-badge">Awaiting verification</span>
+                    </div>
+                    <div class="account-pending-address" id="accountPendingEmailAddress"></div>
+                    <p class="account-pending-expiry" id="accountPendingEmailExpiry"></p>
+                    <div class="account-pending-buttons">
+                        <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-regular fa-paper-plane"></i> Resend Verification</button>
+                        <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn"><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
+                    </div>
+                </section>
 
                 <p class="account-edit-email-note" id="accountEditEmailNote" hidden>Changing the email address sends a verification link to the new address. The current verified email remains active until confirmation.</p>
                 <div class="admin-modal-footer modal-actions">
@@ -569,6 +594,8 @@
                     <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">Save Account</button>
                 </div>
             </form>
+            <form id="accountEmailResendForm" method="POST">@csrf</form>
+            <form id="accountEmailCancelForm" method="POST">@csrf @method('DELETE')</form>
         </div>
     </div>
 
