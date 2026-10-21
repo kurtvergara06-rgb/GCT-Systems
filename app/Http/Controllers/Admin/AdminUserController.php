@@ -408,6 +408,26 @@ class AdminUserController extends Controller
     }
 
 
+    public function reconsiderApplication(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_unless($user->status === 'Rejected' && ! $this->isProtectedSystemAdmin($user), 404);
+
+        DB::transaction(function () use ($request, $user) {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'Rejected' && ! $this->isProtectedSystemAdmin($locked), 409);
+            $locked->update(['status' => 'Pending']);
+            app(ActivityLogService::class)->record(
+                $request->user(), $request, 'Reconsidered rejected employee application',
+                'Updated', 'Admin', (string) $locked->id,
+                'Rejected registration moved back to Pending for administrator review; account not activated.'
+            );
+        });
+
+        return redirect()->route('admin.applications', ['status' => 'Pending'])
+            ->with('success', 'Application returned to Pending review. Approval still requires verified email, department, and role.');
+    }
+
     public function reviewApplication(Request $request, User $user)
     {
         abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
