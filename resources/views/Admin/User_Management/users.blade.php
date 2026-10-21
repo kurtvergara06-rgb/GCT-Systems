@@ -600,8 +600,8 @@
                     </div>
                     <div class="account-pending-actions" id="accountPendingActions">
                         <button type="submit" form="userForm" id="accountEmailSendButton" class="account-resend-btn" hidden><i class="fa-solid fa-paper-plane"></i> Send Verification Link</button>
-                        <button type="submit" form="accountEmailResendForm" id="accountEmailResendButton" class="account-resend-btn"><i class="fa-solid fa-paper-plane"></i> Resend Verification Link</button>
-                        <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn"><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
+                        <button type="submit" form="accountEmailResendForm" id="accountEmailResendButton" class="account-resend-btn" hidden><i class="fa-solid fa-paper-plane"></i> Resend Verification Link</button>
+                        <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn" hidden><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
                         <p>The current verified email remains active until the new address is confirmed.</p>
                     </div>
                 </section>
