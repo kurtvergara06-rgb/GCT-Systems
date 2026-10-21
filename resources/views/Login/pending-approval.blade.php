@@ -17,6 +17,23 @@
     'resources/css/Login/login.css',
   ])
 
+  <style>
+    .pending-section{display:flex;flex-direction:column;gap:18px;margin:23px 0 28px}
+    .pending-verified{display:flex;align-items:center;gap:14px;background:#ecf9f1;border:1px solid #a9e5bf;border-radius:12px;padding:15px 17px;color:#146b3b}
+    .pending-verified-icon{height:40px;width:40px;display:grid;place-items:center;flex-shrink:0;background:#178348;color:white;border-radius:50%;font-size:18px}
+    .pending-verified strong{font-size:15px}.pending-verified p{margin:4px 0 0;color:#367557;font-size:13px;line-height:1.5}
+    .pending-status-card{display:flex;gap:16px;padding:23px 20px;background:#fff8eb;border:1px solid #f2d49e;border-radius:14px}
+    .pending-status-icon{width:51px;height:51px;flex-shrink:0;display:grid;place-items:center;border-radius:15px;background:#ffedc8;color:#a66a08;font-size:24px}
+    .pending-eyebrow{font-size:10px;letter-spacing:1.3px;font-weight:800;color:#9c650e}
+    .pending-status-card h3{font-size:18px;color:#132c50;line-height:1.3;margin:7px 0 9px}
+    .pending-status-card p{font-size:14px;color:#546783;line-height:1.65;margin:0}
+    .pending-access-note{display:flex;gap:12px;align-items:center;border:1px solid #d9e6f7;background:#f3f7fd;border-radius:10px;padding:13px 15px;color:#22538f}
+    .pending-access-note p{margin:0;font-size:13px;line-height:1.6;color:#536c8b}
+    .pending-unverified{font-size:13px;line-height:1.6;color:#965c09;margin:0}
+    .pending-back-button{display:flex;justify-content:center;align-items:center;gap:10px;padding:14px;border-radius:10px;background:#0c4c8a;color:#fff;text-decoration:none;font-weight:700;font-size:14px;transition:background .15s}
+    .pending-back-button:hover{background:#073969}.pending-back-button:focus-visible{outline:3px solid #ffc400;outline-offset:3px}
+    @media(max-width:480px){.pending-status-card{padding:17px 14px;gap:12px}.pending-status-icon{width:43px;height:43px}.pending-status-card h3{font-size:16px}}
+  </style>
 </head>
 
 <body>
@@ -82,19 +99,31 @@
             </div>
           @endif
 
-          <section aria-labelledby="pendingStatusTitle">
-            <div style="background:#fff7e7;border:1px solid #f4d49d;padding:20px;border-radius:12px;text-align:center;margin-bottom:16px">
-              <i class="fa-solid fa-clock" aria-hidden="true" style="font-size:28px;color:#bd7800"></i>
-              <h3 id="pendingStatusTitle" style="margin:12px 0 8px">Awaiting administrator approval</h3>
-              <p style="line-height:1.7;color:#52647e">Your account remains restricted until an administrator reviews your application and assigns a department and role.</p>
-            </div>
-            @if(session('pending_verified'))
-              <p role="status" style="color:#1f7846;font-weight:700">Email verified successfully</p>
-            @else
-              <p role="status" style="color:#945f15;font-weight:700">Email verification required</p>
-              <p>Check your email for the verification link before the administrator can approve your application.</p>
+          <section class="pending-section" aria-labelledby="pendingStatusTitle">
+            @if($emailVerified ?? session('pending_verified', false))
+              <div class="pending-verified" role="status">
+                <span class="pending-verified-icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                <div><strong>Email verified successfully</strong><p>Your email address has been confirmed. No further verification is required.</p></div>
+              </div>
             @endif
-            <p class="auth-switch"><a href="{{ route('login') }}">Back to Sign In</a></p>
+
+            <div class="pending-status-card">
+              <span class="pending-status-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></span>
+              <div>
+                <span class="pending-eyebrow">CURRENT ACCOUNT STATUS</span>
+                <h3 id="pendingStatusTitle">Awaiting administrator approval</h3>
+                <p>Your registration is waiting for an administrator to review your application and assign your department and role.</p>
+              </div>
+            </div>
+
+            <div class="pending-access-note">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <p>Dashboard access will become available after your account is approved and activated.</p>
+            </div>
+            @if(isset($emailVerified) && ! $emailVerified)
+              <p class="pending-unverified">Your email hasn't been verified yet. Complete the OTP verification before your account can be approved.</p>
+            @endif
+            <a class="pending-back-button" href="{{ route('login') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to Sign In</a>
           </section>
 
           <div class="trust-divider" aria-hidden="true">
