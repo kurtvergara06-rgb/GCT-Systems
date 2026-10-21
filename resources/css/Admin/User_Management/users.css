@@ -973,3 +973,16 @@
 #userFormModal .account-edit-email-note{margin:19px 0 0;padding:13px 15px;border-radius:10px;line-height:1.5}
 #userFormModal .account-edit-dialog .admin-modal-footer{margin-top:20px;padding-top:17px;border-top:1px solid #e5ecf5}
 @media(max-width:670px){#userFormModal .account-edit-dialog{width:calc(100vw - 20px)}#userFormModal .account-edit-grid{grid-template-columns:1fr}#userFormModal .account-pending-top{flex-direction:column}}
+
+/* Approved modal fidelity and deterministic visibility. */
+#userFormModal .account-edit-header { display:flex;align-items:center;gap:15px; }
+#userFormModal .account-edit-header > div { flex:1;min-width:0; }
+#userFormModal .account-edit-header-icon { flex:0 0 50px;width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:#e7f0fc;color:#1859a7;font-size:21px; }
+#userFormModal .account-edit-header h2 { margin:0 0 7px;font-size:23px;letter-spacing:-.45px; }
+#userFormModal .account-edit-email-note:not([hidden]) { display:flex;align-items:flex-start;gap:12px;background:#eef5ff;border:1px solid #a8c8fa; }
+#userFormModal .account-edit-note-icon { flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#2d77db;color:#fff; }
+#userFormModal .account-edit-email-note strong { display:block;font-size:13px;color:#143d72;margin-bottom:4px; }
+#userFormModal .account-edit-email-note p { margin:0;font-size:12px;line-height:1.6; }
+#userFormModal .account-edit-grid .form-group[hidden],#userFormModal .account-pending-panel[hidden],#userFormModal .account-edit-email-note[hidden] { display:none!important; }
+#userFormModal .account-edit-dialog .admin-modal-header { position:relative; }
+#userFormModal .account-edit-dialog .admin-modal-header .modal-close-btn { flex:0 0 auto; }
