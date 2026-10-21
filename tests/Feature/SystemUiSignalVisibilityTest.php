@@ -132,9 +132,9 @@ class SystemUiSignalVisibilityTest extends TestCase
             $source = file_get_contents($view);
 
             $this->assertStringContainsString(
-                'fa-solid fa-eye',
+                $department === 'operation' ? 'fa-solid fa-diagram-project' : 'fa-solid fa-eye',
                 $source,
-                "Expected the {$department} module to use the canonical solid View icon."
+                "Expected the {$department} module to use its approved View or Workflow icon."
             );
         }
 
