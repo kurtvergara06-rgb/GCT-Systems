@@ -494,7 +494,8 @@
     {{-- ADD / EDIT ACCOUNT MODAL --}}
     <div class="admin-modal-overlay" id="userFormModal">
         <div class="admin-user-modal account-edit-dialog">
-            <div class="admin-modal-header">
+            <div class="admin-modal-header account-edit-header">
+                <span class="account-edit-header-icon" aria-hidden="true"><i class="fa-solid fa-user-gear"></i></span>
                 <div>
                     <h2 id="userFormModalTitle">Add System Account</h2>
                     <p id="userFormModalSubtitle">Create a new account and assign department and role access.</p>
@@ -588,7 +589,11 @@
                     </div>
                 </section>
 
-                <p class="account-edit-email-note" id="accountEditEmailNote" hidden>Changing the email address sends a verification link to the new address. The current verified email remains active until confirmation.</p>
+                <div class="account-edit-email-note" id="accountEditEmailNote" hidden role="note">
+                    <span class="account-edit-note-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+                    <div><strong>Email Change Protection</strong>
+                    <p>Changing the email address sends a verification link to the new address. The current verified email remains active until confirmation.</p></div>
+                </div>
                 <div class="admin-modal-footer modal-actions">
                     <button type="button" class="secondary-btn btn-cancel" id="cancelUserFormModal">Cancel</button>
                     <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">Save Account</button>
