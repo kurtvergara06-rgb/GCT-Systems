@@ -91,6 +91,10 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             'assigned_by' => $operationHead->id,
         ]);
 
+        $this->assertSame($originalBus->id, $assignment->bus_id);
+        $this->assertSame($driver->driver_id, $assignment->driver_id);
+        $this->assertSame($driver->driver_name, $assignment->driver_name);
+
         $incident = Incident::create([
             'incident_no' => 'INC-BRK-0001',
             'trip_schedule_id' => $trip->id,
@@ -109,9 +113,19 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertTrue($incident->is_unplanned_breakdown);
         $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
 
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Breakdown Reported');
+
         $this->actingAs($operationHead)->post(route('incidents.response', $incident), [
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
+
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Awaiting Replacement');
 
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
@@ -131,6 +145,12 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertSame($driver->driver_name, $assignment->driver_name);
         $this->assertSame($route->id, $trip->shuttle_route_id);
         $this->assertSame('Dispatched', $trip->status);
+        $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
+
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Reserve Deployed');
 
         $this->assertDatabaseHas('incident_replacements', [
             'incident_id' => $incident->id,

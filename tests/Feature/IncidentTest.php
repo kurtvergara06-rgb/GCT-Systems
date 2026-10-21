@@ -125,6 +125,31 @@ class IncidentTest extends TestCase
         ]);
     }
 
+    public function test_ordinary_road_incident_does_not_place_bus_under_maintenance(): void
+    {
+        $assignment = $this->tripSchedule->assignments()->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'trip_assignment_id' => $assignment->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Along Highway, Batangas City',
+                'description' => 'Minor road incident with no mechanical failure.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame('Active', $this->bus->fresh()->status);
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'bus_id' => $this->bus->id,
+            'incident_type' => 'Accident/Road Incident',
+            'active_breakdown_key' => null,
+        ]);
+    }
+
     public function test_required_fields_are_validated(): void
     {
         $this->actingAs($this->user)
