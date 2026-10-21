@@ -201,6 +201,14 @@
                                             : 'External Rental Pending';
                                     }
                                     $tripLocked = $isHistorical || in_array($trip->status, ['Cancelled', 'Dispatched', 'Completed'], true);
+                                    // Show operational disruption without changing lifecycle status or historical records.
+                                    $activeBreakdown = $trip->incidents
+                                        ->first(fn ($incident) => $incident->incident_type === 'Bus Breakdown'
+                                            && ! in_array($incident->status, ['Resolved', 'Cancelled'], true)
+                                            && ! $incident->replacement);
+                                    $deployedReplacement = $trip->incidents
+                                        ->first(fn ($incident) => $incident->incident_type === 'Bus Breakdown'
+                                            && $incident->replacement);
                                     $tripDisplayStatus = match (true) {
                                         $trip->status === 'Cancelled' => 'Cancelled',
                                         $trip->status === 'Completed' => 'Completed',
@@ -213,6 +221,15 @@
                                         $assignedCount < $requiredCount => 'Partially Assigned',
                                         default => $trip->status,
                                     };
+                                    if ($activeBreakdown && in_array($trip->status, ['Ready', 'Scheduled', 'Dispatched'], true)) {
+                                        $tripDisplayStatus = $trip->status === 'Dispatched'
+                                            ? 'In Progress — Breakdown Reported'
+                                            : 'Incident — Awaiting Replacement';
+                                    } elseif ($deployedReplacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
+                                        $tripDisplayStatus = $trip->status === 'Ready'
+                                            ? 'Ready — Replacement Assigned'
+                                            : 'In Progress — Reserve Deployed';
+                                    }
                                 @endphp
 
                                 @if($showClientRouteHeading)
