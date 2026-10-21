@@ -324,6 +324,11 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
         $this->assertSame('Scheduled', $trip->fresh()->status);
 
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $today]))
+            ->assertOk()
+            ->assertSee('Breakdown Reported — OIC Review');
+
         // 2. Record OIC response and deploy Reserve Bus
         $this->actingAs($operationHead)
             ->post(route('incidents.response', ['incident' => $incident->incident_no]), [
@@ -353,6 +358,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('BUS-SCEN-A-RES')
             ->assertSee('Reserve Deployed')
+            ->assertSee('Ready — Replacement Assigned')
             ->assertSee('OIC Approved')
             ->assertDontSee('Approval Not Recorded');
 
