@@ -692,7 +692,7 @@
         <section class="step">
             <h2>Confirm your profile</h2>
             <p class="lead" style="margin: 0 0 22px; text-align: left;">
-                Review your name and email before continuing. Your department and role are assigned by the System Administrator and are read-only here.
+                Review your name and verified email before continuing. Email changes require separate verification. Your department and role are assigned by the System Administrator.
             </p>
 
             <form id="profileForm" action="{{ route('onboarding.profile.update', [], false) }}" method="POST">
@@ -714,7 +714,7 @@
                         </label>
                         <div class="input-group">
                             <i class="fa-solid fa-envelope input-icon"></i>
-                            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required>
+                            <input id="email" type="email" value="{{ $user->email }}" readonly aria-readonly="true" title="Email changes require verification by the administrator">
                         </div>
                     </div>
 
