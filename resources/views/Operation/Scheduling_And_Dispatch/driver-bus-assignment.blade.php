@@ -435,7 +435,7 @@
                                             <td>
                                                 <x-ui.status-badge
                                                     :status="$tripDisplayStatus"
-                                                :label="$tripDisplayStatus === 'Partially Assigned' ? 'Partial' : null"
+                                                :label="$deployedReplacement && $trip->status === 'Ready' ? 'Ready · Reserve' : ($tripDisplayStatus === 'Partially Assigned' ? 'Partial' : null)"
                                                     class="assignment-status {{ \App\Support\StatusBadge::normalize($tripDisplayStatus) }}"
                                                     :title="$deployedReplacement ? 'Replacement bus assigned; original bus remains under maintenance.' : ($tripDisplayStatus === 'Missed' ? 'Departure time has already passed.' : null)"
                                                 />
