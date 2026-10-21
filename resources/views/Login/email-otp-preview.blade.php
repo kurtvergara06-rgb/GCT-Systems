@@ -51,9 +51,13 @@
             <div class="otp-symbol" aria-hidden="true">&#9993;</div>
             <h2>Verify Your Email</h2>
             <p>Enter the 6-digit verification code sent to your email address.</p>
-            <div class="otp-email">employee@gmail.com</div>
+            <div class="otp-email">{{ $otpEmail ?? "employee@gmail.com" }}</div>
           </div>
-          <form id="otpPreviewForm" autocomplete="off">
+          @if(session('status'))<div class="otp-message" role="status">{{ session('status') }}</div>@endif
+@if($errors->any())<div class="otp-message" role="alert">{{ $errors->first() }}</div>@endif
+<form id="otpPreviewForm" method="POST" action="{{ isset($otpEmail) ? route('verification.otp.submit') : '#' }}" autocomplete="off">
+@csrf
+<input type="hidden" name="code" id="otpCode">
             <label class="otp-label" for="otp-digit-1">Verification code</label>
             <div class="otp-grid" id="otpGrid">
               @for ($i = 1; $i <= 6; $i++)
@@ -64,9 +68,14 @@
             <button class="login-btn" type="submit">Verify Email &rarr;</button>
             <div class="otp-message" id="otpPreviewMessage" role="status" hidden></div>
           </form>
-          <p class="otp-footer">Didn't receive a code? <button id="otpResend" type="button" class="otp-link">Resend Code</button></p>
+          @if(isset($otpEmail))
+<form method="POST" action="{{ route('verification.otp.resend') }}" class="otp-footer">@csrf
+Didn't receive a code? <button id="otpResend" type="submit" class="otp-link">Resend Code</button></form>
+@else
+<p class="otp-footer">Didn't receive a code? <button id="otpResend" type="button" class="otp-link">Resend Code</button></p>
+@endif
           <a class="otp-back" href="{{ route('login') }}">&larr; Back to Sign In</a>
-          <p class="otp-help" style="margin-top:24px">UI preview only. Sending and verifying codes are not connected yet.</p>
+          @unless(isset($otpEmail))<p class="otp-help" style="margin-top:24px">UI preview only. No email is sent.</p>@endunless
         </div>
         <footer class="login-footer"><p>&copy; {{ date('Y') }} GCT Transport Services, Inc. All rights reserved.</p></footer>
       </div>
@@ -76,6 +85,7 @@
     (() => {
       const inputs = [...document.querySelectorAll('.otp-input')];
       const message = document.getElementById('otpPreviewMessage');
+      const live = @json(isset($otpEmail));
       const show = text => { message.hidden = false; message.textContent = text; };
       const fill = (start, raw) => {
         const chars = String(raw).replace(/\D/g, '').slice(0, 6 - start).split('');
@@ -102,12 +112,15 @@
         });
       });
       document.getElementById('otpPreviewForm').addEventListener('submit', event => {
+        document.getElementById('otpCode').value = inputs.map(input => input.value).join('');
+        if (live && /^[0-9]{6}$/.test(document.getElementById('otpCode').value)) return;
         event.preventDefault();
         show(inputs.every(input => /^\d$/.test(input.value)) ?
           'Preview only: six digits entered. Server verification is not implemented.' :
           'Please enter all six digits.');
       });
       document.getElementById('otpResend').addEventListener('click', () => {
+        if (live) return;
         inputs.forEach(input => input.value = '');
         inputs[0].focus();
         show('Preview only: no email has been sent.');
