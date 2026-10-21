@@ -141,4 +141,16 @@ class AccountSensitiveEditTest extends TestCase
             ->assertSessionHasErrors('email');
     }
 
+    public function test_account_edit_script_uses_the_bound_pending_expiry_element(): void
+    {
+        $script = file_get_contents(resource_path('js/Admin/User_Management/users.js'));
+
+        $this->assertIsString($script);
+        $this->assertStringContainsString(
+            'if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent',
+            $script
+        );
+        $this->assertStringNotContainsString('if (accountPendingExpiry)', $script);
+    }
+
 }

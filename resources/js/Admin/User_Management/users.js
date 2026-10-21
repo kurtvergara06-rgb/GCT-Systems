@@ -94,7 +94,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountPendingEmailRequested) accountPendingEmailRequested.textContent = isPreview
       ? 'Not yet submitted'
       : (savedPendingRequested || 'Not available');
-    if (accountPendingExpiry) accountPendingExpiry.textContent = isPreview
+    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = isPreview
       ? 'No verification sent yet'
       : (savedPendingExpiry || 'Not available');
     if (accountPendingActions) {
