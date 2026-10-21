@@ -327,7 +327,7 @@ class IncidentTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertSee('Available Reserve Buses')
             ->assertSee('BUS-REPL-001');
@@ -369,7 +369,7 @@ class IncidentTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertDontSee('BUS-REGULAR-002');
 
@@ -516,7 +516,7 @@ class IncidentTest extends TestCase
         $incident = $this->createIncident('Bus Breakdown');
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertSee($incident->incident_no)
             ->assertSee('Bus Breakdown')
