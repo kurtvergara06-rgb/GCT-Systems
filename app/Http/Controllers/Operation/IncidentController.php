@@ -461,8 +461,14 @@ class IncidentController extends Controller
             );
     }
 
-    public function show(Incident $incident): View
+    public function show(Incident $incident): View|RedirectResponse
     {
+        // Full-page incident details are legacy. Open the existing workflow modal
+        // on Incident Management; embedded iframe requests still render the workflow.
+        if (! request()->boolean('embedded')) {
+            return redirect()->route('incidents', ['view_incident' => $incident->incident_no]);
+        }
+
         $incident->load([
             'tripSchedule.shuttleRoute',
             'tripAssignment.driverAttendance',
