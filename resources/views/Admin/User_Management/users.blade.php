@@ -524,7 +524,7 @@
 
                 <div class="form-grid account-edit-grid">
                     <div class="form-group">
-                        <label for="userNameInput">Full Name</label>
+                        <label for="userNameInput"><i class="fa-solid fa-user" aria-hidden="true"></i> Full Name</label>
                         <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
                     </div>
 
@@ -533,7 +533,7 @@
                         <input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required>
                     </div>
                     <div class="form-group" id="accountCurrentEmailField" hidden>
-                        <label for="accountCurrentVerifiedEmail">Current Verified Email</label>
+                        <label for="accountCurrentVerifiedEmail"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Current Verified Email</label>
                         <div class="account-current-email"><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
                     </div>
 
@@ -543,7 +543,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="userDepartmentInput">Department</label>
+                        <label for="userDepartmentInput"><i class="fa-solid fa-building" aria-hidden="true"></i> Department</label>
                         <select name="department" id="userDepartmentInput" required>
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
@@ -553,7 +553,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="userRoleInput">Role</label>
+                        <label for="userRoleInput"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Role</label>
                         <select name="role" id="userRoleInput" required>
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)
@@ -563,7 +563,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="userStatusInput">Account Status</label>
+                        <label for="userStatusInput"><i class="fa-solid fa-power-off" aria-hidden="true"></i> Account Status</label>
                         <select name="status" id="userStatusInput" required>
                             @foreach(($statuses ?? []) as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
@@ -571,7 +571,7 @@
                         </select>
                     </div>
                     <div class="form-group" id="accountNewEmailField" hidden>
-                        <label for="accountNewEmailInput">New Email Address</label>
+                        <label for="accountNewEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> New Email Address</label>
                         <input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email">
                         <small class="account-email-hint">Leave blank to keep the current verified email.</small>
                     </div>
@@ -579,9 +579,9 @@
                 <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
                     <div class="account-pending-top">
                         <div><strong><i class="fa-regular fa-clock"></i> Pending Email Change</strong><p>A new email address is awaiting confirmation.</p></div>
-                        <span class="account-pending-badge">Awaiting verification</span>
+                        <span class="account-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Awaiting Verification</span>
                     </div>
-                    <div class="account-pending-address" id="accountPendingEmailAddress"></div>
+                    <div class="account-pending-address"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span id="accountPendingEmailAddress"></span></div>
                     <p class="account-pending-expiry" id="accountPendingEmailExpiry"></p>
                     <div class="account-pending-buttons">
                         <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-regular fa-paper-plane"></i> Resend Verification</button>
