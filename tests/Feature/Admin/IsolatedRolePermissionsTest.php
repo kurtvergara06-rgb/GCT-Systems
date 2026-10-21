@@ -196,7 +196,7 @@ class IsolatedRolePermissionsTest extends TestCase
             ->assertOk()
             ->assertSee('System-Wide Module Access')
             ->assertSee('Cross-module permissions require route enforcement')
-            ->assertSee('3 of 17 Allowed')
+            ->assertSee('2 of 18 Allowed')
             ->assertSee('Changes to supported role capabilities are saved here');
 
         $this->actingAs($admin)
