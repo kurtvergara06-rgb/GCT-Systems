@@ -94,15 +94,31 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountPendingExpiry) accountPendingExpiry.textContent = isPreview
       ? 'No verification sent yet'
       : (savedPendingExpiry || 'Not available');
-    if (accountPendingActions) accountPendingActions.hidden = isPreview;
+    if (accountPendingActions) {
+      accountPendingActions.hidden = isPreview;
+      accountPendingActions.style.display = isPreview ? 'none' : '';
+      accountPendingActions.querySelectorAll('button').forEach(button => {
+        button.disabled = isPreview;
+      });
+    }
   }
 
   accountNewEmailInput?.addEventListener('input', refreshEmailChangePanel);
   accountNewEmailInput?.addEventListener('change', refreshEmailChangePanel);
   const accountEmailResendForm = document.getElementById('accountEmailResendForm');
   const accountEmailCancelForm = document.getElementById('accountEmailCancelForm');
+  // Never submit the pending-email actions for an unsaved preview.
+  const canManageSavedEmail = () =>
+    Boolean(savedPendingEmail) &&
+    !accountPendingEmailPanel?.classList.contains('is-preview') &&
+    userFormMethod?.value === 'PUT';
+  accountEmailResendForm?.addEventListener('submit', event => {
+    if (!canManageSavedEmail()) event.preventDefault();
+  });
   accountEmailCancelForm?.addEventListener('submit', event => {
-    if (!window.confirm('Cancel this pending email change?')) event.preventDefault();
+    if (!canManageSavedEmail() || !window.confirm('Cancel this pending email change?')) {
+      event.preventDefault();
+    }
   });
   const accountEditEmailNote = document.getElementById('accountEditEmailNote');
   if (accountEditEmailNote && userFormMethod) {
