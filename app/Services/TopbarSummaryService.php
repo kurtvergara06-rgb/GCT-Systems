@@ -83,16 +83,18 @@ class TopbarSummaryService
             default => null,
         };
 
-        if ($module) {
-            $query->where(function ($builder) use ($module) {
-                $builder
-                    ->where('module', $module)
-                    ->orWhereNull('module')
-                    ->orWhere('module', 'System');
-            });
+        if (! $module) {
+            // Unknown or unassigned departments must never receive every
+            // department's notifications by falling through an unscoped query.
+            return $query->whereRaw('1 = 0');
         }
 
-        return $query;
+        return $query->where(function ($builder) use ($module) {
+            $builder
+                ->where('module', $module)
+                ->orWhereNull('module')
+                ->orWhere('module', 'System');
+        });
     }
 
     private function formatNotification(
