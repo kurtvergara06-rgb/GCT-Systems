@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class GoogleRegistrationTest extends TestCase
@@ -32,7 +33,7 @@ class GoogleRegistrationTest extends TestCase
             ->assertSee('applicant@example.com');
 
         $this->withSession($this->googleSession())
-            ->post(route('auth.google.register.submit'), ['name' => 'Official Employee Name'])
+            ->post(route('auth.google.register.submit'), ['name' => 'Official Employee Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026'])
             ->assertRedirect(route('verification.otp'));
 
         $this->assertDatabaseHas('users', [
@@ -42,6 +43,7 @@ class GoogleRegistrationTest extends TestCase
             'google_id' => 'google-test-subject',
             'email_verified_at' => null,
         ]);
+        $this->assertTrue(Hash::check('SecureGCTPassword#2026', User::where('email', 'applicant@example.com')->firstOrFail()->password));
         $this->assertDatabaseHas('email_verification_otps', [
             'user_id' => User::where('email', 'applicant@example.com')->firstOrFail()->id,
         ]);
@@ -52,6 +54,18 @@ class GoogleRegistrationTest extends TestCase
         $this->withSession($this->googleSession())
             ->post(route('auth.google.register.submit'), ['name' => ''])
             ->assertSessionHasErrors('name');
+        $this->assertDatabaseMissing('users', ['email' => 'applicant@example.com']);
+    }
+
+    public function test_google_registration_rejects_mismatched_passwords(): void
+    {
+        $this->withSession($this->googleSession())
+            ->post(route('auth.google.register.submit'), [
+                'name' => 'Official Employee Name',
+                'password' => 'SecureGCTPassword#2026',
+                'password_confirmation' => 'DifferentPassword#2026',
+            ])->assertSessionHasErrors('password');
+
         $this->assertDatabaseMissing('users', ['email' => 'applicant@example.com']);
     }
 
@@ -67,7 +81,7 @@ class GoogleRegistrationTest extends TestCase
     {
         User::factory()->create(['email' => 'applicant@example.com']);
         $this->withSession($this->googleSession())
-            ->post(route('auth.google.register.submit'), ['name' => 'Another Name'])
+            ->post(route('auth.google.register.submit'), ['name' => 'Another Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026'])
             ->assertRedirect(route('login'));
         $this->assertSame(1, User::where('email', 'applicant@example.com')->count());
     }
