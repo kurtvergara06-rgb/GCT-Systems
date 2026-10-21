@@ -476,6 +476,8 @@
         >
 
 
+        <div class="route-editor-columns">
+            <div class="route-editor-left">
         {{-- =====================================================
             ROUTE FIELDS
         ====================================================== --}}
@@ -752,6 +754,8 @@
             </div>
 
         </x-ui.form-section>
+            </div>
+            <div class="route-editor-right">
 
         <x-ui.form-section
             title="Route Map Preview"
@@ -831,6 +835,9 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
+
 
     </x-ui.form-modal>
 
