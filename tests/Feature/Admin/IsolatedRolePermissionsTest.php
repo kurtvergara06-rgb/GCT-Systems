@@ -195,9 +195,9 @@ class IsolatedRolePermissionsTest extends TestCase
             ->get(route('admin.roles-permissions', ['role' => 'warehouse_head']))
             ->assertOk()
             ->assertSee('System-Wide Module Access')
-            ->assertSee('UI preview — no cross-module access granted')
+            ->assertSee('Cross-module permissions require route enforcement')
             ->assertSee('3 of 17 Allowed')
-            ->assertSee('Only Warehouse permissions can be saved currently');
+            ->assertSee('Changes to supported role capabilities are saved here');
 
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'admin_head']))
