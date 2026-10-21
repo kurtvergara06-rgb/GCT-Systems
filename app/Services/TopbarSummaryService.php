@@ -159,9 +159,22 @@ class TopbarSummaryService
         ];
 
         return collect($actionsByDepartment[$department] ?? [])
-            ->filter(fn (array $definition) => Schema::hasTable($definition[0])
-                && Route::has($definition[4])
-            )
+            ->filter(function (array $definition): bool {
+                [$table, $column, , , $route] = $definition;
+
+                if (! Schema::hasTable($table) || ! Route::has($route)) {
+                    return false;
+                }
+
+                if ($table === 'inventory_items') {
+                    return Schema::hasColumn($table, 'quantity_available')
+                        && Schema::hasColumn($table, 'reorder_level');
+                }
+
+                // Missing status columns must not turn a filtered pending
+                // action into an incorrect count of every record.
+                return $column !== null && Schema::hasColumn($table, $column);
+            })
             ->map(function (array $definition): array {
                 [$table, $column, $statuses, $label, $route, $icon] = $definition;
 
