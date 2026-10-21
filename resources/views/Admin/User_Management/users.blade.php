@@ -423,9 +423,10 @@
     {{-- PENDING APPLICATION REVIEW --}}
     @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
         <div class="admin-modal-overlay" id="applicationReviewModal" role="dialog" aria-modal="true" aria-labelledby="applicationReviewTitle">
-            <div class="admin-user-modal">
-                <div class="admin-modal-header">
+            <div class="admin-user-modal application-review-dialog">
+                <div class="admin-modal-header application-review-header">
                     <div>
+                        <div class="application-review-eyebrow"><i class="fa-regular fa-address-card" aria-hidden="true"></i> EMPLOYEE ONBOARDING</div>
                         <h2 id="applicationReviewTitle">Review Employee Application</h2>
                         <p>Confirm the applicant's verified email and assign their department and role.</p>
                     </div>
@@ -433,13 +434,24 @@
                 </div>
                 <form id="applicationReviewForm" class="admin-user-form" method="POST">
                     @csrf
-                    <div class="application-review-details">
-                        <strong id="applicationReviewName"></strong>
-                        <span id="applicationReviewEmail"></span>
-                        <small id="applicationReviewApplied"></small>
-                        <span id="applicationReviewVerified" role="status"></span>
+                    <section class="application-review-details" aria-label="Applicant information">
+                        <div class="application-review-profile">
+                            <span class="application-review-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+                            <div class="application-review-identity">
+                                <span class="application-review-section-label">APPLICANT DETAILS</span>
+                                <strong id="applicationReviewName"></strong>
+                                <span id="applicationReviewEmail"></span>
+                            </div>
+                        </div>
+                        <div class="application-review-metadata">
+                            <div class="application-review-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i><small id="applicationReviewApplied"></small></div>
+                            <span class="application-review-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span id="applicationReviewVerified" role="status"></span></span>
+                        </div>
+                    </section>
+                    <div class="application-review-section-heading">
+                        <div><h3>Access assignment</h3><p>Select the department and role for this employee.</p></div>
                     </div>
-                    <div class="form-group">
+                    <div class="application-review-fields"><div class="form-group">
                         <label for="applicationReviewDepartment">Department <span aria-hidden="true">*</span></label>
                         <select name="department" id="applicationReviewDepartment" required>
                             <option value="">Select department</option>
@@ -457,11 +469,12 @@
                             @endforeach
                         </select>
                     </div>
+                    </div>
                     <div class="application-review-actions">
-                        <button type="button" data-close-application-review>Cancel</button>
+                        <button type="button" data-close-application-review><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancel</button>
                         <button type="submit" name="decision" value="reject" class="application-reject-button" formnovalidate
-                            onclick="return confirm('Reject this employee application?')">Reject</button>
-                        <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove">Approve Application</button>
+                            onclick="return confirm('Reject this employee application?')"><i class="fa-solid fa-ban" aria-hidden="true"></i> Reject</button>
+                        <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve Application</button>
                     </div>
                 </form>
             </div>
