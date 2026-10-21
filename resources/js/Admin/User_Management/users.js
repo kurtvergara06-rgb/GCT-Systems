@@ -53,6 +53,14 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
   const userNameInput = document.getElementById('userNameInput');
   const userEmailInput = document.getElementById('userEmailInput');
+  const accountEditEmailNote = document.getElementById('accountEditEmailNote');
+  if (accountEditEmailNote && userFormMethod) {
+    const syncNotice = () => {
+      accountEditEmailNote.hidden = userFormMethod.value !== 'PUT';
+    };
+    userFormMethod.addEventListener('change', syncNotice);
+    userFormModal?.addEventListener('click', syncNotice);
+  }
   const userPasswordInput = document.getElementById('userPasswordInput');
   const userPasswordGroup = userPasswordInput?.closest('.form-group');
   const userDepartmentInput = document.getElementById('userDepartmentInput');
