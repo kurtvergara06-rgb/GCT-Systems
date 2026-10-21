@@ -22,6 +22,9 @@ if (app()->environment('local')) {
     Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
 }
 
+Route::get('/account/email-change/result', [AccountEmailChangeController::class, 'result'])
+    ->name('account.email-change.result');
+
 Route::get('/account/email-change/{id}/{token}', [AccountEmailChangeController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])->name('account.email-change.verify');
 
