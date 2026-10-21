@@ -1033,3 +1033,9 @@
   #userFormModal .account-pending-top { align-items:flex-start; }
   #userFormModal .account-pending-panel { padding:15px; }
 }
+
+/* Instant email-change preview; never imply an unsaved address was verified. */
+#userFormModal .account-pending-panel.is-preview { background:#fffaf0; border-color:#f1ca68; }
+#userFormModal .account-pending-panel.is-preview .account-pending-badge { background:#fff0c4;color:#96620b; }
+#userFormModal .account-pending-buttons[hidden] { display:none!important; }
+#userFormModal .account-pending-panel.is-preview .account-pending-expiry { font-weight:600;color:#846522; }
