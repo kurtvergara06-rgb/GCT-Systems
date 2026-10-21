@@ -645,3 +645,91 @@
 .application-verification.is-verified { color: #137b47; background: #e5f8eb; }
 .application-verification.is-unverified { color: #986514; background: #fff2cf; }
 .application-action-note { color: #64748b; font-size: 12px; }
+
+
+/* Employee application review — scoped styling; no changes to other admin dialogs. */
+#applicationReviewModal .application-review-dialog {
+  width: min(100% - 28px, 650px);
+  max-width: 650px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 72px rgba(5, 25, 55, .2);
+}
+#applicationReviewModal .application-review-header {
+  padding-bottom: 19px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #edf1f6;
+}
+#applicationReviewModal .application-review-header h2 {
+  font-size: 23px;
+  letter-spacing: -.5px;
+  line-height: 1.2;
+  margin: 6px 0;
+}
+#applicationReviewModal .application-review-header p { line-height: 1.5; }
+#applicationReviewModal .application-review-eyebrow,
+#applicationReviewModal .application-review-section-label {
+  color: #6a7d97;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 800;
+}
+#applicationReviewModal .application-review-eyebrow { display: flex; align-items: center; gap: 7px; }
+#applicationReviewModal .application-review-details {
+  display: block;
+  margin: 20px 0 22px;
+  padding: 17px 18px 0;
+  background: #f5f8fc;
+  border: 1px solid #e7edf6;
+  border-radius: 13px;
+}
+#applicationReviewModal .application-review-profile { display: flex; align-items: center; gap: 14px; }
+#applicationReviewModal .application-review-avatar {
+  flex: 0 0 46px; width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 12px; background: #e1ebfb; color: #2459a0; font-size: 20px;
+}
+#applicationReviewModal .application-review-identity { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+#applicationReviewModal #applicationReviewName { font-size: 16px; color: #102b4f; line-height: 1.35; }
+#applicationReviewModal #applicationReviewEmail { color: #63738a; font-size: 13px; overflow-wrap: anywhere; }
+#applicationReviewModal .application-review-metadata {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  margin-top: 18px; padding: 13px 0; border-top: 1px solid #e3eaf4;
+}
+#applicationReviewModal .application-review-date { display: inline-flex; align-items: center; gap: 8px; color: #687992; }
+#applicationReviewModal .application-review-date small { font-size: 12px; }
+#applicationReviewModal .application-review-status {
+  display: inline-flex; gap: 6px; align-items: center;
+  border-radius: 999px; padding: 6px 10px; background: #e8f7ee; color: #187044;
+  font-size: 12px; font-weight: 750;
+}
+#applicationReviewModal #applicationReviewVerified { color: inherit; }
+#applicationReviewModal .application-review-section-heading h3 { margin: 0 0 5px; color: #122f55; font-size: 15px; }
+#applicationReviewModal .application-review-section-heading p { margin: 0; color: #6c7d93; font-size: 12px; }
+#applicationReviewModal .application-review-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 16px; }
+#applicationReviewModal .application-review-fields .form-group { margin: 0; min-width: 0; }
+#applicationReviewModal .application-review-fields label { display: block; margin-bottom: 8px; color: #30445e; font-weight: 700; font-size: 12px; }
+#applicationReviewModal .application-review-fields select {
+  min-height: 46px; padding: 0 34px 0 13px; border-radius: 10px; background-color: #fff;
+  border: 1px solid #d6e0ee; font-size: 13px; font-weight: 600; color: #263e5b;
+}
+#applicationReviewModal .application-review-fields select:focus { outline: 0; border-color: #3074c6; box-shadow: 0 0 0 3px rgba(48,116,198,.12); }
+#applicationReviewModal .application-review-actions {
+  margin-top: 25px; padding-top: 20px; border-top: 1px solid #e9eef6;
+  display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 9px;
+}
+#applicationReviewModal .application-review-actions button {
+  min-height: 43px; display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 0 15px; font-weight: 750; font-size: 13px; border-radius: 9px;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+#applicationReviewModal .application-review-actions button:first-child { background: #f5f7fa; color: #52637c; border-color: #e0e6ed; }
+#applicationReviewModal .application-review-actions .application-reject-button { background: #fff0f1; color: #b42739; border-color: #f4c8ce !important; }
+#applicationReviewModal .application-review-actions .application-approve-button { background: #145cb5; color: #fff; border-color: #145cb5 !important; }
+#applicationReviewModal .application-review-actions button:hover:not(:disabled) { box-shadow: 0 3px 9px rgba(15,36,70,.1); }
+@media(max-width: 620px) {
+  #applicationReviewModal .application-review-dialog { max-height: calc(100dvh - 28px); overflow-y: auto; }
+  #applicationReviewModal .application-review-fields { grid-template-columns: 1fr; }
+  #applicationReviewModal .application-review-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  #applicationReviewModal .application-review-actions .application-approve-button { grid-column: 1 / -1; grid-row: 1; }
+}
