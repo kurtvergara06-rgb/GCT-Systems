@@ -519,21 +519,22 @@
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Full Name</label>
+                        <label for="userNameInput">Full Name</label>
                         <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Email</label>
+                        <label for="userEmailInput">Email Address</label>
                         <input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Password</label>
+                        <label for="userPasswordInput">Password</label>
                         <input type="password" name="password" id="userPasswordInput" placeholder="Enter password">
                     </div>
 
                     <div class="form-group">
+                        <label for="userDepartmentInput">Department</label>
                         <select name="department" id="userDepartmentInput" required>
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
@@ -543,6 +544,7 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="userRoleInput">Role</label>
                         <select name="role" id="userRoleInput" required>
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)
@@ -552,7 +554,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Status</label>
+                        <label for="userStatusInput">Account Status</label>
                         <select name="status" id="userStatusInput" required>
                             @foreach(($statuses ?? []) as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
@@ -561,6 +563,7 @@
                     </div>
                 </div>
 
+                <p class="account-edit-email-note" id="accountEditEmailNote" hidden>Changing the email address sends a verification link to the new address. The current verified email remains active until confirmation.</p>
                 <div class="admin-modal-footer modal-actions">
                     <button type="button" class="secondary-btn btn-cancel" id="cancelUserFormModal">Cancel</button>
                     <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">Save Account</button>
