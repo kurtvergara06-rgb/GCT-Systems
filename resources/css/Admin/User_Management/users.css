@@ -733,3 +733,178 @@
   #applicationReviewModal .application-review-actions { display: grid; grid-template-columns: 1fr 1fr; }
   #applicationReviewModal .application-review-actions .application-approve-button { grid-column: 1 / -1; grid-row: 1; }
 }
+
+
+/* Applications screen refinement — intentionally scoped to Applications only. */
+.users-main:has(.users-card--applications) .users-stats-grid {
+  gap: 14px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+.users-main:has(.users-card--applications) .users-stats-grid > * {
+  min-width: 0;
+  border: 1px solid #e0e8f4;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(21, 47, 83, .035);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.users-main:has(.users-card--applications) .users-stats-grid > *:hover {
+  box-shadow: 0 8px 22px rgba(21, 47, 83, .075);
+  transform: translateY(-1px);
+}
+.users-main .users-card--applications {
+  padding-bottom: 13px;
+  border: 1px solid #dde7f3;
+  border-radius: 15px;
+  box-shadow: 0 6px 24px rgba(26, 53, 90, .045);
+}
+.users-main .users-card--applications .users-section-header {
+  margin-bottom: 13px;
+}
+.users-main .users-card--applications .users-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+.users-main .users-card--applications .application-status-tabs {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 11px;
+  border: 1px solid #dce5f1;
+  background: #f1f5fa;
+}
+.users-main .users-card--applications .application-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  min-height: 37px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 12px;
+  color: #536784;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .application-status-tab:hover {
+  color: #123d79;
+}
+.users-main .users-card--applications .application-status-tab.is-active {
+  border-color: #d8e4f5;
+  background: #fff;
+  color: #164a93;
+  box-shadow: 0 2px 7px rgba(18, 51, 94, .09);
+}
+.users-main .users-card--applications .application-status-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  border-radius: 7px;
+  padding: 0 5px;
+  color: #8d5b07;
+  background: #fff0cc;
+  font-size: 11px;
+  font-weight: 800;
+}
+.users-main .users-card--applications .users-toolbar {
+  margin: 0 0 0 auto;
+  flex: 0 0 auto;
+}
+.users-main .users-card--applications .users-table-wrap {
+  max-height: min(65vh, 620px);
+  overflow: auto;
+  border: 1px solid #e8edf5;
+  border-radius: 11px;
+}
+.users-main .users-card--applications .users-table {
+  width: 100%;
+  min-width: 840px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.users-main .users-card--applications .users-table thead th {
+  background: #f5f8fc;
+  color: #52627a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .65px;
+  text-transform: uppercase;
+  padding: 15px 14px;
+  border-bottom: 1px solid #e6edf5;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .users-table tbody td {
+  vertical-align: middle;
+  padding: 16px 14px;
+  font-size: 13px;
+  color: #243b59;
+  border-bottom: 1px solid #edf1f7;
+  transition: background-color .16s ease;
+}
+.users-main .users-card--applications .users-table tbody tr:hover td {
+  background: #f9fbfe;
+}
+.users-main .users-card--applications .users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.users-main .users-card--applications .application-verification {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  min-height: 26px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .application-verification.is-verified {
+  background: #e8f8ef;
+  color: #117044;
+}
+.users-main .users-card--applications .application-verification.is-unverified {
+  background: #fff3dc;
+  color: #946314;
+}
+.users-main .users-card--applications .application-review-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #bfd7f5;
+  border-radius: 9px;
+  background: #f0f6ff;
+  color: #1556a5;
+  font-size: 12px;
+  font-weight: 750;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.users-main .users-card--applications .application-review-button:hover {
+  border-color: #78afea;
+  background: #e4f0ff;
+  box-shadow: 0 3px 9px rgba(23, 90, 171, .12);
+}
+.users-main .users-card--applications .application-review-button:focus-visible,
+.users-main .users-card--applications .application-status-tab:focus-visible {
+  outline: 3px solid rgba(28, 94, 174, .35);
+  outline-offset: 2px;
+}
+@media(max-width: 760px) {
+  .users-main .users-card--applications .users-record-controls { align-items: flex-start; }
+  .users-main .users-card--applications .users-toolbar { margin-left: 0; }
+  .users-main .users-card--applications .application-status-tabs { max-width: 100%; flex-wrap: wrap; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .users-main:has(.users-card--applications) .users-stats-grid > *,
+  .users-main .users-card--applications .application-review-button { transition: none; }
+}
