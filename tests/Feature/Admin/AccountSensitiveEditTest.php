@@ -108,4 +108,37 @@ class AccountSensitiveEditTest extends TestCase
         $this->assertDatabaseMissing('account_email_changes', ['user_id' => $employee->id]);
     }
 
+
+    public function test_admin_can_cancel_pending_email_without_changing_current_email(): void
+    {
+        $employee = $this->employee();
+        $oldEmail = $employee->email;
+        DB::table('account_email_changes')->insert([
+            'user_id' => $employee->id, 'new_email' => 'waiting@example.com',
+            'token_hash' => hash('sha256', 'example'),
+            'expires_at' => now()->addMinutes(30),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->actingAs($this->administrator())
+            ->delete(route('admin.users.email-change.cancel', $employee))
+            ->assertRedirect(route('admin.users'));
+        $this->assertDatabaseMissing('account_email_changes', ['user_id' => $employee->id]);
+        $this->assertSame($oldEmail, $employee->fresh()->email);
+    }
+
+    public function test_resend_is_rate_limited_within_sixty_seconds(): void
+    {
+        Mail::fake();
+        $employee = $this->employee();
+        DB::table('account_email_changes')->insert([
+            'user_id' => $employee->id, 'new_email' => 'waiting@example.com',
+            'token_hash' => hash('sha256', 'example'),
+            'expires_at' => now()->addMinutes(30),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->actingAs($this->administrator())
+            ->post(route('admin.users.email-change.resend', $employee))
+            ->assertSessionHasErrors('email');
+    }
+
 }
