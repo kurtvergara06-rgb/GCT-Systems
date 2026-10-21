@@ -27,14 +27,15 @@ class EmployeeRegistrationTest extends TestCase
             'status' => 'Active',
         ]);
 
-        $response->assertRedirect(route('registration.pending'));
+        $response->assertRedirect(route('verification.otp'));
         $user = User::where('email', 'employee@example.test')->firstOrFail();
         $this->assertSame('Pending', $user->status);
         $this->assertSame('Unassigned', $user->department);
         $this->assertSame('unassigned', $user->role);
         $this->assertFalse($user->hasVerifiedEmail());
         $this->assertFalse($user->hasSystemPermission('operation', 'view'));
-        Notification::assertSentTo($user, VerifyEmail::class);
+        $response->assertSessionHas('registration_otp_user_id', $user->id);
+        Notification::assertNotSentTo($user, VerifyEmail::class);
     }
 
     public function test_unsigned_verification_is_rejected_and_signed_verification_succeeds(): void
