@@ -337,6 +337,11 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $today]))
+            ->assertOk()
+            ->assertSee('Incident — Awaiting Replacement');
+
+        $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $reserveBus->id,
                 'oic_authorized' => '1',
