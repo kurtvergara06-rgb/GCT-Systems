@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class GoogleAuthController extends Controller
 {
@@ -168,6 +169,7 @@ class GoogleAuthController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ]);
         $name = trim($validated['name']);
         if ($name === '') {
@@ -188,7 +190,7 @@ class GoogleAuthController extends Controller
                 'email' => $pending['email'],
                 'google_id' => $pending['google_id'],
                 'email_verified_at' => null,
-                'password' => Str::random(64),
+                'password' => $validated['password'],
                 'department' => 'Unassigned',
                 'role' => 'unassigned',
                 'status' => 'Pending',
