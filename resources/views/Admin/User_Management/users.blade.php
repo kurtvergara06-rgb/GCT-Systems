@@ -323,6 +323,11 @@
                                                 data-role="{{ $user->role }}"
                                                 data-department="{{ $user->department }}"
                                                 data-status="{{ $user->status }}"
+                                                data-pending-email="{{ $pendingEmailChanges[$user->id]->new_email ?? '' }}"
+                                                data-pending-requested="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->created_at)->format('M d, Y, g:i A') : '' }}"
+                                                data-pending-expiry="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->expires_at)->format('M d, Y, g:i A') : '' }}"
+                                                data-email-resend-url="{{ route('admin.users.email-change.resend', $user) }}"
+                                                data-email-cancel-url="{{ route('admin.users.email-change.cancel', $user) }}"
                                             />
 
                                             <x-ui.action-button
@@ -524,79 +529,90 @@
 
                 <div class="form-grid account-edit-grid">
                     <div class="form-group">
-                        <label for="userNameInput">Full Name</label>
-                        <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
+                        <label for="userNameInput"><i class="fa-solid fa-user" aria-hidden="true"></i> Full Name</label>
+                        <div class="account-field-control"><i class="fa-solid fa-user" aria-hidden="true"></i><input type="text" name="name" id="userNameInput" placeholder="Enter full name" required></div>
                     </div>
 
                     <div class="form-group" id="accountCreateEmailField">
-                        <label for="userEmailInput">Email Address</label>
-                        <input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required>
+                        <label for="userEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email Address</label>
+                        <div class="account-field-control"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required></div>
                     </div>
                     <div class="form-group" id="accountCurrentEmailField" hidden>
-                        <label for="accountCurrentVerifiedEmail">Current Verified Email</label>
-                        <div class="account-current-email"><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
+                        <label for="accountCurrentVerifiedEmail"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Current Verified Email</label>
+                        <div class="account-current-email"><i class="fa-regular fa-envelope account-control-icon" aria-hidden="true"></i><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
+                        <small class="account-email-hint">This is the active sign-in email currently used by the employee.</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="userPasswordInput">Password</label>
-                        <input type="password" name="password" id="userPasswordInput" placeholder="Enter password">
+                        <label for="userPasswordInput"><i class="fa-solid fa-lock" aria-hidden="true"></i> Password</label>
+                        <div class="account-field-control"><i class="fa-solid fa-lock" aria-hidden="true"></i><input type="password" name="password" id="userPasswordInput" placeholder="Enter password"></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="userDepartmentInput">Department</label>
-                        <select name="department" id="userDepartmentInput" required>
+                        <label for="userDepartmentInput"><i class="fa-solid fa-building" aria-hidden="true"></i> Department</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-building" aria-hidden="true"></i><select name="department" id="userDepartmentInput" required>
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
                                 <option value="{{ $department }}">{{ $department }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="userRoleInput">Role</label>
-                        <select name="role" id="userRoleInput" required>
+                        <label for="userRoleInput"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Role</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="role" id="userRoleInput" required>
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)
                                 <option value="{{ $roleValue }}">{{ $roleLabel }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="userStatusInput">Account Status</label>
-                        <select name="status" id="userStatusInput" required>
+                        <label for="userStatusInput"><i class="fa-solid fa-power-off" aria-hidden="true"></i> Account Status</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="status" id="userStatusInput" required>
                             @foreach(($statuses ?? []) as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
                     </div>
                     <div class="form-group" id="accountNewEmailField" hidden>
-                        <label for="accountNewEmailInput">New Email Address</label>
-                        <input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email">
-                        <small class="account-email-hint">Leave blank to keep the current verified email.</small>
+                        <label for="accountNewEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> New Email Address</label>
+                        <div class="account-field-control"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email"></div>
+                        <small class="account-email-hint">Enter a new email address to replace the current one. A verification link will be sent to this address.</small>
                     </div>
                 </div>
                 <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
-                    <div class="account-pending-top">
-                        <div><strong><i class="fa-regular fa-clock"></i> Pending Email Change</strong><p>A new email address is awaiting confirmation.</p></div>
-                        <span class="account-pending-badge">Awaiting verification</span>
+                    <div class="account-pending-main">
+                        <div class="account-pending-heading">
+                            <span class="account-pending-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
+                            <div><strong>Pending Email Change</strong><p>A new email address is awaiting verification.</p></div>
+                        </div>
+                        <div class="account-pending-address-row">
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                            <span class="account-pending-address" id="accountPendingEmailAddress"></span>
+                            <span class="account-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Awaiting Verification</span>
+                        </div>
+                        <div class="account-pending-dates">
+                            <p><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Requested on<strong id="accountPendingEmailRequested"></strong></span></p>
+                            <p><i class="fa-regular fa-hourglass-half" aria-hidden="true"></i><span>Expires on<strong id="accountPendingEmailExpiry"></strong></span></p>
+                        </div>
                     </div>
-                    <div class="account-pending-address" id="accountPendingEmailAddress"></div>
-                    <p class="account-pending-expiry" id="accountPendingEmailExpiry"></p>
-                    <div class="account-pending-buttons">
-                        <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-regular fa-paper-plane"></i> Resend Verification</button>
+                    <div class="account-pending-actions">
+                        <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-solid fa-paper-plane"></i> Resend Verification Link</button>
                         <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn"><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
+                        <p>The current verified email remains active until the new address is confirmed.</p>
                     </div>
                 </section>
 
                 <div class="account-edit-email-note" id="accountEditEmailNote" hidden role="note">
-                    <span class="account-edit-note-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+                    <span class="account-edit-note-icon" aria-hidden="true"><i class="fa-solid fa-info"></i></span>
                     <div><strong>Email Change Protection</strong>
-                    <p>Changing the email address sends a verification link to the new address. The current verified email remains active until confirmation.</p></div>
+                    <p>Changing the email address sends a verification link to the new address. The current verified email remains active until the new address is confirmed. This helps prevent accidental account lockouts.</p></div>
                 </div>
                 <div class="admin-modal-footer modal-actions">
                     <button type="button" class="secondary-btn btn-cancel" id="cancelUserFormModal">Cancel</button>
-                    <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">Save Account</button>
+                    <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><span>Save Account</span></button>
                 </div>
             </form>
             <form id="accountEmailResendForm" method="POST">@csrf</form>

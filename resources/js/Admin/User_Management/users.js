@@ -60,6 +60,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
   const accountNewEmailInput = document.getElementById('accountNewEmailInput');
   const accountPendingEmailPanel = document.getElementById('accountPendingEmailPanel');
   const accountPendingEmailAddress = document.getElementById('accountPendingEmailAddress');
+  const accountPendingEmailRequested = document.getElementById('accountPendingEmailRequested');
   const accountPendingEmailExpiry = document.getElementById('accountPendingEmailExpiry');
   const accountEmailResendForm = document.getElementById('accountEmailResendForm');
   const accountEmailCancelForm = document.getElementById('accountEmailCancelForm');
@@ -107,6 +108,11 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     const element = document.getElementById(id);
     if (!element) return;
     element.textContent = value || '—';
+  }
+
+  function setSaveButtonText(value) {
+    const label = userFormSaveBtn?.querySelector('span');
+    if (label) label.textContent = value;
   }
 
   function setPasswordFieldVisible(visible) {
@@ -230,6 +236,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'POST';
     }
 
+    userFormModal?.classList.remove('is-edit-mode');
     if (accountEditEmailNote) accountEditEmailNote.hidden = true;
     if (accountCreateEmailField) accountCreateEmailField.hidden = false;
     if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
@@ -265,7 +272,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       }
 
       if (userFormSaveBtn) {
-        userFormSaveBtn.textContent = 'Save Account';
+        setSaveButtonText('Save Account');
       }
 
       if (userPasswordInput) {
@@ -294,6 +301,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'PUT';
     }
 
+    userFormModal?.classList.add('is-edit-mode');
     setInput(userNameInput, editButton.dataset.name);
     // Explicitly set the edit-mode state; hidden inputs do not dispatch change events.
     if (accountEditEmailNote) accountEditEmailNote.hidden = false;
@@ -307,7 +315,8 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     const pendingEmail = editButton.dataset.pendingEmail || '';
     if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = !pendingEmail;
     if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = pendingEmail;
-    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = editButton.dataset.pendingExpiry ? 'Link expires: ' + editButton.dataset.pendingExpiry : '';
+    if (accountPendingEmailRequested) accountPendingEmailRequested.textContent = editButton.dataset.pendingRequested || 'Not available';
+    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = editButton.dataset.pendingExpiry || 'Not available';
     if (accountEmailResendForm) accountEmailResendForm.action = editButton.dataset.emailResendUrl || '';
     if (accountEmailCancelForm) accountEmailCancelForm.action = editButton.dataset.emailCancelUrl || '';
     setInput(userDepartmentInput, editButton.dataset.department);
@@ -321,11 +330,11 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
     if (userFormModalSubtitle) {
       userFormModalSubtitle.textContent =
-        'Update account details, department, role, and status.';
+        'Update account details, department, role, and email verification status.';
     }
 
     if (userFormSaveBtn) {
-      userFormSaveBtn.textContent = 'Update Account';
+      setSaveButtonText('Update Account');
     }
 
     openModal(userFormModal);
@@ -420,15 +429,6 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
     const feedbackModal = okButton.closest('.feedback-modal-overlay');
     if (feedbackModal) feedbackModal.classList.remove('show');
-  });
-
-  document.addEventListener('click', function (event) {
-    if (
-      event.target.classList.contains('admin-modal-overlay') ||
-      event.target.classList.contains('feedback-modal-overlay')
-    ) {
-      event.target.classList.remove('show');
-    }
   });
 
   document.addEventListener('keydown', function (event) {

@@ -986,3 +986,330 @@
 #userFormModal .account-edit-grid .form-group[hidden],#userFormModal .account-pending-panel[hidden],#userFormModal .account-edit-email-note[hidden] { display:none!important; }
 #userFormModal .account-edit-dialog .admin-modal-header { position:relative; }
 #userFormModal .account-edit-dialog .admin-modal-header .modal-close-btn { flex:0 0 auto; }
+
+/* Edit System Account — approved account-management composition. */
+#userFormModal {
+  padding: 22px;
+  background: rgba(7, 25, 49, .58);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+#userFormModal .account-edit-dialog {
+  width: min(960px, calc(100vw - 44px));
+  max-width: 960px;
+  padding: 27px 28px 20px;
+  border: 1px solid rgba(226, 232, 240, .94);
+  border-radius: 17px;
+  box-shadow: 0 28px 80px rgba(4, 18, 38, .34);
+}
+#userFormModal .account-edit-dialog .account-edit-header {
+  align-items: center;
+  margin-bottom: 23px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+#userFormModal .account-edit-header-icon {
+  flex-basis: 58px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #e8f2ff;
+  color: #075cc8;
+  font-size: 23px;
+}
+#userFormModal .account-edit-header h2 {
+  margin-bottom: 5px;
+  color: #0a2347;
+  font-size: 25px;
+  line-height: 1.15;
+  letter-spacing: -.55px;
+}
+#userFormModal .account-edit-header p {
+  margin: 0;
+  color: #6b82a7;
+  font-size: 13px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-header .modal-close-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #f0f4f9;
+  color: #0a2347;
+  font-size: 17px;
+}
+#userFormModal .account-edit-grid {
+  column-gap: 25px;
+  row-gap: 20px;
+}
+#userFormModal .account-edit-grid .form-group {
+  gap: 0;
+}
+#userFormModal .account-edit-grid .form-group > label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+  color: #0a2347;
+  font-size: 12px;
+  font-weight: 800;
+}
+#userFormModal .account-edit-grid .form-group > label i {
+  width: 15px;
+  color: #0a2347;
+  text-align: center;
+  font-size: 13px;
+}
+#userFormModal .account-field-control,
+#userFormModal .account-current-email {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+#userFormModal .account-field-control > i,
+#userFormModal .account-current-email > .account-control-icon {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  width: 15px;
+  color: #8499b8;
+  text-align: center;
+  pointer-events: none;
+}
+#userFormModal .account-edit-grid .account-field-control input,
+#userFormModal .account-edit-grid .account-field-control select,
+#userFormModal .account-edit-grid .account-current-email input {
+  height: 47px;
+  min-height: 47px;
+  padding-left: 43px;
+  border: 1px solid #cedaea;
+  border-radius: 8px;
+  color: #142a4b;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(15, 38, 72, .02);
+}
+#userFormModal .account-edit-grid .account-field-control select {
+  padding-right: 38px;
+}
+#userFormModal .account-edit-grid .account-current-email input {
+  padding-right: 96px;
+  background: #f2f5f9;
+}
+#userFormModal .account-edit-grid input:focus,
+#userFormModal .account-edit-grid select:focus {
+  border-color: #2578ef;
+  box-shadow: 0 0 0 2px rgba(37, 120, 239, .17);
+}
+#userFormModal .account-email-verified {
+  right: 9px;
+  padding: 5px 9px;
+  background: #d8f3e2;
+  color: #128043;
+  font-size: 10px;
+}
+#userFormModal .account-email-hint {
+  margin: 6px 0 0;
+  color: #617899;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-pending-panel:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 252px;
+  gap: 28px;
+  margin-top: 20px;
+  padding: 16px 17px 15px;
+  border: 1px solid #f0bd32;
+  border-left: 4px solid #f1b700;
+  border-radius: 10px;
+  background: linear-gradient(105deg, #fffaf0 0%, #fffdf8 100%);
+}
+#userFormModal .account-pending-main {
+  min-width: 0;
+}
+#userFormModal .account-pending-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#userFormModal .account-pending-icon {
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffbd00;
+  color: #fff;
+  font-size: 19px;
+  box-shadow: 0 5px 12px rgba(211, 144, 0, .2);
+}
+#userFormModal .account-pending-heading strong {
+  display: block;
+  color: #102b50;
+  font-size: 15px;
+}
+#userFormModal .account-pending-heading p {
+  margin: 3px 0 0;
+  color: #697d9b;
+  font-size: 12px;
+}
+#userFormModal .account-pending-address-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid #efd79c;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .75);
+  color: #7e93b0;
+}
+#userFormModal .account-pending-address {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1b3558;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+#userFormModal .account-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: #fff0c9;
+  color: #c77700;
+  font-size: 10px;
+}
+#userFormModal .account-pending-dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 12px;
+}
+#userFormModal .account-pending-dates p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #7d90a9;
+  font-size: 10px;
+}
+#userFormModal .account-pending-dates p + p {
+  padding-left: 18px;
+  border-left: 1px solid #d9e0e8;
+}
+#userFormModal .account-pending-dates i {
+  font-size: 15px;
+}
+#userFormModal .account-pending-dates span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#userFormModal .account-pending-dates strong {
+  color: #5c7392;
+  font-size: 10px;
+  font-weight: 500;
+}
+#userFormModal .account-pending-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+#userFormModal .account-pending-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 39px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#userFormModal .account-resend-btn {
+  border: 1px solid #5598ef;
+  background: #eff6ff;
+  color: #0863d8;
+}
+#userFormModal .account-cancel-pending-btn {
+  border: 1px solid #ff5d68;
+  background: #fff2f3;
+  color: #ed2636;
+}
+#userFormModal .account-pending-actions p {
+  margin: 0 2px;
+  color: #667c9a;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-email-note:not([hidden]) {
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 15px;
+  border-color: #8dbbf8;
+  border-radius: 9px;
+  background: #eff6ff;
+}
+#userFormModal .account-edit-note-icon {
+  flex-basis: 31px;
+  width: 31px;
+  height: 31px;
+  background: #287be5;
+  font-size: 14px;
+}
+#userFormModal .account-edit-email-note strong {
+  font-size: 12.5px;
+}
+#userFormModal .account-edit-email-note p {
+  color: #42658f;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-dialog .admin-modal-footer {
+  margin-top: 22px;
+  padding-top: 14px;
+}
+#userFormModal .admin-modal-footer .btn-cancel,
+#userFormModal .admin-modal-footer .btn-save {
+  min-height: 44px;
+  border: 1px solid #d5deea;
+  border-radius: 9px;
+}
+#userFormModal .admin-modal-footer .btn-cancel {
+  min-width: 132px;
+  background: #f4f7fa;
+}
+#userFormModal .admin-modal-footer .btn-save {
+  min-width: 190px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-color: #f7bd00;
+  background: #ffc400;
+}
+@media (max-width: 760px) {
+  #userFormModal { padding: 10px; }
+  #userFormModal .account-edit-dialog { width: calc(100vw - 20px); padding: 22px 18px 18px; }
+  #userFormModal .account-edit-grid { grid-template-columns: 1fr; }
+  #userFormModal .account-pending-panel:not([hidden]) { grid-template-columns: 1fr; gap: 16px; }
+  #userFormModal .account-pending-dates { grid-template-columns: 1fr; gap: 10px; }
+  #userFormModal .account-pending-dates p + p { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 480px) {
+  #userFormModal .account-edit-header-icon { display: none; }
+  #userFormModal .account-edit-header h2 { font-size: 21px; }
+  #userFormModal .account-pending-address-row { align-items: flex-start; flex-wrap: wrap; }
+  #userFormModal .account-pending-badge { margin-left: 26px; }
+}
