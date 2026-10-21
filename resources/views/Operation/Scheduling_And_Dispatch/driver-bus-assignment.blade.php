@@ -228,16 +228,26 @@
                                                 ->exists();
                                         $tripDisplayStatus = $oicResponseRecorded
                                             ? ($trip->status === 'Dispatched'
-                                                ? 'In Progress — Awaiting Replacement'
-                                                : 'Incident — Awaiting Replacement')
+                                                ? 'Awaiting Reserve'
+                                                : 'Awaiting Reserve')
                                             : ($trip->status === 'Dispatched'
-                                                ? 'In Progress — Breakdown Reported'
-                                                : 'Breakdown Reported — OIC Review');
+                                                ? 'Breakdown'
+                                                : 'OIC Review');
                                     } elseif ($deployedReplacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
                                         $tripDisplayStatus = $trip->status === 'Ready'
                                             ? 'Ready · Reserve'
                                             : 'In Progress · Reserve';
                                     }
+                                    $tripStatusTooltip = match ($tripDisplayStatus) {
+                                        'OIC Review' => 'Breakdown Reported — OIC Review',
+                                        'Awaiting Reserve' => $trip->status === 'Dispatched'
+                                            ? 'In Progress — Awaiting Replacement'
+                                            : 'Incident — Awaiting Replacement',
+                                        'Breakdown' => 'In Progress — Breakdown Reported',
+                                        'Ready · Reserve' => 'Ready — Replacement Assigned',
+                                        'In Progress · Reserve' => 'In Progress — Reserve Deployed',
+                                        default => $tripDisplayStatus,
+                                    };
                                 @endphp
 
                                 @if($showClientRouteHeading)
@@ -437,7 +447,7 @@
                                                     :status="$tripDisplayStatus"
                                                 :label="$deployedReplacement && $trip->status === 'Ready' ? 'Ready · Reserve' : ($tripDisplayStatus === 'Partially Assigned' ? 'Partial' : null)"
                                                     class="assignment-status {{ \App\Support\StatusBadge::normalize($tripDisplayStatus) }}"
-                                                    :title="$deployedReplacement ? 'Replacement bus assigned; original bus remains under maintenance.' : ($tripDisplayStatus === 'Missed' ? 'Departure time has already passed.' : null)"
+                                                    :title="$tripStatusTooltip"
                                                 />
                                             </td>
 
