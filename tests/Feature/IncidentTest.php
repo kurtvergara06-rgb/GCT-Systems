@@ -520,7 +520,7 @@ class IncidentTest extends TestCase
             ->assertOk()
             ->assertSee($incident->incident_no)
             ->assertSee('Bus Breakdown')
-            ->assertSee('Operations Actions');
+            ->assertSee('Incident Workflow');
     }
 
     public function test_embedded_show_renders_the_complete_incident_workflow_workspace(): void
