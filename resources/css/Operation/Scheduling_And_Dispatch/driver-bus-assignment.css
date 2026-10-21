@@ -2261,3 +2261,23 @@
     border: 1px solid #bfd4ff;
     color: #1d4ed8;
 }
+
+/* Compact reserve status: keep badge clear of adjacent action buttons. */
+.assignment-page .assignment-table .assignment-status.ready-reserve,
+.assignment-page .assignment-table .assignment-status.in-progress-reserve {
+    white-space: nowrap;
+    max-width: 100%;
+    min-width: 0;
+    padding: 4px 7px;
+    font-size: 10px;
+}
+.assignment-page .assignment-table .assignment-status.ready-reserve {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+.assignment-page .assignment-table .assignment-status.in-progress-reserve {
+    background: #e0ecff;
+    border: 1px solid #bfd4ff;
+    color: #1d4ed8;
+}
