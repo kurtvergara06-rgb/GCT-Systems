@@ -3534,3 +3534,51 @@
         margin-left: 0;
     }
 }
+
+
+/* Two-panel Route editor: information and stops at left, live map at right. */
+@media (min-width: 1100px) {
+    #routeModal.route-editor-overlay .ui-form-modal.ui-form-modal-xl {
+        width: min(1380px, calc(100vw - 56px));
+        max-width: min(1380px, calc(100vw - 56px));
+    }
+    #routeModal .route-editor-columns {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+        align-items: start;
+        gap: 16px;
+    }
+    #routeModal .route-editor-left,
+    #routeModal .route-editor-right {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    #routeModal .route-editor-columns .route-editor-section {
+        min-width: 0;
+        margin: 0;
+    }
+    #routeModal .route-form-gps-map {
+        height: clamp(350px, 48vh, 540px);
+        min-height: 350px;
+    }
+    #routeModal .route-form-map-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    #routeModal .route-form-map-active-field {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+    #routeModal .route-form-map-tool-btn,
+    #routeModal .route-form-fit-map-btn { flex: 0 1 auto; }
+    #routeModal .route-editor-summary { margin-top: 0; }
+}
+@media (max-width: 1099px) {
+    #routeModal .route-editor-columns { display: flex; flex-direction: column; gap: 14px; }
+    #routeModal .route-editor-left,
+    #routeModal .route-editor-right { min-width: 0; width: 100%; }
+}
