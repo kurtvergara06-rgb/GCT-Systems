@@ -320,6 +320,16 @@
                                                 );
                                             $slotDisplayStatus = $tripDisplayStatus;
                                             $slotStatusTooltip = $tripDisplayStatus;
+                                            // A sibling bus breakdown may downgrade the shared trip from Ready
+                                            // to Scheduled; healthy assigned slots must still display Ready.
+                                            if (! $slotBreakdown && $trip->status === 'Scheduled'
+                                                && $trip->assignment_status === 'Assigned'
+                                                && $bus?->status === 'Active'
+                                                && $trip->incidents->contains(fn ($incident) => $incident->incident_type === 'Bus Breakdown'
+                                                    && ! in_array($incident->status, ['Resolved', 'Cancelled'], true))) {
+                                                $slotDisplayStatus = 'Ready';
+                                                $slotStatusTooltip = 'This bus remains ready; another slot has a breakdown.';
+                                            }
                                             if ($slotBreakdown && ! in_array($slotBreakdown->status, ['Resolved', 'Cancelled'], true)) {
                                                 if ($slotBreakdown->replacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
                                                     $slotDisplayStatus = $trip->status === 'Ready' ? 'Ready · Reserve' : 'In Progress · Reserve';
