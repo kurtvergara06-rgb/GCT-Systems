@@ -908,3 +908,20 @@
   .users-main:has(.users-card--applications) .users-stats-grid > *,
   .users-main .users-card--applications .application-review-button { transition: none; }
 }
+
+
+/* Muted amber indicates an application awaiting department assignment. */
+.users-main .users-card--applications .application-department-unassigned {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 5px 10px;
+  border: 1px solid #f2dfb3;
+  border-radius: 999px;
+  background: #fff6e4;
+  color: #966310;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
