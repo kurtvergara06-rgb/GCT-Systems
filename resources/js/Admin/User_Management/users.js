@@ -67,6 +67,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
   const accountPendingBadge = document.getElementById('accountPendingBadge');
   const accountPendingActions = document.getElementById('accountPendingActions');
   let savedPendingEmail = '';
+  let savedPendingRequested = '';
   let savedPendingExpiry = '';
 
   function refreshEmailChangePanel() {
@@ -85,11 +86,14 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountPendingTitle) accountPendingTitle.textContent = isPreview ? 'New Email Change Preview' : 'Pending Email Change';
     if (accountPendingDescription) accountPendingDescription.textContent = isPreview
       ? 'This change has not been submitted. Save the account to send a verification link.'
-      : 'A new email address is awaiting confirmation.';
+      : 'A new email address is awaiting verification.';
     if (accountPendingBadge) accountPendingBadge.textContent = isPreview ? 'Not yet submitted' : 'Awaiting Verification';
+    if (accountPendingEmailRequested) accountPendingEmailRequested.textContent = isPreview
+      ? 'Not yet submitted'
+      : (savedPendingRequested || 'Not available');
     if (accountPendingExpiry) accountPendingExpiry.textContent = isPreview
-      ? 'The current verified email will stay active. No verification has been sent yet.'
-      : (savedPendingExpiry ? 'Link expires: ' + savedPendingExpiry : '');
+      ? 'No verification sent yet'
+      : (savedPendingExpiry || 'Not available');
     if (accountPendingActions) accountPendingActions.hidden = isPreview;
   }
 
@@ -275,6 +279,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
     if (accountNewEmailField) accountNewEmailField.hidden = true;
     savedPendingEmail = '';
+    savedPendingRequested = '';
     savedPendingExpiry = '';
     if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = true;
     if (accountNewEmailInput) { accountNewEmailInput.disabled = true; accountNewEmailInput.value = ''; }
@@ -347,17 +352,10 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountCurrentVerifiedEmail) accountCurrentVerifiedEmail.value = editButton.dataset.email || '';
     if (accountNewEmailInput) { accountNewEmailInput.disabled = false; accountNewEmailInput.value = ''; }
     if (userEmailInput) userEmailInput.disabled = false;
-<<<<<<< HEAD
-    const pendingEmail = editButton.dataset.pendingEmail || '';
-    if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = !pendingEmail;
-    if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = pendingEmail;
-    if (accountPendingEmailRequested) accountPendingEmailRequested.textContent = editButton.dataset.pendingRequested || 'Not available';
-    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = editButton.dataset.pendingExpiry || 'Not available';
-=======
     savedPendingEmail = editButton.dataset.pendingEmail || '';
+    savedPendingRequested = editButton.dataset.pendingRequested || '';
     savedPendingExpiry = editButton.dataset.pendingExpiry || '';
     refreshEmailChangePanel();
->>>>>>> origin/feature/operation-improvements
     if (accountEmailResendForm) accountEmailResendForm.action = editButton.dataset.emailResendUrl || '';
     if (accountEmailCancelForm) accountEmailCancelForm.action = editButton.dataset.emailCancelUrl || '';
     setInput(userDepartmentInput, editButton.dataset.department);
