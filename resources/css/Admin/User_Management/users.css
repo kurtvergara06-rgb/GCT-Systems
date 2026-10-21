@@ -987,6 +987,7 @@
 #userFormModal .account-edit-dialog .admin-modal-header { position:relative; }
 #userFormModal .account-edit-dialog .admin-modal-header .modal-close-btn { flex:0 0 auto; }
 
+<<<<<<< HEAD
 /* Edit System Account — approved account-management composition. */
 #userFormModal {
   padding: 22px;
@@ -1313,3 +1314,57 @@
   #userFormModal .account-pending-address-row { align-items: flex-start; flex-wrap: wrap; }
   #userFormModal .account-pending-badge { margin-left: 26px; }
 }
+=======
+
+/* Reference-matched larger edit modal. Scoped to edit mode to preserve Create Account. */
+#userFormModal:has(#userFormMethod[value="PUT"]) .account-edit-dialog,
+#userFormModal .account-edit-dialog:has(#accountCurrentEmailField:not([hidden])) {
+  width: min(960px, calc(100vw - 34px));
+  max-width: 960px;
+  padding: 29px 30px 25px;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(9, 29, 58, .24);
+}
+#userFormModal .account-edit-header { gap: 23px; padding-bottom: 24px !important; margin-bottom: 24px !important; }
+#userFormModal .account-edit-header-icon { flex-basis: 68px; width: 68px; height: 68px; border-radius: 19px; font-size: 29px; }
+#userFormModal .account-edit-header h2 { font-size: clamp(25px, 2.15vw, 31px); font-weight: 800; letter-spacing: -.7px; }
+#userFormModal .account-edit-header p { font-size: 15px; line-height: 1.6; color: #6c7f9b; }
+#userFormModal .account-edit-grid { column-gap: 26px; row-gap: 23px; }
+#userFormModal .account-edit-grid .form-group label[for] { display:flex; align-items:center; gap:9px; font-size:14px; margin-bottom:10px; }
+#userFormModal .account-edit-grid .form-group label[for] i { width:17px; text-align:center; color:#193b67; }
+#userFormModal .account-edit-grid input,
+#userFormModal .account-edit-grid select { min-height:51px; padding-inline:17px; font-size:15px; font-weight:500; }
+#userFormModal .account-current-email input { padding-right: 100px; }
+#userFormModal .account-email-verified { font-size:12px; padding:7px 11px; }
+#userFormModal .account-email-hint { font-size:13px; line-height:1.5; margin-top:9px; }
+#userFormModal .account-pending-panel { margin-top:24px; padding:22px 24px; border-left:4px solid #ffc107; border-radius:13px; }
+#userFormModal .account-pending-top strong { font-size:20px; }
+#userFormModal .account-pending-top p { font-size:14px; margin-top:7px; }
+#userFormModal .account-pending-address { display:flex; align-items:center; gap:10px; font-size:15px; padding:14px; margin-top:17px; }
+#userFormModal .account-pending-address i { color:#7f96af; }
+#userFormModal .account-pending-expiry { font-size:13px; margin-top:12px; }
+#userFormModal .account-pending-buttons { margin-top:16px; }
+#userFormModal .account-pending-buttons button { min-height:44px; padding-inline:16px; font-size:13px; }
+#userFormModal .account-edit-email-note:not([hidden]) { margin-top:24px; padding:17px 19px; gap:14px; border-radius:11px; }
+#userFormModal .account-edit-note-icon { flex-basis:39px; width:39px; height:39px; font-size:17px; }
+#userFormModal .account-edit-email-note strong { font-size:16px; }
+#userFormModal .account-edit-email-note p { font-size:14px; line-height:1.55; }
+#userFormModal .account-edit-dialog .admin-modal-footer { margin-top:24px; padding-top:21px; }
+#userFormModal .account-edit-dialog .admin-modal-footer button { min-height:47px; padding-inline:21px; border-radius:10px; font-size:14px; }
+@media (max-width:670px) {
+  #userFormModal .account-edit-dialog:has(#accountCurrentEmailField:not([hidden])) { padding:20px 17px; }
+  #userFormModal .account-edit-header { gap:12px; }
+  #userFormModal .account-edit-header-icon { flex-basis:46px; width:46px; height:46px; font-size:19px; }
+  #userFormModal .account-edit-header h2 { font-size:21px; }
+  #userFormModal .account-edit-header p { font-size:12px; }
+  #userFormModal .account-edit-grid { row-gap:15px; }
+  #userFormModal .account-pending-top { align-items:flex-start; }
+  #userFormModal .account-pending-panel { padding:15px; }
+}
+
+/* Instant email-change preview; never imply an unsaved address was verified. */
+#userFormModal .account-pending-panel.is-preview { background:#fffaf0; border-color:#f1ca68; }
+#userFormModal .account-pending-panel.is-preview .account-pending-badge { background:#fff0c4;color:#96620b; }
+#userFormModal .account-pending-buttons[hidden] { display:none!important; }
+#userFormModal .account-pending-panel.is-preview .account-pending-expiry { font-weight:600;color:#846522; }
+>>>>>>> origin/feature/operation-improvements

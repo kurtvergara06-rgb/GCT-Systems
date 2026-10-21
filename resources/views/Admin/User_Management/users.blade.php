@@ -530,7 +530,11 @@
                 <div class="form-grid account-edit-grid">
                     <div class="form-group">
                         <label for="userNameInput"><i class="fa-solid fa-user" aria-hidden="true"></i> Full Name</label>
+<<<<<<< HEAD
                         <div class="account-field-control"><i class="fa-solid fa-user" aria-hidden="true"></i><input type="text" name="name" id="userNameInput" placeholder="Enter full name" required></div>
+=======
+                        <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
+>>>>>>> origin/feature/operation-improvements
                     </div>
 
                     <div class="form-group" id="accountCreateEmailField">
@@ -539,8 +543,12 @@
                     </div>
                     <div class="form-group" id="accountCurrentEmailField" hidden>
                         <label for="accountCurrentVerifiedEmail"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Current Verified Email</label>
+<<<<<<< HEAD
                         <div class="account-current-email"><i class="fa-regular fa-envelope account-control-icon" aria-hidden="true"></i><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
                         <small class="account-email-hint">This is the active sign-in email currently used by the employee.</small>
+=======
+                        <div class="account-current-email"><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
+>>>>>>> origin/feature/operation-improvements
                     </div>
 
                     <div class="form-group">
@@ -550,7 +558,11 @@
 
                     <div class="form-group">
                         <label for="userDepartmentInput"><i class="fa-solid fa-building" aria-hidden="true"></i> Department</label>
+<<<<<<< HEAD
                         <div class="account-field-control account-select-control"><i class="fa-solid fa-building" aria-hidden="true"></i><select name="department" id="userDepartmentInput" required>
+=======
+                        <select name="department" id="userDepartmentInput" required>
+>>>>>>> origin/feature/operation-improvements
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
                                 <option value="{{ $department }}">{{ $department }}</option>
@@ -560,7 +572,11 @@
 
                     <div class="form-group">
                         <label for="userRoleInput"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Role</label>
+<<<<<<< HEAD
                         <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="role" id="userRoleInput" required>
+=======
+                        <select name="role" id="userRoleInput" required>
+>>>>>>> origin/feature/operation-improvements
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)
                                 <option value="{{ $roleValue }}">{{ $roleLabel }}</option>
@@ -570,7 +586,11 @@
 
                     <div class="form-group">
                         <label for="userStatusInput"><i class="fa-solid fa-power-off" aria-hidden="true"></i> Account Status</label>
+<<<<<<< HEAD
                         <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="status" id="userStatusInput" required>
+=======
+                        <select name="status" id="userStatusInput" required>
+>>>>>>> origin/feature/operation-improvements
                             @foreach(($statuses ?? []) as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
                             @endforeach
@@ -578,6 +598,7 @@
                     </div>
                     <div class="form-group" id="accountNewEmailField" hidden>
                         <label for="accountNewEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> New Email Address</label>
+<<<<<<< HEAD
                         <div class="account-field-control"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email"></div>
                         <small class="account-email-hint">Enter a new email address to replace the current one. A verification link will be sent to this address.</small>
                     </div>
@@ -600,6 +621,21 @@
                     </div>
                     <div class="account-pending-actions">
                         <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-solid fa-paper-plane"></i> Resend Verification Link</button>
+=======
+                        <input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email">
+                        <small class="account-email-hint">Leave blank to keep the current verified email.</small>
+                    </div>
+                </div>
+                <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
+                    <div class="account-pending-top">
+                        <div><strong><i class="fa-regular fa-clock"></i> <span id="accountPendingTitle">Pending Email Change</span></strong><p id="accountPendingDescription">A new email address is awaiting confirmation.</p></div>
+                        <span class="account-pending-badge" id="accountPendingBadge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Awaiting Verification</span>
+                    </div>
+                    <div class="account-pending-address"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span id="accountPendingEmailAddress"></span></div>
+                    <p class="account-pending-expiry" id="accountPendingEmailExpiry"></p>
+                    <div class="account-pending-buttons" id="accountPendingActions">
+                        <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-regular fa-paper-plane"></i> Resend Verification</button>
+>>>>>>> origin/feature/operation-improvements
                         <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn"><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
                         <p>The current verified email remains active until the new address is confirmed.</p>
                     </div>
