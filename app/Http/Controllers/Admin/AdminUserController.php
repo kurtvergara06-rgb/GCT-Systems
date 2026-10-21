@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Events\SystemDataUpdated;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
@@ -220,15 +225,65 @@ class AdminUserController extends Controller
             return redirect()->route('admin.users')->with('error', 'Verify the employee email before approving this registration.');
         }
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'department' => $validated['department'],
-            'role' => $validated['role'],
-            'status' => $validated['status'],
-        ]);
+        $newEmail = strtolower(trim($validated['email']));
+        $emailChanged = strcasecmp($user->email, $newEmail) !== 0;
+        $accessChanged = $user->department !== $validated['department']
+            || $user->role !== $validated['role'];
 
-        return redirect()->route('admin.users')->with('success', 'User account updated successfully.');
+        // Leave the existing verified email intact until its replacement proves ownership.
+        DB::transaction(function () use ($user, $request, $validated, $newEmail, $emailChanged, $accessChanged) {
+            if ($emailChanged) {
+                $token = Str::random(64);
+                $verifyUrl = URL::temporarySignedRoute(
+                    'account.email-change.verify',
+                    now()->addMinutes(30),
+                    ['id' => $user->id, 'token' => $token]
+                );
+
+                DB::table('account_email_changes')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    [
+                        'new_email' => $newEmail,
+                        'token_hash' => hash('sha256', $token),
+                        'expires_at' => now()->addMinutes(30),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+
+                Mail::raw(
+                    "An administrator requested an email change for your GCT-Systems account. To confirm this address, open the link within 30 minutes: {$verifyUrl}. If you did not expect this, ignore this email.",
+                    static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
+                );
+            }
+
+            $oldDepartment = $user->department;
+            $oldRole = $user->role;
+            $user->update([
+                'name' => $validated['name'],
+                'department' => $validated['department'],
+                'role' => $validated['role'],
+                'status' => $validated['status'],
+            ]);
+
+            if ($accessChanged) {
+                app(ActivityLogService::class)->record(
+                    $request->user(), $request, 'Changed employee department or role', 'Security',
+                    'Admin', (string) $user->id,
+                    sprintf('Account ID %s: department %s to %s; role %s to %s.',
+                        $user->id, $oldDepartment, $user->department, $oldRole, $user->role)
+                );
+            } elseif ($emailChanged) {
+                app(ActivityLogService::class)->record(
+                    $request->user(), $request, 'Requested employee email change', 'Security',
+                    'Admin', (string) $user->id, 'A new email verification message was requested.'
+                );
+            }
+        });
+
+        return redirect()->route('admin.users')->with('success', $emailChanged
+            ? 'Account changes saved. The new email is pending verification; the existing email remains active until verified.'
+            : 'User account updated successfully.');
     }
 
     public function updateStatus(Request $request, User $user)
