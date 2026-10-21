@@ -99,7 +99,10 @@ class AccountSensitiveEditTest extends TestCase
         $url = URL::temporarySignedRoute('account.email-change.verify', now()->addMinutes(10), [
             'id' => $employee->id, 'token' => $token,
         ]);
-        $this->get($url)->assertRedirect(route('login'));
+        $this->get($url)->assertRedirect(route('account.email-change.result'));
+        $this->get(route('account.email-change.result'))
+            ->assertOk()
+            ->assertSee('Email Verified Successfully!');
 
         $this->assertSame('verified.new@example.com', $employee->fresh()->email);
         $this->assertNotNull($employee->fresh()->email_verified_at);
@@ -151,6 +154,21 @@ class AccountSensitiveEditTest extends TestCase
             $script
         );
         $this->assertStringNotContainsString('if (accountPendingExpiry)', $script);
+    }
+
+    public function test_email_verification_result_does_not_skip_confirmation_for_signed_in_user(): void
+    {
+        $employee = $this->employee();
+        $this->actingAs($employee)
+            ->withSession(['email_change_result' => 'success'])
+            ->get(route('account.email-change.result'))
+            ->assertOk()
+            ->assertSee('Email Verified Successfully!');
+    }
+
+    public function test_email_verification_result_requires_a_recent_verification_outcome(): void
+    {
+        $this->get(route('account.email-change.result'))->assertRedirect(route('login'));
     }
 
 }
