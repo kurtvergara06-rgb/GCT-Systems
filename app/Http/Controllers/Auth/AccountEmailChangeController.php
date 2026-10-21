@@ -38,9 +38,22 @@ class AccountEmailChangeController extends Controller
             return true;
         });
 
-        return redirect()->route('login')->with(
-            $changed ? 'status' : 'error',
-            $changed ? 'New email address verified successfully.' : 'This email verification link is invalid or expired.'
+        return redirect()->route('account.email-change.result')->with(
+            'email_change_result',
+            $changed ? 'success' : 'invalid'
         );
+    }
+
+    public function result(Request $request): \Illuminate\Http\Response|RedirectResponse
+    {
+        $result = $request->session()->get('email_change_result');
+
+        if (! in_array($result, ['success', 'invalid'], true)) {
+            return redirect()->route('login');
+        }
+
+        return response()->view('Login.email-change-result', [
+            'successful' => $result === 'success',
+        ])->header('Cache-Control', 'no-store, private');
     }
 }
