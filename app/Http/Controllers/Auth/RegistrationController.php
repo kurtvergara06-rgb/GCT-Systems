@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\EmailOtpService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class RegistrationController extends Controller
         return response()->view('Login.register')->header('Cache-Control', 'no-store');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, EmailOtpService $otp): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -45,7 +46,7 @@ class RegistrationController extends Controller
         ]));
 
         try {
-            $user->sendEmailVerificationNotification();
+            $otp->send($user);
         } catch (\Throwable $exception) {
             Log::warning('Employee verification mail could not be delivered.', [
                 'user_id' => $user->id,
@@ -53,7 +54,9 @@ class RegistrationController extends Controller
             ]);
         }
 
-        return redirect()->route('registration.pending')->with('pending_verified', false);
+        $request->session()->put('registration_otp_user_id', $user->id);
+
+        return redirect()->route('verification.otp');
     }
 
     public function verify(Request $request, int $id, string $hash): RedirectResponse
