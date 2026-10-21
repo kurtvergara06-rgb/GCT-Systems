@@ -61,6 +61,39 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
   const accountPendingEmailPanel = document.getElementById('accountPendingEmailPanel');
   const accountPendingEmailAddress = document.getElementById('accountPendingEmailAddress');
   const accountPendingEmailExpiry = document.getElementById('accountPendingEmailExpiry');
+  const accountPendingTitle = document.getElementById('accountPendingTitle');
+  const accountPendingDescription = document.getElementById('accountPendingDescription');
+  const accountPendingBadge = document.getElementById('accountPendingBadge');
+  const accountPendingActions = document.getElementById('accountPendingActions');
+  let savedPendingEmail = '';
+  let savedPendingExpiry = '';
+
+  function refreshEmailChangePanel() {
+    if (!accountPendingEmailPanel || !accountNewEmailInput) return;
+    const editing = userFormMethod?.value === 'PUT';
+    const proposed = accountNewEmailInput.value.trim();
+    const current = (accountCurrentVerifiedEmail?.value || '').trim();
+    const isNewValid = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(proposed);
+    const isDifferent = proposed.toLowerCase() !== current.toLowerCase();
+    const isPreview = editing && isNewValid && isDifferent;
+    const showSaved = editing && !isPreview && Boolean(savedPendingEmail);
+    accountPendingEmailPanel.hidden = !(isPreview || showSaved);
+    accountPendingEmailPanel.classList.toggle('is-preview', isPreview);
+    if (!isPreview && !showSaved) return;
+    if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = isPreview ? proposed : savedPendingEmail;
+    if (accountPendingTitle) accountPendingTitle.textContent = isPreview ? 'New Email Change Preview' : 'Pending Email Change';
+    if (accountPendingDescription) accountPendingDescription.textContent = isPreview
+      ? 'This change has not been submitted. Save the account to send a verification link.'
+      : 'A new email address is awaiting confirmation.';
+    if (accountPendingBadge) accountPendingBadge.textContent = isPreview ? 'Not yet submitted' : 'Awaiting Verification';
+    if (accountPendingExpiry) accountPendingExpiry.textContent = isPreview
+      ? 'The current verified email will stay active. No verification has been sent yet.'
+      : (savedPendingExpiry ? 'Link expires: ' + savedPendingExpiry : '');
+    if (accountPendingActions) accountPendingActions.hidden = isPreview;
+  }
+
+  accountNewEmailInput?.addEventListener('input', refreshEmailChangePanel);
+  accountNewEmailInput?.addEventListener('change', refreshEmailChangePanel);
   const accountEmailResendForm = document.getElementById('accountEmailResendForm');
   const accountEmailCancelForm = document.getElementById('accountEmailCancelForm');
   accountEmailCancelForm?.addEventListener('submit', event => {
@@ -234,6 +267,8 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountCreateEmailField) accountCreateEmailField.hidden = false;
     if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
     if (accountNewEmailField) accountNewEmailField.hidden = true;
+    savedPendingEmail = '';
+    savedPendingExpiry = '';
     if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = true;
     if (accountNewEmailInput) { accountNewEmailInput.disabled = true; accountNewEmailInput.value = ''; }
     if (userEmailInput) userEmailInput.disabled = false;
@@ -304,10 +339,9 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     if (accountCurrentVerifiedEmail) accountCurrentVerifiedEmail.value = editButton.dataset.email || '';
     if (accountNewEmailInput) { accountNewEmailInput.disabled = false; accountNewEmailInput.value = ''; }
     if (userEmailInput) userEmailInput.disabled = false;
-    const pendingEmail = editButton.dataset.pendingEmail || '';
-    if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = !pendingEmail;
-    if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = pendingEmail;
-    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = editButton.dataset.pendingExpiry ? 'Link expires: ' + editButton.dataset.pendingExpiry : '';
+    savedPendingEmail = editButton.dataset.pendingEmail || '';
+    savedPendingExpiry = editButton.dataset.pendingExpiry || '';
+    refreshEmailChangePanel();
     if (accountEmailResendForm) accountEmailResendForm.action = editButton.dataset.emailResendUrl || '';
     if (accountEmailCancelForm) accountEmailCancelForm.action = editButton.dataset.emailCancelUrl || '';
     setInput(userDepartmentInput, editButton.dataset.department);
