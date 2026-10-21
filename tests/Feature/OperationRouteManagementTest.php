@@ -346,6 +346,18 @@ class OperationRouteManagementTest extends TestCase
             2,
             $route->stops
         );
+
+        // The provider must visit the confirmed stops in their saved order,
+        // without making a U-turn at a stop when the road permits continuing.
+        Http::assertSent(function (\Illuminate\Http\Client\Request $request): bool {
+            $url = urldecode($request->url());
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+            return str_contains(
+                $url,
+                '121.1490000,14.0830000;121.1500000,14.0700000;121.1450000,14.0550000;121.1550000,14.0450000'
+            ) && ($query['continue_straight'] ?? null) === 'true';
+        });
     }
 
     public function test_origin_and_destination_cannot_resolve_to_same_physical_point(): void
@@ -781,7 +793,7 @@ class OperationRouteManagementTest extends TestCase
         );
 
         Cache::forget(
-            'route-osrm:v4:'
+            'route-osrm:v5:'
             . $cacheHash
         );
 
