@@ -363,7 +363,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('BUS-SCEN-A-RES')
             ->assertSee('Reserve Deployed')
-            ->assertSee('Ready — Replacement Assigned')
+            ->assertSee('Ready · Reserve')
             ->assertSee('OIC Approved')
             ->assertDontSee('Approval Not Recorded');
 
