@@ -206,7 +206,13 @@
                                             {{ $user->hasVerifiedEmail() ? 'Verified' : 'Not Verified' }}
                                         </span>
                                     </td>
-                                    <td>{{ $user->department ?: 'Not assigned' }}</td>
+                                    <td>
+                                        @if(in_array(strtolower(trim((string) $user->department)), ['unassigned', ''], true))
+                                            <span class="application-department-unassigned"><i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Unassigned</span>
+                                        @else
+                                            {{ $user->department }}
+                                        @endif
+                                    </td>
                                     <td><x-ui.status-badge :status="$user->status ?? 'Pending'" type="user" /></td>
                                     <td>
                                         @if($user->status === 'Pending' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
