@@ -26,8 +26,9 @@ class EmailOtpService
             }
 
             // Send before replacing the previous valid code: failed mail leaves it usable.
-            Mail::raw(
-                "Your GCT-Systems verification code is {$code}. It expires in 5 minutes. Do not share this code.",
+            Mail::send(
+                'emails.registration-otp',
+                ['code' => $code],
                 static fn ($mail) => $mail->to($user->email)->subject('GCT-Systems email verification code')
             );
 
