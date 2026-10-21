@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\EmailOtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,7 @@ class GoogleAuthController extends Controller
         ]));
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request, EmailOtpService $otp): RedirectResponse
     {
         $expected = $request->session()->pull('google_oauth_state');
         $verifier = $request->session()->pull('google_oauth_verifier');
@@ -91,8 +92,7 @@ class GoogleAuthController extends Controller
         if ($existing) {
             if (strtolower((string) $existing->status) !== 'active') {
                 if (strtolower((string) $existing->status) === 'pending') {
-                    $request->session()->put('pending_registration_user_id', $existing->id);
-                    return redirect()->route('registration.pending');
+                    return $this->continuePendingRegistration($request, $otp, $existing);
                 }
                 return redirect()->route('login')->with('error', 'This account is inactive. Contact the system administrator.');
             }
@@ -105,8 +105,7 @@ class GoogleAuthController extends Controller
         $sameEmail = User::where('email', $email)->first();
         if ($sameEmail) {
             if (strtolower((string) $sameEmail->status) === 'pending') {
-                $request->session()->put('pending_registration_user_id', $sameEmail->id);
-                return redirect()->route('registration.pending');
+                return $this->continuePendingRegistration($request, $otp, $sameEmail);
             }
             if (strtolower((string) $sameEmail->status) !== 'active') {
                 return redirect()->route('login')->with('error', 'This account is inactive. Contact the administrator.');
@@ -133,7 +132,7 @@ class GoogleAuthController extends Controller
                     'name' => Str::limit(trim((string) ($profile['name'] ?? 'Google Employee')), 255, ''),
                     'email' => strtolower($email),
                     'google_id' => $subject,
-                    'email_verified_at' => now(),
+                    'email_verified_at' => null,
                     'password' => Str::random(64),
                     'department' => 'Unassigned',
                     'role' => 'unassigned',
@@ -147,9 +146,31 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->with('error', 'Unable to complete Google registration. Please contact the administrator.');
         }
 
-        $request->session()->put('pending_registration_user_id', $newUser->id);
-        return redirect()->route('registration.pending')->with('pending_verified', true);
+        return $this->continuePendingRegistration($request, $otp, $newUser);
     }
+    private function continuePendingRegistration(Request $request, EmailOtpService $otp, User $user): RedirectResponse
+    {
+        $request->session()->put('pending_registration_user_id', $user->id);
+        if ($user->hasVerifiedEmail()) {
+            $request->session()->forget('registration_otp_user_id');
+            return redirect()->route('registration.pending')->with('pending_verified', true);
+        }
+
+        $request->session()->put('registration_otp_user_id', $user->id);
+        try {
+            $otp->send($user);
+        } catch (\Throwable $exception) {
+            Log::warning('Google registration OTP could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+            return redirect()->route('verification.otp')
+                ->with('error', 'The verification code could not be sent. Please try Resend Code.');
+        }
+        return redirect()->route('verification.otp')
+            ->with('status', 'A six-digit verification code has been sent to your email.');
+    }
+
     private function pendingLink(Request $request): ?array
     {
         $pending = $request->session()->get('google_link_pending');
