@@ -1328,3 +1328,6 @@
   color: #846522;
   font-weight: 600;
 }
+
+/* Hide inactive verification actions even when the button flex rule applies. */
+#userFormModal .account-pending-actions button[hidden] { display: none !important; }
