@@ -578,12 +578,12 @@
                 </div>
                 <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
                     <div class="account-pending-top">
-                        <div><strong><i class="fa-regular fa-clock"></i> Pending Email Change</strong><p>A new email address is awaiting confirmation.</p></div>
-                        <span class="account-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Awaiting Verification</span>
+                        <div><strong><i class="fa-regular fa-clock"></i> <span id="accountPendingTitle">Pending Email Change</span></strong><p id="accountPendingDescription">A new email address is awaiting confirmation.</p></div>
+                        <span class="account-pending-badge" id="accountPendingBadge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Awaiting Verification</span>
                     </div>
                     <div class="account-pending-address"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span id="accountPendingEmailAddress"></span></div>
                     <p class="account-pending-expiry" id="accountPendingEmailExpiry"></p>
-                    <div class="account-pending-buttons">
+                    <div class="account-pending-buttons" id="accountPendingActions">
                         <button type="submit" form="accountEmailResendForm" class="account-resend-btn"><i class="fa-regular fa-paper-plane"></i> Resend Verification</button>
                         <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn"><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
                     </div>
