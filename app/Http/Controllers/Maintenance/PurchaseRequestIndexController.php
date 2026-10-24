@@ -65,6 +65,7 @@ class PurchaseRequestIndexController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
+            ->with('requester')
             ->paginate(8)
             ->withQueryString();
 
@@ -95,6 +96,7 @@ class PurchaseRequestIndexController extends Controller
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
             ->where('status', '!=', 'Completed')
+            ->where('review_status', 'Approved')
             ->orderByDesc('created_at')
             ->get();
 

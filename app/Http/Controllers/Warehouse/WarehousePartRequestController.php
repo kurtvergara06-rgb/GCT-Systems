@@ -212,23 +212,7 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'No requested parts found on this requisition.');
         }
 
-        $issuedQuantities = [];
-        $issueDetails = [];
-
-        foreach ($parts as $index => $part) {
-            $requested = (int) ($part['quantity'] ?? 1);
-            $actual = $requested; // Requested Quantity = Issued Quantity
-
-            $issuedQuantities[$index] = $actual;
-            $issueDetails[] = [
-                'name' => $part['name'],
-                'requested' => $requested,
-                'issued' => $actual,
-                'unit' => $part['unit'] ?? '',
-            ];
-        }
-
-        DB::transaction(function () use ($purchaseRequest, $parts, $issuedQuantities, $issueDetails) {
+        $fullyIssued = DB::transaction(function () use ($purchaseRequest, $parts): bool {
             $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
 
             if ($this->isRestockRequest($lockedRequest)
@@ -240,8 +224,10 @@ class WarehousePartRequestController extends Controller
             }
 
             $missingPurchaseRequest = $this->getMissingPurchaseRequest($lockedRequest);
+            $jobOrder = JobOrder::query()->where('job_order_no', $lockedRequest->job_order_no)->lockForUpdate()->first();
+            $partialIssuance = $jobOrder?->parts_issue_strategy === 'issue_available_only';
             $isPurchaseFlowReady = $missingPurchaseRequest
-                ? in_array($missingPurchaseRequest->status, ['Delivered', 'Picked Up'], true)
+                ? ($partialIssuance || in_array($missingPurchaseRequest->status, ['Delivered', 'Picked Up'], true))
                 : $lockedRequest->status === 'Approved';
 
             if (! $isPurchaseFlowReady) {
@@ -259,18 +245,38 @@ class WarehousePartRequestController extends Controller
                 'issued_at' => now(),
             ]);
 
-            foreach ($parts as $index => $part) {
+            $previouslyIssued = InventoryIssuanceItem::query()
+                ->whereHas('issuance', fn ($query) => $query->where('reference_no', $lockedRequest->pr_no))
+                ->get()
+                ->groupBy(fn ($item) => mb_strtolower(trim((string) $item->item_name)))
+                ->map(fn ($items) => (int) $items->sum('quantity'));
+            $issueDetails = [];
+            $allFullyIssued = true;
+            $issuedAny = false;
+
+            foreach ($parts as $part) {
                 $matchedItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
                 $inventoryItem = $matchedItem
                     ? InventoryItem::query()->whereKey($matchedItem->id)->lockForUpdate()->first()
                     : null;
-                $actual = (int) $issuedQuantities[$index];
+                $requested = (int) ($part['quantity'] ?? 1);
+                $alreadyIssued = (int) ($previouslyIssued[mb_strtolower(trim((string) $part['name']))] ?? 0);
+                $remaining = max(0, $requested - $alreadyIssued);
+                $available = $inventoryItem ? (int) $inventoryItem->quantity_available : 0;
+                $actual = $partialIssuance ? min($remaining, $available) : $remaining;
 
-                if (! $inventoryItem || (int) $inventoryItem->quantity_available < $actual) {
+                if (! $partialIssuance && $remaining > 0 && (! $inventoryItem || $available < $remaining)) {
                     throw ValidationException::withMessages([
                         'stock' => "Insufficient stock for {$part['name']}.",
                     ]);
                 }
+
+                if ($actual <= 0) {
+                    $allFullyIssued = $allFullyIssued && $remaining === 0;
+                    continue;
+                }
+
+                $issuedAny = true;
 
                 $movement = $this->ledger->stockOut(
                     $inventoryItem,
@@ -291,16 +297,31 @@ class WarehousePartRequestController extends Controller
                     'new_stock' => $movement->new_stock,
                     'stock_movement_id' => $movement->id,
                 ]);
+
+                $totalIssued = $alreadyIssued + $actual;
+                $allFullyIssued = $allFullyIssued && $totalIssued >= $requested;
+                $issueDetails[] = [
+                    'name' => $part['name'],
+                    'requested' => $requested,
+                    'issued' => $actual,
+                    'total_issued' => $totalIssued,
+                    'unit' => $part['unit'] ?? '',
+                ];
+            }
+
+            if (! $issuedAny) {
+                $issuance->delete();
+                throw ValidationException::withMessages(['stock' => 'No currently available parts can be issued.']);
             }
 
             $lockedRequest->update([
-                'status' => 'Issued',
-                'warehouse_status' => 'Issued',
+                'status' => $allFullyIssued ? 'Issued' : 'Approved',
+                'warehouse_status' => $allFullyIssued ? 'Issued' : 'Partially Issued',
                 'warehouse_issue_quantities' => $issueDetails,
-                'issued_at' => now(),
+                'issued_at' => $allFullyIssued ? now() : null,
             ]);
 
-            if ($missingPurchaseRequest) {
+            if ($missingPurchaseRequest && $allFullyIssued) {
                 PurchaseRequest::query()->whereKey($missingPurchaseRequest->id)->lockForUpdate()->firstOrFail()->update([
                     'status' => 'Issued',
                     'warehouse_status' => 'Issued',
@@ -315,10 +336,14 @@ class WarehousePartRequestController extends Controller
                 ->where('status', '!=', 'Issued')
                 ->exists();
 
-            if (! $hasOutstandingRequest) {
+            if ($allFullyIssued && ! $hasOutstandingRequest) {
                 JobOrder::where('job_order_no', $lockedRequest->job_order_no)
                     ->update(['part_status' => 'Issued']);
+            } elseif ($jobOrder) {
+                $jobOrder->update(['part_status' => 'For Purchase']);
             }
+
+            return $allFullyIssued;
         });
 
         $this->broadcastSystemDataUpdated(
@@ -331,7 +356,9 @@ class WarehousePartRequestController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Parts issued successfully.');
+            ->with('success', $fullyIssued
+                ? 'Parts issued successfully.'
+                : 'Available parts were issued successfully. The shortage remains in the Purchase workflow.');
     }
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
@@ -451,6 +478,8 @@ class WarehousePartRequestController extends Controller
 
         $missingPurchaseRequest = $this->getMissingPurchaseRequest($purchaseRequest);
         $missingPrAlreadyCreated = $missingPurchaseRequest !== null;
+        $jobOrder = JobOrder::query()->where('job_order_no', $purchaseRequest->job_order_no)->first();
+        $partialIssuance = $jobOrder?->parts_issue_strategy === 'issue_available_only';
 
         $warehouseDisplayStatus = $purchaseRequest->status;
 
@@ -477,7 +506,9 @@ class WarehousePartRequestController extends Controller
             ? in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
             : $purchaseRequest->status === 'Approved';
 
-        if ($purchaseRequest->status === 'Issued') {
+        if ($purchaseRequest->warehouse_status === 'Partially Issued') {
+            $workflowStatus = 'Partially Issued';
+        } elseif ($purchaseRequest->status === 'Issued') {
             $workflowStatus = 'Issued';
         } elseif ($missingPrAlreadyCreated && $warehouseDisplayStatus === 'For Purchase') {
             $workflowStatus = 'Waiting for Purchase';
@@ -502,8 +533,8 @@ class WarehousePartRequestController extends Controller
 
         $purchaseRequest->can_issue =
             $purchaseRequest->status !== 'Issued'
-            && $inventoryCheck['available']
-            && $isPurchaseFlowReady;
+            && (($inventoryCheck['available'] && $isPurchaseFlowReady)
+                || ($partialIssuance && $missingPrAlreadyCreated && $inventoryCheck['total_on_hand'] > 0));
 
         $purchaseRequest->needs_purchase =
             $purchaseRequest->status === 'Approved'
@@ -671,11 +702,12 @@ class WarehousePartRequestController extends Controller
             ];
 
             if (! $isAvailable) {
+                $shortageQty = max(0, $neededQty - $availableQty);
                 $missing[] = [
                     'name' => $name,
-                    'needed' => $neededQty,
+                    'needed' => $shortageQty,
                     'unit' => $inventoryUnit,
-                    'needed_display' => trim($neededQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
+                    'needed_display' => trim($shortageQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                     'available' => $availableQty,
                     'available_display' => trim($availableQty.($inventoryUnit ? ' '.$inventoryUnit : '')),
                     'status' => 'Not Available',

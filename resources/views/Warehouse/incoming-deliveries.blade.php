@@ -74,7 +74,7 @@
           <table class="incoming-delivery-table">
             <thead>
               <tr>
-                <th>PO #</th>
+                <th>PO ID</th>
                 <th>Supplier</th>
                 <th>Item / Part</th>
                 <th>Qty</th>

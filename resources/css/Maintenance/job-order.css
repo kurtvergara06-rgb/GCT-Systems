@@ -944,17 +944,20 @@ textarea[readonly] {
 }
 
 .jo-page .job-toolbar {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) auto auto auto;
-  align-items: end;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--jo-border);
-  border-radius: 12px;
-  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  gap: 8px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
+  overflow: visible;
 }
 
 .jo-page .job-toolbar .search-box { min-width: 0; }
@@ -1330,7 +1333,7 @@ textarea[readonly] {
 }
 
 @media (max-width: 1200px) {
-  .jo-page .job-toolbar { grid-template-columns: 1fr 1fr; }
+  .jo-page .job-toolbar { flex-wrap: wrap; }
   .jo-page .job-toolbar .search-box {
     grid-column: 1 / -1;
     min-width: 100%;
@@ -1340,7 +1343,7 @@ textarea[readonly] {
 
 @media (max-width: 768px) {
   .jo-page .jo-stats-grid { grid-template-columns: 1fr; }
-  .jo-page .job-toolbar { grid-template-columns: 1fr; }
+  .jo-page .job-toolbar { width: 100%; }
   .jo-page .job-toolbar .search-box { grid-column: auto; }
   .jo-page .job-toolbar .filter-group,
   .jo-page .job-toolbar .filter-group select,
@@ -1492,15 +1495,20 @@ textarea[readonly] {
 }
 
 .app:has(#jobModal) .job-toolbar {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) 150px 130px auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 11px;
-  border: 1px solid var(--jo-border);
-  border-radius: 14px;
-  background: #fbfcfe;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  gap: 8px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .app:has(#jobModal) .job-toolbar .search-box input,
@@ -1695,7 +1703,7 @@ textarea[readonly] {
 
 @media (max-width: 1200px) {
   .app:has(#jobModal) .job-toolbar {
-    grid-template-columns: minmax(280px, 1fr) 145px 125px auto;
+    max-width: 100%;
   }
 
   .app:has(#jobModal) .table-wrap {
@@ -1705,11 +1713,7 @@ textarea[readonly] {
 
 @media (max-width: 900px) {
   .app:has(#jobModal) .job-toolbar {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .app:has(#jobModal) .job-toolbar .search-box {
-    grid-column: 1 / -1;
+    flex-wrap: wrap;
   }
 
   .app:has(#jobModal) .table-wrap {
@@ -1719,7 +1723,8 @@ textarea[readonly] {
 
 @media (max-width: 620px) {
   .app:has(#jobModal) .job-toolbar {
-    grid-template-columns: 1fr;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .app:has(#jobModal) .job-toolbar .primary-btn,
@@ -2140,13 +2145,9 @@ textarea[readonly] {
 }
 
 #jobModal .jo-create-basic-grid {
-  padding: 14px;
-  gap: 14px;
-  /*
-   * Give the Bus selector more horizontal room so the full bus number
-   * and plate stay readable without squeezing the trigger label.
-   */
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  padding: 16px;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #jobModal .jo-create-basic-grid .ui-form-group,
@@ -2192,11 +2193,11 @@ textarea[readonly] {
 }
 
 #jobModal .jo-create-details-grid {
-  padding: 14px;
+  padding: 16px;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(250px, 1.1fr) minmax(0, 1fr);
-  gap: 14px;
-  align-items: end;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
 #jobModal .jo-create-details-grid > * {
@@ -2213,6 +2214,10 @@ textarea[readonly] {
 #jobModal .jo-duration-control input,
 #jobModal .jo-duration-control select {
   width: 100%;
+}
+
+#jobModal .jo-create-work-field {
+  grid-column: 1 / -1;
 }
 
 #jobModal .jo-create-parts-header {
@@ -2267,6 +2272,10 @@ textarea[readonly] {
   border-radius: 11px;
   background: #f1f7ff;
   color: #334155;
+}
+
+#jobModal .jo-parts-section.is-locked .jo-create-parts-table {
+  display: none;
 }
 
 #jobModal .jo-parts-lock-icon {
@@ -2544,7 +2553,7 @@ textarea[readonly] {
 #jobModal .ui-form-actions {
   flex: 0 0 auto;
   margin-top: 14px;
-  padding: 15px 0 0;
+  padding: 15px 2px 1px;
   background: #ffffff;
 }
 
@@ -3471,4 +3480,2031 @@ textarea[readonly] {
 
 #jobModal .jo-validation-invalid > label {
   color: #b91c1c;
+}
+
+
+/* Maintenance list pages use the Registered Buses two-row pattern:
+   heading above; view tabs left and table tools right on one control row. */
+.referrals-page .maintenance-list-controls,
+.jo-page .maintenance-list-controls,
+.purchase-page .maintenance-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 16px;
+}
+
+.referrals-page .maintenance-list-controls > .referral-record-tabs,
+.jo-page .maintenance-list-controls > .maintenance-record-tabs,
+.purchase-page .maintenance-list-controls > .maintenance-record-tabs {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
+}
+
+.referrals-page .maintenance-list-controls > .gct-table-toolbar,
+.jo-page .maintenance-list-controls > .gct-table-toolbar,
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 0 auto;
+}
+
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row .gct-table-toolbar {
+  width: auto;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .referrals-page .maintenance-list-controls,
+  .jo-page .maintenance-list-controls,
+  .purchase-page .maintenance-list-controls {
+    align-items: stretch;
+  }
+
+  .referrals-page .maintenance-list-controls > .gct-table-toolbar,
+  .jo-page .maintenance-list-controls > .gct-table-toolbar,
+  .purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+    margin-left: 0;
+  }
+
+  .purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* New Job Order: company-aligned supplementary fields (creation only). */
+#jobModal .jo-create-readonly-meta {
+  min-width: 0;
+}
+#jobModal .jo-readonly-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 12px;
+  box-sizing: border-box;
+  background: #f3f6fa;
+  color: #475569;
+  border: 1px solid #dae3ee;
+  border-radius: 9px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+#jobModal .jo-readonly-value .fa-lock { margin-left: auto; color: #94a3b8; }
+#jobModal .jo-create-work-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 85px;
+  padding: 11px 12px;
+  border: 1px solid #d9e3f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #102a4c;
+  font: inherit;
+  resize: vertical;
+}
+#jobModal .jo-create-work-field textarea:focus-visible {
+  outline: 2px solid #7aafee;
+  outline-offset: 1px;
+}
+#jobModal .jo-create-completion-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 14px 14px;
+  padding: 11px 12px;
+  border: 1px solid #d9e4f1;
+  border-radius: 9px;
+  background: #f5f8fc;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+#jobModal .jo-create-completion-note > i { margin-top: 2px; }
+#jobModal .jo-create-completion-note span,
+#jobModal .jo-create-completion-note strong,
+#jobModal .jo-create-completion-note small { display: block; }
+#jobModal .jo-create-completion-note strong {
+  color: #334155;
+  font-weight: 750;
+}
+#jobModal .jo-create-completion-note small {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 10.5px;
+}
+
+/* Header-only New JO action; table filters remain a separate compact row. */
+.jo-page .maintenance-record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.jo-page .maintenance-record-header .jo-header-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 15px;
+  flex: 0 0 auto;
+  border: 1px solid #e7aa00;
+  border-radius: 9px;
+  background: #ffbd00;
+  color: #10213c;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.jo-page .maintenance-record-header .jo-header-create-btn:hover {
+  background: #f2b000;
+}
+@media (max-width: 600px) {
+  .jo-page .maintenance-record-header {
+    flex-wrap: wrap;
+  }
+  .jo-page .maintenance-record-header .jo-header-create-btn {
+    margin-left: auto;
+  }
+}
+
+
+/* New Job Order: compact light-theme finishing pass (October 2026). */
+#jobModal.jo-create-modal-overlay > .ui-form-modal {
+  width: min(940px, calc(100vw - 40px)) !important;
+  max-width: 940px !important;
+  max-height: calc(100dvh - 36px);
+}
+#jobModal .ui-form-modal-header { padding: 16px 22px 14px; }
+#jobModal .ui-form-modal-body { padding: 15px 18px 16px; }
+#jobModal .ui-form-modal-scrollable {
+  max-height: calc(100dvh - 168px);
+  scroll-padding-block: 18px 34px;
+  overscroll-behavior: contain;
+}
+#jobModal .jo-create-section { margin-bottom: 12px; }
+#jobModal .jo-create-section-header {
+  min-height: 48px;
+  padding: 9px 13px;
+}
+#jobModal .jo-create-section-icon { width: 32px; height: 32px; flex-basis: 32px; }
+#jobModal .jo-create-basic-grid,
+#jobModal .jo-create-details-grid { gap: 11px 14px; padding: 12px 13px; }
+#jobModal .jo-create-basic-grid .ui-form-full,
+#jobModal .jo-create-details-grid .ui-form-full {
+  grid-column: 1 / -1;
+}
+#jobModal .jo-create-work-field textarea,
+#jobModal .jo-create-problem-field textarea {
+  min-height: 76px;
+  max-height: 170px;
+  line-height: 1.5;
+}
+#jobModal .jo-create-completion-preview .jo-create-section-header { border-bottom: 0; }
+#jobModal .jo-create-completion-note { margin-top: 0; }
+#jobModal .jo-create-basic-grid input[readonly],
+#jobModal .jo-create-readonly-meta .jo-readonly-value {
+  background: #f3f6fa;
+  color: #64748b;
+}
+#jobModal .ui-form-modal-actions,
+#jobModal .ui-form-actions {
+  background: #fff;
+  border-top-color: #e4ebf4;
+}
+#jobModal .jo-validation-invalid textarea:focus,
+#jobModal .jo-validation-invalid input:focus {
+  outline: 2px solid #ef4444;
+  outline-offset: 1px;
+}
+@media (max-width: 680px) {
+  #jobModal.jo-create-modal-overlay { padding: 10px !important; }
+  #jobModal.jo-create-modal-overlay > .ui-form-modal {
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px);
+  }
+  #jobModal .ui-form-modal-scrollable { max-height: calc(100dvh - 145px); }
+  #jobModal .jo-create-basic-grid,
+  #jobModal .jo-create-details-grid { grid-template-columns: minmax(0,1fr); }
+  #jobModal .jo-create-basic-grid > *,
+  #jobModal .jo-create-details-grid > * { grid-column: auto !important; }
+}
+/* Job Order review overhaul: compact single-column workflow and review evidence. */
+#newJobOrderForm .ui-form-modal-scrollable {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: start;
+}
+
+#newJobOrderForm .ui-form-modal-scrollable > input[type="hidden"],
+#newJobOrderForm .ui-form-modal-scrollable > script {
+    grid-column: 1 / -1;
+}
+
+#jobModal #newJobOrderForm .jo-create-section[data-jo-collapsible] {
+    min-width: 0;
+    align-self: start;
+    height: max-content;
+}
+#newJobOrderForm .jo-create-section { margin-bottom: 0; }
+#newJobOrderForm .jo-create-parts { grid-column: 1 / -1; }
+#jobModal #newJobOrderForm .jo-create-section[data-jo-collapsible].is-collapsed > :not(.jo-create-section-header) { display: none; }
+#jobModal #newJobOrderForm .jo-create-section[data-jo-collapsible].is-collapsed .jo-create-section-header { border-bottom-color: transparent; }
+.jo-collapse-toggle {
+    width: 32px;
+    height: 32px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #526177;
+    cursor: pointer;
+    padding: .35rem;
+    transition: background-color .18s ease, color .18s ease;
+}
+.jo-collapse-toggle:hover { background: #eaf2ff; color: #0b40b5; }
+.jo-create-parts-header .jo-collapse-toggle { margin-left: 0; }
+.jo-section-optional {
+    margin-left: .35rem;
+    padding: .16rem .42rem;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #375783;
+    font-size: .61rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    vertical-align: middle;
+}
+.jo-field-help { display: block; margin-top: .35rem; color: var(--text-muted, #64748b); line-height: 1.35; }
+.jo-mechanic-multi-trigger {
+    min-height: 42px;
+    height: auto;
+    padding-block: 6px;
+}
+.jo-mechanic-multi-trigger .jo-mechanic-combobox-label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    overflow: visible;
+    white-space: normal;
+}
+.jo-mechanic-chip {
+    max-width: 100%;
+    padding: 3px 8px;
+    overflow: hidden;
+    border: 1px solid #cfe0fb;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #0b40b5;
+    font-size: 10px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.jo-mechanic-multi-menu {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+}
+.jo-mechanic-multi-menu[hidden] { display: none; }
+.jo-mechanic-multi-menu .jo-mechanic-combobox-options { min-height: 0; }
+.jo-mechanic-multi-option small { white-space: normal; }
+.jo-duration-suggestion {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: .35rem;
+    padding: .22rem .45rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    overflow: hidden;
+    border: 1px solid #dce5f2;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: .59rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+.jo-duration-suggestion span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.jo-duration-suggestion[data-status="available"] {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+#jobModal .jo-create-work-field textarea {
+    min-height: 52px;
+    height: 52px;
+    max-height: 120px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    line-height: 1.3;
+}
+#jobModal .jo-create-job-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+#jobModal .jo-create-job-details-grid > .ui-form-full {
+    grid-column: 1 / -1;
+}
+#jobModal .jo-create-job-details-grid [data-maintenance-job-presets="newJo"] {
+    min-width: 0;
+}
+#jobModal .jo-linked-driver-preview {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-top: -.25rem;
+    padding: .4rem .55rem;
+    border-radius: .5rem;
+    background: #f4f8ff;
+    color: #526177;
+    font-size: .72rem;
+}
+#jobModal .jo-linked-driver-preview[hidden] { display: none; }
+#jobModal .jo-linked-driver-preview i { color: #2563eb; }
+#jobModal .jo-create-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+#jobModal .jo-create-details-grid .jo-mechanic-multi-field {
+    grid-column: 1 / -1;
+}
+#jobModal .jo-create-duration-grid {
+    padding: 12px 13px;
+}
+#jobModal .jo-create-duration-grid .jo-estimated-duration-field {
+    max-width: 430px;
+    margin: 0;
+}
+.jo-parts-policy-grid { margin-top: .75rem; align-items: end; }
+.jo-inventory-availability { padding: .7rem .85rem; border: 1px solid #cbd5e1; border-radius: .6rem; background: #f8fafc; font-size: .85rem; }
+.jo-inventory-availability[data-status="sufficient"] { border-color: #86efac; background: #f0fdf4; color: #166534; }
+.jo-inventory-availability[data-status="partial"] { border-color: #fde047; background: #fefce8; color: #854d0e; }
+.jo-inventory-availability[data-status="none"] { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+
+.jo-review-actions, .jo-audit-history { position: relative; }
+.jo-review-actions > summary, .jo-audit-history > summary { list-style: none; cursor: pointer; }
+.jo-review-panel, .jo-audit-history ol {
+    position: absolute;
+    z-index: 40;
+    right: 0;
+    top: calc(100% + .4rem);
+    width: min(360px, 80vw);
+    padding: .8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: .75rem;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, .18);
+}
+.jo-review-panel form { display: grid; gap: .45rem; padding: .55rem 0; border-bottom: 1px solid #e2e8f0; }
+.jo-review-panel form:last-child { border-bottom: 0; }
+.jo-review-panel input, .jo-review-panel textarea { width: 100%; padding: .55rem; border: 1px solid #cbd5e1; border-radius: .45rem; }
+.jo-audit-history ol { max-height: 320px; overflow: auto; margin: 0; padding-left: 1.9rem; text-align: left; }
+.jo-audit-history li { margin-bottom: .6rem; }
+
+@media (max-width: 700px) {
+    #jobModal .jo-create-job-details-grid { grid-template-columns: minmax(0, 1fr); }
+    #jobModal .jo-create-job-details-grid > * { grid-column: auto !important; }
+    #jobModal .jo-create-parts-table { overflow-x: hidden; }
+    #jobModal .jo-create-parts-table-head { display: none; }
+    #jobModal .jo-create-parts-repeater .jo-part-row {
+        min-width: 0;
+        grid-template-columns: 28px minmax(0, 1fr) 80px 86px 38px;
+        gap: 6px;
+    }
+    #jobModal .jo-create-add-part-btn { width: auto; margin-left: auto; }
+    #jobModal .jo-create-parts-header .jo-collapse-toggle { margin-left: 0; }
+}
+
+@media (max-width: 520px) {
+    #jobModal .jo-create-parts-repeater .jo-part-row {
+        padding: 10px;
+        grid-template-columns: 24px minmax(0, 1fr) 38px;
+    }
+    #jobModal .jo-create-parts-repeater .jo-part-row input:first-of-type { grid-column: 2 / -1; }
+    #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
+    #jobModal .jo-create-parts-repeater .jo-part-row select { grid-column: 2; }
+    #jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 3; grid-row: 2 / span 2; }
+    #jobModal .jo-parts-policy-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Live completion progress in the New Job Order accordion. */
+#jobModal .jo-section-progress {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+#jobModal .jo-section-progress[data-state="completed"] {
+  border-color: #bbebcb;
+  background: #ecfdf3;
+  color: #16733d;
+}
+#jobModal .jo-section-progress[data-state="optional"] {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+#jobModal .jo-create-section-header .jo-collapse-toggle {
+  margin-left: 8px;
+}
+@media (max-width: 480px) {
+  #jobModal .jo-section-progress { font-size: 9px; padding: 3px 6px; }
+}
+
+
+/* Optional custom maintenance work and shared specialization catalog. */
+#jobModal .jo-custom-work-fields[hidden] { display: none !important; }
+#jobModal .jo-custom-work-fields { display: grid; gap: 8px; margin-top: 8px; }
+#jobModal .jo-custom-work-fields > input {
+  width: 100%; min-height: 38px; padding: 8px 12px; border: 1px solid #dbe4f1;
+  border-radius: 9px; background: #fff; color: #1e3355;
+}
+#jobModal .jo-custom-skill-options {
+  display: flex; flex-wrap: wrap; gap: 7px; max-height: 128px;
+  overflow-y: auto; padding: 4px 0;
+}
+#jobModal .jo-custom-skill-choice {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px;
+  border: 1px solid #dbe4f1; border-radius: 8px; background: #f8faff;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+}
+#jobModal .jo-custom-skill-choice[hidden] { display: none !important; }
+#jobModal .jo-custom-skill-choice input { accent-color: #245ac0; }
+
+
+/* Compact searchable specialization multi-select for Other / Custom Work. */
+#jobModal .jo-custom-skill-dropdown { border: 1px solid #dbe4f1; border-radius: 9px; padding: 4px 8px; background: #fff; }
+#jobModal .jo-custom-skill-trigger { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 32px; border: 0; padding: 4px; background: transparent; color: #536783; cursor: pointer; font-size: 12px; text-align: left; }
+#jobModal .jo-custom-skill-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+#jobModal .jo-custom-skill-chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #cbdcfa; border-radius: 20px; padding: 2px 7px; background: #eff6ff; color: #1e4e9b; font-size: 11px; }
+#jobModal .jo-custom-skill-chip button { background: transparent; border: 0; color: #536783; font-size: 15px; cursor: pointer; padding: 0 2px; }
+#jobModal .jo-custom-skill-panel { border: 1px solid #dbe4f1; border-radius: 9px; padding: 8px; background: #fff; box-shadow: 0 8px 18px rgba(15, 36, 66, 0.08); }
+#jobModal .jo-custom-skill-panel[hidden] { display: none !important; }
+#jobModal .jo-custom-skill-panel #joCustomSkillSearch { width: 100%; min-height: 35px; border: 1px solid #dbe4f1; border-radius: 7px; padding: 7px 10px; margin-bottom: 6px; }
+#jobModal .jo-custom-skill-panel .jo-custom-skill-options { max-height: 160px; }
+
+
+/* Required Specializations: a proper compact single-column dropdown list. */
+#jobModal .jo-custom-skill-panel .jo-custom-skill-options {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  max-height: 188px;
+  overflow-y: auto;
+  padding: 0;
+}
+#jobModal .jo-custom-skill-panel .jo-custom-skill-choice {
+  display: flex;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 7px 10px;
+  border: none;
+  border-bottom: 1px solid #edf1f7;
+  border-radius: 0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+}
+#jobModal .jo-custom-skill-panel .jo-custom-skill-choice:hover { background: #f3f7fe; }
+#jobModal .jo-custom-skill-panel .jo-custom-skill-choice:has(input:checked) { background: #edf5ff; color: #174b9a; }
+#jobModal .jo-custom-skill-panel .jo-custom-skill-choice input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  min-height: 15px;
+  margin: 0;
+}
+#jobModal .jo-custom-skill-panel .jo-custom-skill-choice[hidden] { display: none !important; }
+
+
+/* Portaled custom-work specialization menu: stays styled outside the JO modal. */
+body > .jo-custom-skill-panel {
+  box-sizing: border-box;
+  border: 1px solid #dbe4f1;
+  border-radius: 9px;
+  padding: 8px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(15,36,66,.16);
+}
+body > .jo-custom-skill-panel[hidden] { display: none !important; }
+body > .jo-custom-skill-panel #joCustomSkillSearch {
+  box-sizing: border-box; width: 100%; min-height: 35px;
+  border: 1px solid #dbe4f1; border-radius: 7px;
+  padding: 7px 10px; margin-bottom: 6px;
+}
+body > .jo-custom-skill-panel .jo-custom-skill-options {
+  display: flex; flex-direction: column; gap: 0; flex-wrap: nowrap;
+  max-height: none; overflow-y: auto; padding: 0;
+}
+body > .jo-custom-skill-panel .jo-custom-skill-choice {
+  display: flex; flex: 0 0 auto; width: 100%; min-height: 34px;
+  align-items: center; gap: 10px; padding: 7px 10px;
+  border: 0; border-bottom: 1px solid #edf1f7;
+  border-radius: 0; background: white; font-size: 12px;
+  font-weight: 500; cursor: pointer;
+}
+body > .jo-custom-skill-panel .jo-custom-skill-choice:hover { background: #f3f7fe; }
+body > .jo-custom-skill-panel .jo-custom-skill-choice:has(input:checked) { background: #edf5ff; color: #174b9a; }
+body > .jo-custom-skill-panel .jo-custom-skill-choice[hidden] { display: none !important; }
+body > .jo-custom-skill-panel .jo-custom-skill-choice input[type="checkbox"] {
+  appearance: auto; -webkit-appearance: checkbox;
+  flex: 0 0 15px; width: 15px; height: 15px; min-width: 15px; min-height: 15px; margin: 0;
+}
+
+
+/* Multiple JO mechanics: compact removable selection chips. */
+#jobModal .jo-mechanic-chip { display: inline-flex; align-items: center; gap: 5px; }
+#jobModal .jo-mechanic-chip-remove {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  color: #607699; cursor: pointer; font-size: 13px; line-height: 1;
+}
+#jobModal .jo-mechanic-chip-remove:hover,
+#jobModal .jo-mechanic-chip-remove:focus-visible {
+  background: #d8e6ff; color: #173e80; outline-offset: 2px;
+}
+
+
+/* Head-only estimated duration verification in the JO review action. */
+.jo-review-panel .jo-head-duration-review {
+  display: grid; gap: 7px; padding: 10px;
+  border: 1px solid #dbe4f1; border-radius: 9px;
+  background: #f8fafc; min-width: 0;
+}
+.jo-review-panel .jo-head-duration-review p { margin: 0; font-size: 12px; }
+.jo-review-panel .jo-head-duration-review small { font-size: 11px; color: #64748b; }
+.jo-review-panel .jo-head-duration-inputs { display: flex; gap: 7px; }
+.jo-review-panel .jo-head-duration-inputs input { flex: 1 1 50%; min-width: 0; }
+.jo-review-panel .jo-head-duration-inputs select { flex: 1 1 50%; min-width: 0; }
+.jo-review-panel .jo-duration-adjust-fields[hidden] { display: none !important; }
+.jo-review-panel .jo-duration-adjust-fields { display: grid; gap: 7px; }
+
+
+/* Requested Parts: refined compact table and aligned inventory policy. */
+#jobModal .jo-create-parts-header { gap: 12px; }
+#jobModal .jo-create-parts-header .jo-create-add-part-btn {
+  margin-left: auto; min-height: 32px; padding: 6px 12px;
+  border-radius: 9px; font-weight: 700; white-space: nowrap;
+}
+#jobModal .jo-create-parts-table {
+  border: 1px solid #e1e8f3; border-radius: 11px;
+  background: #fff; overflow: hidden; margin-top: 10px;
+}
+#jobModal .jo-create-parts-table-head,
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  grid-template-columns: 34px minmax(160px, 1fr) 90px 110px 56px;
+  column-gap: 10px; align-items: center;
+}
+#jobModal .jo-create-parts-table-head {
+  min-height: 36px; padding: 8px 12px; background: #f6f9fd;
+  border-bottom: 1px solid #e3eaf5;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  padding: 9px 12px; min-height: 57px; border-bottom: 1px solid #edf1f7;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row input,
+#jobModal .jo-create-parts-repeater .jo-part-row select {
+  min-width: 0; width: 100%; min-height: 36px; border-radius: 8px;
+}
+#jobModal .jo-create-parts-repeater .remove-part-btn {
+  width: 34px; min-width: 34px; height: 34px; justify-self: center;
+  border-radius: 8px;
+}
+#jobModal .jo-parts-policy-grid {
+  display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+  gap: 12px; align-items: end; margin-top: 12px;
+}
+#jobModal .jo-parts-policy-grid > * { min-width: 0; }
+#jobModal .jo-parts-policy-grid select { width: 100%; min-height: 40px; border-radius: 9px; }
+#jobModal #jobInventoryAvailability {
+  display: flex; align-items: center; min-height: 40px;
+  padding: 9px 12px; border-radius: 9px; font-size: 12px;
+}
+@media (max-width: 700px) {
+  #jobModal .jo-parts-policy-grid { grid-template-columns: minmax(0, 1fr); }
+  #jobModal .jo-create-parts-table-head { display: none; }
+  #jobModal .jo-create-parts-repeater .jo-part-row {
+    grid-template-columns: 24px minmax(0, 1fr) minmax(72px, .45fr) 40px;
+    gap: 8px;
+  }
+  #jobModal .jo-create-parts-repeater .jo-part-row input:first-of-type { grid-column: 2 / 4; }
+  #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
+  #jobModal .jo-create-parts-repeater .jo-part-row select { grid-column: 3; }
+  #jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
+}
+
+
+/* Auto-filled Warehouse UOM for New Job Order parts. */
+#jobModal .jo-create-parts-repeater .jo-warehouse-part-picker { width: 100%; min-width: 0; }
+#jobModal .jo-create-parts-repeater .jo-auto-unit-select {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 1;
+}
+
+
+/* Searchable Warehouse part selector in the New JO modal. */
+#jobModal .jo-create-parts-repeater .jo-native-inventory-picker { display: none !important; }
+#jobModal .jo-inventory-search-wrap { min-width: 0; width: 100%; }
+#jobModal .jo-inventory-search-trigger {
+  display: flex; width: 100%; min-height: 36px; padding: 7px 11px;
+  align-items: center; text-align: left; border: 1px solid #dce5f2;
+  border-radius: 8px; background: #fff; color: #385078; cursor: pointer;
+  font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+#jobModal .jo-inventory-search-trigger:focus-visible { outline: 2px solid #3479ef; outline-offset: 1px; }
+body > .jo-inventory-search-menu {
+  box-sizing: border-box; display: flex; flex-direction: column;
+  border: 1px solid #dce5f2; border-radius: 9px; padding: 7px;
+  background: #fff; box-shadow: 0 14px 30px rgba(20,42,78,.18);
+}
+body > .jo-inventory-search-menu[hidden] { display: none !important; }
+body > .jo-inventory-search-menu input[type="search"] {
+  flex: none; width: 100%; box-sizing: border-box; padding: 9px 10px;
+  border: 1px solid #dce5f2; border-radius: 7px; margin-bottom: 5px;
+  font-size: 12px; min-height: 36px;
+}
+body > .jo-inventory-search-menu .jo-inventory-search-results { overflow-y: auto; min-height: 0; }
+body > .jo-inventory-search-menu .jo-inventory-search-option {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%;
+  gap: 2px; padding: 8px 10px; border: 0; border-bottom: 1px solid #edf1f7;
+  background: #fff; color: #192f52; text-align: left; cursor: pointer;
+  font-size: 12px;
+}
+body > .jo-inventory-search-menu .jo-inventory-search-option small { color: #64748b; font-size: 10px; }
+body > .jo-inventory-search-menu .jo-inventory-search-option:hover,
+body > .jo-inventory-search-menu .jo-inventory-search-option:focus-visible { background: #eef5ff; }
+body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity: .5; cursor: not-allowed; }
+
+
+/* New JO Requested Parts: staff records needs; mechanic/head decide partial release later. */
+#jobModal .jo-create-parts-table { margin-top: 10px; }
+#jobModal .jo-create-parts-table-head,
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  grid-template-columns: 28px minmax(0, 1fr) 90px 112px 54px;
+  column-gap: 10px;
+}
+#jobModal .jo-create-parts-table-head { padding: 9px 12px; }
+#jobModal .jo-create-parts-repeater .jo-part-row { padding: 10px 12px; }
+#jobModal .jo-create-parts-repeater .jo-inventory-search-wrap,
+#jobModal .jo-create-parts-repeater .jo-inventory-search-trigger { min-width: 0; }
+#jobModal .jo-create-parts-repeater .jo-inventory-search-trigger {
+  min-height: 38px; max-width: 100%; border-radius: 8px;
+  background: #fff; padding: 8px 12px;
+}
+#jobModal .jo-create-parts-repeater select.jo-auto-unit-select {
+  width: 100%; min-height: 38px; padding: 8px 24px 8px 10px;
+  font-size: 12px; text-overflow: ellipsis;
+  appearance: none; background: #f1f5f9;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] {
+  min-height: 38px; text-align: center;
+}
+#jobModal .jo-parts-availability-panel {
+  margin-top: 12px; padding: 12px 14px;
+  border-radius: 11px; border: 1px solid #e3eaf4;
+  background: #f9fbfe; display: grid; gap: 8px;
+}
+#jobModal .jo-parts-availability-heading {
+  display: flex; align-items: center; gap: 8px;
+  color: #263c5b; font-size: 12px; font-weight: 750;
+}
+#jobModal .jo-parts-availability-heading i { color: #517ba9; }
+#jobModal .jo-inventory-availability {
+  min-height: 38px; width: 100%; box-sizing: border-box;
+  padding: 10px 12px; line-height: 1.45;
+}
+#jobModal .jo-parts-availability-note {
+  margin: 0; font-size: 11px; color: #64748b; line-height: 1.55;
+}
+@media (max-width: 700px) {
+  #jobModal .jo-create-parts-table-head { display: none; }
+  #jobModal .jo-create-parts-repeater .jo-part-row {
+    grid-template-columns: 24px minmax(0, 1fr) 70px 44px;
+    gap: 8px;
+  }
+  #jobModal .jo-create-parts-repeater .jo-inventory-search-wrap { grid-column: 2 / 5; }
+  #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
+  #jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select { grid-column: 3; }
+  #jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
+}
+
+
+/* Align Add Part with the right-side section controls, not the header center. */
+#jobModal .jo-create-parts-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#jobModal .jo-create-parts-header > div:not(.jo-section-progress) {
+  flex: 0 1 auto;
+}
+#jobModal .jo-create-parts-header .jo-create-add-part-btn {
+  margin-left: auto !important;
+  flex: 0 0 auto;
+}
+#jobModal .jo-create-parts-header .jo-section-progress {
+  margin-left: 0 !important;
+}
+#jobModal .jo-create-parts-header .jo-collapse-toggle {
+  margin-left: 0 !important;
+  flex: 0 0 auto;
+}
+
+
+/* Job Orders list: calm, compact active table while keeping all actions usable. */
+.jo-page .job-orders-table th {
+  padding: 10px 11px;
+  font-size: 10px;
+}
+.jo-page .job-orders-table td {
+  padding: 10px 11px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.jo-page .job-orders-table tbody tr.jo-overdue-row,
+.jo-page .job-orders-table tbody tr.jo-overdue-row td {
+  background-color: #fff !important;
+}
+.jo-page .job-orders-table tbody tr.jo-overdue-row:hover,
+.jo-page .job-orders-table tbody tr.jo-overdue-row:hover td {
+  background-color: #f8fbff !important;
+}
+.jo-page .job-orders-table .jo-estimate-inline {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.jo-page .job-orders-table .jo-overdue-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 3px 7px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #b42318;
+  background: #fff5f5;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.jo-page .job-orders-table .jo-overdue-indicator i { font-size: 10px; }
+.jo-page .job-orders-table .date-time-cell .date-value { font-size: 12px; }
+.jo-page .job-orders-table .date-time-cell .time-value { margin-top: 2px; font-size: 10px; }
+.jo-page .job-orders-table .mechanic-name-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.jo-page .job-orders-table .actions { gap: 6px; justify-content: center; }
+.jo-page .job-orders-table .actions .action-btn,
+.jo-page .job-orders-table .actions > button,
+.jo-page .job-orders-table .actions form > button {
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+
+/* Assigned Mechanic: compact profile rows consistent with driver list styling. */
+.jo-page .job-orders-table .jo-mechanic-profiles { display: flex; flex-direction: column; gap: 7px; min-width: 150px; }
+.jo-page .job-orders-table .jo-mechanic-profile { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.jo-page .job-orders-table .jo-mechanic-profile-icon {
+  flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid #cfe0fc;
+  border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
+  background: #eaf2ff; color: #2469d7; font-size: 13px;
+}
+.jo-page .job-orders-table .jo-mechanic-profile-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.jo-page .job-orders-table .jo-mechanic-profile-name {
+  color: #1d3152; font-weight: 750; font-size: 12px;
+  line-height: 1.25; overflow-wrap: anywhere;
+}
+.jo-page .job-orders-table .jo-mechanic-profile-caption {
+  color: #8292a9; font-size: 10px; line-height: 1.2;
+}
+.jo-page .job-orders-table .jo-mechanic-unassigned { color: #94a3b8; font-size: 11px; }
+
+
+/* Part status semantics: Approved = blue, Delivered = green.
+   Scope only to JO Parts Status so JO approval colors remain unchanged. */
+.jo-page .job-orders-table td.part-status-cell .part-status-badge.approved,
+.app:has(#jobModal) .jo-page .job-orders-table td.part-status-cell .part-status-badge[data-status-key="approved"] {
+  background: #e8f1ff !important;
+  border-color: #a9c9ff !important;
+  color: #1859be !important;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge.delivered,
+.app:has(#jobModal) .jo-page .job-orders-table td.part-status-cell .part-status-badge[data-status-key="delivered"] {
+  background: #dcfce7 !important;
+  border-color: #86dba7 !important;
+  color: #166534 !important;
+}
+
+
+/* Compact practical guidance for New JO mechanic and duration sections. */
+#jobModal .jo-create-step-description {
+  margin: 4px 0 0; color: #71839d; font-size: 11px;
+  font-weight: 450; line-height: 1.35;
+}
+#jobModal .jo-create-field-hint {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: 9px 0 0; padding: 9px 11px;
+  border-radius: 8px; background: #f5f8fd;
+  border: 1px solid #e5ecf6;
+  color: #64748b; font-size: 11px; line-height: 1.5;
+  font-weight: 450;
+}
+#jobModal .jo-create-field-hint i {
+  flex: 0 0 auto; color: #3b82f6; margin-top: 2px; font-size: 11px;
+}
+#jobModal .jo-create-mechanics .jo-create-details-grid,
+#jobModal .jo-create-duration .jo-create-duration-grid { padding-bottom: 12px; }
+
+
+/* Compact Estimated Duration: no duplicate warning badge or oversized tip box. */
+#jobModal .jo-create-duration .jo-create-duration-grid {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+#jobModal .jo-create-duration .jo-estimated-duration-field {
+  max-width: 100%;
+}
+#jobModal .jo-create-duration .jo-duration-control {
+  max-width: 440px;
+}
+#jobModal #jobDurationSuggestion[data-status="unavailable"] {
+  display: none !important;
+}
+#jobModal .jo-duration-compact-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 490px;
+  margin: 9px 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #71839d;
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.45;
+}
+#jobModal .jo-duration-compact-help i {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #5482bd;
+}
+
+
+/* Maintenance Head approval / revision / rejection in a real centered dialog. */
+body.jo-head-review-open { overflow: hidden; }
+.jo-head-review-overlay {
+  position: fixed; inset: 0; z-index: 120000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px; box-sizing: border-box;
+  background: rgba(15, 23, 42, .50);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+.jo-head-review-overlay[hidden] { display: none !important; }
+.jo-head-review-dialog {
+  width: min(640px, 100%); max-height: min(86vh, 790px);
+  overflow: hidden; display: flex; flex-direction: column;
+  border-radius: 16px; background: #fff;
+  border: 1px solid #dce6f3; box-shadow: 0 24px 72px rgba(15,23,42,.28);
+  animation: jo-head-review-show .22s ease-out both;
+}
+@keyframes jo-head-review-show {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.jo-head-review-heading {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; gap: 12px;
+  border-bottom: 1px solid #e5eaf3;
+}
+.jo-head-review-heading strong { display: block; font-size: 17px; color: #122c51; }
+.jo-head-review-heading small { display: block; margin-top: 4px; color: #70829c; font-size: 11px; }
+.jo-head-review-close {
+  width: 34px; height: 34px; flex: none; border: 1px solid #dce6f3;
+  border-radius: 9px; background: #f8fafc; color: #344967; cursor: pointer;
+}
+.jo-head-review-body { overflow-y: auto; padding: 18px 20px 20px; }
+.jo-head-review-body .jo-review-panel {
+  position: static !important; inset: auto !important;
+  width: auto !important; max-width: none !important; box-shadow: none !important;
+  border: 0 !important; padding: 0 !important; background: none !important;
+}
+.jo-head-review-body .jo-review-panel form {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 0 0 16px; margin: 0 0 16px; border-bottom: 1px solid #e7ecf4;
+}
+.jo-head-review-body .jo-review-panel form:last-child { margin-bottom: 0; border-bottom: 0; padding-bottom: 0; }
+.jo-head-review-body .jo-review-panel input,
+.jo-head-review-body .jo-review-panel select,
+.jo-head-review-body .jo-review-panel textarea {
+  box-sizing: border-box; width: 100%; min-height: 38px;
+  border-radius: 8px; border: 1px solid #cfdced; background: #fff;
+  padding: 8px 11px; color: #173254; font-size: 12px;
+}
+.jo-head-review-body .jo-review-panel textarea { min-height: 68px; resize: vertical; }
+.jo-head-review-body .jo-review-panel label { font-size: 12px; font-weight: 650; color: #263b59; }
+.jo-head-review-body .jo-review-panel button[type="submit"] {
+  min-height: 38px; padding: 8px 14px; border-radius: 9px;
+  align-self: flex-end; cursor: pointer;
+}
+.jo-head-review-body .jo-head-duration-review { display: grid; gap: 9px; }
+.jo-head-review-body .jo-head-duration-inputs { display: flex; gap: 9px; }
+.jo-head-review-body .jo-head-duration-inputs > * { min-width: 0; flex: 1; }
+@media (max-width: 600px) {
+  .jo-head-review-overlay { padding: 12px; }
+  .jo-head-review-heading, .jo-head-review-body { padding: 14px; }
+}
+
+
+/* Streamlined Maintenance Head review: one action form at a time. */
+.jo-head-review-body .jo-review-panel { display: flex; flex-direction: column; gap: 14px; }
+.jo-head-review-body .jo-review-panel form[hidden],
+.jo-head-review-body .jo-review-panel [hidden] { display: none !important; }
+.jo-head-review-body .jo-review-summary {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+}
+.jo-head-review-body .jo-review-summary > div {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  padding: 12px; border: 1px solid #e4ebf5; border-radius: 9px;
+  background: #f7faff;
+}
+.jo-head-review-body .jo-review-summary span { font-size: 10px; color: #71839d; }
+.jo-head-review-body .jo-review-summary strong { font-size: 14px; color: #143159; }
+.jo-head-review-body .jo-review-panel .jo-review-form {
+  padding: 0 !important; margin: 0 !important; border: 0 !important; gap: 13px;
+}
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization { display: flex; flex-direction: column; gap: 8px; }
+.jo-head-review-body .jo-head-duration-review > strong,
+.jo-head-review-body .jo-head-authorization > strong,
+.jo-head-review-body .jo-review-form > strong { color: #183355; font-size: 13px; }
+.jo-head-review-body .jo-review-form p { color: #71839d; font-size: 11px; margin: 0; }
+.jo-head-review-body .jo-head-authorization { border-top: 1px solid #e6edf5; padding-top: 14px; }
+.jo-head-review-body .jo-review-submit { margin-left: auto; }
+.jo-head-review-body .jo-review-footer {
+  display: flex; align-items: center; gap: 8px; justify-content: flex-end;
+  padding-top: 13px; border-top: 1px solid #e5ebf4;
+}
+.jo-head-review-body .jo-review-footer button {
+  min-height: 36px; border-radius: 8px; padding: 8px 12px;
+  background: #fff; border: 1px solid #d6e1ef; color: #28518b;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.jo-head-review-body .jo-review-footer .jo-review-reject-trigger { color: #b42318; border-color: #fecaca; }
+.jo-head-review-body .jo-review-footer .jo-review-back { margin-right: auto; }
+@media (max-width: 520px) { .jo-head-review-body .jo-review-summary { grid-template-columns: 1fr; } }
+
+
+/* Head-only combined View + Review: read-only JO details and audit history. */
+.jo-head-review-body .jo-review-details {
+  display: grid; gap: 11px; padding: 13px;
+  border: 1px solid #e1e9f4; background: #f8fafd; border-radius: 10px;
+}
+.jo-head-review-body .jo-review-details h4 { margin: 0; font-size: 13px; color: #173656; }
+.jo-head-review-body .jo-review-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jo-head-review-body .jo-review-detail-grid > div,
+.jo-head-review-body .jo-review-detail-long { min-width: 0; display: grid; gap: 4px; }
+.jo-head-review-body .jo-review-detail-grid span,
+.jo-head-review-body .jo-review-detail-long > span { font-size: 10px; color: #74839a; }
+.jo-head-review-body .jo-review-detail-grid strong { font-size: 12px; color: #223a5b; overflow-wrap: anywhere; }
+.jo-head-review-body .jo-review-detail-long { padding-top: 9px; border-top: 1px solid #e5ecf5; }
+.jo-head-review-body .jo-review-detail-long p { margin: 0; font-size: 12px; color: #2b405e; white-space: pre-wrap; overflow-wrap: anywhere; }
+.jo-head-review-body .jo-review-audit { border: 1px solid #e1e9f4; border-radius: 9px; padding: 10px 12px; }
+.jo-head-review-body .jo-review-audit summary { cursor: pointer; font-size: 12px; color: #23528b; font-weight: 700; }
+.jo-head-review-body .jo-review-audit ol { position: static; width: auto; max-height: 210px; overflow-y: auto; box-shadow: none; border: 0; padding: 8px 0 0 18px; margin: 0; font-size: 11px; }
+.jo-head-review-body .jo-review-audit li { margin: 0 0 8px; color: #334b69; }
+.jo-head-review-body .jo-review-audit li small { display: block; color: #74839a; }
+@media(max-width:520px) { .jo-head-review-body .jo-review-detail-grid { grid-template-columns: 1fr; } }
+
+
+/* Maintenance Head: labeled Review action, distinct from the eye-only View action. */
+.jo-page .job-orders-table .actions .jo-review-actions { display: inline-flex; align-items: center; }
+.jo-page .job-orders-table .actions .jo-review-actions > summary.jo-head-review-trigger,
+.app:has(#jobModal) .jo-page .job-orders-table .actions .jo-review-actions > summary.jo-head-review-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  min-width: 92px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 1px solid #c9dbff !important;
+  border-radius: 9px !important;
+  background: #eaf2ff !important;
+  color: #1553b7 !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.jo-page .job-orders-table .actions .jo-review-actions > summary.jo-head-review-trigger:hover {
+  background: #dce9ff !important;
+  border-color: #9bbcf9 !important;
+}
+.jo-page .job-orders-table .actions .jo-review-actions > summary.jo-head-review-trigger:focus-visible {
+  outline: 2px solid #2f6edf;
+  outline-offset: 2px;
+}
+.jo-page .job-orders-table .actions .jo-review-actions > summary.jo-head-review-trigger i { font-size: 12px; }
+
+
+/* Streamlined JO Head review: compact summary and always-visible decision footer. */
+.jo-head-review-dialog { width: min(720px, 100%); max-height: min(88vh, 790px); }
+.jo-head-review-body { padding: 0 !important; min-height: 0; overflow-y: auto; }
+.jo-head-review-body .jo-review-panel { gap: 10px; padding: 14px 16px 0 !important; }
+.jo-head-review-body .jo-review-details { padding: 11px 13px; gap: 8px; }
+.jo-head-review-body .jo-review-details-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.jo-head-review-body .jo-review-details-heading span { font-size: 11px; font-weight: 650; color: #4b6791; }
+.jo-head-review-body .jo-review-detail-grid { gap: 7px 14px; }
+.jo-head-review-body .jo-review-detail-grid > div { gap: 2px; }
+.jo-head-review-body .jo-review-detail-long { padding-top: 6px; gap: 2px; }
+.jo-head-review-body .jo-review-audit { padding: 8px 12px; }
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization { gap: 7px; }
+.jo-head-review-body .jo-head-authorization { padding-top: 10px; }
+.jo-head-review-body .jo-review-panel .jo-review-form { gap: 10px; }
+.jo-head-review-body .jo-review-footer {
+  position: sticky; bottom: 0; z-index: 8;
+  margin: 0 -16px; padding: 12px 16px;
+  background: #fff; border-top: 1px solid #dde7f3;
+  box-shadow: 0 -8px 20px rgba(17,39,70,.05);
+  flex-wrap: wrap;
+}
+.jo-head-review-body .jo-review-footer button.jo-review-footer-submit {
+  min-height: 38px; padding: 8px 15px;
+  background: #fbbf24; border-color: #fbbf24; color: #172a43;
+}
+.jo-head-review-body .jo-review-footer button.jo-review-reject-submit {
+  background: #fff1f2; color: #b91c1c; border-color: #fecdd3;
+}
+.jo-head-review-body .jo-review-footer button.jo-review-revision-submit {
+  background: #eaf2ff; color: #1656c8; border-color: #bdd5fa;
+}
+.jo-head-review-body .jo-review-footer button[hidden] { display: none !important; }
+@media (max-width: 520px) { .jo-head-review-body .jo-review-panel { padding: 12px 12px 0 !important; } .jo-head-review-body .jo-review-footer { margin: 0 -12px; padding: 10px 12px; } }
+
+
+/* Head Review redesign: desktop-wide modal with verification and actual signature. */
+.jo-head-review-dialog {
+  width: min(880px, calc(100vw - 32px)) !important;
+  max-height: min(calc(100dvh - 24px), 940px) !important;
+}
+.jo-head-review-body .jo-review-panel {
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+}
+.jo-head-review-body .jo-review-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.jo-head-review-body .jo-review-mode[data-review-mode="approve"] .jo-review-approve-form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px !important;
+  align-items: stretch;
+}
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization {
+  min-width: 0;
+  padding: 14px !important;
+  border: 1px solid #dfe8f5 !important;
+  border-radius: 11px;
+  background: #ffffff;
+  gap: 9px;
+}
+.jo-head-review-body .jo-head-authorization {
+  border-color: #dfe8f5 !important;
+  background: #ffffff;
+}
+.jo-head-review-body .jo-signature-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.jo-head-review-body .jo-signature-pad {
+  position: relative; overflow: hidden;
+  border: 1px dashed #a9bfdc;
+  border-radius: 9px; background: #fff;
+}
+.jo-head-review-body .jo-signature-canvas {
+  display: block; width: 100%; height: 126px;
+  touch-action: none; cursor: crosshair;
+}
+.jo-head-review-body .jo-signature-canvas.jo-signature-required {
+  outline: 2px solid #d83a3a; outline-offset: -3px;
+}
+.jo-head-review-body .jo-signature-clear {
+  position: absolute; top: 7px; right: 7px;
+  padding: 5px 9px; border: 1px solid #d5e0ed;
+  border-radius: 7px; background: #fff;
+  font-size: 11px; color: #28518b; cursor: pointer;
+}
+.jo-head-review-body .jo-signature-grid small { color: #64748b; font-size: 10px; }
+.jo-head-review-body .jo-review-footer {
+  position: sticky !important; bottom: 0; z-index: 15;
+  background: white; margin-top: 2px;
+}
+@media (max-width: 720px) {
+  .jo-head-review-dialog { width: min(100%, calc(100vw - 20px)) !important; }
+  .jo-head-review-body .jo-review-mode[data-review-mode="approve"] .jo-review-approve-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+/* Head review visual parity with approved reference: compact fact rows,
+   paired verification / authorization and horizontal signature layout. */
+@media (min-width: 721px) {
+  .jo-head-review-dialog { width: min(880px, calc(100vw - 32px)) !important; }
+  .jo-head-review-body .jo-review-details { padding: 13px 16px; }
+  .jo-head-review-body .jo-review-detail-grid > div {
+    display: grid; grid-template-columns: minmax(115px, 42%) minmax(0,1fr);
+    align-items: center; gap: 7px; padding: 7px 4px;
+    border-bottom: 1px solid #e7edf5;
+  }
+  .jo-head-review-body .jo-review-detail-long {
+    display: grid; grid-template-columns: minmax(115px, 21%) minmax(0,1fr);
+    align-items: start; gap: 12px; padding: 8px 4px;
+  }
+  .jo-head-review-body .jo-signature-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px; align-items: stretch;
+  }
+  .jo-head-review-body .jo-signature-identity textarea[name="review_notes"] {
+    min-height: 58px;
+  }
+}
+.jo-head-review-body .jo-review-details { background: #fff; }
+.jo-head-review-body .jo-review-detail-long:last-child { border-bottom: 0; }
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization { display: flex; flex-direction: column; }
+.jo-head-review-body .jo-head-duration-review > strong,
+.jo-head-review-body .jo-head-authorization > strong {
+  font-size: 14px; line-height: 1.3;
+}
+.jo-head-review-body .jo-duration-metric {
+  padding: 12px 13px; border-radius: 9px;
+  background: #edf3ff; border: 1px solid #dce9fc;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.jo-head-review-body .jo-duration-metric > span { font-size: 11px; color: #597297; }
+.jo-head-review-body .jo-duration-metric > strong { font-size: 18px; color: #183d83; }
+.jo-head-review-body .jo-signature-draw-wrap,
+.jo-head-review-body .jo-signature-identity { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.jo-head-review-body .jo-head-duration-review p,
+.jo-head-review-body .jo-head-authorization p { font-size: 11px; }
+.jo-head-review-body .jo-signature-pad { min-height: 124px; }
+.jo-head-review-body .jo-signature-canvas { height: 124px; }
+.jo-head-review-body .jo-review-footer { gap: 9px; }
+
+/* Canonical Head review composition: details, verification, authorization. */
+.jo-head-review-heading {
+  padding: 15px 22px;
+  background: #fff;
+}
+.jo-head-review-heading strong { font-size: 19px; letter-spacing: -.01em; }
+.jo-head-review-heading small { font-size: 11px; }
+.jo-head-review-body .jo-review-panel { gap: 8px; padding: 10px 14px 0 !important; }
+.jo-head-review-body .jo-review-details {
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden;
+  border-color: #d8e6f8;
+  background: #fff !important;
+}
+.jo-head-review-body .jo-review-details-heading {
+  padding: 8px 14px;
+  background: #f5f8fd;
+  border-bottom: 1px solid #e2eaf5;
+}
+.jo-head-review-body .jo-review-details-heading h4 {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 14px;
+}
+.jo-head-review-body .jo-review-details-heading h4 i { color: #17438e; }
+.jo-head-review-body .jo-review-details-heading span {
+  padding: 5px 13px;
+  border-radius: 8px;
+  background: #dbe9ff;
+  color: #17438e;
+  font-size: 11px;
+  font-weight: 800;
+}
+.jo-head-review-body .jo-review-detail-grid { padding: 2px 14px 0; gap: 0 18px; }
+.jo-head-review-body .jo-review-detail-grid > div {
+  min-height: 32px;
+  padding: 6px 2px;
+}
+.jo-head-review-body .jo-review-detail-grid span,
+.jo-head-review-body .jo-review-detail-long > span {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: #60738f;
+}
+.jo-head-review-body .jo-review-detail-grid span i,
+.jo-head-review-body .jo-review-detail-long > span i {
+  width: 14px; color: #17438e; text-align: center;
+}
+.jo-head-review-body .jo-review-detail-long {
+  min-height: 32px;
+  margin: 0 14px;
+  padding: 6px 2px;
+  border-top: 1px solid #e7edf5;
+}
+.jo-head-review-body .jo-review-detail-long p { font-weight: 700; color: #233b5f; }
+.jo-head-review-body .jo-review-audit {
+  min-height: 42px;
+  padding: 0;
+  border-color: #d8e6f8;
+  background: #fff;
+}
+.jo-head-review-body .jo-review-audit summary {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 42px; padding: 0 14px;
+  list-style: none;
+}
+.jo-head-review-body .jo-review-audit summary::before {
+  content: '\f15c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #17438e;
+}
+.jo-head-review-body .jo-review-audit summary::after {
+  content: '\f078'; margin-left: auto; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 10px;
+}
+.jo-head-review-body .jo-review-audit[open] summary::after { transform: rotate(180deg); }
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization {
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden;
+}
+.jo-head-review-body .jo-review-step-heading {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px;
+  background: #f5f8fd;
+  border-bottom: 1px solid #e2eaf5;
+}
+.jo-head-review-body .jo-review-step-number {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex: none;
+  border-radius: 50%; background: #dceaff; color: #174d9d;
+  font-size: 14px; font-weight: 850;
+}
+.jo-head-review-body .jo-review-step-heading strong {
+  display: block; color: #17375f; font-size: 14px;
+}
+.jo-head-review-body .jo-review-step-heading p { margin-top: 2px; color: #71839d; }
+.jo-head-review-body .jo-duration-verification-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, .9fr) minmax(0, 1.25fr);
+  gap: 12px;
+  padding: 10px 14px 12px;
+}
+.jo-head-review-body .jo-duration-metric {
+  min-height: 72px;
+  padding: 10px 12px;
+  justify-content: center;
+  background: #f3f7fd;
+  border-color: #e3ebf7;
+}
+.jo-head-review-body .jo-duration-metric > span,
+.jo-head-review-body .jo-duration-decision-field label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 10px; font-weight: 750; color: #27466f;
+}
+.jo-head-review-body .jo-duration-metric > span i,
+.jo-head-review-body .jo-duration-decision-field label i { color: #174d9d; }
+.jo-head-review-body .jo-duration-metric > strong { font-size: 17px; }
+.jo-head-review-body .jo-duration-metric > small { color: #6c7e98; font-size: 9px; }
+.jo-head-review-body .jo-duration-decision-field {
+  display: flex; flex-direction: column; justify-content: center; gap: 7px; min-width: 0;
+}
+.jo-head-review-body .jo-duration-adjust-fields {
+  padding: 0 14px 14px;
+}
+.jo-head-review-body .jo-signature-grid { padding: 10px 14px 12px; }
+.jo-head-review-body .jo-signature-draw-wrap,
+.jo-head-review-body .jo-signature-identity { gap: 7px; }
+.jo-head-review-body .jo-signature-identity {
+  padding-left: 16px;
+  border-left: 1px solid #e4ebf5;
+}
+.jo-head-review-body .jo-signature-pad { min-height: 118px; }
+.jo-head-review-body .jo-signature-canvas { height: 118px; }
+.jo-head-review-body .jo-signature-identity textarea { flex: 1 1 auto; }
+.jo-head-review-body .jo-review-footer {
+  margin: 0 -14px;
+  padding: 8px 14px;
+}
+@media (max-width: 720px) {
+  .jo-head-review-body .jo-duration-verification-grid,
+  .jo-head-review-body .jo-signature-grid { grid-template-columns: minmax(0, 1fr); }
+  .jo-head-review-body .jo-signature-identity { padding-left: 0; border-left: 0; }
+}
+
+/* Head review: uploaded signature preview replaces the drawing canvas. */
+.jo-signature-upload-zone {
+  min-height: 158px;
+  border: 1px dashed #bfd0ea;
+  border-radius: 11px;
+  background: #fbfcff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  position: relative;
+}
+.jo-signature-upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: #213b60; }
+.jo-signature-upload-placeholder > i { font-size: 24px; color: #59739c; }
+.jo-signature-upload-placeholder > small { color: #667994; }
+.jo-signature-upload-zone .jo-signature-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.jo-signature-preview { display: block; width: 100%; max-height: 110px; object-fit: contain; }
+.jo-signature-preview[hidden], .jo-signature-upload-placeholder[hidden], .jo-signature-remove[hidden] { display: none !important; }
+.jo-signature-upload-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.jo-signature-upload-actions button { border: 1px solid #d4deed; border-radius: 7px; padding: 7px 12px; background: #fff; color: #173a69; font-size: 12px; font-weight: 600; cursor: pointer; }
+.jo-signature-upload-actions button:hover { background: #eaf1ff; }
+.jo-signature-upload-actions button:focus-visible { outline: 2px solid #1a5baf; outline-offset: 2px; }
+.jo-signature-feedback.jo-signature-error { color: #b42318; font-weight: 600; }
+.jo-signature-identity input[name="electronic_signature"][readonly] { background: #f4f7fb; color: #2d4160; }
+
+
+/* Landscape signature crop with full-width approval preview */
+.jo-signature-upload-zone { min-height: 158px; overflow: hidden; padding: 0; gap: 0; }
+.jo-signature-upload-zone:has(.jo-signature-preview:not([hidden])) { background: #fff; }
+.jo-signature-preview { width: 100%; height: 158px; max-height: none; object-fit: cover; object-position: center; }
+.jo-signature-upload-zone .jo-signature-upload-placeholder { min-height: 120px; justify-content: center; }
+.jo-signature-upload-zone .jo-signature-upload-actions { padding: 7px 10px; background: #f7faff; width: 100%; }
+.jo-signature-crop-modal:not([hidden]) { display: flex; }
+.jo-signature-crop-modal {
+  position: fixed; inset: 0; z-index: 99999; background: rgba(10,23,47,.7);
+  align-items: center; justify-content: center; padding: 20px;
+  backdrop-filter: blur(5px);
+}
+.jo-signature-crop-modal[hidden] { display: none !important; }
+.jo-signature-crop-dialog {
+  width: min(620px, 100%); padding: 18px; background: #fff; border-radius: 14px;
+  box-shadow: 0 15px 50px rgba(0,0,0,.28); display: flex; flex-direction: column; gap: 14px;
+}
+.jo-signature-crop-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; color: #132b4c; }
+.jo-signature-crop-header > div { display: flex; flex-direction: column; gap: 5px; }
+.jo-signature-crop-header small { color: #687b96; }
+.jo-signature-crop-header button { border: 1px solid #d6e1ef; background: #f7f9fd; border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+.jo-signature-crop-viewport {
+  width: 100%; aspect-ratio: 22 / 7; overflow: hidden; position: relative;
+  border: 2px dashed #6f9bd8; border-radius: 10px; background: #f2f5fa;
+  cursor: grab; touch-action: none;
+}
+.jo-signature-crop-viewport:active { cursor: grabbing; }
+.jo-signature-crop-image { position: absolute; left: 50%; top: 50%; max-width: none; max-height: none; user-select: none; pointer-events: none; }
+.jo-signature-crop-zoom-label { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 700; color: #263f65; }
+.jo-signature-crop-zoom { flex: 1; accent-color: #174b96; }
+.jo-signature-crop-footer { display: flex; justify-content: flex-end; gap: 8px; }
+.jo-signature-crop-footer button { border-radius: 8px; padding: 10px 16px; border: 1px solid #cbd9ec; background: #fff; font-weight: 700; cursor: pointer; }
+.jo-signature-crop-footer .jo-signature-crop-apply { background: #0f4a99; border-color: #0f4a99; color: #fff; }
+
+
+/* Head approval is unavailable until a signature crop has been applied. */
+.jo-review-approve-submit:disabled,
+.jo-review-approve-submit[aria-disabled="true"] {
+  background: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  color: #6b7280 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 1;
+  transform: none !important;
+}
+
+
+/* Job Order ledger refinement: compact, readable rows and aligned actions. */
+.jo-page .job-orders-table { table-layout: fixed; min-width: 1060px; }
+.jo-page .job-orders-table th:nth-child(1) { width: 8%; }
+.jo-page .job-orders-table th:nth-child(2) { width: 18%; }
+.jo-page .job-orders-table th:nth-child(3) { width: 18%; }
+.jo-page .job-orders-table th:nth-child(4) { width: 13%; }
+.jo-page .job-orders-table th:nth-child(5) { width: 15%; }
+.jo-page .job-orders-table th:nth-child(6) { width: 11%; }
+.jo-page .job-orders-table th:nth-child(7) { width: 10%; }
+.jo-page .job-orders-table th:nth-child(8) { width: 7%; }
+.jo-page .job-orders-table tbody td {
+  vertical-align: middle;
+  padding-block: 12px;
+  border-bottom: 1px solid #e8eef7;
+}
+.jo-page .job-orders-table tbody tr:nth-child(even) { background: #fbfcff; }
+.jo-page .job-orders-table .jo-type-label { display: block; font-size: 12px; font-weight: 700; line-height: 1.35; }
+.jo-page .job-orders-table .jo-estimate-inline { font-weight: 500; font-size: 11px; margin-top: 4px; }
+.jo-page .job-orders-table .jo-mechanic-profiles { max-width: 100%; }
+.jo-page .job-orders-table .jo-mechanic-profile-text { min-width: 0; }
+.jo-page .job-orders-table .jo-mechanic-profile-name { overflow-wrap: anywhere; }
+.jo-page .job-orders-table .jo-actions-cell .actions { white-space: nowrap; }
+.jo-page .job-orders-table .locked-finish-btn:disabled { cursor: not-allowed !important; }
+@media (max-width: 1150px) {
+  .jo-page .job-orders-table { min-width: 1060px; }
+}
+
+/* Explicit review and no-purchase-request states in the Job Orders ledger. */
+.jo-page .job-orders-table .jo-for-review-badge {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: #fff1d6 !important;
+  color: #925700 !important;
+  border: 1px solid #f6d58d !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+.jo-page .job-orders-table .jo-no-pr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 11px;
+  border: 1px solid #d6e0ed;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #52647d;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+/* Parts need versus pending request: visual labels only; workflow statuses stay unchanged. */
+.jo-page .job-orders-table .jo-no-parts-required-badge,
+.jo-page .job-orders-table .jo-parts-not-requested-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.jo-page .job-orders-table .jo-no-parts-required-badge {
+  color: #167341;
+  background: #e7f7ed;
+  border-color: #b9e8ca;
+}
+.jo-page .job-orders-table .jo-parts-not-requested-badge {
+  color: #946000;
+  background: #fff2d7;
+  border-color: #f2d28b;
+}
+
+
+/* Dedicated read-only Job Order summary */
+.jo-view-overlay[hidden] { display: none !important; }
+.jo-view-overlay { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 25, 49, .56); backdrop-filter: blur(5px); }
+body.jo-readonly-open { overflow: hidden; }
+.jo-view-dialog { width: min(790px, 100%); max-height: min(790px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d8e4f5; border-radius: 15px; background: #fff; color: #152c4d; box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.jo-view-header { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 17px 20px; border-bottom: 1px solid #e1e8f2; background: #f7faff; }
+.jo-view-header h2 { margin: 0; font-size: 19px; font-weight: 800; }
+.jo-view-header p { margin: 5px 0 0; color: #60738e; font-size: 12px; }
+.jo-view-header button, .jo-view-footer button { border: 1px solid #d2deee; border-radius: 8px; background: #fff; color: #16365f; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.jo-view-body { overflow: auto; overscroll-behavior: contain; padding: 16px 20px 20px; display: grid; gap: 12px; }
+.jo-view-summary { padding: 12px 15px; border: 1px solid #d8e6fb; background: #f0f6ff; border-radius: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.jo-view-summary > div, .jo-view-grid > div { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.jo-view-summary span, .jo-view-grid span { font-size: 10px; letter-spacing: .02em; color: #6a7b92; font-weight: 600; }
+.jo-view-summary strong { color: #0c3f87; font-size: 14px; }
+.jo-view-section { border: 1px solid #dce6f4; border-radius: 11px; overflow: hidden; }
+.jo-view-section h3 { margin: 0; padding: 11px 14px; background: #f4f7fc; border-bottom: 1px solid #e0e8f3; font-size: 12px; font-weight: 800; color: #16365f; display: flex; align-items: center; gap: 8px; }
+.jo-view-grid { padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px 22px; }
+.jo-view-grid strong { color: #1c3554; font-weight: 700; font-size: 12px; overflow-wrap: anywhere; }
+.jo-view-help { margin: 0 14px 14px; font-size: 11px; color: #64748b; }
+.jo-view-audit { border: 1px solid #dce6f4; border-radius: 10px; padding: 13px 15px; font-size: 12px; }
+.jo-view-audit summary { cursor: pointer; font-weight: 800; }
+.jo-view-audit ol { margin: 12px 0 0; padding-left: 18px; }
+.jo-view-audit li { padding: 6px 0; }
+.jo-view-audit small { color: #6a7b92; display: block; margin-top: 4px; }
+.jo-view-footer { flex: none; display: flex; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #e1e8f2; background: #fff; }
+.jo-view-header button:hover, .jo-view-footer button:hover { background: #e9f1fd; }
+@media (max-width: 580px) { .jo-view-overlay { padding: 8px; } .jo-view-dialog { max-height: calc(100vh - 16px); } .jo-view-grid { grid-template-columns: 1fr; } .jo-view-summary { grid-template-columns: 1fr 1fr; } }
+
+
+/* Read-only Job Order modal — refined FROMS visual hierarchy. */
+.jo-view-dialog { width: min(850px, 100%); border-radius: 17px; }
+.jo-view-header { padding: 19px 23px; background: linear-gradient(120deg,#f1f6ff 0%,#fff 100%); }
+.jo-view-heading { display: flex; align-items: center; gap: 13px; }
+.jo-view-heading-icon { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border: 1px solid #bcd4ff; border-radius: 12px; color: #0d4b9c; background: #e7f0ff; font-size: 18px; }
+.jo-view-body { gap: 14px; background: #fbfcff; padding: 17px 22px 22px; }
+.jo-view-summary { border-color: #b8d1f5; background: linear-gradient(100deg,#eaf3ff,#f7faff); padding: 15px 18px; }
+.jo-view-summary span { text-transform: uppercase; letter-spacing: .07em; font-size: 10px; }
+.jo-view-summary strong { font-size: 16px; }
+.jo-view-summary .badge { display: inline-flex; width: fit-content; padding: 5px 12px; border-radius: 99px; background: #dbeafe; color: #134ba6; border: 1px solid #bad3fc; font-size: 11px; }
+.jo-view-section { background: #fff; border-color: #dae5f4; box-shadow: 0 2px 8px rgba(16,58,105,.035); }
+.jo-view-section h3 { padding: 12px 15px; color: #10366e; font-size: 12px; background: #f1f5fc; }
+.jo-view-section h3 i { display: grid; place-items: center; width: 21px; color: #1554a4; }
+.jo-view-grid { gap: 17px 24px; padding: 16px; }
+.jo-view-grid > div { padding-left: 10px; border-left: 2px solid #e4edfa; }
+.jo-view-grid span { font-size: 10px; letter-spacing: .025em; }
+.jo-view-grid span i { color: #6384b3; margin-right: 4px; }
+.jo-view-grid strong { line-height: 1.55; font-size: 12px; }
+.jo-view-grid strong.jo-view-duration { color: #114b9b; font-size: 16px; }
+.jo-view-approved-icon { color: #11a267; }
+.jo-view-parts-pill { display: inline-flex; width: fit-content; align-items: center; min-height: 25px; padding: 4px 10px; border-radius: 99px; border: 1px solid #bed5fb; background: #e9f1ff; color: #164c99; font-size: 11px; }
+.jo-view-parts-pill.is-none { background: #e7f7ed; border-color: #b9e8ca; color: #167341; }
+.jo-view-parts-pill.is-pending { background: #fff2d7; border-color: #f2d28b; color: #946000; }
+.jo-view-audit { background: #fff; border-color: #dae5f4; }
+.jo-view-audit summary { display: flex; align-items: center; gap: 8px; color: #163d77; list-style: none; }
+.jo-view-audit summary::-webkit-details-marker { display: none; }
+.jo-view-audit-count { padding: 2px 7px; border-radius: 99px; color: #1852a0; background: #e9f1ff; font-size: 10px; }
+.jo-view-audit ol { list-style: none; margin: 14px 0 0 9px; padding: 0 0 0 16px; border-left: 2px solid #bfd4f1; }
+.jo-view-audit li { position: relative; padding: 2px 0 16px 10px; line-height: 1.5; }
+.jo-view-audit li::before { content: ''; position: absolute; left: -22px; top: 7px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 100%; background: #2868bd; box-shadow: 0 0 0 1px #9fbee9; }
+.jo-view-footer { background: #f9fbff; }
+.jo-view-footer button { background: #0f4a99; color: #fff; border-color: #0f4a99; min-width: 90px; }
+.jo-view-footer button:hover { background: #0b3876; color: #fff; }
+
+
+/* Prevent compressed grid tracks from clipping the read-only Job Order sections. */
+.jo-view-dialog { height: auto; max-height: calc(100dvh - 40px); }
+.jo-view-body {
+  display: block !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+.jo-view-body > .jo-view-summary,
+.jo-view-body > .jo-view-section,
+.jo-view-body > .jo-view-audit {
+  display: block;
+  height: auto !important;
+  min-height: max-content;
+  margin-bottom: 12px;
+}
+.jo-view-body > :last-child { margin-bottom: 0; }
+.jo-view-section .jo-view-grid {
+  display: grid;
+  height: auto;
+  min-height: min-content;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 15px 20px;
+}
+.jo-view-section .jo-view-grid > div { min-height: 44px; padding: 0 0 0 10px; }
+.jo-view-section .jo-view-grid strong { display: block; white-space: normal; }
+.jo-view-summary { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
+@media (max-width: 580px) {
+  .jo-view-dialog { max-height: calc(100dvh - 16px); }
+  .jo-view-section .jo-view-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Per-part Warehouse inventory availability in the Job Order form. */
+.jo-inventory-availability-heading {
+  font-size: 12px;
+  font-weight: 800;
+  color: #243d64;
+  margin-bottom: 9px;
+}
+.jo-inventory-availability-list { display: grid; gap: 7px; }
+.jo-inventory-availability-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid #dbe5f2;
+  background: #fff;
+}
+.jo-inventory-availability-part-name {
+  min-width: 0;
+  color: #183c69;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.jo-inventory-availability-counts { font-size: 11px; color: #536781; overflow-wrap: anywhere; }
+.jo-inventory-availability-pill {
+  padding: 4px 9px;
+  border: 1px solid #dbe3ec;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.jo-inventory-availability-pill.is-available { color: #167341; background: #e7f7ed; border-color: #b9e8ca; }
+.jo-inventory-availability-pill.is-partial { color: #946000; background: #fff2d7; border-color: #f2d28b; }
+.jo-inventory-availability-pill.is-out { color: #ad3030; background: #fff0f0; border-color: #f4c3c3; }
+@media (max-width: 650px) {
+  .jo-inventory-availability-item { grid-template-columns: minmax(0, 1fr) auto; }
+  .jo-inventory-availability-counts { grid-column: 1 / -1; grid-row: 2; }
+}
+
+
+/* Compact per-row stock indicator, aligned inside the existing wide part picker. */
+.jo-page .jo-create-parts-repeater .jo-inventory-search-wrap { position: relative; min-width: 0; }
+.jo-page .jo-create-parts-repeater .jo-inventory-search-trigger { padding-right: 110px; width: 100%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jo-page .jo-create-parts-repeater .jo-row-stock-badge {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 102px;
+  min-height: 23px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+  white-space: nowrap;
+  border: 1px solid #d3dfec;
+  color: #64748b;
+  background: #f1f5f9;
+}
+.jo-page .jo-row-stock-badge[hidden] { display: none !important; }
+.jo-page .jo-row-stock-badge.is-available { background: #e7f7ed; color: #167341; border-color: #b9e8ca; }
+.jo-page .jo-row-stock-badge.is-partial { background: #fff2d7; color: #946000; border-color: #f2d28b; }
+.jo-page .jo-row-stock-badge.is-out { background: #fff0f0; color: #ad3030; border-color: #f4c3c3; }
+.jo-page .jo-row-stock-badge.is-unknown { font-size: 9px; }
+
+
+/* Stock is a dedicated column immediately to the right of Unit. */
+#jobModal .jo-create-parts-table-head,
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  grid-template-columns: 28px minmax(0,1fr) 80px 96px 108px 50px;
+  column-gap: 9px;
+  align-items: center;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge {
+  position: static !important;
+  transform: none !important;
+  grid-column: 5;
+  grid-row: 1;
+  width: fit-content;
+  max-width: 108px;
+  justify-self: start;
+  display: inline-flex;
+  font-size: 10px;
+  padding: 4px 8px;
+  pointer-events: auto;
+  white-space: nowrap;
+  min-height: 23px;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge[hidden] { display: none !important; }
+#jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 6; grid-row: 1; }
+#jobModal .jo-create-parts-repeater .jo-inventory-search-trigger { padding-right: 12px; }
+@media (max-width: 700px) {
+  #jobModal .jo-create-parts-table { overflow-x: auto; }
+  #jobModal .jo-create-parts-table-head,
+  #jobModal .jo-create-parts-repeater .jo-part-row {
+    min-width: 720px;
+    grid-template-columns: 28px minmax(230px,1fr) 76px 86px 108px 42px;
+  }
+  #jobModal .jo-create-parts-table-head { display: grid; }
+  #jobModal .jo-create-parts-repeater .jo-inventory-search-wrap { grid-column: 2; grid-row: 1; }
+  #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 3; grid-row: 1; }
+  #jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select { grid-column: 4; grid-row: 1; }
+}
+
+
+/* Stock pill refinement: match compact badge presentation from the requested reference. */
+#jobModal .jo-create-parts-table-head,
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  grid-template-columns: 28px minmax(0, 1fr) 80px 96px 112px 50px;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  width: max-content;
+  max-width: 110px;
+  min-width: 0;
+  min-height: 24px;
+  border-radius: 999px !important;
+  padding: 4px 11px !important;
+  font-size: 10px !important;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0;
+  vertical-align: middle;
+  box-shadow: none;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge[hidden] { display: none !important; }
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-available {
+  background: #e0f6e8 !important;
+  border: 1px solid #a5e2b9 !important;
+  color: #096b35 !important;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-partial {
+  background: #fff2d5 !important;
+  border: 1px solid #eec977 !important;
+  color: #915a00 !important;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-out {
+  background: #ffe8e8 !important;
+  border: 1px solid #efb5b5 !important;
+  color: #af2626 !important;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-unknown {
+  background: #edf2f8 !important;
+  border: 1px solid #d5dfec !important;
+  color: #526780 !important;
+  padding-inline: 6px !important;
+  font-size: 9px !important;
+}
+
+/* Center stock badges precisely under the Stock header. */
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge {
+  justify-self: center !important;
+  align-self: center;
+  margin-inline: auto;
+}
+#jobModal .jo-create-parts-table-head > span:nth-child(5) { text-align: center; }
+
+
+/* Private approval signature in the read-only Job Order modal. */
+.jo-view-signature { display: flex; flex-direction: column; gap: 8px; padding: 0 15px 15px; }
+.jo-view-signature > span { font-size: 11px; font-weight: 700; color: #526780; }
+.jo-view-signature img {
+  width: 100%;
+  max-width: 570px;
+  height: 120px;
+  object-fit: contain;
+  object-position: center;
+  border: 1px solid #dce6f4;
+  border-radius: 9px;
+  background: #fff;
+}
+
+
+/* Head review: individual requested parts and binary Warehouse availability. */
+.jo-head-review-body .jo-review-parts-list,
+.jo-review-panel .jo-review-parts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 5px;
+}
+.jo-head-review-body .jo-review-part-item,
+.jo-review-panel .jo-review-part-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(106px, auto);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #e0e9f6;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+.jo-review-part-name { color: #1a3558; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.jo-review-part-qty { color: #536c8d; font-size: 11px; white-space: nowrap; }
+.jo-review-part-availability {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+  padding: 5px 9px;
+  text-align: center;
+  white-space: nowrap;
+}
+.jo-review-part-availability.is-available { background: #e1f6e8; color: #116438; }
+.jo-review-part-availability.is-unavailable { background: #ffe9e9; color: #ac2533; }
+.jo-review-part-availability.is-checking,
+.jo-review-part-availability.is-unknown { background: #eaf1fa; color: #486381; }
+@media (max-width: 600px) {
+  .jo-head-review-body .jo-review-part-item,
+  .jo-review-panel .jo-review-part-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .jo-review-part-availability { grid-column: 1 / -1; justify-self: start; }
+}
+
+
+/* Compact three-column requested-parts table for Maintenance Head JO review. */
+.jo-review-panel .jo-review-requested-parts,
+.jo-head-review-body .jo-review-requested-parts { gap: 8px; }
+.jo-review-parts-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.jo-review-parts-heading > span:first-child { color: #425c7d; font-size: 11px; font-weight: 700; }
+.jo-review-parts-count {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #edf3fc;
+  color: #3b5c86;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.jo-review-panel .jo-review-parts-list,
+.jo-head-review-body .jo-review-parts-list {
+  display: block;
+  overflow: hidden;
+  border: 1px solid #dae5f3;
+  border-radius: 9px;
+  background: #fff;
+  margin-top: 0;
+}
+.jo-review-parts-table-header,
+.jo-review-panel .jo-review-part-item,
+.jo-head-review-body .jo-review-part-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 95px 135px;
+  column-gap: 12px;
+  align-items: center;
+}
+.jo-review-parts-table-header {
+  padding: 8px 12px;
+  background: #edf4fe;
+  color: #36587f;
+  font-size: 10px;
+  font-weight: 750;
+  border-bottom: 1px solid #dbe6f4;
+}
+.jo-review-panel .jo-review-part-item,
+.jo-head-review-body .jo-review-part-item {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  gap: 12px;
+}
+.jo-review-panel .jo-review-part-item + .jo-review-part-item,
+.jo-head-review-body .jo-review-part-item + .jo-review-part-item {
+  border-top: 1px solid #e8eef6;
+}
+.jo-review-part-name { font-size: 11px; font-weight: 700; }
+.jo-review-part-qty { font-size: 11px; white-space: normal; }
+.jo-review-part-availability { justify-self: start; min-width: 90px; }
+@media (max-width: 600px) {
+  .jo-review-parts-table-header,
+  .jo-review-panel .jo-review-part-item,
+  .jo-head-review-body .jo-review-part-item {
+    grid-template-columns: minmax(0, 1fr) 58px 105px;
+    column-gap: 6px;
+    padding-inline: 7px;
+  }
+  .jo-review-parts-table-header { font-size: 9px; }
+  .jo-review-part-availability { grid-column: auto; justify-self: start; min-width: 0; font-size: 9px; padding: 4px 6px; white-space: normal; }
+}
+
+
+/* Full-width requested-parts table: larger, clearer text and no side gutter. */
+.jo-head-review-body .jo-review-details .jo-review-requested-parts,
+.jo-review-panel .jo-review-details .jo-review-requested-parts {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: none !important;
+  padding-top: 11px;
+}
+.jo-head-review-body .jo-review-requested-parts .jo-review-parts-list,
+.jo-review-panel .jo-review-requested-parts .jo-review-parts-list {
+  width: 100%;
+  margin: 0;
+}
+.jo-review-parts-table-header,
+.jo-head-review-body .jo-review-part-item,
+.jo-review-panel .jo-review-part-item {
+  grid-template-columns: minmax(0, 1fr) 100px 135px;
+  column-gap: 14px;
+}
+.jo-review-parts-table-header {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.jo-head-review-body .jo-review-part-item,
+.jo-review-panel .jo-review-part-item {
+  padding: 11px 14px;
+  min-height: 43px;
+}
+.jo-review-part-name { font-size: 13px; line-height: 1.4; }
+.jo-review-part-qty { font-size: 12px; line-height: 1.4; }
+.jo-review-part-availability {
+  min-width: 98px;
+  padding: 6px 10px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+@media (max-width: 600px) {
+  .jo-review-parts-table-header,
+  .jo-head-review-body .jo-review-part-item,
+  .jo-review-panel .jo-review-part-item {
+    grid-template-columns: minmax(0, 1fr) 65px 102px;
+    column-gap: 7px;
+  }
+  .jo-review-parts-table-header { padding: 9px 8px; font-size: 10px; }
+  .jo-head-review-body .jo-review-part-item,
+  .jo-review-panel .jo-review-part-item { padding: 9px 8px; }
+  .jo-review-part-name { font-size: 12px; }
+  .jo-review-part-qty { font-size: 11px; }
+  .jo-review-part-availability { min-width: 0; padding: 5px 6px; font-size: 10px; }
+}
+
+
+/* Head review summary: slightly larger labels and values for readability. */
+.jo-head-review-body .jo-review-details-heading h4 {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.jo-head-review-body .jo-review-detail-grid span,
+.jo-head-review-body .jo-review-detail-long > span {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.jo-head-review-body .jo-review-detail-grid strong {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.jo-head-review-body .jo-review-detail-long p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.jo-head-review-body .jo-review-detail-grid > div {
+  padding-block: 4px;
+}
+
+
+/* Head review: remove the former two-column label gutter from Requested Parts. */
+.jo-head-review-body .jo-review-details .jo-review-detail-long.jo-review-requested-parts {
+  display: block !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  margin: 0 !important;
+  padding: 6px 0 !important;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.jo-head-review-body .jo-review-details .jo-review-requested-parts .jo-review-parts-list {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 !important;
+  box-sizing: border-box;
 }

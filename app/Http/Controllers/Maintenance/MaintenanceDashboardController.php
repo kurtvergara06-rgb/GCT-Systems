@@ -50,7 +50,7 @@ class MaintenanceDashboardController extends Controller
         $totalActiveJobOrders = $activeJobOrders->count();
         $ongoingCount = $activeJobOrders->where('status', 'On Going')->count();
         $onHoldCount = $activeJobOrders->where('status', 'On Hold')->count();
-        $completedCount = $allJobOrders->where('status', 'Completed')->count();
+        $completedCount = $allJobOrders->where('status', 'Completed')->where('review_status', 'Approved')->count();
 
         // Breakdown repairs: active JOs linked to a referral or breakdown incident
         $breakdownRepairs = $activeJobOrders->filter(function (JobOrder $jo) {

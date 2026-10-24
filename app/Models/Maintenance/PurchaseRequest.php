@@ -2,8 +2,10 @@
 
 namespace App\Models\Maintenance;
 
+use App\Models\Admin\User;
 use App\Models\Purchase\PurchaseOrder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PurchaseRequest extends Model
@@ -23,6 +25,9 @@ class PurchaseRequest extends Model
         'warehouse_issue_quantities',
         'source_type',
         'remarks',
+        'purpose',
+        'target_date',
+        'requested_by',
         'approved_at',
         'rejected_at',
         'issued_at',
@@ -35,7 +40,13 @@ class PurchaseRequest extends Model
         'warehouse_approved_at' => 'datetime',
         'warehouse_prepared_at' => 'datetime',
         'warehouse_issue_quantities' => 'array',
+        'target_date' => 'date',
     ];
+
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
 
     public function purchaseOrder(): HasOne
     {

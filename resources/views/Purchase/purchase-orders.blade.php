@@ -111,7 +111,7 @@
           <table class="records-table">
             <thead>
               <tr>
-                <th>PO No.</th><th>Item</th><th>Request No.</th><th>Request Type</th><th>Qty</th><th>Total Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+                <th>PO ID</th><th>Item</th><th>Request ID</th><th>Request Type</th><th>Qty</th><th>Total Amount</th><th>Status</th><th>Date</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -259,7 +259,7 @@
           <div class="po-form-section-body">
             <div class="po-form-grid">
               <div class="po-form-group">
-                <label for="po_no">PO Number <span class="po-required">*</span></label>
+                <label for="po_no">PO ID <span class="po-required">*</span></label>
                 <input type="text" name="po_no" id="po_no" value="{{ $nextPoNo ?? '' }}" readonly>
               </div>
 

@@ -37,7 +37,10 @@ class MaintenanceReferralController extends Controller
             ->whereIn('status', $viewStatuses);
 
         if ($request->filled('status') && $request->input('status') !== 'all') {
-            $query->where('status', $request->input('status'));
+            $status = $request->input('status');
+            if (is_string($status) && in_array($status, $viewStatuses, true)) {
+                $query->where('status', $status);
+            }
         }
 
         if ($request->filled('search')) {
@@ -84,15 +87,18 @@ class MaintenanceReferralController extends Controller
     {
         $this->authorizeReferralReview();
 
-        if ($maintenanceReferral->status !== 'Pending') {
+        $updated = MaintenanceReferral::query()
+            ->whereKey($maintenanceReferral->getKey())
+            ->where('status', 'Pending')
+            ->update([
+                'status' => 'Approved',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+
+        if ($updated !== 1) {
             return back()->with('error', 'Only pending maintenance referrals can be approved.');
         }
-
-        $maintenanceReferral->update([
-            'status' => 'Approved',
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -109,20 +115,27 @@ class MaintenanceReferralController extends Controller
     {
         $this->authorizeReferralReview();
 
-        if ($maintenanceReferral->status !== 'Pending') {
-            return back()->with('error', 'Only pending maintenance referrals can be rejected.');
-        }
-
         $validated = $request->validate([
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $maintenanceReferral->update([
+        $fields = [
             'status' => 'Rejected',
-            'notes' => $validated['notes'] ?? $maintenanceReferral->notes,
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
-        ]);
+        ];
+        if (array_key_exists('notes', $validated) && $validated['notes'] !== null) {
+            $fields['notes'] = $validated['notes'];
+        }
+
+        $updated = MaintenanceReferral::query()
+            ->whereKey($maintenanceReferral->getKey())
+            ->where('status', 'Pending')
+            ->update($fields);
+
+        if ($updated !== 1) {
+            return back()->with('error', 'Only pending maintenance referrals can be rejected.');
+        }
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',

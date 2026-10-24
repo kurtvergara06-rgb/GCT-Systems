@@ -28,9 +28,9 @@
 
 .referral-section-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
 }
 
 .referral-record-tabs {
@@ -38,7 +38,7 @@
   align-items: center;
   gap: 6px;
   padding: 5px;
-  margin-left: auto;
+  margin-left: 0;
   border: 1px solid #dbe4f0;
   border-radius: 12px;
   background: #f6f8fb;
@@ -166,11 +166,24 @@
 /* =========================================================
    TABLE PRESENTATION
 ========================================================= */
+.referrals-card .table-wrap {
+  overflow-x: auto;
+}
+
 .referrals-table {
   width: 100%;
+  min-width: 1000px;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
 }
+
+.referrals-table th:nth-child(1) { width: 11%; }
+.referrals-table th:nth-child(2) { width: 19%; }
+.referrals-table th:nth-child(3) { width: 34%; }
+.referrals-table th:nth-child(4) { width: 12%; }
+.referrals-table th:nth-child(5) { width: 9%; }
+.referrals-table th:nth-child(6) { width: 15%; }
 
 .referrals-table th {
   background: #f8fafc;
@@ -179,12 +192,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 12px 14px;
+  padding: 15px 16px;
+  text-align: left;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .referrals-table td {
-  padding: 12px 14px;
+  padding: 18px 16px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
   font-size: 12.5px;
@@ -230,6 +244,7 @@
 }
 
 .location-problem-cell {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -250,6 +265,7 @@
 }
 
 .problem-desc {
+  overflow-wrap: anywhere;
   margin: 0;
   font-size: 11.5px;
   color: #475569;
@@ -387,4 +403,346 @@
   .referral-toolbar select {
     width: 100%;
   }
+}
+
+/* Keep the referrals heading and view tabs anchored to the card's left edge.
+   This scoped selector overrides later generic .section-header rules. */
+.referrals-page .referrals-card > .referral-section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+  gap: 12px;
+  margin: 0 0 12px;
+  text-align: left;
+}
+
+.referrals-page .referrals-card > .referral-section-header > div:first-child {
+  width: 100%;
+  flex: none;
+  margin: 0;
+  text-align: left;
+}
+
+.referrals-page .referrals-card .referral-record-tabs {
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+}
+
+.referrals-page .referrals-card .referral-history-note {
+  margin: 0 0 10px;
+}
+
+.referrals-page .referrals-card .table-toolbar {
+  margin-top: 8px;
+}
+
+@media (max-width: 576px) {
+  .referrals-page .referrals-card .referral-record-tabs {
+    width: auto;
+  }
+}
+
+
+/* Maintenance list pages use the Registered Buses two-row pattern:
+   heading above; view tabs left and table tools right on one control row. */
+.referrals-page .maintenance-list-controls,
+.jo-page .maintenance-list-controls,
+.purchase-page .maintenance-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 16px;
+}
+
+.referrals-page .maintenance-list-controls > .referral-record-tabs,
+.jo-page .maintenance-list-controls > .maintenance-record-tabs,
+.purchase-page .maintenance-list-controls > .maintenance-record-tabs {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
+}
+
+.referrals-page .maintenance-list-controls > .gct-table-toolbar,
+.jo-page .maintenance-list-controls > .gct-table-toolbar,
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 0 auto;
+}
+
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.purchase-page .maintenance-list-controls > .gct-table-toolbar-row .gct-table-toolbar {
+  width: auto;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .referrals-page .maintenance-list-controls,
+  .jo-page .maintenance-list-controls,
+  .purchase-page .maintenance-list-controls {
+    align-items: stretch;
+  }
+
+  .referrals-page .maintenance-list-controls > .gct-table-toolbar,
+  .jo-page .maintenance-list-controls > .gct-table-toolbar,
+  .purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+    margin-left: 0;
+  }
+
+  .purchase-page .maintenance-list-controls > .gct-table-toolbar-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+
+/* Maintenance Referrals visual polish — scoped to this page only.
+   Keeps existing Blade actions, shared toolbar behavior and AJAX regions. */
+.referrals-page .referral-stats-grid {
+  gap: 16px;
+  margin: 20px 0 18px;
+}
+
+.referrals-page .referrals-card {
+  padding: 22px 24px 20px;
+  border-radius: 16px;
+}
+
+.referrals-page .referrals-card > .referral-section-header {
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.referrals-page .referral-section-header h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: -.02em;
+  color: var(--ref-navy);
+}
+
+.referrals-page .referral-section-header p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--ref-muted);
+}
+
+.referrals-page .referrals-controls-row {
+  margin: 0 0 14px;
+  gap: 12px 18px;
+}
+
+.referrals-page .referral-record-tabs {
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.referrals-page .referral-record-tab {
+  min-height: 38px;
+  justify-content: center;
+}
+
+.referrals-page .referrals-controls-row > .gct-table-toolbar {
+  align-self: center;
+}
+
+.referrals-page .referrals-card .table-wrap {
+  border: 1px solid #e6edf6;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.referrals-page .referrals-table {
+  min-width: 1050px;
+}
+
+.referrals-page .referrals-table th:nth-child(1) { width: 12%; }
+.referrals-page .referrals-table th:nth-child(2) { width: 18%; }
+.referrals-page .referrals-table th:nth-child(3) { width: 32%; }
+.referrals-page .referrals-table th:nth-child(4) { width: 13%; }
+.referrals-page .referrals-table th:nth-child(5) { width: 10%; }
+.referrals-page .referrals-table th:nth-child(6) { width: 15%; }
+
+.referrals-page .referrals-table th {
+  padding: 14px 14px;
+  background: #f7f9fc;
+  color: #43546b;
+  font-size: 10.5px;
+  letter-spacing: .045em;
+  white-space: nowrap;
+}
+
+.referrals-page .referrals-table td {
+  padding: 18px 14px;
+  border-bottom: 1px solid #e9eff7;
+  line-height: 1.45;
+}
+
+.referrals-page .referrals-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.referrals-page .incident-cell,
+.referrals-page .location-problem-cell {
+  gap: 5px;
+}
+
+.referrals-page .location-problem-cell {
+  max-width: none;
+}
+
+.referrals-page .location-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.referrals-page .problem-desc {
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.referrals-page .bus-badge-pill,
+.referrals-page .linked-jo-pill {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.35;
+  padding: 5px 9px;
+}
+
+.referrals-page .referral-actions-wrap {
+  flex-wrap: nowrap;
+  gap: 7px;
+}
+
+.referrals-page .referral-actions-wrap form {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.referrals-page .btn-ref-action {
+  box-sizing: border-box;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 10px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.referrals-page .referral-record-tab:focus-visible,
+.referrals-page .btn-ref-action:focus-visible,
+.referrals-page .linked-jo-pill:focus-visible {
+  outline: 2px solid var(--ref-blue);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .referrals-page .referrals-card {
+    padding: 18px;
+  }
+  .referrals-page .referrals-table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 760px) {
+  .referrals-page .referrals-controls-row {
+    align-items: flex-start;
+  }
+  .referrals-page .referrals-controls-row > .gct-table-toolbar {
+    margin: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .referrals-page .referrals-card {
+    padding: 16px 12px;
+  }
+  .referrals-page .referral-section-header h2 {
+    font-size: 16px;
+  }
+  .referrals-page .referrals-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .referrals-page .referrals-controls-row > .gct-table-toolbar {
+    align-self: stretch;
+  }
+  .referrals-page .referrals-card .table-wrap {
+    border-radius: 8px;
+  }
+}
+
+
+/* Referrals decision buttons: balanced paired actions, without changing forms. */
+.referrals-page .referral-actions-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.referrals-page .referral-actions-wrap form {
+  display: inline-flex;
+  margin: 0;
+  padding: 0;
+}
+
+.referrals-page .referral-actions-wrap .btn-ref-action.btn-approve,
+.referrals-page .referral-actions-wrap .btn-ref-action.btn-reject {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 94px;
+  min-width: 94px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.referrals-page .referral-actions-wrap .btn-approve {
+  background: #e8f8ef;
+  border-color: #a7e8bf;
+  color: #14783c;
+}
+
+.referrals-page .referral-actions-wrap .btn-reject {
+  background: #fff0f0;
+  border-color: #ffc4c4;
+  color: #c62828;
+}
+
+.referrals-page .referral-actions-wrap .btn-approve:hover {
+  background: #d4f4e0;
+  border-color: #7dd8a2;
+}
+
+.referrals-page .referral-actions-wrap .btn-reject:hover {
+  background: #ffe1e1;
+  border-color: #fca5a5;
 }

@@ -19,15 +19,25 @@ class MechanicListController extends Controller
             ? Carbon::parse($request->attendance_date)->toDateString()
             : now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
-        $activeJobs = JobOrder::query()
-            ->whereNotNull('assigned_mechanic')
-            ->where('assigned_mechanic', '!=', '')
-            ->whereNotIn('status', ['Completed', 'Cancelled'])
+        $activeJobs = JobOrder::query()->with('mechanicAssignments')
+            ->where('status', 'On Going')
+            ->where('review_status', 'Approved')
             ->latest('start_date')
             ->latest('id')
             ->get()
-            ->groupBy(fn (JobOrder $jobOrder) => Str::lower(trim($jobOrder->assigned_mechanic)))
-            ->map(fn ($jobs) => $jobs->first());
+            ->flatMap(function (JobOrder $jobOrder) {
+                $names = $jobOrder->mechanicAssignments->pluck('mechanic_name');
+                if ($names->isEmpty()) {
+                    $names = collect(preg_split('/\s*,\s*/', (string) $jobOrder->assigned_mechanic) ?: []);
+                }
+
+                return $names->filter()->map(fn ($name) => (object) [
+                    'mechanic_name' => $name,
+                    'jobOrder' => $jobOrder,
+                ]);
+            })
+            ->groupBy(fn ($assignment) => Str::lower(trim($assignment->mechanic_name)))
+            ->map(fn ($assignments) => $assignments->first()->jobOrder);
 
         $attendanceByMechanic = MechanicAttendance::query()
             ->whereDate('attendance_date', $selectedDate)

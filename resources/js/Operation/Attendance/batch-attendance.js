@@ -15,7 +15,7 @@ function initBatchAttendancePage() {
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
     const modalDescription = type === 'driver'
         ? 'All active drivers from the Driver Master List load automatically for the selected date.'
-        : 'Active mechanics from the Mechanic Master List load automatically for the selected date and shift.';
+        : 'Active mechanics from the Mechanic Master List load automatically for the selected date.';
 
     let shiftStarts = {};
     let graceMinutes = 10;
@@ -54,7 +54,7 @@ function initBatchAttendancePage() {
                             <input type="date" id="batchAttendanceDate" value="${today()}" />
                         </div>
                     </label>
-                    <label style="${type === 'driver' ? 'display:none' : ''}">
+                    <label style="display:none">
                         <span>Shift</span>
                         <div class="batch-input-wrap">
                             <select id="batchAttendanceShift">
@@ -93,7 +93,7 @@ function initBatchAttendancePage() {
                                 <tr>
                                     <th class="select-col"><input type="checkbox" id="batchSelectAll" aria-label="Select all rows"></th>
                                     <th>${label}</th>
-                                    <th>${type === 'driver' ? 'Duty' : 'Shift'}</th>
+                                    <th style="${type === 'mechanic' ? 'display:none' : ''}">${type === 'driver' ? 'Duty' : 'Shift'}</th>
                                     <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
                                     <th>Time In</th>
                                     <th>${type === 'driver' ? 'Recorded' : 'Time Out'}</th>
@@ -169,12 +169,12 @@ function initBatchAttendancePage() {
         if (!modal) return;
 
         const date = modal.querySelector('#batchAttendanceDate').value;
-        const shift = modal.querySelector('#batchAttendanceShift').value;
+        const shift = type === 'mechanic' ? 'all' : modal.querySelector('#batchAttendanceShift').value;
         const body = modal.querySelector('#batchAttendanceBody');
         body.innerHTML = `<tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>`;
 
         try {
-            const response = await fetch(`/operation/attendance/batch/${type}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
+            const response = await fetch(`${type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver'}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -203,7 +203,7 @@ function initBatchAttendancePage() {
         if (!rows.length) {
             body.innerHTML = type === 'driver'
                 ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics for this shift.</td></tr>';
+                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics.</td></tr>';
             updateSummary();
             return;
         }
@@ -231,7 +231,7 @@ function initBatchAttendancePage() {
                             </div>
                         </div>
                     </td>
-                    <td>
+                    <td style="${type === 'mechanic' ? 'display:none' : ''}">
                         <div class="batch-shift-meta">
                             <strong>${type === 'driver' ? 'Daily Attendance' : escapeHtml(row.shift)}</strong>
                             <small>${type === 'driver' ? 'No shift assignment' : escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
@@ -495,7 +495,7 @@ function initBatchAttendancePage() {
         let saved = false;
 
         try {
-            const response = await fetch(`/operation/attendance/batch/${type}`, {
+            const response = await fetch(type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -598,7 +598,7 @@ function initBatchAttendancePage() {
             ['Incomplete', 'incomplete', '#94a3b8'],
         ].map(([name, className, color]) => `
             <div class="batch-summary-card ${className}">
-                <div class="batch-summary-label"><i class="fa-solid fa-circle" style="color:${color}"></i>${name}</div>
+                <div class="batch-summary-label"><i class="fa-solid fa-circle" style="color:${color}"></i>${type === 'mechanic' && name === 'Incomplete' ? 'Missing Time In' : name}</div>
                 <strong>${counts[name]}</strong>
             </div>`).join('');
     }

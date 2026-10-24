@@ -129,6 +129,8 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame($bus->bus_no, $jobOrder->bus_no);
         $this->assertSame('Repair', $jobOrder->maintenance_type);
         $this->assertSame('On Hold', $jobOrder->status);
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('Under Maintenance', $bus->fresh()->status);
         $this->assertSame('Job Order Created', $referral->status);
         $this->assertSame($jobOrder->id, $referral->jobOrder?->id);
     }
@@ -496,6 +498,12 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame($bus->bus_no, $jobOrder->bus_no);
         $this->assertSame($incident->id, $jobOrder->incident_id);
         $this->assertNull($jobOrder->assigned_mechanic);
+        $this->assertSame('For Review', $jobOrder->review_status);
+
+        $this->actingAs($maintenanceHead)->post(route('job-orders.return-for-revision', $jobOrder), [
+            'review_notes' => 'Assign a qualified mechanic and confirm the repair scope.',
+        ])->assertRedirect();
+        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
 
         // 6. Setup mechanic attendance & assign mechanic with required parts
         $mechanic = Mechanic::create([
@@ -525,10 +533,22 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $updateJoResponse->assertRedirect();
 
         $jobOrder->refresh();
-        $this->assertSame('On Going', $jobOrder->status);
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('On Hold', $jobOrder->status);
         $this->assertSame($mechanic->mechanic_name, $jobOrder->assigned_mechanic);
         $this->assertSame('Not Requested', $jobOrder->part_status);
         $this->assertStringContainsString('Heavy Duty Alternator 24V', $jobOrder->part_needed);
+
+        $this->actingAs($maintenanceHead)->post(route('job-orders.approve', $jobOrder), [
+            'electronic_signature' => $maintenanceHead->name,
+            'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+            'duration_decision' => 'adjust',
+            'verified_duration_value' => 4,
+            'verified_duration_unit' => 'Hours',
+            'duration_adjustment_reason' => 'Verified repair estimate for the referred breakdown.',
+        ])->assertRedirect();
+        $this->assertSame('Approved', $jobOrder->fresh()->review_status);
+        $this->assertSame('On Going', $jobOrder->fresh()->status);
 
         $attendance = MechanicAttendance::where('mechanic_name', $mechanic->mechanic_name)->latest('id')->first();
         $this->assertSame('On Duty', $attendance->status);

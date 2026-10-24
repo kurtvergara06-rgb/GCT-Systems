@@ -138,7 +138,7 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ]);
     }
 
-    public function test_new_job_order_accepts_free_on_duty_attendance_and_marks_job_ongoing(): void
+    public function test_new_job_order_accepts_free_on_duty_attendance_and_submits_for_review(): void
     {
         $user = $this->maintenanceUser();
         $mechanic = $this->mechanic('MEC-CREATE-01', 'Create Ready Mechanic');
@@ -169,8 +169,10 @@ class JobOrderMechanicAvailabilityTest extends TestCase
         $this->assertDatabaseHas('job_orders', [
             'bus_no' => 'BUS-CREATE-01',
             'assigned_mechanic' => 'Create Ready Mechanic',
-            'status' => 'On Going',
+            'status' => 'On Hold',
+            'review_status' => 'For Review',
         ]);
+        $this->assertSame('Active', Bus::where('bus_no', 'BUS-CREATE-01')->firstOrFail()->status);
     }
 
     public function test_philippine_business_date_finds_next_day_attendance_before_utc_midnight(): void

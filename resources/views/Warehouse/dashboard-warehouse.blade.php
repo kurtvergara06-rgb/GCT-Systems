@@ -293,7 +293,7 @@
             <table class="warehouse-dashboard-table">
               <thead>
                 <tr>
-                  <th><i class="fa-regular fa-calendar"></i> PO No.</th>
+                  <th><i class="fa-regular fa-calendar"></i> PO ID</th>
                   <th><i class="fa-solid fa-truck"></i> Supplier</th>
                   <th><i class="fa-solid fa-cube"></i> Items</th>
                   <th><i class="fa-solid fa-circle-notch"></i> Status</th>
@@ -338,7 +338,7 @@
             <table class="warehouse-dashboard-table">
               <thead>
                 <tr>
-                  <th><i class="fa-regular fa-file-lines"></i> PR No.</th>
+                  <th><i class="fa-regular fa-file-lines"></i> PR ID</th>
                   <th><i class="fa-solid fa-screwdriver-wrench"></i> Job Order</th>
                   <th><i class="fa-solid fa-circle-notch"></i> Status</th>
                   <th><i class="fa-regular fa-calendar-days"></i> Requested</th>

@@ -8,8 +8,12 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Services\Maintenance\JobOrderDurationService;
+use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\Maintenance\LinkedJobOrderResetService;
+use App\Services\Maintenance\PurchaseRequestPartsService;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
@@ -25,12 +29,24 @@ class JobOrderController extends Controller
 
     private LinkedJobOrderResetService $linkedJobOrderResetService;
 
+    private JobOrderWorkflowService $workflow;
+
+    private JobOrderDurationService $durations;
+
+    private PurchaseRequestPartsService $purchaseRequestParts;
+
     public function __construct(
         PartParser $partParser,
-        LinkedJobOrderResetService $linkedJobOrderResetService
+        LinkedJobOrderResetService $linkedJobOrderResetService,
+        JobOrderWorkflowService $workflow,
+        JobOrderDurationService $durations,
+        PurchaseRequestPartsService $purchaseRequestParts
     ) {
         $this->partParser = $partParser;
         $this->linkedJobOrderResetService = $linkedJobOrderResetService;
+        $this->workflow = $workflow;
+        $this->durations = $durations;
+        $this->purchaseRequestParts = $purchaseRequestParts;
     }
 
     /* =========================================================
@@ -108,10 +124,9 @@ class JobOrderController extends Controller
             'On Going'
         )->count();
 
-        $completed = JobOrder::where(
-            'status',
-            'Completed'
-        )->count();
+        $completed = JobOrder::where('status', 'Completed')
+            ->where('review_status', 'Approved')
+            ->count();
 
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
@@ -179,6 +194,7 @@ class JobOrderController extends Controller
         ====================================================== */
 
         $buses = Bus::query()
+            ->with('authorizedDrivers:id,driver_name')
             ->where(
                 'status',
                 'Active'
@@ -251,27 +267,85 @@ class JobOrderController extends Controller
         );
     }
 
-    public function availableMechanics()
+    public function inventoryOptions()
     {
-        $assignedActiveMechanics =
-            JobOrder::query()
-                ->where('status', '!=', 'Completed')
-                ->whereNotNull('assigned_mechanic')
-                ->where('assigned_mechanic', '!=', '')
-                ->pluck('assigned_mechanic')
-                ->filter()
-                ->unique()
-                ->values();
+        return response()->json(\App\Models\Warehouse\InventoryItem::query()
+            ->orderBy('parts_name')
+            ->get()
+            ->map(fn ($item) => [
+                'id' => $item->id,
+                'name' => (string) $item->parts_name,
+                'unit' => trim((string) $item->unit),
+                'in_stock' => (int) $item->on_hand > 0,
+            ]));
+    }
 
-        $mechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-            ->whereIn('status', ['Present', 'Late', 'On Duty'])
-            ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-            ->whereNotIn('mechanic_name', $assignedActiveMechanics)
-            ->orderBy('mechanic_name')
-            ->get(['id', 'mechanic_name']);
+    public function specializationOptions()
+    {
+        return response()->json(DB::table('mechanic_specialization_options')
+            ->orderBy('name')->pluck('name'));
+    }
+
+    public function availableMechanics(Request $request)
+    {
+        $job = trim((string) $request->input('maintenance_job', ''));
+        $selectedSkills = $this->requiredSpecializations($job, (array) $request->input('specializations', []));
+        $workText = implode(' ', $selectedSkills);
+        $mechanics = $this->workflow->availableMechanics(null, $workText)
+            ->filter(fn (Mechanic $mechanic) => $selectedSkills === [] || $this->matchesSpecialization($mechanic, $selectedSkills))
+            ->values()
+            ->map(fn (Mechanic $mechanic) => [
+                'id' => $mechanic->id,
+                'mechanic_id' => $mechanic->mechanic_id,
+                'mechanic_name' => $mechanic->mechanic_name,
+                'specializations' => $mechanic->specialization_labels,
+                'skill_matches' => $mechanic->skill_matches,
+                'skill_match_score' => $mechanic->skill_match_score,
+                'availability' => 'Available',
+            ]);
 
         return response()->json($mechanics);
+    }
+
+    public function durationSuggestion(Request $request)
+    {
+        $validated = $request->validate(['maintenance_type' => 'required|string|max:255']);
+        $maintenanceJob = trim((string) $request->input('maintenance_job', ''));
+        $customJob = trim((string) $request->input('custom_maintenance_job', ''));
+        $specificWork = $maintenanceJob === 'Other' ? $customJob : $maintenanceJob;
+        $suggestion = $this->durations->suggestion($validated['maintenance_type'], $specificWork);
+
+        return response()->json([
+            'available' => $suggestion !== null,
+            'suggestion' => $suggestion,
+            'message' => $suggestion
+                ? 'Historical median for matching completed, approved maintenance work.'
+                : 'Fewer than 3 matching completed Job Orders with valid actual durations. Enter a proposed duration manually.',
+        ]);
+    }
+
+    public function inventoryAvailability(Request $request)
+    {
+        $validated = $request->validate([
+            'parts' => 'nullable|array',
+            'parts.*.name' => 'required|string|max:255',
+            'parts.*.quantity' => 'required|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
+        ]);
+
+        $result = $this->workflow->inventoryAvailability(
+            $this->partParser->normalizePartsInput($validated['parts'] ?? [])
+        );
+        // This Maintenance-facing endpoint must never expose on-hand stock,
+        // inventory IDs or numeric shortages to browser clients.
+        return response()->json([
+            'status' => $result['status'],
+            'parts' => array_map(static fn (array $part): array => [
+                'name' => $part['name'],
+                'fulfillable' => $part['fulfillable'],
+                'in_stock' => $part['in_stock'],
+            ], $result['parts']),
+        ]);
     }
 
     public function store(Request $request)
@@ -279,19 +353,87 @@ class JobOrderController extends Controller
         $validated = $request->validate([
             'bus_no' => 'required|string|exists:buses,bus_no',
             'problem_issue' => 'required|string',
-            'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
+            'maintenance_job' => 'nullable|string|max:255',
+            'custom_maintenance_job' => 'nullable|string|max:255',
+            'specializations' => 'nullable|array',
+            'specializations.*' => 'string|max:255',
+            'mechanic_ids' => 'nullable|array',
+            'mechanic_ids.*' => 'integer|distinct|exists:mechanics,id',
             'assigned_mechanic' => 'nullable|string|max:255',
-            'estimated_duration_value' => 'sometimes|required|numeric|gt:0|required_with:estimated_duration_unit',
-            'estimated_duration_unit' => 'sometimes|required|in:Minutes,Hours,Days|required_with:estimated_duration_value',
+            'estimated_duration_value' => 'nullable|numeric|gt:0',
+            'estimated_duration_unit' => 'nullable|in:Minutes,Hours,Days',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
+            'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
             'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
         ]);
 
-        $assignedMechanic = $validated['assigned_mechanic'] ?? null;
+        if (($validated['maintenance_job'] ?? null) === 'Other') {
+            $customName = trim((string) ($validated['custom_maintenance_job'] ?? ''));
+            if ($customName === '' || mb_strlen($customName) < 3) {
+                throw ValidationException::withMessages([
+                    'custom_maintenance_job' => 'Please describe the custom maintenance job.',
+                ]);
+            }
+            $catalog = DB::table('mechanic_specialization_options')->pluck('name')
+                ->map(fn ($name) => mb_strtolower(trim((string) $name)))->all();
+            $skills = array_unique($validated['specializations'] ?? []);
+            if ($skills === [] || collect($skills)->contains(
+                fn ($skill) => ! in_array(mb_strtolower(trim($skill)), $catalog, true)
+            )) {
+                throw ValidationException::withMessages([
+                    'specializations' => 'Select valid specializations from Mechanic Master List.',
+                ]);
+            }
+        }
+
+        // Keep the staff's proposed duration for Head review; do not overwrite it
+        // with a median across unrelated repairs sharing a broad maintenance type.
+        if (isset($validated['estimated_duration_value']) !== isset($validated['estimated_duration_unit'])) {
+            throw ValidationException::withMessages([
+                'estimated_duration_value' => 'Provide both the estimated duration and its unit.',
+            ]);
+        }
+
+        if (JobOrder::query()->where('bus_no', $validated['bus_no'])->open()->exists()) {
+            throw ValidationException::withMessages([
+                'bus_no' => 'This bus already has an active Job Order.',
+            ]);
+        }
+
+        $mechanicIds = $validated['mechanic_ids'] ?? [];
+        if ($mechanicIds === [] && ! empty($validated['assigned_mechanic'])) {
+            $legacyMechanic = Mechanic::query()->where('mechanic_name', $validated['assigned_mechanic'])->first();
+            $mechanicIds = $legacyMechanic ? [$legacyMechanic->id] : [];
+        }
+        if ($mechanicIds === []) {
+            throw ValidationException::withMessages([
+                'mechanic_ids' => 'Please assign at least one mechanic before submitting the Job Order.',
+            ]);
+        }
+        $mechanics = $this->workflow->validatedMechanics($mechanicIds);
+        $requiredSkills = $this->requiredSpecializations(
+            (string) ($validated['maintenance_job'] ?? ''),
+            $validated['specializations'] ?? []
+        );
+        if (($validated['maintenance_job'] ?? '') !== '' && $requiredSkills === []) {
+            throw ValidationException::withMessages([
+                'maintenance_job' => 'Select a supported Maintenance Job with defined specialization requirements.',
+            ]);
+        }
+        if ($requiredSkills !== []) {
+            foreach ($mechanics as $mechanic) {
+                if (! $this->matchesSpecialization($mechanic, $requiredSkills)) {
+                    throw ValidationException::withMessages([
+                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for this maintenance job.",
+                    ]);
+                }
+            }
+        }
         $pmsSchedule = null;
 
         if (! empty($validated['pms_schedule_id'])) {
@@ -307,7 +449,7 @@ class JobOrderController extends Controller
 
             $hasActivePmsJobOrder = JobOrder::query()
                 ->where('pms_schedule_id', $pmsSchedule->id)
-                ->where('status', '!=', 'Completed')
+                ->open()
                 ->exists();
 
             if ($hasActivePmsJobOrder) {
@@ -315,37 +457,24 @@ class JobOrderController extends Controller
             }
         }
 
-        $status = 'On Hold';
-
-        if ($assignedMechanic) {
-            $mechanic = MechanicAttendance::query()
-                ->where('mechanic_name', $assignedMechanic)
-                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-                ->latest('id')
-                ->first();
-
-            if (! $mechanic) {
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic has no attendance record for today.');
+        // Never trust a client-provided Warehouse item name or UOM.
+        // Historical/legacy callers without an item ID continue through the existing parser.
+        $partInputs = $request->input('parts', []);
+        foreach ($partInputs as $index => &$partInput) {
+            if (! is_array($partInput) || empty($partInput['inventory_item_id'])) {
+                continue;
             }
-
-            $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $assignedMechanic)
-                ->where('status', '!=', 'Completed')
-                ->exists();
-
-            if (! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Selected mechanic is not available.'], 422);
-                }
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic is not available.');
+            $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
+            if (! $item || ! trim((string) $item->unit)) {
+                throw ValidationException::withMessages([
+                    "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
+                ]);
             }
-
-            $status = 'On Going';
+            $partInput['name'] = (string) $item->parts_name;
+            $partInput['unit'] = (string) $item->unit;
         }
-
-        $parts = $assignedMechanic
-            ? $this->partParser->normalizePartsInput($request->parts ?? [])
-            : [];
+        unset($partInput);
+        $parts = $this->partParser->normalizePartsInput($partInputs);
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -353,12 +482,13 @@ class JobOrderController extends Controller
 
         $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Required';
 
+        $inventory = $this->workflow->inventoryAvailability($parts);
         $jobOrder = DB::transaction(function () use (
-            $assignedMechanic,
+            $mechanics,
+            $inventory,
             $partNeeded,
             $partStatus,
             $pmsSchedule,
-            $status,
             $validated
         ): JobOrder {
             $bus = Bus::query()
@@ -372,72 +502,48 @@ class JobOrderController extends Controller
                 ]);
             }
 
-            if (JobOrder::query()->where('bus_no', $bus->bus_no)->where('status', '!=', 'Completed')->exists()) {
+            if (JobOrder::query()->where('bus_no', $bus->bus_no)->open()->exists()) {
                 throw ValidationException::withMessages([
                     'bus_no' => 'This bus already has an active Job Order.',
                 ]);
             }
-
-            if ($assignedMechanic) {
-                $mechanic = MechanicAttendance::query()
-                    ->where('mechanic_name', $assignedMechanic)
-                    ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                    ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-                    ->latest('id')
-                    ->lockForUpdate()
-                    ->first();
-
-                $hasActiveJobOrder = JobOrder::query()
-                    ->where('assigned_mechanic', $assignedMechanic)
-                    ->where('status', '!=', 'Completed')
-                    ->exists();
-
-                if (! $mechanic || ! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
-                    throw ValidationException::withMessages([
-                        'assigned_mechanic' => 'Selected mechanic is not available.',
-                    ]);
-                }
-            }
-
-            $bus->placeUnderMaintenance();
 
             $createdJobOrder = JobOrder::create([
                 'job_order_no' => $this->generateJobOrderNo(),
                 'bus_no' => $validated['bus_no'],
                 'pms_schedule_id' => $pmsSchedule?->id,
                 'problem_issue' => $validated['problem_issue'],
-                'work_to_perform' => isset($validated['work_to_perform'])
-                    ? trim($validated['work_to_perform'])
-                    : null,
+                'work_to_perform' => ($validated['maintenance_job'] ?? null) === 'Other'
+                    ? trim($validated['custom_maintenance_job']) : ($validated['maintenance_job'] ?? null),
                 'maintenance_type' => $validated['maintenance_type'],
-                'assigned_mechanic' => $assignedMechanic,
+                'assigned_mechanic' => $mechanics->pluck('mechanic_name')->implode(', ') ?: null,
                 'part_needed' => $partNeeded,
                 'estimated_duration_value' => $validated['estimated_duration_value'] ?? null,
                 'estimated_duration_unit' => $validated['estimated_duration_unit'] ?? null,
-                'start_date' => now(),
+                'start_date' => null,
                 'completion_date' => null,
-                'status' => $status,
+                'status' => 'On Hold',
                 'part_status' => $partStatus,
+                'review_status' => 'For Review',
+                'created_by' => auth()->id(),
+                'parts_issue_strategy' => $validated['parts_issue_strategy'] ?? 'complete_before_issuance',
+                'inventory_availability' => $inventory['status'],
+                'inventory_snapshot' => $inventory,
             ]);
 
-            if ($assignedMechanic) {
-                $this->setMechanicStatus($assignedMechanic, 'On Duty');
-            }
+            $this->workflow->syncMechanics($createdJobOrder, $mechanics, auth()->id());
+            $this->workflow->audit($createdJobOrder, 'created', null, 'For Review', 'Submitted for Maintenance Head review.', [
+                'maintenance_job' => $validated['maintenance_job'] ?? null,
+                'custom_maintenance_job' => $validated['custom_maintenance_job'] ?? null,
+                'required_specializations' => $validated['specializations'] ?? [],
+            ]);
 
             return $createdJobOrder;
         });
 
-        $updatedBus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
-
-        if ($updatedBus) {
-            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $updatedBus->id, 'A bus was placed Under Maintenance for a new Job Order.');
-        }
-
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
 
-        $successMsg = $jobOrder->status === 'On Hold'
-            ? 'Job order created and placed on hold because no mechanic was assigned.'
-            : 'Job order created successfully.';
+        $successMsg = 'Job order submitted for Maintenance Head review. It is view-only until reviewed.';
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
@@ -455,11 +561,23 @@ class JobOrderController extends Controller
 
     public function update(Request $request, JobOrder $jobOrder)
     {
+        if ($jobOrder->review_status === 'Approved') {
+            abort(423, 'Approved Job Orders are view-only. Use the dedicated completion workflow.');
+        }
+
         if ($jobOrder->status === 'Completed') {
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Completed job orders can only be viewed.'], 422);
             }
             return redirect()->back()->with('error', 'Completed job orders can only be viewed.');
+        }
+
+        if ($jobOrder->review_status === 'For Review') {
+            abort(423, 'Job Orders pending Maintenance Head review are view-only.');
+        }
+
+        if ($jobOrder->review_status === 'Rejected') {
+            abort(423, 'Rejected Job Orders are audit records and cannot be edited.');
         }
 
         if (in_array($jobOrder->part_status, [
@@ -482,6 +600,8 @@ class JobOrderController extends Controller
             'problem_issue' => 'required|string',
             'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
+            'mechanic_ids' => 'nullable|array',
+            'mechanic_ids.*' => 'integer|distinct|exists:mechanics,id',
             'assigned_mechanic' => 'nullable|string|max:255',
             'estimated_duration_value' => 'sometimes|required|numeric|gt:0|required_with:estimated_duration_unit',
             'estimated_duration_unit' => 'sometimes|required|in:Minutes,Hours,Days|required_with:estimated_duration_value',
@@ -490,43 +610,16 @@ class JobOrderController extends Controller
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
         ]);
 
-        $oldMechanic = $jobOrder->assigned_mechanic;
-        $newMechanic = $validated['assigned_mechanic'] ?? null;
-
-        if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $mechanic = MechanicAttendance::query()
-                ->where('mechanic_name', $newMechanic)
-                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-                ->latest('id')
-                ->first();
-
-            if (! $mechanic) {
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Selected mechanic has no attendance record for today.'], 422);
-                }
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic has no attendance record for today.');
-            }
-
-            $hasActiveJobOrder = JobOrder::where('assigned_mechanic', $newMechanic)
-                ->where('status', '!=', 'Completed')
-                ->where('id', '!=', $jobOrder->id)
-                ->exists();
-
-            if (! in_array($mechanic->status, ['Present', 'Late', 'On Duty'], true) || $hasActiveJobOrder) {
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Selected mechanic is already on duty.'], 422);
-                }
-                return redirect()->back()->withInput()->with('error', 'Selected mechanic is already on duty.');
-            }
+        $mechanicIds = $validated['mechanic_ids'] ?? [];
+        if ($mechanicIds === [] && ! empty($validated['assigned_mechanic'])) {
+            $legacyMechanic = Mechanic::query()->where('mechanic_name', $validated['assigned_mechanic'])->first();
+            $mechanicIds = $legacyMechanic ? [$legacyMechanic->id] : [];
         }
-
-        $status = $newMechanic ? 'On Going' : 'On Hold';
-        $parts = $newMechanic
-            ? $this->partParser->normalizePartsInput($request->parts ?? [])
-            : [];
+        $mechanics = $this->workflow->validatedMechanics($mechanicIds, $jobOrder);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -534,7 +627,7 @@ class JobOrderController extends Controller
 
         $partStatus = $jobOrder->part_status;
 
-        if (! $newMechanic || ! $partNeeded) {
+        if (! $partNeeded) {
             $partStatus = 'No Parts Required';
         } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
             $partStatus = 'Not Requested';
@@ -544,16 +637,32 @@ class JobOrderController extends Controller
             $partStatus = 'Rejected';
         }
 
+        $wasRevision = $jobOrder->review_status === 'Revision Required';
+        $inventory = $this->workflow->inventoryAvailability($parts);
         $updates = [
             'job_order_no' => $validated['job_order_no'],
             'bus_no' => $validated['bus_no'],
             'problem_issue' => $validated['problem_issue'],
             'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $newMechanic,
-            'status' => $status,
+            'assigned_mechanic' => $mechanics->pluck('mechanic_name')->implode(', ') ?: null,
             'part_needed' => $partNeeded,
             'part_status' => $partStatus,
+            'parts_issue_strategy' => $validated['parts_issue_strategy'] ?? $jobOrder->parts_issue_strategy,
+            'inventory_availability' => $inventory['status'],
+            'inventory_snapshot' => $inventory,
         ];
+
+        if ($wasRevision) {
+            $updates['review_status'] = 'For Review';
+            $updates['review_notes'] = null;
+            $updates['revision_number'] = $jobOrder->revision_number + 1;
+        } else {
+            $updates['status'] = $mechanics->isNotEmpty() ? 'On Going' : 'On Hold';
+            if ($mechanics->isNotEmpty() && ! $jobOrder->actual_started_at) {
+                $updates['actual_started_at'] = now();
+                $updates['start_date'] = now();
+            }
+        }
 
         if (array_key_exists('work_to_perform', $validated)) {
             $updates['work_to_perform'] = $validated['work_to_perform'] !== null
@@ -569,31 +678,58 @@ class JobOrderController extends Controller
             $updates['estimated_duration_unit'] = $validated['estimated_duration_unit'];
         }
 
-        $jobOrder->update($updates);
+        DB::transaction(function () use ($jobOrder, $mechanics, $updates, $wasRevision): void {
+            $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($locked->review_status === 'For Review' || $locked->review_status === 'Rejected' || $locked->status === 'Completed') {
+                abort(423, 'This Job Order changed and is no longer editable.');
+            }
+            $mechanicIds = $mechanics->pluck('id')->all();
+            if ($mechanicIds !== []) {
+                Mechanic::query()->whereIn('id', $mechanicIds)->lockForUpdate()->get();
+            }
+            $lockedMechanics = $this->workflow->validatedMechanics($mechanicIds, $locked);
+            $oldAssignments = $locked->mechanicAssignments()->with('mechanic')->get();
+            if (! $wasRevision) {
+                foreach ($oldAssignments as $assignment) {
+                    MechanicAttendance::query()
+                        ->where('mechanic_id', $assignment->mechanic?->mechanic_id)
+                        ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+                        ->latest('id')->first()?->update(['status' => 'Present']);
+                }
+            }
+            $locked->update($updates);
+            $this->workflow->syncMechanics($locked, $lockedMechanics, auth()->id());
+            if ($wasRevision) {
+                $this->workflow->audit($locked, 'resubmitted', 'Revision Required', 'For Review', 'Revised Job Order resubmitted.');
+            } else {
+                $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                $this->workflow->audit($locked, 'updated', 'Approved', 'Approved');
+            }
+        });
 
-        if ($oldMechanic && $oldMechanic !== $newMechanic) {
-            $this->setMechanicStatus($oldMechanic, 'Present');
-        }
-
-        if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $this->setMechanicStatus($newMechanic, 'On Duty');
-        }
+        $jobOrder->refresh();
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'updated', $jobOrder->id, 'A job order was updated.');
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Job order updated successfully.',
+                'message' => $wasRevision ? 'Revised Job Order resubmitted for review.' : 'Job order updated successfully.',
                 'job_order' => $jobOrder,
             ]);
         }
 
-        return redirect()->to(route('job-orders', [], false))->with('success', 'Job order updated successfully.');
+        return redirect()->to(route('job-orders', [], false))->with('success', $wasRevision
+            ? 'Revised Job Order resubmitted for Maintenance Head review.'
+            : 'Job order updated successfully.');
     }
 
     public function createPurchaseRequest(Request $request, JobOrder $jobOrder)
     {
+        if ($jobOrder->review_status !== 'Approved') {
+            abort(423, 'Purchase Request actions are locked until the Job Order is approved.');
+        }
+
         if (empty($jobOrder->assigned_mechanic)) {
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Assign a mechanic before creating a Purchase Request.'], 422);
@@ -645,16 +781,15 @@ class JobOrderController extends Controller
                 ->with('error', $existingMsg);
         }
 
-        $parts = $this->partParser->parsePartText($jobOrder->part_needed);
-
-        if (count($parts) === 0) {
+        $parts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed);
+        if ($parts === []) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'No valid requested parts were found for this Job Order.'], 422);
+                return response()->json(['success' => false, 'message' => 'All requested parts are available. A Purchase Request is not needed.'], 422);
             }
-            return redirect()->back()->with('error', 'No valid requested parts were found for this Job Order.');
+            return redirect()->back()->with('error', 'All requested parts are available. A Purchase Request is not needed.');
         }
 
-        [$purchaseRequest, $jobOrder] = DB::transaction(function () use ($jobOrder, $parts): array {
+        [$purchaseRequest, $jobOrder] = DB::transaction(function () use ($jobOrder): array {
             $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
 
             $existingRequest = $this->maintenancePurchaseRequestForJobOrder($lockedJobOrder->job_order_no)
@@ -667,6 +802,13 @@ class JobOrderController extends Controller
                 ]);
             }
 
+            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
+            if ($parts === []) {
+                throw ValidationException::withMessages([
+                    'job_order_no' => 'All requested parts are available. A Purchase Request is not needed.',
+                ]);
+            }
+
             $createdPurchaseRequest = PurchaseRequest::create([
                 'pr_no' => $this->generatePrNo(),
                 'job_order_no' => $lockedJobOrder->job_order_no,
@@ -676,6 +818,8 @@ class JobOrderController extends Controller
                 'status' => 'Submitted',
                 'source_type' => 'Maintenance Request',
                 'remarks' => 'Created from Job Order ' . $lockedJobOrder->job_order_no,
+                'purpose' => $lockedJobOrder->work_to_perform,
+                'requested_by' => auth()->id(),
                 'date_requested' => now(),
             ]);
 
@@ -698,8 +842,212 @@ class JobOrderController extends Controller
         return redirect()->to(route('job-orders', [], false))->with('success', 'Purchase request created successfully.');
     }
 
+    public function approvalSignature(Request $request, JobOrder $jobOrder)
+    {
+        // The route requires Maintenance view permission. Never expose the
+        // private storage path or allow an arbitrary requested file path.
+        if ($jobOrder->review_status !== 'Approved') {
+            abort(404);
+        }
+        $audit = $jobOrder->audits()
+            ->where('action', 'approved')
+            ->latest('id')
+            ->first();
+        $path = $audit?->metadata['handwritten_signature_path'] ?? null;
+        $expectedPrefix = 'maintenance/job-order-signatures/'.$jobOrder->id.'/';
+        if (! is_string($path) || ! str_starts_with($path, $expectedPrefix)
+            || ! preg_match('/^[a-z0-9-]+\\.png$/i', substr($path, strlen($expectedPrefix)))) {
+            abort(404);
+        }
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        if (! $disk->exists($path)) {
+            abort(404);
+        }
+        return response($disk->get($path), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    public function approve(Request $request, JobOrder $jobOrder)
+    {
+        $this->assertMaintenanceHead();
+        $validated = $request->validate([
+            'electronic_signature' => 'required|string|max:255',
+            'signature_image' => 'required|string|max:550000',
+            'duration_decision' => 'required|in:accept,adjust',
+            'verified_duration_value' => 'required_if:duration_decision,adjust|nullable|numeric|gt:0',
+            'verified_duration_unit' => 'required_if:duration_decision,adjust|nullable|in:Minutes,Hours,Days',
+            'duration_adjustment_reason' => 'required_if:duration_decision,adjust|nullable|string|max:2000',
+            'review_notes' => 'nullable|string|max:2000',
+        ]);
+        $user = $request->user();
+        if (mb_strtolower(trim($validated['electronic_signature'])) !== mb_strtolower(trim((string) $user->name))) {
+            throw ValidationException::withMessages([
+                'electronic_signature' => 'Type your authenticated full name exactly to sign this approval.',
+            ]);
+        }
+
+        // A drawn signature is required in addition to the authenticated typed name.
+        // Keep the PNG in private storage; only its path and hash enter the audit trail.
+        $signatureData = $validated['signature_image'];
+        if (! str_starts_with($signatureData, 'data:image/png;base64,')) {
+            throw ValidationException::withMessages(['signature_image' => 'Draw your signature in the signature box.']);
+        }
+        $signatureBytes = base64_decode(substr($signatureData, strlen('data:image/png;base64,')), true);
+        if ($signatureBytes === false || strlen($signatureBytes) > 400000
+            || strlen($signatureBytes) < 100
+            || bin2hex(substr($signatureBytes, 0, 8)) !== '89504e470d0a1a0a'
+            || ! @getimagesizefromstring($signatureBytes)) {
+            throw ValidationException::withMessages(['signature_image' => 'The drawn signature is invalid. Clear it and sign again.']);
+        }
+
+        $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes): JobOrder {
+            $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($locked->review_status !== 'For Review') {
+                throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be approved.']);
+            }
+
+            $bus = Bus::query()->where('bus_no', $locked->bus_no)->lockForUpdate()->firstOrFail();
+            if (! in_array($bus->status, ['Active', 'Under Maintenance'], true)) {
+                throw ValidationException::withMessages(['bus_no' => 'The bus is no longer available for this Job Order.']);
+            }
+
+            $mechanicIds = $locked->mechanicAssignments->pluck('mechanic_id')->filter()->all();
+            if ($mechanicIds !== []) {
+                Mechanic::query()->whereIn('id', $mechanicIds)->lockForUpdate()->get();
+            }
+            $mechanics = $this->workflow->validatedMechanics($mechanicIds, $locked);
+            if ($mechanics->count() !== $locked->mechanicAssignments->count()) {
+                throw ValidationException::withMessages(['mechanic_ids' => 'A selected mechanic is no longer available. Return the Job Order for revision.']);
+            }
+
+            $originalDurationValue = $locked->estimated_duration_value;
+            $originalDurationUnit = $locked->estimated_duration_unit;
+            $adjustDuration = $validated['duration_decision'] === 'adjust';
+            // With insufficient history, only the Head may establish a duration.
+            if (! $originalDurationValue && ! $adjustDuration) {
+                throw ValidationException::withMessages([
+                    'duration_decision' => 'No historical median is available. Select Adjust and provide a verified duration and reason.',
+                ]);
+            }
+            if (! $adjustDuration && (! $originalDurationValue || ! $originalDurationUnit)) {
+                throw ValidationException::withMessages([
+                    'duration_decision' => 'A proposed estimated duration is required before accepting it.',
+                ]);
+            }
+            $finalDurationValue = $adjustDuration
+                ? $validated['verified_duration_value'] : $originalDurationValue;
+            $finalDurationUnit = $adjustDuration
+                ? $validated['verified_duration_unit'] : $originalDurationUnit;
+
+            $signaturePath = 'maintenance/job-order-signatures/'. $locked->id .'/'. \Illuminate\Support\Str::uuid() .'.png';
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->put($signaturePath, $signatureBytes)) {
+                throw ValidationException::withMessages(['signature_image' => 'Unable to save the signed approval. Please retry.']);
+            }
+            $approvedAt = now();
+            $signatureHash = hash_hmac('sha256', implode('|', [
+                $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
+            ]), (string) config('app.key'));
+            $hasMechanics = $mechanics->isNotEmpty();
+            $locked->update([
+                'review_status' => 'Approved',
+                'estimated_duration_value' => $finalDurationValue,
+                'estimated_duration_unit' => $finalDurationUnit,
+                'review_notes' => $validated['review_notes'] ?? null,
+                'approved_by' => $user->id,
+                'approved_at' => $approvedAt,
+                'approval_signature_hash' => $signatureHash,
+                'status' => $hasMechanics ? 'On Going' : 'On Hold',
+                'start_date' => $hasMechanics ? $approvedAt : null,
+                'actual_started_at' => $hasMechanics ? $approvedAt : null,
+            ]);
+
+            $bus->placeUnderMaintenance();
+            if ($hasMechanics) {
+                $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+            }
+            $this->workflow->audit($locked, 'approved', 'For Review', 'Approved', $validated['review_notes'] ?? null, [
+                'approved_by' => $user->id,
+                'approved_at' => $approvedAt->toISOString(),
+                'signature_hash' => $signatureHash,
+                'handwritten_signature_path' => $signaturePath,
+                'handwritten_signature_sha256' => hash('sha256', $signatureBytes),
+                'duration_verification' => [
+                    'decision' => $validated['duration_decision'],
+                    'staff_proposed_value' => $originalDurationValue,
+                    'staff_proposed_unit' => $originalDurationUnit,
+                    'approved_value' => $finalDurationValue,
+                    'approved_unit' => $finalDurationUnit,
+                    'adjustment_reason' => $adjustDuration ? trim($validated['duration_adjustment_reason']) : null,
+                    'verified_by' => $user->id,
+                    'verified_at' => $approvedAt->toISOString(),
+                ],
+            ]);
+
+            return $locked->fresh();
+        });
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'approved', $jobOrder->id, 'A Job Order was approved and electronically signed.');
+        $bus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
+        if ($bus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'An approved Job Order placed the bus Under Maintenance.');
+        }
+
+        return redirect()->back()->with('success', 'Job Order approved. The authenticated electronic signature and approval time were recorded.');
+    }
+
+    public function returnForRevision(Request $request, JobOrder $jobOrder)
+    {
+        $this->assertMaintenanceHead();
+        $validated = $request->validate(['review_notes' => 'required|string|max:2000']);
+        DB::transaction(function () use ($jobOrder, $validated): void {
+            $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($locked->review_status !== 'For Review') {
+                throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be returned.']);
+            }
+            $locked->update(['review_status' => 'Revision Required', 'review_notes' => $validated['review_notes']]);
+            $this->workflow->audit($locked, 'returned_for_revision', 'For Review', 'Revision Required', $validated['review_notes']);
+        });
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'revision_required', $jobOrder->id, 'A Job Order was returned for revision.');
+
+        return redirect()->back()->with('success', 'Job Order returned for revision.');
+    }
+
+    public function reject(Request $request, JobOrder $jobOrder)
+    {
+        $this->assertMaintenanceHead();
+        $validated = $request->validate(['review_notes' => 'required|string|max:2000']);
+        DB::transaction(function () use ($jobOrder, $validated): void {
+            $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($locked->review_status !== 'For Review') {
+                throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be rejected.']);
+            }
+            // Rejected review records are terminal but are not genuine completed
+            // repairs. Keeping the operational status terminal prevents them from
+            // blocking bus scheduling; review_status distinguishes them in history.
+            $locked->update([
+                'status' => 'Completed',
+                'review_status' => 'Rejected',
+                'review_notes' => $validated['review_notes'],
+            ]);
+            $this->workflow->audit($locked, 'rejected', 'For Review', 'Rejected', $validated['review_notes']);
+        });
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'rejected', $jobOrder->id, 'A Job Order was rejected.');
+
+        return redirect()->back()->with('success', 'Job Order rejected and retained in the audit history.');
+    }
+
     public function finish(Request $request, JobOrder $jobOrder)
     {
+        if ($jobOrder->review_status !== 'Approved') {
+            abort(423, 'Completion is locked until the Job Order is approved.');
+        }
+
         if ($jobOrder->status === 'Completed') {
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Job order is already completed.'], 422);
@@ -812,7 +1160,7 @@ class JobOrderController extends Controller
         ): JobOrder {
             $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
 
-            if ($lockedJobOrder->status !== 'On Going' || ! $this->canFinishWithPartStatus($lockedJobOrder)) {
+            if ($lockedJobOrder->review_status !== 'Approved' || $lockedJobOrder->status !== 'On Going' || ! $this->canFinishWithPartStatus($lockedJobOrder)) {
                 throw ValidationException::withMessages([
                     'status' => 'The Job Order changed and can no longer be completed. Refresh and try again.',
                 ]);
@@ -826,10 +1174,12 @@ class JobOrderController extends Controller
 
             $lockedJobOrder->update([
                 'completion_date' => now(),
+                'actual_completed_at' => now(),
                 'status' => 'Completed',
             ]);
 
-            $this->setMechanicStatus($lockedJobOrder->assigned_mechanic, 'Present');
+            $this->workflow->setAttendanceStatus($lockedJobOrder->fresh('mechanicAssignments.mechanic'), 'Present');
+            $this->workflow->audit($lockedJobOrder, 'completed', 'Approved', 'Completed');
 
             $lockedBus = Bus::query()
                 ->whereRaw('UPPER(TRIM(bus_no)) = ?', [strtoupper(trim($lockedJobOrder->bus_no))])
@@ -887,10 +1237,18 @@ class JobOrderController extends Controller
                 ->with('error', $message);
         }
 
+        if (in_array($jobOrder->review_status, ['For Review', 'Rejected'], true)) {
+            abort(423, 'Pending and rejected Job Orders are protected audit records and cannot be deleted.');
+        }
+
         $linkedPurchaseRequests = $this
             ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
             ->orderBy('id')
             ->get();
+
+        if ($jobOrder->review_status === 'Approved' && $linkedPurchaseRequests->isEmpty()) {
+            abort(423, 'Approved Job Orders cannot be deleted.');
+        }
 
         if ($linkedPurchaseRequests->isNotEmpty()) {
             $allRejected = $linkedPurchaseRequests->every(
@@ -955,15 +1313,12 @@ class JobOrderController extends Controller
         }
 
         $jobOrderId = $jobOrder->id;
-        $assignedMechanic = $jobOrder->assigned_mechanic;
         $busNo = $jobOrder->bus_no;
 
-        $releasedBus = DB::transaction(function () use ($assignedMechanic, $busNo, $jobOrder): ?Bus {
-            JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id)->delete();
-
-            if ($assignedMechanic) {
-                $this->setMechanicStatus($assignedMechanic, 'Present');
-            }
+        $releasedBus = DB::transaction(function () use ($busNo, $jobOrder): ?Bus {
+            $locked = JobOrder::query()->with('mechanicAssignments.mechanic')->lockForUpdate()->findOrFail($jobOrder->id);
+            $this->workflow->setAttendanceStatus($locked, 'Present');
+            $locked->delete();
 
             return $this->releaseBusWithoutActiveJobOrders($busNo);
         });
@@ -995,23 +1350,16 @@ class JobOrderController extends Controller
             });
     }
 
-    private function setMechanicStatus(?string $mechanicName, string $status): void
+    private function assertMaintenanceHead(): void
     {
-        if (! $mechanicName) {
-            return;
-        }
+        $user = auth()->user();
+        $department = mb_strtolower(trim((string) $user?->department));
+        $role = mb_strtolower(trim((string) $user?->role));
+        $isHead = ($department === 'maintenance' && in_array($role, ['head', 'maintenance head', 'admin', 'maintenance admin'], true))
+            || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
 
-        $attendance = MechanicAttendance::query()
-            ->where('mechanic_name', $mechanicName)
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-            ->latest('id')
-            ->first();
-
-        if (! $attendance) {
-            return;
-        }
-
-        $attendance->update(['status' => $status]);
+        abort_unless($user && $isHead && $user->hasSystemPermission('maintenance', 'approve'), 403,
+            'Only an authorized Maintenance Head can review Job Orders.');
     }
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
@@ -1038,7 +1386,7 @@ class JobOrderController extends Controller
 
         $hasActiveJobOrder = JobOrder::query()
             ->where('bus_no', $busNo)
-            ->where('status', '!=', 'Completed')
+            ->open()
             ->exists();
 
         if ($hasActiveJobOrder) {
@@ -1098,4 +1446,39 @@ class JobOrderController extends Controller
 
         return $newPrNo;
     }
+    /**
+     * Qualifying skills for the existing fixed Maintenance Job presets.
+     * Custom jobs instead use validated names from the shared specialization catalog.
+     */
+    private function requiredSpecializations(string $job, array $customSkills = []): array
+    {
+        $jobs = [
+            'Change Oil' => ['Lubrication', 'Preventive Maintenance'],
+            'Oil Filter Replacement' => ['Lubrication', 'Preventive Maintenance'],
+            'Brake Inspection' => ['Brakes'],
+            'Brake Pad Replacement' => ['Brakes'],
+            'Air Filter Replacement' => ['Engine', 'Preventive Maintenance'],
+            'Aircon Servicing' => ['Aircon'],
+            'Battery Replacement' => ['Electrical'],
+            'Tire Replacement' => ['Tires & Wheels'],
+            'Engine Tune-Up' => ['Engine', 'Diagnostics'],
+            'Full PMS' => ['Preventive Maintenance'],
+        ];
+
+        return $job === 'Other'
+            ? array_values(array_filter($customSkills, 'is_string'))
+            : ($jobs[$job] ?? []);
+    }
+
+    private function matchesSpecialization(Mechanic $mechanic, array $requiredSkills): bool
+    {
+        $actual = collect(preg_split('/[,;]+/u', (string) $mechanic->specialization) ?: [])
+            ->map(fn ($skill) => mb_strtolower(trim((string) $skill)))
+            ->filter();
+
+        return $actual->intersect(
+            collect($requiredSkills)->map(fn ($skill) => mb_strtolower(trim((string) $skill)))
+        )->isNotEmpty();
+    }
+
 }

@@ -660,6 +660,11 @@ class SystemBackendFullAuditTest extends TestCase
         $this->assertSame($bus->bus_no, $jobOrder->bus_no);
         $this->assertSame($incident->id, $jobOrder->incident_id);
 
+        $this->actingAs($maintHead)->post(route('job-orders.return-for-revision', $jobOrder), [
+            'review_notes' => 'Assign a mechanic and specify the required replacement part.',
+        ])->assertRedirect();
+        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
+
         // Assign mechanic
         $mechanic = Mechanic::create([
             'mechanic_id' => 'MEC-E2E-701',
@@ -686,7 +691,19 @@ class SystemBackendFullAuditTest extends TestCase
         ])->assertRedirect();
 
         $jobOrder->refresh();
-        $this->assertSame('On Going', $jobOrder->status);
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('On Hold', $jobOrder->status);
+
+        $this->actingAs($maintHead)->post(route('job-orders.approve', $jobOrder), [
+            'electronic_signature' => $maintHead->name,
+            'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+            'duration_decision' => 'adjust',
+            'verified_duration_value' => 4,
+            'verified_duration_unit' => 'Hours',
+            'duration_adjustment_reason' => 'Verified duration for the incident repair.',
+        ])->assertRedirect();
+        $this->assertSame('Approved', $jobOrder->fresh()->review_status);
+        $this->assertSame('On Going', $jobOrder->fresh()->status);
 
         // 7.7 Job Order creates Purchase Request
         $this->actingAs($maintStaff)

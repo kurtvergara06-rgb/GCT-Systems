@@ -54,6 +54,16 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertSee('id="openPrModal"', false);
         $response->assertSee('data-lazy-pagination="false"', false);
         $response->assertSee('data-server-filter="false"', false);
+        $response->assertSee('01 — Requisition Details');
+        $response->assertSee('Items for Purchase');
+        $response->assertSee('Missing Parts Only');
+        $response->assertSee('03 — Request Details');
+        $response->assertSee('04 — Authorization');
+        $response->assertSee('Authenticated User');
+        $response->assertDontSee('Warehouse Acknowledgment');
+        $response->assertDontSee('id="printPrPreview"', false);
+        $response->assertSee('id="cancelPrModal"', false);
+        $response->assertSee('id="createPrBtn"', false);
     }
 
     public function test_history_request_returns_200_and_includes_issued_and_marks_history_tab(): void

@@ -254,8 +254,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       workInput = workGroup.querySelector('textarea[name="work_to_perform"]');
     }
 
-    problemGroup.classList.remove('ui-form-full');
-    workGroup.classList.remove('ui-form-full');
+    const isNewJobOrder = idPrefix === 'newJo';
+
+    problemGroup.classList.toggle('ui-form-full', isNewJobOrder);
+    workGroup.classList.toggle('ui-form-full', isNewJobOrder);
 
     const label = workGroup.querySelector('label');
     if (label) {
@@ -268,12 +270,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       workInput.required = true;
       workInput.disabled = false;
       workInput.name = 'work_to_perform';
-      workInput.placeholder = 'Describe the actual maintenance or repair work that will be performed...';
+      workInput.placeholder = isNewJobOrder
+        ? 'Describe the maintenance work to be performed...'
+        : 'Describe the actual maintenance or repair work that will be performed...';
     }
 
-    // The form grid uses source order for the two-column layout. Force the
-    // work field directly beside Problem / Issue and remove any stale duplicate.
-    problemGroup.insertAdjacentElement('afterend', workGroup);
+    if (isNewJobOrder) {
+      const jobDetailsGrid = form.querySelector('.jo-create-job-details-grid');
+      jobDetailsGrid?.appendChild(workGroup);
+    } else {
+      // The edit form keeps its established two-column Problem / Work row.
+      problemGroup.insertAdjacentElement('afterend', workGroup);
+    }
 
     return workInput;
   };
@@ -309,39 +317,199 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       `;
     }
 
+    const isNewJobOrder = idPrefix === 'newJo';
+
     group.classList.remove('ui-form-full');
     durationField.classList.remove('ui-form-full');
 
     const durationLabel = durationField.querySelector('label');
     if (durationLabel) {
-      durationLabel.innerHTML = 'Estimated Time <span class="ui-required">*</span>';
+      durationLabel.innerHTML = `${isNewJobOrder ? 'Estimated Duration' : 'Estimated Time'} <span class="ui-required">*</span>`;
     }
 
-    // Keep Maintenance Job immediately before Estimated Time so both occupy
-    // the same two-column row.
-    durationField.insertAdjacentElement('beforebegin', group);
+    if (isNewJobOrder) {
+      const jobSlot = form.querySelector('[data-maintenance-job-slot="newJo"]');
+      jobSlot?.replaceWith(group);
+    } else {
+      // Keep Maintenance Job immediately before Estimated Time in the edit form.
+      durationField.insertAdjacentElement('beforebegin', group);
+    }
 
     const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
+    if (isNewJobOrder && select) {
+      select.name = 'maintenance_job';
+    }
     const { valueInput, unitSelect } = findDurationControls(durationField);
     const maintenanceJobCombobox = enhanceMaintenanceJobSelect(select);
+
+    // Custom work requests explicit skills from the shared Mechanic Master List catalog.
+    let customGroup = null;
+    if (isNewJobOrder) {
+      customGroup = document.createElement('div');
+      customGroup.className = 'ui-form-group ui-form-full jo-custom-work-fields';
+      customGroup.hidden = true;
+      customGroup.innerHTML = `
+        <label for="joCustomWorkName">Specify Maintenance Job <span class="ui-required">*</span></label>
+        <input id="joCustomWorkName" name="custom_maintenance_job" maxlength="255" placeholder="Describe the custom maintenance job">
+        <label for="joCustomSkillSearch">Required Specializations <span class="ui-required">*</span></label>
+        <input id="joCustomSkillSearch" type="search" placeholder="Search specializations..." autocomplete="off">
+        <div id="joCustomSpecializations" class="jo-custom-skill-options" role="group" aria-label="Required specializations"></div>
+        <small>Select one or more qualifications from Mechanic Master List.</small>
+      `;
+      group.insertAdjacentElement('afterend', customGroup);
+      const search = customGroup.querySelector('#joCustomSkillSearch');
+      const options = customGroup.querySelector('#joCustomSpecializations');
+      const dropdown = document.createElement('div');
+      dropdown.className = 'jo-custom-skill-dropdown';
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'jo-custom-skill-trigger';
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.innerHTML = '<span class="jo-custom-skill-summary">Select required specializations...</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
+      const selectedChips = document.createElement('div');
+      selectedChips.className = 'jo-custom-skill-chips';
+      selectedChips.setAttribute('aria-label', 'Selected specializations');
+      dropdown.append(trigger, selectedChips);
+      search.parentNode.insertBefore(dropdown, search);
+      const panel = document.createElement('div');
+      panel.className = 'jo-custom-skill-panel';
+      panel.hidden = true;
+      panel.append(search, options);
+      dropdown.insertAdjacentElement('afterend', panel);
+      const summary = trigger.querySelector('.jo-custom-skill-summary');
+      const updateSelection = () => {
+        const checked = Array.from(options.querySelectorAll('input:checked'));
+        summary.textContent = checked.length ? checked.length + ' specialization(s) selected' : 'Select required specializations...';
+        selectedChips.replaceChildren();
+        checked.forEach((input) => {
+          const chip = document.createElement('span');
+          chip.className = 'jo-custom-skill-chip';
+          chip.append(document.createTextNode(input.value));
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '×';
+          remove.setAttribute('aria-label', 'Remove ' + input.value);
+          remove.addEventListener('click', () => {
+            input.checked = false;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          chip.append(remove);
+          selectedChips.append(chip);
+        });
+      };
+      const modalScroller = form.closest('.ui-form-modal-scrollable');
+      const positionPanel = () => {
+        if (panel.hidden || !document.body.contains(panel)) return;
+        const rect = trigger.getBoundingClientRect();
+        const gap = 6;
+        const roomBelow = window.innerHeight - rect.bottom - 12;
+        const roomAbove = rect.top - 12;
+        const showAbove = roomBelow < 220 && roomAbove > roomBelow;
+        const availableHeight = Math.max(110, (showAbove ? roomAbove : roomBelow) - gap);
+        Object.assign(panel.style, {
+          position: 'fixed',
+          top: showAbove ? 'auto' : Math.round(rect.bottom + gap) + 'px',
+          bottom: showAbove ? Math.round(window.innerHeight - rect.top + gap) + 'px' : 'auto',
+          left: Math.round(rect.left) + 'px',
+          width: Math.round(rect.width) + 'px',
+          maxHeight: Math.min(286, availableHeight) + 'px',
+          overflowY: 'auto',
+          zIndex: '110500',
+        });
+      };
+      const closePanel = () => {
+        if (panel.hidden) return;
+        panel.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        window.removeEventListener('resize', positionPanel);
+        window.removeEventListener('scroll', positionPanel, true);
+        modalScroller?.removeEventListener('scroll', positionPanel);
+        panel.remove();
+        dropdown.insertAdjacentElement('afterend', panel);
+        panel.removeAttribute('style');
+      };
+      trigger.addEventListener('click', () => {
+        if (!panel.hidden) {
+          closePanel();
+          return;
+        }
+        document.body.appendChild(panel);
+        panel.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        positionPanel();
+        window.addEventListener('resize', positionPanel);
+        window.addEventListener('scroll', positionPanel, true);
+        modalScroller?.addEventListener('scroll', positionPanel, { passive: true });
+        search.focus();
+      });
+      search.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closePanel();
+          trigger.focus();
+        }
+      });
+      document.addEventListener('click', (event) => {
+        if (!dropdown.contains(event.target) && !panel.contains(event.target)) closePanel();
+      });
+      fetch('/job-orders/specializations', { headers: { Accept: 'application/json' } })
+        .then((response) => { if (!response.ok) throw new Error('Catalog unavailable'); return response.json(); })
+        .then((names) => {
+          names.forEach((name) => {
+            const label = document.createElement('label');
+            label.className = 'jo-custom-skill-choice';
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.name = 'specializations[]';
+            check.value = name;
+            check.addEventListener('change', () => {
+              updateSelection();
+              form.dispatchEvent(new Event('change', { bubbles: true }));
+              window.GCTRefreshJobOrderMechanics?.();
+            });
+            label.append(check, document.createTextNode(' ' + name));
+            options.appendChild(label);
+          });
+          updateSelection();
+        })
+        .catch(() => { options.textContent = 'Specializations could not be loaded. Refresh to try again.'; });
+      search.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        options.querySelectorAll('label').forEach((label) => {
+          label.hidden = !label.textContent.toLowerCase().includes(query);
+        });
+      });
+
+    }
 
     const applySelectedJob = () => {
       const preset = maintenanceJobPresets.find((item) => item.label === select?.value);
       const isOther = select?.value === 'Other';
+      if (customGroup) {
+        customGroup.hidden = !isOther;
+        customGroup.querySelector('#joCustomWorkName').required = isOther;
+        customGroup.querySelectorAll('input[name="specializations[]"]').forEach((input) => {
+          input.disabled = !isOther;
+        });
+      }
+      if (isNewJobOrder) window.GCTUpdateJoSectionIndicators?.();
 
-      if (preset) {
-        if (valueInput) valueInput.value = preset.value;
-        if (unitSelect) unitSelect.value = preset.unit;
-        setDurationReadonly(durationField, true);
+      if (isNewJobOrder) {
+        // Staff cannot override historical estimates, regardless of job preset.
+        // The Head can accept/adjust the verified value during JO review.
+        setDurationReadonly(durationField, true, true);
       } else {
-        setDurationReadonly(durationField, !isOther);
+        if (preset) {
+          if (valueInput) valueInput.value = preset.value;
+          if (unitSelect) unitSelect.value = preset.unit;
+        }
+        setDurationReadonly(durationField, preset ? true : !isOther);
       }
 
       maintenanceJobCombobox?.sync();
     };
 
     select?.addEventListener('change', applySelectedJob);
-    setDurationReadonly(durationField, true);
+    setDurationReadonly(durationField, true, isNewJobOrder);
     maintenanceJobCombobox?.sync();
 
     return {
@@ -378,7 +546,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       fallback: 'Repair',
     });
 
-    const workInput = ensureWorkField(form, problemField, idPrefix);
+    // Work details are captured later in the maintenance workflow for new JOs.
+    // Keep the existing work field on Edit JO for legacy records.
+    const workInput = idPrefix === 'newJo'
+      ? null
+      : ensureWorkField(form, problemField, idPrefix);
     const jobField = ensureMaintenanceJobField({ form, durationField, idPrefix });
 
     return {

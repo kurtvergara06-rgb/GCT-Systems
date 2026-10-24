@@ -6,6 +6,9 @@ use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
+use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Operation\Mechanic;
+use App\Models\Operation\MechanicAttendance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -94,20 +97,60 @@ class MaintenanceWorkflowHardeningTest extends TestCase
             'role' => 'staff',
             'status' => 'Active',
         ]);
+        $head = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
         $bus = Bus::create([
             'bus_no' => 'BUS-MANUAL-LIFECYCLE',
             'status' => 'Active',
+        ]);
+        $mechanic = Mechanic::create([
+            'mechanic_id' => 'MEC-MANUAL-LIFECYCLE',
+            'mechanic_name' => 'Manual Lifecycle Mechanic',
+            'employment_status' => 'Active',
+        ]);
+        MechanicAttendance::create([
+            'mechanic_id' => $mechanic->mechanic_id,
+            'mechanic_name' => $mechanic->mechanic_name,
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+            'status' => 'Present',
         ]);
 
         $this->actingAs($staff)->post(route('job-orders.store'), [
             'bus_no' => $bus->bus_no,
             'problem_issue' => 'Manual repair workflow',
             'maintenance_type' => 'Repair',
+            'mechanic_ids' => [$mechanic->id],
+            'estimated_duration_value' => 2,
+            'estimated_duration_unit' => 'Hours',
+            'parts' => [['name' => 'Test part', 'quantity' => 1, 'unit' => 'pcs']],
         ])->assertRedirect();
 
         $jobOrder = JobOrder::where('bus_no', $bus->bus_no)->firstOrFail();
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('Active', $bus->fresh()->status);
+
+        $this->actingAs($head)->post(route('job-orders.approve', $jobOrder), [
+            'electronic_signature' => $head->name,
+            'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+            'duration_decision' => 'accept',
+        ])->assertRedirect();
+
         $this->assertSame('Under Maintenance', $bus->fresh()->status);
         $this->assertSame('Active', $bus->fresh()->pre_maintenance_status);
+
+        PurchaseRequest::create([
+            'pr_no' => 'PR-MANUAL-LIFECYCLE',
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $bus->bus_no,
+            'item' => 'Test part',
+            'quantity' => 1,
+            'status' => 'Rejected',
+            'source_type' => 'Maintenance Request',
+        ]);
+        $jobOrder->update(['part_status' => 'Rejected']);
 
         $this->actingAs($staff)
             ->delete(route('job-orders.destroy', $jobOrder))

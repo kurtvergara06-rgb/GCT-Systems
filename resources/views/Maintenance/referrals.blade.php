@@ -23,12 +23,6 @@
                 subtitle="Review bus breakdown referrals from Operation and create traceable Job Orders"
             />
 
-            @if (session('success'))
-                <div style="margin:16px 0;padding:12px 14px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:10px;color:#166534;">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             @if (session('error'))
                 <div style="margin:16px 0;padding:12px 14px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#991b1b;">
                     {{ session('error') }}
@@ -49,6 +43,14 @@
                         <p>Every Job Order created here keeps the source incident and referral reference.</p>
                     </div>
 
+
+                </div>
+
+                @if($recordView === 'history')
+                    <p class="referral-history-note">Job Order Created and Rejected referrals are kept here for reference and audit history.</p>
+                @endif
+
+                <div class="maintenance-list-controls referrals-controls-row">
                     <div class="referral-record-tabs" role="tablist" aria-label="Maintenance referral record view">
                         <a
                             href="{{ route('maintenance-referrals', array_filter([
@@ -77,13 +79,7 @@
                             <span>History</span>
                         </a>
                     </div>
-                </div>
-
-                @if($recordView === 'history')
-                    <p class="referral-history-note">Job Order Created and Rejected referrals are kept here for reference and audit history.</p>
-                @endif
-
-                <x-ui.table-toolbar action="{{ route('maintenance-referrals') }}" search-label="Search Referrals" search-placeholder="Search incident, bus, location, or problem..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Referrals" :sort-options="['created_at' => 'Referral Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
+                    <x-ui.table-toolbar action="{{ route('maintenance-referrals') }}" search-label="Search Referrals" search-placeholder="Search incident, bus, location, or problem..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Referrals" :sort-options="['created_at' => 'Referral Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
                     <x-slot:hidden>
                         @if($recordView === 'history')
                             <input type="hidden" name="record_view" value="history">
@@ -98,6 +94,7 @@
                         </x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
 
                 <div class="table-wrap">
                     <table class="referrals-table">
@@ -165,13 +162,13 @@
                                     <td>
                                         <div class="referral-actions-wrap">
                                             @if($referral->status === 'Pending' && $canReview)
-                                                <form method="POST" action="{{ route('maintenance-referrals.approve', $referral) }}">
+                                                <form method="POST" action="{{ route('maintenance-referrals.approve', $referral) }}" data-confirm-form data-confirm-type="approve" data-confirm-title="Approve Maintenance Referral?" data-confirm-message="Approve this referral so Maintenance Staff can create a Job Order?" data-confirm-button="Yes, Approve">
                                                     @csrf
                                                     <button type="submit" class="btn-ref-action btn-approve" title="Approve Referral">
                                                         <i class="fa-solid fa-check"></i> Approve
                                                     </button>
                                                 </form>
-                                                <form method="POST" action="{{ route('maintenance-referrals.reject', $referral) }}">
+                                                <form method="POST" action="{{ route('maintenance-referrals.reject', $referral) }}" data-confirm-form data-confirm-type="reject" data-confirm-title="Reject Maintenance Referral?" data-confirm-message="Reject this referral? It will move to History and cannot be used to create a Job Order." data-confirm-button="Yes, Reject">
                                                     @csrf
                                                     <button type="submit" class="btn-ref-action btn-reject" title="Reject Referral">
                                                         <i class="fa-solid fa-xmark"></i> Reject

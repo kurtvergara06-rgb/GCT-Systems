@@ -18,8 +18,6 @@ const MODAL_OVERLAY_SELECTOR = [
   '.pms-modal-overlay',
 ].join(', ');
 
-let sidebarObserver = null;
-
 const prefersReducedMotion = () => {
   if (
     window.__GCT_FORCE_MOTION__ === true
@@ -42,13 +40,6 @@ const getMaintenanceRoot = () => (
   )
 );
 
-const isMaintenanceShell = () => (
-  document
-    .getElementById('appSidebar')
-    ?.dataset
-    .gctShell === 'maintenance'
-);
-
 /*
  * Backward-compatible facade for older Maintenance callers. Page reveal
  * ownership now lives in the shared system animation lifecycle.
@@ -68,128 +59,6 @@ window.GCTMaintenanceReveal =
         ?.revealPage?.(options) ?? false
     ),
   });
-
-const animateSidebarActiveItem = () => {
-  if (
-    !isMaintenanceShell()
-  ) {
-    return;
-  }
-
-  const activeItems =
-    document.querySelectorAll(
-      '#appSidebar .menu-item.active, '
-      + '#appSidebar .submenu-item.active'
-    );
-
-  if (!activeItems.length) {
-    return;
-  }
-
-  const reduced = prefersReducedMotion();
-  const xOffset = reduced ? -7 : -14;
-
-  gsap.fromTo(
-    activeItems,
-    {
-      opacity: 0.55,
-      x: xOffset,
-    },
-    {
-      opacity: 1,
-      x: 0,
-      duration: reduced ? 0.28 : 0.38,
-      ease: 'power3.out',
-      clearProps: 'opacity,transform',
-    }
-  );
-};
-
-const animateSidebarShellState = (
-  sidebar
-) => {
-  if (!sidebar) {
-    return;
-  }
-
-  const reduced =
-    prefersReducedMotion();
-
-  const icons =
-    sidebar.querySelectorAll(
-      '.brand-icon, '
-      + '.menu-item > i, '
-      + '.submenu-item > i'
-    );
-
-  if (!icons.length) {
-    return;
-  }
-
-  gsap.fromTo(
-    icons,
-    {
-      opacity: reduced ? 0.78 : 0.6,
-      scale: reduced ? 0.97 : 0.92,
-    },
-    {
-      opacity: 1,
-      scale: 1,
-      duration: reduced ? 0.18 : 0.26,
-      stagger: reduced ? 0.01 : 0.02,
-      ease: 'power2.out',
-      clearProps: 'opacity,transform',
-    }
-  );
-};
-
-const ensureSidebarObserver = () => {
-  const sidebar =
-    document.getElementById(
-      'appSidebar'
-    );
-
-  if (
-    !sidebar
-    || sidebar.dataset
-      .gctShell !== 'maintenance'
-  ) {
-    sidebarObserver?.disconnect();
-    sidebarObserver = null;
-    return;
-  }
-
-  sidebarObserver?.disconnect();
-
-  sidebarObserver =
-    new MutationObserver(
-      (mutations) => {
-        mutations.forEach(
-          (mutation) => {
-            const target =
-              mutation.target;
-
-            if (target === sidebar) {
-              animateSidebarShellState(
-                sidebar
-              );
-            }
-          }
-        );
-      }
-    );
-
-  sidebarObserver.observe(
-    sidebar,
-    {
-      subtree: true,
-      attributes: true,
-      attributeFilter: [
-        'class',
-      ],
-    }
-  );
-};
 
 const bindGlobalInteractions = () => {
   const pressSelector = [
@@ -283,92 +152,6 @@ const bindGlobalInteractions = () => {
     releasePressedButton
   );
 
-  document.addEventListener(
-    'pointerover',
-    (event) => {
-      if (!isMaintenanceShell()) {
-        return;
-      }
-
-      const item =
-        event.target.closest?.(
-          '#appSidebar .menu-item, '
-          + '#appSidebar .submenu-item'
-        );
-
-      if (
-        !item
-        || (
-          event.relatedTarget instanceof Node
-          && item.contains(
-            event.relatedTarget
-          )
-        )
-      ) {
-        return;
-      }
-
-      gsap.to(
-        item,
-        {
-          x: 10,
-          duration: 0.24,
-          ease: 'power2.out',
-          overwrite: true,
-        }
-      );
-    }
-  );
-
-  document.addEventListener(
-    'pointerout',
-    (event) => {
-      if (!isMaintenanceShell()) {
-        return;
-      }
-
-      const item =
-        event.target.closest?.(
-          '#appSidebar .menu-item, '
-          + '#appSidebar .submenu-item'
-        );
-
-      if (
-        !item
-        || (
-          event.relatedTarget instanceof Node
-          && item.contains(
-            event.relatedTarget
-          )
-        )
-      ) {
-        return;
-      }
-
-      gsap.to(
-        item,
-        {
-          x: 0,
-          duration: 0.24,
-          ease: 'power2.out',
-          overwrite: true,
-          clearProps: 'transform',
-        }
-      );
-    }
-  );
-
-  window.addEventListener(
-    'gct:navigation-ready',
-    () => {
-      if (!getMaintenanceRoot()) {
-        return;
-      }
-
-      ensureSidebarObserver();
-      animateSidebarActiveItem();
-    }
-  );
 };
 
 const initializeMaintenanceAnimations = () => {
@@ -380,9 +163,6 @@ const initializeMaintenanceAnimations = () => {
   }
 
   bindGlobalInteractions();
-  ensureSidebarObserver();
-
-  animateSidebarActiveItem();
 };
 
 if (

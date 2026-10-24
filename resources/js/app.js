@@ -73,7 +73,7 @@ const initializePageOnlyControls = () => {
     }
 
     if (document.querySelector('.jo-page')) {
-        import('./Maintenance/job-order-work-details.js');
+        // The Job Orders table no longer injects secondary Work labels.
     }
 
     if (document.querySelector('.fuel-page')) {

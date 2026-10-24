@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\Maintenance\PurchaseRequestPartsService;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
@@ -31,11 +32,15 @@ class PurchaseRequestController extends Controller
 
     private PartParser $partParser;
 
+    private PurchaseRequestPartsService $purchaseRequestParts;
+
     public function __construct(
-        PartParser $partParser
+        PartParser $partParser,
+        PurchaseRequestPartsService $purchaseRequestParts
     ) {
         $this->partParser =
             $partParser;
+        $this->purchaseRequestParts = $purchaseRequestParts;
     }
 
     /* =========================================================
@@ -301,6 +306,43 @@ class PurchaseRequestController extends Controller
        STORE
     ========================================================= */
 
+    public function jobOrderData(JobOrder $jobOrder)
+    {
+        abort_unless(
+            $jobOrder->review_status === 'Approved'
+                && $jobOrder->status !== 'Completed'
+                && filled($jobOrder->assigned_mechanic)
+                && filled($jobOrder->part_needed),
+            404
+        );
+
+        $existingRequest = $this->maintenancePurchaseRequestQuery()
+            ->where('job_order_no', $jobOrder->job_order_no)
+            ->exists();
+        if ($existingRequest) {
+            return response()->json([
+                'message' => 'This Job Order already has a Purchase Request.',
+            ], 409);
+        }
+
+        $approvalAudit = $jobOrder->audits()
+            ->where('action', 'approved')
+            ->latest('id')
+            ->first();
+        $signaturePath = data_get($approvalAudit?->metadata, 'handwritten_signature_path');
+
+        return response()->json([
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no,
+            'work_to_perform' => $jobOrder->work_to_perform,
+            'approver_name' => $jobOrder->approver?->name,
+            'signature_url' => is_string($signaturePath) && $signaturePath !== ''
+                ? route('job-orders.approval-signature', $jobOrder, false)
+                : null,
+            'parts' => $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated =
@@ -331,6 +373,12 @@ class PurchaseRequestController extends Controller
 
                 'remarks' =>
                     'nullable|string|max:1000',
+
+                'purpose' =>
+                    'nullable|string|max:1000',
+
+                'target_date' =>
+                    'nullable|date|after_or_equal:today',
             ]);
 
         if (
@@ -406,6 +454,19 @@ class PurchaseRequestController extends Controller
                 ->with(
                     'error',
                     'A mechanic must be assigned before creating a Purchase Request.'
+                );
+        }
+
+        if ($jobOrder->review_status !== 'Approved') {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'A Purchase Requisition can only be created from an approved Job Order.'], 422);
+            }
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'A Purchase Requisition can only be created from an approved Job Order.'
                 );
         }
 
@@ -489,80 +550,20 @@ class PurchaseRequestController extends Controller
         }
 
         /* =====================================================
-           PARTS
-        ====================================================== */
-
-        $parts =
-            $this->partParser
-                ->normalizePartsInput(
-                    $request->parts ?? []
-                );
-
-        if (
-            count($parts) === 0
-            && $request->filled(
-                'item'
-            )
-        ) {
-            $parts[] = [
-                'name' =>
-                    trim(
-                        $request->item
-                    ),
-
-                'quantity' =>
-                    (int)
-                        ($request->quantity ?? 1)
-                    > 0
-                        ? (int)
-                            ($request->quantity ?? 1)
-                        : 1,
-
-                'unit' =>
-                    trim(
-                        $request->unit ?? ''
-                    ),
-            ];
-        }
-
-        if (
-            count($parts) === 0
-        ) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Please add at least one requested part.'], 422);
-            }
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please add at least one requested part.'
-                );
-        }
-
-        $formattedParts =
-            $this->partParser
-                ->formatParts(
-                    $parts
-                );
-
-        $totalQuantity =
-            $this->partParser
-                ->calculateTotalQuantity(
-                    $parts
-                );
-
-        /* =====================================================
            CREATE
         ====================================================== */
 
         [$purchaseRequest, $jobOrder] = DB::transaction(function () use (
-            $formattedParts,
             $jobOrder,
-            $totalQuantity,
             $validated
         ): array {
             $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+
+            if ($lockedJobOrder->review_status !== 'Approved' || $lockedJobOrder->status === 'Completed') {
+                throw ValidationException::withMessages([
+                    'job_order_no' => 'A Purchase Requisition can only be created from an approved, open Job Order.',
+                ]);
+            }
 
             $existingRequest = $this->maintenancePurchaseRequestQuery()
                 ->where('job_order_no', $lockedJobOrder->job_order_no)
@@ -575,6 +576,16 @@ class PurchaseRequestController extends Controller
                 ]);
             }
 
+            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
+            if ($parts === []) {
+                throw ValidationException::withMessages([
+                    'job_order_no' => 'All requested parts are available. A Purchase Requisition is not needed.',
+                ]);
+            }
+
+            $formattedParts = $this->partParser->formatParts($parts);
+            $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
+
             $createdPurchaseRequest = PurchaseRequest::create([
                 'pr_no' => $this->generatePrNo(),
                 'job_order_no' => $lockedJobOrder->job_order_no,
@@ -584,11 +595,12 @@ class PurchaseRequestController extends Controller
                 'status' => 'Submitted',
                 'source_type' => 'Maintenance Request',
                 'remarks' => $validated['remarks'] ?? null,
-                'date_requested' => now(),
+                'purpose' => $validated['purpose'] ?? null,
+                'target_date' => $validated['target_date'] ?? null,
+                'requested_by' => Auth::id(),
             ]);
 
             $lockedJobOrder->update([
-                'part_needed' => $formattedParts,
                 'part_status' => 'Submitted',
             ]);
 

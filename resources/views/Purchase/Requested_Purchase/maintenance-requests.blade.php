@@ -67,9 +67,9 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
-                <th>PR #</th>
+                <th>PR ID</th>
                 <th>JO No.</th>
-                <th>Bus #</th>
+                <th>Bus ID</th>
                 <th>Item</th>
                 <th>Quantity</th>
                 <th>Status</th>
@@ -178,7 +178,7 @@
           <input id="viewRequestedJoNo" type="text" value="—" readonly>
         </div>
         <div class="requested-pr-field">
-          <label>Bus #</label>
+          <label>Bus ID</label>
           <input id="viewRequestedBusNo" type="text" value="—" readonly>
         </div>
         <div class="requested-pr-field">

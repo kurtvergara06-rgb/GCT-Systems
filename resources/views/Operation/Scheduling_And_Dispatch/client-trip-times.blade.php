@@ -73,9 +73,6 @@
                 </article>
             </section>
 
-            @if(session('success'))
-                <p role="status" class="ctt-client-create-message">{{ session('success') }}</p>
-            @endif
             <section class="ctt-configurations-card" aria-label="Client trip time configurations">
                 <div class="ctt-section-header">
                     <div>

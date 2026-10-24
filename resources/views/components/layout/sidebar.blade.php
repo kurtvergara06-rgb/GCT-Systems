@@ -73,22 +73,22 @@
                 ],
             ],
             [
-                'label' => 'Attendance & Availability',
-                'icon' => 'fa-calendar-check',
+                'label' => 'Mechanic Management',
+                'icon' => 'fa-users-gear',
                 'children' => [
+                    ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
                     ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
+                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
                 ],
             ],
             [
-                'label' => 'Resources',
+                'label' => 'Resources & Requests',
                 'icon' => 'fa-toolbox',
                 'children' => [
-                    ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
-                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
                     ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
+                    ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
                 ],
             ],
-            ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
         ];
     }
 

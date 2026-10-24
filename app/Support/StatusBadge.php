@@ -139,6 +139,8 @@ final class StatusBadge
             'out-of-service' => ['tone' => 'negative', 'icon' => 'fa-power-off'],
             'absent' => ['tone' => 'negative', 'icon' => 'fa-user-xmark'],
             'rejected' => ['tone' => 'negative', 'icon' => 'fa-circle-xmark'],
+            'for-review' => ['tone' => 'info', 'icon' => 'fa-magnifying-glass'],
+            'revision-required' => ['tone' => 'warning', 'icon' => 'fa-rotate-left'],
             'failed' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
             'missing-gps' => ['tone' => 'negative', 'icon' => 'fa-location-crosshairs'],
             'cancelled' => ['tone' => 'negative', 'icon' => 'fa-ban'],

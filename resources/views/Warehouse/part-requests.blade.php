@@ -79,7 +79,7 @@
           <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
             <thead>
               <tr>
-                <th>PR #</th>
+                <th>PR ID</th>
                 <th>Item</th>
                 <th class="qty-col">Qty</th>
                 <th class="qty-col">On Hand</th>
@@ -235,7 +235,7 @@
 
       <div class="warehouse-edit-form-grid warehouse-request-meta-grid">
         <div class="warehouse-field">
-          <label>PR No.</label>
+          <label>PR ID</label>
           <input id="view_pr_no" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
@@ -243,11 +243,11 @@
           <input id="view_created" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
-          <label>JO No.</label>
+          <label>JO ID</label>
           <input id="view_job_order_no" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">
-          <label>Bus #</label>
+          <label>Bus ID</label>
           <input id="view_bus_no" type="text" value="—" readonly>
         </div>
         <div class="warehouse-field">

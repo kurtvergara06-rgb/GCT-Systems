@@ -17,11 +17,11 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            'Basic Information',
+            'Job Details',
             $view
         );
         $this->assertStringContainsString(
-            'Job Details',
+            'Mechanic Assignment',
             $view
         );
         $this->assertStringContainsString(
@@ -35,15 +35,19 @@ class JobOrderCreateModalLayoutTest extends TestCase
 
         // Existing workflow hooks must remain intact.
         $this->assertStringContainsString(
-            'id="jobAssignedMechanic"',
+            'id="jobAssignedMechanics"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'name="mechanic_ids[]"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'multiple size="4"',
             $view
         );
         $this->assertStringContainsString(
             'id="newRequestedPartsSection"',
-            $view
-        );
-        $this->assertStringContainsString(
-            'id="newPartsLockedNotice"',
             $view
         );
         $this->assertStringContainsString(
@@ -59,6 +63,14 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
+            'id="jobLinkedDriver"',
+            $view
+        );
+        $this->assertStringContainsString(
+            'id="jobBusDriverMap"',
+            $view
+        );
+        $this->assertStringContainsString(
             'class="jo-duration-unit-select"',
             $view
         );
@@ -67,6 +79,115 @@ class JobOrderCreateModalLayoutTest extends TestCase
         $this->assertStringNotContainsString(
             'name="work_repair_to_perform"',
             $view
+        );
+    }
+
+    public function test_new_job_order_modal_uses_the_native_light_froms_design(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Maintenance/job-order.blade.php')
+        );
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        foreach ([
+            'Create and assign a maintenance service request',
+            '01 &mdash;',
+            '02 &mdash;',
+            '03 &mdash;',
+            '04 &mdash;',
+            'Complaint / Problem',
+            'Estimated Duration',
+        ] as $copy) {
+            $this->assertStringContainsString($copy, $view);
+        }
+
+        $this->assertStringContainsString(
+            'NEW JOB ORDER MODAL - STRUCTURED GCT LAYOUT',
+            $css
+        );
+        $this->assertStringContainsString(
+            'background: #ffffff;',
+            $css
+        );
+        $this->assertStringNotContainsString(
+            'NEW JOB ORDER MODAL - APPROVED DARK DESIGN',
+            $css
+        );
+        $this->assertStringNotContainsString(
+            'Linked driver, if available',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'Completion &amp; Quality Review',
+            $view
+        );
+    }
+
+    public function test_new_job_order_modal_keeps_cards_compact_and_uses_a_multi_mechanic_picker(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Maintenance/job-order.blade.php')
+        );
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+        $javascript = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString('align-items: start;', $css);
+        $this->assertStringContainsString('.jo-mechanic-chip', $css);
+        $this->assertStringContainsString('setupMechanicMultiSelect(mechanicSelect);', $javascript);
+        $this->assertStringContainsString("option.selected = !option.selected;", $javascript);
+        $this->assertStringContainsString('data-collapsed="true"', $view);
+        $this->assertStringContainsString('Insufficient Historical Data', $view);
+        $this->assertStringContainsString('Submit for Review', $view);
+    }
+
+    public function test_new_job_order_driver_preview_tracks_the_selected_bus(): void
+    {
+        $controller = file_get_contents(
+            app_path('Http/Controllers/Maintenance/JobOrderController.php')
+        );
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            "with('authorizedDrivers:id,driver_name')",
+            $controller
+        );
+        $this->assertStringContainsString('busDriverMap', $js);
+        $this->assertStringContainsString('updateLinkedDriver', $js);
+        $this->assertStringContainsString(
+            "busSelect?.addEventListener('change', updateLinkedDriver)",
+            $js
+        );
+    }
+
+    public function test_new_job_order_enhancements_preserve_the_approved_runtime_field_order(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/maintenance-ui-enhancements.js')
+        );
+
+        $this->assertStringContainsString(
+            "const isNewJobOrder = idPrefix === 'newJo';",
+            $js
+        );
+        $this->assertStringContainsString(
+            "form.querySelector('.jo-create-job-details-grid')",
+            $js
+        );
+        $this->assertStringContainsString(
+            'jobDetailsGrid?.appendChild(workGroup);',
+            $js
+        );
+        $this->assertStringContainsString(
+            'jobSlot?.replaceWith(group);',
+            $js
         );
     }
 
@@ -216,14 +337,14 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
-    public function test_new_job_order_bus_field_is_wider_than_the_reference_field(): void
+    public function test_new_job_order_uses_balanced_two_column_fields(): void
     {
         $css = file_get_contents(
             resource_path('css/Maintenance/job-order.css')
         );
 
         $this->assertStringContainsString(
-            'grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);',
+            'grid-template-columns: repeat(2, minmax(0, 1fr));',
             $css
         );
     }
@@ -429,15 +550,15 @@ class JobOrderCreateModalLayoutTest extends TestCase
             $js
         );
         $this->assertStringContainsString(
-            'Please enter the Work / Repair to Perform.',
-            $js
-        );
-        $this->assertStringContainsString(
             'Please select a Maintenance Job.',
             $js
         );
         $this->assertStringContainsString(
-            'Please enter a valid Estimated Time.',
+            'Please assign at least one mechanic.',
+            $js
+        );
+        $this->assertStringContainsString(
+            'The historical estimated duration is invalid. Please refresh.',
             $js
         );
         $this->assertStringContainsString(
@@ -489,6 +610,19 @@ BLADE,
         $this->assertStringContainsString(
             'option.value',
             $js
+        );
+
+        $selectComponent = file_get_contents(
+            resource_path('views/components/ui/form-select.blade.php')
+        );
+
+        $this->assertStringContainsString(
+            '$optionsAreList = array_is_list($fieldOptions);',
+            $selectComponent
+        );
+        $this->assertStringContainsString(
+            '$optionsAreList && is_int($key)',
+            $selectComponent
         );
     }
 

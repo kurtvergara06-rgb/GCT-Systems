@@ -4,8 +4,9 @@ namespace Tests\Feature\Auth;
 
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class GoogleRegistrationTest extends TestCase
@@ -84,5 +85,32 @@ class GoogleRegistrationTest extends TestCase
             ->post(route('auth.google.register.submit'), ['name' => 'Another Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026'])
             ->assertRedirect(route('login'));
         $this->assertSame(1, User::where('email', 'applicant@example.com')->count());
+    }
+
+    public function test_brevo_failure_does_not_turn_google_registration_into_a_gateway_timeout(): void
+    {
+        config()->set('mail.default', 'brevo');
+        config()->set('mail.from.address', 'verified-sender@example.com');
+        config()->set('services.brevo.key', 'test-brevo-key');
+        config()->set('services.brevo.endpoint', 'https://api.brevo.com/v3/smtp/email');
+        Mail::purge();
+
+        Http::fake([
+            'https://api.brevo.com/v3/smtp/email' => Http::response([
+                'message' => 'Temporary delivery failure.',
+            ], 503),
+        ]);
+
+        $this->withSession($this->googleSession())
+            ->post(route('auth.google.register.submit'), [
+                'name' => 'Official Employee Name',
+                'password' => 'SecureGCTPassword#2026',
+                'password_confirmation' => 'SecureGCTPassword#2026',
+            ])
+            ->assertRedirect(route('verification.otp'))
+            ->assertSessionHas('error', 'The verification code could not be sent. Please try Resend Code.');
+
+        $user = User::where('email', 'applicant@example.com')->firstOrFail();
+        $this->assertDatabaseMissing('email_verification_otps', ['user_id' => $user->id]);
     }
 }

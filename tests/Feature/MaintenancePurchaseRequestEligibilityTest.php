@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Admin\User;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,6 +34,23 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             'start_date' => now(),
             'status' => 'On Going',
             'part_status' => $parts ? 'Not Requested' : 'No Parts Required',
+        ]);
+    }
+
+    private function createInventoryItem(string $name, int $stock, string $category = 'Mechanical'): InventoryItem
+    {
+        return InventoryItem::create([
+            'item_code' => strtoupper(str_replace(' ', '-', $name)),
+            'item_name' => $name,
+            'parts_name' => $name,
+            'category' => $category,
+            'on_hand' => $stock,
+            'quantity_available' => $stock,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 0,
+            'status' => $stock > 0 ? 'In Stock' : 'Out of Stock',
+            'source' => 'app',
         ]);
     }
 
@@ -138,6 +156,126 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             PurchaseRequest::query()
                 ->where('job_order_no', $jobOrder->job_order_no)
                 ->count()
+        );
+    }
+
+    public function test_requisition_data_contains_only_missing_parts_and_does_not_expose_stock(): void
+    {
+        $user = $this->maintenanceStaff();
+        $jobOrder = $this->createJobOrder(
+            'JO-SHORTAGE-06',
+            'Oil Filter - Qty: 2 pcs, Brake Pad - Qty: 4 pcs, Fan Belt - Qty: 5 pcs'
+        );
+        $this->createInventoryItem('Oil Filter', 2);
+        $this->createInventoryItem('Brake Pad', 4);
+        $this->createInventoryItem('Fan Belt', 3);
+
+        $response = $this
+            ->actingAs($user)
+            ->getJson(route('purchase-requests.job-order-data', $jobOrder));
+
+        $response->assertOk()
+            ->assertJsonPath('job_order_no', $jobOrder->job_order_no)
+            ->assertJsonPath('bus_no', $jobOrder->bus_no)
+            ->assertJsonCount(1, 'parts')
+            ->assertJsonPath('parts.0.name', 'Fan Belt')
+            ->assertJsonPath('parts.0.category', 'Mechanical')
+            ->assertJsonPath('parts.0.quantity', 2)
+            ->assertJsonPath('parts.0.availability', 'Unavailable')
+            ->assertJsonMissingPath('parts.0.available')
+            ->assertJsonMissingPath('parts.0.shortage')
+            ->assertJsonMissingPath('parts.0.inventory_item_id');
+    }
+
+    public function test_store_recalculates_missing_quantities_and_preserves_full_job_order_parts(): void
+    {
+        $user = $this->maintenanceStaff();
+        $jobOrder = $this->createJobOrder(
+            'JO-SHORTAGE-07',
+            'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs'
+        );
+        $this->createInventoryItem('Oil Filter', 2);
+        $this->createInventoryItem('Fan Belt', 3);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+                'purpose' => 'Repair bus alternator',
+                'target_date' => now()->addDay()->toDateString(),
+                'parts' => [
+                    ['name' => 'Oil Filter', 'quantity' => 99, 'unit' => 'pcs'],
+                    ['name' => 'Fan Belt', 'quantity' => 1, 'unit' => 'pcs'],
+                ],
+            ]);
+
+        $response->assertOk()->assertJsonPath('success', true);
+
+        $purchaseRequest = PurchaseRequest::query()
+            ->where('job_order_no', $jobOrder->job_order_no)
+            ->firstOrFail();
+
+        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertSame(2, $purchaseRequest->quantity);
+        $this->assertSame('Repair bus alternator', $purchaseRequest->purpose);
+        $this->assertSame($user->id, $purchaseRequest->requested_by);
+        $this->assertSame(
+            'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs',
+            $jobOrder->fresh()->part_needed
+        );
+    }
+
+    public function test_store_rejects_requisition_when_all_requested_parts_are_available(): void
+    {
+        $user = $this->maintenanceStaff();
+        $jobOrder = $this->createJobOrder(
+            'JO-AVAILABLE-08',
+            'Oil Filter - Qty: 2 pcs'
+        );
+        $this->createInventoryItem('Oil Filter', 2);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+                'parts' => [
+                    ['name' => 'Oil Filter', 'quantity' => 2, 'unit' => 'pcs'],
+                ],
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('job_order_no');
+
+        $this->assertDatabaseMissing('purchase_requests', [
+            'job_order_no' => $jobOrder->job_order_no,
+        ]);
+    }
+
+    public function test_job_order_create_pr_action_also_requests_only_the_shortage(): void
+    {
+        $user = $this->maintenanceStaff();
+        $jobOrder = $this->createJobOrder(
+            'JO-SHORTAGE-09',
+            'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs'
+        );
+        $this->createInventoryItem('Oil Filter', 2);
+        $this->createInventoryItem('Fan Belt', 3);
+
+        $this->actingAs($user)
+            ->post(route('job-orders.create-pr', $jobOrder))
+            ->assertRedirect();
+
+        $purchaseRequest = PurchaseRequest::query()
+            ->where('job_order_no', $jobOrder->job_order_no)
+            ->firstOrFail();
+
+        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertSame(2, $purchaseRequest->quantity);
+        $this->assertSame(
+            'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs',
+            $jobOrder->fresh()->part_needed
         );
     }
 }

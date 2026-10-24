@@ -2984,6 +2984,20 @@
   background: #9faec0;
 }
 
+/* Shared Bus Master List-style controls for Maintenance fuel records. */
+.fuel-page .fuel-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 14px;
+  overflow: visible;
+}
+
+.fuel-page .fuel-record-controls > .gct-table-toolbar {
+  margin-left: auto;
+}
+
 @media (max-width: 1050px) {
   .fuel-page .daily-monitoring-header {
     flex-direction: column;
@@ -2996,6 +3010,10 @@
 
   .fuel-page .daily-monitoring-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-record-controls > .gct-table-toolbar {
+    width: 100%;
   }
 
   .fuel-page .daily-monitoring-filters {

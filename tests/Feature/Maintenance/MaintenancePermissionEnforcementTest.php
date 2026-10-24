@@ -132,4 +132,53 @@ class MaintenancePermissionEnforcementTest extends TestCase
 
         $this->assertSame('Approved', $referral->fresh()->status);
     }
+
+    public function test_referral_status_filter_cannot_cross_active_and_history_views(): void
+    {
+        $staff = $this->staff();
+        $this->permissions(true, true, true);
+        $referral = $this->pendingReferral($staff, 'STATUSFILTER');
+
+        $this->actingAs($staff)
+            ->get(route('maintenance-referrals', ['record_view' => 'active', 'status' => 'Rejected']))
+            ->assertOk()
+            ->assertSee($referral->incident->incident_no);
+
+        $this->actingAs($staff)
+            ->get(route('maintenance-referrals', ['record_view' => 'history', 'status' => 'Pending']))
+            ->assertOk()
+            ->assertDontSee($referral->incident->incident_no);
+    }
+
+    public function test_referral_review_cannot_be_repeated_after_approval(): void
+    {
+        $staff = $this->staff();
+        $this->permissions(true, true, true);
+        $referral = $this->pendingReferral($staff, 'REVIEWONCE');
+
+        $this->actingAs($staff)
+            ->post(route('maintenance-referrals.approve', $referral))
+            ->assertRedirect();
+
+        $this->actingAs($staff)
+            ->post(route('maintenance-referrals.reject', $referral))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertSame('Approved', $referral->fresh()->status);
+    }
+
+    public function test_referral_review_buttons_use_confirmation_dialog(): void
+    {
+        $staff = $this->staff();
+        $this->permissions(true, true, true);
+        $this->pendingReferral($staff, 'CONFIRM');
+
+        $this->actingAs($staff)
+            ->get(route('maintenance-referrals'))
+            ->assertOk()
+            ->assertSee('data-confirm-title="Approve Maintenance Referral?"', false)
+            ->assertSee('data-confirm-title="Reject Maintenance Referral?"', false);
+    }
+
 }

@@ -2,6 +2,53 @@ import gsap from 'gsap';
 
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
 
+  // Maintenance Head review: reveal per-part fulfillment status, not stock counts.
+  document.querySelectorAll('.jo-review-parts-list').forEach((list) => {
+    const reviewDetails = list.closest('details.jo-review-actions');
+    const loadStatuses = async () => {
+      if (list.dataset.checking === '1') return;
+      let parts;
+      try { parts = JSON.parse(list.dataset.parts || '[]'); } catch { parts = []; }
+      if (!Array.isArray(parts) || !parts.length) return;
+      list.dataset.checking = '1';
+      const badges = [...list.querySelectorAll('.jo-review-part-availability')];
+      badges.forEach((badge) => {
+        badge.textContent = 'Checking availability';
+        badge.className = 'jo-review-part-availability is-checking';
+      });
+      try {
+        const response = await fetch('/job-orders/inventory-availability', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ parts }),
+        });
+        if (!response.ok) throw new Error('Lookup failed');
+        const result = await response.json();
+        badges.forEach((badge, index) => {
+          const available = result.parts?.[index]?.fulfillable === true;
+          badge.className = 'jo-review-part-availability ' + (available ? 'is-available' : 'is-unavailable');
+          badge.textContent = available ? 'Available' : 'Unavailable';
+        });
+      } catch {
+        badges.forEach((badge) => {
+          badge.className = 'jo-review-part-availability is-unknown';
+          badge.textContent = 'Unable to check';
+        });
+      } finally {
+        list.dataset.checking = '0';
+      }
+    };
+    // The Head Review is a custom dialog: the native <details> never stays open.
+    // Listen for the actual dialog activation rather than waiting on its toggle.
+    list.addEventListener('jo-head-review-opened', () => void loadStatuses());
+    if (reviewDetails?.open) void loadStatuses();
+  });
+
   /* =========================================================
      GSAP MOTION HELPERS
   ========================================================= */
@@ -327,6 +374,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
               `parts[${index}][unit]`;
 
           }
+          const inventoryId = row.querySelector('input[name$="[inventory_item_id]"]');
+          if (inventoryId) inventoryId.name = `parts[${index}][inventory_item_id]`;
 
         }
       );
@@ -899,12 +948,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       );
 
 
-    const workField =
-      newJobOrderForm.querySelector(
-        'textarea[name="work_to_perform"]'
-      );
-
-
     const maintenanceJobField =
       newJobOrderForm.querySelector(
         '#newJoMaintenanceJob'
@@ -916,6 +959,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         'input[name="estimated_duration_value"]'
       );
 
+
+    const mechanicsField = newJobOrderForm.querySelector('#jobAssignedMechanics');
 
     const validations = [
       {
@@ -935,13 +980,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           'Please enter the Problem / Issue.',
       },
       {
-        field: workField,
-        invalid:
-          !workField?.value?.trim(),
-        message:
-          'Please enter the Work / Repair to Perform.',
-      },
-      {
         field: maintenanceJobField,
         invalid:
           !maintenanceJobField?.value?.trim(),
@@ -951,12 +989,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           '.jo-maintenance-job-trigger',
       },
       {
+        field: mechanicsField,
+        invalid: !mechanicsField || mechanicsField.selectedOptions.length === 0,
+        message: 'Please assign at least one mechanic.',
+      },
+      {
         field: estimatedTimeField,
         invalid:
-          !estimatedTimeField?.value ||
+          !!estimatedTimeField?.value &&
           Number(estimatedTimeField.value) <= 0,
         message:
-          'Please enter a valid Estimated Time.',
+          'The historical estimated duration is invalid. Please refresh.',
       },
     ];
 
@@ -1062,10 +1105,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
             'Please enter the Problem / Issue.',
             null,
           ],
-          newJoWorkToPerform: [
-            'Please enter the Work / Repair to Perform.',
-            null,
-          ],
           newJoMaintenanceJob: [
             'Please select a Maintenance Job.',
             '.jo-maintenance-job-trigger',
@@ -1099,7 +1138,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
   const jobAssignedMechanic =
     document.getElementById(
-      'jobAssignedMechanic'
+      'jobAssignedMechanics'
     );
 
 
@@ -1129,12 +1168,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
   function updateNewJoPartsState() {
 
-    const hasMechanic =
-      Boolean(
-        jobAssignedMechanic
-          ?.value
-          ?.trim()
-      );
+    // Parts can be declared before mechanic assignment. Review approval remains
+    // the workflow gate, so this section must stay usable for unassigned JOs.
+    const hasMechanic = true;
 
 
     /*
@@ -1692,7 +1728,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   ========================================================= */
 
   function setEditMechanicOptions(
-    currentMechanic = ''
+    currentMechanicIds = ''
   ) {
 
     if (!editAssignedMechanic) {
@@ -1700,77 +1736,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     }
 
 
-    const currentValue =
-      String(
-        currentMechanic || ''
-      ).trim();
-
-
-    const oldCurrentOption =
-      Array.from(
-        editAssignedMechanic.options
-      )
-      .find(
-        (option) =>
-          option.dataset
-            .currentAssignment ===
-          'true'
-      );
-
-
-    if (oldCurrentOption) {
-
-      oldCurrentOption.remove();
-
-    }
-
-
-    const alreadyExists =
-      Array.from(
-        editAssignedMechanic.options
-      )
-      .some(
-        (option) =>
-          option.value ===
-          currentValue
-      );
-
-
-    if (
-      currentValue &&
-      !alreadyExists
-    ) {
-
-      const currentOption =
-        document.createElement(
-          'option'
-        );
-
-
-      currentOption.value =
-        currentValue;
-
-
-      currentOption.textContent =
-        `${currentValue} (Current assignment)`;
-
-
-      currentOption.dataset
-        .currentAssignment =
-        'true';
-
-
-      editAssignedMechanic
-        .insertBefore(
-          currentOption,
-          editAssignedMechanic.options[1]
-            || null
-        );
-    }
-
-
-    editAssignedMechanic.value =
-      currentValue;
+    const selectedIds = new Set(String(currentMechanicIds || '').split(',').map((value) => value.trim()).filter(Boolean));
+    Array.from(editAssignedMechanic.options).forEach((option) => {
+      option.selected = selectedIds.has(String(option.value));
+    });
   }
 
 
@@ -1798,12 +1767,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     }
 
 
-    const hasMechanic =
-      Boolean(
-        editAssignedMechanic
-          .value
-          .trim()
-      );
+    const hasMechanic = true;
 
 
     /*
@@ -2010,7 +1974,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
       setEditMechanicOptions(
         button.dataset
-          .assignedMechanic ||
+          .mechanicIds ||
         ''
       );
 
@@ -2781,15 +2745,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     const newJobMechanicSelect =
       document.querySelector(
-        '#jobModal select[name="assigned_mechanic"]'
+        '#jobModal select[name="mechanic_ids[]"]'
       );
 
 
     try {
 
+      const mechanicParams = new URLSearchParams({
+        maintenance_type: document.getElementById('jobMaintenanceType')?.value || '',
+        maintenance_job: document.getElementById('newJoMaintenanceJob')?.value || '',
+        problem_issue: document.getElementById('jobProblemIssue')?.value || '',
+          });
+      document.querySelectorAll('#joCustomSpecializations input:checked').forEach((input) => {
+        mechanicParams.append('specializations[]', input.value);
+      });
       const response =
         await fetch(
-          '/job-orders/available-mechanics',
+          `/job-orders/available-mechanics?${mechanicParams.toString()}`,
           {
             method: 'GET',
 
@@ -2815,42 +2787,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       const mechanics =
         await response.json();
 
-
       /* =====================================================
          NEW JO SELECT
       ====================================================== */
 
       if (newJobMechanicSelect) {
 
-        const selectedMechanic =
-          newJobMechanicSelect.value;
+        const selectedMechanics = new Set(Array.from(newJobMechanicSelect.selectedOptions).map((option) => String(option.value)));
 
 
         newJobMechanicSelect
           .innerHTML =
           '';
-
-
-        const defaultOption =
-          document.createElement(
-            'option'
-          );
-
-
-        defaultOption.value =
-          '';
-
-
-        defaultOption.textContent =
-          mechanics.length
-            ? 'Select Available Mechanic'
-            : 'No available mechanic - JO will be On Hold';
-
-
-        newJobMechanicSelect
-          .appendChild(
-            defaultOption
-          );
 
 
         mechanics.forEach(
@@ -2863,16 +2811,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
             option.value =
-              mechanic.mechanic_name;
+              String(mechanic.id);
 
 
-            option.textContent =
-              mechanic.mechanic_name;
+            option.textContent = `${mechanic.mechanic_name}${mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : ''}`;
+            option.dataset.specializations = mechanic.specializations?.join(', ') || '';
+            option.dataset.availability = mechanic.availability || 'Available';
+            option.dataset.skillMatches = mechanic.skill_matches?.join(', ') || '';
 
 
             if (
-              mechanic.mechanic_name ===
-              selectedMechanic
+              selectedMechanics.has(String(mechanic.id))
             ) {
 
               option.selected =
@@ -2899,24 +2848,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
       if (editAssignedMechanic) {
 
-        const currentAssigned =
-          editAssignedMechanic.value;
-
-
-        Array.from(
-          editAssignedMechanic.options
-        )
-          .filter(
-            (option) =>
-              option.value !== '' &&
-              option.dataset
-                .currentAssignment !==
-                'true'
-          )
-          .forEach(
-            (option) =>
-              option.remove()
-          );
+        const currentAssigned = Array.from(editAssignedMechanic.selectedOptions).map((option) => option.value).join(',');
 
 
         mechanics.forEach(
@@ -2929,7 +2861,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
               .some(
                 (option) =>
                   option.value ===
-                  mechanic.mechanic_name
+                  String(mechanic.id)
               );
 
 
@@ -2942,11 +2874,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
               option.value =
-                mechanic.mechanic_name;
+                String(mechanic.id);
 
 
-              option.textContent =
-                mechanic.mechanic_name;
+              option.textContent = `${mechanic.mechanic_name}${mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : ''}`;
 
 
               editAssignedMechanic
@@ -3037,6 +2968,467 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     }
   );
+
+});
+
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-workflow', '.jo-page', () => {
+  let mechanicRefreshTimer;
+  ['jobMaintenanceType', 'newJoMaintenanceJob', 'jobProblemIssue'].forEach((id) => {
+    const field = document.getElementById(id);
+    const refresh = () => {
+      clearTimeout(mechanicRefreshTimer);
+      mechanicRefreshTimer = setTimeout(() => window.GCTRefreshJobOrderMechanics?.(), 300);
+    };
+    field?.addEventListener('input', refresh);
+    if (id === 'newJoMaintenanceJob') field?.addEventListener('change', refresh);
+  });
+
+  document.querySelectorAll('#jobModal [data-jo-collapsible]').forEach((section, index) => {
+    const header = section.querySelector('.jo-create-section-header');
+    if (!header || header.querySelector('.jo-collapse-toggle')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'jo-collapse-toggle';
+    const startsCollapsed = index !== 0;
+    section.classList.toggle('is-collapsed', startsCollapsed);
+    button.setAttribute('aria-expanded', String(!startsCollapsed));
+    button.innerHTML = `<i class="fa-solid ${startsCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}"></i><span class="sr-only">${startsCollapsed ? 'Expand' : 'Collapse'} section</span>`;
+    button.addEventListener('click', () => {
+      const collapsed = section.classList.toggle('is-collapsed');
+      button.setAttribute('aria-expanded', String(!collapsed));
+      button.querySelector('i')?.classList.toggle('fa-chevron-up', !collapsed);
+      button.querySelector('i')?.classList.toggle('fa-chevron-down', collapsed);
+      const accessibleLabel = button.querySelector('.sr-only');
+      if (accessibleLabel) accessibleLabel.textContent = `${collapsed ? 'Expand' : 'Collapse'} section`;
+    });
+    header.appendChild(button);
+  });
+
+  // Reflect the current form values in each accordion header, even when collapsed.
+  const joForm = document.getElementById('newJobOrderForm');
+  const joSections = [...document.querySelectorAll('#jobModal [data-jo-collapsible]')];
+  // Keep a single step open during automatic progression. Manual toggles remain available.
+  const setJoSectionOpen = (index) => {
+    joSections.forEach((section, sectionIndex) => {
+      const shouldCollapse = sectionIndex !== index;
+      if (section.classList.contains('is-collapsed') !== shouldCollapse) {
+        section.querySelector('.jo-collapse-toggle')?.click();
+      }
+    });
+  };
+  let previousJoStates = null;
+  const joValue = (selector) => joForm?.querySelector(selector)?.value?.trim() || '';
+  const joDurationValid = () => {
+    const field = joForm?.querySelector('[name="estimated_duration_value"]');
+    return field && field.value !== '' && field.checkValidity() && Number(field.value) > 0
+      && !!joValue('[name="estimated_duration_unit"]');
+  };
+  const joPartsStatus = () => {
+    const rows = [...(joForm?.querySelectorAll('#partsNeededWrapper .part-needed-row') || [])];
+    const hasAnyEntry = rows.some((row) =>
+      [...row.querySelectorAll('input, select')].some((field) => String(field.value || '').trim() !== '')
+    );
+    if (!hasAnyEntry) return 'optional';
+    return rows.every((row) => {
+      const name = row.querySelector('select[name$="[name]"], input[name$="[name]"]')?.value?.trim();
+      const quantity = row.querySelector('input[name$="[quantity]"]');
+      const unit = row.querySelector('select[name$="[unit]"]')?.value;
+      return name && quantity?.value && quantity.checkValidity() && Number(quantity.value) >= 1 && unit;
+    }) ? 'completed' : 'incomplete';
+  };
+  const updateJoSectionIndicators = () => {
+    if (!joForm) return;
+    const selectedMechanics = [...(joForm.querySelector('#jobAssignedMechanics')?.selectedOptions || [])].length;
+    const results = [
+      !!joValue('[name="bus_no"]') && !!joValue('#newJoMaintenanceJob')
+        && joValue('[name="problem_issue"]').length > 0
+        && (joValue('#newJoMaintenanceJob') !== 'Other'
+          || (joValue('#joCustomWorkName').length >= 3
+            && !!joForm.querySelector('#joCustomSpecializations input:checked')))
+        ? 'completed' : 'incomplete',
+      selectedMechanics ? 'completed' : 'incomplete',
+      joDurationValid() ? 'completed' : 'incomplete',
+      joPartsStatus(),
+    ];
+    joSections.forEach((section, index) => {
+      const header = section.querySelector('.jo-create-section-header');
+      if (!header) return;
+      let badge = header.querySelector('.jo-section-progress');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'jo-section-progress';
+        badge.setAttribute('role', 'status');
+        badge.setAttribute('aria-live', 'polite');
+        header.insertBefore(badge, header.querySelector('.jo-collapse-toggle'));
+      }
+      const state = results[index] || 'incomplete';
+      badge.dataset.state = state;
+      badge.textContent = state === 'completed' ? '✓ Completed' : state === 'optional' ? 'Optional / Skipped' : state === 'head-review' ? 'Head to Verify' : 'Incomplete';
+    });
+    // Show completion immediately; do not collapse fields while someone is typing.
+    previousJoStates = results;
+  };
+  if (joForm) {
+    joForm.addEventListener('input', updateJoSectionIndicators);
+    joForm.addEventListener('change', updateJoSectionIndicators);
+    // Auto-advance only when the user finishes the last field, not on a keystroke.
+    const advanceOnCompletion = (step, next) => {
+      updateJoSectionIndicators();
+      if (joSections[step]?.querySelector('.jo-section-progress')?.dataset.state === 'completed'
+          && !joSections[step].classList.contains('is-collapsed')) {
+        setJoSectionOpen(next);
+      }
+    };
+    joForm.querySelector('#jobProblemIssue')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
+    joForm.querySelector('#joCustomWorkName')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
+    joForm.querySelector('#newJoMaintenanceJob')?.addEventListener('change', () => advanceOnCompletion(0, 1));
+    // Keep Mechanic Assignment expanded as the user adds multiple mechanics.
+    // Completion badge updates on every selection, but moving to Duration is manual.
+    // Covers dynamically added/removed part rows and programmatic dropdown updates.
+    const observer = new MutationObserver(() => updateJoSectionIndicators());
+    const partsArea = joForm.querySelector('#partsNeededWrapper');
+    if (partsArea) observer.observe(partsArea, { childList: true, subtree: true });
+    document.getElementById('openJobModal')?.addEventListener('click', () => {
+      previousJoStates = null;
+      setJoSectionOpen(0);
+      requestAnimationFrame(updateJoSectionIndicators);
+    });
+    updateJoSectionIndicators();
+    window.GCTUpdateJoSectionIndicators = updateJoSectionIndicators;
+  }
+
+  document.getElementById('addPartBtn')?.addEventListener('click', () => {
+    const section = document.getElementById('newRequestedPartsSection');
+    const toggle = section?.querySelector('.jo-collapse-toggle');
+    if (section?.classList.contains('is-collapsed')) toggle?.click();
+  });
+
+  const type = document.getElementById('jobMaintenanceType');
+  const durationValue = document.querySelector('#newJobOrderForm [name="estimated_duration_value"]');
+  const durationUnit = document.querySelector('#newJobOrderForm [name="estimated_duration_unit"]');
+  const durationHelp = document.getElementById('jobDurationSuggestion');
+  // A suggestion is advisory only. Never overwrite the user's manual estimate.
+  let durationRequest = 0;
+  const loadDuration = async () => {
+    const requestId = ++durationRequest;
+    const job = document.getElementById('newJoMaintenanceJob')?.value?.trim() || '';
+    const custom = document.querySelector('#newJobOrderForm [name="custom_maintenance_job"]')?.value?.trim() || '';
+    const actualJob = job === 'Other' ? custom : job;
+    if (durationValue) {
+      durationValue.readOnly = false;
+      durationValue.required = true;
+      durationValue.removeAttribute('aria-readonly');
+    }
+    if (durationUnit) {
+      durationUnit.style.pointerEvents = '';
+      durationUnit.removeAttribute('tabindex');
+      durationUnit.removeAttribute('aria-readonly');
+    }
+    const suggestionText = durationHelp?.querySelector('span');
+    if (durationHelp) durationHelp.dataset.status = 'unavailable';
+    if (!type?.value || !actualJob) {
+      if (suggestionText) suggestionText.textContent = 'Select specific maintenance work to check historical duration.';
+      return;
+    }
+    if (suggestionText) suggestionText.textContent = 'Checking matching completed Job Orders...';
+    const params = new URLSearchParams({
+      maintenance_type: type.value,
+      maintenance_job: job,
+      custom_maintenance_job: custom,
+    });
+    try {
+      const response = await fetch('/job-orders/duration-suggestion?' + params.toString(), {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      if (!response.ok) throw new Error('Suggestion request failed');
+      const data = await response.json();
+      if (requestId !== durationRequest) return;
+      if (data.available && data.suggestion) {
+        if (durationHelp) durationHelp.dataset.status = 'available';
+        if (suggestionText) suggestionText.textContent = 'Suggested: ' + data.suggestion.value + ' ' + data.suggestion.unit
+          + ' · based on ' + data.suggestion.sample_size + ' matching completed JOs. You may enter your own estimate.';
+      } else if (suggestionText) {
+        suggestionText.textContent = 'Not enough matching completed Job Orders. Enter your own estimate.';
+      }
+    } catch (_) {
+      if (requestId === durationRequest && suggestionText) suggestionText.textContent = 'History unavailable. Enter your own estimate.';
+    }
+    window.GCTUpdateJoSectionIndicators?.();
+  };
+  type?.addEventListener('change', loadDuration);
+  // Delegation also handles job selectors inserted after the page initializes.
+  document.getElementById('newJobOrderForm')?.addEventListener('change', (event) => {
+    if (event.target?.matches?.('[name="maintenance_job"], [name="custom_maintenance_job"], #newJoMaintenanceJob')) void loadDuration();
+  });
+  let customHistoryDelay;
+  document.getElementById('newJobOrderForm')?.addEventListener('input', (event) => {
+    if (!event.target?.matches?.('[name="custom_maintenance_job"]')) return;
+    clearTimeout(customHistoryDelay);
+    customHistoryDelay = setTimeout(() => void loadDuration(), 350);
+  });
+  void loadDuration();
+
+  const partsWrapper = document.getElementById('partsNeededWrapper');
+
+  // Stocked parts are selected by inventory ID; units come from Warehouse data.
+  if (partsWrapper) {
+    fetch('/job-orders/inventory-options', { headers: { Accept: 'application/json' } })
+      .then((response) => { if (!response.ok) throw new Error('Inventory unavailable'); return response.json(); })
+      .then((items) => {
+        const enhanceRow = (row) => {
+          if (row.dataset.inventoryPicker === '1') return;
+          const nameInput = row.querySelector('select[name$="[name]"], input[name$="[name]"]');
+          const unitSelect = row.querySelector('select[name$="[unit]"]');
+          if (!nameInput || !unitSelect) return;
+          const name = nameInput.name;
+          const picker = document.createElement('select');
+          picker.name = name;
+          picker.className = 'jo-warehouse-part-picker';
+          const initial = document.createElement('option');
+          initial.value = '';
+          initial.textContent = 'Select warehouse item';
+          picker.append(initial);
+          items.forEach((item) => {
+            const option = document.createElement('option');
+            option.value = item.name;
+            option.textContent = item.name;
+            option.dataset.itemId = item.id;
+            option.dataset.unit = item.unit;
+            option.disabled = !item.unit;
+            picker.append(option);
+          });
+          const itemId = document.createElement('input');
+          itemId.type = 'hidden';
+          itemId.name = name.replace('[name]', '[inventory_item_id]');
+          nameInput.replaceWith(picker);
+          picker.insertAdjacentElement('afterend', itemId);
+          unitSelect.classList.add('jo-auto-unit-select');
+          unitSelect.tabIndex = -1;
+          unitSelect.setAttribute('aria-label', 'Unit from Warehouse inventory');
+          const updateItem = () => {
+            const option = picker.selectedOptions[0];
+            const unit = option?.dataset.unit || '';
+            itemId.value = option?.dataset.itemId || '';
+            unitSelect.replaceChildren();
+            const unitOption = new Option(unit || 'Unit not configured', unit);
+            unitSelect.append(unitOption);
+            unitSelect.value = unit;
+            picker.dispatchEvent(new Event('jo-item-change', { bubbles: true }));
+          };
+          picker.addEventListener('change', updateItem);
+          // Searchable single-select, with the native select retained for form submission.
+          picker.classList.add('jo-native-inventory-picker');
+          const searchWrap = document.createElement('div');
+          searchWrap.className = 'jo-inventory-search-wrap';
+          const trigger = document.createElement('button');
+          trigger.type = 'button';
+          trigger.className = 'jo-inventory-search-trigger';
+          trigger.textContent = 'Search warehouse items...';
+          trigger.setAttribute('aria-haspopup', 'listbox');
+          trigger.setAttribute('aria-expanded', 'false');
+          searchWrap.append(trigger);
+          picker.insertAdjacentElement('afterend', searchWrap);
+          const menu = document.createElement('div');
+          menu.className = 'jo-inventory-search-menu';
+          menu.hidden = true;
+          const search = document.createElement('input');
+          search.type = 'search';
+          search.placeholder = 'Search part name...';
+          search.setAttribute('aria-label', 'Search warehouse items');
+          const results = document.createElement('div');
+          results.className = 'jo-inventory-search-results';
+          results.setAttribute('role', 'listbox');
+          menu.append(search, results);
+          searchWrap.append(menu);
+          const positionMenu = () => {
+            if (menu.hidden) return;
+            const rect = trigger.getBoundingClientRect();
+            const below = window.innerHeight - rect.bottom;
+            const above = rect.top;
+            const upward = below < 230 && above > below;
+            Object.assign(menu.style, {
+              position: 'fixed', left: rect.left + 'px', width: rect.width + 'px',
+              top: upward ? 'auto' : (rect.bottom + 5) + 'px',
+              bottom: upward ? (window.innerHeight - rect.top + 5) + 'px' : 'auto',
+              maxHeight: Math.min(280, Math.max(110, (upward ? above : below) - 20)) + 'px',
+              zIndex: '110500'
+            });
+          };
+          const close = () => {
+            if (menu.hidden) return;
+            menu.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+            window.removeEventListener('scroll', positionMenu, true);
+            window.removeEventListener('resize', positionMenu);
+            searchWrap.append(menu);
+            menu.removeAttribute('style');
+          };
+          const render = () => {
+            results.replaceChildren();
+            const query = search.value.trim().toLowerCase();
+            const matches = items.filter((item) => item.name.toLowerCase().includes(query)).slice(0, 80);
+            if (!matches.length) {
+              const empty = document.createElement('p');
+              empty.textContent = 'No matching warehouse items';
+              results.append(empty);
+            }
+            matches.forEach((item) => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'jo-inventory-search-option';
+              button.setAttribute('role', 'option');
+              button.disabled = !item.unit;
+              const label = document.createElement('span');
+              label.textContent = item.name;
+              const hint = document.createElement('small');
+              hint.textContent = item.unit ? (item.unit + ' · ' + item.available + ' on hand') : 'Unit not configured';
+              button.append(label, hint);
+              button.addEventListener('click', () => {
+                const choice = Array.from(picker.options).find((option) => option.dataset.itemId === String(item.id));
+                if (choice) {
+                  picker.value = choice.value;
+                  picker.dispatchEvent(new Event('change', { bubbles: true }));
+                  trigger.textContent = item.name;
+                }
+                close();
+              });
+              results.append(button);
+            });
+          };
+          trigger.addEventListener('click', () => {
+            if (!menu.hidden) { close(); return; }
+            document.body.append(menu);
+            menu.hidden = false;
+            search.value = '';
+            render();
+            positionMenu();
+            window.addEventListener('scroll', positionMenu, true);
+            window.addEventListener('resize', positionMenu);
+            search.focus();
+          });
+          search.addEventListener('input', render);
+          search.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') { close(); trigger.focus(); }
+            if (event.key === 'Enter') {
+              const first = results.querySelector('button:not(:disabled)');
+              if (first) { event.preventDefault(); first.click(); }
+            }
+          });
+          document.addEventListener('pointerdown', (event) => {
+            if (!searchWrap.contains(event.target) && !menu.contains(event.target)) close();
+          });
+          row.dataset.inventoryPicker = '1';
+          updateItem();
+        };
+        partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
+        const rowObserver = new MutationObserver(() => {
+          partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
+        });
+        rowObserver.observe(partsWrapper, { childList: true });
+      })
+      .catch(() => {
+        // Keep the legacy parts form available if the Warehouse lookup is offline.
+      });
+  }
+  // One compact stock indicator alongside each Warehouse part selector.
+  // Row matching uses original row indices, not part name (duplicates are valid).
+  let availabilityTimer;
+  let availabilitySequence = 0;
+  const badgeFor = (row) => {
+    let badge = row.querySelector('.jo-row-stock-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'jo-row-stock-badge';
+      badge.setAttribute('role', 'status');
+    }
+    // Place stock in its own column, directly after Unit and before Actions.
+    const removeButton = row.querySelector('.remove-part-btn');
+    if (removeButton) {
+      row.insertBefore(badge, removeButton);
+    } else {
+      row.append(badge);
+    }
+    return badge;
+  };
+  const paintStock = (row, part, hasQty = true) => {
+    const badge = badgeFor(row);
+    if (!badge) return;
+    if (!part) {
+      badge.textContent = '';
+      badge.hidden = true;
+      badge.removeAttribute('title');
+      return;
+    }
+    // Maintenance Staff only needs a yes/no availability indication.
+    // Never expose Warehouse on-hand quantities or shortages in labels/tooltips.
+    const isAvailable = hasQty ? part.fulfillable === true : part.in_stock === true;
+    badge.hidden = false;
+    badge.className = 'jo-row-stock-badge ' + (isAvailable ? 'is-available' : 'is-out');
+    badge.textContent = isAvailable ? 'Available' : 'Unavailable';
+    badge.title = isAvailable
+      ? (hasQty ? 'Warehouse can fulfill the requested quantity.' : 'Item is in stock; enter quantity to confirm fulfillment.')
+      : (hasQty ? 'Warehouse cannot fulfill the entire requested quantity.' : 'Item is currently unavailable.');
+  };
+  const checkAvailability = () => {
+    clearTimeout(availabilityTimer);
+    const sequence = ++availabilitySequence;
+    availabilityTimer = setTimeout(async () => {
+      if (!partsWrapper) return;
+      const rows = [...partsWrapper.querySelectorAll('.part-needed-row')];
+      const selected = [];
+      rows.forEach((row) => {
+        const name = row.querySelector('select[name$="[name]"], input[name$="[name]"]')?.value?.trim();
+        const rawQty = row.querySelector('input[name$="[quantity]"]')?.value;
+        const quantity = Number(rawQty);
+        paintStock(row, null);
+        if (name) {
+          const hasQty = rawQty !== '' && Number.isFinite(quantity) && quantity > 0;
+          selected.push({ row, name, hasQty, quantity: hasQty ? quantity : 1, unit: row.querySelector('select[name$="[unit]"]')?.value || '' });
+        }
+      });
+      if (!selected.length) return;
+      try {
+        const response = await fetch('/job-orders/inventory-availability', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json', 'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ parts: selected.map(({ name, quantity, unit }) => ({ name, quantity, unit })) }),
+        });
+        if (!response.ok) throw new Error('Stock lookup failed');
+        const data = await response.json();
+        if (sequence !== availabilitySequence) return;
+        selected.forEach(({ row, hasQty }, index) => {
+          if (row.isConnected) paintStock(row, data.parts?.[index] || null, hasQty);
+        });
+      } catch {
+        if (sequence !== availabilitySequence) return;
+        selected.forEach(({ row }) => {
+          const badge = badgeFor(row);
+          if (!badge) return;
+          badge.hidden = false;
+          badge.className = 'jo-row-stock-badge is-unknown';
+          badge.textContent = 'Stock unavailable';
+          badge.title = 'Warehouse stock could not be checked; submission checks again.';
+        });
+      }
+    }, 350);
+  };
+  partsWrapper?.addEventListener('input', checkAvailability);
+  partsWrapper?.addEventListener('change', checkAvailability);
+  partsWrapper?.addEventListener('jo-item-change', checkAvailability);
+  if (partsWrapper) {
+    new MutationObserver(() => {
+      // Refresh badges for newly added and removed rows without listening to badge changes.
+      const rows = partsWrapper.querySelectorAll('.part-needed-row');
+      if (rows.length !== Number(partsWrapper.dataset.stockRows || -1)) {
+        partsWrapper.dataset.stockRows = String(rows.length);
+        checkAvailability();
+      }
+    }).observe(partsWrapper, { childList: true, subtree: false });
+  }
 
 });
 
@@ -3375,11 +3767,39 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-comb
 window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combobox', '.jo-page', () => {
   const modal = document.getElementById('jobModal');
   const busSelect = document.getElementById('jobBusNo');
-  const mechanicSelect = document.getElementById('jobAssignedMechanic');
+  const mechanicSelect = document.getElementById('jobAssignedMechanics');
+  const linkedDriver = document.getElementById('jobLinkedDriver');
+  const linkedDriverPreview = document.getElementById('jobLinkedDriverPreview');
+  const busDriverMapSource = document.getElementById('jobBusDriverMap');
 
   if (!modal) {
     return;
   }
+
+  let busDriverMap = {};
+
+  try {
+    busDriverMap = JSON.parse(busDriverMapSource?.textContent || '{}');
+  } catch {
+    busDriverMap = {};
+  }
+
+  const updateLinkedDriver = () => {
+    if (!linkedDriver) {
+      return;
+    }
+
+    const driverName = busDriverMap[busSelect?.value] || '';
+
+    linkedDriver.textContent = driverName;
+
+    if (linkedDriverPreview) {
+      linkedDriverPreview.hidden = driverName === '';
+    }
+  };
+
+  busSelect?.addEventListener('change', updateLinkedDriver);
+  updateLinkedDriver();
 
   function setupSearchableSelect(select, config) {
     if (!select || select.dataset.searchableReady === 'true') {
@@ -3673,10 +4093,244 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     renderOptions();
   }
 
+  function setupMechanicMultiSelect(select) {
+    if (!select || select.dataset.multiSelectReady === 'true') {
+      return;
+    }
+
+    const inputWrap = select.closest('.ui-input-wrap');
+    if (!inputWrap) {
+      return;
+    }
+
+    select.dataset.multiSelectReady = 'true';
+    inputWrap.classList.add('jo-native-mechanic-select');
+
+    const combobox = document.createElement('div');
+    combobox.className = 'jo-mechanic-combobox jo-mechanic-multi-select';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'jo-mechanic-combobox-trigger jo-mechanic-multi-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.innerHTML = `
+      <span class="jo-mechanic-combobox-icon"><i class="fa-solid fa-users-gear"></i></span>
+      <span class="jo-mechanic-combobox-label placeholder">Select one or more mechanics</span>
+      <i class="fa-solid fa-chevron-down jo-mechanic-combobox-chevron"></i>
+    `;
+
+    const menu = document.createElement('div');
+    menu.className = 'jo-mechanic-combobox-menu jo-mechanic-multi-menu';
+    menu.hidden = true;
+    menu.innerHTML = `
+      <div class="jo-mechanic-combobox-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" placeholder="Search name or specialization..." autocomplete="off">
+      </div>
+      <div class="jo-mechanic-combobox-options" role="listbox" aria-multiselectable="true"></div>
+    `;
+
+    combobox.append(trigger, menu);
+    inputWrap.insertAdjacentElement('afterend', combobox);
+
+    const label = trigger.querySelector('.jo-mechanic-combobox-label');
+    const searchInput = menu.querySelector('input');
+    const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
+    const modalScroller = modal.querySelector('.ui-form-modal-scrollable');
+
+    const selectedOptions = () => Array.from(select.options).filter((option) => option.selected);
+    const mechanicName = (option) => option.textContent.split('·')[0].trim();
+    const mechanicSpecializations = (option) => option.dataset.specializations
+      || option.textContent.split('·').slice(1).join('·').trim()
+      || 'General maintenance';
+
+    const positionMenu = () => {
+      if (menu.hidden || !document.body.contains(menu)) return;
+      const rect = trigger.getBoundingClientRect();
+      const gap = 7;
+      const roomBelow = window.innerHeight - rect.bottom - gap - 12;
+      const openAbove = roomBelow < 250 && rect.top > roomBelow;
+      const menuHeight = Math.min(300, Math.max(190, openAbove ? rect.top - gap - 12 : roomBelow));
+      Object.assign(menu.style, {
+        position: 'fixed',
+        top: openAbove ? 'auto' : `${Math.round(rect.bottom + gap)}px`,
+        bottom: openAbove ? `${Math.round(window.innerHeight - rect.top + gap)}px` : 'auto',
+        left: `${Math.round(rect.left)}px`,
+        right: 'auto',
+        width: `${Math.round(rect.width)}px`,
+        maxHeight: `${menuHeight}px`,
+        zIndex: '110500',
+      });
+    };
+
+    const mountMenu = () => {
+      document.body.appendChild(menu);
+      positionMenu();
+      window.addEventListener('resize', positionMenu);
+      modalScroller?.addEventListener('scroll', positionMenu, { passive: true });
+    };
+
+    const restoreMenu = () => {
+      window.removeEventListener('resize', positionMenu);
+      modalScroller?.removeEventListener('scroll', positionMenu);
+      if (menu.parentElement !== combobox) combobox.appendChild(menu);
+      menu.removeAttribute('style');
+    };
+
+    const closeMenu = () => {
+      menu.hidden = true;
+      combobox.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      restoreMenu();
+    };
+
+    const renderLabel = () => {
+      const selected = selectedOptions();
+      label.replaceChildren();
+      label.classList.toggle('placeholder', selected.length === 0);
+
+      if (!selected.length) {
+        const availableCount = Array.from(select.options).filter((option) => option.value).length;
+        label.textContent = availableCount
+          ? `${availableCount} mechanics available`
+          : '0 mechanics available';
+        return;
+      }
+
+      label.setAttribute('aria-label', `${selected.length} mechanics selected`);
+      selected.forEach((option) => {
+        const chip = document.createElement('span');
+        chip.className = 'jo-mechanic-chip';
+        chip.append(document.createTextNode(mechanicName(option)));
+        chip.title = `${mechanicName(option)} · ${mechanicSpecializations(option)}`;
+        const remove = document.createElement('span');
+        remove.className = 'jo-mechanic-chip-remove';
+        remove.textContent = '×';
+        remove.title = 'Remove ' + mechanicName(option);
+        remove.setAttribute('role', 'button');
+        remove.tabIndex = 0;
+        remove.setAttribute('aria-label', 'Remove ' + mechanicName(option));
+        const removeMechanic = (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          option.selected = false;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          renderLabel();
+          if (!menu.hidden) renderOptions();
+        };
+        remove.addEventListener('click', removeMechanic);
+        remove.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') removeMechanic(event);
+        });
+        chip.appendChild(remove);
+        label.appendChild(chip);
+      });
+    };
+
+    const filterOptions = () => {
+      const query = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      optionsContainer.querySelectorAll('.jo-mechanic-combobox-option').forEach((button) => {
+        const matches = button.dataset.search.includes(query);
+        button.hidden = !matches;
+        button.style.display = matches ? '' : 'none';
+        if (matches) visible += 1;
+      });
+
+      optionsContainer.querySelector('.jo-mechanic-search-empty')?.remove();
+      if (!visible) {
+        const empty = document.createElement('p');
+        empty.className = 'jo-mechanic-combobox-empty jo-mechanic-search-empty';
+        empty.textContent = query ? 'No mechanic matches your search.' : 'No available mechanics found.';
+        optionsContainer.appendChild(empty);
+      }
+    };
+
+    const renderOptions = () => {
+      optionsContainer.replaceChildren();
+      Array.from(select.options).forEach((option) => {
+        if (!option.value) return;
+
+        const name = mechanicName(option);
+        const specializations = mechanicSpecializations(option);
+        const availability = option.dataset.availability || 'Available';
+        const matches = option.dataset.skillMatches || '';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'jo-mechanic-combobox-option jo-mechanic-multi-option';
+        button.dataset.value = option.value;
+        button.dataset.search = `${name} ${specializations} ${availability} ${matches}`.toLowerCase();
+        button.classList.toggle('is-selected', option.selected);
+        button.setAttribute('role', 'option');
+        button.setAttribute('aria-selected', String(option.selected));
+
+        const copy = document.createElement('span');
+        const title = document.createElement('strong');
+        const details = document.createElement('small');
+        title.textContent = name;
+        details.textContent = `${specializations} · ${availability}${matches ? ' · Recommended match' : ''}`;
+        copy.append(title, details);
+
+        const check = document.createElement('i');
+        check.className = 'fa-solid fa-check';
+        button.append(copy, check);
+        button.addEventListener('click', () => {
+          option.selected = !option.selected;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          renderLabel();
+          renderOptions();
+          filterOptions();
+        });
+        optionsContainer.appendChild(button);
+      });
+      renderLabel();
+      filterOptions();
+    };
+
+    const openMenu = async () => {
+      if (select.disabled) return;
+      if (typeof window.GCTRefreshJobOrderMechanics === 'function') {
+        await window.GCTRefreshJobOrderMechanics();
+      }
+      renderOptions();
+      menu.hidden = false;
+      combobox.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+      mountMenu();
+      searchInput.value = '';
+      filterOptions();
+      window.setTimeout(() => searchInput.focus(), 0);
+    };
+
+    trigger.addEventListener('click', () => {
+      if (menu.hidden) void openMenu();
+      else closeMenu();
+    });
+    searchInput.addEventListener('input', filterOptions);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeMenu();
+        trigger.focus();
+      }
+    });
+    document.addEventListener('click', (event) => {
+      if (!combobox.contains(event.target) && !menu.contains(event.target)) closeMenu();
+    });
+
+    const observer = new MutationObserver(() => {
+      renderOptions();
+      trigger.disabled = select.disabled;
+      combobox.classList.toggle('is-disabled', select.disabled);
+    });
+    observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    renderOptions();
+  }
+
   setupSearchableSelect(busSelect, {
     className: 'jo-bus-combobox',
     icon: 'fa-bus',
-    placeholder: 'Select Bus',
+    placeholder: 'Select bus',
     searchPlaceholder: 'Search bus ID or plate number...',
     emptyMessage: 'No bus matches your search.',
     optionHint: 'Bus ID · Plate number',
@@ -3685,11 +4339,314 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     formatOptionText: (text) => text,
   });
 
-  setupSearchableSelect(mechanicSelect, {
-    icon: 'fa-user-gear',
-    placeholder: 'Select Available Mechanic',
-    searchPlaceholder: 'Search mechanic name...',
-    emptyMessage: 'No mechanic matches your search.',
-    optionHint: 'Available mechanic',
+  setupMechanicMultiSelect(mechanicSelect);
+});
+
+
+/* Maintenance Head review: accessible centered modal instead of a table popover. */
+window.GCTPartialNavigation.registerInitializer('maintenance-jo-head-review-dialog', '.jo-page', () => {
+  document.querySelectorAll('.jo-review-actions').forEach((details) => {
+    if (details.dataset.reviewDialogReady === '1') return;
+    details.dataset.reviewDialogReady = '1';
+    const trigger = details.querySelector('summary');
+    const panel = details.querySelector('.jo-review-panel');
+    if (!trigger || !panel) return;
+    trigger.setAttribute('role', 'button');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-expanded', 'false');
+    const overlay = document.createElement('div');
+    overlay.className = 'jo-head-review-overlay';
+    overlay.hidden = true;
+    const dialog = document.createElement('section');
+    dialog.className = 'jo-head-review-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    const titleId = 'jo-review-title-' + (details.closest('tr')?.querySelector('[data-id]')?.dataset.id || Math.random().toString(36).slice(2));
+    dialog.setAttribute('aria-labelledby', titleId);
+    const heading = document.createElement('div');
+    heading.className = 'jo-head-review-heading';
+    const title = document.createElement('div');
+    title.innerHTML = '<strong id="' + titleId + '">Review Job Order</strong><small>Verify details, confirm duration, and authorize the Job Order.</small>';
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'jo-head-review-close';
+    closeButton.setAttribute('aria-label', 'Close review');
+    closeButton.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+    heading.append(title, closeButton);
+    const body = document.createElement('div');
+    body.className = 'jo-head-review-body';
+    dialog.append(heading, body);
+    overlay.append(dialog);
+    let previousFocus = null;
+    const close = () => {
+      if (overlay.hidden) return;
+      overlay.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      details.append(panel);
+      document.body.classList.remove('jo-head-review-open');
+      previousFocus?.focus?.();
+    };
+    const open = () => {
+      document.querySelectorAll('.jo-head-review-overlay:not([hidden]) .jo-head-review-close').forEach((b) => b.click());
+      previousFocus = document.activeElement;
+      details.open = false;
+      body.append(panel);
+      document.body.append(overlay);
+      overlay.hidden = false;
+      document.body.classList.add('jo-head-review-open');
+      // Refresh all review-part badges whenever this dialog becomes visible.
+      panel.querySelector('.jo-review-parts-list')?.dispatchEvent(new Event('jo-head-review-opened'));
+      trigger.setAttribute('aria-expanded', 'true');
+      closeButton.focus();
+    };
+    trigger.addEventListener('click', (event) => { event.preventDefault(); open(); });
+    closeButton.addEventListener('click', close);
+    overlay.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); close(); }
+      if (event.key === 'Tab') {
+        const focusable = [...dialog.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]')].filter((el) => el.getClientRects().length);
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    });
+    const signatureFile = panel.querySelector('.jo-signature-file');
+    const signatureInput = panel.querySelector('.jo-signature-image');
+    const signatureChoose = panel.querySelector('.jo-signature-choose');
+    const signatureRemove = panel.querySelector('.jo-signature-remove');
+    const signaturePreview = panel.querySelector('.jo-signature-preview');
+    const signaturePlaceholder = panel.querySelector('.jo-signature-upload-placeholder');
+    const signatureFeedback = panel.querySelector('.jo-signature-feedback');
+    const approveForm = panel.querySelector('.jo-review-approve-form');
+    const approveButton = panel.querySelector('.jo-review-approve-submit');
+    const syncApprovalButton = () => {
+      const ready = Boolean(signatureInput?.value);
+      if (approveButton) {
+        approveButton.disabled = !ready;
+        approveButton.setAttribute('aria-disabled', String(!ready));
+        approveButton.title = ready ? 'Approve and sign this Job Order' : 'Upload and crop a signature to enable approval';
+      }
+    };
+    const setSignatureError = (message) => {
+      if (!signatureFeedback) return;
+      signatureFeedback.textContent = message;
+      signatureFeedback.classList.toggle('jo-signature-error', Boolean(message));
+    };
+    const clearSignature = () => {
+      if (signatureInput) signatureInput.value = '';
+      syncApprovalButton();
+      if (signatureFile) signatureFile.value = '';
+      if (signaturePreview) { signaturePreview.hidden = true; signaturePreview.removeAttribute('src'); }
+      if (signaturePlaceholder) signaturePlaceholder.hidden = false;
+      if (signatureRemove) signatureRemove.hidden = true;
+      if (signatureChoose) signatureChoose.innerHTML = '<i class="fa-regular fa-image" aria-hidden="true"></i> Choose file';
+      setSignatureError('Your uploaded signature will appear here before approval.');
+      signatureFeedback?.classList.remove('jo-signature-error');
+    };
+    signatureChoose?.addEventListener('click', () => signatureFile?.click());
+    signatureRemove?.addEventListener('click', clearSignature);
+    const cropModal = panel.querySelector('.jo-signature-crop-modal');
+    const cropImage = panel.querySelector('.jo-signature-crop-image');
+    const cropViewport = panel.querySelector('.jo-signature-crop-viewport');
+    const cropZoom = panel.querySelector('.jo-signature-crop-zoom');
+    const cropApply = panel.querySelector('.jo-signature-crop-apply');
+    let cropUrl = null;
+    let cropFocus = null;
+    let cropState = null;
+    const cropRender = () => {
+      if (!cropState || !cropImage || !cropViewport) return;
+      const w = cropViewport.clientWidth, h = cropViewport.clientHeight;
+      const scale = Math.max(w / cropState.width, h / cropState.height) * cropState.zoom;
+      const renderedWidth = cropState.width * scale, renderedHeight = cropState.height * scale;
+      cropState.x = Math.max((w - renderedWidth) / 2, Math.min((renderedWidth - w) / 2, cropState.x));
+      cropState.y = Math.max((h - renderedHeight) / 2, Math.min((renderedHeight - h) / 2, cropState.y));
+      cropImage.style.width = renderedWidth + 'px';
+      cropImage.style.height = renderedHeight + 'px';
+      cropImage.style.transform = 'translate(-50%, -50%) translate(' + cropState.x + 'px,' + cropState.y + 'px)';
+    };
+    const closeCrop = () => {
+      if (cropModal) cropModal.hidden = true;
+      if (cropUrl) URL.revokeObjectURL(cropUrl);
+      cropUrl = null;
+      cropState = null;
+      if (signatureFile) signatureFile.value = '';
+      cropFocus?.focus();
+    };
+    panel.querySelectorAll('.jo-signature-crop-cancel, .jo-signature-crop-back')
+      .forEach((button) => button.addEventListener('click', closeCrop));
+    let cropDrag = null;
+    cropViewport?.addEventListener('pointerdown', (event) => {
+      if (!cropState) return;
+      cropDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, sx: cropState.x, sy: cropState.y };
+      cropViewport.setPointerCapture(event.pointerId);
+    });
+    cropViewport?.addEventListener('pointermove', (event) => {
+      if (!cropDrag || cropDrag.id !== event.pointerId || !cropState) return;
+      cropState.x = cropDrag.sx + event.clientX - cropDrag.x;
+      cropState.y = cropDrag.sy + event.clientY - cropDrag.y;
+      cropRender();
+    });
+    cropViewport?.addEventListener('pointerup', () => { cropDrag = null; });
+    cropViewport?.addEventListener('pointercancel', () => { cropDrag = null; });
+    cropZoom?.addEventListener('input', () => {
+      if (!cropState) return;
+      cropState.zoom = Number(cropZoom.value);
+      cropRender();
+    });
+    signatureFile?.addEventListener('change', () => {
+      const file = signatureFile.files?.[0];
+      if (!file) return;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+        signatureFile.value = '';
+        setSignatureError('Choose a JPG, PNG or WebP signature image no larger than 2 MB.');
+        return;
+      }
+      cropFocus = document.activeElement;
+      cropUrl = URL.createObjectURL(file);
+      cropImage.onload = () => {
+        if (!cropUrl) return;
+        cropState = { width: cropImage.naturalWidth, height: cropImage.naturalHeight, zoom: 1, x: 0, y: 0 };
+        cropModal.hidden = false;
+        cropZoom.value = '1';
+        cropRender();
+        cropZoom.focus();
+      };
+      cropImage.onerror = () => {
+        closeCrop();
+        setSignatureError('The selected image cannot be opened.');
+      };
+      cropImage.src = cropUrl;
+    });
+    cropApply?.addEventListener('click', () => {
+      if (!cropState || !cropViewport || !signatureInput) return;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 660;
+        canvas.height = 210;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas unavailable');
+        const viewWidth = cropViewport.clientWidth, viewHeight = cropViewport.clientHeight;
+        const scale = Math.max(viewWidth / cropState.width, viewHeight / cropState.height) * cropState.zoom;
+        const sourceWidth = viewWidth / scale, sourceHeight = viewHeight / scale;
+        const sourceX = (cropState.width - sourceWidth) / 2 - cropState.x / scale;
+        const sourceY = (cropState.height - sourceHeight) / 2 - cropState.y / scale;
+        context.drawImage(cropImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 660, 210);
+        const png = canvas.toDataURL('image/png');
+        if (png.length > 550000) throw new Error('Signature too large');
+        signatureInput.value = png;
+        syncApprovalButton();
+        signaturePreview.src = png;
+        signaturePreview.hidden = false;
+        signaturePlaceholder.hidden = true;
+        signatureRemove.hidden = false;
+        signatureChoose.innerHTML = '<i class="fa-regular fa-image" aria-hidden="true"></i> Change';
+        setSignatureError('');
+        closeCrop();
+      } catch {
+        setSignatureError('Unable to prepare this signature crop. Please choose a simpler image.');
+      }
+    });
+
+    approveForm?.addEventListener('submit', (event) => {
+      if (!signatureInput?.value) {
+        event.preventDefault();
+        setSignatureError('Upload a signature image before approving this Job Order.');
+        signatureChoose?.focus();
+      }
+    });
+    clearSignature();
+
+    const forms = {
+      approve: panel.querySelector('.jo-review-approve-form'),
+      revision: panel.querySelector('.jo-review-revision-form'),
+      reject: panel.querySelector('.jo-review-reject-form'),
+    };
+    const footer = panel.querySelector('.jo-review-footer');
+    const back = panel.querySelector('.jo-review-back');
+    const revisionTrigger = panel.querySelector('.jo-review-revision-trigger');
+    const rejectTrigger = panel.querySelector('.jo-review-reject-trigger');
+    const decision = panel.querySelector('select[name="duration_decision"]');
+    const adjust = panel.querySelector('.jo-duration-adjust-fields');
+    const syncDuration = () => {
+      const active = decision?.value === 'adjust';
+      if (adjust) adjust.hidden = !active;
+      adjust?.querySelectorAll('input, select, textarea').forEach((field) => {
+        field.disabled = !active;
+        field.required = active;
+      });
+    };
+    decision?.addEventListener('change', syncDuration);
+    syncDuration();
+    const setMode = (mode) => {
+      Object.entries(forms).forEach(([key, form]) => {
+        if (!form) return;
+        form.hidden = key !== mode;
+        form.querySelectorAll('input, select, textarea').forEach((input) => {
+          input.disabled = key !== mode;
+        });
+      });
+      if (mode === 'approve') syncDuration();
+      if (back) back.hidden = mode === 'approve';
+      if (revisionTrigger) revisionTrigger.hidden = mode !== 'approve';
+      if (rejectTrigger) rejectTrigger.hidden = mode !== 'approve';
+      if (footer) {
+        footer.dataset.mode = mode;
+        footer.querySelectorAll('.jo-review-footer-submit').forEach((button) => {
+          button.hidden = !button.classList.contains('jo-review-' + mode + '-submit');
+        });
+      }
+      const modeName = mode === 'revision' ? 'Return for Revision' : mode === 'reject' ? 'Reject Job Order' : 'Review Job Order';
+      const headingTitle = heading.querySelector('strong');
+      if (headingTitle) headingTitle.textContent = modeName;
+    };
+    revisionTrigger?.addEventListener('click', () => setMode('revision'));
+    rejectTrigger?.addEventListener('click', () => setMode('reject'));
+    back?.addEventListener('click', () => setMode('approve'));
+    trigger.addEventListener('click', () => setMode('approve'));
+    // Backdrop clicks do not close modals (system-wide requirement).
   });
 });
+
+
+/* Independent read-only details dialog; approved JOs never enter the edit form. */
+if (!window.__gctJobOrderViewDelegated) {
+  window.__gctJobOrderViewDelegated = true;
+  let priorViewFocus = null;
+  const dismissJobOrderView = () => {
+    const overlay = document.getElementById('joReadonlyOverlay');
+    if (!overlay || overlay.hidden) return;
+    overlay.hidden = true;
+    document.body.classList.remove('jo-readonly-open');
+    overlay.querySelector('#joReadonlyBody')?.replaceChildren();
+    priorViewFocus?.focus?.();
+  };
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('.jo-open-view');
+    if (trigger) {
+      event.preventDefault();
+      const overlay = document.getElementById('joReadonlyOverlay');
+      const template = trigger.closest('tr')?.querySelector('template.jo-view-content');
+      const body = overlay?.querySelector('#joReadonlyBody');
+      if (!overlay || !template || !body) return;
+      priorViewFocus = trigger;
+      body.replaceChildren(template.content.cloneNode(true));
+      overlay.hidden = false;
+      document.body.classList.add('jo-readonly-open');
+      overlay.querySelector('.jo-view-close')?.focus();
+      return;
+    }
+    if (event.target.closest('.jo-view-close')) dismissJobOrderView();
+  });
+  document.addEventListener('keydown', (event) => {
+    const overlay = document.getElementById('joReadonlyOverlay');
+    if (!overlay || overlay.hidden) return;
+    if (event.key === 'Escape') { event.preventDefault(); dismissJobOrderView(); }
+    if (event.key !== 'Tab') return;
+    const nodes = [...overlay.querySelectorAll('button:not(:disabled), summary, a[href]')].filter(el => el.getClientRects().length);
+    if (!nodes.length) return;
+    const first = nodes[0], last = nodes[nodes.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+}

@@ -115,7 +115,7 @@
 
         </div>
 
-        <x-ui.table-toolbar action="{{ route('mechanic-attendance', [], false) }}" data-server-filter="true" search-label="Search Mechanic Attendance" search-placeholder="Search mechanic name, ID, or assigned job..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Mechanic Attendance" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Shift', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="mechanic_name">
+        <x-ui.table-toolbar action="{{ route('mechanic-attendance', [], false) }}" data-server-filter="true" search-label="Search Mechanic Attendance" search-placeholder="Search mechanic name, ID, or assigned job..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Mechanic Attendance" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="mechanic_name">
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
             <x-ui.table-toolbar-field label="Attendance Date" name="attendance_date" type="date" :value="$summaryDate" />
@@ -124,12 +124,11 @@
 
         <div class="table-wrap" style="margin-top: 16px;">
           <table class="attendance-table">
-            <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
+            <colgroup><col style="width: 14%"><col style="width: 22%"><col style="width: 22%"><col style="width: 11%"><col style="width: 11%"><col style="width: 10%"><col style="width: 10%"></colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Mechanic</th>
-                <th>Shift</th>
                 <th>Assigned Job</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
@@ -154,7 +153,6 @@
                 <tr>
                   <td><span class="system-id-badge system-id-badge--small">{{ $attendance->mechanic_id }}</span></td>
                   <td><span class="mechanic-attendance-name-chip">{{ $attendance->mechanic_name }}</span></td>
-                  <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
                   <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
@@ -217,7 +215,7 @@
                   colspan="8"
                   icon="fa-user-gear"
                   message="No Mechanic Attendance Records Found"
-                  description="No mechanic attendance records match your selected date or shift filter."
+                  description="No mechanic attendance records match your selected filters."
                 />
               @endforelse
             </tbody>
@@ -281,10 +279,7 @@
           <input type="text" id="edit_mechanic_name" readonly aria-readonly="true" title="Mechanic identity is managed in the Master List">
         </div>
         <div class="form-group">
-          <label>Shift</label>
-          <select name="shift" id="edit_shift" required>
-            <option value="Morning">Morning</option>
-          </select>
+          <input type="hidden" name="shift" id="edit_shift" value="Morning">
         </div>
         <div class="form-group">
           <label>Date</label>

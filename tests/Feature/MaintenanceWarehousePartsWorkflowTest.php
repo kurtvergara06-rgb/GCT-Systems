@@ -267,6 +267,42 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         );
     }
 
+    public function test_issue_available_only_issues_stock_and_sends_only_the_shortage_to_purchase(): void
+    {
+        $warehouseHead = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
+        $warehouseStaff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
+        $item = InventoryItem::create([
+            'item_code' => 'PARTIAL-BRAKE', 'item_name' => 'Brake Pad', 'parts_name' => 'Brake Pad',
+            'category' => 'Brakes', 'quantity_available' => 2, 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-PARTIAL-001', 'bus_no' => 'BUS-PARTIAL-001',
+            'problem_issue' => 'Brake pad replacement', 'maintenance_type' => 'Repair',
+            'part_needed' => 'Brake Pad - Qty: 5 pcs', 'status' => 'On Going',
+            'review_status' => 'Approved', 'part_status' => 'Approved',
+            'parts_issue_strategy' => 'issue_available_only',
+        ]);
+        $request = PurchaseRequest::create([
+            'pr_no' => 'PR-PARTIAL-001', 'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no, 'item' => 'Brake Pad - Qty: 5 pcs',
+            'quantity' => 5, 'status' => 'Approved', 'source_type' => 'Maintenance Request',
+        ]);
+
+        $this->actingAs($warehouseHead)->post(route('part-requests.send-to-purchase', $request))->assertRedirect();
+        $shortage = PurchaseRequest::query()->where('pr_no', 'PR-PARTIAL-001-P')->firstOrFail();
+        $this->assertSame(3, (int) $shortage->quantity);
+        $this->assertStringContainsString('Qty: 3 pcs', $shortage->item);
+
+        $this->actingAs($warehouseStaff)->post(route('part-requests.issue', $request))
+            ->assertRedirect()->assertSessionHas('success', 'Available parts were issued successfully. The shortage remains in the Purchase workflow.');
+
+        $this->assertSame(0, (int) $item->fresh()->quantity_available);
+        $this->assertSame('Approved', $request->fresh()->status);
+        $this->assertSame('Partially Issued', $request->fresh()->warehouse_status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
+        $this->assertDatabaseHas('inventory_issuance_items', ['item_name' => 'Brake Pad', 'quantity' => 2]);
+    }
+
 
 }
 

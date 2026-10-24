@@ -809,32 +809,96 @@ window.GCTPartialNavigation.registerInitializer(
         'jobOrderSelect'
       );
 
-
     const busNoInput =
       document.getElementById(
         'busNoInput'
       );
 
-
-    const newPrPartsContainer =
+    const newPrPartsBody =
       document.getElementById(
-        'newPrPartsContainer'
+        'newPrPartsBody'
       );
 
 
-    const addNewPrPartBtn =
+    const prPurposeBus =
       document.getElementById(
-        'addNewPrPartBtn'
+        'prPurposeBus'
       );
 
+    const prPurpose =
+      document.getElementById(
+        'prPurpose'
+      );
+
+    const prApproverName =
+      document.getElementById(
+        'prApproverName'
+      );
+
+    const prApprovalSignature =
+      document.getElementById(
+        'prApprovalSignature'
+      );
+    const prSignaturePlaceholder = document.getElementById('prSignaturePlaceholder');
+    const prJoApprovalBadge = document.getElementById('prJoApprovalBadge');
+
+    const prPartsError =
+      document.getElementById(
+        'prPartsError'
+      );
+
+    const createPrBtn =
+      document.getElementById(
+        'createPrBtn'
+      );
+
+    let jobOrderRequestSequence = 0;
 
     openPrModal
       ?.addEventListener(
         'click',
         () => {
 
+          const modalPanel =
+            prModal?.querySelector(
+              '.ui-form-modal'
+            );
+
+          const modalScroller =
+            prModal?.querySelector(
+              '.ui-form-modal-scrollable'
+            );
+
+          const resetPrModalScroll = () => {
+            if (modalPanel) {
+              modalPanel.scrollTop = 0;
+            }
+
+            if (modalScroller) {
+              modalScroller.scrollTop = 0;
+            }
+          };
+
+          // Keep the intended glass backdrop when the production CSS
+          // optimizer normalizes the prefixed backdrop-filter declaration.
+          prModal?.style.setProperty(
+            'backdrop-filter',
+            'blur(7px)'
+          );
+
+          prModal?.style.setProperty(
+            '-webkit-backdrop-filter',
+            'blur(7px)'
+          );
+
           openModal(
             prModal
+          );
+
+          resetPrModalScroll();
+
+          window.requestAnimationFrame(
+            resetPrModalScroll
           );
 
         }
@@ -867,143 +931,148 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
-    /* =========================================================
-       INITIAL NEW PR PARTS
-    ========================================================= */
+    function renderMissingParts(parts) {
+      if (!newPrPartsBody) return;
 
-    if (
-      newPrPartsContainer
-    ) {
+      newPrPartsBody.replaceChildren();
+      if (!Array.isArray(parts) || parts.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 5;
+        cell.className = 'pr-table-message';
+        cell.textContent = 'No missing parts. All requested items are available from Warehouse.';
+        row.appendChild(cell);
+        newPrPartsBody.appendChild(row);
+        return;
+      }
 
-      const initialParts =
-        newPrPartsContainer
-          .dataset
-          .initialParts
-        || '';
+      parts.forEach((part, index) => {
+        const row = document.createElement('tr');
+        const values = [
+          String(index + 1),
+          part.name || '—',
+          part.category || 'Uncategorized',
+          `${part.quantity} ${part.unit || ''}`.trim(),
+        ];
 
+        values.forEach((value, cellIndex) => {
+          const cell = document.createElement('td');
+          cell.dataset.label = ['No.', 'Item Description', 'Category', 'Order Qty'][cellIndex];
+          cell.textContent = value;
+          row.appendChild(cell);
+        });
 
-      renderParts(
-        newPrPartsContainer,
-        initialParts,
-        false
-      );
-
-
-      newPrPartsContainer
-        .addEventListener(
-          'click',
-          event => {
-
-            const removeButton =
-              event.target.closest(
-                '.remove-part-btn'
-              );
-
-
-            if (!removeButton) {
-              return;
-            }
-
-
-            removePartRow(
-              newPrPartsContainer,
-              removeButton
-            );
-
-          }
-        );
-
+        const availabilityCell = document.createElement('td');
+        availabilityCell.dataset.label = 'Availability';
+        const badge = document.createElement('span');
+        badge.className = 'pr-availability-badge';
+        badge.textContent = 'Unavailable';
+        availabilityCell.appendChild(badge);
+        row.appendChild(availabilityCell);
+        newPrPartsBody.appendChild(row);
+      });
     }
 
+    async function loadSelectedJobOrder() {
+      const sequence = ++jobOrderRequestSequence;
+      const selectedOption = jobOrderSelect?.options[jobOrderSelect.selectedIndex];
+      const dataUrl = selectedOption?.dataset.jobOrderUrl;
 
-    /* =========================================================
-       ADD NEW PR PART
-    ========================================================= */
+      if (createPrBtn) createPrBtn.disabled = true;
+      if (prPartsError) {
+        prPartsError.hidden = true;
+        prPartsError.textContent = '';
+      }
+      if (prApprovalSignature) {
+        prApprovalSignature.hidden = true;
+        prApprovalSignature.removeAttribute('src');
+      }
+      if (prSignaturePlaceholder) prSignaturePlaceholder.hidden = false;
+      if (prJoApprovalBadge) prJoApprovalBadge.hidden = true;
+      if (prApproverName) prApproverName.textContent = 'Select a Job Order to load its approver';
+      if (busNoInput) busNoInput.value = '';
 
-    addNewPrPartBtn
-      ?.addEventListener(
-        'click',
-        () => {
-
-          if (
-            !newPrPartsContainer
-          ) {
-            return;
-          }
-
-
-          const index =
-            newPrPartsContainer
-              .querySelectorAll(
-                '.part-needed-row'
-              )
-              .length;
-
-
-          newPrPartsContainer
-            .appendChild(
-              createPartRow(
-                index,
-                {},
-                false
-              )
-            );
-
-
-          refreshPartIndexes(
-            newPrPartsContainer
-          );
-
+      if (!dataUrl) {
+        renderMissingParts([]);
+        if (newPrPartsBody) {
+          const message = newPrPartsBody.querySelector('.pr-table-message');
+          if (message) message.textContent = 'Select an approved Job Order to check its unavailable parts.';
         }
-      );
+        if (prPurposeBus) prPurposeBus.value = '';
+        if (prPurpose && !prPurpose.dataset.userEdited) prPurpose.value = '';
+        return;
+      }
 
+      renderMissingParts([]);
+      if (newPrPartsBody) {
+        const message = newPrPartsBody.querySelector('.pr-table-message');
+        if (message) message.textContent = 'Checking Warehouse availability…';
+      }
 
-    /* =========================================================
-       JO → BUS + PARTS
-    ========================================================= */
+      try {
+        const response = await fetch(dataUrl, {
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+        });
+        const data = await response.json();
 
-    jobOrderSelect
-      ?.addEventListener(
-        'change',
-        () => {
-
-          const selectedOption =
-            jobOrderSelect.options[
-              jobOrderSelect
-                .selectedIndex
-            ];
-
-
-          const busNo =
-            selectedOption
-              ?.dataset
-              .bus
-            || '';
-
-
-          const parts =
-            selectedOption
-              ?.dataset
-              .parts
-            || '';
-
-
-          if (busNoInput) {
-
-            busNoInput.value =
-              busNo;
-
-          }
-
-
-          renderParts(
-            newPrPartsContainer,
-            parts,
-            false
-          );
-
+        if (sequence !== jobOrderRequestSequence) return;
+        if (!response.ok) {
+          throw new Error(data.message || 'Unable to load this Job Order.');
         }
-      );
+
+        renderMissingParts(data.parts);
+        if (prPurposeBus) {
+          prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
+        }
+        if (busNoInput) busNoInput.value = data.bus_no || '';
+        if (prPurpose && !prPurpose.dataset.userEdited) {
+          prPurpose.value = data.work_to_perform || '';
+        }
+        if (prApproverName) {
+          prApproverName.textContent = data.approver_name || 'Approver not recorded';
+        }
+        if (prJoApprovalBadge) prJoApprovalBadge.hidden = false;
+        if (prApprovalSignature && data.signature_url) {
+          prApprovalSignature.src = data.signature_url;
+          prApprovalSignature.hidden = false;
+          if (prSignaturePlaceholder) prSignaturePlaceholder.hidden = true;
+        }
+
+        const hasMissingParts = Array.isArray(data.parts) && data.parts.length > 0;
+        if (createPrBtn) createPrBtn.disabled = !hasMissingParts;
+        if (!hasMissingParts && prPartsError) {
+          prPartsError.textContent = 'A Purchase Requisition cannot be created because all requested parts are available.';
+          prPartsError.hidden = false;
+        }
+      } catch (error) {
+        if (sequence !== jobOrderRequestSequence) return;
+        renderMissingParts([]);
+        const message = newPrPartsBody?.querySelector('.pr-table-message');
+        if (message) message.textContent = 'Availability could not be checked.';
+        if (prPartsError) {
+          prPartsError.textContent = error.message || 'Unable to check Warehouse availability. Try again.';
+          prPartsError.hidden = false;
+        }
+      }
+    }
+
+    jobOrderSelect?.addEventListener('change', loadSelectedJobOrder);
+    prApprovalSignature?.addEventListener('error', () => {
+      prApprovalSignature.hidden = true;
+      prApprovalSignature.removeAttribute('src');
+      if (prSignaturePlaceholder) {
+        prSignaturePlaceholder.textContent = 'Saved signature unavailable.';
+        prSignaturePlaceholder.hidden = false;
+      }
+    });
+    prPurpose?.addEventListener('input', () => {
+      prPurpose.dataset.userEdited = 'true';
+    });
+    jobOrderSelect?.value && loadSelectedJobOrder();
 
 
     /* =========================================================
@@ -1157,6 +1226,21 @@ window.GCTPartialNavigation.registerInitializer(
     const reviewPrRemarks =
       document.getElementById(
         'reviewPrRemarks'
+      );
+
+    const reviewPrPurpose =
+      document.getElementById(
+        'reviewPrPurpose'
+      );
+
+    const reviewPrTargetDate =
+      document.getElementById(
+        'reviewPrTargetDate'
+      );
+
+    const reviewPrRequester =
+      document.getElementById(
+        'reviewPrRequester'
       );
 
 
@@ -1783,6 +1867,21 @@ window.GCTPartialNavigation.registerInitializer(
         reviewPrRemarks.textContent =
           button.dataset.remarks?.trim()
             || 'No remarks provided.';
+      }
+
+      if (reviewPrPurpose) {
+        reviewPrPurpose.textContent =
+          button.dataset.purpose?.trim() || '—';
+      }
+
+      if (reviewPrTargetDate) {
+        reviewPrTargetDate.textContent =
+          button.dataset.targetDate || '—';
+      }
+
+      if (reviewPrRequester) {
+        reviewPrRequester.textContent =
+          button.dataset.requester || '—';
       }
 
 
@@ -2648,6 +2747,9 @@ window.GCTPartialNavigation.registerInitializer(
           return;
         }
 
+        if (overlay.id === 'prModal') {
+          return;
+        }
 
         closeModal(
           overlay
@@ -2698,4 +2800,3 @@ window.GCTPartialNavigation.registerInitializer(
     
   }
 );
-
