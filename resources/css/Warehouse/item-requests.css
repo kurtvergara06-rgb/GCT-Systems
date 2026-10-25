@@ -187,3 +187,19 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   font-weight:750;
   line-height:1.2;
 }
+
+
+/* Match Maintenance JO compact ID typography; no extra JO/bus metadata in IR list. */
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-id-badge{
+  display:inline-flex;align-items:center;min-height:21px;padding:3px 8px;
+  background:#f4f7fc;border:1px solid #d4dfed;border-radius:5px;
+  color:#16243a;font-size:11px;font-weight:800;line-height:1.2;
+  letter-spacing:0;white-space:nowrap;box-sizing:border-box;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-item-label,
+.warehouse-ir-page .ir-table tbody td:nth-child(3)>strong,
+.warehouse-ir-page .ir-table tbody td:nth-child(4)>strong,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-onhand-summary>strong{
+  font-size:12px;font-weight:800;line-height:1.45;
+}
+.warehouse-ir-page .ir-table .warehouse-ir-reference{min-width:105px}
