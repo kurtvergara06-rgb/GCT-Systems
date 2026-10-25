@@ -5532,3 +5532,24 @@ body.jo-readonly-open { overflow: hidden; }
   border-color: #1252c5;
   color: #fff;
 }
+
+/* Read-only table actions: keep the View label inside its own button. */
+.app:has(#jobModal) .jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view,
+.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  width: 88px;
+  min-width: 88px;
+  max-width: 88px;
+  padding: 0 10px;
+  overflow: hidden;
+}
+.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view i,
+.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view span {
+  flex-shrink: 0;
+  position: static;
+}
