@@ -83,7 +83,7 @@
                     class="toolbar job-toolbar"
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
                       search-label="Search Job Orders"
-                      :filter-count="(int) ($recordView !== 'history' && request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) ($recordView !== 'history' && request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
+                      :filter-count="(int) (request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) (request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
                       filter-title="Filter Job Orders"
                       :sort-options="['created_at' => 'Created Date', 'job_order_no' => 'Job Order Number', 'bus_no' => 'Bus Number', 'start_date' => 'Start Date', 'status' => 'JO Status', 'part_status' => 'Part Status']"
                       default-sort="created_at"
@@ -96,7 +96,6 @@
                         @endif
                     </x-slot:hidden>
                     <x-slot:filters>
-                        @if($recordView !== 'history')
                             <x-ui.table-toolbar-field label="Part Status" name="part_status" default="All Part Statuses">
                                 @foreach([
                                     'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
@@ -117,7 +116,6 @@
                                 <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
                                 <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
                             </x-ui.table-toolbar-field>
-                        @endif
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
