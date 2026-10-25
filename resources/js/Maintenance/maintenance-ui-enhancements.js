@@ -62,9 +62,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       const selectedOption = select.options[select.selectedIndex];
       const hasValue = Boolean(selectedOption?.value);
 
-      label.textContent = hasValue
-        ? selectedOption.textContent.trim()
-        : 'Select Maintenance Job';
+      const selectedJobs = select.id === 'newJoMaintenanceJob' && select.getSelectedJobs
+        ? select.getSelectedJobs() : [];
+      label.textContent = selectedJobs.length
+        ? selectedJobs.join(', ')
+        : (hasValue ? selectedOption.textContent.trim() : 'Select Maintenance Job');
 
       label.classList.toggle('placeholder', !hasValue);
 
@@ -73,7 +75,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         .forEach((optionButton) => {
           optionButton.classList.toggle(
             'is-selected',
-            optionButton.dataset.value === select.value
+            selectedJobs.length ? selectedJobs.includes(optionButton.dataset.value) : optionButton.dataset.value === select.value
           );
         });
     };
@@ -102,6 +104,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         `;
 
         optionButton.addEventListener('click', () => {
+          if (select.id === 'newJoMaintenanceJob' && typeof select.toggleJobSelection === 'function') {
+            select.toggleJobSelection(option.value);
+            sync();
+            return;
+          }
           select.value = option.value;
           select.dispatchEvent(new Event('change', { bubbles: true }));
           sync();
@@ -173,6 +180,33 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     readonly,
     lockUnit = false
   ) => {
+    if (isNewJobOrder && select) {
+      const selectedJobs = new Set();
+      const hiddenHolder = document.createElement('div');
+      hiddenHolder.className = 'jo-selected-maintenance-jobs';
+      group.appendChild(hiddenHolder);
+      select.getSelectedJobs = () => Array.from(selectedJobs);
+      select.toggleJobSelection = (job) => {
+        if (job === 'Other') {
+          selectedJobs.clear();
+          selectedJobs.add('Other');
+        } else {
+          selectedJobs.delete('Other');
+          if (selectedJobs.has(job)) selectedJobs.delete(job);
+          else selectedJobs.add(job);
+        }
+        hiddenHolder.replaceChildren();
+        Array.from(selectedJobs).forEach((value) => {
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = 'maintenance_jobs[]';
+          hidden.value = value;
+          hiddenHolder.appendChild(hidden);
+        });
+        select.value = Array.from(selectedJobs)[0] || '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+    }
     const { valueInput, unitSelect } = findDurationControls(durationField);
 
     if (valueInput) {
