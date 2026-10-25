@@ -217,10 +217,23 @@
                                       <td>
                                           <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $pr->bus_no }}</span>
                                       </td>
-                                      <td class="requested-part-cell" title="{{ $pr->item }}">
-                                          <span class="pr-part-name">{{ $firstRequestedItem ?: '—' }}</span>
+                                      <td class="requested-part-cell">
+                                          <span class="pr-part-name" title="{{ $firstRequestedItem }}">{{ $firstRequestedItem ?: '—' }}</span>
                                           @if($requestedPartCount > 1)
-                                              <small class="pr-part-more">+{{ $requestedPartCount - 1 }} more {{ $requestedPartCount === 2 ? 'part' : 'parts' }}</small>
+                                              <details class="pr-parts-dropdown">
+                                                  <summary aria-label="Show {{ $requestedPartCount - 1 }} additional parts for {{ $pr->pr_no }}">
+                                                      +{{ $requestedPartCount - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                                  </summary>
+                                                  <div class="pr-parts-dropdown-menu">
+                                                      <strong>Other requested parts</strong>
+                                                      @foreach(array_slice($requestedParts, 1) as $part)
+                                                          <div class="pr-parts-dropdown-item">
+                                                              <span title="{{ $part['name'] }}">{{ $part['name'] }}</span>
+                                                              <b>{{ $part['quantity'] }} {{ $part['unit'] }}</b>
+                                                          </div>
+                                                      @endforeach
+                                                  </div>
+                                              </details>
                                           @endif
                                       </td>
                                       <td title="{{ $quantityBreakdown }}">{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $totalQuantityDisplay) : $totalQuantityDisplay }}</td>
