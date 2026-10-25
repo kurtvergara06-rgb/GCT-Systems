@@ -92,6 +92,12 @@ class MechanicListController extends Controller
             $mechanic->setAttribute('assigned_job', $attendance?->assigned_job);
             $mechanic->setAttribute('status', $baseStatus);
             $mechanic->setAttribute('active_job', $activeJob);
+            $isPresent = in_array($baseStatus, ['Present', 'Late', 'On Duty'], true);
+            $working = $activeJob && $activeJob->actual_started_at !== null
+                && (trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued');
+            $mechanic->setAttribute('assignment_status', ! $isPresent || $mechanic->employment_status !== 'Active'
+                ? 'Not Available'
+                : ($working ? 'Working' : ($activeJob ? 'Assigned' : 'Available')));
             $mechanic->setAttribute(
                 'effective_status',
                 $activeJob && $activeJob->actual_started_at !== null
@@ -106,11 +112,7 @@ class MechanicListController extends Controller
 
         if ($request->filled('availability') && $request->availability !== 'All Types') {
             $filtered = $mechanics->getCollection()->filter(function (Mechanic $mechanic) use ($request) {
-                return $request->availability === 'Available'
-                    ? $mechanic->employment_status === 'Active'
-                        && ! $mechanic->active_job
-                        && in_array($mechanic->effective_status, ['Present', 'Late'], true)
-                    : in_array($mechanic->effective_status, ['On Duty', 'Absent', 'On Leave', 'No Attendance'], true);
+                return $mechanic->assignment_status === $request->availability;
             })->values();
 
             $mechanics->setCollection($filtered);
@@ -119,31 +121,30 @@ class MechanicListController extends Controller
         $allMechanics = Mechanic::query()
             ->where('employment_status', 'Active')
             ->get();
-        $activeAssignedNames = $activeJobs->keys();
-        $workingNames = $activeJobs->filter(fn (JobOrder $jobOrder) => $jobOrder->actual_started_at !== null
-            && (trim((string) $jobOrder->part_needed) === '' || $jobOrder->part_status === 'Issued'))->keys();
-
         $totalMechanics = $allMechanics->count();
-        $availableMechanics = $allMechanics->filter(function (Mechanic $mechanic) use ($attendanceByMechanic, $workingNames) {
+        $assignmentCounts = $allMechanics->countBy(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeJobs): string {
             $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
-            $isAssigned = $workingNames->contains(Str::lower(trim($mechanic->mechanic_name)));
-
-            return $attendance
-                && in_array($attendance->status, ['Present', 'Late'], true)
-                && ! $isAssigned;
-        })->count();
-
-        $onDutyMechanics = $allMechanics->filter(
-            fn (Mechanic $mechanic) => $workingNames->contains(Str::lower(trim($mechanic->mechanic_name)))
-                && in_array($attendanceByMechanic->get($mechanic->mechanic_id)?->status, ['Present', 'Late', 'On Duty'], true)
-        )->count();
-
-        $notAvailableMechanics = max(0, $totalMechanics - $availableMechanics - $onDutyMechanics);
+            if (! in_array($attendance?->status, ['Present', 'Late', 'On Duty'], true)) {
+                return 'Not Available';
+            }
+            $job = $activeJobs->get(Str::lower(trim($mechanic->mechanic_name)));
+            if (! $job) {
+                return 'Available';
+            }
+            return $job->actual_started_at !== null
+                && (trim((string) $job->part_needed) === '' || $job->part_status === 'Issued')
+                ? 'Working' : 'Assigned';
+        });
+        $availableMechanics = $assignmentCounts->get('Available', 0);
+        $assignedMechanics = $assignmentCounts->get('Assigned', 0);
+        $onDutyMechanics = $assignmentCounts->get('Working', 0);
+        $notAvailableMechanics = $assignmentCounts->get('Not Available', 0);
 
         return view('Maintenance.mechanic-list', compact(
             'mechanics',
             'totalMechanics',
             'availableMechanics',
+            'assignedMechanics',
             'notAvailableMechanics',
             'onDutyMechanics'
         ));
