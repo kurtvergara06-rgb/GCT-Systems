@@ -389,8 +389,8 @@
                                                     <details class="jo-view-audit jo-view-audit-compact">
                                                         <summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></summary>
                                                         <ol>
-                                                            @forelse($jobOrder->audits as $audit)
-                                                                <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->user?->name ?? 'System' }} <small>{{ $audit->created_at?->format('M d, Y · h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
+                                                            @forelse($jobOrder->audits->sortBy(fn ($entry) => sprintf('%020d-%010d', $entry->created_at?->getTimestamp() ?? 0, $entry->id)) as $audit)
+                                                                <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->action === 'created' ? ($jobOrder->creator?->name ?? $audit->user?->name ?? 'Unknown creator') : ($audit->user?->name ?? 'Unknown actor') }} <small>{{ $audit->created_at?->format('M d, Y · h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
                                                             @empty
                                                                 <li>No audit records yet.</li>
                                                             @endforelse
@@ -461,8 +461,8 @@
                                                             <details class="jo-review-audit">
                                                                 <summary>Audit History ({{ $jobOrder->audits->count() }})</summary>
                                                                 <ol>
-                                                                    @foreach($jobOrder->audits as $audit)
-                                                                        <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->user?->name ?? 'System' }}<small>{{ $audit->created_at?->format('M d, Y h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
+                                                                    @foreach($jobOrder->audits->sortBy(fn ($entry) => sprintf('%020d-%010d', $entry->created_at?->getTimestamp() ?? 0, $entry->id)) as $audit)
+                                                                        <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->action === 'created' ? ($jobOrder->creator?->name ?? $audit->user?->name ?? 'Unknown creator') : ($audit->user?->name ?? 'Unknown actor') }}<small>{{ $audit->created_at?->format('M d, Y h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
                                                                     @endforeach
                                                                 </ol>
                                                             </details>
