@@ -131,6 +131,17 @@
                                 data-ir-can-issue="{{ $ir->status === 'Submitted' && ($stock['status'] ?? '') === 'sufficient' ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button>
+                            @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+                                <button type="button" class="ir-prepare-button" data-ir-prepare
+                                    data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
+                                    data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
+                                    data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
+                                    data-ir-mechanics="{{ $ir->jobOrder?->assigned_mechanic ?? '—' }}"
+                                    data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
+                                    data-ir-remarks="{{ $ir->remarks ?? '' }}">
+                                    <i class="fa-solid fa-file-signature"></i> Prepare Issuance
+                                </button>
+                            @endif
                         </td>
                     </tr>
                     @empty
@@ -176,12 +187,48 @@
         </div>
         <footer class="ir-modal-footer">
             @if(auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-            <form id="warehouseIrIssueForm" method="POST" action="#" class="warehouse-ir-issue-form" hidden>
-                @csrf
-                <button type="submit" id="warehouseIrIssueButton" class="ir-primary-button" disabled><i class="fa-solid fa-box-open"></i> Confirm Physical Issuance</button>
-            </form>
             @endif
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
+        </footer>
+    </div>
+</div>
+
+<div id="warehouseIrSlipModal" class="ir-modal-overlay" aria-hidden="true">
+    <div class="ir-modal warehouse-ir-slip-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIrSlipTitle">
+        <header class="ir-modal-header warehouse-ir-slip-header">
+            <div class="ir-modal-heading">
+                <span class="ir-modal-symbol"><i class="fa-solid fa-file-signature"></i></span>
+                <div><span class="warehouse-ir-slip-eyebrow">GCT TRANSPORT SERVICES, INC.</span>
+                    <h2 id="warehouseIrSlipTitle">Stock Withdrawal / Issuance Slip</h2>
+                    <p>Prepare the parts handover document — signatures required before issuance</p>
+                </div>
+            </div>
+            <button type="button" class="ir-icon-button" data-ir-slip-close aria-label="Close issuance slip"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="ir-modal-body warehouse-ir-slip-body">
+            <div class="warehouse-ir-slip-fields">
+                <div><span>Item Request</span><strong id="ir-slip-number">—</strong></div>
+                <div><span>Job Order</span><strong id="ir-slip-job">—</strong></div>
+                <div><span>Department</span><strong>Maintenance</strong></div>
+                <div><span>Bus / Purpose</span><strong id="ir-slip-bus">—</strong></div>
+                <div><span>Requested By / Mechanic</span><strong id="ir-slip-mechanic">—</strong></div>
+                <div><span>Date</span><strong id="ir-slip-date">—</strong></div>
+            </div>
+            <div class="warehouse-ir-stock-table-wrap">
+                <table class="warehouse-ir-stock-table warehouse-ir-slip-table">
+                    <thead><tr><th>STOCK NO.</th><th>ITEM DESCRIPTION</th><th>QTY NEEDED</th><th>PURPOSE / BUS NO.</th><th>QTY ISSUED</th><th>MECHANIC SIGNATURE</th><th>REMARKS</th></tr></thead>
+                    <tbody id="ir-slip-lines"><tr><td colspan="7" class="warehouse-ir-stock-empty">Checking current stock...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="warehouse-ir-slip-signatures">
+                <div><span>Received By — Mechanic</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
+                <div><span>Issued By — Warehouse Personnel</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
+            </div>
+            <p id="ir-slip-message" class="ir-note"><i class="fa-solid fa-circle-info"></i><span>This is a preparation and print preview only. No parts are deducted or marked Issued. Record the signed handover before processing inventory issuance.</span></p>
+        </div>
+        <footer class="ir-modal-footer">
+            <button type="button" class="ir-secondary-button" data-ir-slip-close>Close</button>
+            <button type="button" class="ir-primary-button" id="ir-slip-print" disabled><i class="fa-solid fa-print"></i> Print Slip</button>
         </footer>
     </div>
 </div>
