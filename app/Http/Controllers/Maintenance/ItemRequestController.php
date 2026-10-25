@@ -34,8 +34,13 @@ class ItemRequestController extends Controller
         if ($request->filled('status') && $request->query('status') !== 'All Statuses') {
             $requestsQuery->where('status', $request->query('status'));
         }
-        $sort = $request->query('sort') === 'oldest' ? 'asc' : 'desc';
-        $requests = $requestsQuery->orderBy('created_at', $sort)->paginate(10)->withQueryString();
+        $sortField = (string) $request->query('sort', 'created_at');
+        if (! in_array($sortField, ['created_at', 'status', 'id'], true)) {
+            $sortField = 'created_at';
+        }
+        $sortDirection = (string) $request->query('sort_direction', $request->query('direction', 'desc'));
+        $sortDirection = $sortDirection === 'asc' ? 'asc' : 'desc';
+        $requests = $requestsQuery->orderBy($sortField, $sortDirection)->orderBy('id', 'desc')->paginate(10)->withQueryString();
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
